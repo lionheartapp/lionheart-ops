@@ -1,19 +1,58 @@
+/**
+ * Event Project Service — Core CRUD & Approval Workflow
+ *
+ * This is the public API barrel for the EventProject domain.
+ * Sub-modules handle specific concerns:
+ *   - eventProject-gates.ts         — Gate types, builder, validation helpers
+ *   - eventProject-notifications.ts — Team notification dispatch
+ *   - eventProject-schedule.ts      — Schedule block & task CRUD, activity log queries
+ */
+
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import * as notificationService from '@/lib/services/notificationService'
 import type {
   CreateEventProjectInput,
   UpdateEventProjectInput,
-  CreateScheduleBlockInput,
-  UpdateScheduleBlockInput,
-  CreateEventTaskInput,
-  UpdateEventTaskInput,
 } from '@/lib/types/event-project'
+
+import {
+  buildApprovalGates,
+  isAdminGateActionable,
+  allGatesApproved,
+  type GateState,
+  type ApprovalGates,
+  type GateType,
+} from './eventProject-gates'
+
+import {
+  notifyTeamsOfPendingApproval,
+  notifyCreatorOfGateChange,
+} from './eventProject-notifications'
 
 // The db cast is needed because the org-scoped extension models are not in the generated PrismaClient type
 const db = prisma as unknown as OrgPrismaClient
 
 const log = logger.child({ service: 'eventProjectService' })
+
+// ─── Re-exports from sub-modules ────────────────────────────────────────────
+
+export type { GateState, ApprovalGates, GateType } from './eventProject-gates'
+export { buildApprovalGates, isAdminGateActionable, allGatesApproved } from './eventProject-gates'
+
+export {
+  notifyTeamsOfPendingApproval,
+  notifyCreatorOfGateChange,
+} from './eventProject-notifications'
+
+export {
+  getActivityLog,
+  createScheduleBlock,
+  updateScheduleBlock,
+  deleteScheduleBlock,
+  createEventTask,
+  updateEventTask,
+} from './eventProject-schedule'
 
 // ─── Activity Log ───────────────────────────────────────────────────────────
 
@@ -331,6 +370,8 @@ export async function updateEventProject(
   return updated
 }
 
+// ─── Approval Workflow ──────────────────────────────────────────────────────
+
 /**
  * Approves a PENDING_APPROVAL EventProject.
  *
@@ -414,69 +455,6 @@ export async function rejectEventProject(
   })
 
   return updated
-}
-
-// ─── Multi-Gate Approval Workflow ────────────────────────────────────────────
-
-/**
- * Gate state stored in EventProject.approvalGates JSON field.
- */
-export interface GateState {
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
-  respondedById?: string | null
-  respondedAt?: string | null
-  reason?: string | null
-}
-
-export interface ApprovalGates {
-  av?: GateState
-  facilities?: GateState
-  admin: GateState
-}
-
-export type GateType = 'av' | 'facilities' | 'admin'
-
-/**
- * Initializes approval gates on an EventProject when it's submitted.
- * Called from createEventProject for DIRECT_REQUEST source.
- *
- * Gate logic:
- * - requiresAV=true → creates an 'av' gate (PENDING)
- * - requiresFacilities=true → creates a 'facilities' gate (PENDING)
- * - Admin gate is always created but starts PENDING
- * - If no AV/Facilities needed, admin gate is immediately actionable
- */
-export function buildApprovalGates(requiresAV: boolean, requiresFacilities: boolean): ApprovalGates {
-  const gates: ApprovalGates = {
-    admin: { status: 'PENDING' },
-  }
-  if (requiresAV) {
-    gates.av = { status: 'PENDING' }
-  }
-  if (requiresFacilities) {
-    gates.facilities = { status: 'PENDING' }
-  }
-  return gates
-}
-
-/**
- * Check if prerequisite gates (AV, Facilities) are cleared,
- * meaning the Admin gate is actionable.
- */
-export function isAdminGateActionable(gates: ApprovalGates): boolean {
-  const avCleared = !gates.av || gates.av.status === 'APPROVED' || gates.av.status === 'SKIPPED'
-  const facilitiesCleared = !gates.facilities || gates.facilities.status === 'APPROVED' || gates.facilities.status === 'SKIPPED'
-  return avCleared && facilitiesCleared
-}
-
-/**
- * Check if ALL gates are approved (event can be confirmed).
- */
-export function allGatesApproved(gates: ApprovalGates): boolean {
-  const adminOk = gates.admin.status === 'APPROVED'
-  const avOk = !gates.av || gates.av.status === 'APPROVED' || gates.av.status === 'SKIPPED'
-  const facilitiesOk = !gates.facilities || gates.facilities.status === 'APPROVED' || gates.facilities.status === 'SKIPPED'
-  return adminOk && avOk && facilitiesOk
 }
 
 /**
@@ -690,89 +668,7 @@ export async function resubmitForApproval(
   return updated
 }
 
-// ─── Notification Helpers ────────────────────────────────────────────────────
-
-const GATE_TEAM_SLUGS: Record<string, string> = {
-  av: 'av-production',
-  facilities: 'facility-maintenance',
-}
-
-/**
- * Notifies team members when an event needs their approval gate.
- * Looks up team membership by slug and sends in-app notifications.
- */
-async function notifyTeamsOfPendingApproval(
-  eventTitle: string,
-  eventProjectId: string,
-  gates: ApprovalGates,
-): Promise<void> {
-  for (const [gateKey, gate] of Object.entries(gates)) {
-    if (!gate || gate.status !== 'PENDING' || gateKey === 'admin') continue
-
-    const teamSlug = GATE_TEAM_SLUGS[gateKey]
-    if (!teamSlug) continue
-
-    // Find team members via team slug
-    const team = await rawPrisma.team.findFirst({
-      where: { slug: teamSlug },
-      select: { id: true },
-    })
-    if (!team) continue
-
-    const members = await rawPrisma.userTeam.findMany({
-      where: { teamId: team.id },
-      select: { userId: true },
-    })
-
-    const gateLabel = gateKey === 'av' ? 'A/V Production' : 'Facilities'
-    const linkUrl = gateKey === 'av' ? '/av/event-approvals' : '/maintenance/event-approvals'
-
-    for (const member of members) {
-      notificationService.createNotification({
-        userId: member.userId,
-        type: 'event_invite', // Closest existing notification type
-        title: `Event needs ${gateLabel} approval`,
-        body: `"${eventTitle}" requires ${gateLabel} review before it can proceed.`,
-        linkUrl,
-      })
-    }
-  }
-}
-
-/**
- * Notifies the event creator when a gate status changes.
- */
-async function notifyCreatorOfGateChange(
-  eventProjectId: string,
-  gateType: GateType,
-  status: 'APPROVED' | 'REJECTED',
-  reason?: string,
-): Promise<void> {
-  const project = await db.eventProject.findUnique({
-    where: { id: eventProjectId },
-    select: { title: true, createdById: true },
-  })
-  if (!project?.createdById) return
-
-  const gateLabel = gateType === 'av' ? 'A/V Production' : gateType === 'facilities' ? 'Facilities' : 'Admin'
-  const notificationType = status === 'APPROVED' ? 'event_approved' : 'event_rejected'
-  const title = status === 'APPROVED'
-    ? `${gateLabel} approved your event "${project.title}"`
-    : `${gateLabel} sent back your event "${project.title}"`
-  const body = status === 'REJECTED' && reason
-    ? `Reason: ${reason}`
-    : status === 'APPROVED'
-      ? `The ${gateLabel} team has signed off.`
-      : undefined
-
-  notificationService.createNotification({
-    userId: project.createdById,
-    type: notificationType as 'event_approved' | 'event_rejected',
-    title,
-    body,
-    linkUrl: `/events/${eventProjectId}`,
-  })
-}
+// ─── Calendar Bridge ────────────────────────────────────────────────────────
 
 /**
  * Creates a CalendarEvent bridge record linking this EventProject to the calendar.
@@ -870,229 +766,6 @@ export async function confirmEventProject(
     bridgeCreated: true,
     restoredExisting: !!existingBridge,
   })
-}
-
-// ─── Activity Log Queries ───────────────────────────────────────────────────
-
-/**
- * Returns all activity log entries for an EventProject, newest first.
- */
-export async function getActivityLog(
-  eventProjectId: string,
-): Promise<Record<string, unknown>[]> {
-  return db.eventActivityLog.findMany({
-    where: { eventProjectId },
-    orderBy: { createdAt: 'desc' },
-    include: {
-      actor: { select: { id: true, firstName: true, lastName: true, email: true } },
-    },
-  })
-}
-
-// ─── Schedule Block CRUD ────────────────────────────────────────────────────
-
-/**
- * Creates a schedule block within an EventProject.
- */
-export async function createScheduleBlock(
-  eventProjectId: string,
-  data: CreateScheduleBlockInput,
-  actorId: string,
-): Promise<Record<string, unknown>> {
-  const block = await db.eventScheduleBlock.create({
-    data: {
-      eventProjectId,
-      type: data.type,
-      title: data.title,
-      description: data.description ?? null,
-      startsAt: data.startsAt,
-      endsAt: data.endsAt,
-      locationText: data.locationText ?? null,
-      leadId: data.leadId ?? null,
-      sortOrder: data.sortOrder ?? 0,
-      metadata: data.metadata ?? null,
-    },
-    include: {
-      lead: { select: { id: true, firstName: true, lastName: true } },
-    },
-  })
-
-  await appendActivityLog(eventProjectId, actorId, 'SCHEDULE_BLOCK_ADDED', {
-    blockId: block.id,
-    title: block.title,
-    type: block.type,
-    startsAt: block.startsAt,
-    endsAt: block.endsAt,
-  })
-
-  return block
-}
-
-/**
- * Updates a schedule block.
- */
-export async function updateScheduleBlock(
-  blockId: string,
-  data: UpdateScheduleBlockInput,
-  actorId: string,
-): Promise<Record<string, unknown>> {
-  const existing = await db.eventScheduleBlock.findUnique({ where: { id: blockId } })
-  if (!existing) throw new Error(`EventScheduleBlock not found: ${blockId}`)
-
-  const updateData: Record<string, unknown> = {}
-  const updatableFields: Array<keyof UpdateScheduleBlockInput> = [
-    'type',
-    'title',
-    'description',
-    'startsAt',
-    'endsAt',
-    'locationText',
-    'leadId',
-    'sortOrder',
-    'sectionId',
-    'metadata',
-  ]
-
-  for (const field of updatableFields) {
-    if (field in data) {
-      updateData[field] = (data as Record<string, unknown>)[field] ?? null
-    }
-  }
-
-  const updated = await db.eventScheduleBlock.update({
-    where: { id: blockId },
-    data: updateData,
-    include: {
-      lead: { select: { id: true, firstName: true, lastName: true } },
-    },
-  })
-
-  await appendActivityLog(existing.eventProjectId, actorId, 'SCHEDULE_BLOCK_UPDATED', {
-    blockId,
-    title: updated.title,
-  })
-
-  return updated
-}
-
-/**
- * Deletes a schedule block (hard delete — schedule blocks are not soft-deleted).
- */
-export async function deleteScheduleBlock(
-  blockId: string,
-  actorId: string,
-  eventProjectId: string,
-): Promise<void> {
-  const existing = await db.eventScheduleBlock.findUnique({ where: { id: blockId } })
-  if (!existing) throw new Error(`EventScheduleBlock not found: ${blockId}`)
-
-  await db.eventScheduleBlock.delete({ where: { id: blockId } })
-
-  await appendActivityLog(eventProjectId, actorId, 'SCHEDULE_BLOCK_REMOVED', {
-    blockId,
-    title: existing.title,
-    type: existing.type,
-  })
-}
-
-// ─── Event Task CRUD ─────────────────────────────────────────────────────────
-
-/**
- * Creates a task within an EventProject.
- */
-export async function createEventTask(
-  eventProjectId: string,
-  data: CreateEventTaskInput,
-  actorId: string,
-): Promise<Record<string, unknown>> {
-  const task = await db.eventTask.create({
-    data: {
-      eventProjectId,
-      title: data.title,
-      description: data.description ?? null,
-      status: data.status ?? 'TODO',
-      priority: data.priority ?? 'NORMAL',
-      category: data.category ?? null,
-      assigneeId: data.assigneeId ?? null,
-      dueDate: data.dueDate ?? null,
-      createdById: actorId,
-    },
-    include: {
-      assignee: { select: { id: true, firstName: true, lastName: true } },
-      createdBy: { select: { id: true, firstName: true, lastName: true } },
-    },
-  })
-
-  await appendActivityLog(eventProjectId, actorId, 'TASK_CREATED', {
-    taskId: task.id,
-    title: task.title,
-    priority: task.priority,
-    assigneeId: task.assigneeId,
-  })
-
-  return task
-}
-
-/**
- * Updates a task within an EventProject.
- * If status changes to DONE, sets completedAt and appends TASK_COMPLETED.
- * Otherwise appends TASK_UPDATED.
- */
-export async function updateEventTask(
-  taskId: string,
-  data: UpdateEventTaskInput,
-  actorId: string,
-  eventProjectId: string,
-): Promise<Record<string, unknown>> {
-  const existing = await db.eventTask.findUnique({ where: { id: taskId } })
-  if (!existing) throw new Error(`EventTask not found: ${taskId}`)
-
-  const updateData: Record<string, unknown> = {}
-  const updatableFields: Array<keyof UpdateEventTaskInput> = [
-    'title',
-    'description',
-    'status',
-    'priority',
-    'category',
-    'assigneeId',
-    'dueDate',
-  ]
-
-  for (const field of updatableFields) {
-    if (field in data) {
-      updateData[field] = (data as Record<string, unknown>)[field] ?? null
-    }
-  }
-
-  const isCompletingNow = data.status === 'DONE' && existing.status !== 'DONE'
-  if (isCompletingNow) {
-    updateData.completedAt = new Date()
-  }
-
-  const updated = await db.eventTask.update({
-    where: { id: taskId },
-    data: updateData,
-    include: {
-      assignee: { select: { id: true, firstName: true, lastName: true } },
-      createdBy: { select: { id: true, firstName: true, lastName: true } },
-    },
-  })
-
-  if (isCompletingNow) {
-    await appendActivityLog(eventProjectId, actorId, 'TASK_COMPLETED', {
-      taskId,
-      title: updated.title,
-      completedAt: updated.completedAt,
-    })
-  } else {
-    await appendActivityLog(eventProjectId, actorId, 'TASK_UPDATED', {
-      taskId,
-      title: updated.title,
-      changes: Object.keys(updateData),
-    })
-  }
-
-  return updated
 }
 
 // ─── Auto Conflict Detection ─────────────────────────────────────────────────

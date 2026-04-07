@@ -47,25 +47,13 @@ import { useQuery } from '@tanstack/react-query'
 // queryOptions removed — userCampuses uses inline fetch
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
-import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Calendar as CalendarIcon, Loader2, Check, X, Download, Users, CalendarDays } from 'lucide-react'
-import { IllustrationCalendar } from '@/components/illustrations'
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
+import { Download } from 'lucide-react'
+import { MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
-
-const COLOR_PRESETS = [
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Slate', value: '#64748b' },
-]
+import CreateCalendarDrawer from './CreateCalendarDrawer'
+import SlotChoiceModal from './SlotChoiceModal'
+import EmptyCalendarState from './EmptyCalendarState'
 
 export default function CalendarView() {
   const {
@@ -809,83 +797,19 @@ export default function CalendarView() {
   // Empty state — no calendars (don't flash while still loading)
   if (!calendarsLoading && calendars.length === 0) {
     return (
-      <div className="flex items-center justify-center h-96 text-center">
-        <div>
-          <IllustrationCalendar className="w-52 h-44 mx-auto mb-2" />
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">No calendars yet</h2>
-          <p className="text-slate-500 mb-6 max-w-sm">
-            Create your first calendar to start organizing events for your school.
-          </p>
-          {!showCreateCalendar ? (
-            <button
-              onClick={() => setShowCreateCalendar(true)}
-              className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-full hover:bg-slate-800 transition-colors"
-            >
-              Create Calendar
-            </button>
-          ) : (
-            <div className="max-w-sm mx-auto space-y-5 text-left">
-              <FloatingInput
-                id="empty-cal-name"
-                label="Calendar name"
-                value={newCalendarName}
-                onChange={(e) => setNewCalendarName(e.target.value)}
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
-              />
-              <FloatingDropdown
-                id="empty-cal-type"
-                label="Type"
-                value={newCalendarType}
-                onChange={(v) => setNewCalendarType(v)}
-                options={[
-                  { value: 'GENERAL', label: 'General' },
-                  { value: 'ACADEMIC', label: 'Academic' },
-                  { value: 'STAFF', label: 'Staff' },
-                  { value: 'ATHLETICS', label: 'Athletics' },
-                  { value: 'PARENT_FACING', label: 'Parent-Facing' },
-                  { value: 'TIMETABLE', label: 'Timetable' },
-                ]}
-              />
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-2">Color</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {COLOR_PRESETS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setNewCalendarColor(c.value)}
-                      className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400"
-                      style={{ backgroundColor: c.value }}
-                      title={c.name}
-                    >
-                      {newCalendarColor === c.value && (
-                        <Check className="w-3.5 h-3.5 text-white" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setShowCreateCalendar(false); setNewCalendarColor('#3b82f6') }}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateCalendar}
-                  disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Create
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <EmptyCalendarState
+        showCreateForm={showCreateCalendar}
+        onShowCreateForm={() => setShowCreateCalendar(true)}
+        calendarName={newCalendarName}
+        onCalendarNameChange={setNewCalendarName}
+        calendarType={newCalendarType}
+        onCalendarTypeChange={setNewCalendarType}
+        calendarColor={newCalendarColor}
+        onCalendarColorChange={setNewCalendarColor}
+        onCreateCalendar={handleCreateCalendar}
+        onCancel={() => { setShowCreateCalendar(false); setNewCalendarColor('#3b82f6') }}
+        isPending={createCalendar.isPending}
+      />
     )
   }
 
@@ -1053,105 +977,18 @@ export default function CalendarView() {
       />
 
       {/* Create Calendar Drawer */}
-      <AnimatePresence>
-        {showCreateCalendar && calendars.length > 0 && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 z-40"
-              onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-            />
-
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-[420px] ui-glass-overlay z-50 flex flex-col sm:rounded-2xl"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 pt-5 pb-3">
-                <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">
-                  New Calendar
-                </span>
-                <button
-                  onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-                  className="p-2.5 rounded-full hover:bg-slate-100 transition-colors"
-                  aria-label="Close"
-                >
-                  <X className="w-4 h-4 text-slate-400" />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-5">
-                <FloatingInput
-                  id="drawer-cal-name"
-                  label="Calendar name"
-                  value={newCalendarName}
-                  onChange={(e) => setNewCalendarName(e.target.value)}
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreateCalendar()}
-                />
-                <FloatingDropdown
-                  id="drawer-cal-type"
-                  label="Type"
-                  value={newCalendarType}
-                  onChange={(v) => setNewCalendarType(v)}
-                  options={[
-                    { value: 'GENERAL', label: 'General' },
-                    { value: 'ACADEMIC', label: 'Academic' },
-                    { value: 'STAFF', label: 'Staff' },
-                    { value: 'ATHLETICS', label: 'Athletics' },
-                    { value: 'PARENT_FACING', label: 'Parent-Facing' },
-                    { value: 'TIMETABLE', label: 'Timetable' },
-                  ]}
-                />
-                <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-2">Color</label>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {COLOR_PRESETS.map((c) => (
-                      <button
-                        key={c.value}
-                        type="button"
-                        onClick={() => setNewCalendarColor(c.value)}
-                        className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400"
-                        style={{ backgroundColor: c.value }}
-                        title={c.name}
-                      >
-                        {newCalendarColor === c.value && (
-                          <Check className="w-3.5 h-3.5 text-white" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 pb-6 pt-2 space-y-3">
-                <button
-                  onClick={handleCreateCalendar}
-                  disabled={!newCalendarName.trim() || createCalendar.isPending}
-                  className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                >
-                  {createCalendar.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Create Calendar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-                  className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors py-1"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <CreateCalendarDrawer
+        isOpen={showCreateCalendar && calendars.length > 0}
+        onClose={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
+        calendarName={newCalendarName}
+        onCalendarNameChange={setNewCalendarName}
+        calendarType={newCalendarType}
+        onCalendarTypeChange={setNewCalendarType}
+        calendarColor={newCalendarColor}
+        onCalendarColorChange={setNewCalendarColor}
+        onCreateCalendar={handleCreateCalendar}
+        isPending={createCalendar.isPending}
+      />
 
       {/* Recurring event delete mode dialog — shown first for recurring events */}
       <RecurringEditDialog
@@ -1254,80 +1091,13 @@ export default function CalendarView() {
       )}
 
       {/* Create choice modal — shown when user clicks an empty calendar slot */}
-      <AnimatePresence>
-        {choiceModalOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-50"
-              onClick={() => setChoiceModalOpen(false)}
-            />
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 8 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-            >
-              <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden pointer-events-auto">
-                {/* Header */}
-                <div className="px-5 pt-5 pb-4 border-b border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-900">What are you creating?</h3>
-                      {choiceModalStart && (
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {choiceModalStart.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setChoiceModalOpen(false)}
-                      className="p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Options */}
-                <div className="p-3 space-y-2">
-                  <button
-                    onClick={handleChoiceMeeting}
-                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-all text-left group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
-                      <Users className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">Schedule Meeting</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Informal — added instantly, no approval</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleChoicePlanEvent}
-                    className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-primary-50 border border-transparent hover:border-primary-100 transition-all text-left group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
-                      <CalendarDays className="w-5 h-5 text-primary-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">Plan Event</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Formal — AV, facilities &amp; admin approval</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <SlotChoiceModal
+        isOpen={choiceModalOpen}
+        onClose={() => setChoiceModalOpen(false)}
+        slotStart={choiceModalStart}
+        onChooseMeeting={handleChoiceMeeting}
+        onChoosePlanEvent={handleChoicePlanEvent}
+      />
     </div>
     </MotionConfig>
   )
