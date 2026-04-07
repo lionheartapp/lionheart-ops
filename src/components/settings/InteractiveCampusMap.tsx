@@ -1,297 +1,20 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { MapPin, Loader2, Plus, Save, Layers, Maximize2, Sparkles, X, Check, TreePine, Pencil, RotateCcw, Building2 } from 'lucide-react'
+import { MapPin, Loader2, Building2, TreePine } from 'lucide-react'
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
-interface LatLng {
-  lat: number
-  lng: number
-}
-
-interface Building {
-  id: string
-  name: string
-  code: string | null
-  latitude: number | null
-  longitude: number | null
-  schoolDivision?: string
-  school?: { color?: string } | null
-  polygonCoordinates?: LatLng[] | null
-}
-
-interface OutdoorSpace {
-  id: string
-  name: string
-  areaType: string
-  lat: number | null
-  lng: number | null
-  polygonCoordinates?: LatLng[] | null
-}
-
-interface MapConfig {
-  center: { lat: number; lng: number }
-  address: string | null
-  orgName: string
-}
-
-interface InteractiveCampusMapProps {
-  buildings: Building[]
-  outdoorSpaces?: OutdoorSpace[]
-  schools?: { name: string; color: string; gradeLevel?: string }[]
-  mapCenter?: { lat: number; lng: number; name: string; address: string | null } | null
-  campusId?: string
-  onBuildingPositionChange?: (buildingId: string, lat: number, lng: number) => void
-  onAddBuildingAtPosition?: (lat: number, lng: number) => void
-  onAddOutdoorSpaceAtPosition?: (lat: number, lng: number) => void
-  onBuildingSelected?: (buildingId: string) => void
-  onEditBuilding?: (buildingId: string) => void
-  onDeleteBuilding?: (buildingId: string) => void
-  onManageRooms?: (buildingId: string) => void
-  onEditOutdoor?: (outdoorId: string) => void
-  onDeleteOutdoor?: (outdoorId: string) => void
-  onPolygonSaved?: (buildingId: string, coordinates: LatLng[]) => void
-  onOutdoorPolygonSaved?: (areaId: string, coordinates: LatLng[]) => void
-  onOrgCenterChange?: (lat: number, lng: number) => void
-  onOutdoorPositionChange?: (areaId: string, lat: number, lng: number) => void
-  editable?: boolean
-  pendingMarker?: { lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null
-  quickPlaceMode?: 'building' | 'outdoor' | null
-  onQuickPlaceDone?: () => void
-}
-
-/* ------------------------------------------------------------------ */
-/*  Leaflet CDN loader                                                 */
-/* ------------------------------------------------------------------ */
-
-let leafletLoaded = false
-let leafletPromise: Promise<void> | null = null
-
-function loadLeaflet(): Promise<void> {
-  if (leafletLoaded && (window as any).L) return Promise.resolve()
-  if (leafletPromise) return leafletPromise
-
-  leafletPromise = new Promise<void>((resolve, reject) => {
-    if (!document.querySelector('link[href*="leaflet"]')) {
-      const link = document.createElement('link')
-      link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-      link.crossOrigin = ''
-      document.head.appendChild(link)
-    }
-
-    if ((window as any).L) {
-      leafletLoaded = true
-      resolve()
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-    script.crossOrigin = ''
-    script.onload = () => {
-      leafletLoaded = true
-      resolve()
-    }
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-
-  return leafletPromise
-}
-
-/* ------------------------------------------------------------------ */
-/*  Division-based color mapping                                       */
-/* ------------------------------------------------------------------ */
-
-const DIVISION_COLORS: Record<string, string> = {
-  ELEMENTARY: '#7c3aed',   // Purple
-  MIDDLE_SCHOOL: '#0891b2', // Cyan
-  HIGH_SCHOOL: '#dc2626',   // Red
-  GLOBAL: '#2563eb',        // Blue (default)
-}
-
-const OUTDOOR_TYPE_COLORS: Record<string, string> = {
-  FIELD: '#16a34a',    // Green
-  COURT: '#ea580c',    // Orange
-  GYM: '#dc2626',      // Red
-  COMMON: '#0891b2',   // Cyan
-  PARKING: '#6b7280',  // Gray
-  OTHER: '#059669',    // Emerald
-}
-
-function getBuildingColor(building: Building, schoolColorByDivision?: Record<string, string>): string {
-  return building.school?.color
-    || schoolColorByDivision?.[building.schoolDivision || '']
-    || DIVISION_COLORS[building.schoolDivision || 'GLOBAL']
-    || DIVISION_COLORS.GLOBAL
-}
-
-function getOutdoorColor(space: OutdoorSpace): string {
-  return OUTDOOR_TYPE_COLORS[space.areaType] || OUTDOOR_TYPE_COLORS.OTHER
-}
-
-/* ------------------------------------------------------------------ */
-/*  Custom marker icon builders                                        */
-/* ------------------------------------------------------------------ */
-
-/** Circular icon for buildings — matches school center style but in building color */
-function createBuildingCircleIcon(L: any, label: string, color = '#2563eb') {
-  return L.divIcon({
-    className: 'campus-building-marker',
-    html: `
-      <div style="
-        display: flex; align-items: center; justify-content: center;
-        transform: translate(-50%, -50%);
-      ">
-        <div style="
-          display: flex; align-items: center; justify-content: center;
-          width: 32px; height: 32px; border-radius: 50%;
-          background: ${color}; border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          flex-shrink: 0;
-        ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-            <path d="M9 22V12h6v10"/>
-            <path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01"/>
-          </svg>
-        </div>
-      </div>
-    `,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-  })
-}
-
-/** Get SVG icon for outdoor spaces based on name and areaType */
-function getOutdoorSvgIcon(name: string, areaType: string): string {
-  const nameLower = name.toLowerCase()
-
-  // Check name for keywords first
-  if (nameLower.includes('tennis')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M5 19c2-2 4-3 7-3s5 1 7 3"/></svg>'
-  }
-  if (nameLower.includes('football')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9M5 12h14M8 9h.01M8 15h.01M16 9h.01M16 15h.01"/></svg>'
-  }
-  if (nameLower.includes('baseball') || nameLower.includes('softball')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M6 12c0 1.5 1 3 2 4M18 12c0 1.5-1 3-2 4M6 12c0-1.5 1-3 2-4M18 12c0-1.5-1-3-2-4"/></svg>'
-  }
-  if (nameLower.includes('basketball')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>'
-  }
-  if (nameLower.includes('soccer')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 9v6M15 12h-6M13 10l-2 2M13 14l-2-2"/></svg>'
-  }
-  if (nameLower.includes('track') || nameLower.includes('running')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><path d="M4 14c1 1 2 1 3 0m-1 2 2-2m3 7s.75-1.5 2-1.5 2 1.5 2 1.5"/></svg>'
-  }
-  if (nameLower.includes('pool') || nameLower.includes('swim')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10c0 0 1-2 4-2s4 2 4 2M12 10c0 0 1-2 4-2s4 2 4 2M4 14c0 0 1-2 4-2s4 2 4 2M12 14c0 0 1-2 4-2s4 2 4 2"/></svg>'
-  }
-  if (nameLower.includes('parking')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>'
-  }
-  if (nameLower.includes('gym') || nameLower.includes('weight')) {
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>'
-  }
-
-  // Fallback based on areaType
-  switch (areaType) {
-    case 'COURT':
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg>'
-    case 'GYM':
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>'
-    case 'COMMON':
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
-    case 'PARKING':
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>'
-    case 'FIELD':
-    case 'OTHER':
-    default:
-      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.1 0 2 .9 2 2 0 2.3 1.5 4.3 3.5 5-2 .7-3.5 2.7-3.5 5 0 1.1-.9 2-2 2s-2-.9-2-2c0-2.3-1.5-4.3-3.5-5 2-.7 3.5-2.7 3.5-5 0-1.1.9-2 2-2z"/></svg>'
-  }
-}
-
-/** Circular icon for outdoor spaces */
-function createOutdoorIcon(L: any, name: string, areaType: string, color = '#16a34a') {
-  const svgIcon = getOutdoorSvgIcon(name, areaType)
-
-  return L.divIcon({
-    className: 'campus-outdoor-marker',
-    html: `
-      <div style="
-        display: flex; align-items: center; justify-content: center;
-        transform: translate(-50%, -50%);
-      ">
-        <div style="
-          display: flex; align-items: center; justify-content: center;
-          width: 28px; height: 28px; border-radius: 50%;
-          background: ${color}; border: 2px solid white;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          flex-shrink: 0;
-        ">
-          ${svgIcon}
-        </div>
-      </div>
-    `,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-  })
-}
-
-function createOrgIcon(L: any) {
-  return L.divIcon({
-    className: 'campus-org-marker',
-    html: `
-      <div style="
-        display: flex; align-items: center; justify-content: center;
-        width: 40px; height: 40px; border-radius: 50%;
-        background: #dc2626; border: 3px solid white;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-        transform: translate(-50%, -50%);
-        cursor: grab;
-      ">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Polygon label icon                                                 */
-/* ------------------------------------------------------------------ */
-
-function createPolygonLabel(L: any, name: string, color: string) {
-  return L.divIcon({
-    className: 'campus-polygon-label',
-    html: `
-      <div style="
-        background: ${color}; color: white;
-        padding: 2px 8px; border-radius: 4px;
-        font-size: 11px; font-weight: 700;
-        white-space: nowrap;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.5);
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-      ">
-        ${name}
-      </div>
-    `,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-  })
-}
+import type { LatLng, MapBuilding, OutdoorSpace, MapConfig, InteractiveCampusMapProps } from './campus/map-types'
+import { loadLeaflet } from './campus/leaflet-loader'
+import {
+  getBuildingColor,
+  getOutdoorColor,
+  createBuildingCircleIcon,
+  createOutdoorIcon,
+  createOrgIcon,
+  createPolygonLabel,
+} from './campus/map-icons'
+import MapToolbar from './campus/MapToolbar'
+import MapLegend from './campus/MapLegend'
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -457,7 +180,7 @@ export default function InteractiveCampusMap({
       mapInstanceRef.current = map
 
       // Fix container size so tiles load at the correct dimensions.
-      // Without this, Leaflet may see a 0×0 or partially-laid-out
+      // Without this, Leaflet may see a 0x0 or partially-laid-out
       // container and request the wrong tiles (grey map).
       // A single rAF isn't enough when the container starts hidden
       // (e.g. inside a CSS `hidden` tab), so we also use a
@@ -542,7 +265,7 @@ export default function InteractiveCampusMap({
 
   /* ── Add building as polygon overlay ─────────────────────────────── */
 
-  const addBuildingPolygon = useCallback((L: any, map: any, building: Building, color: string) => {
+  const addBuildingPolygon = useCallback((L: any, map: any, building: MapBuilding, color: string) => {
     if (!building.polygonCoordinates || building.polygonCoordinates.length < 3) return
 
     const coords = building.polygonCoordinates.map((p: LatLng) => [p.lat, p.lng])
@@ -579,7 +302,7 @@ export default function InteractiveCampusMap({
 
   /* ── Add building as marker (no polygon yet) ─────────────────────── */
 
-  const addBuildingMarker = useCallback((L: any, map: any, building: Building, color: string) => {
+  const addBuildingMarker = useCallback((L: any, map: any, building: MapBuilding, color: string) => {
     if (!building.latitude || !building.longitude) return
 
     const marker = L.marker([building.latitude, building.longitude], {
@@ -1334,132 +1057,31 @@ export default function InteractiveCampusMap({
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-primary-600" />
-          <span className="text-sm font-medium text-slate-700">Campus Map</span>
-          {mapConfig?.address && (
-            <span className="text-xs text-slate-500 ml-2 hidden sm:inline">{mapConfig.address}</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Drawing mode controls */}
-          {drawingMode && (
-            <>
-              <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-primary-100 text-primary-800 rounded-lg border border-primary-200">
-                <span>{drawingMode.points.length} / 3+ points</span>
-              </div>
-              <button
-                onClick={finishDrawing}
-                disabled={drawingMode.points.length < 3}
-                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  drawingMode.points.length < 3
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
-              >
-                <Check className="w-3.5 h-3.5" />
-                Done
-              </button>
-              <button
-                onClick={undoDrawingPoint}
-                disabled={drawingMode.points.length === 0}
-                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  drawingMode.points.length === 0
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Undo
-              </button>
-              <button
-                onClick={clearDrawingMode}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-                Cancel
-              </button>
-            </>
-          )}
-
-          {/* Editing polygon controls */}
-          {editingPolygon && !drawingMode && (
-            <>
-              <button
-                onClick={handleSavePolygon}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <Check className="w-3.5 h-3.5" />
-                Save Outline
-              </button>
-              <button
-                onClick={handleCancelPolygon}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-                Cancel
-              </button>
-            </>
-          )}
-
-          {/* Detecting indicator */}
-          {detectingId && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-purple-100 text-purple-800 rounded-lg border border-purple-200">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              AI detecting outline...
-            </div>
-          )}
-
-          {!editingPolygon && !detectingId && (
-            <>
-              {editable && pendingMoves.size > 0 && (
-                <button
-                  onClick={handleSavePositions}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-colors"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Save {pendingMoves.size} change{pendingMoves.size > 1 ? 's' : ''}
-                </button>
-              )}
-
-              {editable && (onAddBuildingAtPosition || onAddOutdoorSpaceAtPosition) && (
-                <button
-                  disabled={!!drawingMode || !!editingPolygon}
-                  onClick={() => {
-                    if (placingMode) {
-                      setPlacingMode(null)
-                      setClickPopover(null)
-                    } else {
-                      setPlacingMode('unified')
-                    }
-                  }}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-full border transition-all duration-200 ${
-                    drawingMode || editingPolygon
-                      ? 'bg-slate-200 text-slate-400 border-slate-200 cursor-not-allowed'
-                      : placingMode
-                        ? 'bg-primary-100 text-primary-800 border-primary-300'
-                        : 'bg-primary-600 text-white border-primary-600 hover:bg-primary-700 hover:border-primary-700'
-                  }`}
-                >
-                  <Plus className="w-4 h-4" style={{ transition: 'transform 200ms', transform: placingMode ? 'rotate(45deg)' : 'rotate(0deg)' }} />
-                  {placingMode ? 'Cancel Placement' : 'Add to Map'}
-                </button>
-              )}
-
-              <button
-                onClick={fitAllMarkers}
-                className="flex items-center justify-center w-11 h-11 text-sm font-medium bg-white text-slate-600 border border-slate-300 rounded-full hover:bg-slate-50 transition-colors"
-                title="Fit all buildings"
-                aria-label="Fit all buildings"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      <MapToolbar
+        mapAddress={mapConfig?.address ?? null}
+        editable={editable}
+        drawingMode={drawingMode}
+        onFinishDrawing={finishDrawing}
+        onUndoDrawingPoint={undoDrawingPoint}
+        onClearDrawingMode={clearDrawingMode}
+        editingPolygon={editingPolygon}
+        onSavePolygon={handleSavePolygon}
+        onCancelPolygon={handleCancelPolygon}
+        detectingId={detectingId}
+        pendingMovesCount={pendingMoves.size}
+        onSavePositions={handleSavePositions}
+        placingMode={placingMode}
+        onTogglePlacingMode={() => {
+          if (placingMode) {
+            setPlacingMode(null)
+            setClickPopover(null)
+          } else {
+            setPlacingMode('unified')
+          }
+        }}
+        canPlace={!!(onAddBuildingAtPosition || onAddOutdoorSpaceAtPosition)}
+        onFitAllMarkers={fitAllMarkers}
+      />
 
       {/* Map container */}
       <div className="relative">
@@ -1531,34 +1153,12 @@ export default function InteractiveCampusMap({
         )}
       </div>
 
-      {/* Legend — only show when there are buildings or outdoor spaces on the map */}
-      {(buildings.some(b => b.latitude && b.longitude) || outdoorSpaces.some(s => s.lat && s.lng)) && (
-        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-slate-200 bg-slate-50 text-xs text-slate-500">
-          <div className="flex items-center gap-3">
-            {buildings.some(b => b.latitude && b.longitude && !b.schoolDivision) && (
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: DIVISION_COLORS.GLOBAL }} />
-                <span>Global</span>
-              </div>
-            )}
-            {schools.filter(s => buildings.some(b => b.latitude && b.longitude && b.schoolDivision === s.gradeLevel)).map((s) => (
-              <div key={s.name} className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-                <span>{s.name}</span>
-              </div>
-            ))}
-            {outdoorSpaces.some(s => s.lat && s.lng) && (
-              <>
-                {buildings.some(b => b.latitude && b.longitude) && <span className="text-slate-400">|</span>}
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#16a34a' }} />
-                  <span>Outdoor</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Legend */}
+      <MapLegend
+        buildings={buildings}
+        outdoorSpaces={outdoorSpaces}
+        schools={schools}
+      />
 
       {/* Status bar */}
       {(editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (

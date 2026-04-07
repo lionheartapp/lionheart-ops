@@ -79,7 +79,7 @@ export default function SupportPage() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             {loading ? (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-500"><div class="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-500"><div className="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
             ) : tickets.length === 0 ? (
               <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-500">
                 <LifeBuoy size={24} className="mx-auto mb-2 text-slate-600" />

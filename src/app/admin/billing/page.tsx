@@ -54,7 +54,7 @@ export default function BillingPage() {
           </thead>
           <tbody className="divide-y divide-slate-800">
             {loading ? (
-              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500"><div class="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
+              <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500"><div className="w-6 h-6 mx-auto rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></td></tr>
             ) : payments.length === 0 ? (
               <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-500">No payments yet</td></tr>
             ) : (
