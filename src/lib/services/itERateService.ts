@@ -5,11 +5,14 @@
  * and documentation package generation. Uses rawPrisma for all queries.
  */
 
-import { rawPrisma } from '@/lib/db'
+import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import { jsPDF } from 'jspdf'
 import { createNotification, createBulkNotifications } from '@/lib/services/notificationService'
 import { getOrgToday, formatInTimezone } from '@/lib/utils/timezone'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'itERateService' })
 // ─── Static Task Definitions ──────────────────────────────────────────────────
 
 const ERATE_TASK_DEFINITIONS = [
@@ -147,7 +150,7 @@ export async function seedERateCalendar(orgId: string, schoolYear: string): Prom
   for (const def of ERATE_TASK_DEFINITIONS) {
     const dueDate = computeDueDate(schoolYear, def.defaultMonth, def.defaultDay)
 
-    await (rawPrisma.iTERateTask as any).upsert({
+    await (rawPrisma.iTERateTask as unknown as PrismaDelegate).upsert({
       where: {
         organizationId_taskType_schoolYear: {
           organizationId: orgId,
@@ -186,7 +189,7 @@ export async function getERateTasks(
 ): Promise<ERateTaskWithStatus[]> {
   const targetYear = schoolYear || getCurrentSchoolYear()
 
-  const tasks = await (rawPrisma.iTERateTask as any).findMany({
+  const tasks = await (rawPrisma.iTERateTask as unknown as PrismaDelegate).findMany({
     where: {
       organizationId: orgId,
       schoolYear: targetYear,
@@ -203,21 +206,21 @@ export async function getERateTasks(
     orderBy: { dueDate: 'asc' },
   })
 
-  return tasks.map((task: any) => ({
-    id: task.id,
-    taskType: task.taskType,
-    title: task.title,
-    description: task.description,
-    dueDate: task.dueDate,
-    completedAt: task.completedAt,
-    completedById: task.completedById,
-    completedBy: task.completedBy,
-    documentUrls: task.documentUrls || [],
-    notes: task.notes,
-    schoolYear: task.schoolYear,
-    status: computeTaskStatus(task.completedAt, task.dueDate),
-    daysUntilDue: computeDaysUntilDue(task.dueDate),
-    documentCount: task._count?.documents ?? 0,
+  return tasks.map((task: Record<string, unknown>) => ({
+    id: task.id as string,
+    taskType: task.taskType as string,
+    title: task.title as string,
+    description: task.description as string | null,
+    dueDate: task.dueDate as Date,
+    completedAt: task.completedAt as Date | null,
+    completedById: task.completedById as string | null,
+    completedBy: task.completedBy as { firstName: string; lastName: string } | null,
+    documentUrls: (task.documentUrls as string[]) || [],
+    notes: task.notes as string | null,
+    schoolYear: task.schoolYear as string,
+    status: computeTaskStatus(task.completedAt as Date | null, task.dueDate as Date),
+    daysUntilDue: computeDaysUntilDue(task.dueDate as Date),
+    documentCount: (task._count as { documents?: number } | null)?.documents ?? 0,
   }))
 }
 
@@ -230,9 +233,9 @@ export async function completeERateTask(
   taskId: string,
   userId: string,
   data: { documentUrls?: string[]; notes?: string }
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   // Fetch existing task to merge documentUrls
-  const existing = await (rawPrisma.iTERateTask as any).findFirst({
+  const existing = await (rawPrisma.iTERateTask as unknown as PrismaDelegate).findFirst({
     where: {
       id: taskId,
       organizationId: orgId,
@@ -249,7 +252,7 @@ export async function completeERateTask(
     ...(data.documentUrls || []),
   ]
 
-  const updated = await (rawPrisma.iTERateTask as any).update({
+  const updated = await (rawPrisma.iTERateTask as unknown as PrismaDelegate).update({
     where: { id: taskId },
     data: {
       completedAt: new Date(),
@@ -274,8 +277,8 @@ export async function completeERateTask(
 export async function getERateDocuments(
   orgId: string,
   filters: { schoolYear?: string; taskId?: string }
-): Promise<any[]> {
-  const where: any = {
+): Promise<Array<Record<string, unknown>>> {
+  const where: Record<string, unknown> = {
     organizationId: orgId,
   }
 
@@ -286,7 +289,7 @@ export async function getERateDocuments(
     where.taskId = filters.taskId
   }
 
-  const documents = await (rawPrisma.iTERateDocument as any).findMany({
+  const documents = await (rawPrisma.iTERateDocument as unknown as PrismaDelegate).findMany({
     where,
     include: {
       uploadedBy: {
@@ -318,13 +321,13 @@ export async function uploadERateDocument(
     tags?: string[]
     retentionYears?: number
   }
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   const retentionYears = data.retentionYears ?? 10
   const now = new Date()
   const retentionUntil = new Date(now)
   retentionUntil.setFullYear(retentionUntil.getFullYear() + retentionYears)
 
-  const document = await (rawPrisma.iTERateDocument as any).create({
+  const document = await (rawPrisma.iTERateDocument as unknown as PrismaDelegate).create({
     data: {
       organizationId: orgId,
       title: data.title,
@@ -368,21 +371,21 @@ export async function generateERateDocPackage(
       where: { id: orgId },
       select: { name: true },
     }),
-    (rawPrisma.iTERateTask as any).findMany({
+    (rawPrisma.iTERateTask as unknown as PrismaDelegate).findMany({
       where: { organizationId: orgId, schoolYear, deletedAt: null },
       include: {
         completedBy: { select: { firstName: true, lastName: true } },
       },
       orderBy: { dueDate: 'asc' },
     }),
-    (rawPrisma.iTContentFilterEvent as any).count({
+    (rawPrisma.iTContentFilterEvent as unknown as PrismaDelegate).count({
       where: { organizationId: orgId },
     }),
-    (rawPrisma.iTDevice as any).findMany({
+    (rawPrisma.iTDevice as unknown as PrismaDelegate).findMany({
       where: { organizationId: orgId, deletedAt: null },
       select: { status: true },
     }),
-    (rawPrisma.iTERateDocument as any).findMany({
+    (rawPrisma.iTERateDocument as unknown as PrismaDelegate).findMany({
       where: { organizationId: orgId, schoolYear },
       include: {
         uploadedBy: { select: { firstName: true, lastName: true } },
@@ -394,7 +397,7 @@ export async function generateERateDocPackage(
 
   const orgName = org?.name || 'Organization'
   const totalDevices = deviceStats.length
-  const activeDevices = deviceStats.filter((d: any) => d.status === 'ACTIVE').length
+  const activeDevices = deviceStats.filter((d: Record<string, unknown>) => d.status === 'ACTIVE').length
 
   // ─── Build PDF ────────────────────────────────────────────────────────────
 
@@ -558,10 +561,10 @@ export async function generateERateDocPackage(
 export async function sendERateReminders(orgId?: string): Promise<void> {
   try {
     // Build the org filter
-    const orgFilter: any = orgId ? { organizationId: orgId } : {}
+    const orgFilter: Record<string, unknown> = orgId ? { organizationId: orgId } : {}
 
     // Find all incomplete E-Rate tasks that are not deleted
-    const tasks = await (rawPrisma.iTERateTask as any).findMany({
+    const tasks = await (rawPrisma.iTERateTask as unknown as PrismaDelegate).findMany({
       where: {
         ...orgFilter,
         completedAt: null,
@@ -572,7 +575,7 @@ export async function sendERateReminders(orgId?: string): Promise<void> {
     const now = new Date()
 
     // Group tasks by org for efficient user lookups
-    const tasksByOrg = new Map<string, any[]>()
+    const tasksByOrg = new Map<string, Array<Record<string, unknown>>>()
     for (const task of tasks) {
       const existingTasks = tasksByOrg.get(task.organizationId) || []
       existingTasks.push(task)
@@ -585,10 +588,10 @@ export async function sendERateReminders(orgId?: string): Promise<void> {
       if (erateUsers.length === 0) continue
 
       for (const task of orgTasks) {
-        const daysLeft = computeDaysUntilDue(task.dueDate)
+        const daysLeft = computeDaysUntilDue(task.dueDate as Date)
         if (daysLeft < 0) continue // Already overdue, skip reminders
 
-        const dueDateStr = new Date(task.dueDate).toLocaleDateString('en-US', {
+        const dueDateStr = new Date(task.dueDate as string | number | Date).toLocaleDateString('en-US', {
           month: 'long',
           day: 'numeric',
           year: 'numeric',
@@ -606,7 +609,7 @@ export async function sendERateReminders(orgId?: string): Promise<void> {
         for (const tier of tiers) {
           if (daysLeft <= tier.days && !task[tier.flag]) {
             // Update the flag
-            await (rawPrisma.iTERateTask as any).update({
+            await (rawPrisma.iTERateTask as unknown as PrismaDelegate).update({
               where: { id: task.id },
               data: { [tier.flag]: true },
             })
@@ -615,7 +618,7 @@ export async function sendERateReminders(orgId?: string): Promise<void> {
             await createBulkNotifications(
               erateUsers.map((u) => ({
                 userId: u.id,
-                type: 'erate_reminder' as any,
+                type: 'erate_reminder' as const,
                 title: `E-Rate Deadline: ${task.title}`,
                 body: `${daysLeft} days remaining to complete ${task.title} (due ${dueDateStr})`,
                 linkUrl: '/it?tab=erate',
@@ -626,6 +629,6 @@ export async function sendERateReminders(orgId?: string): Promise<void> {
       }
     }
   } catch (err) {
-    console.error('[ERateService] sendERateReminders failed:', err)
+    log.error({ err: String(err) }, 'sendERateReminders failed')
   }
 }

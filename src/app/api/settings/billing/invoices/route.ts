@@ -4,6 +4,7 @@ import { rawPrisma } from '@/lib/db'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -67,7 +68,7 @@ export const GET = withAuth(async ({ orgId }) => {
 
       return NextResponse.json(ok({ invoices }))
     } catch (stripeError) {
-      console.error('[GET /api/settings/billing/invoices] Stripe fetch error:', stripeError)
+      logger.error({ error: String(stripeError) }, 'Stripe fetch error')
       // Fall through to local Payment fallback
     }
   }

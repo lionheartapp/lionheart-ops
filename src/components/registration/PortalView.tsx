@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import QRCode from 'qrcode'
+import { logger } from '@/lib/logger'
 import {
   CalendarDays,
   MapPin,
@@ -219,7 +220,7 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
 
     QRCode.toDataURL(checkInUrl, { width: 180, margin: 1 })
       .then(setQrUrl)
-      .catch((err) => console.error('QR generation failed:', err))
+      .catch((err) => logger.error({ error: String(err) }, 'QR generation failed'))
   }, [registrationId])
 
   if (!qrUrl) {

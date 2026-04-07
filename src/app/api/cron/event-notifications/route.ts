@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { dispatchPendingNotifications } from '@/lib/services/notificationOrchestrationService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET?.trim()
 
   if (!cronSecret) {
-    console.error('[cron/event-notifications] CRON_SECRET not configured')
+    logger.error('CRON_SECRET not configured')
     return NextResponse.json(
       fail('CONFIGURATION_ERROR', 'Cron not configured'),
       { status: 500 }
@@ -35,10 +36,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const dispatched = await dispatchPendingNotifications()
-    console.log(`[cron/event-notifications] Dispatched ${dispatched} notification rule(s)`)
+    logger.info({ dispatched }, 'Dispatched notification rules')
     return NextResponse.json(ok({ dispatched }))
   } catch (error) {
-    console.error('[cron/event-notifications] Fatal error:', error)
+    logger.error({ error: String(error) }, 'Fatal error')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Cron job failed'),
       { status: 500 }

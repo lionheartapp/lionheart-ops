@@ -4,7 +4,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { TwilioConfigInputSchema } from '@/lib/types/integrations'
 import * as twilioService from '@/lib/services/integrations/twilioService'
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.INTEGRATIONS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const cred = await (prisma as any).integrationCredential.findFirst({
+      const cred = await (prisma as unknown as OrgPrismaClient).integrationCredential.findFirst({
         where: { organizationId: orgId, provider: 'twilio', isActive: true },
         select: { id: true, config: true, lastSyncAt: true, createdAt: true },
       })

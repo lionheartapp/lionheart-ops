@@ -8,8 +8,7 @@
  * only the structural skeleton (schedule offsets, task shapes, group structure, etc.)
  */
 
-import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import type {
   CreateTemplateInput,
   CreateFromTemplateInput,
@@ -95,7 +94,7 @@ function applyDateOffsets(
 export async function getTemplates(opts?: {
   eventType?: string
 }): Promise<EventTemplateSummary[]> {
-  const templates = await (prisma as any).eventTemplate.findMany({
+  const templates = await (prisma as unknown as OrgPrismaClient).eventTemplate.findMany({
     where: opts?.eventType ? { eventType: opts.eventType } : undefined,
     orderBy: [{ usageCount: 'desc' }, { createdAt: 'desc' }],
     include: {
@@ -105,18 +104,18 @@ export async function getTemplates(opts?: {
     },
   })
 
-  return templates.map((t: any) => ({
-    id: t.id,
-    name: t.name,
-    description: t.description,
-    eventType: t.eventType,
-    expectedAttendance: t.expectedAttendance,
-    durationDays: t.durationDays,
-    isMultiDay: t.isMultiDay,
-    usageCount: t.usageCount,
-    lastUsedAt: t.lastUsedAt?.toISOString() ?? null,
-    createdAt: t.createdAt.toISOString(),
-    createdBy: t.createdBy,
+  return templates.map((t: Record<string, unknown>) => ({
+    id: t.id as string,
+    name: t.name as string,
+    description: t.description as string | null,
+    eventType: t.eventType as string,
+    expectedAttendance: t.expectedAttendance as number | null,
+    durationDays: t.durationDays as number,
+    isMultiDay: t.isMultiDay as boolean,
+    usageCount: t.usageCount as number,
+    lastUsedAt: (t.lastUsedAt as Date | null)?.toISOString() ?? null,
+    createdAt: (t.createdAt as Date).toISOString(),
+    createdBy: t.createdBy as { id: string; name: string | null; firstName: string | null; lastName: string | null },
   }))
 }
 
@@ -125,7 +124,7 @@ export async function getTemplates(opts?: {
 // ---------------------------------------------------------------------------
 
 export async function getTemplate(templateId: string): Promise<EventTemplateDetail | null> {
-  const t = await (prisma as any).eventTemplate.findFirst({
+  const t = await (prisma as unknown as OrgPrismaClient).eventTemplate.findFirst({
     where: { id: templateId },
     include: {
       createdBy: {
@@ -167,7 +166,7 @@ export async function saveAsTemplate(
   userId: string,
 ): Promise<EventTemplateDetail> {
   // Load EventProject with all its structural children
-  const project = await (prisma as any).eventProject.findFirst({
+  const project = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
     where: { id: eventProjectId },
     include: {
       scheduleBlocks: {
@@ -196,21 +195,21 @@ export async function saveAsTemplate(
 
   // Derive structural data — strip personal info and absolute dates
   const scheduleBlockTemplates: ScheduleBlockTemplate[] = project.scheduleBlocks.map(
-    (block: any) => toBlockTemplate(block, project.startsAt),
+    (block: Record<string, unknown>) => toBlockTemplate(block as { startsAt: Date; endsAt: Date; title: string; type: string; locationText: string | null }, project.startsAt),
   )
 
-  const taskTemplates: TaskTemplate[] = project.tasks.map((task: any) => ({
-    title: task.title,
-    ...(task.category ? { category: task.category } : {}),
-    ...(task.priority ? { priority: task.priority } : {}),
+  const taskTemplates: TaskTemplate[] = project.tasks.map((task: Record<string, unknown>) => ({
+    title: task.title as string,
+    ...(task.category ? { category: task.category as string } : {}),
+    ...(task.priority ? { priority: task.priority as string } : {}),
   }))
 
-  const documentTypes: string[] = project.documentRequirements.map((doc: any) => doc.label as string)
+  const documentTypes: string[] = project.documentRequirements.map((doc: Record<string, unknown>) => doc.label as string)
 
-  const groupStructure: GroupTemplate[] = project.groups.map((group: any) => ({
-    name: group.name,
-    type: group.type,
-    ...(group.capacity ? { capacity: group.capacity } : {}),
+  const groupStructure: GroupTemplate[] = project.groups.map((group: Record<string, unknown>) => ({
+    name: group.name as string,
+    type: group.type as string,
+    ...(group.capacity ? { capacity: group.capacity as number } : {}),
   }))
 
   // Notification rules — empty for now (Phase 22 plan 04 handles notification rules)
@@ -235,7 +234,7 @@ export async function saveAsTemplate(
   const expectedAttendance =
     project.registrations.length > 0 ? project.registrations.length : project.expectedAttendance
 
-  const created = await (prisma as any).eventTemplate.create({
+  const created = await (prisma as unknown as OrgPrismaClient).eventTemplate.create({
     data: {
       name: input.name,
       description: input.description ?? null,
@@ -284,7 +283,7 @@ export async function createFromTemplate(
   overrides: CreateFromTemplateInput,
   userId: string,
 ): Promise<{ eventProjectId: string }> {
-  const template = await (prisma as any).eventTemplate.findFirst({
+  const template = await (prisma as unknown as OrgPrismaClient).eventTemplate.findFirst({
     where: { id: templateId },
   })
 
@@ -298,7 +297,7 @@ export async function createFromTemplate(
   const isMultiDay = endsAt.getTime() - startsAt.getTime() > 24 * 60 * 60 * 1000
 
   // Create the EventProject
-  const project = await (prisma as any).eventProject.create({
+  const project = await (prisma as unknown as OrgPrismaClient).eventProject.create({
     data: {
       title: overrides.title,
       startsAt,
@@ -320,7 +319,7 @@ export async function createFromTemplate(
       data: concreteBlocks.map((block) => ({
         organizationId: project.organizationId,
         eventProjectId: project.id,
-        type: block.type as any,
+        type: block.type as import('@prisma/client').EventScheduleBlockType,
         title: block.title,
         startsAt: block.startsAt,
         endsAt: block.endsAt,
@@ -338,8 +337,8 @@ export async function createFromTemplate(
         eventProjectId: project.id,
         title: task.title,
         category: task.category ?? null,
-        priority: (task.priority as any) ?? 'NORMAL',
-        status: 'TODO',
+        priority: (task.priority ?? 'NORMAL') as import('@prisma/client').EventTaskPriority,
+        status: 'TODO' as const,
         createdById: userId,
       })),
     })
@@ -363,7 +362,7 @@ export async function createFromTemplate(
   }
 
   // Increment template usage
-  await (prisma as any).eventTemplate.update({
+  await (prisma as unknown as OrgPrismaClient).eventTemplate.update({
     where: { id: templateId },
     data: {
       usageCount: { increment: 1 },

@@ -10,6 +10,7 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { detectLemons } from '@/lib/services/itDeviceIntelligenceService'
 import { getOverdue } from '@/lib/services/itLoanerService'
 import { notifyITStaleTicket } from '@/lib/services/itNotificationService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
         })
 
         for (const stale of staleTickets) {
-          await notifyITStaleTicket(stale as any, orgId)
+          await notifyITStaleTicket(stale, orgId)
           await rawPrisma.iTTicket.update({
             where: { id: stale.id },
             data: { lastStaleNotifiedAt: new Date() },
@@ -66,14 +67,14 @@ export async function POST(req: NextRequest) {
 
         results.push({ orgId, lemonsDetected, overdueCount: overdue.length, staleCount: staleTickets.length })
       } catch (err) {
-        console.error(`[CRON it-device-tasks] Error for org ${orgId}:`, err)
+        logger.error({ error: String(err), orgId }, 'Error for org')
         results.push({ orgId, lemonsDetected: 0, overdueCount: 0, staleCount: 0 })
       }
     }
 
     return NextResponse.json(ok({ processed: orgIds.length, results }))
   } catch (error) {
-    console.error('[POST /api/cron/it-device-tasks]', error)
+    logger.error({ error: String(error) }, 'Cron job failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })
   }
 }

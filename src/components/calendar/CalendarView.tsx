@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import {
   useCalendars,
   useCalendarEvents,
@@ -16,7 +17,9 @@ import {
   useCategories,
   useCreateCategory,
   useRsvp,
+  getEventMetadata,
   type CalendarEventData,
+  type EventMetadata,
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
 import MonthView from './MonthView'
@@ -321,13 +324,13 @@ export default function CalendarView() {
     const { campusIds, schoolLevels, sportIds, teamLevels } = calendarFilter
     if (campusIds.size > 0) {
       result = result.filter((e) => {
-        const meta = e.metadata as any
+        const meta: EventMetadata | null = getEventMetadata(e)
         return meta?.campusId && campusIds.has(meta.campusId)
       })
     }
     if (schoolLevels.size > 0) {
       result = result.filter((e) => {
-        const meta = e.metadata as any
+        const meta: EventMetadata | null = getEventMetadata(e)
         // Map gradeLevel values to display labels
         const level = meta?.schoolLevel || meta?.teamLevel
         return level && schoolLevels.has(level)
@@ -335,13 +338,13 @@ export default function CalendarView() {
     }
     if (sportIds.size > 0) {
       result = result.filter((e) => {
-        const meta = e.metadata as any
+        const meta: EventMetadata | null = getEventMetadata(e)
         return meta?.sportId && sportIds.has(meta.sportId)
       })
     }
     if (teamLevels.size > 0) {
       result = result.filter((e) => {
-        const meta = e.metadata as any
+        const meta: EventMetadata | null = getEventMetadata(e)
         return meta?.teamLevel && teamLevels.has(meta.teamLevel)
       })
     }
@@ -555,7 +558,7 @@ export default function CalendarView() {
       }
       const message = err instanceof Error ? err.message : 'Failed to create event'
       setFormError(message)
-      console.error('Event creation failed:', err)
+      logger.error({ error: String(err) }, 'Event creation failed')
     }
   }, [createEvent])
 
@@ -595,7 +598,7 @@ export default function CalendarView() {
       }
       const message = err instanceof Error ? err.message : 'Failed to update event'
       setFormError(message)
-      console.error('Event update failed:', err)
+      logger.error({ error: String(err) }, 'Event update failed')
     }
   }, [updateEvent, editingEvent])
 
@@ -734,7 +737,7 @@ export default function CalendarView() {
       setShowCancellationNotify(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to delete event'
-      console.error('Delete event failed:', msg)
+      logger.error({ error: msg }, 'Delete event failed')
 
       // Ghost event — already deleted or doesn't exist. Refresh the calendar.
       if (msg.toLowerCase().includes('not found')) {

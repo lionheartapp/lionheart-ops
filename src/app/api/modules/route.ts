@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { syncRolePermissions } from '@/lib/services/organizationRegistrationService'
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const modules = await (prisma as any).tenantModule.findMany({
+      const modules = await (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
         where: { organizationId: orgId },
         orderBy: { enabledAt: 'asc' },
       })
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const input = ToggleModuleSchema.parse(body)
-      const db = prisma as any
+      const db = prisma as unknown as OrgPrismaClient
 
       const whereFilter = {
         organizationId: orgId,

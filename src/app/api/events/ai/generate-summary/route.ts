@@ -13,7 +13,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { generateStatusSummary } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.object({
@@ -25,7 +25,7 @@ export const POST = withAuth(async ({ body, searchParams }) => {
   const skipAI = searchParams.get('skipAI') === 'true'
 
   // Load event with metrics
-  const project = await (prisma as any).eventProject.findFirst({
+  const project = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
     where: { id: eventProjectId },
     include: {
       tasks: {
@@ -51,13 +51,13 @@ export const POST = withAuth(async ({ body, searchParams }) => {
 
   // Compute raw metrics
   const totalTasks = project.tasks.length
-  const completedTasks = project.tasks.filter((t: any) => t.status === 'DONE').length
+  const completedTasks = project.tasks.filter((t: { status: string }) => t.status === 'DONE').length
   const registrationCount = project.registrations.length
 
   // Document completion: count requirements that have at least one completion
   const totalDocs = project.documentRequirements.length
   const completedDocs = project.documentRequirements.filter(
-    (d: any) => d.completions.length > 0,
+    (d: { completions: unknown[] }) => d.completions.length > 0,
   ).length
   const documentCompletionPercent =
     totalDocs > 0 ? Math.round((completedDocs / totalDocs) * 100) : 0

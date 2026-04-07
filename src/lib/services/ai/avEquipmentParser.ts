@@ -1,6 +1,9 @@
 import { GoogleGenAI } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'avEquipmentParser' })
 /**
  * Parses a free-text A/V requirements description into a structured equipment list
  * using Gemini AI, then saves the result back to the Event record.
@@ -53,10 +56,10 @@ JSON:`
 
     await rawPrisma.event.update({
       where: { id: eventId },
-      data: { avEquipmentList: validList } as any, // avEquipmentList added via SQL; Prisma types not yet regenerated
+      data: { avEquipmentList: validList } as unknown as Record<string, unknown>, // avEquipmentList added via SQL; Prisma types not yet regenerated
     })
   } catch (err) {
     // Always silent — never block event creation due to AI parsing failure
-    console.error(`[AV Parser] Failed to parse requirements for event ${eventId}:`, err)
+    log.error({ err: String(err), eventId }, 'Failed to parse AV requirements')
   }
 }

@@ -10,7 +10,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import {
   createDocumentRequirement,
   updateDocumentRequirement,
@@ -61,7 +61,7 @@ export const GET = withAuth(async ({ params }) => {
 
   const [requirements, totalRegistrations] = await Promise.all([
     listDocumentRequirements(id),
-    (prisma as any).eventRegistration.count({
+    (prisma as unknown as OrgPrismaClient).eventRegistration.count({
       where: { eventProjectId: id, status: 'REGISTERED' },
     }),
   ])
@@ -71,7 +71,7 @@ export const GET = withAuth(async ({ params }) => {
   let totalCompletions = 0
 
   if (totalRequirements > 0 && totalRegistrations > 0) {
-    const completedCount = await (prisma as any).eventDocumentCompletion.count({
+    const completedCount = await (prisma as unknown as OrgPrismaClient).eventDocumentCompletion.count({
       where: {
         eventProjectId: id,
         isComplete: true,

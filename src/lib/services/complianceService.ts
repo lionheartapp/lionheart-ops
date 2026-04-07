@@ -22,7 +22,10 @@ import type {
   ComplianceOutcome,
   MaintenanceCategory,
 } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'complianceService' })
 // Re-export for consumers that expect these from the service
 export { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS }
 export type { ComplianceDomainMeta } from '@/lib/types/compliance'
@@ -700,7 +703,7 @@ export async function sendComplianceReminders(orgId?: string): Promise<number> {
 
             totalSent++
           } catch (err) {
-            console.error(`[complianceService] Failed to send 7-day reminder to ${recipient.email}:`, err)
+            log.error({ err: String(err) }, 'Failed to send 7-day reminder')
           }
         }
 
@@ -739,7 +742,7 @@ export async function sendComplianceReminders(orgId?: string): Promise<number> {
 
             totalSent++
           } catch (err) {
-            console.error(`[complianceService] Failed to send 30-day reminder to ${recipient.email}:`, err)
+            log.error({ err: String(err) }, 'Failed to send 30-day reminder')
           }
         }
 
@@ -750,7 +753,7 @@ export async function sendComplianceReminders(orgId?: string): Promise<number> {
         })
       }
     } catch (orgErr) {
-      console.error(`[complianceService] Failed to process org ${currentOrgId}:`, orgErr)
+      log.error({ err: String(orgErr), orgId: currentOrgId }, 'Failed to process org')
     }
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef, type ComponentProps } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -47,8 +47,8 @@ interface InventoryItem {
   tags: string[]
   allowCheckout: boolean
   imageUrl: string | null
-  locations: any[] | null
-  documentationLinks: any[] | null
+  locations: Array<{ id: string; quantity: number; locationId: string | null; locationName: string; usage: string }> | null
+  documentationLinks: Array<{ id: string; url: string; title: string; type: string }> | null
   createdAt: string
   updatedAt: string
 }
@@ -1227,7 +1227,7 @@ export default function InventoryPage() {
           width="xl"
         >
           <AVEquipmentWizard
-            item={editingItem as any}
+            item={editingItem as unknown as ComponentProps<typeof AVEquipmentWizard>['item']}
             onSuccess={handleFormSuccess}
             onCancel={() => {
               setFormDrawerOpen(false)

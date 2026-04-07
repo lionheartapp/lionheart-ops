@@ -10,7 +10,10 @@ import { rawPrisma } from '@/lib/db'
 import * as bcrypt from 'bcryptjs'
 import { DEFAULT_ROLES, DEFAULT_TEAMS } from '@/lib/permissions'
 import { timezoneFromAddress } from '@/lib/utils/timezone'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'organizationRegistrationService' })
 /**
  * Slug validation schema
  * - 3-50 characters
@@ -92,7 +95,7 @@ export async function isSlugAvailable(slug: string): Promise<boolean> {
     })
     return !existing
   } catch (error) {
-    console.error('Error checking slug availability:', error)
+    log.error({ err: String(error) }, 'Error checking slug availability')
     throw new Error('Failed to validate slug availability')
   }
 }
@@ -434,7 +437,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
     })
 
     // ── Step 4: Create admin's personal calendar + campus assignment ──
-    await tx.calendar.create({
+    await (tx as unknown as Record<string, { create: (args: Record<string, unknown>) => Promise<unknown> }>).calendar.create({
       data: {
         organizationId: org.id,
         createdById: adminUser.id,
@@ -443,7 +446,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         calendarType: 'PERSONAL',
         visibility: 'CAMPUS',
         color: '#6366f1',
-      } as any,
+      },
     })
 
     await tx.userCampusAssignment.create({

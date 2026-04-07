@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -77,7 +78,7 @@ export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, b
       buildingId: input.buildingId || null,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
-      polygonCoordinates: (input.polygonCoordinates ?? null) as any,
+      polygonCoordinates: input.polygonCoordinates != null ? (input.polygonCoordinates as Prisma.InputJsonValue) : Prisma.JsonNull,
       sortOrder: input.sortOrder ?? 0,
       isActive: input.isActive ?? true,
     },

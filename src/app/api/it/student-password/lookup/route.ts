@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { lookupStudent } from '@/lib/services/itStudentPasswordService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       maskedName: `${maskedFirst} ${maskedLast}`,
     }))
   } catch (error) {
-    console.error('[POST /api/it/student-password/lookup]', error)
+    logger.error({ error: String(error) }, 'Student password lookup failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -12,6 +12,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getComplianceRecordById } from '@/lib/services/complianceService'
+import { logger } from '@/lib/logger'
 
 const BUCKET = 'compliance-docs'
 
@@ -71,7 +72,7 @@ export const POST = withAuth(async ({ orgId, params, body }) => {
     .createSignedUploadUrl(storagePath)
 
   if (error || !data) {
-    console.error('[upload-url] Supabase signed URL error:', error)
+    logger.error({ error: String(error) }, 'Supabase compliance upload URL failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to generate upload URL'), { status: 500 })
   }
 

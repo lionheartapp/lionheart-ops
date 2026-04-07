@@ -14,6 +14,7 @@
  */
 
 import { GoogleGenAI, Type } from '@google/genai'
+import { logger } from '@/lib/logger'
 import { rawPrisma } from '@/lib/db'
 import type {
   AIEventSuggestion,
@@ -32,6 +33,8 @@ import type {
   AIHistoricalBudgetEstimate,
 } from '@/lib/types/event-ai'
 import type { TemplateData, ScheduleBlockTemplate } from '@/lib/types/event-template'
+
+const log = logger.child({ service: 'eventAIService' })
 
 // ---------------------------------------------------------------------------
 // Client initialization
@@ -73,7 +76,7 @@ async function callGemini(prompt: string): Promise<string | null> {
     })
     return result.text ?? null
   } catch (err) {
-    console.error('[eventAIService] Gemini call failed:', err)
+    log.error({ err: String(err) }, 'Gemini call failed')
     return null
   }
 }
@@ -123,7 +126,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
           orderBy: { startTime: 'asc' },
           take: 30,
         })
-        return JSON.stringify({ events: events.map((e: any) => ({
+        return JSON.stringify({ events: events.map((e) => ({
           title: e.title,
           start: e.startTime?.toISOString().split('T')[0],
           end: e.endTime?.toISOString().split('T')[0],
@@ -152,11 +155,11 @@ async function executeEventPlanningTool(name: string): Promise<string> {
           },
           take: 10,
         })
-        return JSON.stringify({ buildings: buildings.map((b: any) => ({
+        return JSON.stringify({ buildings: buildings.map((b) => ({
           name: b.name,
-          areas: b.areas?.map((a: any) => ({
+          areas: b.areas?.map((a) => ({
             name: a.name,
-            rooms: a.rooms?.map((r: any) => r.displayName || r.roomNumber),
+            rooms: a.rooms?.map((r) => r.displayName || r.roomNumber),
           })),
         })) })
       }
@@ -168,7 +171,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
           orderBy: { usageCount: 'desc' },
           take: 10,
         })
-        return JSON.stringify({ templates: templates.map((t: any) => ({
+        return JSON.stringify({ templates: templates.map((t) => ({
           name: t.name,
           description: t.description,
           type: t.eventType,
@@ -186,7 +189,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
         })
         return JSON.stringify({
           schoolName: org?.name,
-          campuses: campuses.map((c: any) => c.name),
+          campuses: campuses.map((c) => c.name),
         })
       }
 
@@ -194,7 +197,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
         return JSON.stringify({ error: `Unknown tool: ${name}` })
     }
   } catch (err) {
-    console.error(`[eventAIService] Tool ${name} failed:`, err)
+    log.error({ err: String(err), tool: name }, 'Tool execution failed')
     return JSON.stringify({ error: `Tool failed: ${(err as Error).message}` })
   }
 }
@@ -245,7 +248,7 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const result = await client.models.generateContent({
         model: 'gemini-2.0-flash',
-        contents: conversationContents as any,
+        contents: conversationContents as unknown as Array<Record<string, unknown>>,
         config: {
           systemInstruction: systemPrompt,
           tools: [{ functionDeclarations: EVENT_PLANNING_TOOLS }],
@@ -257,11 +260,13 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
       let textResponse = ''
 
       for (const part of parts) {
-        if ((part as any).text) textResponse += (part as any).text
-        if ((part as any).functionCall) {
+        const p = part as Record<string, unknown>
+        if (p.text) textResponse += p.text as string
+        if (p.functionCall) {
+          const fc = p.functionCall as { name: string; args?: Record<string, unknown> }
           functionCalls.push({
-            name: (part as any).functionCall.name,
-            args: (part as any).functionCall.args || {},
+            name: fc.name,
+            args: fc.args || {},
           })
         }
       }
@@ -295,7 +300,7 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
     // Fallback: if we exhausted rounds, try one final call without tools
     const finalResult = await client.models.generateContent({
       model: 'gemini-2.0-flash',
-      contents: conversationContents as any,
+      contents: conversationContents as unknown as Array<Record<string, unknown>>,
       config: { systemInstruction: systemPrompt },
     })
 
@@ -304,7 +309,7 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIEventSuggestion
   } catch (err) {
-    console.error('[eventAIService] generateEventFromDescription with tools failed:', err)
+    log.error({ err: String(err) }, 'generateEventFromDescription with tools failed')
 
     // Fallback: try simple prompt without tools
     return generateEventFromDescriptionSimple(description, orgContext)
@@ -366,7 +371,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIEventSuggestion
   } catch (err) {
-    console.error('[eventAIService] Simple fallback parse failed:', err)
+    log.error({ err: String(err) }, 'Simple fallback parse failed')
     return null
   }
 }
@@ -425,7 +430,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIScheduleSuggestion
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateSchedule response:', err)
+    log.error({ err: String(err) }, 'Failed to parse generateSchedule response')
     return null
   }
 }
@@ -495,7 +500,7 @@ JSON:`
       totalMax: parsed.totalMax ?? totalMax,
     }
   } catch (err) {
-    console.error('[eventAIService] Failed to parse estimateBudget response:', err)
+    log.error({ err: String(err) }, 'Failed to parse estimateBudget response')
     return null
   }
 }
@@ -540,7 +545,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIStatusSummary
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateStatusSummary response:', err)
+    log.error({ err: String(err) }, 'Failed to parse generateStatusSummary response')
     return null
   }
 }
@@ -589,7 +594,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AINotificationDraft
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateNotificationDraft response:', err)
+    log.error({ err: String(err) }, 'Failed to parse generateNotificationDraft response')
     return null
   }
 }
@@ -646,7 +651,7 @@ JSON:`
     if (!Array.isArray(enhanced.scheduleBlocks)) return templateData
     return enhanced
   } catch (err) {
-    console.error('[eventAIService] Failed to parse enhanceTemplateForReuse response:', err)
+    log.error({ err: String(err) }, 'Failed to parse enhanceTemplateForReuse response')
     return templateData
   }
 }
@@ -712,7 +717,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIGeneratedForm
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateRegistrationForm response:', err)
+    log.error({ err: String(err) }, 'Failed to parse generateRegistrationForm response')
     return null
   }
 }
@@ -789,7 +794,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIGroupAssignmentResult
   } catch (err) {
-    console.error('[eventAIService] Failed to parse generateGroupAssignments response:', err)
+    log.error({ err: String(err) }, 'Failed to parse generateGroupAssignments response')
     return null
   }
 }
@@ -953,7 +958,7 @@ export async function estimateBudgetFromHistory(params: {
 
   // Filter events that have budget data
   const eventsWithBudgets = historicalProjects.filter(
-    (p) => p.budgetCategories.some((c: any) => c.lineItems.length > 0),
+    (p) => p.budgetCategories.some((c) => c.lineItems.length > 0),
   )
 
   if (eventsWithBudgets.length >= 3) {
@@ -964,8 +969,8 @@ export async function estimateBudgetFromHistory(params: {
       const attendance = project.expectedAttendance ?? 1
       const scale = expectedAttendance / Math.max(attendance, 1)
 
-      for (const category of project.budgetCategories as any[]) {
-        const total = category.lineItems.reduce((sum: number, item: any) => {
+      for (const category of project.budgetCategories) {
+        const total = category.lineItems.reduce((sum: number, item) => {
           const amount = item.actualAmount ?? item.budgetedAmount
           return sum + (parseFloat(amount?.toString() ?? '0') || 0)
         }, 0)
@@ -1077,7 +1082,7 @@ JSON:`
     if (!jsonStr) return null
     return JSON.parse(jsonStr) as AIFeedbackAnalysis
   } catch (err) {
-    console.error('[eventAIService] Failed to parse analyzeFeedback response:', err)
+    log.error({ err: String(err) }, 'Failed to parse analyzeFeedback response')
     return null
   }
 }

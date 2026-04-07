@@ -3,6 +3,7 @@ import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { recordPayment } from '@/lib/services/paymentService'
 import { verifyHmacSha256 } from '@/lib/webhook-verify'
+import { logger } from '@/lib/logger'
 
 /**
  * Stripe webhook handler
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
     if (!stripeWebhookSecret) {
-      console.error('[Stripe webhook] STRIPE_WEBHOOK_SECRET not configured')
+      logger.error('STRIPE_WEBHOOK_SECRET not configured')
       return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook not configured'), { status: 500 })
     }
 
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
             await sendConfirmationEmail(registrationId)
           } catch (emailErr) {
             // Non-fatal: log but don't fail the webhook
-            console.error('[Stripe webhook] Confirmation email failed:', emailErr)
+            logger.error({ error: String(emailErr) }, 'Confirmation email failed')
           }
         }
         break
@@ -158,12 +159,12 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`)
+        logger.info({ eventType: event.type }, 'Unhandled Stripe event type')
     }
 
     return NextResponse.json(ok({ received: true }))
   } catch (error) {
-    console.error('[POST /api/platform/webhooks/stripe]', error)
+    logger.error({ error: String(error) }, 'Webhook processing failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook processing failed'), { status: 500 })
   }
 }

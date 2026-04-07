@@ -411,7 +411,7 @@ export default function StepDetails({
 
             {/* Custom tags not in the default list */}
             {tags
-              .filter((t) => !AV_EQUIPMENT_TAGS.includes(t as any))
+              .filter((t) => !(AV_EQUIPMENT_TAGS as readonly string[]).includes(t))
               .map((tag) => (
                 <button
                   key={tag}

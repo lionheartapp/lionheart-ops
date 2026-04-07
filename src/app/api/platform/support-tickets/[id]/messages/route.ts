@@ -3,6 +3,7 @@ import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
 import { addSupportMessage } from '@/lib/services/platformSupportService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[POST /api/platform/support-tickets/[id]/messages]', error)
+    logger.error({ error: String(error) }, 'Failed to add support message')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

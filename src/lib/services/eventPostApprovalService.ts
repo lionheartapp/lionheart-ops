@@ -53,7 +53,7 @@ export async function runPostApprovalAutomations(ctx: PostApprovalContext): Prom
       return
     }
 
-    const orgName = (project.organization as any)?.name || 'your school'
+    const orgName = (project.organization as { name?: string } | null)?.name || 'your school'
     const eventLink = `/events/${eventProjectId}`
     const eventTitle = project.title as string
 
@@ -66,10 +66,10 @@ export async function runPostApprovalAutomations(ctx: PostApprovalContext): Prom
     // ── 3. Log the automation ──────────────────────────────────────────
     await appendActivityLog(eventProjectId, approverId, 'POST_APPROVAL_AUTOMATION', {
       actions: ['creator_notified', 'attendees_notified'],
-      attendeeCount: (project.registrations as any[])?.length || 0,
+      attendeeCount: (project.registrations as Array<Record<string, unknown>>)?.length || 0,
     })
 
-    log.info({ eventProjectId, attendeeCount: (project.registrations as any[])?.length || 0 }, 'Post-approval automations completed')
+    log.info({ eventProjectId, attendeeCount: (project.registrations as Array<Record<string, unknown>>)?.length || 0 }, 'Post-approval automations completed')
   } catch (err) {
     log.error({ err, eventProjectId }, 'Post-approval automations failed (non-fatal)')
   }
@@ -78,8 +78,8 @@ export async function runPostApprovalAutomations(ctx: PostApprovalContext): Prom
 /**
  * Notify the event creator that their event was approved.
  */
-async function notifyCreator(project: any, orgName: string, eventLink: string): Promise<void> {
-  const creator = project.createdBy
+async function notifyCreator(project: Record<string, unknown>, orgName: string, eventLink: string): Promise<void> {
+  const creator = project.createdBy as { id: string; email: string } | null
   if (!creator) return
 
   try {
@@ -87,7 +87,7 @@ async function notifyCreator(project: any, orgName: string, eventLink: string): 
     notificationService.createNotification({
       userId: creator.id,
       type: 'event_approved',
-      title: `Your event "${project.title}" has been approved!`,
+      title: `Your event "${project.title as string}" has been approved!`,
       body: 'All approval gates have been cleared. Your event is now confirmed and visible on the calendar.',
       linkUrl: eventLink,
     })
@@ -95,7 +95,7 @@ async function notifyCreator(project: any, orgName: string, eventLink: string): 
     // Email notification
     sendEventApprovedEmail({
       to: creator.email,
-      eventTitle: project.title,
+      eventTitle: project.title as string,
       channelName: 'all departments',
       orgName,
       eventLink,
@@ -110,11 +110,11 @@ async function notifyCreator(project: any, orgName: string, eventLink: string): 
 /**
  * Notify all registered attendees about the confirmed event.
  */
-async function notifyAttendees(project: any, orgName: string, eventLink: string): Promise<void> {
-  const registrations = project.registrations as any[] | undefined
+async function notifyAttendees(project: Record<string, unknown>, orgName: string, eventLink: string): Promise<void> {
+  const registrations = project.registrations as Array<{ id: string; email: string; firstName: string }> | undefined
   if (!registrations || registrations.length === 0) return
 
-  const startsAt = project.startsAt ? new Date(project.startsAt) : null
+  const startsAt = project.startsAt ? new Date(project.startsAt as string | number | Date) : null
   const eventDate = startsAt
     ? startsAt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
     : undefined
@@ -129,12 +129,12 @@ async function notifyAttendees(project: any, orgName: string, eventLink: string)
       // Email invitation (registrations store email directly, no userId)
       sendEventInviteEmail({
         to: reg.email,
-        eventTitle: project.title,
+        eventTitle: project.title as string,
         orgName,
         eventLink,
         eventDate,
         eventTime,
-        eventId: project.id,
+        eventId: project.id as string,
       }).catch((err) => {
         log.error({ err, email: reg.email }, 'Failed to send invite email to attendee')
       })

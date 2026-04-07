@@ -37,12 +37,17 @@ export const GET = withAuth(async ({ req, orgId, params }) => {
     },
   })
 
-  // Build location string
+  // Build location string — asset includes building, area, room relations from getAssetById
+  const assetWithRelations = asset as typeof asset & {
+    building?: { name: string } | null
+    area?: { name: string } | null
+    room?: { roomNumber: string; displayName: string | null } | null
+  }
   const locationParts: string[] = []
-  if ((asset as any).building?.name) locationParts.push((asset as any).building.name)
-  if ((asset as any).area?.name) locationParts.push((asset as any).area.name)
-  if ((asset as any).room?.displayName || (asset as any).room?.roomNumber) {
-    locationParts.push((asset as any).room.displayName || (asset as any).room.roomNumber)
+  if (assetWithRelations.building?.name) locationParts.push(assetWithRelations.building.name)
+  if (assetWithRelations.area?.name) locationParts.push(assetWithRelations.area.name)
+  if (assetWithRelations.room?.displayName || assetWithRelations.room?.roomNumber) {
+    locationParts.push(assetWithRelations.room.displayName || assetWithRelations.room.roomNumber)
   }
 
   return NextResponse.json(ok({

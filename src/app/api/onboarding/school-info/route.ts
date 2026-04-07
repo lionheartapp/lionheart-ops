@@ -14,6 +14,7 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail, isAuthError } from '@/lib/api-response'
 import { geocodeAddress } from '@/lib/services/geocodingService'
+import { logger } from '@/lib/logger'
 
 const UpdateSchoolInfoSchema = z.object({
   phone: z.string().max(40).nullable().optional(),
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('Get school info error:', error)
+    logger.error({ error: String(error) }, 'Get school info error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch school info'), { status: 500 })
   }
 }
@@ -118,7 +119,7 @@ export async function PATCH(req: NextRequest) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('Update school info error:', error)
+    logger.error({ error: String(error) }, 'Update school info error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school info'), { status: 500 })
   }
 }

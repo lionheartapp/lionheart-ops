@@ -9,6 +9,7 @@
  */
 
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createNotification, createBulkNotifications } from '@/lib/services/notificationService'
 import {
@@ -19,6 +20,8 @@ import {
   sendITTicketDoneEmail,
   sendITTicketUrgentEmail,
 } from '@/lib/services/emailService'
+
+const log = logger.child({ service: 'itNotificationService' })
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -138,10 +141,10 @@ export async function notifyITTicketSubmitted(ticket: ITTicketSnapshot, orgId: s
         ticketTitle: ticket.title,
         category,
         ticketLink: link,
-      }).catch((err) => console.error('[ITNotify] email it_ticket_submitted failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email it_ticket_submitted failed'))
     }
   } catch (err) {
-    console.error('[ITNotify] notifyITTicketSubmitted failed:', err)
+    log.error({ err: String(err) }, 'notifyITTicketSubmitted failed')
   }
 }
 
@@ -181,9 +184,9 @@ export async function notifyITTicketAssigned(
       priority: ticket.priority,
       category,
       ticketLink: link,
-    }).catch((err) => console.error('[ITNotify] email it_ticket_assigned failed:', err))
+    }).catch((err) => log.error({ err: String(err) }, 'email it_ticket_assigned failed'))
   } catch (err) {
-    console.error('[ITNotify] notifyITTicketAssigned failed:', err)
+    log.error({ err: String(err) }, 'notifyITTicketAssigned failed')
   }
 }
 
@@ -215,7 +218,7 @@ export async function notifyITStatusChange(
             ticketNumber: ticket.ticketNumber,
             ticketTitle: ticket.title,
             ticketLink: link,
-          }).catch((err) => console.error('[ITNotify] email in_progress failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email in_progress failed'))
         }
         break
       }
@@ -235,7 +238,7 @@ export async function notifyITStatusChange(
             ticketNumber: ticket.ticketNumber,
             ticketTitle: ticket.title,
             ticketLink: link,
-          }).catch((err) => console.error('[ITNotify] email on_hold failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email on_hold failed'))
         }
         break
       }
@@ -255,7 +258,7 @@ export async function notifyITStatusChange(
             ticketNumber: ticket.ticketNumber,
             ticketTitle: ticket.title,
             ticketLink: link,
-          }).catch((err) => console.error('[ITNotify] email done failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email done failed'))
         }
         break
       }
@@ -286,7 +289,7 @@ export async function notifyITStatusChange(
         break
     }
   } catch (err) {
-    console.error('[ITNotify] notifyITStatusChange failed:', err)
+    log.error({ err: String(err) }, 'notifyITStatusChange failed')
   }
 }
 
@@ -321,10 +324,10 @@ export async function notifyITUrgentTicket(ticket: ITTicketSnapshot, orgId: stri
         category,
         location,
         ticketLink: link,
-      }).catch((err) => console.error('[ITNotify] email it_ticket_urgent failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email it_ticket_urgent failed'))
     }
   } catch (err) {
-    console.error('[ITNotify] notifyITUrgentTicket failed:', err)
+    log.error({ err: String(err) }, 'notifyITUrgentTicket failed')
   }
 }
 
@@ -348,7 +351,7 @@ export async function notifyITStaleTicket(ticket: ITTicketSnapshot, orgId: strin
       }))
     )
   } catch (e) {
-    console.error('[notifyITStaleTicket]', e)
+    log.error({ err: String(e) }, 'notifyITStaleTicket failed')
   }
 }
 
@@ -385,6 +388,6 @@ export async function notifyITTicketComment(
       })
     }
   } catch (err) {
-    console.error('[ITNotify] notifyITTicketComment failed:', err)
+    log.error({ err: String(err) }, 'notifyITTicketComment failed')
   }
 }

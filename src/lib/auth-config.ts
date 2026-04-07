@@ -10,6 +10,8 @@
  */
 
 import { NextAuthConfig } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
+import type { Session, User as NextAuthUser } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
@@ -18,6 +20,24 @@ import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import bcryptjs from 'bcryptjs'
 import { z } from 'zod'
+
+// ─── NextAuth type extensions for custom fields ──────────────────────
+
+interface ExtendedUser extends NextAuthUser {
+  organizationId?: string
+}
+
+interface ExtendedJWT extends JWT {
+  userId?: string
+  organizationId?: string
+}
+
+interface ExtendedSession extends Session {
+  user: Session['user'] & {
+    id?: string
+    organizationId?: string
+  }
+}
 
 // ─── Zod Validation Schemas ────────────────────────────────────────────
 
@@ -167,9 +187,10 @@ export const authConfig: NextAuthConfig = {
       try {
         // On initial sign-in, set user context
         if (user) {
-          token.userId = user.id
-          token.email = user.email
-          token.organizationId = (user as any).organizationId || ''
+          const extUser = user as ExtendedUser
+          token.userId = extUser.id
+          token.email = extUser.email
+          token.organizationId = extUser.organizationId || ''
         }
 
         // For OAuth, if user was just created or linked, update token
@@ -200,11 +221,13 @@ export const authConfig: NextAuthConfig = {
 
     // Session callback: expose user context in the session
     async session({ session, token }) {
-      if (session.user) {
-        ;(session.user as any).id = token.userId
-        ;(session.user as any).organizationId = token.organizationId
+      const extToken = token as ExtendedJWT
+      const extSession = session as ExtendedSession
+      if (extSession.user) {
+        extSession.user.id = extToken.userId
+        extSession.user.organizationId = extToken.organizationId
       }
-      return session
+      return extSession
     },
   },
 

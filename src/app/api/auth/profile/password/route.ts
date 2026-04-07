@@ -4,6 +4,7 @@ import { rawPrisma } from '@/lib/db'
 import { verifyAuthToken } from '@/lib/auth'
 import { ok, fail } from '@/lib/api-response'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const PasswordChangeSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -78,7 +79,7 @@ export async function PATCH(request: NextRequest) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', err.issues[0]?.message || 'Invalid input'), { status: 400 })
     }
-    console.error('[PASSWORD CHANGE] Error:', err)
+    logger.error({ error: String(err) }, 'Password change failed')
     return NextResponse.json(
       fail('INTERNAL_SERVER_ERROR', err instanceof Error ? err.message : 'Failed to change password'),
       { status: 500 },

@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
 import { validateAddress } from '@/lib/services/addressValidationService'
+import { logger } from '@/lib/logger'
 
 const ValidateAddressSchema = z.object({
   address: z.string().min(5, 'Address is too short').max(400),
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Missing or invalid authorization')) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('Address validation error:', error)
+    logger.error({ error: String(error) }, 'Address validation failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to validate address'), { status: 500 })
   }
 }

@@ -4,6 +4,12 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getTeams, getSports, getGames, getPractices, getTeamStandings } from '@/lib/services/athleticsService'
 
+// Inferred return types from athleticsService
+type AthleticTeam = Awaited<ReturnType<typeof getTeams>>[number]
+type AthleticGame = Awaited<ReturnType<typeof getGames>>[number]
+type AthleticPractice = Awaited<ReturnType<typeof getPractices>>[number]
+type AthleticStanding = Awaited<ReturnType<typeof getTeamStandings>>[number]
+
 export const GET = withAuth(async ({ searchParams }) => {
   const campusId = searchParams.get('campusId') || undefined
 
@@ -30,39 +36,39 @@ export const GET = withAuth(async ({ searchParams }) => {
   // Filter by campus — teams use schoolId which maps to campusId
   // Same pattern as TeamsSection/ScheduleSection client-side filter
   const teams = campusId
-    ? allTeams.filter((t: any) => !t.schoolId || t.schoolId === campusId)
+    ? allTeams.filter((t: AthleticTeam) => !t.schoolId || t.schoolId === campusId)
     : allTeams
-  const campusTeamIds = new Set(teams.map((t: any) => t.id))
+  const campusTeamIds = new Set(teams.map((t: AthleticTeam) => t.id))
 
   const games = campusId
-    ? allGames.filter((g: any) => campusTeamIds.has(g.athleticTeamId))
+    ? allGames.filter((g: AthleticGame) => campusTeamIds.has(g.athleticTeamId))
     : allGames
 
   const practices = campusId
-    ? allPractices.filter((p: any) => campusTeamIds.has(p.athleticTeamId))
+    ? allPractices.filter((p: AthleticPractice) => campusTeamIds.has(p.athleticTeamId))
     : allPractices
 
-  const standings = campusId
-    ? (allStandings as any[]).filter((s: any) => campusTeamIds.has(s.teamId))
+  const standings: AthleticStanding[] = campusId
+    ? allStandings.filter((s: AthleticStanding) => campusTeamIds.has(s.teamId))
     : allStandings
 
   // Split games into upcoming and recent
   const upcomingGames = games
-    .filter((g: any) => new Date(g.startTime) >= now)
+    .filter((g: AthleticGame) => new Date(g.startTime) >= now)
     .slice(0, 7)
 
   const recentResults = games
-    .filter((g: any) => new Date(g.startTime) < now && g.isFinal)
+    .filter((g: AthleticGame) => new Date(g.startTime) < now && g.isFinal)
     .reverse()
     .slice(0, 5)
 
   // Games & practices this week
-  const gamesThisWeek = games.filter((g: any) => {
+  const gamesThisWeek = games.filter((g: AthleticGame) => {
     const t = new Date(g.startTime)
     return t >= weekStart && t <= weekEnd
   })
 
-  const practicesThisWeek = practices.filter((p: any) => {
+  const practicesThisWeek = practices.filter((p: AthleticPractice) => {
     const t = new Date(p.startTime)
     return t >= weekStart && t <= weekEnd
   })
@@ -70,23 +76,23 @@ export const GET = withAuth(async ({ searchParams }) => {
   // Aggregate overall record from standings
   let totalWins = 0, totalLosses = 0, totalTies = 0
   for (const s of standings) {
-    totalWins += (s as any).wins
-    totalLosses += (s as any).losses
-    totalTies += (s as any).ties
+    totalWins += s.wins
+    totalLosses += s.losses
+    totalTies += s.ties
   }
 
   return NextResponse.json(ok({
     summary: {
       totalTeams: teams.length,
       totalSports: sports.length,
-      activeSports: sports.filter((s: any) => s.isActive !== false).length,
+      activeSports: sports.filter((s) => s.isActive !== false).length,
       gamesThisWeek: gamesThisWeek.length,
       practicesThisWeek: practicesThisWeek.length,
       overallRecord: { wins: totalWins, losses: totalLosses, ties: totalTies },
     },
     upcomingGames,
     recentResults,
-    standings: (standings as any[]).slice(0, 8),
+    standings: standings.slice(0, 8),
     weekSchedule: {
       games: gamesThisWeek,
       practices: practicesThisWeek,

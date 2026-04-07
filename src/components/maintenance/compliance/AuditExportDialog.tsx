@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, Loader2, FileText } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { useQuery } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS } from '@/lib/types/compliance'
@@ -101,7 +102,7 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
 
       onClose()
     } catch (err) {
-      console.error('[AuditExportDialog] Export error:', err)
+      logger.error({ error: String(err) }, 'AuditExportDialog export error')
       setExportError(err instanceof Error ? err.message : 'Export failed. Please try again.')
     } finally {
       setIsExporting(false)

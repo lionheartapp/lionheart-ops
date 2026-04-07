@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
         },
       })
       const verificationLink = getVerificationLink(verificationToken, result.slug)
-      const firstName = (adminUser as any).firstName || (adminUser as any).name || adminUser.email
+      const userRecord = adminUser as typeof adminUser & { firstName?: string; name?: string }
+      const firstName = userRecord.firstName || userRecord.name || adminUser.email
       const emailResult = await sendVerificationEmail({
         to: adminUser.email,
         firstName,

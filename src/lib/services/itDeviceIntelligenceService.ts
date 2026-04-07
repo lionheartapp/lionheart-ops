@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import { prisma, rawPrisma } from '@/lib/db'
 import { GoogleGenAI } from '@google/genai'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'itDeviceIntelligenceService' })
 // ============= Validation Schemas =============
 
 export const UpdateConfigSchema = z.object({
@@ -384,7 +387,7 @@ Return ONLY valid JSON:
       }
     }
   } catch (err) {
-    console.error('[itDeviceIntelligence] Gemini API error:', err)
+    log.error({ err: String(err) }, 'Gemini API error')
   }
 
   // Fallback if Gemini fails to return valid JSON

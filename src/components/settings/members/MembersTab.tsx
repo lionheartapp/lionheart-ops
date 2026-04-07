@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, RefreshCw, UserCog, Download } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { logger } from '@/lib/logger'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import MemberListTable from './MemberListTable'
@@ -77,7 +78,7 @@ const MembersTab = (_props: MembersTabProps) => {
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update status')
       invalidateMembers()
     } catch (err) {
-      console.error('Failed to update status:', err)
+      logger.error({ error: String(err) }, 'Failed to update member status')
     }
   }, [invalidateMembers, getAuthHeaders])
 
@@ -96,7 +97,7 @@ const MembersTab = (_props: MembersTabProps) => {
       setUserToRemove(null)
       invalidateMembers()
     } catch (err) {
-      console.error('Failed to remove member:', err)
+      logger.error({ error: String(err) }, 'Failed to remove member')
       setUserToRemove(null)
     } finally {
       setRemovingUserId(null)

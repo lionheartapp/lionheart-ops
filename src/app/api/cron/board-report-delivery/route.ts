@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import {
   getBoardReportMetrics,
   generateAINarrative,
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET?.trim()
 
   if (!cronSecret) {
-    console.error('[cron/board-report-delivery] CRON_SECRET not configured')
+    logger.error('CRON_SECRET not configured')
     return NextResponse.json(fail('CONFIGURATION_ERROR', 'Cron not configured'), { status: 500 })
   }
 
@@ -124,28 +125,18 @@ export async function GET(req: NextRequest) {
             pdfBuffer: Buffer.from(pdfBuffer),
           })
         } catch (recipientErr) {
-          console.error(
-            `[cron/board-report-delivery] Failed to send to ${recipient.email}:`,
-            recipientErr
-          )
+          logger.error({ error: String(recipientErr) }, 'Failed to send board report email')
         }
       }
 
       processedCount++
-      console.log(
-        `[cron/board-report-delivery] Processed org ${organizationId} (${orgName}) — ${recipients.length} recipients`
-      )
+      logger.info({ organizationId, orgName, recipientCount: recipients.length }, 'Processed org')
     } catch (orgErr) {
-      console.error(
-        `[cron/board-report-delivery] Failed for org ${organizationId}:`,
-        orgErr
-      )
+      logger.error({ error: String(orgErr), organizationId }, 'Failed for org')
       // Non-fatal — continue with other orgs
     }
   }
 
-  console.log(
-    `[cron/board-report-delivery] Completed. Type: ${reportType}, Orgs processed: ${processedCount}`
-  )
+  logger.info({ reportType, processedCount }, 'Board report delivery completed')
   return NextResponse.json(ok({ type: reportType, processed: processedCount }))
 }

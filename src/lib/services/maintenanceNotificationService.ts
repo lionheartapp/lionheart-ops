@@ -10,6 +10,7 @@
  */
 
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createNotification, createBulkNotifications } from '@/lib/services/notificationService'
 import {
@@ -26,9 +27,11 @@ import {
 } from '@/lib/services/emailService'
 import { matchesPermission } from '@/lib/permissions'
 
+const log = logger.child({ service: 'maintenanceNotificationService' })
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type TicketSnapshot = {
+export type TicketSnapshot = {
   id: string
   ticketNumber: string
   title: string
@@ -168,10 +171,10 @@ export async function notifyTicketSubmitted(ticket: TicketSnapshot, orgId: strin
         priority: ticket.priority,
         category: ticket.category,
         ticketLink: link,
-      }).catch((err) => console.error('[MaintenanceNotify] email maintenance_submitted failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email maintenance_submitted failed'))
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyTicketSubmitted failed:', err)
+    log.error({ err: String(err) }, 'notifyTicketSubmitted failed')
   }
 }
 
@@ -206,10 +209,10 @@ export async function notifyUrgentTicket(ticket: TicketSnapshot, orgId: string):
         category: ticket.category,
         location,
         ticketLink: link,
-      }).catch((err) => console.error('[MaintenanceNotify] email maintenance_urgent failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email maintenance_urgent failed'))
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyUrgentTicket failed:', err)
+    log.error({ err: String(err) }, 'notifyUrgentTicket failed')
   }
 }
 
@@ -248,9 +251,9 @@ export async function notifyTicketAssigned(
       priority: ticket.priority,
       category: ticket.category,
       ticketLink: link,
-    }).catch((err) => console.error('[MaintenanceNotify] email maintenance_assigned failed:', err))
+    }).catch((err) => log.error({ err: String(err) }, 'email maintenance_assigned failed'))
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyTicketAssigned failed:', err)
+    log.error({ err: String(err) }, 'notifyTicketAssigned failed')
   }
 }
 
@@ -287,10 +290,10 @@ export async function notifyTicketClaimed(ticket: TicketSnapshot, orgId: string)
         ticketTitle: ticket.title,
         technicianName: techName,
         ticketLink: link,
-      }).catch((err) => console.error('[MaintenanceNotify] email maintenance_claimed failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email maintenance_claimed failed'))
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyTicketClaimed failed:', err)
+    log.error({ err: String(err) }, 'notifyTicketClaimed failed')
   }
 }
 
@@ -327,7 +330,7 @@ export async function notifyStatusChange(
             ticketTitle: ticket.title,
             technicianName: techName,
             ticketLink: link,
-          }).catch((err) => console.error('[MaintenanceNotify] email in_progress failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email in_progress failed'))
         }
         break
       }
@@ -349,7 +352,7 @@ export async function notifyStatusChange(
             ticketTitle: ticket.title,
             holdReason,
             ticketLink: link,
-          }).catch((err) => console.error('[MaintenanceNotify] email on_hold failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email on_hold failed'))
         }
 
         // Notify heads too
@@ -373,7 +376,7 @@ export async function notifyStatusChange(
               ticketTitle: ticket.title,
               holdReason,
               ticketLink: link,
-            }).catch((err) => console.error('[MaintenanceNotify] email on_hold (head) failed:', err))
+            }).catch((err) => log.error({ err: String(err) }, 'email on_hold (head) failed'))
           }
         }
         break
@@ -399,7 +402,7 @@ export async function notifyStatusChange(
               ticketTitle: ticket.title,
               technicianName: techName,
               ticketLink: link,
-            }).catch((err) => console.error('[MaintenanceNotify] email qa_ready failed:', err))
+            }).catch((err) => log.error({ err: String(err) }, 'email qa_ready failed'))
           }
         }
         break
@@ -420,7 +423,7 @@ export async function notifyStatusChange(
             ticketNumber: ticket.ticketNumber,
             ticketTitle: ticket.title,
             ticketLink: link,
-          }).catch((err) => console.error('[MaintenanceNotify] email done failed:', err))
+          }).catch((err) => log.error({ err: String(err) }, 'email done failed'))
         }
         break
       }
@@ -442,7 +445,7 @@ export async function notifyStatusChange(
         break
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyStatusChange failed:', err)
+    log.error({ err: String(err) }, 'notifyStatusChange failed')
   }
 }
 
@@ -474,10 +477,10 @@ export async function notifyQARejected(
         ticketTitle: ticket.title,
         rejectionNote,
         ticketLink: link,
-      }).catch((err) => console.error('[MaintenanceNotify] email qa_rejected failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email qa_rejected failed'))
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyQARejected failed:', err)
+    log.error({ err: String(err) }, 'notifyQARejected failed')
   }
 }
 
@@ -520,9 +523,9 @@ export async function notifyStaleTicket(ticket: TicketSnapshot, orgId: string): 
         priority: ticket.priority,
         ticketAge,
         ticketLink: link,
-      }).catch((err) => console.error('[MaintenanceNotify] email stale failed:', err))
+      }).catch((err) => log.error({ err: String(err) }, 'email stale failed'))
     }
   } catch (err) {
-    console.error('[MaintenanceNotify] notifyStaleTicket failed:', err)
+    log.error({ err: String(err) }, 'notifyStaleTicket failed')
   }
 }

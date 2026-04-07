@@ -147,6 +147,8 @@ export default function RichConfirmationCard({
 
   const renderEventContent = () => {
     if (card.cardType === 'ticket') return null
+    // After ruling out 'ticket', card is RichConfirmationCardData
+    const eventCard = card as import('@/lib/types/assistant').RichConfirmationCardData
     return (
       <>
         {/* Header */}
@@ -157,10 +159,10 @@ export default function RichConfirmationCard({
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
             Create Event
           </span>
-          {(card as any).calendarName && (
+          {eventCard.calendarName && (
             <span className="ml-auto flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
               <Calendar className="h-3 w-3" />
-              {(card as any).calendarName}
+              {eventCard.calendarName}
             </span>
           )}
         </div>
@@ -219,11 +221,11 @@ export default function RichConfirmationCard({
           )}
 
           {/* Conflict Warning */}
-          {(card as any).conflictWarning && (
+          {eventCard.conflictWarning && (
             <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
               <span className="text-xs font-medium text-amber-800">
-                {(card as any).conflictWarning}
+                {eventCard.conflictWarning}
               </span>
             </div>
           )}
@@ -236,24 +238,24 @@ export default function RichConfirmationCard({
           )}
 
           {/* Attendees */}
-          {(card as any).attendees && (card as any).attendees.length > 0 && (
+          {eventCard.attendees && eventCard.attendees.length > 0 && (
             <div className="flex items-start gap-2">
               <Users className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
               <span className="text-xs text-slate-600">
-                {(card as any).attendees.join(', ')}
+                {eventCard.attendees.join(', ')}
               </span>
             </div>
           )}
 
           {/* Equipment List */}
-          {(card as any).equipmentList && (card as any).equipmentList.length > 0 && (
+          {eventCard.equipmentList && eventCard.equipmentList.length > 0 && (
             <div className="pt-1">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <ClipboardList className="h-3.5 w-3.5 text-slate-500" />
                 <p className="text-xs font-medium text-slate-700">Equipment Needed</p>
               </div>
               <div className="space-y-0.5 pl-0.5">
-                {(card as any).equipmentList.map((eq: { item: string; quantity: number }, idx: number) => (
+                {eventCard.equipmentList.map((eq, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-400 flex-shrink-0" />
                     <span className="text-xs text-slate-600">
@@ -315,7 +317,7 @@ export default function RichConfirmationCard({
           )}
 
           {/* Requires Approval Notice */}
-          {(card as any).requiresApproval && (
+          {eventCard.requiresApproval && (
             <div className="flex items-center gap-1.5 pt-1">
               <div className="h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0 animate-pulse" />
               <span className="text-xs font-medium text-blue-600">

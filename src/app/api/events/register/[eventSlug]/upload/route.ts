@@ -23,6 +23,7 @@ import { RateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 import { validateFileUpload } from '@/lib/validation/file-upload'
 import { createSignedPhotoUploadUrl } from '@/lib/services/storageService'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
 
@@ -159,7 +160,7 @@ export async function POST(
         { status: 503 },
       )
     }
-    console.error('[upload POST]', error)
+    logger.error({ error: String(error) }, 'Event registration upload failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

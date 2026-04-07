@@ -580,7 +580,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
           <FloatingInput id="si-schoolName" label="School Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
 
-          <FloatingDropdown id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(v) => setForm((prev) => ({ ...prev, institutionType: v as any }))} options={[
+          <FloatingDropdown id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(v) => setForm((prev) => ({ ...prev, institutionType: v as FormState['institutionType'] }))} options={[
             { value: '', label: '-- Select Institution Type --' },
             { value: 'PUBLIC', label: 'Public' },
             { value: 'PRIVATE', label: 'Private' },
@@ -588,7 +588,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             { value: 'HYBRID', label: 'Hybrid' },
           ]} />
 
-          <FloatingDropdown id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(v) => setForm((prev) => ({ ...prev, gradeLevel: v as any }))} options={[
+          <FloatingDropdown id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(v) => setForm((prev) => ({ ...prev, gradeLevel: v as FormState['gradeLevel'] }))} options={[
             { value: '', label: '-- Select Type --' },
             { value: 'ELEMENTARY', label: 'Elementary School' },
             { value: 'MIDDLE_SCHOOL', label: 'Middle School' },

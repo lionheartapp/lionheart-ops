@@ -8,9 +8,9 @@ import {
   generateSingleEliminationBracket,
   generateRoundRobinBracket,
 } from '@/lib/services/athleticsService'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 const GenerateBracketsSchema = z.object({
   teamIds: z.array(z.string().min(1)).min(2, 'Need at least 2 teams'),

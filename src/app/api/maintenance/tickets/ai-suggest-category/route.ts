@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
 
 const CATEGORY_PROMPT = `You are a maintenance category classifier for a school facility management system.
 
@@ -61,7 +62,7 @@ export const POST = withAuth(async ({ req }) => {
 
     const result = await genai.models.generateContent({
       model: 'gemini-2.0-flash',
-      contents: contents as any,
+      contents: contents as unknown as import('@google/genai').Content[],
     })
 
     const text = (result.text || '').trim().toUpperCase()
@@ -73,7 +74,7 @@ export const POST = withAuth(async ({ req }) => {
     const suggestedCategory = validCategories.includes(text) ? text : null
     return NextResponse.json(ok({ suggestedCategory }))
   } catch (aiError) {
-    console.error('[ai-suggest-category] Gemini error (graceful degrade):', aiError)
+    logger.error({ error: String(aiError) }, 'AI category suggestion failed, graceful degrade')
     return NextResponse.json(ok({ suggestedCategory: null }))
   }
 }, { permission: PERMISSIONS.MAINTENANCE_SUBMIT })

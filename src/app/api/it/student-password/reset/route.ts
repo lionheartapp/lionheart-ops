@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import * as bcrypt from 'bcryptjs'
 import { resetPassword } from '@/lib/services/itStudentPasswordService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    console.error('[POST /api/it/student-password/reset]', error)
+    logger.error({ error: String(error) }, 'Student password reset failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

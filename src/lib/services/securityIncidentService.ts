@@ -6,8 +6,8 @@
  * 10-year retention (retainUntil = createdAt + 10 years).
  */
 
-import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import type {
   SecurityIncidentType,
   IncidentSeverity,
@@ -389,7 +389,7 @@ export async function attachEvidence(
 
   const updated = await prisma.securityIncident.update({
     where: { id: incidentId },
-    data: { evidenceFiles: [...currentFiles, newEvidence] as any },
+    data: { evidenceFiles: [...currentFiles, newEvidence] as Prisma.InputJsonValue[] },
   })
 
   await (prisma.securityIncidentActivity.create as Function)({
@@ -431,7 +431,7 @@ export async function logExternalNotification(
 
   const updated = await prisma.securityIncident.update({
     where: { id: incidentId },
-    data: { externalNotifications: [...current, newNotification] as any },
+    data: { externalNotifications: [...current, newNotification] as Prisma.InputJsonValue[] },
   })
 
   await (prisma.securityIncidentActivity.create as Function)({

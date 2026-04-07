@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import * as eventService from '@/lib/services/eventService'
+import type { ListEventsInput } from '@/lib/services/eventService'
 import { operationsEngine } from '@/lib/services/operations/engine'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { parseAVRequirementsAsync } from '@/lib/services/ai/avEquipmentParser'
@@ -16,7 +17,7 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
   const fromDate = fromDateParam ? new Date(fromDateParam) : undefined
   const toDate = toDateParam ? new Date(toDateParam) : undefined
 
-  const filters = { limit, skip, status: status as any, requiresAV, fromDate, toDate }
+  const filters: Partial<ListEventsInput> = { limit, skip, status: status as ListEventsInput['status'], requiresAV, fromDate, toDate }
 
   const [total, events] = await Promise.all([
     eventService.countEvents(filters, ctx.userId),
@@ -35,8 +36,9 @@ export const POST = withAuth(async ({ req, ctx }) => {
   await operationsEngine.onEventCreated(event)
 
   // Fire-and-forget AI parsing of AV requirements
-  if ((event as any).requiresAV && (event as any).avRequirements) {
-    void parseAVRequirementsAsync(event.id, (event as any).avRequirements)
+  const eventRecord = event as typeof event & { requiresAV?: boolean; avRequirements?: string | null }
+  if (eventRecord.requiresAV && eventRecord.avRequirements) {
+    void parseAVRequirementsAsync(event.id, eventRecord.avRequirements)
   }
 
   return NextResponse.json(ok(event), { status: 201 })

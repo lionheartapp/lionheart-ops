@@ -18,6 +18,7 @@ import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { generateSetupToken, hashSetupToken, getSetupLink } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
+import { logger } from '@/lib/logger'
 
 const ImportMembersSchema = z.object({
   members: z
@@ -199,7 +200,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('FORBIDDEN', 'Missing tenant context'), { status: 403 })
     }
 
-    console.error('Import members error:', error)
+    logger.error({ error: String(error) }, 'Failed to import members')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to import members'),
       { status: 500 }

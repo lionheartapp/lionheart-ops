@@ -11,6 +11,7 @@ import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
 
 // Dashboard data TTL: 60 seconds (frequent enough to feel live, reduces DB load)
@@ -21,9 +22,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   const cacheKey = settingsCacheKey(orgId, `maint-dashboard:${schoolId || 'all'}`)
   const stats = await getCached(cacheKey, async () => {
-    const baseWhere: Record<string, unknown> = {}
+    const baseWhere: Prisma.MaintenanceTicketWhereInput = {}
     if (schoolId) baseWhere.schoolId = schoolId
-    const activeWhere = { ...baseWhere, status: { notIn: ['DONE', 'CANCELLED'] } } as any
+    const activeWhere: Prisma.MaintenanceTicketWhereInput = { ...baseWhere, status: { notIn: ['DONE', 'CANCELLED'] } }
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
     // Run all independent queries in parallel
@@ -31,7 +32,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       await Promise.all([
         prisma.maintenanceTicket.groupBy({
           by: ['status'],
-          where: baseWhere as any,
+          where: baseWhere,
           _count: { id: true },
         }),
         prisma.maintenanceTicket.groupBy({
@@ -49,7 +50,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
             ...baseWhere,
             assignedToId: null,
             status: { notIn: ['DONE', 'CANCELLED', 'SCHEDULED'] },
-          } as any,
+          },
         }),
         prisma.maintenanceTicket.count({
           where: {
@@ -57,10 +58,10 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
             status: 'BACKLOG',
             assignedToId: null,
             createdAt: { lt: fortyEightHoursAgo },
-          } as any,
+          },
         }),
         prisma.maintenanceTicket.findMany({
-          where: { ...baseWhere, status: 'DONE' } as any,
+          where: { ...baseWhere, status: 'DONE' },
           select: { createdAt: true, updatedAt: true },
           take: 100,
           orderBy: { updatedAt: 'desc' },
@@ -83,7 +84,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         where: {
           status: { notIn: ['DONE', 'CANCELLED'] },
           schoolId: { not: null },
-        } as any,
+        },
         _count: { id: true },
       })
 

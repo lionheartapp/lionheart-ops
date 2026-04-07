@@ -14,6 +14,7 @@ import { rawPrisma } from '@/lib/db'
 import { notifyStaleTicket, notifyStatusChange } from '@/lib/services/maintenanceNotificationService'
 import { generatePmTickets } from '@/lib/services/pmScheduleService'
 import { runRepeatRepairDetection } from '@/lib/services/repeatRepairService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET?.trim()
 
   if (!cronSecret) {
-    console.error('[cron/maintenance-tasks] CRON_SECRET not configured')
+    logger.error('CRON_SECRET not configured')
     return NextResponse.json(fail('CONFIGURATION_ERROR', 'Cron not configured'), { status: 500 })
   }
 
@@ -39,9 +40,9 @@ export async function GET(req: NextRequest) {
     // ── Task 0: Generate PM tickets for due schedules ───────────────────────
     try {
       pmCreatedCount = await generatePmTickets()
-      console.log(`[cron/maintenance-tasks] PM tickets generated: ${pmCreatedCount}`)
+      logger.info({ pmCreatedCount }, 'PM tickets generated')
     } catch (pmErr) {
-      console.error('[cron/maintenance-tasks] PM ticket generation failed:', pmErr)
+      logger.error({ error: String(pmErr) }, 'PM ticket generation failed')
       // Non-fatal — continue with other tasks
     }
 
@@ -110,11 +111,11 @@ export async function GET(req: NextRequest) {
           },
           'SCHEDULED',
           ticket.organizationId
-        ).catch((err) => console.error('[cron] notifyStatusChange failed:', err))
+        ).catch((err) => logger.error({ error: String(err) }, 'notifyStatusChange failed'))
 
         releasedCount++
       } catch (err) {
-        console.error(`[cron] Failed to release ticket ${ticket.id}:`, err)
+        logger.error({ error: String(err), ticketId: ticket.id }, 'Failed to release ticket')
       }
     }
 
@@ -163,11 +164,11 @@ export async function GET(req: NextRequest) {
             assignedTo: undefined,
           },
           ticket.organizationId
-        ).catch((err) => console.error('[cron] notifyStaleTicket failed:', err))
+        ).catch((err) => logger.error({ error: String(err) }, 'notifyStaleTicket failed'))
 
         alertedCount++
       } catch (err) {
-        console.error(`[cron] Failed to alert stale ticket ${ticket.id}:`, err)
+        logger.error({ error: String(err), ticketId: ticket.id }, 'Failed to alert stale ticket')
       }
     }
 
@@ -184,18 +185,18 @@ export async function GET(req: NextRequest) {
           const result = await runRepeatRepairDetection(organizationId)
           repairDetectedCount += result.repeatRepair + result.costThreshold + result.endOfLife
         } catch (orgErr) {
-          console.error(`[cron] Repair detection failed for org ${organizationId}:`, orgErr)
+          logger.error({ error: String(orgErr), organizationId }, 'Repair detection failed for org')
         }
       }
-      console.log(`[cron/maintenance-tasks] Repair detections triggered: ${repairDetectedCount}`)
+      logger.info({ repairDetectedCount }, 'Repair detections triggered')
     } catch (repairErr) {
-      console.error('[cron/maintenance-tasks] Repair detection task failed:', repairErr)
+      logger.error({ error: String(repairErr) }, 'Repair detection task failed')
     }
 
-    console.log(`[cron/maintenance-tasks] Released: ${releasedCount}, Alerted: ${alertedCount}, PM tickets: ${pmCreatedCount}, Repair detections: ${repairDetectedCount}`)
+    logger.info({ releasedCount, alertedCount, pmCreatedCount, repairDetectedCount }, 'Maintenance tasks completed')
     return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount, repairDetected: repairDetectedCount }))
   } catch (error) {
-    console.error('[cron/maintenance-tasks] Fatal error:', error)
+    logger.error({ error: String(error) }, 'Fatal error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })
   }
 }

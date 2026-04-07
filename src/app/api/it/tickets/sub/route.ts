@@ -9,6 +9,7 @@ import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { createSubTicket, SubTicketSchema } from '@/lib/services/itTicketService'
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid request data'), { status: 400 })
     }
-    console.error('[POST /api/it/tickets/sub]', error)
+    logger.error({ error: String(error) }, 'Failed to create IT sub-ticket')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -39,6 +39,8 @@ export type NotificationType =
   | 'it_ticket_urgent'
   | 'it_ticket_comment'
   | 'it_stale_ticket'
+  // E-Rate compliance reminders
+  | 'erate_reminder'
   // Compliance reminders
   | 'compliance_reminder'
   // Security incidents
@@ -60,7 +62,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   'it_ticket_submitted', 'it_ticket_assigned', 'it_ticket_in_progress',
   'it_ticket_on_hold', 'it_ticket_done', 'it_ticket_cancelled',
   'it_ticket_urgent', 'it_ticket_comment', 'it_stale_ticket',
-  'compliance_reminder',
+  'erate_reminder', 'compliance_reminder',
   'security_incident_created', 'security_incident_escalated',
   'security_incident_status', 'security_incident_closed',
   'inventory_low_stock',
@@ -105,14 +107,14 @@ export async function createNotification(data: CreateNotificationInput) {
     // If per-type in-app is explicitly disabled, skip
     if (pref && !pref.inAppEnabled) return
 
-    await prisma.notification.create({
+    await (prisma.notification.create as Function)({
       data: {
         userId: data.userId,
         type: data.type,
         title: data.title,
         body: data.body ?? null,
         linkUrl: data.linkUrl ?? null,
-      } as any,
+      },
     })
   } catch (err) {
     log.error({ err }, 'Failed to create notification')
@@ -143,7 +145,7 @@ export async function createBulkNotifications(items: CreateBulkNotificationInput
     const disabledPrefs = await rawPrisma.notificationPreference.findMany({
       where: {
         userId: { in: userIds },
-        type: { in: types as any },
+        type: { in: types as string[] },
         inAppEnabled: false,
       },
       select: { userId: true, type: true },
@@ -159,14 +161,14 @@ export async function createBulkNotifications(items: CreateBulkNotificationInput
 
     if (eligible.length === 0) return
 
-    await prisma.notification.createMany({
+    await (prisma.notification.createMany as Function)({
       data: eligible.map((item) => ({
         userId: item.userId,
         type: item.type,
         title: item.title,
         body: item.body ?? null,
         linkUrl: item.linkUrl ?? null,
-      })) as any,
+      })),
     })
   } catch (err) {
     log.error({ err }, 'Failed to create bulk notifications')

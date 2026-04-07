@@ -9,6 +9,48 @@ import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
 import { useToast } from '@/components/Toast'
 import { Loader2, Mic } from 'lucide-react'
 
+// ─── Speech Recognition types (non-standard browser API) ─────────────────────
+
+interface SpeechRecognitionResult {
+  readonly isFinal: boolean
+  readonly [index: number]: { readonly transcript: string }
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number
+  readonly [index: number]: SpeechRecognitionResult
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number
+  readonly results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionInstance extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance
+}
+
+interface WindowWithSpeech extends Window {
+  SpeechRecognition?: SpeechRecognitionConstructor
+  webkitSpeechRecognition?: SpeechRecognitionConstructor
+  __speechRecognition?: SpeechRecognitionInstance | null
+}
+
+function getWindowWithSpeech(): WindowWithSpeech | undefined {
+  return typeof window !== 'undefined' ? (window as unknown as WindowWithSpeech) : undefined
+}
+
 interface ITTicketCreateDrawerProps {
   isOpen: boolean
   onClose: () => void
@@ -110,29 +152,31 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const [speechSupported, setSpeechSupported] = useState(false)
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    setSpeechSupported(!!SpeechRecognition)
+    const win = getWindowWithSpeech()
+    const SR = win?.SpeechRecognition || win?.webkitSpeechRecognition
+    setSpeechSupported(!!SR)
   }, [])
 
   const toggleVoiceInput = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognition) return
+    const win = getWindowWithSpeech()
+    const SR = win?.SpeechRecognition || win?.webkitSpeechRecognition
+    if (!SR || !win) return
 
     if (isRecording) {
-      if ((window as any).__speechRecognition) {
-        (window as any).__speechRecognition.stop()
-        ;(window as any).__speechRecognition = null
+      if (win.__speechRecognition) {
+        win.__speechRecognition.stop()
+        win.__speechRecognition = null
       }
       setIsRecording(false)
       return
     }
 
-    const recognition = new SpeechRecognition()
+    const recognition = new SR()
     recognition.continuous = true
     recognition.interimResults = false
     recognition.lang = 'en-US'
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let transcript = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
@@ -151,7 +195,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     setIsRecording(true)
 
     // Store reference to stop later
-    ;(window as any).__speechRecognition = recognition
+    win.__speechRecognition = recognition
   }
 
   // Fetch buildings for location picker

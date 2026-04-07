@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react'
 import { fetchApi } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 
 type SmartEventModalProps = {
   onClose: () => void
@@ -23,7 +24,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
       setStage('done')
       setTimeout(() => onClose(), 1500)
     } catch (err) {
-      console.error(err)
+      logger.error({ error: String(err) }, 'Smart event creation failed')
       setStage('input')
     }
   }

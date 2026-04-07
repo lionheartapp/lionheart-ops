@@ -1,9 +1,9 @@
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createEventProject } from './eventProjectService'
 import type { CreateEventSeriesInput, UpdateEventSeriesInput } from '@/lib/types/event-project'
 
-// The db cast is needed because the org-scoped extension models are typed as `any`
-const db = prisma as any
+// The db cast is needed because the org-scoped extension models are not in the generated PrismaClient type
+const db = prisma as unknown as OrgPrismaClient
 
 // ─── EventSeries CRUD ────────────────────────────────────────────────────────
 
@@ -188,8 +188,8 @@ export async function spawnProjectFromSeries(
     expectedAttendance: overrides.expectedAttendance ?? undefined,
     isMultiDay: false,
     isOffCampus: false,
-    requiresAV: !!(series.resourceNeeds as any)?.requiresAV,
-    requiresFacilities: !!(series.resourceNeeds as any)?.requiresFacilities,
+    requiresAV: !!((series.resourceNeeds as Record<string, unknown> | null)?.requiresAV),
+    requiresFacilities: !!((series.resourceNeeds as Record<string, unknown> | null)?.requiresFacilities),
   }
 
   // createEventProject with source=SERIES auto-confirms and creates CalendarEvent bridge

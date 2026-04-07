@@ -8,7 +8,7 @@
  * - Cron-based dispatch of approved notifications
  */
 
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { createBulkNotifications } from '@/lib/services/notificationService'
 import * as twilioService from '@/lib/services/integrations/twilioService'
@@ -39,7 +39,7 @@ function computeScheduledAt(startsAt: Date, offsetDays: number): Date {
  * with approvedBy and createdBy user names.
  */
 export async function getRules(eventProjectId: string): Promise<NotificationRuleRow[]> {
-  const rules = await (prisma as any).eventNotificationRule.findMany({
+  const rules = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findMany({
     where: { eventProjectId },
     orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'asc' }],
     include: {
@@ -71,7 +71,7 @@ export async function createRule(
   let scheduledAt: Date | undefined
 
   if (input.triggerType === 'DATE_BASED' && input.offsetDays !== undefined) {
-    const event = await (prisma as any).eventProject.findFirst({
+    const event = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
       where: { id: eventProjectId },
       select: { startsAt: true },
     })
@@ -79,7 +79,7 @@ export async function createRule(
     scheduledAt = computeScheduledAt(new Date(event.startsAt), input.offsetDays)
   }
 
-  const rule = await (prisma as any).eventNotificationRule.create({
+  const rule = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.create({
     data: {
       eventProjectId,
       triggerType: input.triggerType,
@@ -114,7 +114,7 @@ export async function updateRule(
   ruleId: string,
   input: Partial<NotificationRuleInput>
 ): Promise<NotificationRuleRow> {
-  const existing = await (prisma as any).eventNotificationRule.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findFirst({
     where: { id: ruleId },
     include: { eventProject: { select: { startsAt: true } } },
   })
@@ -147,7 +147,7 @@ export async function updateRule(
     }
   }
 
-  const updated = await (prisma as any).eventNotificationRule.update({
+  const updated = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.update({
     where: { id: ruleId },
     data: updateData,
     include: {
@@ -165,7 +165,7 @@ export async function updateRule(
  * Hard deletes rule. Only allowed when status is DRAFT.
  */
 export async function deleteRule(ruleId: string): Promise<void> {
-  const existing = await (prisma as any).eventNotificationRule.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findFirst({
     where: { id: ruleId },
     select: { status: true },
   })
@@ -175,14 +175,14 @@ export async function deleteRule(ruleId: string): Promise<void> {
     throw new Error(`Cannot delete rule in status: ${existing.status}. Only DRAFT rules can be deleted.`)
   }
 
-  await rawPrisma.eventNotificationRule.delete({ where: { id: ruleId } } as any)
+  await (rawPrisma.eventNotificationRule.delete as Function)({ where: { id: ruleId } })
 }
 
 // ─── Approval workflow ────────────────────────────────────────────────────────
 
 /** Submit rule for approval. Transitions DRAFT → PENDING_APPROVAL. */
 export async function submitForApproval(ruleId: string): Promise<NotificationRuleRow> {
-  const existing = await (prisma as any).eventNotificationRule.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findFirst({
     where: { id: ruleId },
     select: { status: true },
   })
@@ -192,7 +192,7 @@ export async function submitForApproval(ruleId: string): Promise<NotificationRul
     throw new Error(`Cannot submit rule in status: ${existing.status}`)
   }
 
-  const updated = await (prisma as any).eventNotificationRule.update({
+  const updated = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.update({
     where: { id: ruleId },
     data: { status: 'PENDING_APPROVAL' },
     include: {
@@ -206,7 +206,7 @@ export async function submitForApproval(ruleId: string): Promise<NotificationRul
 
 /** Approve rule. Transitions PENDING_APPROVAL → APPROVED. For DATE_BASED, scheduledAt must be in future. */
 export async function approveRule(ruleId: string, userId: string): Promise<NotificationRuleRow> {
-  const existing = await (prisma as any).eventNotificationRule.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findFirst({
     where: { id: ruleId },
     select: { status: true, triggerType: true, scheduledAt: true },
   })
@@ -222,7 +222,7 @@ export async function approveRule(ruleId: string, userId: string): Promise<Notif
     }
   }
 
-  const updated = await (prisma as any).eventNotificationRule.update({
+  const updated = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.update({
     where: { id: ruleId },
     data: {
       status: 'APPROVED',
@@ -240,7 +240,7 @@ export async function approveRule(ruleId: string, userId: string): Promise<Notif
 
 /** Cancel rule. Transitions any non-SENT status → CANCELLED. */
 export async function cancelRule(ruleId: string): Promise<NotificationRuleRow> {
-  const existing = await (prisma as any).eventNotificationRule.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findFirst({
     where: { id: ruleId },
     select: { status: true },
   })
@@ -250,7 +250,7 @@ export async function cancelRule(ruleId: string): Promise<NotificationRuleRow> {
     throw new Error('Cannot cancel a rule that has already been sent')
   }
 
-  const updated = await (prisma as any).eventNotificationRule.update({
+  const updated = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.update({
     where: { id: ruleId },
     data: { status: 'CANCELLED' },
     include: {
@@ -272,7 +272,7 @@ export async function cancelRule(ruleId: string): Promise<NotificationRuleRow> {
 export async function recalculateRulesForEvent(
   eventProjectId: string
 ): Promise<RecalculateResult[]> {
-  const event = await (prisma as any).eventProject.findFirst({
+  const event = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
     where: { id: eventProjectId },
     select: { startsAt: true },
   })
@@ -281,7 +281,7 @@ export async function recalculateRulesForEvent(
 
   const newStartsAt = new Date(event.startsAt)
 
-  const rules = await (prisma as any).eventNotificationRule.findMany({
+  const rules = await (prisma as unknown as OrgPrismaClient).eventNotificationRule.findMany({
     where: {
       eventProjectId,
       triggerType: 'DATE_BASED',
@@ -297,7 +297,7 @@ export async function recalculateRulesForEvent(
     const oldScheduledAt = rule.scheduledAt ? new Date(rule.scheduledAt) : null
     const newScheduledAt = computeScheduledAt(newStartsAt, rule.offsetDays as number)
 
-    await (prisma as any).eventNotificationRule.update({
+    await (prisma as unknown as OrgPrismaClient).eventNotificationRule.update({
       where: { id: rule.id },
       data: { scheduledAt: newScheduledAt },
     })
@@ -328,7 +328,7 @@ async function resolveAudience(
 ): Promise<Recipient[]> {
   if (targetAudience === 'all' || targetAudience === 'registered') {
     // All confirmed registrants for the event
-    const registrations = await rawPrisma.eventRegistration.findMany({
+    const registrations = await (rawPrisma.eventRegistration.findMany as Function)({
       where: {
         eventProjectId,
         organizationId: orgId,
@@ -340,20 +340,20 @@ async function resolveAudience(
         registrantName: true,
         userId: true,
       },
-    } as any)
+    }) as Array<Record<string, unknown>>
 
-    return (registrations as any[])
-      .filter((r: any) => r.userId)
-      .map((r: any) => ({
+    return registrations
+      .filter((r) => r.userId)
+      .map((r) => ({
         userId: r.userId as string,
         email: r.registrantEmail as string,
-        name: r.registrantName as string || 'Participant',
+        name: (r.registrantName as string) || 'Participant',
       }))
   }
 
   if (targetAudience.startsWith('group:')) {
     const groupId = targetAudience.replace('group:', '')
-    const assignments = await rawPrisma.eventGroupAssignment.findMany({
+    const assignments = await (rawPrisma.eventGroupAssignment.findMany as Function)({
       where: {
         groupId,
         organizationId: orgId,
@@ -367,19 +367,22 @@ async function resolveAudience(
           },
         },
       },
-    } as any)
+    }) as Array<Record<string, unknown>>
 
-    return (assignments as any[])
-      .filter((a: any) => a.registration?.userId)
-      .map((a: any) => ({
-        userId: a.registration.userId as string,
-        email: a.registration.registrantEmail as string,
-        name: a.registration.registrantName as string || 'Participant',
-      }))
+    return assignments
+      .filter((a) => (a.registration as Record<string, unknown> | null)?.userId)
+      .map((a) => {
+        const reg = a.registration as Record<string, unknown>
+        return {
+          userId: reg.userId as string,
+          email: reg.registrantEmail as string,
+          name: (reg.registrantName as string) || 'Participant',
+        }
+      })
   }
 
   if (targetAudience === 'incomplete_docs') {
-    const registrations = await rawPrisma.eventRegistration.findMany({
+    const registrations = await (rawPrisma.eventRegistration.findMany as Function)({
       where: {
         eventProjectId,
         organizationId: orgId,
@@ -394,23 +397,23 @@ async function resolveAudience(
           select: { isComplete: true },
         },
       },
-    } as any)
+    }) as Array<Record<string, unknown>>
 
-    return (registrations as any[])
-      .filter((r: any) => {
-        const completions = r.documentCompletions || []
-        const hasIncomplete = completions.some((c: any) => !c.isComplete)
+    return registrations
+      .filter((r) => {
+        const completions = (r.documentCompletions as Array<{ isComplete: boolean }>) || []
+        const hasIncomplete = completions.some((c) => !c.isComplete)
         return r.userId && hasIncomplete
       })
-      .map((r: any) => ({
+      .map((r) => ({
         userId: r.userId as string,
         email: r.registrantEmail as string,
-        name: r.registrantName as string || 'Participant',
+        name: (r.registrantName as string) || 'Participant',
       }))
   }
 
   if (targetAudience === 'unpaid') {
-    const registrations = await rawPrisma.eventRegistration.findMany({
+    const registrations = await (rawPrisma.eventRegistration.findMany as Function)({
       where: {
         eventProjectId,
         organizationId: orgId,
@@ -423,14 +426,14 @@ async function resolveAudience(
         registrantEmail: true,
         registrantName: true,
       },
-    } as any)
+    }) as Array<Record<string, unknown>>
 
-    return (registrations as any[])
-      .filter((r: any) => r.userId)
-      .map((r: any) => ({
+    return registrations
+      .filter((r) => r.userId)
+      .map((r) => ({
         userId: r.userId as string,
         email: r.registrantEmail as string,
-        name: r.registrantName as string || 'Participant',
+        name: (r.registrantName as string) || 'Participant',
       }))
   }
 
@@ -451,7 +454,7 @@ async function resolvePhoneNumbers(
   const users = await rawPrisma.user.findMany({
     where: { id: { in: userIds } },
     select: { id: true, phone: true },
-  } as any)
+  })
 
   const phoneMap = new Map(
     (users as Array<{ id: string; phone: string | null }>)
@@ -474,7 +477,7 @@ async function resolvePhoneNumbers(
 export async function dispatchPendingNotifications(): Promise<number> {
   const now = new Date()
 
-  const rules = await rawPrisma.eventNotificationRule.findMany({
+  const rules = await (rawPrisma.eventNotificationRule.findMany as Function)({
     where: {
       status: 'APPROVED',
       scheduledAt: { lte: now },
@@ -488,13 +491,13 @@ export async function dispatchPendingNotifications(): Promise<number> {
       messageBody: true,
       targetAudience: true,
     },
-  } as any)
+  }) as Array<{ id: string; organizationId: string; eventProjectId: string; subject: string; messageBody: string; targetAudience: string }>
 
-  if ((rules as any[]).length === 0) return 0
+  if (rules.length === 0) return 0
 
   let dispatched = 0
 
-  for (const rule of rules as any[]) {
+  for (const rule of rules) {
     try {
       // Resolve recipients
       const recipients = await resolveAudience(
@@ -542,12 +545,13 @@ export async function dispatchPendingNotifications(): Promise<number> {
       }
 
       // Mark rule as sent and create log
-      await rawPrisma.$transaction([
-        (rawPrisma as any).eventNotificationRule.update({
+      const rawDb = rawPrisma as unknown as OrgPrismaClient & { $transaction: (ops: unknown[]) => Promise<unknown> }
+      await rawDb.$transaction([
+        rawDb.eventNotificationRule.update({
           where: { id: rule.id },
           data: { sentAt: now, status: 'SENT' },
         }),
-        (rawPrisma as any).eventNotificationLog.create({
+        rawDb.eventNotificationLog.create({
           data: {
             organizationId: rule.organizationId,
             ruleId: rule.id,

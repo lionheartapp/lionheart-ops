@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
 
 function escapeIcal(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
@@ -115,7 +116,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     })
   } catch (error) {
-    console.error('iCal feed error:', error)
+    logger.error({ error: String(error) }, 'iCal feed generation failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to generate feed'), { status: 500 })
   }
 }

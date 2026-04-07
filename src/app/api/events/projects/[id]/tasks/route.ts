@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createEventTask } from '@/lib/services/eventProjectService'
 import { CreateEventTaskSchema } from '@/lib/types/event-project'
 
@@ -17,7 +17,7 @@ export const GET = withAuth(async ({ params, searchParams }) => {
   const status = searchParams.get('status') ?? undefined
   const assigneeId = searchParams.get('assigneeId') ?? undefined
 
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const tasks = await db.eventTask.findMany({
     where: {
       eventProjectId: params.id,

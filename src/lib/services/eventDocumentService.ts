@@ -7,9 +7,11 @@
  * Uses org-scoped `prisma` client — always called from within runWithOrgContext.
  */
 
-import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'eventDocumentService' })
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CreateDocumentRequirementInput {
@@ -58,7 +60,7 @@ export interface DefaultComplianceItem {
 export async function createDocumentRequirement(
   data: CreateDocumentRequirementInput,
 ) {
-  const requirement = await (prisma as any).eventDocumentRequirement.create({
+  const requirement = await (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.create({
     data: {
       eventProjectId: data.eventProjectId,
       label: data.label,
@@ -71,7 +73,7 @@ export async function createDocumentRequirement(
   })
 
   // Auto-create empty completion rows for all existing REGISTERED participants
-  const registrations = await (prisma as any).eventRegistration.findMany({
+  const registrations = await (prisma as unknown as OrgPrismaClient).eventRegistration.findMany({
     where: {
       eventProjectId: data.eventProjectId,
       status: 'REGISTERED',
@@ -102,7 +104,7 @@ export async function updateDocumentRequirement(
   id: string,
   data: UpdateDocumentRequirementInput,
 ) {
-  return (prisma as any).eventDocumentRequirement.update({
+  return (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.update({
     where: { id },
     data: {
       ...(data.label !== undefined && { label: data.label }),
@@ -119,14 +121,14 @@ export async function updateDocumentRequirement(
  * Hard-delete a document requirement and its cascade-deleted completions.
  */
 export async function deleteDocumentRequirement(id: string) {
-  return (prisma as any).eventDocumentRequirement.delete({ where: { id } })
+  return (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.delete({ where: { id } })
 }
 
 /**
  * List all document requirements for an event, sorted by sortOrder.
  */
 export async function listDocumentRequirements(eventProjectId: string) {
-  return (prisma as any).eventDocumentRequirement.findMany({
+  return (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.findMany({
     where: { eventProjectId },
     orderBy: { sortOrder: 'asc' },
   })
@@ -141,11 +143,11 @@ export async function listDocumentRequirements(eventProjectId: string) {
  */
 export async function getDocumentMatrix(eventProjectId: string) {
   const [requirements, registrations] = await Promise.all([
-    (prisma as any).eventDocumentRequirement.findMany({
+    (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.findMany({
       where: { eventProjectId },
       orderBy: { sortOrder: 'asc' },
     }),
-    (prisma as any).eventRegistration.findMany({
+    (prisma as unknown as OrgPrismaClient).eventRegistration.findMany({
       where: {
         eventProjectId,
         status: 'REGISTERED',
@@ -259,7 +261,7 @@ export async function toggleCompletion(
  * Returns all registrations with at least one incomplete required document.
  */
 export async function getIncompleteParticipants(eventProjectId: string) {
-  const requirements = await (prisma as any).eventDocumentRequirement.findMany({
+  const requirements = await (prisma as unknown as OrgPrismaClient).eventDocumentRequirement.findMany({
     where: { eventProjectId, isRequired: true },
     select: { id: true },
   })
@@ -267,7 +269,7 @@ export async function getIncompleteParticipants(eventProjectId: string) {
   const requirementIds = requirements.map((r: { id: string }) => r.id)
   if (requirementIds.length === 0) return []
 
-  const registrations = await (prisma as any).eventRegistration.findMany({
+  const registrations = await (prisma as unknown as OrgPrismaClient).eventRegistration.findMany({
     where: {
       eventProjectId,
       status: 'REGISTERED',
@@ -497,9 +499,9 @@ Sent by ${data.orgName} via Lionheart.`
         })
         if (res.ok) return { sent: true }
         const body = await res.text()
-        console.error('[eventDocumentService] Resend failed:', res.status, body)
+        log.error({ status: res.status, body }, 'Resend failed')
       } catch (err) {
-        console.error('[eventDocumentService] Resend error:', err)
+        log.error({ err: String(err) }, 'Resend error')
       }
     }
 
@@ -516,7 +518,7 @@ Sent by ${data.orgName} via Lionheart.`
         await transporter.sendMail({ from: smtpCfg.from, to: data.to, subject, html, text })
         return { sent: true }
       } catch (err) {
-        console.error('[eventDocumentService] SMTP error:', err)
+        log.error({ err: String(err) }, 'SMTP error')
         return { sent: false, reason: 'SMTP_SEND_FAILED' }
       }
     }
@@ -533,7 +535,7 @@ Sent by ${data.orgName} via Lionheart.`
  * List all compliance checklist items for an event, sorted by sortOrder.
  */
 export async function listComplianceItems(eventProjectId: string) {
-  return (prisma as any).eventComplianceItem.findMany({
+  return (prisma as unknown as OrgPrismaClient).eventComplianceItem.findMany({
     where: { eventProjectId },
     orderBy: { sortOrder: 'asc' },
     include: {
@@ -550,7 +552,7 @@ export async function listComplianceItems(eventProjectId: string) {
  */
 export async function upsertComplianceItem(data: UpsertComplianceItemInput) {
   if (data.id) {
-    return (prisma as any).eventComplianceItem.update({
+    return (prisma as unknown as OrgPrismaClient).eventComplianceItem.update({
       where: { id: data.id },
       data: {
         label: data.label,
@@ -569,7 +571,7 @@ export async function upsertComplianceItem(data: UpsertComplianceItemInput) {
     })
   }
 
-  return (prisma as any).eventComplianceItem.create({
+  return (prisma as unknown as OrgPrismaClient).eventComplianceItem.create({
     data: {
       eventProjectId: data.eventProjectId,
       label: data.label,
@@ -592,7 +594,7 @@ export async function upsertComplianceItem(data: UpsertComplianceItemInput) {
  * Hard-delete a compliance checklist item.
  */
 export async function deleteComplianceItem(id: string) {
-  return (prisma as any).eventComplianceItem.delete({ where: { id } })
+  return (prisma as unknown as OrgPrismaClient).eventComplianceItem.delete({ where: { id } })
 }
 
 /**

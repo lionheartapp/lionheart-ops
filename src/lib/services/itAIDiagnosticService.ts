@@ -9,7 +9,10 @@
  */
 
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'itAIDiagnosticService' })
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface DiagnosticResult {
@@ -102,7 +105,7 @@ Respond with ONLY valid JSON (no markdown):
       return JSON.parse(jsonMatch[0]) as DiagnosticResult
     }
   } catch (e) {
-    console.error('AI diagnostic failed:', e)
+    log.error({ err: String(e) }, 'AI diagnostic failed')
   }
 
   return {
@@ -181,7 +184,7 @@ Respond with ONLY valid JSON (no markdown):
       return JSON.parse(jsonMatch[0]) as DeviceDiagnosticResult
     }
   } catch (e) {
-    console.error('AI device diagnostic failed:', e)
+    log.error({ err: String(e) }, 'AI device diagnostic failed')
   }
 
   return {

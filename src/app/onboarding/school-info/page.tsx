@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, AlertCircle, Loader2, Sparkles } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { motion } from 'framer-motion'
 import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
 
@@ -111,7 +112,7 @@ export default function SchoolInfoPage() {
         }
       }
     } catch (err) {
-      console.error('School lookup failed:', err)
+      logger.error({ error: String(err) }, 'School lookup failed')
     } finally {
       setAiLookupActive(false)
     }
@@ -161,7 +162,7 @@ export default function SchoolInfoPage() {
           }
         }
       } catch (err) {
-        console.error('Error fetching org info:', err)
+        logger.error({ error: String(err) }, 'Error fetching org info')
       } finally {
         setLoading(false)
       }

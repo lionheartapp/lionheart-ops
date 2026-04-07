@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Printer, Download } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from 'framer-motion'
 import { scaleIn } from '@/lib/animations'
 
@@ -43,11 +44,10 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
         import('jspdf'),
         import('@/lib/label-utils'),
       ])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const doc = generateSingleLabel(jsPDF as any, labelData)
+      const doc = generateSingleLabel(jsPDF as import('@/lib/label-utils').JsPDFConstructor, labelData)
       doc.save(`${assetNumber}-label.pdf`)
     } catch (err) {
-      console.error('Print single label failed:', err)
+      logger.error({ error: String(err) }, 'Print single label failed')
     } finally {
       setPrintLoading(false)
     }

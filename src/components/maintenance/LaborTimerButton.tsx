@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Play, Square } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export default function LaborTimerButton({
       setToast(`Labor entry created — ${durationLabel}`)
       onEntryCreated?.()
     } catch (err) {
-      console.error('[LaborTimerButton] Failed to create labor entry:', err)
+      logger.error({ error: String(err) }, 'LaborTimerButton failed to create labor entry')
       setToast('Failed to save entry — please try again')
     } finally {
       setIsStopping(false)

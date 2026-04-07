@@ -4,7 +4,7 @@ import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
-import { NOTIFICATION_TYPES } from '@/lib/services/notificationService'
+import { NOTIFICATION_TYPES, type NotificationType } from '@/lib/services/notificationService'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -85,7 +85,7 @@ export async function PUT(req: NextRequest) {
     // Update individual preferences
     if (preferences && preferences.length > 0) {
       // Validate all types are known
-      const unknownTypes = preferences.filter((p) => !NOTIFICATION_TYPES.includes(p.type as any))
+      const unknownTypes = preferences.filter((p) => !NOTIFICATION_TYPES.includes(p.type as NotificationType))
       if (unknownTypes.length > 0) {
         return NextResponse.json(
           fail('VALIDATION_ERROR', `Unknown notification types: ${unknownTypes.map((t) => t.type).join(', ')}`),

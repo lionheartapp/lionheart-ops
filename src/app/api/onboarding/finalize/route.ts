@@ -18,6 +18,7 @@ import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
 
 const FinalizeSchema = z.object({
   theme: z
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
             })
           } catch (error) {
             // Building might already exist, ignore error
-            console.log('Building creation skipped:', error instanceof Error ? error.message : error)
+            logger.info({ error: error instanceof Error ? error.message : String(error) }, 'Building creation skipped')
           }
         }
 
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
           })
         )
       } catch (error) {
-        console.error('Finalization error:', error)
+        logger.error({ error: String(error) }, 'Finalization error')
         return NextResponse.json(
           fail('INTERNAL_ERROR', 'Failed to finalize onboarding'),
           { status: 500 }
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('FORBIDDEN', 'Missing tenant context'), { status: 403 })
     }
 
-    console.error('Finalize onboarding error:', error)
+    logger.error({ error: String(error) }, 'Finalize onboarding error')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to finalize onboarding'),
       { status: 500 }

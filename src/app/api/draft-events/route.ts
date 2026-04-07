@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import * as draftEventService from '@/lib/services/draftEventService'
+import type { ListDraftEventsInput } from '@/lib/services/draftEventService'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 
 export const GET = withAuth(async ({ ctx, searchParams }) => {
   const { page, limit, skip } = parsePagination(searchParams)
   const status = searchParams.get('status') || undefined
 
-  const filters = { limit, skip, status: status as any }
+  const filters: Partial<ListDraftEventsInput> = { limit, skip, status: status as ListDraftEventsInput['status'] }
 
   const [total, drafts] = await Promise.all([
     draftEventService.countDraftEvents(filters, ctx.userId),

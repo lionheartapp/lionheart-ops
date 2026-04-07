@@ -21,8 +21,12 @@
  */
 
 import { NextRequest } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'auditService' })
 // ─────────────────────────────────────────────
 //  Action strings
 // ─────────────────────────────────────────────
@@ -88,12 +92,12 @@ export async function audit(input: AuditInput): Promise<void> {
         resourceType:   input.resourceType  ?? null,
         resourceId:     input.resourceId    ?? null,
         resourceLabel:  input.resourceLabel ?? null,
-        changes:        (input.changes as any) ?? undefined,
+        changes:        (input.changes ?? undefined) as Prisma.InputJsonValue | undefined,
         ipAddress:      input.ipAddress     ?? null,
       },
     })
   } catch (err) {
-    console.error('[audit] failed to write log entry:', err)
+    log.error({ err: String(err) }, 'failed to write log entry')
   }
 }
 

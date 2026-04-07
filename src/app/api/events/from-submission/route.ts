@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createEventProject } from '@/lib/services/eventProjectService'
 
 const FromSubmissionSchema = z.object({
@@ -23,7 +23,7 @@ export const POST = withAuth(async ({ ctx, body }) => {
   const { submissionId, calendarId } = body
 
   // Fetch the PlanningSubmission — use org-scoped prisma
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const submission = await db.planningSubmission.findUnique({
     where: { id: submissionId },
   })

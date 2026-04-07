@@ -28,11 +28,17 @@ function isPublicPage(): boolean {
 // Old pages use raw fetch() without the CSRF header. Install a global
 // interceptor that reads the csrf-token cookie and adds the header
 // automatically on state-changing requests.
+
+interface WindowWithCsrf extends Window {
+  __csrfInterceptorInstalled?: boolean
+}
+
 function installCsrfInterceptor() {
   if (typeof window === 'undefined') return
+  const win = window as WindowWithCsrf
   // Only install once
-  if ((window as any).__csrfInterceptorInstalled) return
-  ;(window as any).__csrfInterceptorInstalled = true
+  if (win.__csrfInterceptorInstalled) return
+  win.__csrfInterceptorInstalled = true
 
   const originalFetch = window.fetch.bind(window)
 

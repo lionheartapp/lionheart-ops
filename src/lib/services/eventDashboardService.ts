@@ -1,8 +1,11 @@
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { GoogleGenAI } from '@google/genai'
+import { logger } from '@/lib/logger'
 
-// The db cast is needed because the org-scoped extension models are typed as `any`
-const db = prisma as any
+
+const log = logger.child({ service: 'eventDashboardService' })
+// The db cast is needed because the org-scoped extension models are not in the generated PrismaClient type
+const db = prisma as unknown as OrgPrismaClient
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -301,7 +304,7 @@ Include ALL ${items.length} items. Do not add any text outside the JSON array.`
     // Extract JSON array from response
     const jsonMatch = responseText.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
-      console.warn('[eventDashboardService] Gemini returned non-JSON, using rule-based sort')
+      log.warn('Gemini returned non-JSON, using rule-based sort')
       return ruleBasedSort(items)
     }
 
@@ -331,7 +334,7 @@ Include ALL ${items.length} items. Do not add any text outside the JSON array.`
       return aDate - bDate
     })
   } catch (err) {
-    console.error('[eventDashboardService] Gemini scoring failed, falling back to rule-based sort:', err)
+    log.error({ err: String(err) }, 'Gemini scoring failed, falling back to rule-based sort')
     return ruleBasedSort(items)
   }
 }

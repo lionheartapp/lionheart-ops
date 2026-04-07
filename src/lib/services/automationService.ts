@@ -57,14 +57,14 @@ export async function processRegistrationReminders(): Promise<{ sent: number }> 
       })
 
       for (const event of events) {
-        const orgName = (event.organization as any)?.name || 'your school'
+        const orgName = (event.organization as { name?: string } | null)?.name || 'your school'
         const eventDate = event.startsAt
           ? new Date(event.startsAt).toLocaleDateString('en-US', {
               weekday: 'long', month: 'long', day: 'numeric',
             })
           : 'soon'
 
-        for (const reg of (event.registrations as any[]) || []) {
+        for (const reg of (event.registrations as Array<{ id: string; email: string; firstName: string }>) || []) {
           if (!reg.email) continue
 
           // Email reminder (registrations don't have userId, so email only)
@@ -207,10 +207,10 @@ export async function processApprovalGateTimeouts(): Promise<{ reminded: number 
     }
 
     for (const project of stalePendingProjects) {
-      const gates = project.approvalGates as any
+      const gates = project.approvalGates as Record<string, Record<string, unknown>> | null
       if (!gates) continue
 
-      for (const [gateKey, gate] of Object.entries(gates) as [string, any][]) {
+      for (const [gateKey, gate] of Object.entries(gates)) {
         if (!gate || gate.status !== 'PENDING') continue
 
         // Find team members to remind

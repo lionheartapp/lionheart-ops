@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { prisma, rawPrisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -55,8 +56,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateAreaSchema>, { id: string }>(
 
   const area = await prisma.area.update({
     where: { id },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- spread pattern creates union type incompatible with Prisma's strict UpdateInput
-    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as any,
+    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Prisma.AreaUpdateInput,
     include: {
       building: { select: { id: true, name: true, code: true } },
     },

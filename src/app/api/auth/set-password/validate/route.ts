@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
-import { rawPrisma as prisma } from '@/lib/db'
+import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
-    const passwordSetupTokenModel = (prisma as any).passwordSetupToken
+    const passwordSetupTokenModel = (prisma as unknown as Record<string, PrismaDelegate>).passwordSetupToken
     const { searchParams } = new URL(req.url)
     const token = searchParams.get('token')?.trim()
 
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
       })
     )
   } catch (error) {
-    console.error('Validate setup token error:', error)
+    logger.error({ error: String(error) }, 'Failed to validate setup token')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to validate setup token'), { status: 500 })
   }
 }

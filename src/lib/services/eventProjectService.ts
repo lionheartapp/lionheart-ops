@@ -1,5 +1,4 @@
-import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import * as notificationService from '@/lib/services/notificationService'
 import type {
@@ -11,8 +10,8 @@ import type {
   UpdateEventTaskInput,
 } from '@/lib/types/event-project'
 
-// The db cast is needed because the org-scoped extension models are typed as `any`
-const db = prisma as any
+// The db cast is needed because the org-scoped extension models are not in the generated PrismaClient type
+const db = prisma as unknown as OrgPrismaClient
 
 const log = logger.child({ service: 'eventProjectService' })
 
@@ -57,8 +56,8 @@ export async function createEventProject(
   sourceId?: string,
 ): Promise<Record<string, unknown>> {
   const isDirectRequest = source === 'DIRECT_REQUEST'
-  const requiresAV = !!(data as any).requiresAV
-  const requiresFacilities = !!(data as any).requiresFacilities
+  const requiresAV = !!(data as Record<string, unknown>).requiresAV
+  const requiresFacilities = !!(data as Record<string, unknown>).requiresFacilities
 
   // Any event that needs AV or Facilities approval goes through the gate workflow,
   // regardless of source. Direct requests always require admin approval too.
@@ -132,7 +131,7 @@ export async function createEventProject(
       const { syncEventToCalendar } = await import(
         '@/lib/services/integrations/googleCalendarService'
       )
-      await syncEventToCalendar(createdById, project.organizationId as string, project as any)
+      await syncEventToCalendar(createdById, project.organizationId as string, project as unknown as import('@prisma/client').EventProject)
     } catch (err) {
       log.error({ err, eventProjectId: project.id }, 'Google Calendar sync failed after create — non-fatal')
     }
@@ -768,7 +767,7 @@ async function notifyCreatorOfGateChange(
 
   notificationService.createNotification({
     userId: project.createdById,
-    type: notificationType as any,
+    type: notificationType as 'event_approved' | 'event_rejected',
     title,
     body,
     linkUrl: `/events/${eventProjectId}`,
@@ -801,8 +800,9 @@ export async function confirmEventProject(
     })
 
     if (!defaultCalendar) {
-      console.warn(
-        `[confirmEventProject] No calendar found for EventProject ${id} — skipping CalendarEvent bridge creation`,
+      log.warn(
+        { eventProjectId: id },
+        'No calendar found — skipping CalendarEvent bridge creation',
       )
       await appendActivityLog(id, actorId, 'STATUS_CHANGE', {
         fromStatus: project.status,

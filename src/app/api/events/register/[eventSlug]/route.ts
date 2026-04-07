@@ -21,6 +21,7 @@ import {
   submitRegistration,
 } from '@/lib/services/registrationService'
 import { sendConfirmationEmail } from '@/lib/services/registrationEmailService'
+import { logger } from '@/lib/logger'
 
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
 
@@ -125,7 +126,7 @@ export async function GET(
 
     return NextResponse.json(ok(publicForm))
   } catch (error) {
-    console.error('[register GET]', error)
+    logger.error({ error: String(error) }, 'Registration GET failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -212,7 +213,7 @@ export async function POST(
     if (!requiresPayment) {
       const regId = (registration as { id: string }).id
       sendConfirmationEmail(regId).catch((err) => {
-        console.error('[register POST] sendConfirmationEmail failed:', err)
+        logger.error({ error: String(err) }, 'sendConfirmationEmail failed')
       })
     }
 
@@ -240,7 +241,7 @@ export async function POST(
         return NextResponse.json(fail('CAPACITY_FULL', error.message), { status: 422 })
       }
     }
-    console.error('[register POST]', error)
+    logger.error({ error: String(error) }, 'Registration POST failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

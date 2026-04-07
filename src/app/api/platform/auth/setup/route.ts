@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { signPlatformAuthToken } from '@/lib/auth/platform-auth'
+import { logger } from '@/lib/logger'
 
 /**
  * One-time setup: Create the first platform super-admin.
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('[POST /api/platform/auth/setup]', error)
+    logger.error({ error: String(error) }, 'Platform auth setup failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

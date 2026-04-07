@@ -13,7 +13,10 @@
  */
 
 import { can } from '@/lib/auth/permissions'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'toolRegistry' })
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type RiskTier = 'GREEN' | 'YELLOW' | 'ORANGE' | 'RED'
@@ -52,7 +55,7 @@ const TOOL_REGISTRY: Record<string, ToolRegistryEntry> = {}
 export function registerTools(tools: Record<string, ToolRegistryEntry>): void {
   for (const [name, entry] of Object.entries(tools)) {
     if (TOOL_REGISTRY[name]) {
-      console.warn(`[tool-registry] Duplicate tool name: ${name} — overwriting`)
+      log.warn({ toolName: name }, 'Duplicate tool name — overwriting')
     }
     TOOL_REGISTRY[name] = entry
   }
@@ -104,7 +107,7 @@ export async function executeTool(
   try {
     return await entry.execute(input, ctx)
   } catch (error) {
-    console.error(`[ai-assistant] Tool "${toolName}" error:`, error)
+    log.error({ err: String(error), toolName }, 'Tool execution error')
     return JSON.stringify({
       error: `Failed to execute ${toolName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
     })

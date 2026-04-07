@@ -36,7 +36,7 @@ import {
   getConversation,
   updateConversationTitle,
 } from '@/lib/services/ai/conversationService'
-import type { ConversationTurn, ActionConfirmation, StreamEvent, ConfirmationCardData } from '@/lib/types/assistant'
+import type { ConversationTurn, ActionConfirmation, StreamEvent, ConfirmationCardData, WorkflowPlan } from '@/lib/types/assistant'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -213,7 +213,9 @@ export async function POST(req: NextRequest) {
 
     // Build Gemini-format conversation from history
     const recentHistory = body.conversationHistory.slice(-CONVERSATION_CONTEXT_LIMIT)
-    const geminiContents: Array<{ role: string; parts: Array<Record<string, unknown>> }> = []
+    type GeminiPart = Record<string, unknown>
+    type GeminiContent = { role: string; parts: GeminiPart[] }
+    const geminiContents: GeminiContent[] = []
     for (const turn of recentHistory) {
       geminiContents.push({
         role: turn.role === 'assistant' ? 'model' : 'user',
@@ -221,7 +223,7 @@ export async function POST(req: NextRequest) {
       })
     }
     // Build current user message parts (text + optional images)
-    const currentUserParts: Array<Record<string, unknown>> = [{ text: body.message }]
+    const currentUserParts: GeminiPart[] = [{ text: body.message }]
     if (body.images && body.images.length > 0) {
       for (const img of body.images) {
         currentUserParts.push({
@@ -267,10 +269,10 @@ export async function POST(req: NextRequest) {
                 // Stream the first response
                 const streamResponse = await client.models.generateContentStream({
                   model: MODEL,
-                  contents: geminiContents as any,
+                  contents: geminiContents as unknown as import('@google/genai').Content[],
                   config: {
                     systemInstruction: systemPrompt,
-                    tools: geminiTools as any,
+                    tools: geminiTools as unknown as import('@google/genai').Tool[],
                   },
                 })
 
@@ -282,14 +284,14 @@ export async function POST(req: NextRequest) {
                   if (!candidate?.content?.parts) continue
 
                   for (const part of candidate.content.parts) {
-                    const p = part as any
+                    const p = part as import('@google/genai').Part
                     if (p.text) {
                       accumulatedText += p.text
                       write({ type: 'delta', content: p.text })
                     }
                     if (p.functionCall) {
                       functionCalls.push({
-                        name: p.functionCall.name,
+                        name: p.functionCall.name ?? '',
                         args: p.functionCall.args || {},
                       })
                     }
@@ -314,7 +316,7 @@ export async function POST(req: NextRequest) {
                 iterations++
 
                 // Add the model's response to conversation
-                const modelParts: any[] = []
+                const modelParts: GeminiPart[] = []
                 if (accumulatedText) modelParts.push({ text: accumulatedText })
                 for (const fc of functionCalls) {
                   modelParts.push({ functionCall: { name: fc.name, args: fc.args } })
@@ -334,7 +336,7 @@ export async function POST(req: NextRequest) {
                 geminiContents.push({ role: 'model', parts: modelParts })
 
                 // Execute each tool
-                const functionResponses: any[] = []
+                const functionResponses: GeminiPart[] = []
                 for (const fc of functionCalls) {
                   write({ type: 'tool_start', tool: fc.name, input: fc.args })
 
@@ -343,18 +345,19 @@ export async function POST(req: NextRequest) {
                   )
 
                   // Check for action confirmation / workflow plan
-                  let parsed: any = null
+                  let parsed: Record<string, unknown> | null = null
                   try {
-                    parsed = JSON.parse(toolResult)
+                    parsed = JSON.parse(toolResult) as Record<string, unknown>
                     if (parsed.workflowPlan) {
-                      write({ type: 'workflow_plan' as any, plan: { title: parsed.title, steps: parsed.steps, stepCount: parsed.stepCount } })
+                      write({ type: 'workflow_plan', plan: { title: parsed.title as string, steps: parsed.steps as WorkflowPlan['steps'], stepCount: parsed.stepCount as number } })
                     } else if (parsed.confirmationRequired && parsed.draft) {
+                      const draft = parsed.draft as Record<string, unknown>
                       const tier = getToolRiskTier(fc.name)
                       actionConfirmation = {
-                        type: parsed.draft.action as ActionConfirmation['type'],
-                        description: parsed.message,
-                        payload: parsed.draft,
-                        ...(tier === 'RED' ? { riskTier: 'RED' as const, riskWarning: parsed.riskWarning } : {}),
+                        type: draft.action as ActionConfirmation['type'],
+                        description: parsed.message as string,
+                        payload: draft,
+                        ...(tier === 'RED' ? { riskTier: 'RED' as const, riskWarning: parsed.riskWarning as string } : {}),
                       }
                       if (parsed.richCard) {
                         richCard = parsed.richCard as ConfirmationCardData
@@ -403,10 +406,10 @@ export async function POST(req: NextRequest) {
                 // Subsequent calls after tool execution — stream them too
                 const streamResponse = await client.models.generateContentStream({
                   model: MODEL,
-                  contents: geminiContents as any,
+                  contents: geminiContents as unknown as import('@google/genai').Content[],
                   config: {
                     systemInstruction: systemPrompt,
-                    tools: geminiTools as any,
+                    tools: geminiTools as unknown as import('@google/genai').Tool[],
                   },
                 })
 
@@ -418,14 +421,14 @@ export async function POST(req: NextRequest) {
                   if (!candidate?.content?.parts) continue
 
                   for (const part of candidate.content.parts) {
-                    const p = part as any
+                    const p = part as import('@google/genai').Part
                     if (p.text) {
                       accumulatedText += p.text
                       write({ type: 'delta', content: p.text })
                     }
                     if (p.functionCall) {
                       functionCalls.push({
-                        name: p.functionCall.name,
+                        name: p.functionCall.name ?? '',
                         args: p.functionCall.args || {},
                       })
                     }
@@ -444,7 +447,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Add model response + execute tools
-                const modelParts: any[] = []
+                const modelParts: GeminiPart[] = []
                 if (accumulatedText) modelParts.push({ text: accumulatedText })
                 for (const fc of functionCalls) {
                   modelParts.push({ functionCall: { name: fc.name, args: fc.args } })
@@ -463,7 +466,7 @@ export async function POST(req: NextRequest) {
                 }
                 geminiContents.push({ role: 'model', parts: modelParts })
 
-                const functionResponses: any[] = []
+                const functionResponses: GeminiPart[] = []
                 for (const fc of functionCalls) {
                   write({ type: 'tool_start', tool: fc.name, input: fc.args })
 
@@ -471,14 +474,15 @@ export async function POST(req: NextRequest) {
                     executeTool(fc.name, fc.args, { userId: ctx.userId, organizationId: orgId })
                   )
 
-                  let parsed: any = null
+                  let parsed: Record<string, unknown> | null = null
                   try {
-                    parsed = JSON.parse(toolResult)
+                    parsed = JSON.parse(toolResult) as Record<string, unknown>
                     if (parsed.confirmationRequired && parsed.draft) {
+                      const draft = parsed.draft as Record<string, unknown>
                       actionConfirmation = {
-                        type: parsed.draft.action as ActionConfirmation['type'],
-                        description: parsed.message,
-                        payload: parsed.draft,
+                        type: draft.action as ActionConfirmation['type'],
+                        description: parsed.message as string,
+                        payload: draft,
                       }
                       // Capture rich card data if present (event drafts include this)
                       if (parsed.richCard) {

@@ -3,7 +3,7 @@ import { randomBytes } from 'crypto'
 import { hash } from 'bcryptjs'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { generateSetupToken, getSetupLink, hashSetupToken } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -19,7 +19,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const status = searchParams.get('status') || ''
   const schoolScope = searchParams.get('schoolScope') || ''
 
-  const where: any = {
+  const where: Record<string, unknown> = {
     organizationId: orgId,
   }
 
@@ -102,7 +102,7 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
   const log = logger.child({ route: '/api/settings/users', method: 'POST' })
   const body = await req.json()
 
-  const passwordSetupTokenModel = (prisma as any).passwordSetupToken
+  const passwordSetupTokenModel = (prisma as unknown as OrgPrismaClient).passwordSetupToken
   const email = String(body.email || '').trim().toLowerCase()
   const firstName = String(body.firstName || '').trim()
   const lastName = String(body.lastName || '').trim()
@@ -202,15 +202,16 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
   })
 
   // Auto-create personal "My Schedule" calendar for the new user
-  await prisma.calendar.create({
+  // organizationId is auto-injected by the org-scoped Prisma extension
+  await (prisma as unknown as OrgPrismaClient).calendar.create({
     data: {
       name: 'My Schedule',
       slug: `my-schedule-${user.id.slice(-8)}`,
-      calendarType: 'PERSONAL' as any,
-      visibility: 'CAMPUS' as any,
+      calendarType: 'PERSONAL',
+      visibility: 'CAMPUS',
       createdById: user.id,
       color: '#6366f1',
-    } as any,
+    },
   })
 
   await passwordSetupTokenModel.create({

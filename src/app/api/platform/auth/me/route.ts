@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Missing platform admin context')) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
-    console.error('[GET /api/platform/auth/me]', error)
+    logger.error({ error: String(error) }, 'Failed to get admin')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

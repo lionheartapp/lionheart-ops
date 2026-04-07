@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { sendComplianceReminders } from '@/lib/services/complianceService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET?.trim()
 
   if (!cronSecret) {
-    console.error('[cron/compliance-reminders] CRON_SECRET not configured')
+    logger.error('CRON_SECRET not configured')
     return NextResponse.json(fail('CONFIGURATION_ERROR', 'Cron not configured'), { status: 500 })
   }
 
@@ -30,10 +31,10 @@ export async function GET(req: NextRequest) {
 
   try {
     remindersSent = await sendComplianceReminders()
-    console.log(`[cron/compliance-reminders] Reminders sent: ${remindersSent}`)
+    logger.info({ remindersSent }, 'Compliance reminders sent')
     return NextResponse.json(ok({ remindersSent }))
   } catch (error) {
-    console.error('[cron/compliance-reminders] Fatal error:', error)
+    logger.error({ error: String(error) }, 'Fatal error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })
   }
 }

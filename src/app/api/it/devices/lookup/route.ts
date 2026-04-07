@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
       ].filter(Boolean).join(' > ') || null,
     }))
   } catch (error) {
-    console.error('[GET /api/it/devices/lookup]', error)
+    logger.error({ error: String(error) }, 'Device lookup failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

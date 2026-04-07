@@ -162,16 +162,16 @@ export async function createCampus(input: CreateCampusInput) {
 
   // Auto-create a master calendar for the new campus with a distinct color
   const calColor = await pickNextCalendarColor()
-  await prisma.calendar.create({
+  await (prisma.calendar.create as Function)({
     data: {
       name: `${input.name} Master`,
       slug: `master-${campus.id.slice(-8)}`,
-      calendarType: 'GENERAL' as any,
-      visibility: 'CAMPUS' as any,
+      calendarType: 'GENERAL',
+      visibility: 'CAMPUS',
       campusId: campus.id,
       isDefault: true,
       color: calColor,
-    } as any,
+    },
   })
 
   return campus

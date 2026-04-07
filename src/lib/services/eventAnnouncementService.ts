@@ -195,12 +195,18 @@ async function resolveTeamRecipients(
   })
 
   return members
-    .filter((m: any) => m.user?.email)
-    .map((m: any) => ({
-      email: m.user.email,
-      firstName: m.user.firstName || 'Team Member',
-      userId: m.user.id,
-    }))
+    .filter((m: Record<string, unknown>) => {
+      const user = m.user as Record<string, string> | null
+      return user?.email
+    })
+    .map((m: Record<string, unknown>) => {
+      const user = m.user as Record<string, string>
+      return {
+        email: user.email,
+        firstName: user.firstName || 'Team Member',
+        userId: user.id,
+      }
+    })
 }
 
 // ─── Service Functions ────────────────────────────────────────────────────────
@@ -221,7 +227,7 @@ export interface CreateAnnouncementInput {
 export async function createAnnouncement(
   data: CreateAnnouncementInput,
 ): Promise<EventAnnouncementWithAuthor> {
-  const announcement = await prisma.eventAnnouncement.create({
+  const announcement = await (prisma.eventAnnouncement.create as Function)({
     data: {
       eventProjectId: data.eventProjectId,
       title: data.title,
@@ -230,7 +236,7 @@ export async function createAnnouncement(
       targetGroupId: data.targetGroupId ?? null,
       sentAt: new Date(),
       createdById: data.createdById,
-    } as any,
+    },
     include: {
       createdBy: {
         select: { id: true, firstName: true, lastName: true, avatar: true },
@@ -239,7 +245,7 @@ export async function createAnnouncement(
         select: { name: true },
       },
     },
-  }) as any
+  }) as Record<string, unknown>
 
   // Fire-and-forget email delivery
   ;(async () => {
@@ -312,8 +318,8 @@ export async function createAnnouncement(
 export async function listAnnouncements(
   eventProjectId: string,
 ): Promise<EventAnnouncementWithAuthor[]> {
-  const rows = await prisma.eventAnnouncement.findMany({
-    where: { eventProjectId } as any,
+  const rows = await (prisma.eventAnnouncement.findMany as Function)({
+    where: { eventProjectId },
     orderBy: { createdAt: 'desc' },
     include: {
       createdBy: {
@@ -323,7 +329,7 @@ export async function listAnnouncements(
         select: { name: true },
       },
     },
-  }) as any[]
+  }) as Array<Record<string, unknown>>
 
   return rows.map(shapeAnnouncement)
 }
@@ -332,7 +338,7 @@ export async function listAnnouncements(
  * Hard-delete an announcement by ID.
  */
 export async function deleteAnnouncement(id: string): Promise<void> {
-  await prisma.eventAnnouncement.delete({ where: { id } } as any)
+  await (prisma.eventAnnouncement.delete as Function)({ where: { id } })
 }
 
 /**
@@ -367,7 +373,7 @@ export async function getAnnouncementsForRegistration(
         select: { name: true },
       },
     },
-  }) as any[]
+  }) as Array<Record<string, unknown>>
 
   if (allAnnouncements.length === 0) return []
 

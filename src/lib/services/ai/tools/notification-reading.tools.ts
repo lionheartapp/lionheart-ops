@@ -30,13 +30,13 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       const { notifications } = await getUserNotifications(ctx.userId, { limit })
 
-      let filtered = notifications as any[]
+      let filtered = notifications as Array<Record<string, unknown>>
       if (input.unread_only) {
-        filtered = filtered.filter((n: any) => !n.isRead)
+        filtered = filtered.filter((n) => !n.isRead)
       }
 
       return JSON.stringify({
-        notifications: filtered.map((n: any) => ({
+        notifications: filtered.map((n) => ({
           id: n.id,
           type: n.type,
           title: n.title,

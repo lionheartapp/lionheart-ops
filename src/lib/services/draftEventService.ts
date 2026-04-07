@@ -49,7 +49,7 @@ export async function listDraftEvents(
 
   const validated = ListDraftEventsSchema.parse(input)
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) {
     where.status = validated.status
   }
@@ -85,7 +85,7 @@ export async function countDraftEvents(
   await assertCan(userId, PERMISSIONS.EVENTS_CREATE)
 
   const validated = ListDraftEventsSchema.parse(input)
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) where.status = validated.status
 
   const canViewAll = await can(userId, PERMISSIONS.EVENTS_APPROVE)
@@ -140,7 +140,7 @@ export async function createDraftEvent(
   await assertCan(userId, PERMISSIONS.EVENTS_CREATE)
   const validated = CreateDraftEventSchema.parse(input)
 
-  const draft = await prisma.draftEvent.create({
+  const draft = await (prisma.draftEvent.create as Function)({
     data: {
       title: validated.title,
       description: validated.description,
@@ -149,7 +149,7 @@ export async function createDraftEvent(
       endsAt: validated.endsAt ? new Date(validated.endsAt) : null,
       status: 'DRAFT',
       createdById: userId,
-    } as any, // Temp workaround for org-scoped extension typing
+    },
   })
 
   return draft
@@ -183,7 +183,7 @@ export async function updateDraftEvent(
 
   const validated = UpdateDraftEventSchema.parse(input)
 
-  const updateData: any = {}
+  const updateData: Record<string, unknown> = {}
   if (validated.title !== undefined) updateData.title = validated.title
   if (validated.description !== undefined) updateData.description = validated.description
   if (validated.room !== undefined) updateData.room = validated.room
@@ -257,7 +257,7 @@ export async function submitDraftEvent(
   }
 
   // Create confirmed event from draft
-  const event = await prisma.event.create({
+  const event = await (prisma.event.create as Function)({
     data: {
       title: draft.title,
       description: draft.description,
@@ -266,7 +266,7 @@ export async function submitDraftEvent(
       endsAt: draft.endsAt,
       status: 'CONFIRMED',
       submittedById: draft.createdById,
-    } as any,
+    },
   })
 
   // Mark draft as submitted

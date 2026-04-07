@@ -19,6 +19,7 @@ import { ok, fail } from '@/lib/api-response'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { RateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import {
   createPaymentIntent,
   calculateAmount,
@@ -174,11 +175,11 @@ export async function POST(
         return NextResponse.json(fail('PAYMENT_ERROR', 'Payment service error. Please try again.'), { status: 502 })
       }
       if (error.message.includes('STRIPE_SECRET_KEY')) {
-        console.error('[payment-intent] Stripe not configured')
+        logger.error('Stripe not configured')
         return NextResponse.json(fail('PAYMENT_NOT_CONFIGURED', 'Payments are not configured'), { status: 503 })
       }
     }
-    console.error('[payment-intent POST]', error)
+    logger.error({ error: String(error) }, 'Payment intent POST failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

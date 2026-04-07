@@ -9,7 +9,10 @@
 
 import { ImagePosition, SchoolType, InstitutionType } from '@prisma/client';
 import { rawPrisma } from '@/lib/db';
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'organizationService' })
 export interface OrganizationBranding {
   id: string;
   name: string;
@@ -69,7 +72,7 @@ export async function getOrganizationBranding(
 
     return null;
   } catch (error) {
-    console.error('Error fetching organization branding:', error);
+    log.error({ err: String(error) }, 'Error fetching organization branding');
     return null;
   }
 }

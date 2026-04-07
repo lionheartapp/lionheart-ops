@@ -4,6 +4,7 @@ import { expandRecurrence } from './recurrenceService'
 import { getOrgContextId } from '@/lib/org-context'
 import type {
   CalendarEventStatus,
+  CalendarType,
   ApprovalChannel,
   ApprovalStatus,
   Prisma,
@@ -57,7 +58,7 @@ export async function getCalendars(filters?: {
   const where: Prisma.CalendarWhereInput = {}
 
   if (filters?.calendarType) {
-    where.calendarType = filters.calendarType as any
+    where.calendarType = filters.calendarType as CalendarType
   }
   if (filters?.campusId) {
     where.campusId = filters.campusId
@@ -75,8 +76,8 @@ export async function getCalendars(filters?: {
     if (isAdmin) {
       // Admins see all non-personal calendars + only their own personal calendar
       where.OR = [
-        { calendarType: { not: 'PERSONAL' as any } },
-        { createdById: filters.userId, calendarType: 'PERSONAL' as any },
+        { calendarType: { not: 'PERSONAL' } },
+        { createdById: filters.userId, calendarType: 'PERSONAL' },
       ]
     } else {
       // Non-admins: filter by campus assignments + own personal calendar
@@ -89,12 +90,12 @@ export async function getCalendars(filters?: {
       where.OR = [
         // Campus master calendars the user belongs to
         ...(userCampusIds.length > 0
-          ? [{ campusId: { in: userCampusIds }, calendarType: { not: 'PERSONAL' as any } }]
+          ? [{ campusId: { in: userCampusIds }, calendarType: { not: 'PERSONAL' as CalendarType } }]
           : []),
         // Org-wide calendars (no campus, non-personal)
-        { campusId: null, calendarType: { not: 'PERSONAL' as any } },
+        { campusId: null, calendarType: { not: 'PERSONAL' as CalendarType } },
         // User's own personal calendar
-        { createdById: filters.userId, calendarType: 'PERSONAL' as any },
+        { createdById: filters.userId, calendarType: 'PERSONAL' },
       ]
     }
   }
@@ -147,19 +148,19 @@ export async function createCalendar(data: {
     }
   }
 
-  return prisma.calendar.create({
+  return (prisma.calendar.create as Function)({
     data: {
       name: data.name,
       slug: data.slug,
-      calendarType: data.calendarType as any,
+      calendarType: data.calendarType,
       color: resolvedColor || '#3b82f6',
-      visibility: (data.visibility as any) || 'ORG_WIDE',
+      visibility: data.visibility || 'ORG_WIDE',
       requiresApproval: data.requiresApproval || false,
       campusId: data.campusId,
       schoolId: data.schoolId,
       isDefault: data.isDefault || false,
       createdById: data.createdById,
-    } as any, // Org-scoped extension injects organizationId at runtime
+    },
   })
 }
 
@@ -172,9 +173,9 @@ export async function updateCalendar(id: string, data: Partial<{
   isDefault: boolean
   isActive: boolean
 }>) {
-  return prisma.calendar.update({
+  return (prisma.calendar.update as Function)({
     where: { id },
-    data: data as any,
+    data,
   })
 }
 
@@ -335,7 +336,7 @@ export async function createEvent(
       ? 'DRAFT'
       : 'CONFIRMED'
 
-  const event = await prisma.calendarEvent.create({
+  const event = await (prisma.calendarEvent.create as Function)({
     data: {
       calendarId: input.calendarId,
       title: input.title,
@@ -350,9 +351,9 @@ export async function createEvent(
       locationText: input.locationText,
       buildingId: input.buildingId,
       areaId: input.areaId,
-      metadata: input.metadata as any,
+      metadata: input.metadata as Prisma.InputJsonValue,
       createdById: userId,
-    } as any, // Org-scoped extension injects organizationId at runtime
+    },
     include: {
       calendar: { select: { id: true, name: true, color: true, calendarType: true } },
       category: true,
@@ -405,7 +406,7 @@ export async function submitForApproval(eventId: string, userId: string) {
     const requiredResourceTypes = channelTypeMap[channel.channelType] || []
     const isAdmin = channel.channelType === 'ADMIN'
     const hasRelevantResource = requiredResourceTypes.length === 0 ||
-      requiredResourceTypes.some((rt) => resourceTypes.includes(rt as any))
+      requiredResourceTypes.some((rt) => resourceTypes.includes(rt as typeof resourceTypes[number]))
 
     if (isAdmin || hasRelevantResource) {
       approvalRecords.push({
@@ -433,7 +434,7 @@ export async function submitForApproval(eventId: string, userId: string) {
 
   // Create approvals and update event status in a transaction-like flow
   for (const record of approvalRecords) {
-    await prisma.eventApproval.create({ data: record as any })
+    await (prisma.eventApproval.create as Function)({ data: record })
   }
 
   return prisma.calendarEvent.update({
@@ -682,7 +683,7 @@ export async function updateEvent(
   if (!event.rrule || editMode === 'all') {
     return prisma.calendarEvent.update({
       where: { id: event.parentEventId || eventId },
-      data: data as any,
+      data,
       include: {
         calendar: { select: { id: true, name: true, color: true, calendarType: true } },
         category: true,
@@ -698,7 +699,7 @@ export async function updateEvent(
     // Compute occurrence end time from the parent's duration
     const parentDuration = event.endTime.getTime() - event.startTime.getTime()
     const occurrenceEnd = new Date(exceptionOriginalStart.getTime() + parentDuration)
-    return prisma.calendarEvent.create({
+    return (prisma.calendarEvent.create as Function)({
       data: {
         calendarId: event.calendarId,
         title: data.title || event.title,
@@ -712,11 +713,11 @@ export async function updateEvent(
         locationText: data.locationText === undefined ? event.locationText : data.locationText,
         buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
         areaId: data.areaId === undefined ? event.areaId : data.areaId,
-        metadata: (data.metadata as any) ?? event.metadata,
+        metadata: (data.metadata ?? event.metadata) as Prisma.InputJsonValue,
         parentEventId: event.parentEventId || event.id,
         originalStart: exceptionOriginalStart,
         createdById: userId,
-      } as any, // Org-scoped extension injects organizationId at runtime
+      },
       include: {
         calendar: { select: { id: true, name: true, color: true, calendarType: true } },
         category: true,
@@ -747,7 +748,7 @@ export async function updateEvent(
   })
 
   // Create new series
-  return prisma.calendarEvent.create({
+  return (prisma.calendarEvent.create as Function)({
     data: {
       calendarId: event.calendarId,
       title: data.title || event.title,
@@ -762,9 +763,9 @@ export async function updateEvent(
       locationText: data.locationText === undefined ? event.locationText : data.locationText,
       buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
       areaId: data.areaId === undefined ? event.areaId : data.areaId,
-      metadata: (data.metadata as any) ?? event.metadata,
+      metadata: (data.metadata ?? event.metadata) as Prisma.InputJsonValue,
       createdById: userId,
-    } as any, // Org-scoped extension injects organizationId at runtime
+    },
     include: {
       calendar: { select: { id: true, name: true, color: true, calendarType: true } },
       category: true,
@@ -826,7 +827,7 @@ export async function deleteEvent(
     const parentDuration = event.endTime.getTime() - event.startTime.getTime()
     const occurrenceEnd = new Date(exceptionOriginalStart.getTime() + parentDuration)
 
-    return prisma.calendarEvent.create({
+    return (prisma.calendarEvent.create as Function)({
       data: {
         calendarId: event.calendarId,
         title: event.title,
@@ -840,11 +841,11 @@ export async function deleteEvent(
         locationText: event.locationText,
         buildingId: event.buildingId,
         areaId: event.areaId,
-        metadata: event.metadata as any,
+        metadata: event.metadata as Prisma.InputJsonValue,
         parentEventId: event.parentEventId || event.id,
         originalStart: exceptionOriginalStart,
         createdById: event.createdById,
-      } as any,
+      },
     })
   }
 
@@ -910,7 +911,7 @@ export async function getCategories(calendarType?: string) {
   const where: Prisma.CalendarCategoryWhereInput = {}
   if (calendarType) {
     where.OR = [
-      { calendarType: calendarType as any },
+      { calendarType: calendarType as CalendarType },
       { calendarType: null },
     ]
   }
@@ -927,14 +928,14 @@ export async function createCategory(data: {
   calendarType?: string
   calendarId?: string
 }) {
-  return prisma.calendarCategory.create({
+  return (prisma.calendarCategory.create as Function)({
     data: {
       name: data.name,
       color: data.color || '#6b7280',
       icon: data.icon,
-      calendarType: data.calendarType as any,
+      calendarType: data.calendarType,
       calendarId: data.calendarId,
-    } as any, // Org-scoped extension injects organizationId at runtime
+    },
   })
 }
 
@@ -948,7 +949,7 @@ export async function createCategory(data: {
 export async function getEventsForUser(userId: string, start: Date, end: Date) {
   const events = await prisma.calendarEvent.findMany({
     where: {
-      calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] as any[] },
+      calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] as CalendarEventStatus[] },
       parentEventId: null,
       OR: [
         // Events created by the user (non-recurring in range, or recurring parent)
@@ -1030,7 +1031,7 @@ export async function addAttendees(eventId: string, userIds: string[]) {
       prisma.eventAttendee.upsert({
         where: { eventId_userId: { eventId, userId } },
         update: {},
-        create: { eventId, userId, responseStatus: 'PENDING' } as any,
+        create: { eventId, userId, responseStatus: 'PENDING' },
       })
     )
   )

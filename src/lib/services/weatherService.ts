@@ -5,6 +5,10 @@
  * Caches results for 5 minutes per coordinate pair.
  */
 
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'weatherService' })
+
 export interface WeatherData {
   temp: number          // Fahrenheit
   condition: string     // "Clear", "Cloudy", "Rainy", etc.
@@ -85,7 +89,7 @@ export async function fetchWeatherForecast(
     })
 
     if (!res.ok) {
-      console.warn(`[Weather] Open-Meteo forecast returned ${res.status}`)
+      log.warn({ status: res.status }, 'Open-Meteo forecast returned non-OK status')
       return null
     }
 
@@ -107,7 +111,7 @@ export async function fetchWeatherForecast(
       precipitationChance: Math.round(daily.precipitation_probability_max?.[0] ?? 0),
     }
   } catch (error) {
-    console.error('[Weather] Forecast error:', error)
+    log.error({ err: String(error) }, 'Forecast error')
     return null
   }
 }
@@ -140,7 +144,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherDat
     })
 
     if (!res.ok) {
-      console.warn(`[Weather] Open-Meteo returned ${res.status}`)
+      log.warn({ status: res.status }, 'Open-Meteo returned non-OK status')
       return null
     }
 
@@ -148,7 +152,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherDat
     const current = data.current
 
     if (!current) {
-      console.warn('[Weather] No current data in response')
+      log.warn('No current data in response')
       return null
     }
 
@@ -166,7 +170,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherDat
     cache.set(cacheKey, { data: weatherData, fetchedAt: Date.now() })
     return weatherData
   } catch (error) {
-    console.error('[Weather] Error:', error)
+    log.error({ err: String(error) }, 'Weather fetch error')
     return null
   }
 }

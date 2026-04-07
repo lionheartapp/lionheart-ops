@@ -212,7 +212,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       return JSON.stringify({
         ticket: ticket.ticketNumber,
         activities: activities.map(a => ({
-          type: a.type, content: a.content, by: (a as any).actor?.name, at: a.createdAt,
+          type: a.type, content: a.content, by: (a.actor as { name?: string } | null)?.name, at: a.createdAt,
         })),
         count: activities.length,
       })

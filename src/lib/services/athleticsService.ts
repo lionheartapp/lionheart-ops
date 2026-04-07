@@ -1,8 +1,7 @@
-import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { RRule } from 'rrule'
 
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 // ── Sports ─────────────────────────────────────────────────────────────
 

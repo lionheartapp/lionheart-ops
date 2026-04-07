@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Loader2, ExternalLink } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 
@@ -241,7 +242,7 @@ export default function SetupPage() {
         fireConfetti()
         setComplete(true)
       } catch (err) {
-        console.error('Setup error:', err)
+        logger.error({ error: String(err) }, 'Setup error')
         setComplete(true)
       }
     }

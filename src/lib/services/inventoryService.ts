@@ -10,12 +10,16 @@
 
 import { z } from 'zod'
 import { prisma, rawPrisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { runWithOrgContext } from '@/lib/org-context'
 import { createBulkNotifications } from '@/lib/services/notificationService'
 import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
 import { INVENTORY_CATEGORIES, AV_EQUIPMENT_TAGS } from '@/lib/constants/inventory'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'inventoryService' })
 // Re-export for backward compatibility with server-side consumers
 export { INVENTORY_CATEGORIES, AV_EQUIPMENT_TAGS }
 
@@ -93,6 +97,15 @@ export type CreateAVEquipmentInput = z.input<typeof CreateAVEquipmentSchema>
 export type UpdateAVEquipmentInput = z.input<typeof UpdateAVEquipmentSchema>
 export type AVLocationEntry = z.infer<typeof AVLocationEntrySchema>
 export type AVDocLink = z.infer<typeof AVDocLinkSchema>
+
+// ─── Error Helper ─────────────────────────────────────────────────────────
+
+/** Create an Error with an additional `code` property for API error handling. */
+function codedError(message: string, code: string): Error & { code: string } {
+  const err = new Error(message) as Error & { code: string }
+  err.code = code
+  return err
+}
 
 // ─── Private Helpers ────────────────────────────────────────────────────────
 
@@ -172,7 +185,7 @@ async function notifyLowStock(
       }))
     )
   } catch (err) {
-    console.error('[InventoryService] notifyLowStock failed:', err)
+    log.error({ err: String(err) }, 'notifyLowStock failed')
   }
 }
 
@@ -213,9 +226,7 @@ export async function getItem(orgId: string, itemId: string) {
       where: { id: itemId },
     })
     if (!item) {
-      const err = new Error('Inventory item not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Inventory item not found', 'NOT_FOUND')
     }
     return item
   })
@@ -227,14 +238,14 @@ export async function getItem(orgId: string, itemId: string) {
 export async function createItem(orgId: string, input: CreateItemInput) {
   const data = CreateItemSchema.parse(input)
   return runWithOrgContext(orgId, async () => {
-    return prisma.inventoryItem.create({
+    return (prisma.inventoryItem.create as Function)({
       data: {
         name: data.name,
         category: data.category ?? null,
         sku: data.sku ?? null,
         quantityOnHand: data.quantityOnHand,
         reorderThreshold: data.reorderThreshold,
-      } as any,
+      },
     })
   })
 }
@@ -251,9 +262,7 @@ export async function updateItem(
   return runWithOrgContext(orgId, async () => {
     const existing = await prisma.inventoryItem.findFirst({ where: { id: itemId } })
     if (!existing) {
-      const err = new Error('Inventory item not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Inventory item not found', 'NOT_FOUND')
     }
     return prisma.inventoryItem.update({
       where: { id: itemId },
@@ -275,9 +284,7 @@ export async function deleteItem(orgId: string, itemId: string) {
   return runWithOrgContext(orgId, async () => {
     const existing = await prisma.inventoryItem.findFirst({ where: { id: itemId } })
     if (!existing) {
-      const err = new Error('Inventory item not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Inventory item not found', 'NOT_FOUND')
     }
     return prisma.inventoryItem.delete({ where: { id: itemId } })
   })
@@ -301,18 +308,15 @@ export async function checkoutItem(
     // 1. Fetch item
     const item = await prisma.inventoryItem.findFirst({ where: { id: itemId } })
     if (!item) {
-      const err = new Error('Inventory item not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Inventory item not found', 'NOT_FOUND')
     }
 
     // 2. Check available stock
     if (item.quantityOnHand < data.quantity) {
-      const err = new Error(
-        `Insufficient stock: ${item.quantityOnHand} unit(s) available, ${data.quantity} requested`
+      throw codedError(
+        `Insufficient stock: ${item.quantityOnHand} unit(s) available, ${data.quantity} requested`,
+        'INSUFFICIENT_STOCK'
       )
-      ;(err as any).code = 'INSUFFICIENT_STOCK'
-      throw err
     }
 
     // 3. Atomically decrement
@@ -327,13 +331,11 @@ export async function checkoutItem(
         where: { id: itemId },
         data: { quantityOnHand: { increment: data.quantity } },
       })
-      const err = new Error('Insufficient stock — concurrent checkout conflict')
-      ;(err as any).code = 'INSUFFICIENT_STOCK'
-      throw err
+      throw codedError('Insufficient stock — concurrent checkout conflict', 'INSUFFICIENT_STOCK')
     }
 
     // 5. Create transaction record
-    await prisma.inventoryTransaction.create({
+    await (prisma.inventoryTransaction.create as Function)({
       data: {
         itemId,
         type: 'CHECKOUT',
@@ -342,7 +344,7 @@ export async function checkoutItem(
         checkedOutAt: new Date(),
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         notes: data.notes ?? null,
-      } as any,
+      },
     })
 
     // 6. Fire-and-forget low-stock notification
@@ -374,16 +376,12 @@ export async function checkinItem(
     })
 
     if (!transaction) {
-      const err = new Error('Checkout transaction not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Checkout transaction not found', 'NOT_FOUND')
     }
 
     // 2. Check it's not already closed
     if (transaction.checkedInAt !== null) {
-      const err = new Error('This item has already been checked in')
-      ;(err as any).code = 'ALREADY_CHECKED_IN'
-      throw err
+      throw codedError('This item has already been checked in', 'ALREADY_CHECKED_IN')
     }
 
     // 3. Increment item quantity by the absolute value of the checkout quantity
@@ -421,23 +419,23 @@ export async function createAVEquipment(
   const totalQuantity = (data.locations || []).reduce((sum, loc) => sum + loc.quantity, 0)
 
   return runWithOrgContext(orgId, async () => {
-    return prisma.inventoryItem.create({
+    return (prisma.inventoryItem.create as Function)({
       data: {
         name: data.name,
         description: data.description ?? null,
         category: data.category ?? null,
         ownerId: data.ownerId ?? null,
         allowCheckout: data.allowCheckout,
-        locations: data.locations as any,
+        locations: data.locations as Prisma.InputJsonValue,
         quantityOnHand: totalQuantity,
         reorderThreshold: 0,
         manufacturer: data.manufacturer ?? null,
         model: data.model ?? null,
         serialNumbers: data.serialNumbers,
         imageUrl: data.imageUrl ?? null,
-        documentationLinks: data.documentationLinks as any,
+        documentationLinks: data.documentationLinks as Prisma.InputJsonValue,
         tags: data.tags,
-      } as any,
+      },
     })
   })
 }
@@ -456,15 +454,13 @@ export async function updateAVEquipment(
   return runWithOrgContext(orgId, async () => {
     const existing = await prisma.inventoryItem.findFirst({ where: { id: itemId } })
     if (!existing) {
-      const err = new Error('Inventory item not found')
-      ;(err as any).code = 'NOT_FOUND'
-      throw err
+      throw codedError('Inventory item not found', 'NOT_FOUND')
     }
 
     // Recalculate quantityOnHand if locations changed
     let quantityOnHand = existing.quantityOnHand
     if (data.locations) {
-      quantityOnHand = (data.locations as any[]).reduce((sum, loc) => sum + loc.quantity, 0)
+      quantityOnHand = data.locations.reduce((sum, loc) => sum + loc.quantity, 0)
     }
 
     return prisma.inventoryItem.update({
@@ -475,13 +471,13 @@ export async function updateAVEquipment(
         ...(data.ownerId !== undefined && { ownerId: data.ownerId ?? null }),
         ...(data.category !== undefined && { category: data.category ?? null }),
         ...(data.allowCheckout !== undefined && { allowCheckout: data.allowCheckout }),
-        ...(data.locations && { locations: data.locations as any, quantityOnHand }),
+        ...(data.locations && { locations: data.locations as Prisma.InputJsonValue, quantityOnHand }),
         ...(data.manufacturer !== undefined && { manufacturer: data.manufacturer ?? null }),
         ...(data.model !== undefined && { model: data.model ?? null }),
         ...(data.serialNumbers && { serialNumbers: data.serialNumbers }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl ?? null }),
         ...(data.tags && { tags: data.tags }),
-        ...(data.documentationLinks && { documentationLinks: data.documentationLinks as any }),
+        ...(data.documentationLinks && { documentationLinks: data.documentationLinks as Prisma.InputJsonValue }),
       },
     })
   })

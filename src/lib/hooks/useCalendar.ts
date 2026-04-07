@@ -7,6 +7,32 @@ import { useState, useCallback } from 'react'
 
 export type CalendarViewType = 'month' | 'week' | 'day' | 'agenda'
 
+/** Known metadata fields that athletics and other modules attach to events. */
+export interface EventMetadata extends Record<string, unknown> {
+  athleticsType?: string
+  campusId?: string
+  schoolLevel?: string
+  sportId?: string
+  sportName?: string
+  sportColor?: string
+  teamLevel?: string
+  teamName?: string
+  opponentName?: string
+  venue?: string
+  location?: string
+  homeAway?: string
+  result?: string
+  homeScore?: number
+  awayScore?: number
+  isFinal?: boolean
+  notes?: string
+}
+
+/** Type-safe accessor for event metadata. Returns a typed object or null. */
+export function getEventMetadata(event: { metadata?: Record<string, unknown> | null }): EventMetadata | null {
+  return (event.metadata as EventMetadata) ?? null
+}
+
 export interface CalendarEventData {
   id: string
   calendarId: string

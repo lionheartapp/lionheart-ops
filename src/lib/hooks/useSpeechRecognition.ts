@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 
 /**
  * Web Speech API hook for voice input.
@@ -54,13 +55,15 @@ export interface UseSpeechRecognitionReturn {
   clearTranscript: () => void
 }
 
+interface WindowWithSpeech extends Window {
+  SpeechRecognition?: SpeechRecognitionConstructor
+  webkitSpeechRecognition?: SpeechRecognitionConstructor
+}
+
 function getSpeechRecognition(): SpeechRecognitionConstructor | null {
   if (typeof window === 'undefined') return null
-  return (
-    (window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition ||
-    null
-  )
+  const win = window as unknown as WindowWithSpeech
+  return win.SpeechRecognition || win.webkitSpeechRecognition || null
 }
 
 export function useSpeechRecognition(): UseSpeechRecognitionReturn {
@@ -177,7 +180,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       // 'no-speech' and 'aborted' are expected — don't treat as errors
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        console.warn('[SpeechRecognition] Error:', event.error)
+        logger.warn({ error: String(event.error) }, 'SpeechRecognition error')
       }
       setIsListening(false)
     }
@@ -192,7 +195,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
       recognition.start()
       startAudioMonitor()
     } catch (error) {
-      console.warn('[SpeechRecognition] Failed to start:', error)
+      logger.warn({ error: String(error) }, 'SpeechRecognition failed to start')
       setIsListening(false)
     }
   }, [startAudioMonitor])

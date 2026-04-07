@@ -21,7 +21,10 @@ import {
   sendCostThresholdAlertEmail,
   sendEndOfLifeAlertEmail,
 } from '@/lib/services/emailService'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'repeatRepairService' })
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Recipient = {
@@ -158,7 +161,7 @@ Respond with ONLY valid JSON (no markdown): { "recommendation": "...", "decision
       urgency: ['LOW', 'MEDIUM', 'HIGH'].includes(parsed.urgency) ? parsed.urgency : 'MEDIUM',
     }
   } catch (err) {
-    console.error('[repeatRepairService] AI recommendation failed:', err)
+    log.error({ err: String(err) }, 'AI recommendation failed')
     return {
       recommendation: 'Failed to generate recommendation — please review asset manually',
       decision: 'UNKNOWN',
@@ -233,7 +236,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
   // Step B — Find Head of Maintenance recipients
   const recipients = await getMaintenanceAnalyticsRecipients(orgId)
   if (recipients.length === 0) {
-    console.log(`[repeatRepairService] No analytics recipients found for org ${orgId} — skipping detection`)
+    log.info({ orgId }, 'No analytics recipients found — skipping detection')
     return counters
   }
 
@@ -271,7 +274,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             repairCount: repairsInYear.length,
             assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] Repeat repair email failed for ${recipient.email}:`, err)
+            log.error({ err: String(err) }, 'Repeat repair email failed')
           )
         }
 
@@ -284,7 +287,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             type: 'maintenance_repeat_repair',
             linkUrl: assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] Repeat repair notification failed for ${recipient.id}:`, err)
+            log.error({ err: String(err) }, 'Repeat repair notification failed')
           )
         }
 
@@ -330,7 +333,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             recommendation: recommendationText,
             assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] Cost threshold email failed for ${recipient.email}:`, err)
+            log.error({ err: String(err) }, 'Cost threshold email failed')
           )
         }
 
@@ -343,7 +346,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             type: 'maintenance_cost_threshold',
             linkUrl: assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] Cost threshold notification failed for ${recipient.id}:`, err)
+            log.error({ err: String(err) }, 'Cost threshold notification failed')
           )
         }
 
@@ -379,7 +382,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             expectedLifespan: asset.expectedLifespanYears!,
             assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] End of life email failed for ${recipient.email}:`, err)
+            log.error({ err: String(err) }, 'End of life email failed')
           )
         }
 
@@ -392,7 +395,7 @@ export async function runRepeatRepairDetection(orgId: string): Promise<{
             type: 'maintenance_end_of_life',
             linkUrl: assetUrl,
           }).catch((err) =>
-            console.error(`[repeatRepairService] End of life notification failed for ${recipient.id}:`, err)
+            log.error({ err: String(err) }, 'End of life notification failed')
           )
         }
 

@@ -94,7 +94,7 @@ export async function listEvents(
 
   const validated = ListEventsSchema.parse(input)
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) where.status = validated.status
   if (validated.requiresAV !== undefined) where.requiresAV = validated.requiresAV
   if (validated.fromDate || validated.toDate) {
@@ -129,7 +129,7 @@ export async function countEvents(
   await assertCan(userId, PERMISSIONS.EVENTS_READ)
 
   const validated = ListEventsSchema.parse(input)
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) where.status = validated.status
   if (validated.requiresAV !== undefined) where.requiresAV = validated.requiresAV
   if (validated.fromDate || validated.toDate) {
@@ -180,7 +180,7 @@ export async function createEvent(
     await checkRoomConflict(validated.room, new Date(validated.startsAt), new Date(validated.endsAt))
   }
 
-  const event = await prisma.event.create({
+  const event = await (prisma.event.create as Function)({
     data: {
       title: validated.title,
       description: validated.description,
@@ -191,7 +191,7 @@ export async function createEvent(
       submittedById: validated.submittedById || userId,
       requiresAV: validated.requiresAV ?? false,
       avRequirements: validated.avRequirements ?? null,
-    } as any, // Temp workaround for org-scoped extension typing
+    },
   })
 
   // Create attendee records (EventAttendee is not org-scoped, linked via eventId)
@@ -239,7 +239,7 @@ export async function updateEvent(
     }
   }
 
-  const updateData: any = {}
+  const updateData: Record<string, unknown> = {}
   if (validated.title !== undefined) updateData.title = validated.title
   if (validated.description !== undefined) updateData.description = validated.description
   if (validated.room !== undefined) updateData.room = validated.room

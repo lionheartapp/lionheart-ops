@@ -305,7 +305,7 @@ export async function upsertFormSections(
 
     if (section.fields.length > 0) {
       // eslint-disable-next-line no-await-in-loop
-      await (rawPrisma as any).registrationFormField.createMany({
+      await (rawPrisma as unknown as Record<string, { createMany: (args: Record<string, unknown>) => Promise<{ count: number }> }>).registrationFormField.createMany({
         data: section.fields.map((field) => ({
           sectionId: created.id,
           formId,

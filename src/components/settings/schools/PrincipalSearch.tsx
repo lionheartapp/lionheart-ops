@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import type { PrincipalOption, SchoolFormData } from '@/lib/school-utils'
 import {
   normalizeSearchText,
@@ -51,13 +52,13 @@ export default function PrincipalSearch({
       const data = await response.json()
 
       if (!response.ok) {
-        console.error('Search failed:', data)
+        logger.error({ error: String(data) }, 'Principal search failed')
         setPrincipalOptions([])
       } else {
         setPrincipalOptions(data.data || [])
       }
     } catch (err) {
-      console.error('Principal search error:', err)
+      logger.error({ error: String(err) }, 'Principal search error')
       setPrincipalOptions([])
     } finally {
       setSearchingPrincipals(false)
@@ -153,7 +154,7 @@ export default function PrincipalSearch({
       setPrincipalOptions([])
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create principal'
-      console.error('Create principal error:', message, err)
+      logger.error({ error: message }, 'Create principal error')
     } finally {
       setCreatingPrincipal(false)
     }

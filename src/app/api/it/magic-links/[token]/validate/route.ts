@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   req: NextRequest,
@@ -42,7 +43,7 @@ export async function GET(
       expiresAt: magicLink.expiresAt.toISOString(),
     }))
   } catch (error) {
-    console.error('[GET /api/it/magic-links/:token/validate]', error)
+    logger.error({ error: String(error) }, 'Failed to validate magic link')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

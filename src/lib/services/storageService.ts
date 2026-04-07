@@ -8,6 +8,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'storageService' })
 
 interface StorageConfig {
   url: string
@@ -19,7 +22,7 @@ function getStorageConfig(): StorageConfig | null {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
 
   if (!url || !key) {
-    console.warn('Supabase credentials not configured for storage')
+    log.warn('Supabase credentials not configured for storage')
     return null
   }
 
@@ -71,7 +74,7 @@ export async function uploadLogo(
     const publicUrl = `${config.url}/storage/v1/object/public/logos/${path}`
     return publicUrl
   } catch (error) {
-    console.error('Logo upload error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Logo upload error')
     throw error
   }
 }
@@ -104,7 +107,7 @@ export async function uploadFromUrl(orgId: string, imageUrl: string): Promise<st
     // Upload to storage
     return await uploadLogo(orgId, Buffer.from(buffer), contentType)
   } catch (error) {
-    console.error('Upload from URL error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Upload from URL error')
     throw error
   }
 }
@@ -148,7 +151,7 @@ export async function uploadCampusImage(
 
     return `${config.url}/storage/v1/object/public/campus-images/${path}`
   } catch (error) {
-    console.error('Campus image upload error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Campus image upload error')
     throw error
   }
 }
@@ -176,7 +179,7 @@ export async function deleteCampusImage(imageUrl: string): Promise<void> {
       throw new Error(`Delete failed: ${error.message}`)
     }
   } catch (error) {
-    console.error('Campus image delete error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Campus image delete error')
     throw error
   }
 }
@@ -218,7 +221,7 @@ export async function uploadBrandingImage(
 
     return `${config.url}/storage/v1/object/public/logos/${path}`
   } catch (error) {
-    console.error('Branding image upload error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Branding image upload error')
     throw error
   }
 }
@@ -245,7 +248,7 @@ export async function deleteBrandingImage(imageUrl: string): Promise<void> {
       throw new Error(`Delete failed: ${error.message}`)
     }
   } catch (error) {
-    console.error('Branding image delete error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Branding image delete error')
     throw error
   }
 }
@@ -267,7 +270,7 @@ export async function deleteFile(orgId: string, fileName: string): Promise<void>
       throw new Error(`Delete failed: ${error.message}`)
     }
   } catch (error) {
-    console.error('File delete error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'File delete error')
     throw error
   }
 }
@@ -307,7 +310,7 @@ export async function uploadRegistrationPhoto(
     // Return the storage path — callers use getSignedPhotoUrl to generate access URLs
     return path
   } catch (error) {
-    console.error('Student photo upload error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Student photo upload error')
     throw error
   }
 }
@@ -331,7 +334,7 @@ export async function getSignedPhotoUrl(photoPath: string, expiresIn = 3600): Pr
 
     return data.signedUrl
   } catch (error) {
-    console.error('Signed photo URL error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Signed photo URL error')
     throw error
   }
 }
@@ -374,7 +377,7 @@ export async function createSignedPhotoUploadUrl(
       token: data.token,
     }
   } catch (error) {
-    console.error('Signed upload URL error:', error instanceof Error ? error.message : error)
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Signed upload URL error')
     throw error
   }
 }

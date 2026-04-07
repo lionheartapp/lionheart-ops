@@ -224,7 +224,7 @@ export async function updateRepairQueueStatus(repairId: string, newStatus: strin
   return prisma.iTDeviceRepair.update({
     where: { id: repairId },
     data: {
-      queueStatus: newStatus as any,
+      queueStatus: newStatus as import('@prisma/client').ITRepairQueueStatus,
       queueUpdatedAt: new Date(),
     },
   })

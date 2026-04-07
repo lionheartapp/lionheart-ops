@@ -7,6 +7,7 @@
  */
 
 import mjml2html from 'mjml'
+import { logger } from '@/lib/logger'
 
 // ─── Brand Tokens ────────────────────────────────────────────────────────────
 
@@ -972,7 +973,7 @@ export function renderEmail(template: EmailTemplate, vars: TemplateVars): Render
   })
 
   if (errors.length > 0) {
-    console.warn(`[Email] MJML warnings for ${template}:`, errors.map((e: { message: string }) => e.message))
+    logger.warn({ template, warnings: errors.map((e: { message: string }) => e.message) }, 'MJML warnings')
   }
 
   return {

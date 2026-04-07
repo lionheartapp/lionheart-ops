@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Ticket, AlertTriangle, CheckCircle, Loader2, ExternalLink } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import { COMPLIANCE_DOMAIN_DEFAULTS } from '@/lib/types/compliance'
 import { ComplianceAttachmentPanel } from './ComplianceAttachmentPanel'
 import type { ComplianceDomain, ComplianceOutcome, ComplianceStatus } from '@prisma/client'
@@ -127,7 +128,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
       onUpdated()
     },
     onError: (err) => {
-      console.error('[ComplianceRecordDrawer] Save error:', err)
+      logger.error({ error: String(err) }, 'ComplianceRecordDrawer save error')
     },
   })
 
@@ -161,7 +162,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
       onUpdated()
     },
     onError: (err) => {
-      console.error('[ComplianceRecordDrawer] Ticket generation error:', err)
+      logger.error({ error: String(err) }, 'ComplianceRecordDrawer ticket generation error')
     },
   })
 

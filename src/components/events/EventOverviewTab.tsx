@@ -28,6 +28,15 @@ import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBa
 import { ConflictBanner } from './overview/ConflictBanner'
 import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
 import type { EventProject } from '@/lib/hooks/useEventProject'
+import type { ConflictItem } from './overview/ConflictBanner'
+
+/** Typed metadata fields that event projects may contain. */
+interface EventProjectMetadata extends Record<string, unknown> {
+  conflictReport?: {
+    conflicts: ConflictItem[]
+  }
+  conflictCheckedAt?: string
+}
 
 // ─── Stat card ───────────────────────────────────────────────────────────────
 
@@ -210,12 +219,15 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       )}
 
       {/* Conflict warnings — shown when conflicts detected */}
-      {(project.metadata as any)?.conflictReport?.conflicts?.length > 0 && (
-        <ConflictBanner
-          conflicts={(project.metadata as any).conflictReport.conflicts}
-          checkedAt={(project.metadata as any).conflictCheckedAt}
-        />
-      )}
+      {(() => {
+        const meta = project.metadata as EventProjectMetadata | null
+        return meta?.conflictReport?.conflicts?.length ? (
+          <ConflictBanner
+            conflicts={meta.conflictReport.conflicts}
+            checkedAt={meta.conflictCheckedAt}
+          />
+        ) : null
+      })()}
 
       {/* Resource Requirements — A/V and Facilities needs */}
       <ResourceRequirementsSection project={project} />

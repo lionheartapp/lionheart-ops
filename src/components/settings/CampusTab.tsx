@@ -409,7 +409,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       <InteractiveCampusMap
         campusId={selectedCampusId || undefined}
         mapCenter={mapCenter}
-        buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code, latitude: b.latitude, longitude: b.longitude, schoolDivision: b.schoolDivision, school: b.school, polygonCoordinates: (b as any).polygonCoordinates || null }))}
+        buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code, latitude: b.latitude, longitude: b.longitude, schoolDivision: b.schoolDivision, school: b.school, polygonCoordinates: b.polygonCoordinates || null }))}
         outdoorSpaces={outdoorMapSpaces}
         schools={schools}
         editable
@@ -427,7 +427,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         }}
         onAddOutdoorSpaceAtPosition={(lat, lng) => { setOutdoorForm({ name: '', areaType: 'FIELD' }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' }) }}
         onBuildingSelected={setSelectedMapBuildingId}
-        onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } as any : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
+        onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
         onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/areas/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
         onEditBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openEditBuilding(b) }}
         onDeleteBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openDeleteConfirm('building', b.id, b.name) }}

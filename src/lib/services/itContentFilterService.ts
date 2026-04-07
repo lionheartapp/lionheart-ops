@@ -9,7 +9,10 @@
 import { rawPrisma } from '@/lib/db'
 import { createHmac, randomBytes, createHash } from 'crypto'
 import { createBulkNotifications } from '@/lib/services/notificationService'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'itContentFilterService' })
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface NormalizedFilterEvent {
@@ -45,6 +48,7 @@ export function validateWebhookSignature(
 
 // ─── Payload Transformers ────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
 export function transformGoGuardianPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -69,6 +73,7 @@ export function transformGoGuardianPayload(payload: Record<string, any>): Normal
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
 export function transformSecurlyPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -94,6 +99,7 @@ export function transformSecurlyPayload(payload: Record<string, any>): Normalize
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
 export function transformLightspeedPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -117,6 +123,7 @@ export function transformLightspeedPayload(payload: Record<string, any>): Normal
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
 export function transformBarkPayload(payload: Record<string, any>): NormalizedFilterEvent {
   return {
     eventType: 'SAFETY_ALERT',
@@ -182,11 +189,11 @@ export async function processFilterEvent(
   normalizedEvent: NormalizedFilterEvent
 ) {
   // Create the content filter event record
-  const event = await (rawPrisma.iTContentFilterEvent as any).create({
+  const event = await (rawPrisma.iTContentFilterEvent as unknown as { create: Function }).create({
     data: {
       organizationId: orgId,
-      platform: provider as any,
-      eventType: normalizedEvent.eventType as any,
+      platform: provider,
+      eventType: normalizedEvent.eventType,
       externalEventId: normalizedEvent.externalEventId || null,
       studentName: normalizedEvent.studentName || null,
       studentEmail: normalizedEvent.studentEmail || null,
@@ -213,15 +220,15 @@ export async function processFilterEvent(
     const rawToken = randomBytes(32).toString('hex')
     const statusTokenHash = createHash('sha256').update(rawToken).digest('hex')
 
-    const ticket = await (rawPrisma.iTTicket as any).create({
+    const ticket = await (rawPrisma.iTTicket as unknown as { create: Function }).create({
       data: {
         organizationId: orgId,
         ticketNumber,
         title: `Content Filter Unblock: ${normalizedEvent.url || 'Unknown URL'}`,
-        issueType: 'SOFTWARE' as any,
-        source: 'WEBHOOK' as any,
-        status: 'BACKLOG' as any,
-        priority: 'MEDIUM' as any,
+        issueType: 'SOFTWARE',
+        source: 'WEBHOOK',
+        status: 'BACKLOG',
+        priority: 'MEDIUM',
         description: `Unblock request from ${normalizedEvent.studentName || 'student'}. URL: ${normalizedEvent.url || 'N/A'}. Category: ${normalizedEvent.category || 'N/A'}.`,
         filterPlatform: provider,
         filterEventId: event.id,
@@ -231,7 +238,7 @@ export async function processFilterEvent(
     })
 
     // Link ticket back to the event
-    await (rawPrisma.iTContentFilterEvent as any).update({
+    await (rawPrisma.iTContentFilterEvent as unknown as { update: Function }).update({
       where: { id: event.id },
       data: { ticketId: ticket.id },
     })
@@ -245,7 +252,7 @@ export async function processFilterEvent(
         await createBulkNotifications(
           managers.map((u) => ({
             userId: u.id,
-            type: 'it_ticket_urgent' as any,
+            type: 'it_ticket_urgent' as const,
             title: 'Safety Alert: Content Filter',
             body: `Safety alert triggered for ${normalizedEvent.studentName || 'a student'}. Category: ${normalizedEvent.category || 'Unknown'}. Platform: ${provider}.`,
             linkUrl: '/it?tab=filters',
@@ -253,7 +260,7 @@ export async function processFilterEvent(
         )
       }
     } catch (err) {
-      console.error('[ContentFilter] Failed to send safety alert notifications:', err)
+      log.error({ err: String(err) }, 'Failed to send safety alert notifications')
     }
   }
 
@@ -263,7 +270,7 @@ export async function processFilterEvent(
 // ─── Management Functions ────────────────────────────────────────────────────
 
 export async function getFilterConfigs(orgId: string) {
-  return (rawPrisma.iTContentFilterConfig as any).findMany({
+  return (rawPrisma.iTContentFilterConfig as unknown as { findMany: Function }).findMany({
     where: { organizationId: orgId },
     orderBy: { provider: 'asc' },
   })
@@ -276,14 +283,14 @@ export async function upsertFilterConfig(
     isEnabled?: boolean
     webhookSecret?: string
     apiKey?: string
-    settings?: any
+    settings?: Record<string, unknown>
   }
 ) {
-  return (rawPrisma.iTContentFilterConfig as any).upsert({
+  return (rawPrisma.iTContentFilterConfig as unknown as { upsert: Function }).upsert({
     where: {
       organizationId_provider: {
         organizationId: orgId,
-        provider: provider as any,
+        provider,
       },
     },
     update: {
@@ -294,7 +301,7 @@ export async function upsertFilterConfig(
     },
     create: {
       organizationId: orgId,
-      provider: provider as any,
+      provider,
       isEnabled: data.isEnabled ?? false,
       webhookSecret: data.webhookSecret || null,
       apiKey: data.apiKey || null,
@@ -315,8 +322,8 @@ export async function getFilterEvents(
     limit?: number
     offset?: number
   }
-): Promise<{ events: any[]; total: number }> {
-  const where: Record<string, any> = { organizationId: orgId }
+): Promise<{ events: Array<Record<string, unknown>>; total: number }> {
+  const where: Record<string, unknown> = { organizationId: orgId }
 
   if (filters.platform) where.platform = filters.platform
   if (filters.eventType) where.eventType = filters.eventType
@@ -324,13 +331,14 @@ export async function getFilterEvents(
   if (filters.isAdminOnly !== undefined) where.isAdminOnly = filters.isAdminOnly
 
   if (filters.from || filters.to) {
-    where.createdAt = {}
-    if (filters.from) where.createdAt.gte = new Date(filters.from)
-    if (filters.to) where.createdAt.lte = new Date(filters.to)
+    const createdAtFilter: { gte?: Date; lte?: Date } = {}
+    if (filters.from) createdAtFilter.gte = new Date(filters.from)
+    if (filters.to) createdAtFilter.lte = new Date(filters.to)
+    where.createdAt = createdAtFilter
   }
 
   const [events, total] = await Promise.all([
-    (rawPrisma.iTContentFilterEvent as any).findMany({
+    (rawPrisma.iTContentFilterEvent as unknown as { findMany: Function }).findMany({
       where,
       include: {
         actor: { select: { id: true, firstName: true, lastName: true } },
@@ -340,7 +348,7 @@ export async function getFilterEvents(
       take: filters.limit || 50,
       skip: filters.offset || 0,
     }),
-    (rawPrisma.iTContentFilterEvent as any).count({ where }),
+    (rawPrisma.iTContentFilterEvent as unknown as { count: Function }).count({ where }),
   ])
 
   return { events, total }
@@ -352,10 +360,10 @@ export async function updateEventDisposition(
   userId: string,
   data: { disposition: string; notes?: string }
 ) {
-  const event = await (rawPrisma.iTContentFilterEvent as any).update({
+  const event = await (rawPrisma.iTContentFilterEvent as unknown as { update: Function }).update({
     where: { id: eventId },
     data: {
-      disposition: data.disposition as any,
+      disposition: data.disposition,
       dispositionAt: new Date(),
       actorId: userId,
       dispositionNotes: data.notes || null,
@@ -364,7 +372,7 @@ export async function updateEventDisposition(
 
   // If the event has a linked ticket, update its filterDisposition too
   if (event.ticketId) {
-    await (rawPrisma.iTTicket as any).update({
+    await (rawPrisma.iTTicket as unknown as { update: Function }).update({
       where: { id: event.ticketId },
       data: { filterDisposition: data.disposition },
     })

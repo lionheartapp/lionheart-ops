@@ -13,6 +13,10 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { checkRoomConflict } from '@/lib/services/eventService'
 import { getTimezoneOffset, getOrgTimezone, formatInTimezone, getOrgToday } from '@/lib/utils/timezone'
 
+/** Loose record type that allows nested property access on dynamic Prisma results. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DynRecord = Record<string, any>
+
 const tools: Record<string, ToolRegistryEntry> = {
   // ── GREEN: List Calendars ──────────────────────────────────────────────
   list_calendars: {
@@ -35,7 +39,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       })
 
       return JSON.stringify({
-        calendars: calendars.map((c: any) => ({
+        calendars: calendars.map((c: DynRecord) => ({
           id: c.id,
           name: c.name,
           type: c.calendarType,
@@ -85,7 +89,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       if (!event) return JSON.stringify({ error: `Event not found: ${eventId}` })
 
-      const meta = event.metadata as Record<string, unknown> | null
+      const meta = event.metadata as DynRecord | null
       const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
 
       return JSON.stringify({
@@ -97,28 +101,28 @@ const tools: Record<string, ToolRegistryEntry> = {
         timezone: event.timezone,
         isAllDay: event.isAllDay,
         location: event.locationText || undefined,
-        building: (event as any).building?.name || undefined,
-        area: (event as any).area?.name || undefined,
+        building: (event as DynRecord).building?.name || undefined,
+        area: (event as DynRecord).area?.name || undefined,
         status: event.calendarStatus,
-        calendar: (event as any).calendar?.name,
-        calendarType: (event as any).calendar?.calendarType,
-        category: (event as any).category?.name || undefined,
-        createdBy: (event as any).createdBy?.name || undefined,
-        approvedBy: (event as any).approvedBy?.name || undefined,
+        calendar: (event as DynRecord).calendar?.name,
+        calendarType: (event as DynRecord).calendar?.calendarType,
+        category: (event as DynRecord).category?.name || undefined,
+        createdBy: (event as DynRecord).createdBy?.name || undefined,
+        approvedBy: (event as DynRecord).approvedBy?.name || undefined,
         recurrence: event.rrule || undefined,
-        attendees: (event as any).attendees?.map((a: any) => ({
+        attendees: (event as DynRecord).attendees?.map((a: DynRecord) => ({
           name: a.user?.name,
           email: a.user?.email,
           rsvp: a.responseStatus,
         })) || [],
         equipmentList: equipmentList && equipmentList.length > 0 ? equipmentList : undefined,
-        resourceRequests: (event as any).resourceRequests?.map((r: any) => ({
+        resourceRequests: (event as DynRecord).resourceRequests?.map((r: DynRecord) => ({
           type: r.resourceType,
           status: r.requestStatus,
           details: r.details,
           note: r.responseNote || undefined,
         })) || [],
-        approvals: (event as any).approvals?.map((a: any) => ({
+        approvals: (event as DynRecord).approvals?.map((a: DynRecord) => ({
           channel: a.channelType,
           status: a.approvalStatus,
           reason: a.reason || undefined,
@@ -173,11 +177,11 @@ const tools: Record<string, ToolRegistryEntry> = {
         where: { isActive: true },
         select: { id: true },
       })
-      const calendarIds = calendars.map((c: any) => c.id)
+      const calendarIds = calendars.map((c: DynRecord) => c.id)
 
       // Use getEventsInRange from calendarService — handles recurring event expansion
       const { getEventsInRange } = await import('@/lib/services/calendarService')
-      let allEvents: any[] = []
+      let allEvents: Array<DynRecord> = []
       if (calendarIds.length > 0) {
         allEvents = await getEventsInRange(calendarIds, rangeStart, rangeEnd, {
           take: limit * 2, // Fetch extra to account for post-filtering
@@ -185,13 +189,13 @@ const tools: Record<string, ToolRegistryEntry> = {
       }
 
       // Filter out cancelled events
-      allEvents = allEvents.filter((e: any) => e.calendarStatus !== 'CANCELLED')
+      allEvents = allEvents.filter((e: DynRecord) => e.calendarStatus !== 'CANCELLED')
 
       // Apply location filter if provided (match locationText, building name, area name)
       const locationQuery = input.location ? String(input.location).trim() : ''
       if (locationQuery) {
         const locNeedle = locationQuery.toLowerCase()
-        allEvents = allEvents.filter((e: any) =>
+        allEvents = allEvents.filter((e: DynRecord) =>
           (e.locationText || '').toLowerCase().includes(locNeedle) ||
           (e.building?.name || '').toLowerCase().includes(locNeedle) ||
           (e.area?.name || '').toLowerCase().includes(locNeedle)
@@ -201,19 +205,19 @@ const tools: Record<string, ToolRegistryEntry> = {
       // Apply search filter if provided (search title + description)
       if (searchQuery) {
         const needle = searchQuery.toLowerCase()
-        allEvents = allEvents.filter((e: any) =>
+        allEvents = allEvents.filter((e: DynRecord) =>
           (e.title || '').toLowerCase().includes(needle) ||
           (e.description || '').toLowerCase().includes(needle)
         )
       }
 
       // Fetch resource requests for matched events (not included by getEventsInRange)
-      const eventIds = allEvents.map((e: any) => e.id).filter(Boolean)
+      const eventIds = allEvents.map((e: DynRecord) => e.id).filter(Boolean)
       const resourceRequests = eventIds.length > 0
         ? await prisma.eventResourceRequest.findMany({
             where: { eventId: { in: eventIds } },
             select: { eventId: true, resourceType: true, requestStatus: true, details: true },
-          }).catch(() => [] as any[])
+          }).catch(() => [] as Array<DynRecord>)
         : []
       const requestsByEvent = new Map<string, any[]>()
       for (const r of resourceRequests) {
@@ -223,13 +227,13 @@ const tools: Record<string, ToolRegistryEntry> = {
       }
 
       // Map to output format
-      const merged = allEvents.slice(0, limit).map((e: any) => {
-        const meta = e.metadata as Record<string, unknown> | null
+      const merged = allEvents.slice(0, limit).map((e: DynRecord) => {
+        const meta = e.metadata as DynRecord | null
         const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
-        const attendeeNames = (e.attendees || []).map((a: any) => a.user?.name || a.user?.firstName).filter(Boolean)
+        const attendeeNames = (e.attendees || []).map((a: DynRecord) => a.user?.name || a.user?.firstName).filter(Boolean)
         const evtResources = requestsByEvent.get(e.id) || []
-        const hasAV = evtResources.some((r: any) => r.type === 'AV_EQUIPMENT') ||
-          (equipmentList || []).some((eq: any) => /mic|speaker|projector|screen|sound|av|audio|video/i.test(eq.item))
+        const hasAV = evtResources.some((r: DynRecord) => r.type === 'AV_EQUIPMENT') ||
+          (equipmentList || []).some((eq: DynRecord) => /mic|speaker|projector|screen|sound|av|audio|video/i.test(eq.item))
 
         return {
           id: e.id, title: e.title, description: e.description || undefined,
@@ -291,7 +295,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         const calConflict = await prisma.calendarEvent.findFirst({
           where: {
             locationText: { equals: roomName, mode: 'insensitive' },
-            calendarStatus: { not: 'CANCELLED' as any },
+            calendarStatus: { not: 'CANCELLED' },
             startTime: { lt: endDt },
             endTime: { gt: startDt },
           },
@@ -307,11 +311,12 @@ const tools: Record<string, ToolRegistryEntry> = {
       try {
         await checkRoomConflict(roomName, startDt, endDt)
         return JSON.stringify({ available: true, room: roomName, start: startStr, end: endStr, message: `${roomName} is available for that time.` })
-      } catch (err: any) {
-        if (err.code === 'ROOM_CONFLICT') {
-          return JSON.stringify({ available: false, room: roomName, conflict: err.message, message: `${roomName} is not available -- ${err.message}` })
+      } catch (err: unknown) {
+        const e = err as { code?: string; message?: string }
+        if (e.code === 'ROOM_CONFLICT') {
+          return JSON.stringify({ available: false, room: roomName, conflict: e.message, message: `${roomName} is not available -- ${e.message}` })
         }
-        return JSON.stringify({ error: `Failed to check room availability: ${err.message}` })
+        return JSON.stringify({ error: `Failed to check room availability: ${e.message}` })
       }
     },
   },
@@ -336,7 +341,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     execute: async (input) => {
       const buildingName = input.building_name as string | undefined
       const limit = Math.min((input.limit as number) || 10, 25)
-      const where: Record<string, unknown> = {}
+      const where: DynRecord = {}
       if (buildingName) where.building = { name: { contains: buildingName, mode: 'insensitive' } }
 
       const rooms = await prisma.room.findMany({
@@ -402,13 +407,13 @@ const tools: Record<string, ToolRegistryEntry> = {
       // Also find events on ANY calendar (including personal calendars) that
       // mention this user by name in the title — catches informal references
       // like "Meeting with Tom Riddle" where Tom wasn't added as a formal attendee.
-      const formalIds = new Set(formalEvents.map((e: any) => e.id))
+      const formalIds = new Set(formalEvents.map((e: DynRecord) => e.id))
       const nameParts = (user.name || '').split(' ').filter((p: string) => p.length > 2)
-      let nameMatchEvents: any[] = []
+      let nameMatchEvents: Array<DynRecord> = []
       if (nameParts.length > 0) {
         const nameMatches = await prisma.calendarEvent.findMany({
           where: {
-            calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] as any[] },
+            calendarStatus: { in: ['CONFIRMED', 'TENTATIVE', 'PENDING_APPROVAL'] },
             parentEventId: null,
             deletedAt: null,
             title: { contains: nameParts[nameParts.length - 1], mode: 'insensitive' },
@@ -420,11 +425,11 @@ const tools: Record<string, ToolRegistryEntry> = {
           select: { id: true, title: true, startTime: true, endTime: true, calendar: { select: { name: true, calendarType: true } } },
         })
         // Only add events not already found via formal attendee/creator query
-        nameMatchEvents = nameMatches.filter((e: any) => !formalIds.has(e.id))
+        nameMatchEvents = nameMatches.filter((e: DynRecord) => !formalIds.has(e.id))
       }
 
       const allEvents = [...formalEvents, ...nameMatchEvents]
-      const busySlots = allEvents.map((e: any) => ({
+      const busySlots = allEvents.map((e: DynRecord) => ({
         title: e.title,
         start: e.startTime,
         end: e.endTime,
@@ -484,7 +489,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         try {
           const parsed = JSON.parse(equipmentListStr)
           if (Array.isArray(parsed)) {
-            equipmentList = parsed.map((e: any) => ({
+            equipmentList = parsed.map((e: DynRecord) => ({
               item: String(e.item || e.name || ''),
               quantity: Number(e.quantity || e.qty || 1),
             })).filter(e => e.item)
@@ -503,13 +508,13 @@ const tools: Record<string, ToolRegistryEntry> = {
             select: { id: true, name: true, calendarType: true },
           })
           // Try exact match first (case-insensitive)
-          let match = calendars.find((c: any) =>
+          let match = calendars.find((c: DynRecord) =>
             c.name.toLowerCase() === calendarNameInput.toLowerCase()
           )
           // Then try partial/fuzzy match
           if (!match) {
             const needle = calendarNameInput.toLowerCase()
-            match = calendars.find((c: any) =>
+            match = calendars.find((c: DynRecord) =>
               c.name.toLowerCase().includes(needle) || needle.includes(c.name.toLowerCase())
             )
           }
@@ -527,7 +532,7 @@ const tools: Record<string, ToolRegistryEntry> = {
             select: { id: true, name: true, calendarType: true },
             orderBy: { name: 'asc' },
           })
-          const calendarList = calendars.map((c: any) => `- "${c.name}" (${c.calendarType}, id: ${c.id})`).join('\n')
+          const calendarList = calendars.map((c: DynRecord) => `- "${c.name}" (${c.calendarType}, id: ${c.id})`).join('\n')
           return JSON.stringify({
             error: true,
             message: `No calendar specified. You must include a calendar_id or calendar_name when creating an event. Ask the user which calendar to use.\n\nAvailable calendars:\n${calendarList}`,
@@ -556,7 +561,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         } catch { /* Non-critical */ }
       }
 
-      const draft: Record<string, unknown> = {
+      const draft: DynRecord = {
         action: 'create_event',
         title: String(input.title || ''),
         description: String(input.description || ''),
@@ -616,7 +621,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           const calConflict = await prisma.calendarEvent.findFirst({
             where: {
               locationText: { equals: roomName, mode: 'insensitive' },
-              calendarStatus: { not: 'CANCELLED' as any },
+              calendarStatus: { not: 'CANCELLED' },
               startTime: { lt: endDate },
               endTime: { gt: startDate },
             },
@@ -876,10 +881,10 @@ const tools: Record<string, ToolRegistryEntry> = {
         where: { isActive: true },
         select: { id: true },
       })
-      const calendarIds = calendars.map((c: any) => c.id)
+      const calendarIds = calendars.map((c: DynRecord) => c.id)
 
       const { getEventsInRange } = await import('@/lib/services/calendarService')
-      let allEvents: any[] = []
+      let allEvents: Array<DynRecord> = []
       if (calendarIds.length > 0) {
         allEvents = await getEventsInRange(calendarIds, rangeStart, now, {
           take: limit * 3,
@@ -887,12 +892,12 @@ const tools: Record<string, ToolRegistryEntry> = {
       }
 
       // Filter out cancelled
-      allEvents = allEvents.filter((e: any) => e.calendarStatus !== 'CANCELLED')
+      allEvents = allEvents.filter((e: DynRecord) => e.calendarStatus !== 'CANCELLED')
 
       // Apply location filter
       if (locationQuery) {
         const locNeedle = locationQuery.toLowerCase()
-        allEvents = allEvents.filter((e: any) =>
+        allEvents = allEvents.filter((e: DynRecord) =>
           (e.locationText || '').toLowerCase().includes(locNeedle) ||
           (e.building?.name || '').toLowerCase().includes(locNeedle) ||
           (e.area?.name || '').toLowerCase().includes(locNeedle)
@@ -902,18 +907,18 @@ const tools: Record<string, ToolRegistryEntry> = {
       // Apply search filter
       if (searchQuery) {
         const needle = searchQuery.toLowerCase()
-        allEvents = allEvents.filter((e: any) =>
+        allEvents = allEvents.filter((e: DynRecord) =>
           (e.title || '').toLowerCase().includes(needle) ||
           (e.description || '').toLowerCase().includes(needle)
         )
       }
 
       // Sort newest first for past events
-      allEvents.sort((a: any, b: any) =>
+      allEvents.sort((a: DynRecord, b: DynRecord) =>
         new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
       )
 
-      const mapped = allEvents.slice(0, limit).map((e: any) => ({
+      const mapped = allEvents.slice(0, limit).map((e: DynRecord) => ({
         id: e.id,
         title: e.title,
         description: e.description || undefined,
@@ -961,7 +966,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       if (!event) return JSON.stringify({ error: `Event not found: ${eventId}` })
 
-      const meta = event.metadata as Record<string, unknown> | null
+      const meta = event.metadata as DynRecord | null
       const equipmentList = meta?.equipmentList as Array<{ item: string; quantity: number }> | undefined
 
       if (!equipmentList || equipmentList.length === 0) {

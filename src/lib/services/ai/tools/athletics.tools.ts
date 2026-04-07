@@ -16,6 +16,10 @@ import {
   getSports,
 } from '@/lib/services/athleticsService'
 
+/** Loose record type that allows nested property access on dynamic Prisma results. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DynRecord = Record<string, any>
+
 const tools: Record<string, ToolRegistryEntry> = {
   // ── GREEN: List Athletic Teams ──────────────────────────────────────────
   list_athletic_teams: {
@@ -42,18 +46,18 @@ const tools: Record<string, ToolRegistryEntry> = {
       let teams = await getTeams()
 
       if (sportNameFilter) {
-        teams = teams.filter((t: any) =>
+        teams = teams.filter((t: DynRecord) =>
           (t.sport?.name || '').toLowerCase().includes(sportNameFilter)
         )
       }
       if (seasonNameFilter) {
-        teams = teams.filter((t: any) =>
+        teams = teams.filter((t: DynRecord) =>
           (t.season?.name || '').toLowerCase().includes(seasonNameFilter)
         )
       }
 
       return JSON.stringify({
-        teams: teams.map((t: any) => ({
+        teams: teams.map((t: DynRecord) => ({
           id: t.id,
           name: t.name,
           sport: t.sport?.name,
@@ -99,14 +103,14 @@ const tools: Record<string, ToolRegistryEntry> = {
       let games = await getGames(filters)
 
       if (teamNameFilter) {
-        games = games.filter((g: any) =>
+        games = games.filter((g: DynRecord) =>
           (g.athleticTeam?.name || '').toLowerCase().includes(teamNameFilter) ||
           (g.athleticTeam?.sport?.name || '').toLowerCase().includes(teamNameFilter)
         )
       }
 
       return JSON.stringify({
-        games: games.slice(0, limit).map((g: any) => ({
+        games: games.slice(0, limit).map((g: DynRecord) => ({
           id: g.id,
           team: g.athleticTeam?.name,
           sport: g.athleticTeam?.sport?.name,
@@ -150,14 +154,14 @@ const tools: Record<string, ToolRegistryEntry> = {
       let practices = await getPractices()
 
       if (teamNameFilter) {
-        practices = practices.filter((p: any) =>
+        practices = practices.filter((p: DynRecord) =>
           (p.athleticTeam?.name || '').toLowerCase().includes(teamNameFilter) ||
           (p.athleticTeam?.sport?.name || '').toLowerCase().includes(teamNameFilter)
         )
       }
 
       return JSON.stringify({
-        practices: practices.slice(0, limit).map((p: any) => ({
+        practices: practices.slice(0, limit).map((p: DynRecord) => ({
           id: p.id,
           team: p.athleticTeam?.name,
           sport: p.athleticTeam?.sport?.name,
@@ -199,7 +203,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       if (sportNameFilter) {
         const sports = await getSports({ isActive: true })
-        const match = sports.find((s: any) => (s.name || '').toLowerCase().includes(sportNameFilter))
+        const match = sports.find((s: DynRecord) => (s.name || '').toLowerCase().includes(sportNameFilter))
         if (match) sportId = match.id
       }
 
@@ -207,13 +211,13 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Client-side filter for season name if no ID resolved
       if (seasonNameFilter && !seasonId) {
-        standings = standings.filter((s: any) =>
+        standings = standings.filter((s: DynRecord) =>
           (s.season?.name || '').toLowerCase().includes(seasonNameFilter)
         )
       }
 
       return JSON.stringify({
-        standings: standings.map((s: any) => ({
+        standings: standings.map((s: DynRecord) => ({
           team: s.teamName,
           level: s.level,
           sport: s.sport?.name,
@@ -258,14 +262,14 @@ const tools: Record<string, ToolRegistryEntry> = {
       let sportId: string | undefined
       if (sportNameFilter) {
         const sports = await getSports({ isActive: true })
-        const match = sports.find((s: any) => (s.name || '').toLowerCase().includes(sportNameFilter))
+        const match = sports.find((s: DynRecord) => (s.name || '').toLowerCase().includes(sportNameFilter))
         if (match) sportId = match.id
       }
 
       const leaders = await getPlayerStatLeaders({ statKey, sportId, limit })
 
       return JSON.stringify({
-        leaders: leaders.map((l: any) => ({
+        leaders: leaders.map((l: DynRecord) => ({
           rank: l.rank,
           player: `${l.firstName} ${l.lastName}`.trim(),
           jerseyNumber: l.jerseyNumber || undefined,
@@ -303,13 +307,13 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Find matching team(s)
       const allTeams = await getTeams()
-      const matchedTeam = allTeams.find((t: any) =>
+      const matchedTeam = allTeams.find((t: DynRecord) =>
         (t.name || '').toLowerCase().includes(teamNameFilter) ||
         (`${t.sport?.name || ''} ${t.name || ''}`).toLowerCase().includes(teamNameFilter)
       )
 
       if (!matchedTeam) {
-        const teamNames = allTeams.map((t: any) => t.name).slice(0, 10)
+        const teamNames = allTeams.map((t: DynRecord) => t.name).slice(0, 10)
         return JSON.stringify({
           error: `No team found matching "${input.team_name}". Available teams: ${teamNames.join(', ')}`,
         })
@@ -319,9 +323,9 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       return JSON.stringify({
         team: matchedTeam.name,
-        sport: (matchedTeam as any).sport?.name,
+        sport: (matchedTeam as DynRecord).sport ? ((matchedTeam as DynRecord).sport as { name?: string })?.name : undefined,
         level: matchedTeam.level,
-        players: roster.map((r: any) => ({
+        players: roster.map((r: DynRecord) => ({
           id: r.id,
           name: `${r.firstName} ${r.lastName}`.trim(),
           jerseyNumber: r.jerseyNumber || undefined,
@@ -361,9 +365,9 @@ const tools: Record<string, ToolRegistryEntry> = {
 
       // Only final games for recent results
       const recentResults = recentGames
-        .filter((g: any) => g.isFinal)
+        .filter((g: DynRecord) => g.isFinal)
         .slice(0, 5)
-        .map((g: any) => ({
+        .map((g: DynRecord) => ({
           team: g.athleticTeam?.name,
           opponent: g.opponentName,
           homeScore: g.homeScore,
@@ -378,7 +382,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           upcomingGamesThisWeek: upcomingGames.length,
           recentResultsThisWeek: recentResults.length,
         },
-        upcomingGames: upcomingGames.slice(0, 5).map((g: any) => ({
+        upcomingGames: upcomingGames.slice(0, 5).map((g: DynRecord) => ({
           team: g.athleticTeam?.name,
           sport: g.athleticTeam?.sport?.name,
           opponent: g.opponentName,
@@ -387,7 +391,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           venue: g.venue || undefined,
         })),
         recentResults,
-        topStandings: standings.slice(0, 5).map((s: any) => ({
+        topStandings: standings.slice(0, 5).map((s: DynRecord) => ({
           team: s.teamName,
           sport: s.sport?.name,
           record: `${s.wins}-${s.losses}${s.ties > 0 ? `-${s.ties}` : ''}`,
@@ -399,7 +403,7 @@ const tools: Record<string, ToolRegistryEntry> = {
 }
 
 // Helper: format game result as W/L/T string
-function formatGameResult(game: any): string | undefined {
+function formatGameResult(game: DynRecord): string | undefined {
   if (!game.isFinal || game.homeScore == null || game.awayScore == null) return undefined
   const isHome = game.homeAway === 'HOME'
   const ourScore = isHome ? game.homeScore : game.awayScore

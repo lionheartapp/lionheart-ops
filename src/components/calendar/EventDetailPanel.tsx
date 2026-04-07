@@ -13,9 +13,11 @@ import {
   useAddAttendees,
   useRemoveAttendee,
   useRsvp,
+  getEventMetadata,
   type CalendarEventData,
   type EventApprovalData,
   type ApprovalChannelType,
+  type EventMetadata,
 } from '@/lib/hooks/useCalendar'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useToast } from '@/components/Toast'
@@ -217,8 +219,9 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     }
   }
 
-  const isAthletics = !!(event?.metadata as any)?.athleticsType
-  const athleticsMeta = isAthletics ? (event?.metadata as any) : null
+  const eventMeta: EventMetadata | null = event ? getEventMetadata(event) : null
+  const isAthletics = !!eventMeta?.athleticsType
+  const athleticsMeta = isAthletics ? eventMeta : null
 
   const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
   const approvals = eventDetail?.approvals || []

@@ -12,8 +12,11 @@ import { addDays, addWeeks, addMonths, addYears, startOfDay, isBefore } from 'da
 import { prisma, rawPrisma } from '@/lib/db'
 import { generateTicketNumber } from '@/lib/services/maintenanceTicketService'
 import { PM_RECURRENCE_TYPES, type PmRecurrenceType, type PmCalendarEvent } from '@/lib/types/pm-schedule'
+import { logger } from '@/lib/logger'
 export type { PmRecurrenceType, PmCalendarEvent } from '@/lib/types/pm-schedule'
 
+
+const log = logger.child({ service: 'pmScheduleService' })
 // ─── PM Status Constants ───────────────────────────────────────────────────────
 
 export const PM_STATUS = {
@@ -383,7 +386,7 @@ export async function generatePmTickets(): Promise<number> {
       const ticketNumber = await generateTicketNumber(schedule.organizationId)
 
       // Determine category from linked asset, or fall back to OTHER
-      const category = (schedule.asset?.category as string) || 'OTHER'
+      const category = ((schedule.asset?.category as string) || 'OTHER') as import('@prisma/client').MaintenanceCategory
 
       await rawPrisma.maintenanceTicket.create({
         data: {
@@ -391,8 +394,8 @@ export async function generatePmTickets(): Promise<number> {
           ticketNumber,
           title: schedule.name,
           description: schedule.description ?? null,
-          category: category as any,
-          specialty: assetCategoryToSpecialty(category) as any,
+          category,
+          specialty: assetCategoryToSpecialty(category as string) as import('@prisma/client').MaintenanceSpecialty,
           priority: 'MEDIUM',
           status: 'TODO',
           // PM-specific fields
@@ -415,16 +418,16 @@ export async function generatePmTickets(): Promise<number> {
       })
 
       created++
-      console.log(`[generatePmTickets] Created ticket ${ticketNumber} for schedule ${schedule.id} (${schedule.name})`)
+      log.info({ ticketNumber, scheduleId: schedule.id, scheduleName: schedule.name }, 'Created PM ticket')
     } catch (err: unknown) {
       // Unique constraint violation = duplicate run for same schedule+date — skip silently
       const isUniqueError =
         err instanceof Error &&
-        (err.message.includes('Unique constraint') || (err as any).code === 'P2002')
+        (err.message.includes('Unique constraint') || (err as unknown as { code?: string }).code === 'P2002')
       if (isUniqueError) {
-        console.log(`[generatePmTickets] Skipping duplicate PM ticket for schedule ${schedule.id} due ${schedule.nextDueDate?.toISOString()}`)
+        log.info({ scheduleId: schedule.id, nextDueDate: schedule.nextDueDate?.toISOString() }, 'Skipping duplicate PM ticket')
       } else {
-        console.error(`[generatePmTickets] Failed to create PM ticket for schedule ${schedule.id}:`, err)
+        log.error({ err: String(err), scheduleId: schedule.id }, 'Failed to create PM ticket')
       }
     }
   }

@@ -4,6 +4,7 @@ import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
 import { platformAudit, getPlatformIp } from '@/lib/services/platformAuditService'
+import { logger } from '@/lib/logger'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[PATCH /api/platform/discount-codes/[id]]', error)
+    logger.error({ error: String(error) }, 'Failed to update discount code')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -5,7 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createIncident, getIncidents } from '@/lib/services/securityIncidentService'
 import { notifyIncidentCreated } from '@/lib/services/securityIncidentNotificationService'
-import type { SecurityIncidentType, IncidentSeverity } from '@prisma/client'
+import type { SecurityIncidentType, IncidentSeverity, IncidentStatus } from '@prisma/client'
 
 const CreateIncidentSchema = z.object({
   type: z.enum(['PHISHING', 'DEVICE_LOST_STOLEN', 'UNAUTHORIZED_ACCESS', 'MALWARE', 'DATA_BREACH', 'ACCOUNT_COMPROMISE', 'RANSOMWARE', 'POLICY_VIOLATION', 'OTHER']),
@@ -43,7 +43,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const filters = {
     type: searchParams.get('type') as SecurityIncidentType | undefined || undefined,
     severity: searchParams.get('severity') as IncidentSeverity | undefined || undefined,
-    status: searchParams.get('status') as any || undefined,
+    status: searchParams.get('status') as IncidentStatus | undefined || undefined,
     schoolId: searchParams.get('schoolId') || undefined,
     search: searchParams.get('search') || undefined,
     from: searchParams.get('from') || undefined,

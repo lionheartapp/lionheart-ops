@@ -13,6 +13,7 @@ import {
   generateResetToken,
 } from '@/lib/services/itStudentPasswordService'
 import { sendPasswordResetEmail } from '@/lib/services/emailService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       message: 'If that account exists, a reset link has been sent to the associated email address.',
     }))
   } catch (error) {
-    console.error('[POST /api/it/student-password/request]', error)
+    logger.error({ error: String(error) }, 'Student password reset request failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

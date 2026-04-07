@@ -37,7 +37,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           where: { OR: [{ title: { contains: query, mode: 'insensitive' } }, { description: { contains: query, mode: 'insensitive' } }] },
           select: { id: true, title: true, status: true, category: true, ticketNumber: true },
           take: limit,
-        }).catch(() => [] as any[]),
+        }).catch(() => [] as Array<Record<string, unknown>>),
         prisma.building.findMany({
           where: { name: { contains: query, mode: 'insensitive' } },
           select: { id: true, name: true },
@@ -52,15 +52,15 @@ const tools: Record<string, ToolRegistryEntry> = {
           where: { title: { contains: query, mode: 'insensitive' } },
           select: { id: true, title: true, startsAt: true, status: true },
           take: limit,
-        }).catch(() => [] as any[]),
+        }).catch(() => [] as Array<Record<string, unknown>>),
       ])
 
       return JSON.stringify({
         users: users.map(u => ({ id: u.id, name: u.name, email: u.email })),
-        tickets: tickets.map((t: any) => ({ id: t.id, number: t.ticketNumber, title: t.title, status: t.status, category: t.category })),
+        tickets: tickets.map((t: Record<string, unknown>) => ({ id: t.id, number: t.ticketNumber, title: t.title, status: t.status, category: t.category })),
         buildings: buildings.map(b => ({ id: b.id, name: b.name })),
         rooms: rooms.map(r => ({ id: r.id, name: r.displayName || r.roomNumber, number: r.roomNumber })),
-        events: events.map((e: any) => ({ id: e.id, title: e.title, date: e.startsAt, status: e.status })),
+        events: events.map((e: Record<string, unknown>) => ({ id: e.id, title: e.title, date: e.startsAt, status: e.status })),
       })
     },
   },

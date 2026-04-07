@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger'
+
 /**
  * Cloudflare Turnstile server-side token verification.
  * Called as first action in any public POST handler before touching DB.
@@ -8,7 +10,7 @@ export async function verifyTurnstile(token: string, ip?: string): Promise<boole
   const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) {
     // Dev mode: skip Turnstile when not configured
-    console.warn('[turnstile] TURNSTILE_SECRET_KEY not set — skipping validation')
+    logger.warn('TURNSTILE_SECRET_KEY not set — skipping validation')
     return true
   }
 

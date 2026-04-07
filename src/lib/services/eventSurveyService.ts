@@ -5,9 +5,10 @@
  * Handles CRUD, status transitions, response submission, and results aggregation.
  */
 
+import { Prisma } from '@prisma/client'
 import { prisma, rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
-import type { EventSurveyWithStats } from '@/lib/types/events-phase21'
+import type { EventSurveyWithStats, SurveyStatus } from '@/lib/types/events-phase21'
 
 const log = logger.child({ service: 'eventSurveyService' })
 
@@ -24,19 +25,19 @@ export interface CreateSurveyInput {
  * Create a new survey for an event project, reusing an existing RegistrationForm as the template.
  */
 export async function createSurvey(data: CreateSurveyInput): Promise<EventSurveyWithStats> {
-  const survey = await prisma.eventSurvey.create({
+  const survey = await (prisma.eventSurvey.create as Function)({
     data: {
       eventProjectId: data.eventProjectId,
       formId: data.formId,
       status: 'DRAFT',
       opensAt: data.opensAt ?? null,
       closesAt: data.closesAt ?? null,
-    } as any,
+    },
     include: {
       form: { select: { title: true } },
       _count: { select: { responses: true } },
     },
-  }) as any
+  }) as Record<string, unknown>
 
   return shapeSurvey(survey)
 }
@@ -54,18 +55,18 @@ export async function updateSurvey(
   id: string,
   data: UpdateSurveyInput,
 ): Promise<EventSurveyWithStats> {
-  const survey = await prisma.eventSurvey.update({
-    where: { id } as any,
+  const survey = await (prisma.eventSurvey.update as Function)({
+    where: { id },
     data: {
       ...(data.status !== undefined ? { status: data.status } : {}),
       ...(data.opensAt !== undefined ? { opensAt: data.opensAt } : {}),
       ...(data.closesAt !== undefined ? { closesAt: data.closesAt } : {}),
-    } as any,
+    },
     include: {
       form: { select: { title: true } },
       _count: { select: { responses: true } },
     },
-  }) as any
+  }) as Record<string, unknown>
 
   return shapeSurvey(survey)
 }
@@ -74,21 +75,21 @@ export async function updateSurvey(
  * Hard-delete a survey by ID.
  */
 export async function deleteSurvey(id: string): Promise<void> {
-  await prisma.eventSurvey.delete({ where: { id } } as any)
+  await (prisma.eventSurvey.delete as Function)({ where: { id } })
 }
 
 /**
  * List all surveys for an event project with response counts.
  */
 export async function listSurveys(eventProjectId: string): Promise<EventSurveyWithStats[]> {
-  const rows = await prisma.eventSurvey.findMany({
-    where: { eventProjectId } as any,
+  const rows = await (prisma.eventSurvey.findMany as Function)({
+    where: { eventProjectId },
     orderBy: { createdAt: 'desc' },
     include: {
       form: { select: { title: true } },
       _count: { select: { responses: true } },
     },
-  }) as any[]
+  }) as Array<Record<string, unknown>>
 
   return rows.map(shapeSurvey)
 }
@@ -165,7 +166,7 @@ export async function submitSurveyResponse(
       surveyId: data.surveyId,
       registrationId: data.registrationId,
       organizationId: registration.organizationId,
-      responses: data.responses as any,
+      responses: data.responses as Prisma.InputJsonValue,
     },
     select: { id: true, submittedAt: true },
   })
@@ -199,24 +200,27 @@ export interface SurveyResults {
  * Fetch all survey responses with participant info and basic aggregation.
  */
 export async function getSurveyResults(surveyId: string): Promise<SurveyResults> {
-  const responses = await prisma.eventSurveyResponse.findMany({
-    where: { surveyId } as any,
+  const responses = await (prisma.eventSurveyResponse.findMany as Function)({
+    where: { surveyId },
     orderBy: { submittedAt: 'asc' },
     include: {
       registration: {
         select: { id: true, firstName: true, lastName: true, email: true },
       },
     },
-  }) as any[]
+  }) as Array<Record<string, unknown>>
 
-  const shaped = responses.map((r: any) => ({
-    id: r.id,
-    registrationId: r.registrationId,
-    participantName: `${r.registration.firstName} ${r.registration.lastName}`.trim(),
-    participantEmail: r.registration.email,
-    responses: r.responses as Record<string, unknown>,
-    submittedAt: r.submittedAt.toISOString(),
-  }))
+  const shaped = responses.map((r: Record<string, unknown>) => {
+    const reg = r.registration as { firstName: string; lastName: string; email: string }
+    return {
+      id: r.id as string,
+      registrationId: r.registrationId as string,
+      participantName: `${reg.firstName} ${reg.lastName}`.trim(),
+      participantEmail: reg.email,
+      responses: r.responses as Record<string, unknown>,
+      submittedAt: (r.submittedAt as Date).toISOString(),
+    }
+  })
 
   // Build aggregation map from all responses
   const aggregation: SurveyResults['aggregation'] = {}
@@ -257,17 +261,19 @@ export async function getSurveyResults(surveyId: string): Promise<SurveyResults>
 
 // ─── Internal Shaping ─────────────────────────────────────────────────────────
 
-function shapeSurvey(row: any): EventSurveyWithStats {
+function shapeSurvey(row: Record<string, unknown>): EventSurveyWithStats {
+  const form = row.form as { title?: string } | null
+  const count = row._count as { responses?: number } | null
   return {
-    id: row.id,
-    eventProjectId: row.eventProjectId,
-    formId: row.formId,
-    formTitle: row.form?.title ?? null,
-    status: row.status,
-    opensAt: row.opensAt?.toISOString() ?? null,
-    closesAt: row.closesAt?.toISOString() ?? null,
-    responseCount: row._count?.responses ?? 0,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    id: row.id as string,
+    eventProjectId: row.eventProjectId as string,
+    formId: row.formId as string,
+    formTitle: form?.title ?? null,
+    status: row.status as SurveyStatus,
+    opensAt: (row.opensAt as Date | null)?.toISOString() ?? null,
+    closesAt: (row.closesAt as Date | null)?.toISOString() ?? null,
+    responseCount: count?.responses ?? 0,
+    createdAt: (row.createdAt as Date).toISOString(),
+    updatedAt: (row.updatedAt as Date).toISOString(),
   }
 }

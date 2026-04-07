@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, Component, type ReactNode, type ErrorInfo } from 'react'
+import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
@@ -43,7 +44,7 @@ class TabErrorBoundary extends Component<{ children: ReactNode; tabName: string 
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`[TabErrorBoundary] ${this.props.tabName} tab crashed:`, error, errorInfo)
+    logger.error({ error: error.message, tabName: this.props.tabName, componentStack: errorInfo?.componentStack ?? '' }, 'TabErrorBoundary tab crashed')
   }
 
   render() {

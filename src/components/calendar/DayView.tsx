@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useEffect, useRef } from 'react'
-import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
 import { Trophy } from 'lucide-react'
@@ -140,7 +140,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                   color={getEventColor(event)}
                   size={10}
                 />
-                {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                 <span className="truncate">{event.title}</span>
               </button>
             ))}
@@ -323,7 +323,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                                 color={eventColor}
                                 size={10}
                               />
-                              {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                              {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                               {event.title}
                             </div>
                             {evHeight > 36 && (
@@ -404,7 +404,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                               color={getEventColor(event)}
                               size={10}
                             />
-                            {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                            {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                             {event.title}
                           </div>
                           {evHeight > 36 && (
@@ -447,7 +447,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                             color={getEventColor(event)}
                             size={10}
                           />
-                          {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                          {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           {event.title}
                         </div>
                         {evHeight > 36 && (

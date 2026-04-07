@@ -5,6 +5,10 @@
  * Returns formatted address + coordinates when available.
  */
 
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'addressValidationService' })
+
 export interface AddressValidationResult {
   valid: boolean
   formattedAddress: string
@@ -25,7 +29,7 @@ export async function validateAddress(address: string): Promise<AddressValidatio
   )?.trim()
 
   if (!apiKey) {
-    console.warn('[AddressValidation] No API key found')
+    log.warn('No API key found')
     return null
   }
 
@@ -45,7 +49,7 @@ export async function validateAddress(address: string): Promise<AddressValidatio
     )
 
     if (!res.ok) {
-      console.warn(`[AddressValidation] API returned ${res.status}`)
+      log.warn({ status: res.status }, 'API returned non-OK status')
       return null
     }
 
@@ -78,7 +82,7 @@ export async function validateAddress(address: string): Promise<AddressValidatio
       suggestion,
     }
   } catch (error) {
-    console.error('[AddressValidation] Error:', error)
+    log.error({ err: String(error) }, 'Address validation error')
     return null
   }
 }

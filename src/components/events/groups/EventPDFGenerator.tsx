@@ -213,10 +213,11 @@ async function generatePDF(
   eventDate: string
 ) {
   // Dynamic import to avoid SSR issues
-  // Cast to any: jsPDF's real constructor signature is richer than our minimal interface
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { jsPDF } = await import('jspdf') as any
-
+  const [{ jsPDF }, pdfUtils] = await Promise.all([
+    import('jspdf'),
+    import('@/lib/event-pdf-utils'),
+  ])
+  const JsPDF = jsPDF as unknown as import('@/lib/event-pdf-utils').JsPDFConstructor
   const {
     generateBusManifest,
     generateCabinRoster,
@@ -224,7 +225,7 @@ async function generatePDF(
     generateEmergencyContacts,
     generateActivityRoster,
     generateCheckInSheet,
-  } = await import('@/lib/event-pdf-utils')
+  } = pdfUtils
 
   switch (format) {
     case 'bus-manifest': {
@@ -240,7 +241,7 @@ async function generatePDF(
         date: eventDate,
         groups: groupsWithPassengers,
       }
-      const doc = generateBusManifest(jsPDF, data)
+      const doc = generateBusManifest(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-bus-manifest.pdf`)
       break
     }
@@ -265,7 +266,7 @@ async function generatePDF(
         date: eventDate,
         groups: groupsWithParticipants,
       }
-      const doc = generateCabinRoster(jsPDF, data)
+      const doc = generateCabinRoster(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-cabin-roster.pdf`)
       break
     }
@@ -273,7 +274,7 @@ async function generatePDF(
     case 'medical-summary': {
       const participants = await fetchMedicalData(eventProjectId)
       const data: MedicalSummaryData = { eventName, date: eventDate, participants }
-      const doc = generateMedicalSummary(jsPDF, data)
+      const doc = generateMedicalSummary(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-medical-summary.pdf`)
       break
     }
@@ -291,7 +292,7 @@ async function generatePDF(
           emergencyRelation: p.emergencyRelation,
         })),
       }
-      const doc = generateEmergencyContacts(jsPDF, data)
+      const doc = generateEmergencyContacts(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-emergency-contacts.pdf`)
       break
     }
@@ -318,7 +319,7 @@ async function generatePDF(
         date: eventDate,
         activities: activitiesWithParticipants,
       }
-      const doc = generateActivityRoster(jsPDF, data)
+      const doc = generateActivityRoster(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-activity-roster.pdf`)
       break
     }
@@ -326,7 +327,7 @@ async function generatePDF(
     case 'check-in-sheet': {
       const participants = await fetchAllRegistrations(eventProjectId)
       const data: CheckInSheetData = { eventName, date: eventDate, participants }
-      const doc = generateCheckInSheet(jsPDF, data)
+      const doc = generateCheckInSheet(JsPDF, data)
       doc.save(`${eventName.replace(/\s+/g, '-')}-check-in-sheet.pdf`)
       break
     }

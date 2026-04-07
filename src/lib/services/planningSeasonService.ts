@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createEventProject } from './eventProjectService'
 
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 // ── Phase Transitions (state machine) ──────────────────────────────────
 

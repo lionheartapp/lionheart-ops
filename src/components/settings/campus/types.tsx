@@ -12,6 +12,7 @@ export type Building = {
   sortOrder: number
   isActive: boolean
   school?: { id: string; name: string; gradeLevel: string; color: string } | null
+  polygonCoordinates?: Array<{ lat: number; lng: number }> | null
 }
 
 export type Area = {

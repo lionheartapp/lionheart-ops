@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { consumeMagicLink } from '@/lib/services/registrationMagicLinkService'
+import { logger } from '@/lib/logger'
 
 // ─── GET handler ──────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    console.error('[magic-link/validate] Unexpected error:', error)
+    logger.error({ error: String(error) }, 'Unexpected error')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong. Please try again.'),
       { status: 500 },

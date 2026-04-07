@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { logger } from '@/lib/logger'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bot,
@@ -225,7 +226,7 @@ export default function AIDiagnosticPanel({
         setIsCached(cached ?? false)
       }
     } catch (err) {
-      console.error('[AIDiagnosticPanel] fetch error:', err)
+      logger.error({ error: String(err) }, 'AIDiagnosticPanel fetch error')
       setAiAvailable(false)
     } finally {
       setIsLoading(false)
@@ -261,7 +262,7 @@ export default function AIDiagnosticPanel({
         }, 100)
       }
     } catch (err) {
-      console.error('[AIDiagnosticPanel] ask error:', err)
+      logger.error({ error: String(err) }, 'AIDiagnosticPanel ask error')
     } finally {
       setIsSending(false)
     }

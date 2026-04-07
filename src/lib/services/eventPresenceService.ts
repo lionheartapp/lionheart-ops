@@ -6,7 +6,7 @@
  * This service provides the persistence layer: upsert on heartbeat, query for active users.
  */
 
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import type { EventPresenceSessionWithUser } from '@/lib/types/events-phase21'
 
@@ -28,20 +28,21 @@ export async function updatePresence(
   activeTab?: string,
 ): Promise<void> {
   try {
-    await prisma.eventPresenceSession.upsert({
+    const db = prisma as unknown as OrgPrismaClient
+    await db.eventPresenceSession.upsert({
       where: {
         eventProjectId_userId: { eventProjectId, userId },
-      } as any,
+      },
       create: {
         eventProjectId,
         userId,
         activeTab: activeTab ?? null,
         lastSeenAt: new Date(),
-      } as any,
+      },
       update: {
         activeTab: activeTab ?? null,
         lastSeenAt: new Date(),
-      } as any,
+      },
     })
   } catch (err) {
     log.error({ err, eventProjectId, userId }, 'Failed to update presence session')
@@ -57,18 +58,19 @@ export async function getActiveUsers(
 ): Promise<EventPresenceSessionWithUser[]> {
   const threshold = new Date(Date.now() - ACTIVE_THRESHOLD_MS)
 
-  const sessions = await prisma.eventPresenceSession.findMany({
+  const db = prisma as unknown as OrgPrismaClient
+  const sessions = await db.eventPresenceSession.findMany({
     where: {
       eventProjectId,
       lastSeenAt: { gte: threshold },
-    } as any,
+    },
     orderBy: { lastSeenAt: 'desc' },
     include: {
       user: {
         select: { id: true, firstName: true, lastName: true, avatar: true },
       },
     },
-  }) as any[]
+  }) as Array<Record<string, unknown>>
 
   return sessions.map(shapeSession)
 }
@@ -81,10 +83,11 @@ export async function removePresence(
   userId: string,
 ): Promise<void> {
   try {
-    await prisma.eventPresenceSession.delete({
+    const db = prisma as unknown as OrgPrismaClient
+    await db.eventPresenceSession.delete({
       where: {
         eventProjectId_userId: { eventProjectId, userId },
-      } as any,
+      },
     })
   } catch {
     // Session may not exist — silently ignore
@@ -93,16 +96,17 @@ export async function removePresence(
 
 // ─── Internal Shaping ─────────────────────────────────────────────────────────
 
-function shapeSession(row: any): EventPresenceSessionWithUser {
+function shapeSession(row: Record<string, unknown>): EventPresenceSessionWithUser {
+  const user = row.user as { firstName?: string; lastName?: string; avatar?: string } | null
   return {
-    id: row.id,
-    eventProjectId: row.eventProjectId,
-    userId: row.userId,
-    userName: row.user
-      ? `${row.user.firstName} ${row.user.lastName}`.trim()
+    id: row.id as string,
+    eventProjectId: row.eventProjectId as string,
+    userId: row.userId as string,
+    userName: user
+      ? `${user.firstName} ${user.lastName}`.trim()
       : 'Unknown',
-    userAvatar: row.user?.avatar ?? null,
-    activeTab: row.activeTab ?? null,
-    lastSeenAt: row.lastSeenAt.toISOString(),
+    userAvatar: user?.avatar ?? null,
+    activeTab: (row.activeTab as string | null) ?? null,
+    lastSeenAt: (row.lastSeenAt as Date).toISOString(),
   }
 }

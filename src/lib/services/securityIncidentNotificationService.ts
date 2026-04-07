@@ -14,7 +14,10 @@
 import { rawPrisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createBulkNotifications } from '@/lib/services/notificationService'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'securityIncidentNotificationService' })
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type IncidentSnapshot = {
@@ -163,7 +166,7 @@ export async function notifyIncidentCreated(
       }))
     )
   } catch (err) {
-    console.error('[SecurityIncidentNotify] notifyIncidentCreated failed:', err)
+    log.error({ err: String(err) }, 'notifyIncidentCreated failed')
   }
 }
 
@@ -193,7 +196,7 @@ export async function notifyIncidentSeverityEscalated(
       }))
     )
   } catch (err) {
-    console.error('[SecurityIncidentNotify] notifyIncidentSeverityEscalated failed:', err)
+    log.error({ err: String(err) }, 'notifyIncidentSeverityEscalated failed')
   }
 }
 
@@ -230,7 +233,7 @@ export async function notifyIncidentStatusChanged(
       }))
     )
   } catch (err) {
-    console.error('[SecurityIncidentNotify] notifyIncidentStatusChanged failed:', err)
+    log.error({ err: String(err) }, 'notifyIncidentStatusChanged failed')
   }
 }
 
@@ -256,6 +259,6 @@ export async function notifyIncidentClosed(
       }))
     )
   } catch (err) {
-    console.error('[SecurityIncidentNotify] notifyIncidentClosed failed:', err)
+    log.error({ err: String(err) }, 'notifyIncidentClosed failed')
   }
 }

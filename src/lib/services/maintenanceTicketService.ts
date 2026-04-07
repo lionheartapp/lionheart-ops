@@ -10,10 +10,13 @@
  */
 
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 import { rawPrisma, prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { assertCan, canAny } from '@/lib/auth/permissions'
 import { startOfDay } from 'date-fns'
+import type { PmRecurrenceType } from '@/lib/types/pm-schedule'
+import type { TicketSnapshot } from '@/lib/services/maintenanceNotificationService'
 import type {
   MaintenanceTicketStatus,
   MaintenanceCategory,
@@ -21,6 +24,8 @@ import type {
   MaintenancePriority,
   HoldReason,
 } from '@prisma/client'
+
+const log = logger.child({ service: 'maintenanceTicketService' })
 
 // ─── Category → Specialty Map ─────────────────────────────────────────────────
 
@@ -251,16 +256,16 @@ export async function createMaintenanceTicket(
 
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketSubmitted, notifyUrgentTicket }) => {
-    notifyTicketSubmitted(ticket as any, orgId).catch((err: unknown) =>
-      console.error('[MaintenanceNotify] notifyTicketSubmitted failed:', err)
+    notifyTicketSubmitted(ticket as unknown as TicketSnapshot, orgId).catch((err: unknown) =>
+      log.error({ err: String(err) }, 'notifyTicketSubmitted failed')
     )
     if (data.priority === 'URGENT') {
-      notifyUrgentTicket(ticket as any, orgId).catch((err: unknown) =>
-        console.error('[MaintenanceNotify] notifyUrgentTicket failed:', err)
+      notifyUrgentTicket(ticket as unknown as TicketSnapshot, orgId).catch((err: unknown) =>
+        log.error({ err: String(err) }, 'notifyUrgentTicket failed')
       )
     }
   }).catch((err: unknown) =>
-    console.error('[MaintenanceNotify] import failed:', err)
+    log.error({ err: String(err) }, 'notification import failed')
   )
 
   return ticket
@@ -359,7 +364,7 @@ export async function transitionTicketStatus(
 
   const updated = await prisma.maintenanceTicket.update({
     where: { id: ticketId },
-    data: updateData as any,
+    data: updateData,
     include: TICKET_INCLUDES,
   })
 
@@ -375,7 +380,7 @@ export async function transitionTicketStatus(
         const completionDate = startOfDay(new Date())
         const nextDueDate = computeNextDueDate(
           completionDate,
-          pmSchedule.recurrenceType as any,
+          pmSchedule.recurrenceType as PmRecurrenceType,
           pmSchedule.intervalDays,
           pmSchedule.months as number[]
         )
@@ -386,12 +391,13 @@ export async function transitionTicketStatus(
             lastCompletedDate: completionDate,
           },
         })
-        console.log(
-          `[maintenanceTicketService] PM schedule ${pmSchedule.id} next due date updated to ${nextDueDate.toISOString()}`
+        log.info(
+          { pmScheduleId: pmSchedule.id, nextDueDate: nextDueDate.toISOString() },
+          'PM schedule next due date updated',
         )
       }
     } catch (pmErr) {
-      console.error('[maintenanceTicketService] Failed to update PM schedule next-due-date:', pmErr)
+      log.error({ err: String(pmErr) }, 'Failed to update PM schedule next-due-date')
     }
   }
 
@@ -415,16 +421,16 @@ export async function transitionTicketStatus(
 
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyStatusChange, notifyQARejected }) => {
-    notifyStatusChange(updated as any, newStatus, ctx.organizationId).catch((err: unknown) =>
-      console.error('[MaintenanceNotify] notifyStatusChange failed:', err)
+    notifyStatusChange(updated as unknown as TicketSnapshot, newStatus, ctx.organizationId).catch((err: unknown) =>
+      log.error({ err: String(err) }, 'notifyStatusChange failed')
     )
     if (currentStatus === 'QA' && newStatus === 'IN_PROGRESS' && data.rejectionNote) {
-      notifyQARejected(updated as any, data.rejectionNote, ctx.organizationId).catch((err: unknown) =>
-        console.error('[MaintenanceNotify] notifyQARejected failed:', err)
+      notifyQARejected(updated as unknown as TicketSnapshot, data.rejectionNote, ctx.organizationId).catch((err: unknown) =>
+        log.error({ err: String(err) }, 'notifyQARejected failed')
       )
     }
   }).catch((err: unknown) =>
-    console.error('[MaintenanceNotify] import failed:', err)
+    log.error({ err: String(err) }, 'notification import failed')
   )
 
   return updated
@@ -484,11 +490,11 @@ export async function claimTicket(ticketId: string, userId: string, orgId: strin
 
   // Fire-and-forget
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketClaimed }) => {
-    notifyTicketClaimed(updated as any, orgId).catch((err: unknown) =>
-      console.error('[MaintenanceNotify] notifyTicketClaimed failed:', err)
+    notifyTicketClaimed(updated as unknown as TicketSnapshot, orgId).catch((err: unknown) =>
+      log.error({ err: String(err) }, 'notifyTicketClaimed failed')
     )
   }).catch((err: unknown) =>
-    console.error('[MaintenanceNotify] import failed:', err)
+    log.error({ err: String(err) }, 'notification import failed')
   )
 
   return updated
@@ -547,11 +553,11 @@ export async function assignTicket(
 
   // Fire-and-forget
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketAssigned }) => {
-    notifyTicketAssigned(updated as any, assigneeId, orgId).catch((err: unknown) =>
-      console.error('[MaintenanceNotify] notifyTicketAssigned failed:', err)
+    notifyTicketAssigned(updated as unknown as TicketSnapshot, assigneeId, orgId).catch((err: unknown) =>
+      log.error({ err: String(err) }, 'notifyTicketAssigned failed')
     )
   }).catch((err: unknown) =>
-    console.error('[MaintenanceNotify] import failed:', err)
+    log.error({ err: String(err) }, 'notification import failed')
   )
 
   return updated
@@ -642,7 +648,7 @@ export async function listTickets(filters: ListFilters, ctx: UserContext) {
   }
 
   const tickets = await prisma.maintenanceTicket.findMany({
-    where: where as any,
+    where,
     include: {
       ...TICKET_INCLUDES,
     },

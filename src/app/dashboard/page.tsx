@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
+import { logger } from '@/lib/logger'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
@@ -301,7 +302,7 @@ export default function DashboardPage() {
         fetchTickets()
       }
     } catch (err) {
-      console.error('Failed to update ticket:', err)
+      logger.error({ error: String(err) }, 'Failed to update ticket')
     } finally {
       setEditSaving(false)
     }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { rawPrisma } from '@/lib/db'
+import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import {
   validateWebhookSignature,
   transformLightspeedPayload,
   processFilterEvent,
 } from '@/lib/services/itContentFilterService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
     const signature = req.headers.get('x-lightspeed-signature') || ''
 
-    const config = await (rawPrisma.iTContentFilterConfig as any).findUnique({
+    const config = await (rawPrisma.iTContentFilterConfig as unknown as PrismaDelegate).findUnique({
       where: { organizationId_provider: { organizationId: orgId, provider: 'LIGHTSPEED' } },
     })
     if (!config || !config.isEnabled) {
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok({ received: true }))
   } catch (error) {
-    console.error('[POST /api/it/content-filters/webhook/lightspeed]', error)
+    logger.error({ error: String(error) }, 'Lightspeed webhook processing failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook processing failed'), { status: 500 })
   }
 }

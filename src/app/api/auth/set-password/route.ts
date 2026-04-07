@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
-import { rawPrisma as prisma } from '@/lib/db'
+import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { passwordSchema } from '@/lib/validation/password'
 import { ZodError } from 'zod'
@@ -11,7 +11,7 @@ import * as Sentry from '@sentry/nextjs'
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/auth/set-password', method: 'POST' })
   try {
-    const passwordSetupTokenModel = (prisma as any).passwordSetupToken
+    const passwordSetupTokenModel = (prisma as unknown as Record<string, PrismaDelegate>).passwordSetupToken
     const body = (await req.json()) as { token?: string; password?: string }
     const token = body.token?.trim()
     const password = body.password?.trim()
@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hash(password, 10)
 
-    await prisma.$transaction([
-      prisma.user.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
         where: {
           organizationId_email: {
             organizationId: setupToken.user.organizationId,
@@ -71,14 +71,14 @@ export async function POST(req: NextRequest) {
           passwordHash,
           emailVerified: true, // Invite link proves email ownership
         },
-      }),
-      passwordSetupTokenModel.update({
+      })
+      await (tx as unknown as Record<string, PrismaDelegate>).passwordSetupToken.update({
         where: { id: setupToken.id },
         data: {
           usedAt: new Date(),
         },
-      }),
-    ])
+      })
+    })
 
     return NextResponse.json(ok({ success: true }))
   } catch (error) {

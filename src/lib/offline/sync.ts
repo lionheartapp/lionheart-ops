@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 import { db, type OfflineTicket, type CachedAsset, type MutationQueueEntry } from './db'
 import {
   getPendingMutations,
@@ -66,7 +67,7 @@ export async function cacheAssignedTickets(
     }
   } catch {
     // Non-fatal — if caching fails, user just won't have offline access
-    console.warn('[offline] Failed to cache tickets:', organizationId)
+    logger.warn({ organizationId }, 'Failed to cache tickets for offline access')
   }
 
   try {
@@ -105,7 +106,7 @@ export async function cacheAssignedTickets(
     }
   } catch {
     // Non-fatal
-    console.warn('[offline] Failed to cache assets:', organizationId)
+    logger.warn({ organizationId }, 'Failed to cache assets for offline access')
   }
 }
 

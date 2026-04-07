@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { UpdateScheduleSectionSchema } from '@/lib/types/event-project'
 
 /**
@@ -11,7 +11,7 @@ import { UpdateScheduleSectionSchema } from '@/lib/types/event-project'
  * Updates a schedule section (title, sortOrder).
  */
 export const PATCH = withAuth(async ({ params, body }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
 
   const section = await db.eventScheduleSection.update({
     where: { id: params.sectionId },
@@ -26,7 +26,7 @@ export const PATCH = withAuth(async ({ params, body }) => {
  * Deletes a schedule section. Blocks in the section are unassigned (sectionId -> null).
  */
 export const DELETE = withAuth(async ({ params }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
 
   // Unassign all blocks from this section first
   await db.eventScheduleBlock.updateMany({

@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'scheduleBlockAttachmentService' })
 // ============= Constants =============
 
 const BUCKET_NAME = 'schedule-attachments'
@@ -148,7 +151,7 @@ export async function deleteAttachment(attachmentId: string, blockId: string) {
     }
   } catch (err) {
     // Log but don't fail — DB record cleanup is more important
-    console.error('Failed to delete file from storage:', err)
+    log.error({ err: String(err) }, 'Failed to delete file from storage')
   }
 
   // Delete DB record

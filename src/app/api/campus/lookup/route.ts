@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { rawPrisma as prisma } from '@/lib/db'
+import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const db = prisma as any
+      const db = prisma as unknown as Record<string, PrismaDelegate>
 
       const [buildings, unassignedAreas] = await Promise.all([
         db.building.findMany({

@@ -4,6 +4,7 @@ import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -56,7 +57,7 @@ export const POST = withAuth(async ({ orgId, req }) => {
 
     return NextResponse.json(ok({ url: session.url }))
   } catch (stripeError) {
-    console.error('[POST /api/settings/billing/portal] Stripe portal error:', stripeError)
+    logger.error({ error: String(stripeError) }, 'Stripe portal error')
     const message = stripeError instanceof Error ? stripeError.message : 'Failed to create billing portal session'
     return NextResponse.json(fail('PAYMENT_ERROR', message), { status: 502 })
   }

@@ -8,7 +8,10 @@
 import { toSql } from 'pgvector'
 import { GoogleGenAI } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'embeddingService' })
 // Lazy initialization flag — avoid re-running extension/index creation
 let pgvectorInitialized = false
 
@@ -36,13 +39,13 @@ export async function ensurePgvector(): Promise<void> {
         await rawPrisma.$executeRawUnsafe(sql)
       } catch (indexErr) {
         // Index creation failure is non-fatal (e.g., table not yet created)
-        console.warn('[embeddingService] Index creation warning:', indexErr)
+        log.warn({ err: String(indexErr) }, 'Index creation warning')
       }
     }
 
     pgvectorInitialized = true
   } catch (err) {
-    console.error('[embeddingService] pgvector setup error:', err)
+    log.error({ err: String(err) }, 'pgvector setup error')
     // Don't re-throw — graceful degradation if vector extension unavailable
   }
 }
@@ -70,7 +73,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
     return result.embeddings?.[0]?.values ?? []
   } catch (err) {
-    console.error('[embeddingService] generateEmbedding error:', err)
+    log.error({ err: String(err) }, 'generateEmbedding error')
     return []
   }
 }

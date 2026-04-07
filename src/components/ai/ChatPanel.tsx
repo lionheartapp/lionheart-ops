@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Sparkles, RotateCcw, Clock } from 'lucide-react'
+import { logger } from '@/lib/logger'
 import MessageList from './MessageList'
 import InputForm from './InputForm'
 import ActionConfirmation from './ActionConfirmation'
@@ -237,15 +238,13 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
 
                     return prev ? {
                       ...prev,
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       richCard: event.card,
-                    } as any : {
+                    } : {
                       type: fallbackType,
                       description: fallbackDesc,
                       payload: {},
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       richCard: event.card,
-                    } as any
+                    }
                   })
                   break
 
@@ -287,7 +286,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         }
       } catch (error) {
         if ((error as Error).name === 'AbortError') return
-        console.error('[ChatPanel] Stream error:', error)
+        logger.error({ error: String(error) }, 'ChatPanel stream error')
         setConversation((prev) => {
           // If last message is an empty assistant placeholder, fill it
           const updated = [...prev]
@@ -674,11 +673,10 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
       />
 
       {/* Action confirmation overlay */}
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {pendingAction && (
-        (pendingAction as any).richCard ? (
+        pendingAction.richCard ? (
           <RichConfirmationCard
-            action={pendingAction as any}
+            action={pendingAction}
             onConfirm={handleConfirmAction}
             onCancel={handleCancelAction}
           />

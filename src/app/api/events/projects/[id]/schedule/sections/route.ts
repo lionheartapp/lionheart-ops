@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { CreateScheduleSectionSchema } from '@/lib/types/event-project'
 
 /**
@@ -12,7 +12,7 @@ import { CreateScheduleSectionSchema } from '@/lib/types/event-project'
  * Ordered by sortOrder ascending.
  */
 export const GET = withAuth(async ({ params, searchParams }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const where: Record<string, unknown> = { eventProjectId: params.id }
 
   // Filter by date if provided (expects ISO date string like "2026-04-09")
@@ -34,7 +34,7 @@ export const GET = withAuth(async ({ params, searchParams }) => {
  * Creates a new schedule section within an EventProject for a specific date.
  */
 export const POST = withAuth(async ({ params, body }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const sectionDate = new Date(body.date + 'T00:00:00.000Z')
 
   // Auto-assign sortOrder — find the last section for this specific date

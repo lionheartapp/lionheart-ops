@@ -14,6 +14,7 @@ import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { lookupSchool } from '@/lib/services/schoolLookupService'
 import { ok, fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
 
 const SchoolLookupSchema = z.object({
   website: z.string().url('Invalid website URL').or(z.string().min(1, 'Website is required')),
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.error('School lookup error:', error)
+    logger.error({ error: String(error) }, 'School lookup failed')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to lookup school information'),
       { status: 500 }

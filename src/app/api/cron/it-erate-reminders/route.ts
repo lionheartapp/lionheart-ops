@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { sendERateReminders } from '@/lib/services/itERateService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
     await sendERateReminders()
     return NextResponse.json(ok({ success: true }))
   } catch (error) {
-    console.error('E-Rate reminders cron failed:', error)
+    logger.error({ error: String(error) }, 'E-Rate reminders cron failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

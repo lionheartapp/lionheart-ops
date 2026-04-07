@@ -7,6 +7,7 @@ import { handleCleverWebhook } from '@/lib/services/rosterSyncService'
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { verifyHmacSha256 } from '@/lib/webhook-verify'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     if (!cleverSecret) {
-      console.error('[Clever webhook] CLEVER_WEBHOOK_SECRET not configured')
+      logger.error('CLEVER_WEBHOOK_SECRET not configured')
       return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook endpoint not configured'), { status: 500 })
     } else {
       const signature =
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     )
     return NextResponse.json(ok({ received: true }))
   } catch (error) {
-    console.error('[POST /api/webhooks/clever]', error)
+    logger.error({ error: String(error) }, 'Webhook processing failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook processing failed'), { status: 500 })
   }
 }

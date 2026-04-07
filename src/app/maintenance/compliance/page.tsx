@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
+import { logger } from '@/lib/logger'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Loader2, Download } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -149,7 +150,7 @@ function ComplianceContent() {
       })
       queryClient.invalidateQueries({ queryKey: ['compliance-domains'] })
     } catch (err) {
-      console.error('Failed to toggle domain:', err)
+      logger.error({ error: String(err) }, 'Failed to toggle compliance domain')
     } finally {
       setTogglingDomains((prev) => {
         const next = new Set(prev)

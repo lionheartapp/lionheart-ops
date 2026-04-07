@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { createHash } from 'crypto'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   req: NextRequest,
@@ -60,7 +61,7 @@ export async function GET(
       timeline: ticket.activities,
     }))
   } catch (error) {
-    console.error('[GET /api/it/tickets/[id]/status-public]', error)
+    logger.error({ error: String(error) }, 'Failed to get public ticket status')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
-import { rawPrisma } from '@/lib/db'
+import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadCampusImage, deleteCampusImage } from '@/lib/services/storageService'
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import { logger } from '@/lib/logger'
 
 const MAX_IMAGES = 4
 
@@ -24,7 +25,7 @@ const DeleteSchema = z.object({
 
 async function getEntity(entityType: string, entityId: string, orgId: string) {
   const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
-  return (rawPrisma[model as keyof typeof rawPrisma] as any).findFirst({
+  return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).findFirst({
     where: { id: entityId, organizationId: orgId, deletedAt: null },
     select: { id: true, images: true },
   })
@@ -32,7 +33,7 @@ async function getEntity(entityType: string, entityId: string, orgId: string) {
 
 async function updateEntityImages(entityType: string, entityId: string, images: string[]) {
   const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
-  return (rawPrisma[model as keyof typeof rawPrisma] as any).update({
+  return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).update({
     where: { id: entityId },
     data: { images },
   })
@@ -100,7 +101,7 @@ export const DELETE = withAuth<z.infer<typeof DeleteSchema>>(async ({ orgId, bod
     await deleteCampusImage(body.imageUrl)
   } catch {
     // Log but don't fail -- the image might already be deleted from storage
-    console.warn('Failed to delete image from storage, continuing with DB update')
+    logger.warn('Failed to delete image from storage, continuing with DB update')
   }
 
   // Update entity images array

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail, isAuthError } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
+import { logger } from '@/lib/logger'
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     const data = await response.json()
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('[PLACES_AUTOCOMPLETE] Google API error:', data.status, data.error_message)
+      logger.error({ status: data.status, errorMessage: data.error_message }, 'Google API error')
       return NextResponse.json(fail('EXTERNAL_ERROR', 'Address lookup failed'), { status: 502 })
     }
 
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('[PLACES_AUTOCOMPLETE] Error:', error)
+    logger.error({ error: String(error) }, 'Places autocomplete error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

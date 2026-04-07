@@ -9,7 +9,10 @@
  */
 
 import { audit } from '@/lib/services/auditService'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'studentAuditService' })
 // ─────────────────────────────────────────────
 //  Action types
 // ─────────────────────────────────────────────
@@ -53,9 +56,7 @@ export async function logStudentAccess(
     })
   } catch {
     // Audit logging must never break the request
-    console.error(
-      `[STUDENT_AUDIT] failed: user=${userId} action=${action} student=${studentId || 'N/A'}`
-    )
+    log.error({ userId, action, studentId: studentId || 'N/A' }, 'Student audit log write failed')
   }
 }
 
@@ -105,7 +106,7 @@ export async function getStudentAuditLog(filters: {
 
     return { entries, total }
   } catch (err) {
-    console.error('[STUDENT_AUDIT] query failed:', err)
+    log.error({ err: String(err) }, 'Student audit query failed')
     return { entries: [], total: 0 }
   }
 }

@@ -9,6 +9,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { getTicketDetail, assignTicket } from '@/lib/services/maintenanceTicketService'
 
 export const GET = withAuth(async ({ orgId, ctx, params, permissions }) => {
@@ -77,7 +78,7 @@ export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {
 
   const updated = await prisma.maintenanceTicket.update({
     where: { id: params.id },
-    data: updateData as any,
+    data: updateData as Prisma.MaintenanceTicketUpdateInput,
     include: {
       submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
       assignedTo: { select: { id: true, firstName: true, lastName: true } },

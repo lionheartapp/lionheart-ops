@@ -11,6 +11,7 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
 import { fetchWeather } from '@/lib/services/weatherService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
-    console.error('Failed to fetch weather:', error)
+    logger.error({ error: String(error) }, 'Failed to fetch weather')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch weather'), { status: 500 })
   }
 }

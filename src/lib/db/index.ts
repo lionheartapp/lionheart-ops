@@ -295,3 +295,32 @@ const orgScopedPrisma = rawPrisma.$extends({
 })
 
 export { orgScopedPrisma as prisma }
+
+/**
+ * Type-safe delegate accessor for org-scoped Prisma models that are registered
+ * in the extension but not exposed in the generated PrismaClient type.
+ *
+ * Usage:
+ *   import { prisma, type OrgPrismaClient } from '@/lib/db'
+ *   const db = prisma as unknown as OrgPrismaClient
+ *
+ * This replaces `const db = prisma as any` with a structured type that preserves
+ * method signatures while allowing access to any model delegate.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PrismaDelegate = {
+	findMany: (args?: Record<string, unknown>) => Promise<any[]>
+	findFirst: (args?: Record<string, unknown>) => Promise<any | null>
+	findUnique: (args?: Record<string, unknown>) => Promise<any | null>
+	create: (args: Record<string, unknown>) => Promise<any>
+	createMany: (args: Record<string, unknown>) => Promise<{ count: number }>
+	update: (args: Record<string, unknown>) => Promise<any>
+	updateMany: (args: Record<string, unknown>) => Promise<{ count: number }>
+	upsert: (args: Record<string, unknown>) => Promise<any>
+	delete: (args: Record<string, unknown>) => Promise<any>
+	deleteMany: (args: Record<string, unknown>) => Promise<{ count: number }>
+	count: (args?: Record<string, unknown>) => Promise<number>
+	aggregate: (args: Record<string, unknown>) => Promise<any>
+}
+
+export type OrgPrismaClient = Record<string, PrismaDelegate>

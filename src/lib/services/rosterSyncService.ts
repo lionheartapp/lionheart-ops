@@ -11,7 +11,10 @@
 
 import { prisma } from '@/lib/db'
 import * as syncJobService from '@/lib/services/itSyncJobService'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'rosterSyncService' })
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface OneRosterStudent {
@@ -644,7 +647,7 @@ export async function handleCleverWebhook(
     }
 
     default:
-      console.log(`[RosterSync] Unhandled Clever webhook event type: ${eventType}`)
+      log.info({ eventType }, 'Unhandled Clever webhook event type')
       return { action: 'ignored' }
   }
 }
@@ -712,7 +715,7 @@ export async function handleClassLinkWebhook(
     }
 
     default:
-      console.log(`[RosterSync] Unhandled ClassLink webhook event type: ${eventType}`)
+      log.info({ eventType }, 'Unhandled ClassLink webhook event type')
       return { action: 'ignored' }
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink, Package, WifiOff } from 'lucide-react'
@@ -85,6 +85,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [isQueued, setIsQueued] = useState(false)
+  const pendingSecondTicketRef = useRef<{ title: string; category: string } | null>(null)
 
   const [formData, setFormData] = useState<WizardFormData>({
     buildingId: null,
@@ -293,11 +294,11 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
   // ─── Preload second ticket data (from AI split suggestion)
   const handlePreloadSecondTicket = (data: { title: string; category: string }) => {
     // Store for after split — don't update yet
-    ;(handlePreloadSecondTicket as any)._pending = data
+    pendingSecondTicketRef.current = data
   }
 
   const handleAfterSplit = (ticketNumber: string) => {
-    const pending = (handlePreloadSecondTicket as any)._pending
+    const pending = pendingSecondTicketRef.current
     // Reset wizard for second ticket, keep same location
     setFormData((prev) => ({
       buildingId: prev.buildingId,

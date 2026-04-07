@@ -8,12 +8,12 @@
  * (org-scoped) unless accessing RegistrationSensitiveData (no orgId column).
  */
 
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { RegistrationStatus } from '@prisma/client'
 
-// Cast to any to access Phase 21 models registered in orgScopedModels
+// Cast to OrgPrismaClient to access Phase 21 models registered in orgScopedModels
 // (same pattern used throughout the codebase for newer models)
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 

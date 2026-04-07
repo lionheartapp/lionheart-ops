@@ -10,7 +10,10 @@ import { createHash, randomBytes } from 'crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { rawPrisma } from '@/lib/db'
 import { RateLimiter } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'registrationMagicLinkService' })
 // ─── Rate Limiters ────────────────────────────────────────────────────────────
 
 /** 3 magic links per email per hour (prevent abuse) */
@@ -136,7 +139,7 @@ export async function issueMagicLink(
     portalLink,
     expiresAt,
   }).catch((err) => {
-    console.error('[registrationMagicLinkService] Failed to send magic link email:', err)
+    log.error({ err: String(err) }, 'Failed to send magic link email')
   })
 
   return { success: true }
@@ -319,9 +322,9 @@ Sent by ${input.orgName} via Lionheart.`
       })
       if (res.ok) return
       const body = await res.text()
-      console.error('[registrationMagicLinkService] Resend failed:', res.status, body)
+      log.error({ status: res.status, body }, 'Resend failed')
     } catch (err) {
-      console.error('[registrationMagicLinkService] Resend error:', err)
+      log.error({ err: String(err) }, 'Resend error')
     }
   }
 
@@ -344,7 +347,7 @@ Sent by ${input.orgName} via Lionheart.`
       })
       await transporter.sendMail({ from, to: input.to, subject, html, text })
     } catch (err) {
-      console.error('[registrationMagicLinkService] SMTP error:', err)
+      log.error({ err: String(err) }, 'SMTP error')
     }
   }
 }

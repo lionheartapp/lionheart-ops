@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { generateGroupAssignments } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.object({
@@ -30,7 +30,7 @@ export const POST = withAuth(async ({ body }) => {
   const { eventProjectId, constraints = {} } = body
 
   // Load groups for this event project
-  const groups = await (prisma as any).eventGroup.findMany({
+  const groups = await (prisma as unknown as OrgPrismaClient).eventGroup.findMany({
     where: { eventProjectId },
     select: {
       id: true,
@@ -50,7 +50,7 @@ export const POST = withAuth(async ({ body }) => {
   }
 
   // Load registered participants (not yet assigned to a group)
-  const registrations = await (prisma as any).eventRegistration.findMany({
+  const registrations = await (prisma as unknown as OrgPrismaClient).eventRegistration.findMany({
     where: {
       eventProjectId,
       deletedAt: null,
@@ -82,16 +82,19 @@ export const POST = withAuth(async ({ body }) => {
   }
 
   // Map to participant input shape
-  const participants = registrations.map((r: any) => ({
+  interface RegistrationResponse { value: string; field?: { fieldKey: string } | null }
+  interface Registration { id: string; firstName: string; lastName: string; grade?: string | null; responses: RegistrationResponse[] }
+  const participants = (registrations as Registration[]).map((r) => ({
     id: r.id,
     name: `${r.firstName} ${r.lastName}`.trim(),
     grade: r.grade ?? undefined,
     // Extract gender from responses if collected
-    gender: r.responses.find((res: any) => res.field?.fieldKey === 'gender')?.value ?? undefined,
+    gender: r.responses.find((res) => res.field?.fieldKey === 'gender')?.value ?? undefined,
   }))
 
   // Map groups to target shape — remaining capacity
-  const groupTargets = groups.map((g: any) => ({
+  interface GroupRecord { id: string; name: string; type: string; capacity: number | null; _count: { assignments: number } }
+  const groupTargets = (groups as GroupRecord[]).map((g) => ({
     id: g.id,
     name: g.name,
     type: g.type,

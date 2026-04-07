@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 export default function GlobalError({
   error,
@@ -11,7 +12,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Uncaught error:', error)
+    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Uncaught error')
   }, [error])
 
   return (

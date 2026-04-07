@@ -17,19 +17,23 @@ export interface AssetLabelData {
   location?: string  // optional "Building > Room" string
 }
 
+// ─── jsPDF constructor type (minimal interface for label generation) ──────────
+
+export type JsPDFConstructor = new (opts: object) => {
+  setFontSize: (size: number) => void
+  setFont: (font: string, style: string) => void
+  setTextColor: (r: number, g: number, b: number) => void
+  text: (text: string, x: number, y: number) => void
+  addImage: (data: string, format: string, x: number, y: number, w: number, h: number) => void
+  save: (filename: string) => void
+  output: (type: string) => string
+}
+
 // ─── Single Label (2" x 1") ───────────────────────────────────────────────────
 
 export function generateSingleLabel(
   // Accept jsPDF constructor function to avoid top-level import (SSR safety)
-  JsPDF: new (opts: object) => {
-    setFontSize: (size: number) => void
-    setFont: (font: string, style: string) => void
-    setTextColor: (r: number, g: number, b: number) => void
-    text: (text: string, x: number, y: number) => void
-    addImage: (data: string, format: string, x: number, y: number, w: number, h: number) => void
-    save: (filename: string) => void
-    output: (type: string) => string
-  },
+  JsPDF: JsPDFConstructor,
   asset: AssetLabelData
 ) {
   // 2" x 1" in points (72pt = 1 inch)

@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadBrandingImage, deleteBrandingImage } from '@/lib/services/storageService'
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import { logger } from '@/lib/logger'
 
 // Branding allows SVG in addition to standard image types
 const ALLOWED_BRANDING_TYPES = new Set([...ALLOWED_IMAGE_TYPES, 'image/svg+xml'])
@@ -61,7 +62,7 @@ export const DELETE = withAuth<z.infer<typeof DeleteSchema>>(async ({ orgId, bod
   try {
     await deleteBrandingImage(body.imageUrl)
   } catch {
-    console.warn('Failed to delete branding image from storage, continuing')
+    logger.warn('Failed to delete branding image from storage, continuing')
   }
 
   return NextResponse.json(ok({ deleted: true }))

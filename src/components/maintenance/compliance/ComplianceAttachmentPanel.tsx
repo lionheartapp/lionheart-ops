@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { Paperclip, X, FileText, Image, Loader2, UploadCloud } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 
 interface ComplianceRecord {
   id: string
@@ -95,7 +96,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       setAttachments(newAttachments)
       onAttachmentsUpdated(newAttachments)
     } catch (err) {
-      console.error('[ComplianceAttachmentPanel] Upload error:', err)
+      logger.error({ error: String(err) }, 'ComplianceAttachmentPanel upload error')
       setUploadError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
@@ -122,7 +123,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       setAttachments(newAttachments)
       onAttachmentsUpdated(newAttachments)
     } catch (err) {
-      console.error('[ComplianceAttachmentPanel] Delete error:', err)
+      logger.error({ error: String(err) }, 'ComplianceAttachmentPanel delete error')
     }
   }
 

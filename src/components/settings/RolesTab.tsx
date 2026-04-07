@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { logger } from '@/lib/logger'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -155,7 +156,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setEditPermissionIds(nextPermissionIds)
       setEditInitialPermissionIds(nextPermissionIds)
     } catch (error) {
-      console.error('Failed to load role details:', error)
+      logger.error({ error: String(error) }, 'Failed to load role details')
       setEditError('Failed to load role details')
     } finally {
       setEditLoading(false)
@@ -224,7 +225,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setShowCreateModal(false)
       invalidateRoles()
     } catch (error) {
-      console.error('Failed to create role:', error)
+      logger.error({ error: String(error) }, 'Failed to create role')
       setActionError('Failed to create role')
     } finally {
       setCreateLoading(false)
@@ -270,7 +271,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setEditInitialPermissionIds([])
       invalidateRoles()
     } catch (error) {
-      console.error('Failed to update role:', error)
+      logger.error({ error: String(error) }, 'Failed to update role')
       setEditError('Failed to update role')
     } finally {
       setEditSaving(false)
@@ -298,7 +299,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       const payload = await response.json().catch(() => null)
       setRoleUsers(payload?.data || [])
     } catch (error) {
-      console.error('Failed to load role users:', error)
+      logger.error({ error: String(error) }, 'Failed to load role users')
       setRoleUsers([])
     } finally {
       setRoleUsersLoading(false)
@@ -369,7 +370,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       invalidateRoles()
       setRoleToDelete(null)
     } catch (error) {
-      console.error('Failed to delete role:', error)
+      logger.error({ error: String(error) }, 'Failed to delete role')
       setActionError('Failed to delete role')
       setRoleToDelete(null)
     } finally {

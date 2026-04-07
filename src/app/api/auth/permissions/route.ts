@@ -4,6 +4,7 @@ import { getUserContext } from '@/lib/request-context'
 import { getUserPermissions, getUserTeamDetails, canSync, canAnySync } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { matchesPermission } from '@/lib/permissions'
+import { logger } from '@/lib/logger'
 
 const WORKSPACE_MANAGE_PERMISSIONS = [
   PERMISSIONS.ROLES_CREATE,
@@ -120,7 +121,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Unauthorized'), { status: 401 })
     }
 
-    console.error('Failed to fetch auth permissions:', error)
+    logger.error({ error: String(error) }, 'Failed to fetch auth permissions')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to fetch auth permissions'),
       { status: 500 }

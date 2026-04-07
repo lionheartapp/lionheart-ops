@@ -7,7 +7,10 @@
 
 import { rawPrisma } from '@/lib/db'
 import { NextRequest } from 'next/server'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'platformAuditService' })
 export type PlatformAuditInput = {
   platformAdminId: string
   action: string
@@ -21,9 +24,8 @@ export type PlatformAuditInput = {
  * Log a platform admin action (fire-and-forget)
  */
 export function platformAudit(input: PlatformAuditInput): void {
-  rawPrisma.platformAuditLog
-    .create({ data: input as any })
-    .catch((err) => console.error('[platformAudit] Failed to write audit log:', err))
+  ;(rawPrisma.platformAuditLog.create as Function)({ data: input })
+    .catch((err: unknown) => log.error({ err: String(err) }, 'Failed to write audit log'))
 }
 
 /**

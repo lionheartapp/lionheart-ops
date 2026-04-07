@@ -15,6 +15,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createClient } from '@supabase/supabase-js'
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import { logger } from '@/lib/logger'
 
 const UploadUrlSchema = z.object({
   fileName: z.string().min(1),
@@ -49,7 +50,7 @@ export const POST = withAuth(async ({ params, orgId, body }) => {
     .createSignedUploadUrl(storagePath)
 
   if (error || !data) {
-    console.error('[receipt-url] Supabase error:', error)
+    logger.error({ error: String(error) }, 'Supabase receipt upload URL failed')
     return NextResponse.json(
       fail('STORAGE_ERROR', 'Failed to generate upload URL'),
       { status: 500 },

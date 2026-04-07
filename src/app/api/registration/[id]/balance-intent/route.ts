@@ -19,6 +19,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { createBalanceIntent } from '@/lib/services/registrationPaymentService'
 import { sendBalanceRequestEmail } from '@/lib/services/registrationEmailService'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -77,7 +78,7 @@ export async function POST(
         const paymentLink = paymentPageUrl ?? `${process.env.NEXT_PUBLIC_PLATFORM_URL || ''}/pay/${registrationId}`
 
         sendBalanceRequestEmail(registrationId, paymentLink).catch((err) => {
-          console.error('[balance-intent] sendBalanceRequestEmail failed:', err)
+          logger.error({ error: String(err) }, 'sendBalanceRequestEmail failed')
         })
       }
 
@@ -101,10 +102,10 @@ export async function POST(
       return NextResponse.json(fail('NOT_FOUND', 'Registration not found'), { status: 404 })
     }
     if (error instanceof Error && error.message.includes('STRIPE_SECRET_KEY')) {
-      console.error('[balance-intent] Stripe not configured')
+      logger.error('Stripe not configured')
       return NextResponse.json(fail('PAYMENT_NOT_CONFIGURED', 'Payments are not configured'), { status: 503 })
     }
-    console.error('[balance-intent POST]', error)
+    logger.error({ error: String(error) }, 'Balance intent POST failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

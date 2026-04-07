@@ -7,7 +7,10 @@
 
 import QRCode from 'qrcode'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'registrationEmailService' })
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 function getAppUrl(): string {
@@ -65,9 +68,9 @@ async function sendEmail(
       if (res.ok) return { sent: true }
 
       const body = await res.text()
-      console.error('[registrationEmailService] Resend failed:', res.status, body)
+      log.error({ status: res.status, body }, 'Resend failed')
     } catch (err) {
-      console.error('[registrationEmailService] Resend error:', err)
+      log.error({ err: String(err) }, 'Resend error')
     }
   }
 
@@ -85,7 +88,7 @@ async function sendEmail(
       await transporter.sendMail({ from, to, subject, html, text })
       return { sent: true }
     } catch (err) {
-      console.error('[registrationEmailService] SMTP error:', err)
+      log.error({ err: String(err) }, 'SMTP error')
       return { sent: false, reason: 'SMTP_SEND_FAILED' }
     }
   }
@@ -139,7 +142,7 @@ export async function sendConfirmationEmail(registrationId: string): Promise<Sen
   })
 
   if (!registration) {
-    console.error('[registrationEmailService] Registration not found:', registrationId)
+    log.error({ registrationId }, 'Registration not found')
     return { sent: false, reason: 'REGISTRATION_NOT_FOUND' }
   }
 
@@ -155,7 +158,7 @@ export async function sendConfirmationEmail(registrationId: string): Promise<Sen
   try {
     qrDataUrl = await QRCode.toDataURL(checkInUrl, { width: 200, margin: 1 })
   } catch (err) {
-    console.error('[registrationEmailService] QR generation failed:', err)
+    log.error({ err: String(err) }, 'QR generation failed')
   }
 
   const eventTitle = event?.title ?? 'Event Registration'
@@ -284,7 +287,7 @@ export async function sendBalanceRequestEmail(
   })
 
   if (!registration) {
-    console.error('[registrationEmailService] Registration not found:', registrationId)
+    log.error({ registrationId }, 'Registration not found')
     return { sent: false, reason: 'REGISTRATION_NOT_FOUND' }
   }
 

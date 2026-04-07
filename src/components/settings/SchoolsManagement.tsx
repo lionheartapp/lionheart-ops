@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 import { Plus, Edit2, Trash2, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -112,7 +113,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
       try {
         data = await response.json()
       } catch (jsonError) {
-        console.error('Failed to parse response JSON:', jsonError)
+        logger.error({ error: String(jsonError) }, 'Failed to parse response JSON')
         throw new Error(`Server error (${response.status}): Failed to parse response`)
       }
 
@@ -173,7 +174,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save school'
-      console.error('Save error:', message, err)
+      logger.error({ error: message }, 'Save school error')
       setError(message)
       // Do NOT close modal on error
     } finally {

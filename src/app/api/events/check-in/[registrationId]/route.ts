@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { AnnouncementAudience } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   _req: NextRequest,
@@ -135,7 +136,7 @@ export async function GET(
       }),
     )
   } catch (error) {
-    console.error('[events/check-in/:registrationId GET]', error)
+    logger.error({ error: String(error) }, 'Event check-in lookup failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

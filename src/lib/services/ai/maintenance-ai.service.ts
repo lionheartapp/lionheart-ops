@@ -10,7 +10,10 @@
  */
 
 import type { AiDiagnosis, AiConversationTurn } from '@/lib/types/maintenance-ai'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'maintenanceAIService' })
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 function getApiKey(): string | null {
@@ -86,12 +89,12 @@ export async function analyzeMaintenancePhotos(params: AnalyzePhotosParams): Pro
         }
       } catch {
         // Skip images that fail to fetch
-        console.warn(`[maintenance-ai] Failed to fetch image: ${url}`)
+        log.warn({ url }, 'Failed to fetch image')
       }
     }
 
     if (parts.length === 0) {
-      console.warn('[maintenance-ai] No images could be fetched for analysis')
+      log.warn('No images could be fetched for analysis')
       return null
     }
 
@@ -125,7 +128,7 @@ export async function analyzeMaintenancePhotos(params: AnalyzePhotosParams): Pro
       !Array.isArray(parsed.suggestedParts) ||
       !Array.isArray(parsed.steps)
     ) {
-      console.error('[maintenance-ai] Invalid response structure from Gemini:', parsed)
+      log.error({ parsed }, 'Invalid response structure from Gemini')
       return null
     }
 
@@ -140,7 +143,7 @@ export async function analyzeMaintenancePhotos(params: AnalyzePhotosParams): Pro
       analyzedAt: new Date().toISOString(),
     }
   } catch (error) {
-    console.error('[maintenance-ai] analyzeMaintenancePhotos error:', error)
+    log.error({ err: String(error) }, 'analyzeMaintenancePhotos error')
     return null
   }
 }
@@ -230,7 +233,7 @@ Answer questions clearly and practically. Focus on actionable advice for school 
 
     return (result.text || '').trim() || null
   } catch (error) {
-    console.error('[maintenance-ai] askMaintenanceAI error:', error)
+    log.error({ err: String(error) }, 'askMaintenanceAI error')
     return null
   }
 }

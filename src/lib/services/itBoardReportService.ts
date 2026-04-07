@@ -12,7 +12,10 @@ import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
 import { GoogleGenAI } from '@google/genai'
 import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'itBoardReportService' })
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface AnnualTechReportMetrics {
@@ -661,7 +664,7 @@ Do not use markdown formatting. Write in plain prose paragraphs.`
     })
     return response.text ?? buildFallbackNarrative(metrics, orgName)
   } catch (err) {
-    console.error('[itBoardReportService] AI narrative generation failed:', err)
+    log.error({ err: String(err) }, 'AI narrative generation failed')
     return buildFallbackNarrative(metrics, orgName)
   }
 }
@@ -1825,7 +1828,7 @@ Do not use markdown formatting. Write in plain prose paragraphs.`
       })
       narrative = response.text ?? buildROIFallbackNarrative(metrics, orgName)
     } catch (err) {
-      console.error('[itBoardReportService] AI ROI narrative generation failed:', err)
+      log.error({ err: String(err) }, 'AI ROI narrative generation failed')
       narrative = buildROIFallbackNarrative(metrics, orgName)
     }
   } else {

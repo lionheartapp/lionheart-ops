@@ -103,17 +103,17 @@ export default function AssetCreateDrawer({
     if (editAsset && isOpen) {
       setForm({
         name: editAsset.name || '',
-        category: (editAsset as any).category || '',
-        make: (editAsset as any).make || '',
-        model: (editAsset as any).model || '',
-        serialNumber: (editAsset as any).serialNumber || '',
-        purchaseDate: (editAsset as any).purchaseDate ? new Date((editAsset as any).purchaseDate).toISOString().split('T')[0] : '',
-        warrantyExpiry: (editAsset as any).warrantyExpiry ? new Date((editAsset as any).warrantyExpiry).toISOString().split('T')[0] : '',
-        replacementCost: (editAsset as any).replacementCost != null ? String((editAsset as any).replacementCost) : '',
-        expectedLifespanYears: (editAsset as any).expectedLifespanYears != null ? String((editAsset as any).expectedLifespanYears) : '',
-        repairThresholdPct: String(Math.round(((editAsset as any).repairThresholdPct ?? 0.5) * 100)),
-        notes: (editAsset as any).notes || '',
-        status: (editAsset as any).status || 'ACTIVE',
+        category: editAsset.category || '',
+        make: editAsset.make || '',
+        model: editAsset.model || '',
+        serialNumber: editAsset.serialNumber || '',
+        purchaseDate: editAsset.purchaseDate ? new Date(editAsset.purchaseDate).toISOString().split('T')[0] : '',
+        warrantyExpiry: editAsset.warrantyExpiry ? new Date(editAsset.warrantyExpiry).toISOString().split('T')[0] : '',
+        replacementCost: editAsset.replacementCost != null ? String(editAsset.replacementCost) : '',
+        expectedLifespanYears: editAsset.expectedLifespanYears != null ? String(editAsset.expectedLifespanYears) : '',
+        repairThresholdPct: String(Math.round((editAsset.repairThresholdPct ?? 0.5) * 100)),
+        notes: editAsset.notes || '',
+        status: editAsset.status || 'ACTIVE',
         locationKey: '',
       })
     }

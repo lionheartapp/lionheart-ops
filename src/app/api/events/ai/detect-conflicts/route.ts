@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { detectConflicts } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.union([
@@ -41,7 +41,7 @@ export const POST = withAuth(async ({ orgId, body }) => {
 
   if ('eventProjectId' in data && data.eventProjectId && !('startsAt' in data)) {
     // Load from event project
-    const project = await (prisma as any).eventProject.findFirst({
+    const project = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
       where: { id: data.eventProjectId },
       select: { id: true, startsAt: true, endsAt: true, buildingId: true, roomId: true },
     })

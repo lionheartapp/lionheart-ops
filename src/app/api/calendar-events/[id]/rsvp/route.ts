@@ -6,6 +6,7 @@ import { runWithOrgContext } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
 import { updateRsvpStatus, getEventById } from '@/lib/services/calendarService'
 import { createNotification } from '@/lib/services/notificationService'
+import { logger } from '@/lib/logger'
 
 const rsvpSchema = z.object({
   status: z.enum(['ACCEPTED', 'DECLINED', 'TENTATIVE']),
@@ -69,7 +70,7 @@ export async function PUT(
         return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
       }
     }
-    console.error('RSVP error:', error)
+    logger.error({ error: String(error) }, 'RSVP update failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

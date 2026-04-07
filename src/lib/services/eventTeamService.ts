@@ -1,4 +1,4 @@
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { appendActivityLog } from '@/lib/services/eventProjectService'
 import { createNotification } from '@/lib/services/notificationService'
 import { logger } from '@/lib/logger'
@@ -6,7 +6,7 @@ import type { AddEventTeamMemberInput, UpdateEventTeamMemberInput } from '@/lib/
 
 const log = logger.child({ service: 'eventTeamService' })
 
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 const MEMBER_INCLUDE = {
   user: {

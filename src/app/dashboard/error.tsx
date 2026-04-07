@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 export default function DashboardError({
   error,
@@ -11,7 +12,7 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Dashboard error:', error)
+    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Dashboard error')
   }, [error])
 
   return (

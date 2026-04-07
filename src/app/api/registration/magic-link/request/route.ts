@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { checkRateLimit, issueMagicLink } from '@/lib/services/registrationMagicLinkService'
+import { logger } from '@/lib/logger'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -91,10 +92,7 @@ export async function POST(req: NextRequest) {
       for (const registration of registrations) {
         issueMagicLink(email.toLowerCase(), registration.id, registration.organizationId).catch(
           (err) => {
-            console.error(
-              `[magic-link/request] Failed to issue magic link for registration ${registration.id}:`,
-              err,
-            )
+            logger.error({ error: String(err), registrationId: registration.id }, 'Failed to issue magic link')
           },
         )
       }
@@ -105,7 +103,7 @@ export async function POST(req: NextRequest) {
       ok({ message: 'If you have registrations, a link has been sent to your email.' }),
     )
   } catch (error) {
-    console.error('[magic-link/request] Unexpected error:', error)
+    logger.error({ error: String(error) }, 'Unexpected error')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong. Please try again.'),
       { status: 500 },

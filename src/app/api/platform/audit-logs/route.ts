@@ -3,6 +3,7 @@ import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
 import { queryPlatformAuditLogs } from '@/lib/services/platformAuditService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/platform/audit-logs]', error)
+    logger.error({ error: String(error) }, 'Failed to get audit logs')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { verifyPortalToken } from '@/lib/services/registrationMagicLinkService'
+import { logger } from '@/lib/logger'
 
 // ─── GET handler ──────────────────────────────────────────────────────────────
 
@@ -177,7 +178,7 @@ export async function GET(
       }),
     )
   } catch (error) {
-    console.error('[registration/portal] Unexpected error:', error)
+    logger.error({ error: String(error) }, 'Unexpected error')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong. Please try again.'),
       { status: 500 },

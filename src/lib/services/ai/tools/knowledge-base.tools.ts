@@ -43,7 +43,7 @@ const tools: Record<string, ToolRegistryEntry> = {
       const limit = Math.min((input.limit as number) || 10, 25)
       const typeFilter = input.type ? String(input.type).toUpperCase() : undefined
 
-      let articles: any[]
+      let articles: Array<Record<string, unknown>>
 
       if (typeFilter && VALID_TYPES.includes(typeFilter as KnowledgeArticleType)) {
         // Use getArticles with keyword + type filter
@@ -59,14 +59,14 @@ const tools: Record<string, ToolRegistryEntry> = {
       }
 
       return JSON.stringify({
-        articles: articles.map((a: any) => ({
+        articles: articles.map((a: Record<string, unknown>) => ({
           id: a.id,
           title: a.title,
           type: a.type,
-          tags: a.tags || [],
-          preview: a.content ? a.content.slice(0, 500) + (a.content.length > 500 ? '...' : '') : '',
+          tags: (a.tags as string[]) || [],
+          preview: typeof a.content === 'string' ? a.content.slice(0, 500) + (a.content.length > 500 ? '...' : '') : '',
           author: a.createdBy
-            ? `${a.createdBy.firstName || ''} ${a.createdBy.lastName || ''}`.trim()
+            ? `${(a.createdBy as Record<string, string>).firstName || ''} ${(a.createdBy as Record<string, string>).lastName || ''}`.trim()
             : undefined,
           updatedAt: a.updatedAt,
         })),
@@ -106,10 +106,10 @@ const tools: Record<string, ToolRegistryEntry> = {
         content: article.content,
         tags: article.tags || [],
         author: article.createdBy
-          ? `${(article.createdBy as any).firstName || ''} ${(article.createdBy as any).lastName || ''}`.trim()
+          ? `${(article.createdBy as Record<string, string>).firstName || ''} ${(article.createdBy as Record<string, string>).lastName || ''}`.trim()
           : undefined,
         asset: article.asset
-          ? { name: (article.asset as any).name, assetNumber: (article.asset as any).assetNumber }
+          ? { name: (article.asset as Record<string, string>).name, assetNumber: (article.asset as Record<string, string>).assetNumber }
           : undefined,
         createdAt: article.createdAt,
         updatedAt: article.updatedAt,

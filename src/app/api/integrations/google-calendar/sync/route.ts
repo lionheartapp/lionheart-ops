@@ -5,7 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
 
 const SyncBodySchema = z.object({
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const eventProject = await (prisma as any).eventProject.findFirst({
+      const eventProject = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
         where: { id: parsed.data.eventProjectId },
       })
 

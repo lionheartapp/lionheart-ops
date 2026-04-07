@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { organizationRegistrationService } from '@/lib/services'
 import { ok, fail } from '@/lib/api-response'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
       )
     }
   } catch (error) {
-    console.error('Slug validation error:', error)
+    logger.error({ error: String(error) }, 'Slug validation failed')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Failed to validate slug'),
       { status: 500 }

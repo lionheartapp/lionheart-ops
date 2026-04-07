@@ -11,7 +11,10 @@
 import { rawPrisma } from '@/lib/db'
 import { jsPDF } from 'jspdf'
 import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'boardReportService' })
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type FCIRating = 'GOOD' | 'FAIR' | 'POOR'
@@ -570,7 +573,7 @@ Write a 3-4 paragraph executive narrative.`
     })
     return result.text || buildFallbackNarrative(orgName, metrics)
   } catch (err) {
-    console.error('[boardReportService] AI narrative generation failed:', err)
+    log.error({ err: String(err) }, 'AI narrative generation failed')
     return buildFallbackNarrative(orgName, metrics)
   }
 }

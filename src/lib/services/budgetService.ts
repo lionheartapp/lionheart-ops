@@ -4,11 +4,11 @@
  * CRUD for budget categories, line items, and revenue entries.
  * Provides report aggregation (budget vs actual + per-participant cost).
  *
- * All functions use the org-scoped Prisma client (cast as any per Phase 21 pattern)
+ * All functions use the org-scoped Prisma client (cast as OrgPrismaClient for type safety)
  * and must be called inside a runWithOrgContext block from route handlers.
  */
 
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import {
   BUDGET_CATEGORY_PRESETS,
@@ -30,54 +30,57 @@ function toNum(val: unknown): number {
   if (val === null || val === undefined) return 0
   if (typeof val === 'number') return val
   // Prisma Decimal objects have a .toNumber() method
-  if (typeof (val as any).toNumber === 'function') return (val as any).toNumber()
+  if (typeof val === 'object' && val !== null && 'toNumber' in val && typeof (val as { toNumber: () => number }).toNumber === 'function') {
+    return (val as { toNumber: () => number }).toNumber()
+  }
   return Number(val)
 }
 
-function shapeCategory(row: any): BudgetCategoryRow {
+function shapeCategory(row: Record<string, unknown>): BudgetCategoryRow {
   return {
-    id: row.id,
-    eventProjectId: row.eventProjectId,
-    name: row.name,
-    sortOrder: row.sortOrder,
-    isPreset: row.isPreset,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    id: row.id as string,
+    eventProjectId: row.eventProjectId as string,
+    name: row.name as string,
+    sortOrder: row.sortOrder as number,
+    isPreset: row.isPreset as boolean,
+    createdAt: (row.createdAt as Date).toISOString(),
+    updatedAt: (row.updatedAt as Date).toISOString(),
   }
 }
 
-function shapeLineItem(row: any): BudgetLineItemRow {
+function shapeLineItem(row: Record<string, unknown>): BudgetLineItemRow {
+  const category = row.category as { name?: string } | null
   return {
-    id: row.id,
-    eventProjectId: row.eventProjectId,
-    categoryId: row.categoryId,
-    categoryName: row.category?.name ?? '',
-    description: row.description,
+    id: row.id as string,
+    eventProjectId: row.eventProjectId as string,
+    categoryId: row.categoryId as string,
+    categoryName: category?.name ?? '',
+    description: row.description as string,
     budgetedAmount: toNum(row.budgetedAmount),
     actualAmount: row.actualAmount != null ? toNum(row.actualAmount) : null,
-    vendor: row.vendor ?? null,
-    receiptUrl: row.receiptUrl ?? null,
-    expenseDate: row.expenseDate ? row.expenseDate.toISOString() : null,
-    notes: row.notes ?? null,
-    createdById: row.createdById,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    vendor: (row.vendor as string) ?? null,
+    receiptUrl: (row.receiptUrl as string) ?? null,
+    expenseDate: row.expenseDate ? (row.expenseDate as Date).toISOString() : null,
+    notes: (row.notes as string) ?? null,
+    createdById: row.createdById as string,
+    createdAt: (row.createdAt as Date).toISOString(),
+    updatedAt: (row.updatedAt as Date).toISOString(),
   }
 }
 
-function shapeRevenue(row: any): BudgetRevenueRow {
+function shapeRevenue(row: Record<string, unknown>): BudgetRevenueRow {
   return {
-    id: row.id,
-    eventProjectId: row.eventProjectId,
-    source: row.source,
-    description: row.description,
+    id: row.id as string,
+    eventProjectId: row.eventProjectId as string,
+    source: row.source as BudgetRevenueRow['source'],
+    description: row.description as string,
     amount: toNum(row.amount),
-    receivedDate: row.receivedDate ? row.receivedDate.toISOString() : null,
-    notes: row.notes ?? null,
-    isAutoPopulated: row.isAutoPopulated,
-    createdById: row.createdById,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    receivedDate: row.receivedDate ? (row.receivedDate as Date).toISOString() : null,
+    notes: (row.notes as string) ?? null,
+    isAutoPopulated: row.isAutoPopulated as boolean,
+    createdById: row.createdById as string,
+    createdAt: (row.createdAt as Date).toISOString(),
+    updatedAt: (row.updatedAt as Date).toISOString(),
   }
 }
 
@@ -88,7 +91,7 @@ function shapeRevenue(row: any): BudgetRevenueRow {
  * No-op if categories already exist.
  */
 export async function initializeCategories(eventProjectId: string): Promise<void> {
-  const existing = await (prisma as any).budgetCategory.findFirst({
+  const existing = await (prisma as unknown as OrgPrismaClient).budgetCategory.findFirst({
     where: { eventProjectId },
     select: { id: true },
   })
@@ -102,7 +105,7 @@ export async function initializeCategories(eventProjectId: string): Promise<void
     isPreset: true,
   }))
 
-  await (prisma as any).budgetCategory.createMany({ data })
+  await (prisma as unknown as OrgPrismaClient).budgetCategory.createMany({ data })
   log.info({ eventProjectId }, 'Budget categories initialized with presets')
 }
 
@@ -110,7 +113,7 @@ export async function initializeCategories(eventProjectId: string): Promise<void
  * Return all categories for an event project, sorted by sortOrder.
  */
 export async function getCategories(eventProjectId: string): Promise<BudgetCategoryRow[]> {
-  const rows = await (prisma as any).budgetCategory.findMany({
+  const rows = await (prisma as unknown as OrgPrismaClient).budgetCategory.findMany({
     where: { eventProjectId },
     orderBy: { sortOrder: 'asc' },
   })
@@ -125,14 +128,14 @@ export async function createCategory(
   name: string,
 ): Promise<BudgetCategoryRow> {
   // Determine next sortOrder
-  const maxRow = await (prisma as any).budgetCategory.findFirst({
+  const maxRow = await (prisma as unknown as OrgPrismaClient).budgetCategory.findFirst({
     where: { eventProjectId },
     orderBy: { sortOrder: 'desc' },
     select: { sortOrder: true },
   })
   const nextSort = (maxRow?.sortOrder ?? -1) + 1
 
-  const row = await (prisma as any).budgetCategory.create({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetCategory.create({
     data: {
       eventProjectId,
       name,
@@ -150,7 +153,7 @@ export async function updateCategory(
   categoryId: string,
   data: { name?: string; sortOrder?: number },
 ): Promise<BudgetCategoryRow> {
-  const row = await (prisma as any).budgetCategory.update({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetCategory.update({
     where: { id: categoryId },
     data,
   })
@@ -161,7 +164,7 @@ export async function updateCategory(
  * Delete a category. Throws if it has associated line items.
  */
 export async function deleteCategory(categoryId: string): Promise<void> {
-  const lineItemCount = await (prisma as any).budgetLineItem.count({
+  const lineItemCount = await (prisma as unknown as OrgPrismaClient).budgetLineItem.count({
     where: { categoryId },
   })
   if (lineItemCount > 0) {
@@ -169,7 +172,7 @@ export async function deleteCategory(categoryId: string): Promise<void> {
       `Cannot delete category: it has ${lineItemCount} line item(s). Remove line items first.`,
     )
   }
-  await (prisma as any).budgetCategory.delete({ where: { id: categoryId } })
+  await (prisma as unknown as OrgPrismaClient).budgetCategory.delete({ where: { id: categoryId } })
 }
 
 // ─── Line Item CRUD ───────────────────────────────────────────────────────────
@@ -187,7 +190,7 @@ export async function getLineItems(
     where.categoryId = opts.categoryId
   }
 
-  const rows = await (prisma as any).budgetLineItem.findMany({
+  const rows = await (prisma as unknown as OrgPrismaClient).budgetLineItem.findMany({
     where,
     include: { category: { select: { name: true } } },
     orderBy: { createdAt: 'asc' },
@@ -205,7 +208,7 @@ export async function createLineItem(
   userId: string,
 ): Promise<BudgetLineItemRow> {
   // Validate category belongs to this event
-  const category = await (prisma as any).budgetCategory.findFirst({
+  const category = await (prisma as unknown as OrgPrismaClient).budgetCategory.findFirst({
     where: { id: input.categoryId, eventProjectId },
     select: { id: true, name: true },
   })
@@ -213,7 +216,7 @@ export async function createLineItem(
     throw new Error('Category not found or does not belong to this event project')
   }
 
-  const row = await (prisma as any).budgetLineItem.create({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetLineItem.create({
     data: {
       eventProjectId,
       categoryId: input.categoryId,
@@ -248,7 +251,7 @@ export async function updateLineItem(
     updateData.expenseDate = input.expenseDate ? new Date(input.expenseDate) : null
   if ('notes' in input) updateData.notes = input.notes ?? null
 
-  const row = await (prisma as any).budgetLineItem.update({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetLineItem.update({
     where: { id: lineId },
     data: updateData,
     include: { category: { select: { name: true } } },
@@ -260,7 +263,7 @@ export async function updateLineItem(
  * Hard-delete a budget line item.
  */
 export async function deleteLineItem(lineId: string): Promise<void> {
-  await (prisma as any).budgetLineItem.delete({ where: { id: lineId } })
+  await (prisma as unknown as OrgPrismaClient).budgetLineItem.delete({ where: { id: lineId } })
 }
 
 // ─── Revenue ──────────────────────────────────────────────────────────────────
@@ -269,7 +272,7 @@ export async function deleteLineItem(lineId: string): Promise<void> {
  * Return all revenue entries for an event project, newest first.
  */
 export async function getRevenue(eventProjectId: string): Promise<BudgetRevenueRow[]> {
-  const rows = await (prisma as any).budgetRevenue.findMany({
+  const rows = await (prisma as unknown as OrgPrismaClient).budgetRevenue.findMany({
     where: { eventProjectId },
     orderBy: { receivedDate: 'desc' },
   })
@@ -284,7 +287,7 @@ export async function createRevenue(
   input: BudgetRevenueInput,
   userId: string,
 ): Promise<BudgetRevenueRow> {
-  const row = await (prisma as any).budgetRevenue.create({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetRevenue.create({
     data: {
       eventProjectId,
       source: input.source,
@@ -315,7 +318,7 @@ export async function updateRevenue(
     updateData.receivedDate = input.receivedDate ? new Date(input.receivedDate) : null
   if ('notes' in input) updateData.notes = input.notes ?? null
 
-  const row = await (prisma as any).budgetRevenue.update({
+  const row = await (prisma as unknown as OrgPrismaClient).budgetRevenue.update({
     where: { id: revenueId },
     data: updateData,
   })
@@ -326,7 +329,7 @@ export async function updateRevenue(
  * Hard-delete a revenue entry.
  */
 export async function deleteRevenue(revenueId: string): Promise<void> {
-  await (prisma as any).budgetRevenue.delete({ where: { id: revenueId } })
+  await (prisma as unknown as OrgPrismaClient).budgetRevenue.delete({ where: { id: revenueId } })
 }
 
 /**
@@ -358,13 +361,13 @@ export async function syncRegistrationRevenue(eventProjectId: string): Promise<v
     const totalDollars = totalCents / 100
 
     // Find existing auto-populated REGISTRATION_FEE row
-    const existing = await (prisma as any).budgetRevenue.findFirst({
+    const existing = await (prisma as unknown as OrgPrismaClient).budgetRevenue.findFirst({
       where: { eventProjectId, source: 'REGISTRATION_FEE', isAutoPopulated: true },
       select: { id: true },
     })
 
     if (existing) {
-      await (prisma as any).budgetRevenue.update({
+      await (prisma as unknown as OrgPrismaClient).budgetRevenue.update({
         where: { id: existing.id },
         data: {
           amount: totalDollars,
@@ -379,7 +382,7 @@ export async function syncRegistrationRevenue(eventProjectId: string): Promise<v
         select: { organizationId: true, createdById: true },
       })
       if (orgProject) {
-        await (prisma as any).budgetRevenue.create({
+        await (prisma as unknown as OrgPrismaClient).budgetRevenue.create({
           data: {
             eventProjectId,
             source: 'REGISTRATION_FEE',
@@ -408,14 +411,14 @@ export async function syncRegistrationRevenue(eventProjectId: string): Promise<v
  */
 export async function getBudgetReport(eventProjectId: string): Promise<BudgetReportData> {
   const [categories, lineItems, revenues, registrationCount] = await Promise.all([
-    (prisma as any).budgetCategory.findMany({
+    (prisma as unknown as OrgPrismaClient).budgetCategory.findMany({
       where: { eventProjectId },
       orderBy: { sortOrder: 'asc' },
     }),
-    (prisma as any).budgetLineItem.findMany({
+    (prisma as unknown as OrgPrismaClient).budgetLineItem.findMany({
       where: { eventProjectId },
     }),
-    (prisma as any).budgetRevenue.findMany({
+    (prisma as unknown as OrgPrismaClient).budgetRevenue.findMany({
       where: { eventProjectId },
     }),
     rawPrisma.eventRegistration.count({
@@ -428,18 +431,18 @@ export async function getBudgetReport(eventProjectId: string): Promise<BudgetRep
   ])
 
   // Build category summaries
-  const categorySummaries: CategorySummary[] = categories.map((cat: any) => {
-    const catItems = lineItems.filter((li: any) => li.categoryId === cat.id)
-    const totalBudgeted = catItems.reduce((sum: number, li: any) => sum + toNum(li.budgetedAmount), 0)
-    const totalActual = catItems.reduce((sum: number, li: any) => {
+  const categorySummaries: CategorySummary[] = categories.map((cat: Record<string, unknown>) => {
+    const catItems = lineItems.filter((li: Record<string, unknown>) => li.categoryId === cat.id)
+    const totalBudgeted = catItems.reduce((sum: number, li: Record<string, unknown>) => sum + toNum(li.budgetedAmount), 0)
+    const totalActual = catItems.reduce((sum: number, li: Record<string, unknown>) => {
       return li.actualAmount != null ? sum + toNum(li.actualAmount) : sum
     }, 0)
 
     return {
-      id: cat.id,
-      name: cat.name,
-      sortOrder: cat.sortOrder,
-      isPreset: cat.isPreset,
+      id: cat.id as string,
+      name: cat.name as string,
+      sortOrder: cat.sortOrder as number,
+      isPreset: cat.isPreset as boolean,
       lineItemCount: catItems.length,
       totalBudgeted,
       totalActual,
@@ -447,14 +450,14 @@ export async function getBudgetReport(eventProjectId: string): Promise<BudgetRep
   })
 
   const totalBudgeted = lineItems.reduce(
-    (sum: number, li: any) => sum + toNum(li.budgetedAmount),
+    (sum: number, li: Record<string, unknown>) => sum + toNum(li.budgetedAmount),
     0,
   )
-  const totalActual = lineItems.reduce((sum: number, li: any) => {
+  const totalActual = lineItems.reduce((sum: number, li: Record<string, unknown>) => {
     return li.actualAmount != null ? sum + toNum(li.actualAmount) : sum
   }, 0)
   const totalRevenue = revenues.reduce(
-    (sum: number, rv: any) => sum + toNum(rv.amount),
+    (sum: number, rv: Record<string, unknown>) => sum + toNum(rv.amount),
     0,
   )
   const netPosition = totalRevenue - totalActual

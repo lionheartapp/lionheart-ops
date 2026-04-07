@@ -12,6 +12,7 @@ import {
   createComplianceDomainConfig,
   populateComplianceCalendar,
 } from '@/lib/services/complianceService'
+import { logger } from '@/lib/logger'
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const schoolId = searchParams.get('schoolId')
@@ -33,7 +34,7 @@ export const POST = withAuth(async ({ req, orgId }) => {
   try {
     await populateComplianceCalendar(orgId, schoolYearStart, schoolYearEnd)
   } catch (popErr) {
-    console.error('[POST /api/maintenance/compliance/domains] Calendar population failed:', popErr)
+    logger.error({ error: String(popErr) }, 'Compliance calendar population failed')
     // Non-fatal — config was saved successfully
   }
 

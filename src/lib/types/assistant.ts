@@ -40,6 +40,8 @@ export interface ActionConfirmation {
   payload: Record<string, unknown>
   riskTier?: 'ORANGE' | 'RED'
   riskWarning?: string
+  /** Rich card data merged from a rich_confirmation SSE event */
+  richCard?: ConfirmationCardData
 }
 
 // ─── Workflow Types ───────────────────────────────────────────────────────────

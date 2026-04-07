@@ -11,6 +11,7 @@ import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { executeAction } from '@/lib/services/ai/action-handlers'
+import { logger } from '@/lib/logger'
 
 const ConfirmSchema = z.object({
   action: z.string(),
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[POST /api/ai/assistant/confirm]', error)
+    logger.error({ error: String(error) }, 'Confirm action failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

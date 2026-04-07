@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma, rawPrisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { PERMISSIONS } from '@/lib/permissions'
 
 const UpdateBuildingSchema = z.object({
@@ -42,8 +43,7 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, para
 
   const building = await prisma.building.update({
     where: { id: params.id },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- spread pattern creates union type incompatible with Prisma's strict UpdateInput
-    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as any,
+    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Prisma.BuildingUpdateInput,
     include: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
   })
 

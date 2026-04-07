@@ -3,6 +3,7 @@ import { fail, ok } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getTicketWithMessages, addSupportMessage } from '@/lib/services/platformSupportService'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return NextResponse.json(ok(ticket))
   } catch (error) {
-    console.error('[GET /api/support-tickets/platform/[id]]', error)
+    logger.error({ error: String(error) }, 'Failed to get support ticket')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json(ok(message), { status: 201 })
   } catch (error) {
-    console.error('[POST /api/support-tickets/platform/[id]]', error)
+    logger.error({ error: String(error) }, 'Failed to add support message')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

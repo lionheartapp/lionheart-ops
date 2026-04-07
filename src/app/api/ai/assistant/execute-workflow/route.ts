@@ -19,6 +19,7 @@ import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { executeTool } from '@/lib/services/ai/assistant-tools'
 import type { StreamEvent } from '@/lib/types/assistant'
+import { logger } from '@/lib/logger'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ export async function POST(req: NextRequest) {
             summary: `All ${body.steps.length} steps completed successfully.\n${completedMessages.join('\n')}`,
           })
         } catch (error) {
-          console.error('[execute-workflow] Error:', error)
+          logger.error({ error: String(error) }, 'Workflow execution error')
           write({
             type: 'error',
             message:
@@ -208,7 +209,7 @@ export async function POST(req: NextRequest) {
         status: 403,
       })
     }
-    console.error('[POST /api/ai/assistant/execute-workflow]', error)
+    logger.error({ error: String(error) }, 'Execute workflow failed')
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong'),
       { status: 500 }

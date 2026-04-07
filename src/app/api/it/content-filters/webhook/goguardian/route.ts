@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
-import { rawPrisma } from '@/lib/db'
+import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import {
   validateWebhookSignature,
   transformGoGuardianPayload,
   processFilterEvent,
 } from '@/lib/services/itContentFilterService'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get('x-goguardian-signature') || ''
 
     // Look up config for this provider and org
-    const config = await (rawPrisma.iTContentFilterConfig as any).findUnique({
+    const config = await (rawPrisma.iTContentFilterConfig as unknown as PrismaDelegate).findUnique({
       where: { organizationId_provider: { organizationId: orgId, provider: 'GOGUARDIAN' } },
     })
     if (!config || !config.isEnabled) {
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok({ received: true }))
   } catch (error) {
-    console.error('[POST /api/it/content-filters/webhook/goguardian]', error)
+    logger.error({ error: String(error) }, 'GoGuardian webhook processing failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook processing failed'), { status: 500 })
   }
 }

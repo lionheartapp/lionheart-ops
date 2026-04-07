@@ -93,7 +93,7 @@ export async function listTickets(
 ): Promise<Ticket[]> {
   const validated = ListTicketsSchema.parse(input)
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) {
     where.status = validated.status
   }
@@ -118,7 +118,7 @@ export async function listTickets(
     const s = validated.search.trim()
     if (s) {
       where.AND = [
-        ...(where.AND || []),
+        ...((where.AND as unknown[]) || []),
         {
           OR: [
             { title: { contains: s, mode: 'insensitive' } },
@@ -166,7 +166,7 @@ export async function countTickets(
 ): Promise<number> {
   const validated = ListTicketsSchema.parse(input)
 
-  const where: any = {}
+  const where: Record<string, unknown> = {}
   if (validated.status) where.status = validated.status
   if (validated.category) where.category = validated.category
   if (validated.priority) where.priority = validated.priority
@@ -177,7 +177,7 @@ export async function countTickets(
     const s = validated.search.trim()
     if (s) {
       where.AND = [
-        ...(where.AND || []),
+        ...((where.AND as unknown[]) || []),
         {
           OR: [
             { title: { contains: s, mode: 'insensitive' } },
@@ -252,7 +252,7 @@ export async function createTicket(
 
   const validated = CreateTicketSchema.parse(input)
 
-  const ticket = await prisma.ticket.create({
+  const ticket = await (prisma.ticket.create as Function)({
     data: {
       title: validated.title,
       description: validated.description,
@@ -266,7 +266,7 @@ export async function createTicket(
       status: 'OPEN',
       assignedToId: validated.assignedToId,
       createdById: userId,
-    } as any, // Temp workaround for org-scoped extension typing
+    },
   })
 
   return ticket
@@ -317,7 +317,7 @@ export async function updateTicket(
     throw new Error('Insufficient permissions to update ticket details')
   }
 
-  const updateData: any = {}
+  const updateData: Record<string, unknown> = {}
   if (validated.title !== undefined) updateData.title = validated.title
   if (validated.description !== undefined) updateData.description = validated.description
   if (validated.category !== undefined) updateData.category = validated.category
@@ -385,7 +385,7 @@ export async function bulkCreateTickets(
 
   const created = await Promise.all(
     validated.map((data) =>
-      prisma.ticket.create({
+      (prisma.ticket.create as Function)({
         data: {
           title: data.title,
           description: data.description,
@@ -397,7 +397,7 @@ export async function bulkCreateTickets(
           locationText: data.locationText,
           status: 'OPEN',
           assignedToId: data.assignedToId,
-        } as any,
+        },
       })
     )
   )

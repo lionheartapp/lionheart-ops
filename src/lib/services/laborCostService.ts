@@ -155,7 +155,7 @@ export async function updateLaborEntry(
 
   return rawPrisma.maintenanceLaborEntry.update({
     where: { id: entryId },
-    data: updateData as any,
+    data: updateData,
     include: {
       technician: {
         select: {
@@ -246,7 +246,7 @@ export async function updateCostEntry(
 
   return rawPrisma.maintenanceCostEntry.update({
     where: { id: entryId },
-    data: updateData as any,
+    data: updateData,
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true } },
     },
@@ -326,7 +326,7 @@ export async function getVendorList(orgId: string, q?: string): Promise<string[]
   }
 
   const results = await rawPrisma.maintenanceCostEntry.findMany({
-    where: where as any,
+    where,
     select: { vendor: true },
     distinct: ['vendor'],
     orderBy: { vendor: 'asc' },

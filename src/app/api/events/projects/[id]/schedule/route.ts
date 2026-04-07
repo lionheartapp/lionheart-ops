@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createScheduleBlock } from '@/lib/services/eventProjectService'
 import { CreateScheduleBlockSchema } from '@/lib/types/event-project'
 
@@ -12,7 +12,7 @@ import { CreateScheduleBlockSchema } from '@/lib/types/event-project'
  * Returns all schedule blocks for an EventProject, ordered by startsAt then sortOrder.
  */
 export const GET = withAuth(async ({ params }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const blocks = await db.eventScheduleBlock.findMany({
     where: { eventProjectId: params.id },
     orderBy: [{ startsAt: 'asc' }, { sortOrder: 'asc' }],

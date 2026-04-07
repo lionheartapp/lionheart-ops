@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { analyzeFeedback } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.object({
@@ -23,7 +23,7 @@ export const POST = withAuth(async ({ body }) => {
   const { eventProjectId } = body
 
   // Load surveys with their form sections and responses
-  const surveys = await (prisma as any).eventSurvey.findMany({
+  const surveys = await (prisma as unknown as OrgPrismaClient).eventSurvey.findMany({
     where: { eventProjectId },
     include: {
       form: {
@@ -121,7 +121,7 @@ export const POST = withAuth(async ({ body }) => {
     ok({
       ...analysis,
       responseCount: surveys.reduce(
-        (sum: number, s: any) => sum + s.responses.length,
+        (sum: number, s: { responses: unknown[] }) => sum + s.responses.length,
         0,
       ),
     }),

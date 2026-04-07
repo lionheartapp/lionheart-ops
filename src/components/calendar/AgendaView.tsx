@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Clock, MapPin, Users as UsersIcon, Trophy } from 'lucide-react'
-import { getEventColor, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import { AgendaViewSkeletons } from './EventSkeletons'
@@ -106,7 +106,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                     {/* Title + calendar chip */}
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-slate-900 truncate flex items-center gap-1">
-                        {!!(event.metadata as any)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
+                        {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
                         {event.title}
                       </h4>
                       <span

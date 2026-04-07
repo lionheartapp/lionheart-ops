@@ -20,7 +20,7 @@ import {
   getUnassignedParticipants,
   type EventGroupType,
 } from '@/lib/services/eventGroupService'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 
 const assignSchema = z.object({
   registrationId: z.string().min(1),
@@ -36,7 +36,7 @@ export const GET = withAuth(async ({ params }) => {
   const { id: eventProjectId, groupId } = params
 
   // Get the group to determine its type (needed for unassigned query)
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   const group = await db.eventGroup.findUnique({
     where: { id: groupId },
     select: { type: true, capacity: true },

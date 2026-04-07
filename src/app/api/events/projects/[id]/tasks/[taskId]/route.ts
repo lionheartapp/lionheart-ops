@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { updateEventTask } from '@/lib/services/eventProjectService'
 import { UpdateEventTaskSchema } from '@/lib/types/event-project'
 
@@ -25,7 +25,7 @@ export const PATCH = withAuth(async ({ params, ctx, body }) => {
  * Requires EVENT_PROJECT_UPDATE_ALL permission.
  */
 export const DELETE = withAuth(async ({ params }) => {
-  const db = prisma as any
+  const db = prisma as unknown as OrgPrismaClient
   // Hard delete — tasks are not soft-deleted
   await db.eventTask.delete({ where: { id: params.taskId } })
   return NextResponse.json(ok({ deleted: true }))

@@ -3,6 +3,7 @@ import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
-    console.error('[GET /api/platform/organizations/[id]/users]', error)
+    logger.error({ error: String(error) }, 'Failed to list org users')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

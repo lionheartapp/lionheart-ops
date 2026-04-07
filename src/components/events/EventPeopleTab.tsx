@@ -12,7 +12,7 @@ import {
 } from '@/lib/hooks/useEventTeam'
 import type { EventTeamMember } from '@/lib/hooks/useEventTeam'
 import { PRESET_TEAM_ROLES, EVENT_MEMBER_PERMISSION_KEYS, EVENT_MEMBER_PERMISSION_META } from '@/lib/types/event-project'
-import type { EventMemberPermissionKey } from '@/lib/types/event-project'
+import type { EventMemberPermissionKey, UpdateEventTeamMemberInput } from '@/lib/types/event-project'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { fetchApi } from '@/lib/api-client'
@@ -279,7 +279,7 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
           isOwner={!!createdById && editingMember.userId === createdById}
           onSave={(data) => {
             updateMutation.mutate(
-              { memberId: editingMember.id, ...data } as any,
+              { memberId: editingMember.id, ...data },
               { onSuccess: () => setEditingMember(null) },
             )
           }}
@@ -789,7 +789,7 @@ interface EditRoleDrawerProps {
   onClose: () => void
   member: EventTeamMember
   eventCustomRoles: string[]
-  onSave: (data: Record<string, unknown>) => void
+  onSave: (data: UpdateEventTeamMemberInput) => void
   isSubmitting: boolean
   isOwner?: boolean
 }

@@ -128,7 +128,7 @@ export default function LaborCostPanel({
       const res = await fetchApi<{ entries: CostEntry[]; summary: CostSummary | null }>(
         `/api/maintenance/tickets/${ticketId}/costs?summary=true`
       )
-      return (res as any).summary ?? EMPTY_SUMMARY
+      return res.summary ?? EMPTY_SUMMARY
     },
     staleTime: 30 * 1000,
   })

@@ -4,6 +4,7 @@ import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { createSupportTicket, listOrgSupportTickets } from '@/lib/services/platformSupportService'
 import { PlatformTicketStatus } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(ok(result))
   } catch (error) {
-    console.error('[GET /api/support-tickets/platform]', error)
+    logger.error({ error: String(error) }, 'Failed to list support tickets')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ok(ticket), { status: 201 })
   } catch (error) {
-    console.error('[POST /api/support-tickets/platform]', error)
+    logger.error({ error: String(error) }, 'Failed to create support ticket')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }
 }

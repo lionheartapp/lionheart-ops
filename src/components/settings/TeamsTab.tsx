@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { logger } from '@/lib/logger'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -140,7 +141,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setShowCreateModal(false)
       invalidateTeams()
     } catch (error) {
-      console.error('Failed to create team:', error)
+      logger.error({ error: String(error) }, 'Failed to create team')
       setActionError('Failed to create team')
     } finally {
       setCreateLoading(false)
@@ -172,7 +173,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setEditTeamDescription(payload?.data?.description || '')
       setEditTeamType(payload?.data?.teamType ?? team.teamType ?? null)
     } catch (error) {
-      console.error('Failed to load team details:', error)
+      logger.error({ error: String(error) }, 'Failed to load team details')
       setEditError('Failed to load team details')
     } finally {
       setEditLoading(false)
@@ -227,7 +228,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setEditTeamDescription('')
       invalidateTeams()
     } catch (error) {
-      console.error('Failed to update team:', error)
+      logger.error({ error: String(error) }, 'Failed to update team')
       setEditError('Failed to update team')
     } finally {
       setEditSaving(false)
@@ -255,7 +256,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       const payload = await response.json().catch(() => null)
       setTeamUsers(payload?.data || [])
     } catch (error) {
-      console.error('Failed to load team members:', error)
+      logger.error({ error: String(error) }, 'Failed to load team members')
       setTeamUsers([])
     } finally {
       setTeamUsersLoading(false)
@@ -326,7 +327,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       invalidateTeams()
       setTeamToDelete(null)
     } catch (error) {
-      console.error('Failed to delete team:', error)
+      logger.error({ error: String(error) }, 'Failed to delete team')
       setActionError('Failed to delete team')
       setTeamToDelete(null)
     } finally {

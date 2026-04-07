@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer'
 import { renderEmail, type EmailTemplate } from '@/lib/email/templates'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'emailService' })
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -109,13 +112,13 @@ async function sendViaResend(
 
     if (!res.ok) {
       const bodyText = await res.text()
-      console.error('Resend send failed:', res.status, bodyText)
+      log.error({ status: res.status, body: bodyText }, 'Resend send failed')
       return { sent: false, reason: 'RESEND_SEND_FAILED' }
     }
 
     return { sent: true }
   } catch (error) {
-    console.error('Resend send error:', error)
+    log.error({ err: String(error) }, 'Resend send error')
     return { sent: false, reason: 'RESEND_SEND_FAILED' }
   }
 }
@@ -141,7 +144,7 @@ async function sendViaSmtp(
     await transporter.sendMail({ from: from || cfg.from, to, subject, text, html })
     return { sent: true }
   } catch (error) {
-    console.error('Failed to send email via SMTP:', error)
+    log.error({ err: String(error) }, 'Failed to send email via SMTP')
     return { sent: false, reason: 'SMTP_SEND_FAILED' }
   }
 }
@@ -256,7 +259,7 @@ export async function sendEventUpdateEmails(input: EventUpdateEmailInput): Promi
 
   for (const email of input.attendeeEmails) {
     sendBrandedEmail('event_updated', email, vars).catch((err) => {
-      console.error(`Failed to send event update email to ${email}:`, err)
+      log.error({ err: String(err) }, 'Failed to send event update email')
     })
   }
 }
@@ -750,9 +753,9 @@ export async function sendBoardReportEmail(
       })
       if (res.ok) return { sent: true }
       const bodyText = await res.text()
-      console.error('Resend board report send failed:', res.status, bodyText)
+      log.error({ status: res.status, body: bodyText }, 'Resend board report send failed')
     } catch (err) {
-      console.error('Resend board report send error:', err)
+      log.error({ err: String(err) }, 'Resend board report send error')
     }
   }
 
@@ -782,7 +785,7 @@ export async function sendBoardReportEmail(
       })
       return { sent: true }
     } catch (err) {
-      console.error('SMTP board report send error:', err)
+      log.error({ err: String(err) }, 'SMTP board report send error')
       return { sent: false, reason: 'SMTP_SEND_FAILED' }
     }
   }

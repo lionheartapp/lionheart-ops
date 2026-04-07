@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createEvent as createCalendarEvent } from '@/lib/services/calendarService'
+import type { ApprovalChannel, MaintenanceTicketStatus, ITIssueType, ITPriority, ITTicketStatus, UserStatus } from '@prisma/client'
 import { clearPermissionCache } from '@/lib/auth/permissions'
 import { getTimezoneOffset, getOrgTimezone } from '@/lib/utils/timezone'
 
@@ -73,10 +74,10 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       const ticket = await createMaintenanceTicket({
         title: String(payload.title || ''),
         description: fullDescription,
-        category: String(payload.category || 'OTHER') as any,
-        priority: String(payload.priority || 'MEDIUM') as any,
+        category: String(payload.category || 'OTHER'),
+        priority: String(payload.priority || 'MEDIUM'),
       }, ctx.userId, ctx.organizationId)
-      return { message: `Maintenance ticket ${(ticket as any).ticketNumber || ''} created: "${(ticket as any).title}"` }
+      return { message: `Maintenance ticket ${(ticket as Record<string, unknown>).ticketNumber || ''} created: "${(ticket as Record<string, unknown>).title}"` }
     },
   },
 
@@ -87,7 +88,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       if (!ticket) throw new Error('Ticket not found')
       const updated = await prisma.maintenanceTicket.update({
         where: { id: ticket.id },
-        data: { status: String(payload.newStatus) as any, ...(payload.note ? { completionNote: String(payload.note) } : {}) },
+        data: { status: String(payload.newStatus) as MaintenanceTicketStatus, ...(payload.note ? { completionNote: String(payload.note) } : {}) },
         select: { ticketNumber: true, status: true },
       })
       return { message: `Ticket ${updated.ticketNumber} updated to ${updated.status}` }
@@ -118,7 +119,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       if (payload.priority) data.priority = String(payload.priority)
       const updated = await prisma.maintenanceTicket.update({
         where: { id: String(payload.ticketId) },
-        data: data as any,
+        data,
         select: { ticketNumber: true, title: true },
       })
       return { message: `Ticket ${updated.ticketNumber} updated.` }
@@ -130,7 +131,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     execute: async (payload) => {
       const updated = await prisma.maintenanceTicket.update({
         where: { id: String(payload.ticketId) },
-        data: { status: 'CANCELLED' as any },
+        data: { status: 'CANCELLED' },
         select: { ticketNumber: true },
       })
       return { message: `Ticket ${updated.ticketNumber} has been cancelled.` }
@@ -169,13 +170,13 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
           select: { id: true, name: true, calendarType: true },
         })
         // Exact match (case-insensitive)
-        let match = calendars.find((c: any) =>
+        let match = calendars.find((c: { id: string; name: string; calendarType: string }) =>
           c.name.toLowerCase() === calendarNamePayload.toLowerCase()
         )
         // Partial/fuzzy match
         if (!match) {
           const needle = calendarNamePayload.toLowerCase()
-          match = calendars.find((c: any) =>
+          match = calendars.find((c: { id: string; name: string; calendarType: string }) =>
             c.name.toLowerCase().includes(needle) || needle.includes(c.name.toLowerCase())
           )
         }
@@ -188,19 +189,19 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       if (!calendarId) {
         // Find the user's personal calendar, auto-create if missing
         let calendar = await prisma.calendar.findFirst({
-          where: { isActive: true, calendarType: 'PERSONAL' as any, createdById: ctx.userId },
+          where: { isActive: true, calendarType: 'PERSONAL', createdById: ctx.userId },
           select: { id: true },
         })
         if (!calendar) {
-          calendar = await prisma.calendar.create({
+          calendar = await (prisma.calendar.create as Function)({
             data: {
               name: 'My Schedule',
               slug: `my-schedule-${ctx.userId.slice(-8)}`,
-              calendarType: 'PERSONAL' as any,
-              visibility: 'CAMPUS' as any,
+              calendarType: 'PERSONAL',
+              visibility: 'CAMPUS',
               createdById: ctx.userId,
               color: '#6366f1',
-            } as any,
+            },
             select: { id: true },
           })
         }
@@ -211,7 +212,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
 
       // Build metadata with equipment list if provided
       let metadata: Record<string, unknown> | undefined
-      if (payload.equipmentList && Array.isArray(payload.equipmentList) && (payload.equipmentList as any[]).length > 0) {
+      if (payload.equipmentList && Array.isArray(payload.equipmentList) && (payload.equipmentList as unknown[]).length > 0) {
         metadata = { equipmentList: payload.equipmentList }
       }
 
@@ -310,7 +311,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       if (payload.endsAt) data.endsAt = ensureISODate(String(payload.endsAt))
       if (payload.room) data.location = String(payload.room)
       if (payload.description) data.description = String(payload.description)
-      await updateEvent(String(payload.eventId), data as any, 'this' as any, ctx.userId)
+      await updateEvent(String(payload.eventId), data as unknown as Parameters<typeof updateEvent>[1], 'this', ctx.userId)
       return { message: `Event updated.` }
     },
   },
@@ -337,7 +338,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.CALENDAR_EVENTS_APPROVE,
     execute: async (payload, ctx) => {
       const { approveEvent } = await import('@/lib/services/calendarService')
-      await approveEvent(String(payload.eventId), String(payload.channel || 'admin') as any, ctx.userId)
+      await approveEvent(String(payload.eventId), String(payload.channel || 'admin') as ApprovalChannel, ctx.userId)
       return { message: `Event approved.` }
     },
   },
@@ -346,7 +347,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.CALENDAR_EVENTS_APPROVE,
     execute: async (payload, ctx) => {
       const { rejectEvent } = await import('@/lib/services/calendarService')
-      await rejectEvent(String(payload.eventId), String(payload.channel || 'admin') as any, ctx.userId, String(payload.reason || ''))
+      await rejectEvent(String(payload.eventId), String(payload.channel || 'admin') as ApprovalChannel, ctx.userId, String(payload.reason || ''))
       return { message: `Event rejected.` }
     },
   },
@@ -359,11 +360,11 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       const ticket = await createITTicket({
         title: String(payload.title || ''),
         description: String(payload.description || '') || undefined,
-        issueType: String(payload.issueType || 'OTHER') as any,
-        priority: String(payload.priority || 'MEDIUM') as any,
+        issueType: String(payload.issueType || 'OTHER') as ITIssueType,
+        priority: String(payload.priority || 'MEDIUM') as ITPriority,
         photos: [],
       }, ctx.userId, ctx.organizationId)
-      return { message: `IT ticket ${(ticket as any).ticketNumber || ''} created: "${(ticket as any).title}"` }
+      return { message: `IT ticket ${(ticket as Record<string, unknown>).ticketNumber || ''} created: "${(ticket as Record<string, unknown>).title}"` }
     },
   },
 
@@ -371,7 +372,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.IT_TICKET_UPDATE_STATUS,
     execute: async (payload, ctx) => {
       const { transitionITTicketStatus } = await import('@/lib/services/itTicketService')
-      await transitionITTicketStatus(String(payload.ticketId), String(payload.newStatus) as any, { comment: String(payload.note || '') }, { userId: ctx.userId, orgId: ctx.organizationId })
+      await transitionITTicketStatus(String(payload.ticketId), String(payload.newStatus) as ITTicketStatus, { comment: String(payload.note || '') }, { userId: ctx.userId, orgId: ctx.organizationId })
       return { message: `IT ticket ${payload.ticketNumber || ''} updated to ${payload.newStatus}.` }
     },
   },
@@ -395,7 +396,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
           name: String(payload.name || ''),
           email: String(payload.email || ''),
           organizationId: ctx.organizationId,
-          status: 'INVITED' as any,
+          status: 'INVITED' as UserStatus,
           ...(role ? { roleId: role.id } : {}),
         },
         select: { name: true, email: true },
@@ -434,8 +435,8 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
         category: String(payload.category || ''),
         quantityOnHand: Number(payload.quantityOnHand) || 0,
         reorderThreshold: Number(payload.reorderThreshold) || 5,
-      } as any)
-      return { message: `Inventory item "${(item as any).name}" created.` }
+      })
+      return { message: `Inventory item "${(item as Record<string, unknown>).name}" created.` }
     },
   },
 
@@ -448,7 +449,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       if (payload.category) data.category = String(payload.category)
       if (payload.quantityOnHand !== undefined) data.quantityOnHand = Number(payload.quantityOnHand)
       if (payload.reorderThreshold !== undefined) data.reorderThreshold = Number(payload.reorderThreshold)
-      await updateItem(ctx.organizationId, String(payload.itemId), data as any)
+      await updateItem(ctx.organizationId, String(payload.itemId), data as Record<string, unknown>)
       return { message: `Inventory item "${payload.itemName || ''}" updated.` }
     },
   },
@@ -458,7 +459,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.SETTINGS_UPDATE,
     execute: async (payload, ctx) => {
       const building = await prisma.building.create({
-        data: { name: String(payload.name || ''), address: String(payload.address || '') || undefined, organizationId: ctx.organizationId } as any,
+        data: { name: String(payload.name || ''), address: String(payload.address || '') || undefined, organizationId: ctx.organizationId },
         select: { name: true },
       })
       return { message: `Building "${building.name}" created.` }
@@ -471,7 +472,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       const data: Record<string, unknown> = {}
       if (payload.name) data.name = String(payload.name)
       if (payload.address) data.address = String(payload.address)
-      await prisma.building.update({ where: { id: String(payload.buildingId) }, data: data as any })
+      await prisma.building.update({ where: { id: String(payload.buildingId) }, data })
       return { message: `Building updated.` }
     },
   },
@@ -485,7 +486,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
           displayName: String(payload.displayName || '') || undefined,
           buildingId: String(payload.buildingId),
           organizationId: ctx.organizationId,
-        } as any,
+        },
         select: { roomNumber: true, displayName: true },
       })
       return { message: `Room ${room.displayName || room.roomNumber} created in ${payload.buildingName || 'building'}.` }
@@ -498,7 +499,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       const data: Record<string, unknown> = {}
       if (payload.roomNumber) data.roomNumber = String(payload.roomNumber)
       if (payload.displayName) data.displayName = String(payload.displayName)
-      await prisma.room.update({ where: { id: String(payload.roomId) }, data: data as any })
+      await prisma.room.update({ where: { id: String(payload.roomId) }, data })
       return { message: `Room updated.` }
     },
   },

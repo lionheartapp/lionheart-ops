@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import type { CalendarEventStatus } from '@prisma/client'
 import { LocationConflictError } from '@/lib/services/calendarService'
 import { embedCalendarEvent } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
 
       const eventFilters = {
         categoryId: searchParams.get('categoryId') || undefined,
-        calendarStatus: searchParams.get('status')?.split(',') as any || undefined,
+        calendarStatus: searchParams.get('status')?.split(',') as CalendarEventStatus[] | undefined || undefined,
         createdById: searchParams.get('createdById') || undefined,
       }
       const startDate = new Date(start)

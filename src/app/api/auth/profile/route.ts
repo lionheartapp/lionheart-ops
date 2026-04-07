@@ -4,6 +4,7 @@ import { verifyAuthToken } from '@/lib/auth'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const ProfileUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100).optional(),
@@ -76,7 +77,7 @@ export async function PATCH(request: NextRequest) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', err.issues[0]?.message || 'Invalid input'), { status: 400 })
     }
-    console.error('[PROFILE UPDATE] Error:', err)
+    logger.error({ error: String(err) }, 'Profile update failed')
     return NextResponse.json(
       fail('INTERNAL_SERVER_ERROR', err instanceof Error ? err.message : 'Failed to update profile'),
       { status: 500 },

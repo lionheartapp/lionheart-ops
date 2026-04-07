@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 export default function CalendarError({
   error,
@@ -11,7 +12,7 @@ export default function CalendarError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Calendar error:', error)
+    logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Calendar error')
   }, [error])
 
   return (

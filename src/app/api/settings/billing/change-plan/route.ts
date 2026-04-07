@@ -5,6 +5,7 @@ import { fail, ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -112,7 +113,7 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
           : `You will receive a $${(Math.abs(upcomingInvoice.amount_due) / 100).toFixed(2)} credit applied to your next invoice.`,
       }))
     } catch (stripeError) {
-      console.error('[POST /api/settings/billing/change-plan] Stripe preview error:', stripeError)
+      logger.error({ error: String(stripeError) }, 'Stripe preview error')
       // Fall back to showing full price
       const amount = targetPlan.monthlyPrice
       return NextResponse.json(ok({
@@ -153,7 +154,7 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
             data: { stripeCustomerId: customer.id },
           })
         } catch (stripeError) {
-          console.error('[POST /api/settings/billing/change-plan] Failed to create Stripe customer:', stripeError)
+          logger.error({ error: String(stripeError) }, 'Failed to create Stripe customer')
           return NextResponse.json(
             fail('INTERNAL_ERROR', 'Failed to set up billing account. Please try again.'),
             { status: 500 }
@@ -209,7 +210,7 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
         return NextResponse.json(ok({ subscription: newSub }))
       }
     } catch (stripeError) {
-      console.error('[POST /api/settings/billing/change-plan] Failed to create Stripe subscription:', stripeError)
+      logger.error({ error: String(stripeError) }, 'Failed to create Stripe subscription')
       const message = stripeError instanceof Error ? stripeError.message : 'Failed to create subscription'
       return NextResponse.json(fail('PAYMENT_ERROR', message), { status: 402 })
     }
@@ -259,7 +260,7 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
 
     return NextResponse.json(ok({ subscription: updatedSub }))
   } catch (stripeError) {
-    console.error('[POST /api/settings/billing/change-plan] Failed to update Stripe subscription:', stripeError)
+    logger.error({ error: String(stripeError) }, 'Failed to update Stripe subscription')
     const message = stripeError instanceof Error ? stripeError.message : 'Failed to update subscription'
     return NextResponse.json(fail('PAYMENT_ERROR', message), { status: 402 })
   }

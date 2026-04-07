@@ -5,6 +5,10 @@
  * Reuses the same API key as Gemini/Places (GEMINI_API_KEY).
  */
 
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'geocodingService' })
+
 export interface GeocodingResult {
   lat: number
   lng: number
@@ -23,7 +27,7 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult |
   )?.trim()
 
   if (!apiKey) {
-    console.warn('[Geocoding] No API key found (GOOGLE_MAPS_API_KEY / GEMINI_API_KEY)')
+    log.warn('No API key found (GOOGLE_MAPS_API_KEY / GEMINI_API_KEY)')
     return null
   }
 
@@ -37,14 +41,14 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult |
     })
 
     if (!res.ok) {
-      console.warn(`[Geocoding] API returned ${res.status}`)
+      log.warn({ status: res.status }, 'API returned non-OK status')
       return null
     }
 
     const data = await res.json()
 
     if (data.status !== 'OK' || !data.results?.length) {
-      console.warn(`[Geocoding] No results for address: "${address}" (status: ${data.status})`)
+      log.warn({ status: data.status }, 'No results for address')
       return null
     }
 
@@ -57,7 +61,7 @@ export async function geocodeAddress(address: string): Promise<GeocodingResult |
       formattedAddress: result.formatted_address,
     }
   } catch (error) {
-    console.error('[Geocoding] Error:', error)
+    log.error({ err: String(error) }, 'Geocoding error')
     return null
   }
 }

@@ -37,7 +37,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         userId: user.id,
         title: String(input.title || ''),
         body: String(input.message || ''),
-        type: 'maintenance_submitted' as any, // Generic notification via maintenance type
+        type: 'maintenance_submitted', // Generic notification via maintenance type
       })
 
       return JSON.stringify({ executed: true, message: `Notification sent to ${user.name}.` })

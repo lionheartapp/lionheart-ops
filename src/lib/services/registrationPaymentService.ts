@@ -10,7 +10,10 @@
 
 import Stripe from 'stripe'
 import { rawPrisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
+
+const log = logger.child({ service: 'registrationPaymentService' })
 // ─── Stripe Client ─────────────────────────────────────────────────────────────
 
 function getStripeClient(): Stripe {
@@ -262,7 +265,7 @@ export async function handlePaymentSuccess(
   })
 
   if (!payment) {
-    console.warn(`[registrationPaymentService] Payment not found for PI: ${stripePaymentIntentId}`)
+    log.warn({ stripePaymentIntentId }, 'Payment not found for PaymentIntent')
     return
   }
 

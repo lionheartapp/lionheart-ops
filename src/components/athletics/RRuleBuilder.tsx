@@ -69,7 +69,7 @@ export default function RRuleBuilder({ value, onChange }: RRuleBuilderProps) {
       const [y, m, d] = until.split('-').map(Number)
       opts.until = new Date(Date.UTC(y, m - 1, d, 23, 59, 59))
     }
-    const rule = new RRule(opts as any)
+    const rule = new RRule(opts)
     onChange(rule.toString())
   }
 

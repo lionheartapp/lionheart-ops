@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 
-const db = prisma as any
+const db = prisma as unknown as OrgPrismaClient
 
 const APPROVAL_CHANNELS = ['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY', 'ATHLETIC_DIRECTOR'] as const
 
