@@ -45,20 +45,20 @@ export default function SchoolLookup() {
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
             value={slug}
             onChange={(e) => { setSlug(e.target.value); setError('') }}
             placeholder="your-school"
             autoFocus
-            className="w-full pl-10 pr-4 py-3.5 text-sm bg-zinc-800/80 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus-visible:ring-1 focus-visible:ring-zinc-500/30 transition-colors"
+            className="w-full pl-10 pr-4 py-3.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus-visible:ring-1 focus-visible:ring-slate-500/30 transition-colors"
           />
         </div>
 
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           Your school URL looks like{' '}
-          <span className="text-zinc-400 font-mono">
+          <span className="text-slate-400 font-mono">
             {slug.trim().toLowerCase().replace(/\s+/g, '-') || 'your-school'}.lionheartapp.com
           </span>
         </p>
@@ -73,11 +73,11 @@ export default function SchoolLookup() {
         <button
           type="submit"
           disabled={!slug.trim() || checking}
-          className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white bg-zinc-700 rounded-xl hover:bg-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {checking ? (
             <>
-              <div className="w-4 h-4 border-2 border-zinc-400 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
               Looking up...
             </>
           ) : (
@@ -89,8 +89,8 @@ export default function SchoolLookup() {
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-zinc-800">
-        <p className="text-xs text-zinc-600">
+      <div className="mt-6 pt-6 border-t border-slate-800">
+        <p className="text-xs text-slate-600">
           Don&apos;t know your school URL? Contact your school administrator.
         </p>
       </div>

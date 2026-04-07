@@ -247,7 +247,7 @@ export default function PasswordResetPage() {
   const strength = getPasswordStrength(newPassword)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 to-zinc-900 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center px-4 py-12">
       {/* Background ambient blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]" />
@@ -261,7 +261,7 @@ export default function PasswordResetPage() {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Password Reset</h1>
-          <p className="text-zinc-400 mt-1 text-sm">
+          <p className="text-slate-400 mt-1 text-sm">
             Reset your student account password
           </p>
         </div>
@@ -573,7 +573,7 @@ export default function PasswordResetPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-zinc-500 mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           Need help? Contact your school&apos;s IT department for assistance.
         </p>
       </div>

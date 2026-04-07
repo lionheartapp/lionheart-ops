@@ -109,7 +109,7 @@ export default function BuildingsTable({
                     {group.buildings.map((b) => {
                       const roomCount = rooms.filter((r) => r.buildingId === b.id).length
                       return (
-                        <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                        <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                           <td className="py-3 pl-9 pr-4">
                             <div className="font-medium text-slate-900">{b.name}</div>
                             {b.code && <div className="text-xs text-slate-400 mt-0.5">{b.code}</div>}

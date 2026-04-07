@@ -484,7 +484,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
               </thead>
               <tbody>
                 {roles.map((role) => (
-                  <tr key={role.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                  <tr key={role.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-900">{role.name}</span>

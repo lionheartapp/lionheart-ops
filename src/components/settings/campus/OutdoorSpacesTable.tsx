@@ -63,7 +63,7 @@ export default function OutdoorSpacesTable({
               </thead>
               <tbody>
                 {outdoorSpaces.map((a) => (
-                  <tr key={a.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                  <tr key={a.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                     <td className="py-3 px-4 font-medium text-slate-900">{a.name}</td>
                     <td className="py-3 px-4 text-slate-600">{OUTDOOR_TYPE_LABELS[a.areaType] || a.areaType}</td>
                     <td className="py-3 px-4">{renderStatusBadge(a.isActive)}</td>

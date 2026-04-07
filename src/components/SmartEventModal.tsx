@@ -30,9 +30,9 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm cursor-pointer" onClick={onClose} role="presentation">
-      <div className="w-full max-w-lg rounded-lg bg-zinc-900 p-6 shadow-heavy cursor-auto" role="dialog" aria-modal="true" aria-labelledby="smart-event-title" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-lg bg-slate-900 p-6 shadow-heavy cursor-auto" role="dialog" aria-modal="true" aria-labelledby="smart-event-title" onClick={(e) => e.stopPropagation()}>
         <h2 id="smart-event-title" className="text-xl font-bold text-white">Smart Event Assistant</h2>
-        <p className="mt-2 text-sm text-zinc-400">Describe your event in plain text or voice</p>
+        <p className="mt-2 text-sm text-slate-400">Describe your event in plain text or voice</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <textarea
@@ -40,7 +40,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Schedule gym Friday 3pm for basketball practice"
             aria-label="Describe your event"
-            className="h-32 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white placeholder-zinc-500 focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="h-32 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             disabled={stage !== 'input'}
           />
 
@@ -48,7 +48,7 @@ export default function SmartEventModal({ onClose }: SmartEventModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
+              className="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
               disabled={stage === 'processing'}
             >
               Cancel

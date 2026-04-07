@@ -270,7 +270,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {roster.map((player) => (
-                      <tr key={player.id} className="hover:bg-slate-50/30">
+                      <tr key={player.id} className="hover:bg-slate-50/30 transition-colors duration-150">
                         <td className="px-3 py-2 sticky left-0 bg-white">
                           <div className="flex items-center gap-2">
                             {player.jerseyNumber && (

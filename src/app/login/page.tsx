@@ -17,11 +17,11 @@ export default async function LoginPage() {
   // No subdomain — show school lookup screen
   if (!subdomain) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
         <div className="w-full max-w-sm text-center">
           <img src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white mb-2">Lionheart Platform</h1>
-          <p className="text-zinc-400 mb-8">
+          <p className="text-slate-400 mb-8">
             Enter your school&apos;s URL to sign in.
           </p>
           <SchoolLookup />
@@ -34,10 +34,10 @@ export default async function LoginPage() {
 
   if (!branding) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">Organization Not Found</h1>
-          <p className="mt-2 text-zinc-400">
+          <p className="mt-2 text-slate-400">
             No school is configured at &quot;{subdomain}.lionheartapp.com&quot;.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default async function LoginPage() {
     <div className="flex min-h-screen">
       {/* Hero Image Section */}
       <div
-        className={`hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950 relative overflow-hidden ${
+        className={`hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950 relative overflow-hidden ${
           isImageRight ? 'order-2' : 'order-1'
         }`}
       >
@@ -62,7 +62,7 @@ export default async function LoginPage() {
               alt={`${branding.name} campus`}
               className="absolute inset-0 w-full h-full object-cover opacity-80"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent" />
             {branding.logoUrl && (
               <div className="absolute bottom-12 left-12">
                 <img
@@ -83,7 +83,7 @@ export default async function LoginPage() {
               />
             )}
             <h1 className="text-5xl font-bold text-white mb-4">{branding.name}</h1>
-            <p className="text-xl text-zinc-400">Operations Platform</p>
+            <p className="text-xl text-slate-400">Operations Platform</p>
           </div>
         )}
       </div>
@@ -104,13 +104,13 @@ export default async function LoginPage() {
                 className="h-16 w-auto mx-auto mb-4"
               />
             )}
-            <h1 className="text-2xl font-bold text-zinc-900">{branding.name}</h1>
+            <h1 className="text-2xl font-bold text-slate-900">{branding.name}</h1>
           </div>
 
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold text-zinc-900">Welcome back</h2>
-              <p className="mt-2 text-sm text-zinc-600">
+              <h2 className="text-3xl font-bold text-slate-900">Welcome back</h2>
+              <p className="mt-2 text-sm text-slate-600">
                 Sign in to access your {branding.name} operations dashboard
               </p>
             </div>

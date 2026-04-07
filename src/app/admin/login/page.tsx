@@ -46,12 +46,12 @@ export default function PlatformLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-primary-500 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">L</div>
-          <h1 className="text-2xl font-bold text-zinc-100">Lionheart Admin</h1>
-          <p className="text-zinc-500 mt-1">{isSetup ? 'Create your admin account' : 'Platform administration'}</p>
+          <h1 className="text-2xl font-bold text-slate-100">Lionheart Admin</h1>
+          <p className="text-slate-500 mt-1">{isSetup ? 'Create your admin account' : 'Platform administration'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,7 +63,7 @@ export default function PlatformLoginPage() {
 
           {isSetup && (
             <div>
-              <label className="block text-sm text-zinc-400 mb-1.5">Name</label>
+              <label className="block text-sm text-slate-400 mb-1.5">Name</label>
               <input
                 type="text"
                 value={name}
@@ -75,9 +75,9 @@ export default function PlatformLoginPage() {
           )}
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-1.5">Email</label>
+            <label className="block text-sm text-slate-400 mb-1.5">Email</label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="email"
                 value={email}
@@ -90,9 +90,9 @@ export default function PlatformLoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-1.5">Password</label>
+            <label className="block text-sm text-slate-400 mb-1.5">Password</label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="password"
                 value={password}
@@ -116,7 +116,7 @@ export default function PlatformLoginPage() {
 
         <button
           onClick={() => { setIsSetup(!isSetup); setError('') }}
-          className="w-full text-center mt-4 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="w-full text-center mt-4 text-sm text-slate-500 hover:text-slate-300 transition-colors"
         >
           {isSetup ? 'Already have an account? Sign in' : 'First time? Set up admin account'}
         </button>

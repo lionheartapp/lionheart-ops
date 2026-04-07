@@ -13,34 +13,34 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <h2 className="font-semibold mb-4 flex items-center gap-2"><Shield size={18} /> Admin Profile</h2>
         <div className="space-y-3 text-sm">
-          <div className="flex justify-between py-2 border-b border-zinc-800">
-            <span className="text-zinc-400">Name</span>
+          <div className="flex justify-between py-2 border-b border-slate-800">
+            <span className="text-slate-400">Name</span>
             <span>{admin?.name || '—'}</span>
           </div>
-          <div className="flex justify-between py-2 border-b border-zinc-800">
-            <span className="text-zinc-400">Email</span>
+          <div className="flex justify-between py-2 border-b border-slate-800">
+            <span className="text-slate-400">Email</span>
             <span>{admin?.email}</span>
           </div>
-          <div className="flex justify-between py-2 border-b border-zinc-800">
-            <span className="text-zinc-400">Role</span>
+          <div className="flex justify-between py-2 border-b border-slate-800">
+            <span className="text-slate-400">Role</span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500/10 text-primary-400">{admin?.role}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <h2 className="font-semibold mb-4">Environment</h2>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between py-2 border-b border-zinc-800">
-            <span className="text-zinc-400">Stripe</span>
-            <span className="text-zinc-500">Not configured</span>
+          <div className="flex justify-between py-2 border-b border-slate-800">
+            <span className="text-slate-400">Stripe</span>
+            <span className="text-slate-500">Not configured</span>
           </div>
           <div className="flex justify-between py-2">
-            <span className="text-zinc-400">Version</span>
-            <span className="text-zinc-500">1.0.0</span>
+            <span className="text-slate-400">Version</span>
+            <span className="text-slate-500">1.0.0</span>
           </div>
         </div>
       </div>

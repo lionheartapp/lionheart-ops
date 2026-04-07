@@ -49,10 +49,10 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen bg-slate-950 text-slate-100">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-mobilenav w-64 bg-zinc-900 border-r border-zinc-800 transform transition-transform lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center gap-2 h-16 px-6 border-b border-zinc-800">
+      <aside className={`fixed inset-y-0 left-0 z-mobilenav w-64 bg-slate-900 border-r border-slate-800 transform transition-transform lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center gap-2 h-16 px-6 border-b border-slate-800">
           <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
           <span className="font-semibold text-lg">Admin</span>
         </div>
@@ -63,7 +63,7 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
                 <div key={item.label}>
                   <button
                     onClick={() => setBillingOpen(!billingOpen)}
-                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                   >
                     <item.icon size={18} />
                     <span className="flex-1 text-left">{item.label}</span>
@@ -75,7 +75,7 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
                         <button
                           key={child.href}
                           onClick={() => { router.push(child.href); setSidebarOpen(false) }}
-                          className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${isActive(child.href) ? 'bg-primary-500/10 text-primary-400' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'}`}
+                          className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${isActive(child.href) ? 'bg-primary-500/10 text-primary-400' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'}`}
                         >
                           {child.label}
                         </button>
@@ -89,7 +89,7 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
               <button
                 key={item.href}
                 onClick={() => { router.push(item.href!); setSidebarOpen(false) }}
-                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${isActive(item.href!) ? 'bg-primary-500/10 text-primary-400' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'}`}
+                className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${isActive(item.href!) ? 'bg-primary-500/10 text-primary-400' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'}`}
               >
                 <item.icon size={18} />
                 <span>{item.label}</span>
@@ -97,17 +97,17 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
             )
           })}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800">
           <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-medium">
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-medium">
               {admin?.name?.[0] || admin?.email?.[0] || 'A'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{admin?.name || admin?.email}</p>
-              <p className="text-xs text-zinc-500 truncate">{admin?.role}</p>
+              <p className="text-xs text-slate-500 truncate">{admin?.role}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
             <LogOut size={16} /> Sign out
           </button>
         </div>
@@ -118,8 +118,8 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 flex items-center gap-4 px-6 border-b border-zinc-800 bg-zinc-900/50">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+        <header className="h-16 flex items-center gap-4 px-6 border-b border-slate-800 bg-slate-900/50">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
             <Menu size={20} />
           </button>
           <h1 className="text-lg font-semibold capitalize">{pathname.split('/').filter(Boolean).pop() || 'Dashboard'}</h1>

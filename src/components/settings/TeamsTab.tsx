@@ -437,7 +437,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
               </thead>
               <tbody>
                 {teams.map((team) => (
-                  <tr key={team.id} className="border-b last:border-b-0 hover:bg-slate-50">
+                  <tr key={team.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                     <td className="py-3 px-4">
                       <div className="font-medium text-slate-900">{team.name}</div>
                       <div className="text-xs text-slate-400 mt-0.5">@{team.slug}</div>

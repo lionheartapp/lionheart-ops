@@ -49,19 +49,19 @@ export default function TicketDetailPage() {
     if (result.ok) fetchTicket()
   }
 
-  if (loading) return <div className="text-zinc-500 text-center py-12">Loading...</div>
-  if (!ticket) return <div className="text-zinc-500 text-center py-12">Ticket not found</div>
+  if (loading) return <div className="text-slate-500 text-center py-12">Loading...</div>
+  if (!ticket) return <div className="text-slate-500 text-center py-12">Ticket not found</div>
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <button onClick={() => router.push('/admin/support')} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-100">
+      <button onClick={() => router.push('/admin/support')} className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-100">
         <ArrowLeft size={16} /> Back to tickets
       </button>
 
       <div className="flex flex-wrap gap-4 items-start justify-between">
         <div>
           <h2 className="text-xl font-bold">{ticket.subject}</h2>
-          <p className="text-sm text-zinc-400">{ticket.organization?.name || 'Internal'} &middot; {ticket.category}</p>
+          <p className="text-sm text-slate-400">{ticket.organization?.name || 'Internal'} &middot; {ticket.category}</p>
         </div>
         <div className="flex gap-2">
           <select aria-label="Ticket status" value={ticket.status} onChange={(e) => updateTicket({ status: e.target.value })} className="ui-select w-auto text-sm">
@@ -80,17 +80,17 @@ export default function TicketDetailPage() {
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <p className="text-zinc-300 whitespace-pre-wrap">{ticket.description}</p>
-        <p className="text-xs text-zinc-500 mt-3">{new Date(ticket.createdAt).toLocaleString()}</p>
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <p className="text-slate-300 whitespace-pre-wrap">{ticket.description}</p>
+        <p className="text-xs text-slate-500 mt-3">{new Date(ticket.createdAt).toLocaleString()}</p>
       </div>
 
       <div className="space-y-3">
         {ticket.messages?.map((m: any) => (
-          <div key={m.id} className={`p-4 rounded-xl ${m.senderType === 'PLATFORM_ADMIN' ? 'bg-primary-500/10 border border-primary-500/20 ml-8' : 'bg-zinc-900 border border-zinc-800 mr-8'}`}>
+          <div key={m.id} className={`p-4 rounded-xl ${m.senderType === 'PLATFORM_ADMIN' ? 'bg-primary-500/10 border border-primary-500/20 ml-8' : 'bg-slate-900 border border-slate-800 mr-8'}`}>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium text-zinc-400">{m.senderType === 'PLATFORM_ADMIN' ? 'Admin' : 'School'}</span>
-              <span className="text-xs text-zinc-500">{new Date(m.createdAt).toLocaleString()}</span>
+              <span className="text-xs font-medium text-slate-400">{m.senderType === 'PLATFORM_ADMIN' ? 'Admin' : 'School'}</span>
+              <span className="text-xs text-slate-500">{new Date(m.createdAt).toLocaleString()}</span>
             </div>
             <p className="text-sm whitespace-pre-wrap">{m.message}</p>
           </div>

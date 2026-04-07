@@ -14,9 +14,9 @@ type Stats = {
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-zinc-400">{label}</span>
+        <span className="text-sm text-slate-400">{label}</span>
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
           <Icon size={18} />
         </div>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
   }, [])
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="text-zinc-500">Loading dashboard...</div></div>
+    return <div className="flex items-center justify-center h-64"><div className="text-slate-500">Loading dashboard...</div></div>
   }
 
   return (
@@ -79,25 +79,25 @@ export default function DashboardPage() {
         <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={Users} color="bg-cyan-500/10 text-cyan-400" />
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-        <div className="px-5 py-4 border-b border-zinc-800">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl">
+        <div className="px-5 py-4 border-b border-slate-800">
           <h2 className="font-semibold">Recent Schools</h2>
         </div>
-        <div className="divide-y divide-zinc-800">
+        <div className="divide-y divide-slate-800">
           {recentOrgs.length === 0 ? (
-            <p className="px-5 py-8 text-center text-zinc-500">No schools yet</p>
+            <p className="px-5 py-8 text-center text-slate-500">No schools yet</p>
           ) : (
             recentOrgs.map((org: any) => (
               <div key={org.id} className="px-5 py-3 flex items-center justify-between">
                 <div>
                   <p className="font-medium">{org.name}</p>
-                  <p className="text-sm text-zinc-500">{org.slug} &middot; {org._count?.users || 0} users</p>
+                  <p className="text-sm text-slate-500">{org.slug} &middot; {org._count?.users || 0} users</p>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                   org.onboardingStatus === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
                   org.onboardingStatus === 'SIGNED_UP' ? 'bg-primary-500/10 text-primary-400' :
                   org.onboardingStatus === 'SUSPENDED' ? 'bg-red-500/10 text-red-400' :
-                  'bg-zinc-700 text-zinc-300'
+                  'bg-slate-700 text-slate-300'
                 }`}>
                   {org.onboardingStatus}
                 </span>

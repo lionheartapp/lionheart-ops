@@ -101,7 +101,7 @@ export default function MemberListTable({
         </thead>
         <tbody>
           {users.map((u) => (
-            <tr key={u.id} className="border-b last:border-b-0 hover:bg-slate-50">
+            <tr key={u.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
                   {u.avatar ? (

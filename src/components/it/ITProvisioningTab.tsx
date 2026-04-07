@@ -242,7 +242,7 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
                   {typedEvents.map((event) => {
                     const statusCfg = STATUS_LABELS[event.status] || STATUS_LABELS.PENDING
                     return (
-                      <tr key={event.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <tr key={event.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
                         <td className="py-2 px-3 text-slate-900">{EVENT_TYPE_LABELS[event.eventType] || event.eventType}</td>
                         <td className="py-2 px-3">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${statusCfg.bg} ${statusCfg.color}`}>

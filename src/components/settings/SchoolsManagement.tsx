@@ -633,7 +633,7 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
             </thead>
             <tbody>
               {schools.map((school) => (
-                <tr key={school.id} className="border-b border-slate-200 hover:bg-slate-50">
+                <tr key={school.id} className="border-b border-slate-200 hover:bg-slate-50 transition-colors duration-150">
                   <td className="px-4 py-3 text-slate-900">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: school.color }} />

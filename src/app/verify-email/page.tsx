@@ -14,7 +14,7 @@ type ResendFormState = 'idle' | 'submitting' | 'sent' | 'error'
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<Layout><div className="text-center"><div className="mx-auto mb-6 h-16 w-16 rounded-full bg-zinc-100 animate-pulse" /><div className="h-6 w-48 mx-auto bg-zinc-100 rounded animate-pulse mb-2" /><div className="h-4 w-64 mx-auto bg-zinc-100 rounded animate-pulse" /></div></Layout>}>
+    <Suspense fallback={<Layout><div className="text-center"><div className="mx-auto mb-6 h-16 w-16 rounded-full bg-slate-100 animate-pulse" /><div className="h-6 w-48 mx-auto bg-slate-100 rounded animate-pulse mb-2" /><div className="h-4 w-64 mx-auto bg-slate-100 rounded animate-pulse" /></div></Layout>}>
       <VerifyEmailContent />
     </Suspense>
   )
@@ -67,10 +67,10 @@ function VerifyEmailContent() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Email sent!</h1>
-          <p className="text-zinc-500 text-sm mb-6">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Email sent!</h1>
+          <p className="text-slate-500 text-sm mb-6">
             If your account exists and is unverified, a new verification link has been sent to{' '}
-            <span className="font-medium text-zinc-700">{resendEmail}</span>. Please check your inbox.
+            <span className="font-medium text-slate-700">{resendEmail}</span>. Please check your inbox.
           </p>
           <button
             type="button"
@@ -92,15 +92,15 @@ function VerifyEmailContent() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
             <Clock className="h-8 w-8 text-yellow-600" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Link expired</h1>
-          <p className="text-zinc-500 text-sm mb-6">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Link expired</h1>
+          <p className="text-slate-500 text-sm mb-6">
             This verification link has expired. Verification links are valid for 24 hours.
             Request a new one below.
           </p>
           <button
             type="button"
             onClick={() => setShowResendForm(true)}
-            className="w-full px-5 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 active:scale-[0.97] transition-colors duration-200 mb-3"
+            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3"
           >
             Resend verification email
           </button>
@@ -108,7 +108,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 font-medium mt-2"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
@@ -125,15 +125,15 @@ function VerifyEmailContent() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Invalid link</h1>
-          <p className="text-zinc-500 text-sm mb-6">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Invalid link</h1>
+          <p className="text-slate-500 text-sm mb-6">
             This verification link is invalid or has already been used. If you need a new link,
             please use the resend option below.
           </p>
           <button
             type="button"
             onClick={() => setShowResendForm(true)}
-            className="w-full px-5 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 active:scale-[0.97] transition-colors duration-200 mb-3"
+            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3"
           >
             Resend verification email
           </button>
@@ -141,7 +141,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 font-medium mt-2"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
@@ -158,12 +158,12 @@ function VerifyEmailContent() {
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
           <Mail className="h-8 w-8 text-blue-600" />
         </div>
-        <h1 className="text-2xl font-bold text-zinc-900 mb-2">Check your email</h1>
-        <p className="text-zinc-500 text-sm mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
+        <p className="text-slate-500 text-sm mb-6">
           We&apos;ve sent a verification link to your email address. Please click the link to verify
           your account and get started.
         </p>
-        <p className="text-zinc-400 text-xs mb-6">
+        <p className="text-slate-400 text-xs mb-6">
           Didn&apos;t receive it? Check your spam folder, or resend the verification email.
         </p>
         {!showResendForm ? (
@@ -229,7 +229,7 @@ function ResendForm({
   return (
     <form onSubmit={handleSubmit} className="mt-4 text-left space-y-3">
       <div>
-        <label htmlFor="verify-email" className="block text-xs font-medium text-zinc-700 mb-1">
+        <label htmlFor="verify-email" className="block text-xs font-medium text-slate-700 mb-1">
           Email address
         </label>
         <input
@@ -239,11 +239,11 @@ function ResendForm({
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="you@school.edu"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
       <div>
-        <label htmlFor="verify-org" className="block text-xs font-medium text-zinc-700 mb-1">
+        <label htmlFor="verify-org" className="block text-xs font-medium text-slate-700 mb-1">
           Organization ID
         </label>
         <input
@@ -253,7 +253,7 @@ function ResendForm({
           onChange={(e) => setOrgId(e.target.value)}
           required
           placeholder="Organization ID from your signup"
-          className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
       {errorMsg && (
@@ -262,7 +262,7 @@ function ResendForm({
       <button
         type="submit"
         disabled={state === 'submitting'}
-        className="w-full px-5 py-2.5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
+        className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
       >
         {state === 'submitting' ? 'Sending...' : 'Send verification email'}
       </button>
@@ -274,7 +274,7 @@ function ResendForm({
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto" />

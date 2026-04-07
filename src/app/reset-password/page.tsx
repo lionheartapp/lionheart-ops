@@ -188,13 +188,13 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 to-zinc-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
       <div className="w-full max-w-md">
         {/* Lionheart logo */}
         <div className="text-center mb-8">
           <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white">Reset your password</h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-slate-400">
             Enter a new password for your account
           </p>
         </div>

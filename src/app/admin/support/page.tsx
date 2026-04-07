@@ -38,7 +38,7 @@ export default function SupportPage() {
       case 'CRITICAL': return 'bg-red-500/10 text-red-400'
       case 'HIGH': return 'bg-orange-500/10 text-orange-400'
       case 'NORMAL': return 'bg-primary-500/10 text-primary-400'
-      default: return 'bg-zinc-700 text-zinc-300'
+      default: return 'bg-slate-700 text-slate-300'
     }
   }
   const statusColor = (s: string) => {
@@ -46,7 +46,7 @@ export default function SupportPage() {
       case 'OPEN': return 'bg-primary-500/10 text-primary-400'
       case 'IN_PROGRESS': return 'bg-yellow-500/10 text-yellow-400'
       case 'RESOLVED': return 'bg-green-500/10 text-green-400'
-      case 'CLOSED': return 'bg-zinc-700 text-zinc-300'
+      case 'CLOSED': return 'bg-slate-700 text-slate-300'
       default: return 'bg-purple-500/10 text-purple-400'
     }
   }
@@ -64,10 +64,10 @@ export default function SupportPage() {
         </select>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-zinc-400 text-left">
+            <tr className="border-b border-slate-800 text-slate-400 text-left">
               <th className="px-5 py-3 font-medium">Subject</th>
               <th className="px-5 py-3 font-medium hidden sm:table-cell">School</th>
               <th className="px-5 py-3 font-medium">Status</th>
@@ -77,24 +77,24 @@ export default function SupportPage() {
               <th className="px-5 py-3 font-medium hidden lg:table-cell">Created</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-slate-800">
             {loading ? (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-zinc-500">Loading...</td></tr>
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-500">Loading...</td></tr>
             ) : tickets.length === 0 ? (
-              <tr><td colSpan={7} className="px-5 py-8 text-center text-zinc-500">
-                <LifeBuoy size={24} className="mx-auto mb-2 text-zinc-600" />
+              <tr><td colSpan={7} className="px-5 py-8 text-center text-slate-500">
+                <LifeBuoy size={24} className="mx-auto mb-2 text-slate-600" />
                 No tickets found
               </td></tr>
             ) : (
               tickets.map((t) => (
-                <tr key={t.id} onClick={() => router.push(`/admin/support/${t.id}`)} className="hover:bg-zinc-800/50 cursor-pointer transition-colors">
+                <tr key={t.id} onClick={() => router.push(`/admin/support/${t.id}`)} className="hover:bg-slate-800/50 cursor-pointer transition-colors">
                   <td className="px-5 py-3 font-medium">{t.subject}</td>
-                  <td className="px-5 py-3 hidden sm:table-cell text-zinc-400">{t.organization?.name || '—'}</td>
+                  <td className="px-5 py-3 hidden sm:table-cell text-slate-400">{t.organization?.name || '—'}</td>
                   <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>{t.status}</span></td>
                   <td className="px-5 py-3 hidden md:table-cell"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor(t.priority)}`}>{t.priority}</span></td>
-                  <td className="px-5 py-3 hidden md:table-cell text-zinc-400">{t.category}</td>
-                  <td className="px-5 py-3 hidden lg:table-cell text-zinc-400">{t._count?.messages || 0}</td>
-                  <td className="px-5 py-3 hidden lg:table-cell text-zinc-400">{new Date(t.createdAt).toLocaleDateString()}</td>
+                  <td className="px-5 py-3 hidden md:table-cell text-slate-400">{t.category}</td>
+                  <td className="px-5 py-3 hidden lg:table-cell text-slate-400">{t._count?.messages || 0}</td>
+                  <td className="px-5 py-3 hidden lg:table-cell text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))
             )}
@@ -103,11 +103,11 @@ export default function SupportPage() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-zinc-400">
+        <div className="flex items-center justify-between text-sm text-slate-400">
           <span>{total} ticket{total !== 1 ? 's' : ''}</span>
           <div className="flex gap-2">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg hover:bg-zinc-800 disabled:opacity-30"><ChevronLeft size={16} /></button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg hover:bg-zinc-800 disabled:opacity-30"><ChevronRight size={16} /></button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg hover:bg-slate-800 disabled:opacity-30"><ChevronLeft size={16} /></button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg hover:bg-slate-800 disabled:opacity-30"><ChevronRight size={16} /></button>
           </div>
         </div>
       )}

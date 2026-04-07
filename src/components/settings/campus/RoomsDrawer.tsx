@@ -173,7 +173,7 @@ export default function RoomsDrawer({
                     </tr>
                   ) : (
                     <React.Fragment key={r.id}>
-                      <tr className="border-b last:border-b-0 hover:bg-slate-50">
+                      <tr className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                         <td className="py-3 px-4 font-medium text-slate-900">{r.roomNumber}</td>
                         <td className="py-3 px-4 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
                         <td className="py-3 px-4 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
