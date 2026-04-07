@@ -649,7 +649,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                                 }
                               }}
                               disabled={removeAttendee.isPending}
-                              className="opacity-0 group-hover:opacity-100 p-1 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-full hover:bg-red-50 transition-all flex-shrink-0"
+                              className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 p-1 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-full hover:bg-red-50 transition-all flex-shrink-0"
                               aria-label={`Remove ${a.user.firstName || 'attendee'}`}
                             >
                               <X className="w-3.5 h-3.5 text-slate-400 hover:text-red-500" />

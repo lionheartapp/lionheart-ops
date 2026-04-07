@@ -248,7 +248,7 @@ export default function ConversationSidebar({
                                   </div>
                                 ) : (
                                   <button
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-slate-300 hover:text-slate-500 hover:bg-slate-100 flex-shrink-0 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
+                                    className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity p-1 rounded text-slate-300 hover:text-slate-500 hover:bg-slate-100 flex-shrink-0 cursor-pointer min-h-[28px] min-w-[28px] flex items-center justify-center"
                                     onClick={(e) => handleDelete(conv.id, e)}
                                     aria-label="Delete conversation"
                                   >

@@ -580,7 +580,7 @@ export default function MembersPage() {
                         </div>
                         <button
                           onClick={() => removeMember(idx)}
-                          className="p-1.5 rounded-full text-slate-300 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                          className="p-1.5 rounded-full text-slate-300 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
                           aria-label="Remove member"
                         >
                           <X className="w-4 h-4" />

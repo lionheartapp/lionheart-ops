@@ -262,7 +262,7 @@ export default function StepPhotos({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removePhoto(i) }}
-                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 cursor-pointer"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-black/80 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

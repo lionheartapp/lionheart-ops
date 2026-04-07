@@ -973,7 +973,7 @@ function BlockFilesTab({ eventProjectId, blockId }: BlockFilesTabProps) {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                 <a
                   href={att.fileUrl}
                   target="_blank"

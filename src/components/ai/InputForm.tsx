@@ -412,7 +412,7 @@ export default function InputForm({
               <button
                 type="button"
                 onClick={() => removeImage(idx)}
-                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
                 aria-label={`Remove ${img.name}`}
               >
                 <X className="w-2.5 h-2.5" />

@@ -439,7 +439,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                       <td className="py-1.5">
                         <button
                           onClick={() => removeScheduleBlock(i)}
-                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                           aria-label="Remove block"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -611,7 +611,7 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                       <td className="py-1.5">
                         <button
                           onClick={() => removeBudgetItem(i)}
-                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                           aria-label="Remove budget item"
                         >
                           <X className="w-3.5 h-3.5" />

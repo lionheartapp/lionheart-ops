@@ -310,7 +310,7 @@ export default function MessageList({
             {showFeedback && (
               <div
                 className={`flex items-center gap-1.5 mt-1 px-1 ${
-                  isLastMsg ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  isLastMsg ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
                 } transition-opacity duration-150`}
               >
                 <button

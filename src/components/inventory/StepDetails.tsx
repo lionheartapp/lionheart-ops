@@ -269,7 +269,7 @@ export default function StepDetails({
               <button
                 type="button"
                 onClick={() => onImageChange(null)}
-                className="absolute top-2 right-2 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute top-2 right-2 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity cursor-pointer"
                 aria-label="Remove image"
               >
                 <X className="w-4 h-4" />

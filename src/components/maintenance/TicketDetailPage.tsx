@@ -638,7 +638,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <ExternalLink className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+                          <ExternalLink className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity drop-shadow" />
                         </div>
                       </button>
                     ))}

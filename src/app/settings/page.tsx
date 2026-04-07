@@ -619,7 +619,7 @@ export default function SettingsPage() {
                           className="absolute inset-0 w-20 h-20 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
                           aria-label="Change profile photo"
                         >
-                          <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200" />
                         </button>
                       </div>
                       <div>

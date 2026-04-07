@@ -292,7 +292,7 @@ export default function CalendarPanel({
                                 aria-label={`Calendar options for ${cal.name}`}
                                 aria-haspopup="menu"
                                 aria-expanded={isMenuOpen}
-                                className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rounded hover:bg-slate-200/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                                className="ml-auto opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-opacity p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2 rounded hover:bg-slate-200/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   setColorEditId(null)

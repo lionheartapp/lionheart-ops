@@ -153,7 +153,7 @@ export default function ImageUpload({
               <button
                 onClick={() => handleDelete(url)}
                 disabled={!!deletingUrl}
-                className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity disabled:opacity-50"
                 title="Remove photo"
               >
                 {deletingUrl === url ? (

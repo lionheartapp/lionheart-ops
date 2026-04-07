@@ -191,7 +191,7 @@ export default function ImageDropZone({
                   e.stopPropagation()
                   handleRemove()
                 }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-black/80"
                 title="Remove image"
               >
                 <X className="w-4 h-4" />

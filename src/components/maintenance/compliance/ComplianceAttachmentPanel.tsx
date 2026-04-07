@@ -158,7 +158,7 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
               </a>
               <button
                 onClick={() => handleDelete(url)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 p-0.5 rounded text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                 title="Remove attachment"
               >
                 <X className="w-3.5 h-3.5" />

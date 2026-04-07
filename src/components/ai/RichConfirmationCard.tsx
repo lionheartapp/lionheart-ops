@@ -103,7 +103,7 @@ export default function RichConfirmationCard({
                 <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
                   {editedTitle || card.title}
                 </span>
-                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
                   edit
                 </span>
               </button>
@@ -192,7 +192,7 @@ export default function RichConfirmationCard({
                 <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
                   {editedTitle || card.title}
                 </span>
-                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="ml-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
                   edit
                 </span>
               </button>

@@ -119,7 +119,7 @@ export default function TicketWatchers({
                 <button
                   onClick={() => removeMutation.mutate(w.userId)}
                   disabled={removeMutation.isPending}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hidden group-hover:flex"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity cursor-pointer hidden group-hover:flex"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
