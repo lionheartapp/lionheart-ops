@@ -506,6 +506,7 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
     byStatusRaw, byIssueTypeRaw, byPriorityRaw, bySourceRaw, onHoldByReasonRaw,
     recentActivityRaw,
     doneTickets,
+    recentTicketsRaw,
   ] = await Promise.all([
     prisma.iTTicket.count({ where }),
     prisma.iTTicket.count({ where: { ...where, status: { in: ['BACKLOG', 'TODO'] } } }),
@@ -541,6 +542,24 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
       where: { ...where, status: 'DONE' },
       select: { createdAt: true, updatedAt: true },
       take: 500, // Cap for performance
+    }),
+    // Recent active tickets for dashboard "Recent Activity" panel
+    prisma.iTTicket.findMany({
+      where: activeWhere,
+      orderBy: { updatedAt: 'desc' },
+      take: 8,
+      select: {
+        id: true,
+        ticketNumber: true,
+        title: true,
+        status: true,
+        priority: true,
+        issueType: true,
+        updatedAt: true,
+        buildingId: true,
+        roomId: true,
+        assignedToId: true,
+      },
     }),
   ])
 
@@ -586,6 +605,47 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
       : null,
   }))
 
+  // Batch-resolve building, room, and assignee names for recent tickets
+  const rtBuildingIds = [...new Set(recentTicketsRaw.map((t) => t.buildingId).filter(Boolean))] as string[]
+  const rtRoomIds = [...new Set(recentTicketsRaw.map((t) => t.roomId).filter(Boolean))] as string[]
+  const rtAssigneeIds = [...new Set(recentTicketsRaw.map((t) => t.assignedToId).filter(Boolean))] as string[]
+
+  const [rtBuildings, rtRooms, rtAssignees] = await Promise.all([
+    rtBuildingIds.length > 0
+      ? prisma.building.findMany({ where: { id: { in: rtBuildingIds } }, select: { id: true, name: true } })
+      : [],
+    rtRoomIds.length > 0
+      ? prisma.room.findMany({ where: { id: { in: rtRoomIds } }, select: { id: true, roomNumber: true, displayName: true } })
+      : [],
+    rtAssigneeIds.length > 0
+      ? prisma.user.findMany({ where: { id: { in: rtAssigneeIds } }, select: { id: true, name: true } })
+      : [],
+  ])
+
+  const rtBuildingMap = new Map(rtBuildings.map((b) => [b.id, b.name]))
+  const rtRoomMap = new Map(rtRooms.map((r) => [r.id, r.displayName || r.roomNumber]))
+  const rtAssigneeMap = new Map(rtAssignees.map((u) => [u.id, u.name]))
+
+  const recentTickets = recentTicketsRaw.map((t) => {
+    const parts = [
+      t.buildingId ? rtBuildingMap.get(t.buildingId) : null,
+      t.roomId ? rtRoomMap.get(t.roomId) : null,
+    ].filter(Boolean)
+    return {
+      id: t.id,
+      ticketNumber: t.ticketNumber,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      issueType: t.issueType,
+      updatedAt: t.updatedAt,
+      location: parts.length > 0 ? parts.join(' — ') : null,
+      assignedTo: t.assignedToId
+        ? { id: t.assignedToId, name: rtAssigneeMap.get(t.assignedToId) ?? 'Unknown' }
+        : null,
+    }
+  })
+
   return {
     total, open, inProgress, onHold, urgent, recentDone,
     unassignedCount,
@@ -596,6 +656,7 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
     bySource,
     onHoldByReason,
     recentActivity,
+    recentTickets,
   }
 }
 
