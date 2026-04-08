@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { IllustrationSecurity } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -110,7 +111,7 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   if (statusFilter) filters.status = statusFilter
 
   const opts = queryOptions.securityIncidents(filters)
-  const { data, isLoading } = useQuery<{ incidents: Incident[]; total: number }>({
+  const { data, isLoading, isError, refetch } = useQuery<{ incidents: Incident[]; total: number }>({
     queryKey: opts.queryKey,
     queryFn: opts.queryFn as () => Promise<{ incidents: Incident[]; total: number }>,
     staleTime: opts.staleTime,
@@ -120,9 +121,10 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
 
   // ─── Detail Query ────────────────────────────────────────────────────────
   const detailOpts = detailId ? queryOptions.securityIncidentDetail(detailId) : null
+  const detailQueryFn = (detailOpts?.queryFn ?? (() => Promise.resolve(null))) as () => Promise<Incident>
   const { data: detailData } = useQuery<Incident>({
-    queryKey: detailOpts?.queryKey ?? ['noop'],
-    queryFn: detailOpts?.queryFn as () => Promise<Incident>,
+    queryKey: detailOpts?.queryKey ?? ['security-incident-detail-noop'],
+    queryFn: detailQueryFn,
     staleTime: detailOpts?.staleTime,
     enabled: !!detailId,
   })
@@ -192,6 +194,8 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   }
 
   // ─── Render ──────────────────────────────────────────────────────────────
+
+  if (isError) return <ITErrorState onRetry={refetch} />
 
   return (
     <div className="space-y-6">

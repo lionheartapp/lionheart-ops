@@ -4,12 +4,21 @@ import { prisma } from '@/lib/db'
 // ============= Validation Schemas =============
 
 export const CheckoutSchema = z.object({
-  deviceId: z.string(),
-  borrowerStudentId: z.string().optional(),
-  borrowerUserId: z.string().optional(),
-  dueDate: z.string(), // ISO date
-  notes: z.string().optional(),
-})
+  deviceId: z.string().uuid(),
+  borrowerStudentId: z.string().uuid().optional(),
+  borrowerUserId: z.string().uuid().optional(),
+  dueDate: z.string().refine(
+    (val) => {
+      const d = new Date(val)
+      return !isNaN(d.getTime()) && d > new Date()
+    },
+    { message: 'Due date must be a valid future date' },
+  ),
+  notes: z.string().max(2000).optional(),
+}).refine(
+  (data) => data.borrowerStudentId || data.borrowerUserId,
+  { message: 'Either borrowerStudentId or borrowerUserId is required' },
+)
 
 export type CheckoutInput = z.infer<typeof CheckoutSchema>
 

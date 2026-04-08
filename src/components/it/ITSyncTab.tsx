@@ -7,6 +7,7 @@ import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import ITMdmConfigSection from './ITMdmConfigSection'
 import { IllustrationSync } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 import {
   RefreshCw,
   Cloud,
@@ -210,8 +211,8 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
   }, [providerFilter, statusFilter, page])
 
   // ── Queries ─────────────────────────────────────────────────────────
-  const { data: configsRaw, isLoading: configsLoading } = useQuery(queryOptions.itSyncConfigs())
-  const { data: jobsRaw, isLoading: jobsLoading } = useQuery(queryOptions.itSyncJobs(jobFilters))
+  const { data: configsRaw, isLoading: configsLoading, isError: configsError, refetch: refetchConfigs } = useQuery(queryOptions.itSyncConfigs())
+  const { data: jobsRaw, isLoading: jobsLoading, isError: jobsError } = useQuery(queryOptions.itSyncJobs(jobFilters))
 
   const configs = (configsRaw as ITSyncConfig[] | undefined) ?? []
   const jobsResult = jobsRaw as { jobs?: ITSyncJob[]; total?: number } | ITSyncJob[] | undefined
@@ -266,6 +267,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
   })
 
   // ── Loading ─────────────────────────────────────────────────────────
+  if (configsError || jobsError) return <ITErrorState onRetry={refetchConfigs} />
   if (configsLoading && jobsLoading) return <SyncTabSkeleton />
 
   // ── Render ──────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { getAuthHeaders } from '@/lib/api-client'
 import { Rocket, Plus, Truck, Package, Calendar, GraduationCap } from 'lucide-react'
 import { IllustrationDeployment } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ export default function ITDeploymentTab({ canManage, onViewBatch, onCreateBatch 
     return f
   }, [typeFilter, statusFilter, schoolFilter, search])
 
-  const { data, isLoading } = useQuery(queryOptions.itDeploymentBatches(filters))
+  const { data, isLoading, isError, refetch } = useQuery(queryOptions.itDeploymentBatches(filters))
 
   // Fetch schools for filter
   const { data: schools = [] } = useQuery<School[]>({
@@ -174,6 +175,7 @@ export default function ITDeploymentTab({ canManage, onViewBatch, onCreateBatch 
     staleTime: 5 * 60_000,
   })
 
+  if (isError) return <ITErrorState onRetry={refetch} />
   if (isLoading) return <DeploymentTabSkeleton />
 
   const batches = (Array.isArray(data) ? data : []) as DeploymentBatch[]

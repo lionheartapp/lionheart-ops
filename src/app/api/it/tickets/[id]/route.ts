@@ -4,11 +4,25 @@
  */
 
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getITTicketDetail } from '@/lib/services/itTicketService'
 import { prisma } from '@/lib/db'
+
+const UpdateTicketSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  description: z.string().max(5000).optional(),
+  issueType: z.enum(['HARDWARE', 'SOFTWARE', 'ACCOUNT_PASSWORD', 'NETWORK', 'DISPLAY_AV', 'OTHER']).optional(),
+  passwordSubType: z.enum(['RESET', 'LOCKED', 'NEW_ACCOUNT', 'PERMISSION_CHANGE']).nullish(),
+  avSubType: z.enum(['PROJECTOR', 'SOUNDBOARD', 'DISPLAY', 'APPLE_TV', 'OTHER_AV']).nullish(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  buildingId: z.string().uuid().nullish(),
+  areaId: z.string().uuid().nullish(),
+  roomId: z.string().uuid().nullish(),
+  schoolId: z.string().uuid().nullish(),
+})
 
 export const GET = withAuth(async ({ params }) => {
   const ticket = await getITTicketDetail(params.id)
@@ -20,17 +34,10 @@ export const GET = withAuth(async ({ params }) => {
   return NextResponse.json(ok(ticket))
 }, { permission: PERMISSIONS.IT_TICKET_READ_OWN })
 
-export const PATCH = withAuth(async ({ req, params }) => {
-  const body = await req.json()
-  const allowedFields = ['title', 'description', 'issueType', 'passwordSubType', 'avSubType', 'priority', 'buildingId', 'areaId', 'roomId', 'schoolId']
-  const updateData: Record<string, unknown> = {}
-  for (const field of allowedFields) {
-    if (body[field] !== undefined) updateData[field] = body[field]
-  }
-
+export const PATCH = withAuth(async ({ body, params }) => {
   const ticket = await prisma.iTTicket.update({
     where: { id: params.id },
-    data: updateData,
+    data: body,
     include: {
       submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
       assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -40,4 +47,4 @@ export const PATCH = withAuth(async ({ req, params }) => {
   })
 
   return NextResponse.json(ok(ticket))
-}, { permission: PERMISSIONS.IT_TICKET_UPDATE_STATUS })
+}, { permission: PERMISSIONS.IT_TICKET_UPDATE_STATUS, schema: UpdateTicketSchema })

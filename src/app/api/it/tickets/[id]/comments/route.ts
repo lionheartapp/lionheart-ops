@@ -4,12 +4,18 @@
  */
 
 import { NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
+import { z } from 'zod'
+import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { addITTicketComment } from '@/lib/services/itTicketService'
 import { notifyITTicketComment } from '@/lib/services/itNotificationService'
 import { prisma } from '@/lib/db'
+
+const CommentSchema = z.object({
+  content: z.string().min(1, 'Comment cannot be empty').max(5000),
+  isInternal: z.boolean().default(false),
+})
 
 export const GET = withAuth(async ({ ctx, params, permissions }) => {
   const canSeeInternal = await permissions.can(PERMISSIONS.IT_TICKET_COMMENT_INTERNAL)
@@ -29,17 +35,9 @@ export const GET = withAuth(async ({ ctx, params, permissions }) => {
   return NextResponse.json(ok(activities))
 }, { permission: PERMISSIONS.IT_TICKET_READ_OWN })
 
-export const POST = withAuth(async ({ req, ctx, orgId, params }) => {
-  const body = await req.json()
-  const { content, isInternal } = body
-
-  if (!content || typeof content !== 'string' || content.trim().length === 0) {
-    return NextResponse.json(fail('VALIDATION_ERROR', 'content is required'), { status: 400 })
-  }
-
+export const POST = withAuth(async ({ body, ctx, orgId, params }) => {
   // Check permission based on comment type — done manually since it's conditional
-  if (isInternal) {
-    // withAuth's classifyError will handle the permission error → 403
+  if (body.isInternal) {
     const { assertCan } = await import('@/lib/auth/permissions')
     await assertCan(ctx.userId, PERMISSIONS.IT_TICKET_COMMENT_INTERNAL)
   } else {
@@ -47,10 +45,10 @@ export const POST = withAuth(async ({ req, ctx, orgId, params }) => {
     await assertCan(ctx.userId, PERMISSIONS.IT_TICKET_COMMENT_SUBMITTER)
   }
 
-  const activity = await addITTicketComment(params.id, content.trim(), !!isInternal, { userId: ctx.userId })
+  const activity = await addITTicketComment(params.id, body.content.trim(), body.isInternal, { userId: ctx.userId })
 
   // Fire-and-forget comment notification (public comments only)
-  if (!isInternal) {
+  if (!body.isInternal) {
     const ticket = await prisma.iTTicket.findUnique({
       where: { id: params.id },
       include: {
@@ -59,9 +57,9 @@ export const POST = withAuth(async ({ req, ctx, orgId, params }) => {
       },
     })
     if (ticket) {
-      notifyITTicketComment(ticket, ctx.userId, content.trim(), orgId)
+      notifyITTicketComment(ticket, ctx.userId, body.content.trim(), orgId)
     }
   }
 
   return NextResponse.json(ok(activity), { status: 201 })
-})
+}, { schema: CommentSchema })

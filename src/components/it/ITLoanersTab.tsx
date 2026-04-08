@@ -14,6 +14,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { IllustrationDevices } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -147,7 +148,7 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
 
   // ─── Queries ────────────────────────────────────────────────────────
 
-  const { data, isLoading } = useQuery(queryOptions.itLoaners())
+  const { data, isLoading, isError, refetch } = useQuery(queryOptions.itLoaners())
 
   // Student search for checkout form
   const { data: studentResults = [], isFetching: searchingStudents } = useQuery<SearchStudent[]>({
@@ -246,6 +247,7 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
 
   // ─── Render ─────────────────────────────────────────────────────────
 
+  if (isError) return <ITErrorState onRetry={refetch} />
   if (isLoading) return <LoanersTabSkeleton />
 
   const loaner = data as LoanerData | undefined

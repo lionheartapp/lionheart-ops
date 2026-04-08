@@ -200,9 +200,10 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-command flex items-start justify-center pt-[15vh] px-4">
+      <div className="fixed inset-0 z-command flex items-start justify-center pt-[15vh] px-4" onClick={onClose}>
         <motion.div
           className="w-full max-w-lg ui-glass-overlay rounded-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -10 }}

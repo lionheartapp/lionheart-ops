@@ -11,6 +11,7 @@ import {
   User, MapPin, Calendar, ArrowRight, UserPlus,
   CheckCircle2, XCircle, PauseCircle, PlayCircle, Loader2,
 } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 
 interface ITTicketDetailProps {
   ticketId: string | null
@@ -71,7 +72,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [transitionNote, setTransitionNote] = useState('')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     ...queryOptions.itTicketDetail(ticketId ?? ''),
     enabled: !!ticketId,
   })
@@ -154,7 +155,9 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
 
   return (
     <DetailDrawer isOpen={isOpen} onClose={onClose} title={ticket?.ticketNumber ?? 'Ticket'} width="lg">
-      {isLoading || !ticket ? (
+      {isError ? (
+        <ITErrorState compact onRetry={refetch} message="Unable to load ticket details" />
+      ) : isLoading || !ticket ? (
         <div className="space-y-4 animate-pulse p-4">
           <div className="h-6 w-48 bg-slate-200 rounded" />
           <div className="h-4 w-32 bg-slate-100 rounded" />

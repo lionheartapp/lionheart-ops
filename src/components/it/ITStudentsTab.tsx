@@ -8,6 +8,7 @@ import { StudentStatusBadge } from './ITDeviceStatusBadge'
 import { Plus, Laptop } from 'lucide-react'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import { IllustrationTeam } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 interface ITStudentsTabProps {
   onViewStudent: (studentId: string) => void
@@ -77,7 +78,7 @@ export default function ITStudentsTab({ onViewStudent, onCreateStudent, canManag
     return f
   }, [search, schoolFilter, gradeFilter, statusFilter, page])
 
-  const { data, isLoading } = useQuery(queryOptions.itStudents(filters))
+  const { data, isLoading, isError, refetch } = useQuery(queryOptions.itStudents(filters))
 
   // Fetch schools for filter
   const { data: schools = [] } = useQuery<School[]>({
@@ -92,6 +93,7 @@ export default function ITStudentsTab({ onViewStudent, onCreateStudent, canManag
     staleTime: 5 * 60_000,
   })
 
+  if (isError) return <ITErrorState onRetry={refetch} />
   if (isLoading) return <StudentsTabSkeleton />
 
   const result = data as { students?: Student[]; total?: number } | undefined

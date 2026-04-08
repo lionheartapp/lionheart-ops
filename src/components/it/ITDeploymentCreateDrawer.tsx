@@ -134,7 +134,7 @@ export default function ITDeploymentCreateDrawer({ isOpen, onClose }: Props) {
       >
         {/* Batch Name */}
         <FloatingInput
-          label="Batch Name"
+          label="Batch Name *"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required

@@ -17,6 +17,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { IllustrationSecurity } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -134,6 +135,8 @@ export default function ITIntelligenceTab({
   const {
     data: lemons = [],
     isLoading: lemonsLoading,
+    isError: lemonsError,
+    refetch: refetchLemons,
   } = useQuery({
     ...queryOptions.itLemons(),
     select: (data: unknown) => {
@@ -260,6 +263,8 @@ export default function ITIntelligenceTab({
   }, [lemons])
 
   // ── Render ────────────────────────────────────────────────────────
+
+  if (lemonsError) return <ITErrorState onRetry={refetchLemons} />
 
   if (lemonsLoading) {
     return (

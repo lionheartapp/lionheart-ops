@@ -26,6 +26,7 @@ import {
   Globe,
   FileText,
 } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -305,7 +306,8 @@ export default function ITContentFiltersTab({
     URL.revokeObjectURL(url)
   }, [events])
 
-  // ── Loading state ──────────────────────────────────────────────────
+  // ── Error / Loading state ──────────────────────────────────────────
+  if (configsQuery.isError || eventsQuery.isError) return <ITErrorState onRetry={() => { configsQuery.refetch(); eventsQuery.refetch() }} />
   if (configsQuery.isLoading && eventsQuery.isLoading) {
     return <ContentFiltersSkeleton />
   }

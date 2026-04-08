@@ -11,6 +11,7 @@ import {
   Laptop, Calendar, MapPin, User, Wrench, Search,
   UserPlus, UserMinus, Trash2, Loader2,
 } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 
 interface ITDeviceDetailDrawerProps {
   deviceId: string | null
@@ -83,7 +84,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
   const [assignSearch, setAssignSearch] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     ...queryOptions.itDeviceDetail(deviceId ?? ''),
     enabled: !!deviceId,
   })
@@ -187,7 +188,9 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
 
   return (
     <DetailDrawer isOpen={isOpen} onClose={onClose} title={device?.assetTag ?? 'Device'} width="lg">
-      {isLoading || !device ? (
+      {isError ? (
+        <ITErrorState compact onRetry={refetch} message="Unable to load device details" />
+      ) : isLoading || !device ? (
         <div className="space-y-4 animate-pulse p-4">
           <div className="h-6 w-48 bg-slate-200 rounded" />
           <div className="h-4 w-32 bg-slate-100 rounded" />

@@ -8,6 +8,7 @@ import { DeviceStatusBadge, DeviceTypeBadge } from './ITDeviceStatusBadge'
 import { Plus, Laptop, Monitor, Tablet, Printer, HardDrive, Cpu } from 'lucide-react'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import { IllustrationDevices } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 interface ITDevicesTabProps {
   onViewDevice: (deviceId: string) => void
@@ -89,7 +90,7 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
     return f
   }, [search, typeFilter, statusFilter, schoolFilter, page])
 
-  const { data, isLoading } = useQuery(queryOptions.itDevices(filters))
+  const { data, isLoading, isError, refetch } = useQuery(queryOptions.itDevices(filters))
 
   // Fetch schools for filter
   const { data: schools = [] } = useQuery<School[]>({
@@ -104,6 +105,7 @@ export default function ITDevicesTab({ onViewDevice, onCreateDevice, canManage }
     staleTime: 5 * 60_000,
   })
 
+  if (isError) return <ITErrorState onRetry={refetch} />
   if (isLoading) return <DevicesTabSkeleton />
 
   const result = data as { devices?: Device[]; total?: number } | undefined

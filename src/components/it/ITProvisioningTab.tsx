@@ -10,6 +10,7 @@ import {
   XCircle, Clock, Loader2, ChevronDown, Search,
 } from 'lucide-react'
 import { IllustrationDeployment } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 interface ITProvisioningTabProps {
   canManage: boolean
@@ -73,7 +74,7 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
   const [statusFilter, setStatusFilter] = useState('')
 
   // Config
-  const { data: config, isLoading: configLoading } = useQuery({
+  const { data: config, isLoading: configLoading, isError: configError, refetch: refetchConfig } = useQuery({
     ...queryOptions.itProvisioningConfig(),
     enabled: canManage,
   })
@@ -83,13 +84,13 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
   if (eventTypeFilter) filters.eventType = eventTypeFilter
   if (statusFilter) filters.status = statusFilter
 
-  const { data: eventsData, isLoading: eventsLoading } = useQuery({
+  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useQuery({
     ...queryOptions.itProvisioningEvents(filters),
     enabled: canView,
   })
 
   // Orphaned accounts
-  const { data: orphanedAccounts = [], isLoading: orphanedLoading } = useQuery({
+  const { data: orphanedAccounts = [], isLoading: orphanedLoading, isError: orphanedError } = useQuery({
     ...queryOptions.itOrphanedAccounts(),
     enabled: canView,
   })
@@ -141,6 +142,8 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
     { key: 'graduationArchiveEnabled' as const, label: 'Graduation Archive', desc: 'Batch archive accounts at graduation' },
     { key: 'staffOnboardingEnabled' as const, label: 'Staff Onboarding', desc: 'Auto-create IT setup ticket for new staff' },
   ]
+
+  if (configError || eventsError || orphanedError) return <ITErrorState onRetry={refetchConfig} />
 
   return (
     <div className="space-y-6">

@@ -22,6 +22,7 @@ import ITKanbanCard, { type KanbanTicket } from './ITKanbanCard'
 import { BoardSkeleton } from './ITSkeleton'
 import HoldReasonDialog from './HoldReasonDialog'
 import { AlertTriangle } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 import ITSearchFilterBar from './ITSearchFilterBar'
 
 interface ITKanbanBoardProps {
@@ -59,7 +60,7 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
   const [filterPriority, setFilterPriority] = useState('')
   const [filterUnassigned, setFilterUnassigned] = useState(false)
 
-  const { data: boardData, isLoading } = useQuery(queryOptions.itBoard())
+  const { data: boardData, isLoading, isError, refetch } = useQuery(queryOptions.itBoard())
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -184,6 +185,7 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
     setFilterPriority('URGENT')
   }, [])
 
+  if (isError) return <ITErrorState onRetry={refetch} />
   if (isLoading) return <BoardSkeleton />
 
   const hasActiveFilters = filterIssueType || filterPriority || filterUnassigned

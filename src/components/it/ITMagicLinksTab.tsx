@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { Link2, Copy, Check, Loader2, Clock, School } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 
 interface School {
   id: string
@@ -22,7 +23,7 @@ export default function ITMagicLinksTab() {
   const [generatedLink, setGeneratedLink] = useState<GeneratedLink | null>(null)
   const [copied, setCopied] = useState(false)
 
-  const { data: schools = [] } = useQuery<School[]>({
+  const { data: schools = [], isError: schoolsError, refetch: refetchSchools } = useQuery<School[]>({
     queryKey: ['schools-for-magic-links'],
     queryFn: async () => {
       const res = await fetch('/api/settings/schools', { headers: getAuthHeaders() })
@@ -77,6 +78,8 @@ export default function ITMagicLinksTab() {
       setTimeout(() => setCopied(false), 2000)
     }
   }
+
+  if (schoolsError) return <ITErrorState onRetry={refetchSchools} />
 
   return (
     <div className="max-w-xl mx-auto space-y-6">

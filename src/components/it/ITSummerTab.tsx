@@ -25,6 +25,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { IllustrationDeployment } from '@/components/illustrations'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -163,10 +164,10 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
   const [statusDropdownId, setStatusDropdownId] = useState<string | null>(null)
 
   // ── Queries ──────────────────────────────────────────────────────────
-  const { data: summerModeRaw, isLoading: modeLoading } = useQuery(queryOptions.itSummerMode())
+  const { data: summerModeRaw, isLoading: modeLoading, isError: modeError, refetch: refetchMode } = useQuery(queryOptions.itSummerMode())
   const summerMode = summerModeRaw as { active: boolean; startDate: string | null; endDate: string | null } | undefined
 
-  const { data: batchesRaw, isLoading: batchesLoading } = useQuery(
+  const { data: batchesRaw, isLoading: batchesLoading, isError: batchesError } = useQuery(
     queryOptions.itSummerBatches({ type: 'REIMAGING' })
   )
   const batches = (Array.isArray(batchesRaw) ? batchesRaw : []) as SummerBatch[]
@@ -271,6 +272,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
   }
 
   // ── Loading ──────────────────────────────────────────────────────────
+  if (modeError || batchesError) return <ITErrorState onRetry={refetchMode} />
   if (modeLoading && batchesLoading) return <SummerTabSkeleton />
 
   const isActive = summerMode?.active ?? false

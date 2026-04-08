@@ -20,6 +20,7 @@ import {
   CalendarDays,
   ChevronDown,
 } from 'lucide-react'
+import ITErrorState from './ITErrorState'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -158,11 +159,14 @@ export default function ITERateTab({ canManage }: ITERateTabProps) {
   const {
     data: calendarData,
     isLoading: calendarLoading,
+    isError: calendarError,
+    refetch: refetchCalendar,
   } = useQuery(queryOptions.itERateCalendar(schoolYear))
 
   const {
     data: documentsData,
     isLoading: documentsLoading,
+    isError: documentsError,
   } = useQuery(queryOptions.itERateDocuments(schoolYear))
 
   const tasks: ERateTask[] = useMemo(() => {
@@ -237,6 +241,7 @@ export default function ITERateTab({ canManage }: ITERateTabProps) {
 
   // ── Loading state ──
 
+  if (calendarError || documentsError) return <ITErrorState onRetry={refetchCalendar} />
   if (calendarLoading && documentsLoading) {
     return <ERateSkeleton />
   }

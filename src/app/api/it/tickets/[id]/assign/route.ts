@@ -3,23 +3,22 @@
  */
 
 import { NextResponse } from 'next/server'
-import { ok, fail } from '@/lib/api-response'
+import { z } from 'zod'
+import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { assignITTicket } from '@/lib/services/itTicketService'
 import { notifyITTicketAssigned } from '@/lib/services/itNotificationService'
 
-export const PATCH = withAuth(async ({ req, ctx, orgId, params }) => {
-  const body = await req.json()
+const AssignSchema = z.object({
+  assignedToId: z.string().uuid('assignedToId must be a valid UUID'),
+})
 
-  if (!body.assignedToId) {
-    return NextResponse.json(fail('VALIDATION_ERROR', 'assignedToId is required'), { status: 400 })
-  }
-
+export const PATCH = withAuth(async ({ body, ctx, orgId, params }) => {
   const ticket = await assignITTicket(params.id, body.assignedToId, { userId: ctx.userId, orgId })
 
   // Fire-and-forget notification
   notifyITTicketAssigned(ticket, body.assignedToId, orgId)
 
   return NextResponse.json(ok(ticket))
-}, { permission: PERMISSIONS.IT_TICKET_ASSIGN })
+}, { permission: PERMISSIONS.IT_TICKET_ASSIGN, schema: AssignSchema })
