@@ -63,27 +63,23 @@ export default async function LoginPage() {
               className="absolute inset-0 w-full h-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent" />
-            {branding.logoUrl && (
-              <div className="absolute bottom-12 left-12">
-                <img
-                  src={branding.logoUrl}
-                  alt={`${branding.name} logo`}
-                  className="h-20 w-auto drop-shadow-2xl"
-                />
-              </div>
-            )}
+            <div className="absolute bottom-12 left-12">
+              <img
+                src="/logo-white.svg"
+                alt="Lionheart"
+                className="h-10 w-auto drop-shadow-2xl opacity-80"
+              />
+            </div>
           </div>
         ) : (
           <div className="text-center px-12">
-            {branding.logoUrl && (
-              <img
-                src={branding.logoUrl}
-                alt={`${branding.name} logo`}
-                className="h-24 w-auto mx-auto mb-8 drop-shadow-2xl"
-              />
-            )}
             <h1 className="text-5xl font-bold text-white mb-4">{branding.name}</h1>
-            <p className="text-xl text-slate-400">Operations Platform</p>
+            <p className="text-xl text-slate-400 mb-12">Operations Platform</p>
+            <img
+              src="/logo-white.svg"
+              alt="Lionheart"
+              className="h-10 w-auto mx-auto opacity-60"
+            />
           </div>
         )}
       </div>
@@ -95,16 +91,17 @@ export default async function LoginPage() {
         }`}
       >
         <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-8">
-            {branding.logoUrl && (
+          {/* School Logo */}
+          <div className="text-center mb-8">
+            {branding.logoUrl ? (
               <img
                 src={branding.logoUrl}
                 alt={`${branding.name} logo`}
-                className="h-16 w-auto mx-auto mb-4"
+                className="h-16 w-auto mx-auto"
               />
+            ) : (
+              <h1 className="text-2xl font-bold text-slate-900">{branding.name}</h1>
             )}
-            <h1 className="text-2xl font-bold text-slate-900">{branding.name}</h1>
           </div>
 
           <div className="space-y-6">

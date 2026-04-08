@@ -147,7 +147,7 @@ export default function SupportSection({
                   ref={facilityIndicator.containerRefCb}
                   className="relative ml-8 mt-1 overflow-hidden"
                   style={{
-                    maxHeight: facilitiesOpen ? '600px' : '0px',
+                    maxHeight: facilitiesOpen ? '700px' : '0px',
                     opacity: facilitiesOpen ? 1 : 0,
                     transition: 'max-height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.2s ease',
                   }}
@@ -247,6 +247,32 @@ export default function SupportSection({
                         aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                       >
                         <span className="text-sm">Knowledge Base</span>
+                      </PrefetchLink>
+                    )}
+                    {canManageMaintenance && (
+                      <PrefetchLink
+                        href="/maintenance/analytics"
+                        data-facility-active={pathname.startsWith('/maintenance/analytics') ? 'true' : undefined}
+                        onClick={closePanels}
+                        className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          pathname.startsWith('/maintenance/analytics') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        aria-current={pathname.startsWith('/maintenance/analytics') ? 'page' : undefined}
+                      >
+                        <span className="text-sm">Analytics</span>
+                      </PrefetchLink>
+                    )}
+                    {canManageMaintenance && (
+                      <PrefetchLink
+                        href="/maintenance/compliance"
+                        data-facility-active={pathname.startsWith('/maintenance/compliance') ? 'true' : undefined}
+                        onClick={closePanels}
+                        className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          pathname.startsWith('/maintenance/compliance') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        aria-current={pathname.startsWith('/maintenance/compliance') ? 'page' : undefined}
+                      >
+                        <span className="text-sm">Compliance</span>
                       </PrefetchLink>
                     )}
                   </div>

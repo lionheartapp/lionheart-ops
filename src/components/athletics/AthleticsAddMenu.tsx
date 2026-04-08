@@ -1,0 +1,118 @@
+'use client'
+
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Plus, ChevronDown, Dribbble, CalendarDays, Users, CalendarPlus,
+  ClipboardList, Trophy, Dumbbell, Upload,
+} from 'lucide-react'
+import type { AthleticsTab } from '@/components/Sidebar'
+
+interface AddMenuItem {
+  label: string
+  description: string
+  icon: typeof Dribbble
+  tab: AthleticsTab
+  event: string
+}
+
+const MENU_ITEMS: AddMenuItem[] = [
+  { label: 'Sport', description: 'Add a new sport to your program', icon: Dribbble, tab: 'sports', event: 'athletics-add-sport' },
+  { label: 'Season', description: 'Create a season for a sport', icon: CalendarDays, tab: 'sports', event: 'athletics-add-season' },
+  { label: 'Team', description: 'Set up a team within a season', icon: Users, tab: 'teams', event: 'athletics-add-team' },
+  { label: 'Game', description: 'Schedule a game or match', icon: CalendarPlus, tab: 'schedule', event: 'athletics-add-game' },
+  { label: 'Practice', description: 'Schedule a team practice', icon: Dumbbell, tab: 'schedule', event: 'athletics-add-practice' },
+  { label: 'Player', description: 'Add a player to a roster', icon: ClipboardList, tab: 'roster', event: 'athletics-add-player' },
+  { label: 'Tournament', description: 'Create a tournament bracket', icon: Trophy, tab: 'tournaments', event: 'athletics-add-tournament' },
+]
+
+interface AthleticsAddMenuProps {
+  onTabChange: (tab: AthleticsTab) => void
+  onImportAll?: () => void
+}
+
+export default function AthleticsAddMenu({ onTabChange, onImportAll }: AthleticsAddMenuProps) {
+  const [open, setOpen] = useState(false)
+
+  const handleSelect = (item: AddMenuItem) => {
+    setOpen(false)
+    // Switch to the right tab first
+    onTabChange(item.tab)
+    // Give the tab a moment to render, then dispatch the event to open the create form
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent(item.event))
+    }, 100)
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+      >
+        <Plus className="w-4 h-4" />
+        Add
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Invisible backdrop to close dropdown */}
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-20 overflow-hidden"
+            >
+              <div className="p-1.5">
+                {MENU_ITEMS.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <button
+                      key={item.event}
+                      type="button"
+                      onClick={() => handleSelect(item)}
+                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 group-hover:bg-indigo-50 transition-colors">
+                        <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900">{item.label}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                      </div>
+                    </button>
+                  )
+                })}
+
+                {onImportAll && (
+                  <>
+                    <div className="my-1 mx-3 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      onClick={() => { setOpen(false); onImportAll() }}
+                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
+                        <Upload className="w-4 h-4 text-indigo-500 group-hover:text-indigo-700 transition-colors" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900">Import from CSV</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Bulk import sports, teams, and players from a file</p>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}

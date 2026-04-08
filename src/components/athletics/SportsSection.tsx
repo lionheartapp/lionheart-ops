@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Eye, Edit2 } from 'lucide-react'
@@ -70,6 +70,25 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+
+  // Listen for external "add" trigger from the Add menu
+  useEffect(() => {
+    const handleAdd = () => { setEditingSport(null); setDrawerOpen(true) }
+    window.addEventListener('athletics-add-sport', handleAdd)
+    return () => window.removeEventListener('athletics-add-sport', handleAdd)
+  }, [])
+
+  // Listen for external "add season" trigger — open detail of first sport
+  useEffect(() => {
+    const handleAddSeason = () => {
+      if (sports.length > 0) {
+        setSelectedSport(sports[0])
+        setDetailOpen(true)
+      }
+    }
+    window.addEventListener('athletics-add-season', handleAddSeason)
+    return () => window.removeEventListener('athletics-add-season', handleAddSeason)
+  }, [sports])
 
   const filtered = sports.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -160,7 +179,7 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Sport

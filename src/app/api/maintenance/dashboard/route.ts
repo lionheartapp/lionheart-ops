@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
     // Run all independent queries in parallel
-    const [statusCounts, priorityCounts, categoryCounts, unassignedCount, overdueCount, doneTickets] =
+    const [statusCounts, priorityCounts, categoryCounts, unassignedCount, overdueCount, doneTickets, recentTickets] =
       await Promise.all([
         prisma.maintenanceTicket.groupBy({
           by: ['status'],
@@ -65,6 +65,21 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
           select: { createdAt: true, updatedAt: true },
           take: 100,
           orderBy: { updatedAt: 'desc' },
+        }),
+        prisma.maintenanceTicket.findMany({
+          where: { ...activeWhere },
+          orderBy: { updatedAt: 'desc' },
+          take: 8,
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            priority: true,
+            updatedAt: true,
+            buildingId: true,
+            roomId: true,
+            assignedToId: true,
+          },
         }),
       ])
 
@@ -127,6 +142,46 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         ? Math.round(avgResolutionHours * 10) / 10
         : null,
       byCampus,
+      recentTickets: await (async () => {
+        // Batch-resolve building, room, and assignee names for recent tickets
+        const buildingIds = [...new Set(recentTickets.map((t) => t.buildingId).filter(Boolean))] as string[]
+        const roomIds = [...new Set(recentTickets.map((t) => t.roomId).filter(Boolean))] as string[]
+        const assigneeIds = [...new Set(recentTickets.map((t) => t.assignedToId).filter(Boolean))] as string[]
+
+        const [buildings, rooms, assignees] = await Promise.all([
+          buildingIds.length > 0
+            ? prisma.building.findMany({ where: { id: { in: buildingIds } }, select: { id: true, name: true } })
+            : [],
+          roomIds.length > 0
+            ? prisma.room.findMany({ where: { id: { in: roomIds } }, select: { id: true, roomNumber: true, displayName: true } })
+            : [],
+          assigneeIds.length > 0
+            ? prisma.user.findMany({ where: { id: { in: assigneeIds } }, select: { id: true, name: true } })
+            : [],
+        ])
+
+        const buildingMap = new Map(buildings.map((b) => [b.id, b.name]))
+        const roomMap = new Map(rooms.map((r) => [r.id, r.displayName || r.roomNumber]))
+        const assigneeMap = new Map(assignees.map((u) => [u.id, u.name]))
+
+        return recentTickets.map((t) => {
+          const parts = [
+            t.buildingId ? buildingMap.get(t.buildingId) : null,
+            t.roomId ? roomMap.get(t.roomId) : null,
+          ].filter(Boolean)
+          return {
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            priority: t.priority,
+            updatedAt: t.updatedAt.toISOString(),
+            location: parts.length > 0 ? parts.join(' — ') : null,
+            assignedTo: t.assignedToId
+              ? { id: t.assignedToId, name: assigneeMap.get(t.assignedToId) ?? 'Unknown' }
+              : null,
+          }
+        })
+      })(),
     }
   }, DASHBOARD_CACHE_TTL)
 

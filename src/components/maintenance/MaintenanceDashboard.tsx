@@ -8,19 +8,21 @@ import {
   AlertTriangle,
   Wrench,
   CheckCircle2,
-  Clock,
+  Plus,
+  BarChart3,
   ShieldCheck,
-  CalendarClock,
-  DollarSign,
-  RefreshCw,
   Download,
+  FileText,
+  RefreshCw,
   ChevronRight,
+  Clock,
+  User,
+  MapPin,
 } from 'lucide-react'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import CampusComparisonWidget from './CampusComparisonWidget'
 import { fetchApi } from '@/lib/api-client'
-import { IllustrationMaintenance } from '@/components/illustrations'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +30,16 @@ interface CampusCount {
   schoolId: string
   schoolName: string
   count: number
+}
+
+interface RecentTicket {
+  id: string
+  title: string
+  status: string
+  priority: string
+  updatedAt: string
+  location: string | null
+  assignedTo: { id: string; name: string } | null
 }
 
 interface DashboardStats {
@@ -38,69 +50,46 @@ interface DashboardStats {
   overdueCount: number
   avgResolutionHours: number | null
   byCampus?: CampusCount[]
+  recentTickets?: RecentTicket[]
 }
 
 interface MaintenanceDashboardProps {
   activeCampusId: string | null
 }
 
-// ─── Status bar chart config ──────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const TICKET_STATUSES = [
-  { label: 'Backlog', key: 'BACKLOG', color: '#64748b' },
-  { label: 'To Do', key: 'TODO', color: '#3b82f6' },
-  { label: 'In Progress', key: 'IN_PROGRESS', color: '#f59e0b' },
-  { label: 'On Hold', key: 'ON_HOLD', color: '#ef4444' },
-  { label: 'Scheduled', key: 'SCHEDULED', color: '#8b5cf6' },
-  { label: 'QA Review', key: 'QA_REVIEW', color: '#ec4899' },
-  { label: 'Done', key: 'DONE', color: '#22c55e' },
-  { label: 'Cancelled', key: 'CANCELLED', color: '#94a3b8' },
-]
-
-// ─── Helper components ────────────────────────────────────────────────────────
-
-function EmptyState({
-  icon: Icon,
-  heading,
-  description,
-}: {
-  icon: typeof Clock
-  heading: string
-  description: string
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-6 text-center">
-      <IllustrationMaintenance className="w-40 h-32 mb-2" />
-      <p className="text-sm font-medium text-slate-500 mb-1">{heading}</p>
-      <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed">{description}</p>
-    </div>
-  )
+const STATUS_COLORS: Record<string, { dot: string; bg: string; text: string }> = {
+  BACKLOG: { dot: 'bg-slate-400', bg: 'bg-slate-50', text: 'text-slate-600' },
+  TODO: { dot: 'bg-blue-400', bg: 'bg-blue-50', text: 'text-blue-700' },
+  IN_PROGRESS: { dot: 'bg-amber-400', bg: 'bg-amber-50', text: 'text-amber-700' },
+  ON_HOLD: { dot: 'bg-red-400', bg: 'bg-red-50', text: 'text-red-700' },
+  SCHEDULED: { dot: 'bg-violet-400', bg: 'bg-violet-50', text: 'text-violet-700' },
+  QA_REVIEW: { dot: 'bg-pink-400', bg: 'bg-pink-50', text: 'text-pink-700' },
 }
 
-function PanelHeader({ title, href }: { title: string; href?: string }) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      {href ? (
-        <a
-          href={href}
-          className="text-xs text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-0.5"
-        >
-          View all
-          <ChevronRight className="w-3 h-3" />
-        </a>
-      ) : (
-        <span className="text-xs text-slate-300">—</span>
-      )}
-    </div>
-  )
+const STATUS_LABELS: Record<string, string> = {
+  BACKLOG: 'Backlog',
+  TODO: 'To Do',
+  IN_PROGRESS: 'In Progress',
+  ON_HOLD: 'On Hold',
+  SCHEDULED: 'Scheduled',
+  QA_REVIEW: 'QA Review',
 }
 
-function formatResolutionTime(hours: number | null): string {
-  if (hours === null) return '—'
-  if (hours < 24) return `${Math.round(hours)}h`
-  const days = Math.round(hours / 24)
-  return `${days}d`
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const minutes = Math.floor(diffMs / 60_000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  return `${weeks}w ago`
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -108,7 +97,6 @@ function formatResolutionTime(hours: number | null): string {
 export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDashboardProps) {
   const router = useRouter()
 
-  // Navigate to work orders with filter query params
   const goToWorkOrders = (params?: Record<string, string>) => {
     const qs = new URLSearchParams(params)
     if (activeCampusId) qs.set('schoolId', activeCampusId)
@@ -125,22 +113,16 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
     staleTime: 2 * 60 * 1000,
   })
 
-  // Derive aggregate counts from live data
+  // Derive aggregate counts
   const byStatus = stats?.byStatus ?? {}
   const byPriority = stats?.byPriority ?? {}
 
-  // Open = all non-DONE, non-CANCELLED statuses
   const openCount = Object.entries(byStatus)
     .filter(([k]) => k !== 'DONE' && k !== 'CANCELLED')
     .reduce((sum, [, v]) => sum + v, 0)
 
-  // Urgent/Overdue = URGENT priority active tickets + overdueCount
   const urgentCount = (byPriority['URGENT'] ?? 0) + (stats?.overdueCount ?? 0)
-
-  // In Progress
   const inProgressCount = byStatus['IN_PROGRESS'] ?? 0
-
-  // Done this month — the API returns total Done; approximate with Done count
   const doneCount = byStatus['DONE'] ?? 0
 
   const statCards = [
@@ -182,8 +164,13 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
     },
   ]
 
-  // Max count for status bar chart normalization
-  const maxStatusCount = Math.max(1, ...Object.values(byStatus))
+  // Needs Attention aggregation
+  const overdueCount = stats?.overdueCount ?? 0
+  const urgentPriorityCount = byPriority['URGENT'] ?? 0
+  const unassignedCount = stats?.unassignedCount ?? 0
+  const needsAttentionTotal = overdueCount + urgentPriorityCount + unassignedCount
+
+  const recentTickets = stats?.recentTickets ?? []
 
   // ─── Error state ─────────────────────────────────────────────────────────
 
@@ -204,7 +191,7 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
     )
   }
 
-  // ─── Loading skeleton ────────────────────────────────────────────────────
+  // ─── Loading skeleton ──────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -218,15 +205,16 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
             </div>
           ))}
         </div>
+        <div className="ui-glass p-4 rounded-2xl h-12" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="ui-glass p-5 rounded-2xl h-48" />
-          <div className="ui-glass p-5 rounded-2xl h-48" />
+          <div className="ui-glass p-5 rounded-2xl h-52" />
+          <div className="ui-glass p-5 rounded-2xl h-52" />
         </div>
       </div>
     )
   }
 
-  // ─── Loaded state ────────────────────────────────────────────────────────
+  // ─── Loaded state ──────────────────────────────────────────────────────
 
   return (
     <motion.div
@@ -235,22 +223,6 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
       animate="visible"
       variants={staggerContainer(0.06, 0.04)}
     >
-      {/* Export CSV button */}
-      <motion.div variants={fadeInUp} className="flex justify-end">
-        <button
-          onClick={() => {
-            const params = new URLSearchParams()
-            if (activeCampusId) params.set('schoolId', activeCampusId)
-            const qs = params.toString()
-            window.open(`/api/settings/export/tickets${qs ? `?${qs}` : ''}`, '_blank')
-          }}
-          className="px-4 py-2 rounded-full border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </button>
-      </motion.div>
-
       {/* Stat Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => {
@@ -281,189 +253,217 @@ export default function MaintenanceDashboard({ activeCampusId }: MaintenanceDash
         })}
       </div>
 
-      {/* Two-column panel grid */}
+      {/* Quick Actions */}
+      <motion.div variants={fadeInUp} className="ui-glass p-4 rounded-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => goToWorkOrders({ create: 'true' })}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Create Ticket
+          </button>
+          <button
+            onClick={() => router.push('/maintenance/analytics')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </button>
+          <button
+            onClick={() => router.push('/maintenance/compliance')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Compliance
+          </button>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams()
+              if (activeCampusId) params.set('schoolId', activeCampusId)
+              const qs = params.toString()
+              window.open(`/api/settings/export/tickets${qs ? `?${qs}` : ''}`, '_blank')
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+          <button
+            onClick={() => router.push('/maintenance/board-report')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+          >
+            <FileText className="w-4 h-4" />
+            Board Report
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Two-column: Needs Attention + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left column */}
-        <div className="space-y-4">
-          {/* Tickets by Status */}
-          <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Tickets by Status" href="/maintenance/work-orders" />
-            <div className="space-y-2.5">
-              {TICKET_STATUSES.map((status) => {
-                const count = byStatus[status.key] ?? 0
-                const pct = Math.round((count / maxStatusCount) * 100)
+        {/* Needs Attention */}
+        <motion.div
+          variants={fadeInUp}
+          className={`rounded-2xl p-5 shadow-sm backdrop-blur-sm border ${
+            needsAttentionTotal > 0
+              ? 'bg-gradient-to-br from-red-50/80 to-red-100/80 border-red-200/30'
+              : 'bg-gradient-to-br from-green-50/80 to-green-100/80 border-green-200/30'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-800">Needs Attention</h3>
+              {needsAttentionTotal > 0 && (
+                <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                  {needsAttentionTotal}
+                </span>
+              )}
+            </div>
+            {needsAttentionTotal > 0 && (
+              <a
+                href="/maintenance/work-orders?priority=URGENT"
+                className="text-xs text-red-500 hover:text-red-700 transition-colors flex items-center gap-0.5"
+              >
+                View all
+                <ChevronRight className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+
+          {needsAttentionTotal > 0 ? (
+            <div className="space-y-2">
+              {overdueCount > 0 && (
+                <div
+                  className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
+                  onClick={() => goToWorkOrders({ priority: 'URGENT' })}
+                >
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">
+                      {overdueCount} overdue ticket{overdueCount !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-slate-400">In backlog for over 48 hours</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                </div>
+              )}
+              {urgentPriorityCount > 0 && (
+                <div
+                  className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
+                  onClick={() => goToWorkOrders({ priority: 'URGENT' })}
+                >
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">
+                      {urgentPriorityCount} urgent ticket{urgentPriorityCount !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-slate-400">Marked as urgent priority</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                </div>
+              )}
+              {unassignedCount > 0 && (
+                <div
+                  className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
+                  onClick={() => goToWorkOrders({ unassigned: 'true' })}
+                >
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">
+                      {unassignedCount} unassigned ticket{unassignedCount !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-slate-400">Need a technician assigned</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/60 flex items-center justify-center mb-3">
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+              </div>
+              <p className="text-sm font-medium text-green-700 mb-1">All clear</p>
+              <p className="text-xs text-green-500 max-w-[200px] leading-relaxed">
+                No overdue, urgent, or unassigned tickets right now.
+              </p>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-slate-800">Recent Activity</h3>
+            <a
+              href="/maintenance/work-orders"
+              className="text-xs text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-0.5"
+            >
+              View all
+              <ChevronRight className="w-3 h-3" />
+            </a>
+          </div>
+
+          {recentTickets.length > 0 ? (
+            <div className="space-y-1">
+              {recentTickets.map((ticket) => {
+                const statusStyle = STATUS_COLORS[ticket.status] ?? STATUS_COLORS.BACKLOG
                 return (
                   <div
-                    key={status.label}
-                    className="flex items-center gap-3 cursor-pointer rounded-lg px-1 -mx-1 py-0.5 hover:bg-slate-50 transition-colors"
-                    onClick={() => goToWorkOrders({ status: status.key })}
+                    key={ticket.id}
+                    className="flex items-start gap-3 p-2.5 -mx-1 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
+                    onClick={() => router.push(`/maintenance/work-orders?ticket=${ticket.id}`)}
                   >
-                    <span className="text-xs text-slate-500 w-20 flex-shrink-0">{status.label}</span>
-                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${pct}%`, backgroundColor: status.color }}
-                      />
+                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${statusStyle.dot}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate">{ticket.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                          {STATUS_LABELS[ticket.status] ?? ticket.status}
+                        </span>
+                        {ticket.location && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+                            <MapPin className="w-2.5 h-2.5" />
+                            {ticket.location}
+                          </span>
+                        )}
+                        {ticket.assignedTo && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+                            <User className="w-2.5 h-2.5" />
+                            {ticket.assignedTo.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs text-slate-400 w-5 text-right flex-shrink-0">
-                      {count}
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400 flex-shrink-0 mt-0.5">
+                      <Clock className="w-2.5 h-2.5" />
+                      {timeAgo(ticket.updatedAt)}
                     </span>
                   </div>
                 )
               })}
             </div>
-          </motion.div>
-
-          {/* Avg Resolution Time */}
-          <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Avg. Resolution Time" href="/maintenance/work-orders?status=DONE" />
-            {stats?.avgResolutionHours !== null ? (
-              <div className="flex items-center gap-3 py-2">
-                <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-primary-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {formatResolutionTime(stats?.avgResolutionHours ?? null)}
-                  </p>
-                  <p className="text-xs text-slate-400">average across completed tickets</p>
-                </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mb-3">
+                <ClipboardList className="w-6 h-6 text-slate-300" />
               </div>
-            ) : (
-              <EmptyState
-                icon={Clock}
-                heading="No completed tickets yet"
-                description="Resolution time will be tracked once tickets are marked done."
-              />
-            )}
-          </motion.div>
-
-          {/* Campus Comparison — only shown when viewing all campuses */}
-          {!activeCampusId && (
-            <CampusComparisonWidget
-              data={stats?.byCampus ?? []}
-              onCampusClick={(schoolId) => router.push(`/maintenance/work-orders?schoolId=${schoolId}`)}
-            />
+              <p className="text-sm font-medium text-slate-500 mb-1">No active tickets</p>
+              <p className="text-xs text-slate-400 max-w-[200px] leading-relaxed">
+                Recent ticket activity will appear here.
+              </p>
+            </div>
           )}
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Urgent / Overdue Alerts */}
-          <motion.div
-            variants={fadeInUp}
-            className="bg-gradient-to-br from-red-50/80 to-red-100/80 backdrop-blur-sm border border-red-200/30 rounded-2xl p-5 shadow-sm"
-          >
-            <PanelHeader title="Urgent / Overdue Alerts" href="/maintenance/work-orders?priority=URGENT" />
-            {urgentCount > 0 ? (
-              <div className="space-y-2">
-                {(stats?.overdueCount ?? 0) > 0 && (
-                  <div
-                    className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
-                    onClick={() => goToWorkOrders({ priority: 'URGENT' })}
-                  >
-                    <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-700">
-                        {stats?.overdueCount} overdue ticket{(stats?.overdueCount ?? 0) !== 1 ? 's' : ''}
-                      </p>
-                      <p className="text-xs text-red-400">In backlog for over 48 hours unassigned</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-red-300 flex-shrink-0" />
-                  </div>
-                )}
-                {(byPriority['URGENT'] ?? 0) > 0 && (
-                  <div
-                    className="flex items-center gap-2 p-3 bg-white/60 rounded-xl cursor-pointer hover:bg-white/80 transition-colors"
-                    onClick={() => goToWorkOrders({ priority: 'URGENT' })}
-                  >
-                    <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-700">
-                        {byPriority['URGENT']} urgent ticket{(byPriority['URGENT'] ?? 0) !== 1 ? 's' : ''}
-                      </p>
-                      <p className="text-xs text-red-400">Marked as urgent priority</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-red-300 flex-shrink-0" />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/60 flex items-center justify-center mb-3">
-                  <ShieldCheck className="w-6 h-6 text-red-300" />
-                </div>
-                <p className="text-sm font-medium text-red-700 mb-1">No urgent alerts</p>
-                <p className="text-xs text-red-400 max-w-[180px] leading-relaxed">
-                  Overdue and high-priority tickets will appear here.
-                </p>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Unassigned Count */}
-          <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="Unassigned Tickets" href="/maintenance/work-orders?unassigned=true" />
-            {(stats?.unassignedCount ?? 0) > 0 ? (
-              <div
-                className="flex items-center gap-3 py-2 cursor-pointer rounded-xl hover:bg-slate-50 px-2 -mx-2 transition-colors"
-                onClick={() => goToWorkOrders({ unassigned: 'true' })}
-              >
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
-                  <Wrench className="w-6 h-6 text-amber-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={stats?.unassignedCount ?? 0} />
-                  </p>
-                  <p className="text-xs text-slate-400">tickets need a technician</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
-              </div>
-            ) : (
-              <EmptyState
-                icon={CheckCircle2}
-                heading="All assigned"
-                description="No unassigned active tickets — great work!"
-              />
-            )}
-          </motion.div>
-
-          {/* PM Calendar Preview */}
-          <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-            <PanelHeader title="PM Calendar Preview" />
-            {/* No href — PM not yet implemented */}
-            <EmptyState
-              icon={CalendarClock}
-              heading="No PM schedules configured"
-              description="Preventive maintenance schedules will appear here once configured."
-            />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Full-width bottom row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Cost Summary */}
-        <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-          <PanelHeader title="Cost Summary" />
-          <EmptyState
-            icon={DollarSign}
-            heading="No cost data yet"
-            description="Labor and material costs will be tracked here once tickets are completed."
-          />
-        </motion.div>
-
-        {/* Compliance Status */}
-        <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-          <PanelHeader title="Compliance Status" />
-          <EmptyState
-            icon={ShieldCheck}
-            heading="No compliance domains configured"
-            description="Compliance tracking domains will appear here once configured."
-          />
         </motion.div>
       </div>
+
+      {/* Campus Comparison — only shown when viewing all campuses */}
+      {!activeCampusId && (
+        <CampusComparisonWidget
+          data={stats?.byCampus ?? []}
+          onCampusClick={(schoolId) => router.push(`/maintenance/work-orders?schoolId=${schoolId}`)}
+        />
+      )}
     </motion.div>
   )
 }

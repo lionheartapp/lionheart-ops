@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
@@ -87,6 +87,13 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
   const [deleting, setDeleting] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+
+  // Listen for external "add" trigger from the Add menu
+  useEffect(() => {
+    const handleAdd = () => { setEditing(null); setDrawerOpen(true) }
+    window.addEventListener('athletics-add-tournament', handleAdd)
+    return () => window.removeEventListener('athletics-add-tournament', handleAdd)
+  }, [])
 
   const sportOptions: DropdownOption[] = useMemo(
     () => sports.map((s) => ({ value: s.id, label: s.name })),
@@ -225,7 +232,7 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
         {canWrite && (
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition sm:ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition sm:ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Tournament

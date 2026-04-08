@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
-import { BarChart3, Trophy, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
+import { BarChart3, Medal, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
@@ -276,7 +276,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
       {/* View tabs */}
       <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5 mb-5 w-fit">
         {([
-          { key: 'standings' as const, label: 'Standings', icon: Trophy },
+          { key: 'standings' as const, label: 'Standings', icon: Medal },
           { key: 'leaders' as const, label: 'Stat Leaders', icon: BarChart3 },
           ...(canWrite ? [{ key: 'config' as const, label: 'Stat Config', icon: Settings }] : []),
         ]).map(({ key, label, icon: Icon }) => (
@@ -518,7 +518,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                     type="button"
                     onClick={handleAddConfig}
                     disabled={!newStatKey.trim() || !newStatLabel.trim() || savingConfig}
-                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-50 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     {savingConfig ? 'Adding...' : 'Add'}

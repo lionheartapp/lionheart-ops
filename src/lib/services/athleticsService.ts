@@ -58,6 +58,7 @@ export {
   getSportStatConfigs,
   upsertSportStatConfig,
   deleteSportStatConfig,
+  bulkImportRosterPlayers,
 } from './athletics-roster'
 
 // ── Analytics, Calendar & Public ──────────────────────────────────────────

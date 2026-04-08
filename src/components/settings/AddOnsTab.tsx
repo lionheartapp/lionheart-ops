@@ -76,7 +76,7 @@ function CampusConfigModal({
   campuses: Campus[]
   enabledCampusIds: string[]
   togglingKey: string | null
-  onToggle: (moduleId: string, currentlyEnabled: boolean, campusId: string) => void
+  onToggle: (moduleId: string, currentlyEnabled: boolean, campusId?: string) => void
   onClose: () => void
 }) {
   const Icon = mod.icon
@@ -110,9 +110,24 @@ function CampusConfigModal({
         {/* Campus list */}
         <div className="px-6 py-4">
           {activeCampuses.length === 0 ? (
-            <p className="text-sm text-slate-400 py-4 text-center">
-              No campuses configured. Add campuses in Campus settings first.
-            </p>
+            <div className="py-4 text-center space-y-3">
+              <p className="text-sm text-slate-400">
+                No campuses configured yet. You can enable Athletics for your entire organization, or add campuses first.
+              </p>
+              <button
+                onClick={() => {
+                  onToggle(mod.id, false)
+                  onClose()
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors"
+              >
+                Enable for entire organization
+              </button>
+              <p className="text-xs text-slate-400">
+                You can configure per-campus later in{' '}
+                <a href="/settings?tab=campus" className="text-primary-600 hover:text-primary-700 font-medium">Campus settings</a>.
+              </p>
+            </div>
           ) : (
             <div className="space-y-1.5">
               {activeCampuses.map((campus) => {
@@ -241,7 +256,7 @@ export default function AddOnsTab() {
               .map((m) => m.campusId as string)
             const isOrgEnabled = modules.some((m) => m.moduleId === mod.id && !m.campusId)
             const hasAnyCampusEnabled = enabledCampusIds.length > 0
-            const isAdded = mod.scope === 'campus' ? hasAnyCampusEnabled : isOrgEnabled
+            const isAdded = mod.scope === 'campus' ? (hasAnyCampusEnabled || isOrgEnabled) : isOrgEnabled
 
             return (
               <div

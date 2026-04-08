@@ -226,6 +226,18 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
+  // Listen for external "add" triggers from the Add menu
+  useEffect(() => {
+    const handleAddGame = () => { setEditingGame(null); setGameDrawerOpen(true) }
+    const handleAddPractice = () => { setPracticeDrawerOpen(true) }
+    window.addEventListener('athletics-add-game', handleAddGame)
+    window.addEventListener('athletics-add-practice', handleAddPractice)
+    return () => {
+      window.removeEventListener('athletics-add-game', handleAddGame)
+      window.removeEventListener('athletics-add-practice', handleAddPractice)
+    }
+  }, [])
+
   // ─── Campus-filtered teams ────────────────────────────────────────
 
   const displayTeams = useMemo(() => {
@@ -387,7 +399,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={openGameCreate}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Game
@@ -395,7 +407,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={() => setPracticeDrawerOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-900 border border-slate-900 rounded-full hover:bg-slate-50 transition"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Practice

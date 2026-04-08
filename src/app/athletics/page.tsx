@@ -18,6 +18,9 @@ import ScheduleSection from '@/components/athletics/ScheduleSection'
 import TournamentsSection from '@/components/athletics/TournamentsSection'
 import RosterSection from '@/components/athletics/RosterSection'
 import StatsSection from '@/components/athletics/StatsSection'
+import AthleticsOnboarding from '@/components/athletics/AthleticsOnboarding'
+import AthleticsAddMenu from '@/components/athletics/AthleticsAddMenu'
+import AthleticsMegaImport from '@/components/athletics/AthleticsMegaImport'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
@@ -128,7 +131,44 @@ export default function AthleticsPage() {
   const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
 
   const [activeTab, setActiveTab] = useState<AthleticsTab>('overview')
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false)
+  const [megaImportOpen, setMegaImportOpen] = useState(false)
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab)
+
+  // ── Data queries for onboarding / progressive tab visibility ──────
+  const { data: onboardSports, isSuccess: sportsLoaded } = useQuery(sharedQueryOptions.athleticsSports())
+  const { data: onboardSeasons } = useQuery(sharedQueryOptions.athleticsSeasons())
+  const { data: onboardTeams } = useQuery(sharedQueryOptions.athleticsTeams())
+  const hasSports = ((onboardSports as unknown[]) ?? []).length > 0
+  const hasSeasons = ((onboardSeasons as unknown[]) ?? []).length > 0
+  const hasTeams = ((onboardTeams as unknown[]) ?? []).length > 0
+
+  // Show onboarding when there are zero sports on first load.
+  // Once shown, keep it visible until the user completes or skips (avoids mid-flow disappearance).
+  // Wait until sports query has loaded to avoid flashing onboarding for orgs that have data.
+  const [onboardingStarted, setOnboardingStarted] = useState(false)
+  useEffect(() => {
+    if (sportsLoaded && !hasSports && !onboardingDismissed) setOnboardingStarted(true)
+  }, [sportsLoaded, hasSports, onboardingDismissed])
+  const showOnboarding = onboardingStarted && !onboardingDismissed
+
+  // Progressive tab visibility: only show tabs whose prerequisites are met
+  const visibleTabs = useMemo(() => {
+    if (onboardingDismissed || (hasSports && hasSeasons && hasTeams)) {
+      // All setup done or user skipped — show everything
+      return SUB_TABS
+    }
+    return SUB_TABS.filter(({ key }) => {
+      if (key === 'overview') return true
+      if (key === 'sports') return true // always allow sports creation
+      if (key === 'teams') return hasSports && hasSeasons
+      if (key === 'schedule') return hasTeams
+      if (key === 'roster') return hasTeams
+      if (key === 'tournaments') return hasSports
+      if (key === 'stats') return hasTeams
+      return true
+    })
+  }, [hasSports, hasSeasons, hasTeams, onboardingDismissed])
 
   // Track whether we've dispatched sidebar data so we re-dispatch when data changes
   const lastDispatchRef = useRef<string>('')
@@ -225,72 +265,93 @@ export default function AthleticsPage() {
         <div className="flex-1 min-h-0 overflow-y-auto">
           {/* Page header */}
           <motion.div
-            className="mb-6"
+            className="mb-6 flex items-start justify-between"
             initial="hidden"
             animate="visible"
             variants={staggerContainer(0.08, 0.05)}
           >
-            <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">Athletics</motion.h1>
-            <motion.p variants={fadeInUp} className="text-sm text-slate-500">
-              {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
-            </motion.p>
+            <div>
+              <motion.h1 variants={fadeInUp} className="text-2xl font-semibold text-slate-900">Athletics</motion.h1>
+              <motion.p variants={fadeInUp} className="text-sm text-slate-500">
+                {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
+              </motion.p>
+            </div>
+            {!showOnboarding && canWrite && (
+              <motion.div variants={fadeInUp}>
+                <AthleticsAddMenu onTabChange={setActiveTab} onImportAll={() => setMegaImportOpen(true)} />
+              </motion.div>
+            )}
           </motion.div>
 
-          {/* Sub-navigation tabs */}
-          <div ref={tabContainerRef} role="tablist" aria-label="Athletics tabs" className="relative flex gap-0.5 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
-            {SUB_TABS.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                ref={(el) => setTabRef(key, el)}
-                role="tab"
-                aria-selected={activeTab === key}
-                id={`tab-${key}`}
-                aria-controls={`tabpanel-${key}`}
-                onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === key
-                    ? 'text-slate-900'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Icon className="w-4 h-4 flex-shrink-0" />
-                {label}
-              </button>
-            ))}
-            <TabIndicator style={indicatorStyle} />
-          </div>
-
-          {/* Loading skeleton while campuses/modules load */}
-          {dataLoading ? (
-            <AthleticsTableSkeleton columns={5} rows={5} />
+          {/* Onboarding flow OR full tabbed UI */}
+          {showOnboarding ? (
+            <AthleticsOnboarding
+              activeCampusId={activeCampusId}
+              canWrite={canWrite}
+              onComplete={() => setOnboardingDismissed(true)}
+            />
           ) : (
             <>
-              <div role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview" className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
-                <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />
+              {/* Sub-navigation tabs — progressively revealed */}
+              <div ref={tabContainerRef} role="tablist" aria-label="Athletics tabs" className="relative flex gap-0.5 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
+                {visibleTabs.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    ref={(el) => setTabRef(key, el)}
+                    role="tab"
+                    aria-selected={activeTab === key}
+                    id={`tab-${key}`}
+                    aria-controls={`tabpanel-${key}`}
+                    onClick={() => setActiveTab(key)}
+                    className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
+                      activeTab === key
+                        ? 'text-slate-900'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {label}
+                  </button>
+                ))}
+                <TabIndicator style={indicatorStyle} />
               </div>
-              <div role="tabpanel" id="tabpanel-sports" aria-labelledby="tab-sports" className={activeTab === 'sports' ? '' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
-                <SportsSection canWrite={canWrite} />
-              </div>
-              <div role="tabpanel" id="tabpanel-teams" aria-labelledby="tab-teams" className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
-                <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
-              </div>
-              <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
-                <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
-              </div>
-              <div role="tabpanel" id="tabpanel-roster" aria-labelledby="tab-roster" className={activeTab === 'roster' ? '' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
-                <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
-              </div>
-              <div role="tabpanel" id="tabpanel-tournaments" aria-labelledby="tab-tournaments" className={activeTab === 'tournaments' ? '' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
-                <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
-              </div>
-              <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
-                <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
-              </div>
+
+              {/* Loading skeleton while campuses/modules load */}
+              {dataLoading ? (
+                <AthleticsTableSkeleton columns={5} rows={5} />
+              ) : (
+                <>
+                  <div role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview" className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
+                    <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={setActiveTab} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-sports" aria-labelledby="tab-sports" className={activeTab === 'sports' ? '' : 'hidden'} aria-hidden={activeTab !== 'sports'}>
+                    <SportsSection canWrite={canWrite} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-teams" aria-labelledby="tab-teams" className={activeTab === 'teams' ? '' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+                    <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
+                    <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-roster" aria-labelledby="tab-roster" className={activeTab === 'roster' ? '' : 'hidden'} aria-hidden={activeTab !== 'roster'}>
+                    <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-tournaments" aria-labelledby="tab-tournaments" className={activeTab === 'tournaments' ? '' : 'hidden'} aria-hidden={activeTab !== 'tournaments'}>
+                    <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                  </div>
+                  <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
+                    <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
         </MotionConfig>
       </ModuleGate>
+
+      {/* Mega import drawer */}
+      <AthleticsMegaImport isOpen={megaImportOpen} onClose={() => setMegaImportOpen(false)} />
     </DashboardLayout>
   )
 }

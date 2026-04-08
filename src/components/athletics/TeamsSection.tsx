@@ -168,6 +168,13 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
+  // Listen for external "add" trigger from the Add menu
+  useEffect(() => {
+    const handleAdd = () => { setEditingTeam(null); setDrawerOpen(true) }
+    window.addEventListener('athletics-add-team', handleAdd)
+    return () => window.removeEventListener('athletics-add-team', handleAdd)
+  }, [])
+
   // Reset season filter when sport filter changes
   useEffect(() => {
     setFilterSeasonId('')
@@ -368,7 +375,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-full hover:bg-slate-800 transition sm:ml-auto"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition sm:ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Team

@@ -197,3 +197,56 @@ export async function deleteSportStatConfig(id: string) {
     data: { isActive: false },
   })
 }
+
+// ── Bulk Import ──────────────────────────────────────────────────────────────
+
+export interface BulkPlayerRow {
+  firstName: string
+  lastName: string
+  jerseyNumber?: string
+  position?: string
+  grade?: string
+  height?: string
+  weight?: string
+}
+
+export async function bulkImportRosterPlayers(
+  athleticTeamId: string,
+  players: BulkPlayerRow[]
+): Promise<{ created: number; errors: string[] }> {
+  let created = 0
+  const errors: string[] = []
+
+  for (let i = 0; i < players.length; i++) {
+    const row = players[i]
+    const rowLabel = `Row ${i + 1} (${row.firstName} ${row.lastName})`
+    try {
+      if (!row.firstName?.trim() || !row.lastName?.trim()) {
+        errors.push(`${rowLabel}: First name and last name are required`)
+        continue
+      }
+      await db.athleticRoster.create({
+        data: {
+          athleticTeamId,
+          firstName: row.firstName.trim(),
+          lastName: row.lastName.trim(),
+          jerseyNumber: row.jerseyNumber?.trim() || null,
+          position: row.position?.trim() || null,
+          grade: row.grade?.trim() || null,
+          height: row.height?.trim() || null,
+          weight: row.weight?.trim() || null,
+        },
+      })
+      created++
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      if (msg.includes('Unique constraint')) {
+        errors.push(`${rowLabel}: A player with that jersey number already exists on this team`)
+      } else {
+        errors.push(`${rowLabel}: ${msg}`)
+      }
+    }
+  }
+
+  return { created, errors }
+}

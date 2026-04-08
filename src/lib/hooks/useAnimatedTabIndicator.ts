@@ -77,8 +77,8 @@ export function useAnimatedTabIndicator(activeKey: string, deps: unknown[] = [])
       left: indicatorLeft,
       width: indicatorWidth,
       opacity: indicatorOpacity,
-      background: 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)',
-      boxShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 16px rgba(99, 102, 241, 0.2)',
+      background: 'linear-gradient(90deg, #475569 0%, #334155 100%)',
+      boxShadow: '0 0 8px rgba(71, 85, 105, 0.3), 0 0 16px rgba(51, 65, 85, 0.15)',
     },
   }
 }
