@@ -3,20 +3,25 @@
 /**
  * TrialBanner
  *
- * Persistent top-of-app banner that surfaces billing state for the
- * current organization. Renders these visual modes:
+ * Persistent top-of-app banner that surfaces trial/billing state for the
+ * current organization. Rendered in two variants depending on whether the
+ * current user has billing permissions:
  *
- *   • In-trial (> 7 days)      → aurora gradient, "X days remaining"
- *   • In-trial (3–7 days)      → aurora gradient, urgency copy
- *   • In-trial (<= 3 days)     → amber, "upgrade now"
- *   • Trial expired (read-only)→ red, "workspace is read-only"
- *   • PAST_DUE                 → red, "update payment method"
- *   • CANCELED                 → red, "subscription canceled" (with deletion date if known)
- *   • Paid + active            → nothing
+ *   • canManageBilling → big banner with "Pick a plan" CTA to settings
+ *   • otherwise         → compact informational banner, no CTA
  *
- * Data is fetched via TanStack Query from `/api/settings/billing`.
- * If the request fails (billing not configured, network error, 401)
- * the banner silently renders nothing rather than blocking the UI.
+ * State rendered:
+ *   • In-trial (> 7 days)       aurora gradient, sparkles
+ *   • In-trial (3–7 days)       aurora gradient, clock
+ *   • In-trial (<= 3 days)      amber, clock, urgency copy
+ *   • Trial expired (read-only) red, lock
+ *   • PAST_DUE                  red, "update payment"
+ *   • CANCELED                  red, "subscription canceled" + deletion date
+ *   • ACTIVE / PAUSED / unknown nothing (silent)
+ *
+ * Data fetched from /api/trial-status (no permission gate — every user
+ * can fetch their own org's trial state). If the request fails the
+ * banner silently renders nothing rather than blocking the UI.
  */
 
 import { useQuery } from '@tanstack/react-query'
@@ -35,33 +40,26 @@ type SubscriptionStatus =
   | 'CANCELED'
   | 'PAUSED'
 
-interface BillingSubscription {
-  id: string
+interface TrialSubscription {
   status: SubscriptionStatus
-  trialEndsAt: string | null
   currentPeriodEnd: string | null
   cancelAtPeriodEnd: boolean
-  scheduledDeleteAt?: string | null
+  scheduledDeleteAt: string | null
 }
 
-interface BillingTrial {
-  startedAt: string | null
+interface TrialInfo {
   endsAt: string | null
   daysLeft: number | null
   inTrial: boolean
   expired: boolean
-  paid: boolean
   readOnly: boolean
+  paid: boolean
 }
 
-interface BillingResponse {
-  ok: boolean
-  data?: {
-    subscription: BillingSubscription | null
-    plans: unknown[]
-    trial: BillingTrial
-  }
-  error?: { code?: string; message?: string }
+interface TrialStatusData {
+  trial: TrialInfo
+  subscription: TrialSubscription | null
+  canManageBilling: boolean
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -69,16 +67,13 @@ interface BillingResponse {
 const BILLING_LINK = '/settings?tab=billing'
 
 /** Aurora gradient — matches brand Aurora in globals.css / ImpersonationBanner. */
-const AURORA_GRADIENT =
-  'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)'
+const AURORA_GRADIENT = 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)'
 
 /** Urgent amber — used when trial has 3 or fewer days remaining. */
-const AMBER_GRADIENT =
-  'linear-gradient(90deg, #F59E0B 0%, #F97316 100%)'
+const AMBER_GRADIENT = 'linear-gradient(90deg, #F59E0B 0%, #F97316 100%)'
 
 /** Critical red — used for trial-expired, past-due, canceled. */
-const RED_GRADIENT =
-  'linear-gradient(90deg, #DC2626 0%, #B91C1C 100%)'
+const RED_GRADIENT = 'linear-gradient(90deg, #DC2626 0%, #B91C1C 100%)'
 
 // ─── Presentation ────────────────────────────────────────────────────────────
 
@@ -90,16 +85,15 @@ interface BannerView {
 }
 
 function getBannerView(
-  trial: BillingTrial,
-  subscription: BillingSubscription | null
+  trial: TrialInfo,
+  subscription: TrialSubscription | null
 ): BannerView | null {
-  // Paid + active subscription → the org is a real customer; nothing to show.
+  // Paid + active → the org is a real customer; nothing to show.
   if (trial.paid && subscription?.status === 'ACTIVE') {
     return null
   }
 
-  // PAST_DUE takes priority over trial state — paying customer with a
-  // failing card needs to fix it now.
+  // PAST_DUE takes priority over trial state.
   if (subscription?.status === 'PAST_DUE') {
     return {
       background: RED_GRADIENT,
@@ -114,10 +108,9 @@ function getBannerView(
     }
   }
 
-  // Explicit cancelation state (user hit Cancel + Stripe webhook fired).
+  // Explicit cancelation.
   if (subscription?.status === 'CANCELED') {
-    const deletionDate =
-      subscription.scheduledDeleteAt ?? subscription.currentPeriodEnd
+    const deletionDate = subscription.scheduledDeleteAt ?? subscription.currentPeriodEnd
     const message = deletionDate ? (
       <>
         <strong className="font-semibold">Subscription canceled.</strong>{' '}
@@ -137,7 +130,7 @@ function getBannerView(
     }
   }
 
-  // Trial ended, workspace is read-only until they pick a plan.
+  // Trial ended → workspace is read-only.
   if (trial.readOnly) {
     return {
       background: RED_GRADIENT,
@@ -152,7 +145,7 @@ function getBannerView(
     }
   }
 
-  // Still inside the free trial — render the countdown.
+  // Inside the free trial — render the countdown.
   if (trial.inTrial && trial.daysLeft !== null) {
     const days = trial.daysLeft
 
@@ -196,45 +189,43 @@ function getBannerView(
           <strong className="font-semibold">
             Free trial — {days} days remaining.
           </strong>{' '}
-          Everything&rsquo;s unlocked. No card required until day {days === 30 ? 31 : '31'}.
+          Everything&rsquo;s unlocked. No card required.
         </>
       ),
       buttonLabel: 'See Plans',
     }
   }
 
-  // No trial info + no sub (legacy org or plan not yet picked but no trial
-  // data) → render nothing.
   return null
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TrialBanner() {
-  const { data, isError } = useQuery<BillingResponse>({
-    queryKey: ['billing', 'trial-banner'],
-    queryFn: () =>
-      fetchApi<BillingResponse>('/api/settings/billing').catch((error) => {
-        // Swallow non-auth errors so the banner silently hides rather
-        // than blocking the shell. 401 is already handled inside fetchApi.
-        return {
-          ok: false,
-          error: { message: (error as Error)?.message },
-        } satisfies BillingResponse
-      }),
-    // Refresh every 5 minutes — trial day count ticks down slowly,
-    // and subscription state changes are rare.
+  const { data, isError } = useQuery<TrialStatusData | null>({
+    queryKey: ['trial-status'],
+    queryFn: async () => {
+      try {
+        // fetchApi unwraps the { ok, data } envelope and returns the inner
+        // data directly — or throws on !ok. Swallow errors so the banner
+        // hides silently rather than blocking the shell.
+        return await fetchApi<TrialStatusData>('/api/trial-status')
+      } catch {
+        return null
+      }
+    },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: false,
   })
 
-  if (isError || !data?.ok || !data.data) return null
+  if (isError || !data) return null
 
-  const view = getBannerView(data.data.trial, data.data.subscription)
+  const view = getBannerView(data.trial, data.subscription)
   if (!view) return null
 
   const { background, Icon, message, buttonLabel } = view
+  const showCta = data.canManageBilling
 
   return (
     <motion.div
@@ -251,13 +242,15 @@ export default function TrialBanner() {
         <span className="flex-1 sm:flex-none text-center sm:text-left">
           {message}
         </span>
-        <Link
-          href={BILLING_LINK}
-          className="ml-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-        >
-          {buttonLabel}
-          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-        </Link>
+        {showCta && (
+          <Link
+            href={BILLING_LINK}
+            className="ml-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          >
+            {buttonLabel}
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          </Link>
+        )}
       </div>
     </motion.div>
   )
