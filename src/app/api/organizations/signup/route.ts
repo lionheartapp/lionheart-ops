@@ -121,7 +121,16 @@ export async function POST(req: NextRequest) {
 
     return response
   } catch (error) {
-    log.error({ err: error }, 'Signup error')
+    // Extract Prisma error metadata so we can see which constraint blew up
+    const prismaMeta =
+      error && typeof error === 'object' && 'code' in error
+        ? {
+            code: (error as { code?: unknown }).code,
+            meta: (error as { meta?: unknown }).meta,
+            message: error instanceof Error ? error.message : String(error),
+          }
+        : undefined
+    log.error({ err: error, prismaMeta }, 'Signup error')
     Sentry.captureException(error)
 
     // Handle Zod validation errors

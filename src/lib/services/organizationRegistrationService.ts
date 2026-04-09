@@ -163,31 +163,95 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
     }
   }
 
-  // ── Step 2: Upsert permissions into the global Permission table ──
-  // Permission rows are shared across orgs; if they already exist (from a prior signup)
-  // we simply reuse them.
+  // ── Step 2: Batch-seed the global Permission table (3 queries instead of ~175) ──
   //
-  // IMPORTANT: serialized with for...of rather than Promise.all because
-  // Vercel serverless instances share a small Prisma connection pool
-  // (default 3 connections). Firing 40+ upserts in parallel exhausts the
-  // pool and triggers P2024 "Timed out fetching a new connection".
-  const permissionMap = new Map<string, string>() // permString → db id
-
-  for (const permString of allPermStrings) {
+  // Previously this did ~175 sequential upserts — 15+ seconds on serverless
+  // connection pool. Now: findMany existing → createMany missing → findMany
+  // all → build the map. Permissions are global (shared across orgs) so this
+  // is safe.
+  const parsedPerms = Array.from(allPermStrings).map((permString) => {
     const { resource, action, scope } = parsePermissionString(permString)
-    const row = await rawPrisma.permission.upsert({
-      where: { resource_action_scope: { resource, action, scope } },
-      create: { resource, action, scope },
-      update: {}, // already exists — nothing to change
-      select: { id: true },
+    return { permString, resource, action, scope }
+  })
+
+  // Fetch every permission tuple that already exists (one query).
+  // Each parsed tuple is unique after deduping via the Set above, but the
+  // same (resource, action, scope) might come from multiple strings (e.g.
+  // "*:*" and "*:*:global") — that's fine, the map below handles it.
+  const whereClauses = parsedPerms.map(({ resource, action, scope }) => ({
+    resource,
+    action,
+    scope,
+  }))
+  const existingRows = await rawPrisma.permission.findMany({
+    where: { OR: whereClauses },
+    select: { id: true, resource: true, action: true, scope: true },
+  })
+
+  const tupleKey = (r: string, a: string, s: string) => `${r}::${a}::${s}`
+  const existingByTuple = new Map<string, string>() // tuple → db id
+  for (const row of existingRows) {
+    existingByTuple.set(tupleKey(row.resource, row.action, row.scope), row.id)
+  }
+
+  // Figure out which tuples are missing and need creation.
+  const missingTuples: Array<{ resource: string; action: string; scope: string }> = []
+  const seenMissing = new Set<string>()
+  for (const p of parsedPerms) {
+    const key = tupleKey(p.resource, p.action, p.scope)
+    if (!existingByTuple.has(key) && !seenMissing.has(key)) {
+      missingTuples.push({ resource: p.resource, action: p.action, scope: p.scope })
+      seenMissing.add(key)
+    }
+  }
+
+  // createMany the missing rows in a single query.
+  if (missingTuples.length > 0) {
+    await rawPrisma.permission.createMany({
+      data: missingTuples,
+      skipDuplicates: true,
     })
-    permissionMap.set(permString, row.id)
+
+    // Re-fetch the newly-created rows to pick up their IDs.
+    const newRows = await rawPrisma.permission.findMany({
+      where: { OR: missingTuples },
+      select: { id: true, resource: true, action: true, scope: true },
+    })
+    for (const row of newRows) {
+      existingByTuple.set(tupleKey(row.resource, row.action, row.scope), row.id)
+    }
+  }
+
+  // Build the string → id map callers need.
+  const permissionMap = new Map<string, string>()
+  for (const p of parsedPerms) {
+    const id = existingByTuple.get(tupleKey(p.resource, p.action, p.scope))
+    if (!id) {
+      throw new Error(`seedOrgDefaults: permission tuple not found after seeding: ${p.permString}`)
+    }
+    permissionMap.set(p.permString, id)
   }
 
   // ── Step 3: Create org-scoped roles and link their permissions ──
+  //
+  // Each role is created sequentially (one query per role) with a nested
+  // RolePermission createMany. Sequentially to stay within the serverless
+  // connection pool. Defensive dedupe on the permissions list so duplicate
+  // entries in a role definition don't trigger a unique constraint.
   let superAdminRoleId = ''
 
   for (const roleDef of Object.values(DEFAULT_ROLES)) {
+    // Map permission strings → IDs and dedupe (same tuple from different
+    // strings still gets inserted once).
+    const seenPermIds = new Set<string>()
+    const permissionLinks: Array<{ permissionId: string }> = []
+    for (const permString of roleDef.permissions) {
+      const permId = permissionMap.get(permString)
+      if (!permId || seenPermIds.has(permId)) continue
+      seenPermIds.add(permId)
+      permissionLinks.push({ permissionId: permId })
+    }
+
     const role = await rawPrisma.role.create({
       data: {
         organizationId: orgId,
@@ -196,9 +260,10 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
         description:    roleDef.description,
         isSystem:       roleDef.isSystem,
         permissions: {
-          create: roleDef.permissions.map((permString) => ({
-            permissionId: permissionMap.get(permString)!,
-          })),
+          createMany: {
+            data: permissionLinks,
+            skipDuplicates: true,
+          },
         },
       },
       select: { id: true, slug: true },
@@ -213,19 +278,17 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
     throw new Error('seedOrgDefaults: super-admin role was not created')
   }
 
-  // ── Step 4: Create org-scoped default teams ──
-  // Serialized to avoid exhausting the serverless Prisma connection pool (see Step 2).
-  for (const teamDef of Object.values(DEFAULT_TEAMS)) {
-    await rawPrisma.team.create({
-      data: {
-        organizationId: orgId,
-        name:           teamDef.name,
-        slug:           teamDef.slug,
-        description:    teamDef.description,
-        teamType:       null,
-      },
-    })
-  }
+  // ── Step 4: Create org-scoped default teams (1 query via createMany) ──
+  await rawPrisma.team.createMany({
+    data: Object.values(DEFAULT_TEAMS).map((teamDef) => ({
+      organizationId: orgId,
+      name:           teamDef.name,
+      slug:           teamDef.slug,
+      description:    teamDef.description,
+      teamType:       null,
+    })),
+    skipDuplicates: true,
+  })
 
   // ── Step 5: Create default headquarters campus ──
   const org = await rawPrisma.organization.findUnique({
