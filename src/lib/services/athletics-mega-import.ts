@@ -148,18 +148,23 @@ export async function megaImportAthletics(rows: MegaImportRow[]): Promise<MegaIm
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     const rowLabel = `Row ${i + 1}`
+    if (!row) continue
 
     try {
       // ── Validate required fields ─────────────────────────────────────
-      if (!row.sport?.trim()) {
+      const sportRaw = row.sport?.trim()
+      const seasonRaw = row.season?.trim()
+      const teamRaw = row.team?.trim()
+
+      if (!sportRaw) {
         result.players.errors.push(`${rowLabel}: Sport name is required`)
         continue
       }
-      if (!row.season?.trim()) {
+      if (!seasonRaw) {
         result.players.errors.push(`${rowLabel}: Season name is required`)
         continue
       }
-      if (!row.team?.trim()) {
+      if (!teamRaw) {
         result.players.errors.push(`${rowLabel}: Team name is required`)
         continue
       }
@@ -168,25 +173,27 @@ export async function megaImportAthletics(rows: MegaImportRow[]): Promise<MegaIm
         continue
       }
 
-      const sportKey = row.sport.trim().toLowerCase()
-      const seasonKey = row.season.trim().toLowerCase()
-      const teamName = row.team.trim()
+      const sportKey = sportRaw.toLowerCase()
+      const seasonKey = seasonRaw.toLowerCase()
+      const teamName = teamRaw
       const teamKey = teamName.toLowerCase()
 
       // ── Get or create sport ──────────────────────────────────────────
-      let sportId = sportMap.get(sportKey)
-      if (!sportId) {
+      let sportId: string
+      const existingSportId = sportMap.get(sportKey)
+      if (!existingSportId) {
         const sport = await db.sport.create({
           data: {
-            name: row.sport.trim(),
+            name: sportRaw,
             color: nextColor(),
-            seasonType: guessSeasonType(row.season),
+            seasonType: guessSeasonType(seasonRaw),
           },
         })
-        sportId = sport.id
+        sportId = sport.id as string
         sportMap.set(sportKey, sportId)
         result.sports.created++
       } else {
+        sportId = existingSportId
         // Only count as reused once per unique sport
         if (!sportMap.has(`__counted__${sportKey}`)) {
           result.sports.reused++
@@ -196,22 +203,24 @@ export async function megaImportAthletics(rows: MegaImportRow[]): Promise<MegaIm
 
       // ── Get or create season ─────────────────────────────────────────
       const seasonLookup = `${sportId}|${seasonKey}`
-      let seasonId = seasonMap.get(seasonLookup)
-      if (!seasonId) {
-        const dates = guessSeasonDates(row.season)
+      let seasonId: string
+      const existingSeasonId = seasonMap.get(seasonLookup)
+      if (!existingSeasonId) {
+        const dates = guessSeasonDates(seasonRaw)
         const season = await db.athleticSeason.create({
           data: {
             sportId,
-            name: row.season.trim(),
+            name: seasonRaw,
             startDate: dates.start,
             endDate: dates.end,
             isCurrent: true,
           },
         })
-        seasonId = season.id
+        seasonId = season.id as string
         seasonMap.set(seasonLookup, seasonId)
         result.seasons.created++
       } else {
+        seasonId = existingSeasonId
         if (!seasonMap.has(`__counted__${seasonLookup}`)) {
           result.seasons.reused++
           seasonMap.set(`__counted__${seasonLookup}`, seasonId)
@@ -220,8 +229,9 @@ export async function megaImportAthletics(rows: MegaImportRow[]): Promise<MegaIm
 
       // ── Get or create team ───────────────────────────────────────────
       const teamLookup = `${seasonId}|${teamKey}`
-      let teamId = teamMap.get(teamLookup)
-      if (!teamId) {
+      let teamId: string
+      const existingTeamId = teamMap.get(teamLookup)
+      if (!existingTeamId) {
         const team = await db.athleticTeam.create({
           data: {
             sportId,
@@ -230,10 +240,11 @@ export async function megaImportAthletics(rows: MegaImportRow[]): Promise<MegaIm
             level: normalizeLevel(row.level),
           },
         })
-        teamId = team.id
+        teamId = team.id as string
         teamMap.set(teamLookup, teamId)
         result.teams.created++
       } else {
+        teamId = existingTeamId
         if (!teamMap.has(`__counted__${teamLookup}`)) {
           result.teams.reused++
           teamMap.set(`__counted__${teamLookup}`, teamId)
