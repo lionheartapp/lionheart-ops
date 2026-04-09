@@ -10,12 +10,25 @@ import {
   Download,
   ExternalLink,
   Loader2,
+  Mail,
+  Sparkles,
   Star,
   Ban,
   AlertTriangle,
   Trash2,
 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { getFeatureList, isEnterprisePlan } from '@/lib/plan-features'
+
+// Enterprise contact-sales target — kept in sync with onboarding/plan/page.tsx.
+const SALES_EMAIL = 'sales@lionheartapp.com'
+function buildSalesMailto(orgName: string): string {
+  const subject = encodeURIComponent('Enterprise plan inquiry')
+  const body = encodeURIComponent(
+    `Hi Lionheart team,\n\nI'd like to talk about the Enterprise plan${orgName ? ` for ${orgName}` : ''}.\n\nThanks,\n`
+  )
+  return `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,6 +67,16 @@ interface InvoiceItem {
   status: string
   pdfUrl: string | null
   description: string | null
+}
+
+interface TrialInfo {
+  startedAt: string | null
+  endsAt: string | null
+  daysLeft: number | null
+  inTrial: boolean
+  expired: boolean
+  paid: boolean
+  readOnly: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -112,18 +135,8 @@ function getInvoiceStatusConfig(status: string) {
   }
 }
 
-function getFeatureList(features: Record<string, unknown> | null): string[] {
-  if (!features) return []
-  return Object.entries(features).map(([key, value]) => {
-    const label = key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (s) => s.toUpperCase())
-      .trim()
-    if (typeof value === 'boolean') return value ? label : `No ${label}`
-    if (typeof value === 'number') return `${label}: ${value}`
-    return `${label}: ${value}`
-  })
-}
+// Feature list rendering is shared with the onboarding/plan picker —
+// see src/lib/plan-features.ts.
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -164,9 +177,12 @@ export default function BillingTab() {
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
+  const [trial, setTrial] = useState<TrialInfo | null>(null)
   const [invoices, setInvoices] = useState<InvoiceItem[]>([])
   const [invoicesLoading, setInvoicesLoading] = useState(true)
   const [stripeConfigured, setStripeConfigured] = useState(true)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState('')
 
   // Plan change dialog state
   const [changingToPlan, setChangingToPlan] = useState<SubscriptionPlan | null>(null)
@@ -215,6 +231,7 @@ export default function BillingTab() {
         if (data.ok) {
           setSubscription(data.data.subscription)
           setPlans(data.data.plans)
+          setTrial(data.data.trial ?? null)
           // If no plans and no subscription, Stripe likely not configured
           if (!data.data.subscription && data.data.plans.length === 0) {
             setStripeConfigured(false)
@@ -233,6 +250,31 @@ export default function BillingTab() {
     }
     fetchBilling()
   }, [getHeaders])
+
+  // Kick off Stripe Checkout for a plan the user has no subscription for yet.
+  // Used when rendering the free-trial state (no subscription row exists, so
+  // the existing change-plan flow doesn't apply — we go through checkout).
+  const handleStartCheckout = async (plan: SubscriptionPlan) => {
+    setCheckoutLoading(plan.id)
+    setCheckoutError('')
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ planId: plan.id }),
+      })
+      const data = await res.json()
+      if (data.ok && data.data?.url) {
+        window.location.href = data.data.url
+        return
+      }
+      setCheckoutError(data.error?.message || 'Failed to start checkout. Please try again.')
+    } catch {
+      setCheckoutError('An unexpected error occurred. Please try again.')
+    } finally {
+      setCheckoutLoading(null)
+    }
+  }
 
   // Fetch invoices separately
   useEffect(() => {
@@ -497,13 +539,6 @@ export default function BillingTab() {
                     : 'Free'}
                 </div>
 
-                {subscription.status === 'TRIALING' && (
-                  <p className="text-sm text-primary-700">
-                    Trial ends {formatDate(subscription.trialEndsAt)}
-                    {trialDaysLeft !== null && ` (${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} remaining)`}
-                  </p>
-                )}
-
                 {subscription.currentPeriodEnd && subscription.status !== 'CANCELED' && (
                   <p className="text-sm text-slate-600">
                     {subscription.cancelAtPeriodEnd ? 'Cancels' : 'Renews'} on{' '}
@@ -517,12 +552,56 @@ export default function BillingTab() {
               </div>
             </div>
           </div>
+        ) : trial?.expired ? (
+          <div className="bg-gradient-to-br from-red-50 to-red-100/70 border border-red-200 rounded-2xl p-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Free trial ended</h3>
+                <p className="text-sm text-slate-700 mt-1">
+                  Your workspace is in read-only mode. Pick a plan below to keep editing.
+                  You won&apos;t lose any data.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : trial?.inTrial ? (
+          <div className="bg-gradient-to-br from-primary-50 to-indigo-100 border border-primary-200 rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-primary-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Free trial</h3>
+                  <div className="mt-1 text-3xl font-bold text-slate-900">
+                    {trial.daysLeft !== null
+                      ? `${trial.daysLeft} ${trial.daysLeft === 1 ? 'day' : 'days'} remaining`
+                      : 'Active'}
+                  </div>
+                  {trial.endsAt && (
+                    <p className="text-sm text-slate-700 mt-1">
+                      Trial ends {formatDate(trial.endsAt)}. No card required until you pick a plan.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="ui-glass p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold text-slate-900">No active plan</h3>
               <p className="text-sm text-slate-500 mt-1">Select a plan below to get started.</p>
             </div>
+          </div>
+        )}
+
+        {checkoutError && (
+          <div
+            role="alert"
+            className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 flex items-start gap-2"
+          >
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-red-700">{checkoutError}</p>
           </div>
         )}
       </section>
@@ -539,12 +618,17 @@ export default function BillingTab() {
               <p className="text-xs text-slate-500">Compare and switch between plans</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {plans.map((plan) => {
               const isCurrent = plan.id === currentPlanId
               const isUpgrade = plan.displayOrder > currentPlanOrder
               const isDowngrade = !isCurrent && plan.displayOrder < currentPlanOrder && currentPlanOrder > -1
+              const isEnterprise = isEnterprisePlan(plan)
               const featureList = getFeatureList(plan.features)
+              const isLoadingCheckout = checkoutLoading === plan.id
+              // No existing subscription → user is on free trial; clicking a plan
+              // should create a Stripe Checkout session instead of changing plans.
+              const isInitialCheckout = !subscription && !isEnterprise
 
               return (
                 <div
@@ -566,19 +650,19 @@ export default function BillingTab() {
 
                   <div>
                     <h3 className="font-bold text-slate-900 text-lg">{plan.name}</h3>
-                    <div className="mt-1">
+                    <div className="mt-1 flex items-baseline gap-1.5">
                       <span className="text-2xl font-bold text-slate-900">
-                        {plan.monthlyPrice > 0 ? formatCents(plan.monthlyPrice) : 'Free'}
+                        {plan.annualPrice
+                          ? formatCents(plan.annualPrice)
+                          : formatCents(plan.monthlyPrice * 12)}
                       </span>
-                      {plan.monthlyPrice > 0 && (
-                        <span className="text-sm text-slate-500">/mo</span>
-                      )}
+                      <span className="text-sm text-slate-500">/year</span>
                     </div>
-                    {plan.annualPrice && (
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {formatCents(plan.annualPrice)}/yr (save {Math.round((1 - plan.annualPrice / (plan.monthlyPrice * 12)) * 100)}%)
-                      </p>
-                    )}
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {isEnterprise
+                        ? 'Custom pricing available for multi-campus'
+                        : `Billed ${formatCents(plan.monthlyPrice)}/month`}
+                    </p>
                   </div>
 
                   {featureList.length > 0 && (
@@ -597,18 +681,42 @@ export default function BillingTab() {
                       <div className="text-center text-sm text-primary-600 font-medium py-2">
                         Your current plan
                       </div>
+                    ) : isEnterprise ? (
+                      <a
+                        href={buildSalesMailto(orgName)}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Contact Sales
+                      </a>
                     ) : (
                       <button
-                        onClick={() => handlePlanSelect(plan)}
-                        className={`w-full py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                          isUpgrade
-                            ? 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]'
-                            : isDowngrade
+                        onClick={() =>
+                          isInitialCheckout
+                            ? handleStartCheckout(plan)
+                            : handlePlanSelect(plan)
+                        }
+                        disabled={isLoadingCheckout || checkoutLoading !== null}
+                        className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                          isDowngrade
                             ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.97]'
                             : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]'
                         }`}
                       >
-                        {isUpgrade ? 'Upgrade' : isDowngrade ? 'Downgrade' : 'Select Plan'}
+                        {isLoadingCheckout ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Redirecting…
+                          </>
+                        ) : isInitialCheckout ? (
+                          `Upgrade to ${plan.name}`
+                        ) : isUpgrade ? (
+                          'Upgrade'
+                        ) : isDowngrade ? (
+                          'Downgrade'
+                        ) : (
+                          'Select Plan'
+                        )}
                       </button>
                     )}
                   </div>

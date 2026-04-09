@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Check, Loader2, AlertCircle, Mail, Sparkles } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { getFeatureList, isEnterprisePlan } from '@/lib/plan-features'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -61,93 +62,9 @@ function formatMonthlyPrice(plan: SubscriptionPlan): string {
   return `$${dollars.toLocaleString('en-US')}/mo`
 }
 
-// Features whose keys we never surface to users (internal flags / metadata).
-const HIDDEN_FEATURE_KEYS = new Set(['mostPopular', '_note'])
-
-// Explicit human labels for feature keys. Needed because a naive camelCase
-// splitter turns `fullITSuite` into "Full I T Suite" and `ssoSaml` into
-// "Sso Saml". Keeping this as a lookup keeps acronyms intact.
-const FEATURE_LABELS: Record<string, string> = {
-  campuses: 'Campuses',
-  aiActionsPerMonth: 'AI actions / month',
-  calendaring: 'Calendaring',
-  eventPlanning: 'Event planning',
-  maintenanceTickets: 'Maintenance tickets',
-  itTickets: 'IT tickets',
-  avRequests: 'A/V requests',
-  roomManagement: 'Room management',
-  systemRoles: 'System roles',
-  standardReporting: 'Standard reporting',
-  emailSupport: 'Email support',
-  everythingInEssentials: 'Everything in Essentials',
-  fullMaintenanceSuite: 'Full maintenance suite',
-  fullITSuite: 'Full IT suite',
-  fullAVSuite: 'Full A/V suite',
-  googleCalendarSync: 'Google Calendar sync',
-  outlookCalendarSync: 'Outlook Calendar sync',
-  customRolesAndPermissions: 'Custom roles & permissions',
-  advancedReporting: 'Advanced reporting',
-  prioritySupport: 'Priority support',
-  everythingInPro: 'Everything in Pro',
-  ssoSaml: 'SSO / SAML',
-  auditLogs: 'Audit logs',
-  apiAccess: 'API access',
-  customPermissionScopes: 'Custom permission scopes',
-  whiteLabel: 'White label',
-  dedicatedCSM: 'Dedicated CSM',
-  uptimeSLA: 'Uptime SLA',
-  quarterlyBusinessReviews: 'Quarterly business reviews',
-  phoneSupport: 'Phone support',
-  additionalCampusPrice: 'Additional campus',
-}
-
-function humanizeFeatureKey(key: string): string {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (s) => s.toUpperCase())
-    .trim()
-}
-
-function formatCentsToDollars(cents: number): string {
-  return `$${Math.round(cents / 100).toLocaleString('en-US')}`
-}
-
-function formatFeatureRow(key: string, value: unknown): string {
-  const label = FEATURE_LABELS[key] ?? humanizeFeatureKey(key)
-
-  // Special-case keys that need custom formatting.
-  if (key === 'additionalCampusPrice' && typeof value === 'number') {
-    return `${label}: ${formatCentsToDollars(value)}/yr`
-  }
-  if (key === 'aiActionsPerMonth') {
-    if (value === 'unlimited') return 'Unlimited AI actions / month'
-    return `${label}: ${value}`
-  }
-  if (key === 'campuses' && typeof value === 'number') {
-    return value === 1 ? '1 campus included' : `${value} campuses included`
-  }
-
-  if (typeof value === 'boolean') return value ? label : ''
-  if (typeof value === 'number') return `${label}: ${value.toLocaleString('en-US')}`
-  if (typeof value === 'string') return `${label}: ${value}`
-  return ''
-}
-
-function getFeatureList(plan: SubscriptionPlan): string[] {
-  if (!plan.features) return []
-  return Object.entries(plan.features)
-    .filter(([key]) => !HIDDEN_FEATURE_KEYS.has(key))
-    .map(([key, value]) => formatFeatureRow(key, value))
-    .filter(Boolean)
-}
-
 function isProPlan(plan: SubscriptionPlan): boolean {
   const slug = plan.slug.toLowerCase()
   return slug === 'pro' || slug.includes('pro')
-}
-
-function isEnterprisePlan(plan: SubscriptionPlan): boolean {
-  return plan.slug.toLowerCase().includes('enterprise')
 }
 
 /** Mailto target for Enterprise "Contact sales" CTAs. */
@@ -311,7 +228,7 @@ export default function OnboardingPlanPage() {
               const isEnterprise = isEnterprisePlan(plan)
               const isSelected = selectedPlanId === plan.id
               const isAnyLoading = selectedPlanId !== null
-              const features = getFeatureList(plan)
+              const features = getFeatureList(plan.features)
 
               return (
                 <motion.div
