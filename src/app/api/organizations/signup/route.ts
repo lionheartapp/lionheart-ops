@@ -33,6 +33,7 @@ import { signAuthToken } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
 import { ZodError } from 'zod'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
+import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { sendVerificationEmail } from '@/lib/services/emailService'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
@@ -101,23 +102,13 @@ export async function POST(req: NextRequest) {
     )
 
     // Set httpOnly auth cookie (primary auth mechanism — replaces localStorage JWT)
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    // Domain is .lionheartapp.com in production so the cookie follows the user
+    // across www → {orgSlug} → platform subdomains during onboarding handoff.
+    response.cookies.set('auth-token', token, authCookieOptions())
 
     // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
     const csrfToken = crypto.randomUUID()
-    response.cookies.set('csrf-token', csrfToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    response.cookies.set('csrf-token', csrfToken, csrfCookieOptions())
 
     return response
   } catch (error) {

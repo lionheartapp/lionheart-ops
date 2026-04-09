@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+import { clearCookieOptions } from '@/lib/auth/cookie-options'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -14,23 +15,10 @@ export async function POST() {
   try {
     const response = NextResponse.json(ok({ success: true }))
 
-    // Clear auth cookie
-    response.cookies.set('auth-token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 0,
-    })
-
-    // Clear CSRF cookie
-    response.cookies.set('csrf-token', '', {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 0,
-    })
+    // Clear auth + csrf cookies. Must match the domain the original set
+    // used (`.lionheartapp.com` in prod) or the browser won't clear them.
+    response.cookies.set('auth-token', '', clearCookieOptions())
+    response.cookies.set('csrf-token', '', { ...clearCookieOptions(), httpOnly: false })
 
     return response
   } catch (error) {

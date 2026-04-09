@@ -261,6 +261,8 @@ export async function middleware(req: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
+        // Match auth-token domain so the cookie survives subdomain hops (www → {orgSlug})
+        ...(process.env.NODE_ENV === 'production' ? { domain: '.lionheartapp.com' } : {}),
       })
       return response
     }

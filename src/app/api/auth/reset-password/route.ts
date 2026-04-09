@@ -5,6 +5,7 @@ import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'
+import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { audit, getIp } from '@/lib/services/auditService'
 import { passwordSchema } from '@/lib/validation/password'
 import { logger } from '@/lib/logger'
@@ -145,23 +146,11 @@ export async function POST(req: NextRequest) {
     )
 
     // Set httpOnly auth cookie for auto-login after reset (same pattern as login endpoint)
-    response.cookies.set('auth-token', authToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    response.cookies.set('auth-token', authToken, authCookieOptions())
 
     // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
     const csrfToken = crypto.randomUUID()
-    response.cookies.set('csrf-token', csrfToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    response.cookies.set('csrf-token', csrfToken, csrfCookieOptions())
 
     return response
   } catch (error) {

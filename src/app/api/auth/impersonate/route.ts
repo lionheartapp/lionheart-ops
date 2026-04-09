@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken, signAuthToken } from '@/lib/auth'
+import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { audit, getIp } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
 
-const COOKIE_OPTS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  path: '/',
-  maxAge: 30 * 24 * 60 * 60,
-}
+const COOKIE_OPTS = authCookieOptions()
 
 /**
  * POST /api/auth/impersonate

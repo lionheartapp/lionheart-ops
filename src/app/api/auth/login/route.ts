@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { signAuthToken } from '@/lib/auth'
+import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { audit, getIp } from '@/lib/services/auditService'
 import { loginRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
@@ -134,23 +135,13 @@ export async function POST(req: NextRequest) {
       )
 
       // Set httpOnly auth cookie (not accessible via document.cookie)
-      response.cookies.set('auth-token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-      })
+      // Cookie domain is .lionheartapp.com in production so it follows the
+      // user across tenant subdomains.
+      response.cookies.set('auth-token', token, authCookieOptions())
 
       // Set CSRF token (non-httpOnly so JS can read it for X-CSRF-Token header)
       const csrfToken = crypto.randomUUID()
-      response.cookies.set('csrf-token', csrfToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-      })
+      response.cookies.set('csrf-token', csrfToken, csrfCookieOptions())
 
       return response
     })

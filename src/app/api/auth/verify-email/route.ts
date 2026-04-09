@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'
+import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -106,22 +107,10 @@ export async function GET(req: NextRequest) {
     url.search = ''
     const response = NextResponse.redirect(url, 302)
 
-    response.cookies.set('auth-token', authToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    response.cookies.set('auth-token', authToken, authCookieOptions())
 
     const csrfToken = crypto.randomUUID()
-    response.cookies.set('csrf-token', csrfToken, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
+    response.cookies.set('csrf-token', csrfToken, csrfCookieOptions())
 
     return response
   } catch (error) {
