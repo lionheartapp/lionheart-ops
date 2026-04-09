@@ -80,9 +80,10 @@ export default function SignupPage() {
         localStorage.setItem('user-name', name)
         localStorage.setItem('user-email', email)
 
-        // Auth token is now in httpOnly cookie set by the server — no localStorage write needed
-        // Redirect to onboarding
-        window.location.href = '/onboarding/school-info'
+        // Auth token is now in httpOnly cookie set by the server — no localStorage write needed.
+        // Plan selection (card + trial) is the FIRST onboarding step so we
+        // collect a payment method before the user invests time in setup.
+        window.location.href = '/onboarding/plan'
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
