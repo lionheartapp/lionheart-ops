@@ -166,20 +166,23 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
   // ── Step 2: Upsert permissions into the global Permission table ──
   // Permission rows are shared across orgs; if they already exist (from a prior signup)
   // we simply reuse them.
+  //
+  // IMPORTANT: serialized with for...of rather than Promise.all because
+  // Vercel serverless instances share a small Prisma connection pool
+  // (default 3 connections). Firing 40+ upserts in parallel exhausts the
+  // pool and triggers P2024 "Timed out fetching a new connection".
   const permissionMap = new Map<string, string>() // permString → db id
 
-  await Promise.all(
-    Array.from(allPermStrings).map(async (permString) => {
-      const { resource, action, scope } = parsePermissionString(permString)
-      const row = await rawPrisma.permission.upsert({
-        where: { resource_action_scope: { resource, action, scope } },
-        create: { resource, action, scope },
-        update: {}, // already exists — nothing to change
-        select: { id: true },
-      })
-      permissionMap.set(permString, row.id)
+  for (const permString of allPermStrings) {
+    const { resource, action, scope } = parsePermissionString(permString)
+    const row = await rawPrisma.permission.upsert({
+      where: { resource_action_scope: { resource, action, scope } },
+      create: { resource, action, scope },
+      update: {}, // already exists — nothing to change
+      select: { id: true },
     })
-  )
+    permissionMap.set(permString, row.id)
+  }
 
   // ── Step 3: Create org-scoped roles and link their permissions ──
   let superAdminRoleId = ''
@@ -211,19 +214,18 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
   }
 
   // ── Step 4: Create org-scoped default teams ──
-  await Promise.all(
-    Object.values(DEFAULT_TEAMS).map((teamDef) =>
-      rawPrisma.team.create({
-        data: {
-          organizationId: orgId,
-          name:           teamDef.name,
-          slug:           teamDef.slug,
-          description:    teamDef.description,
-          teamType:       null,
-        },
-      })
-    )
-  )
+  // Serialized to avoid exhausting the serverless Prisma connection pool (see Step 2).
+  for (const teamDef of Object.values(DEFAULT_TEAMS)) {
+    await rawPrisma.team.create({
+      data: {
+        organizationId: orgId,
+        name:           teamDef.name,
+        slug:           teamDef.slug,
+        description:    teamDef.description,
+        teamType:       null,
+      },
+    })
+  }
 
   // ── Step 5: Create default headquarters campus ──
   const org = await rawPrisma.organization.findUnique({
@@ -287,20 +289,19 @@ export async function syncRolePermissions(orgId: string): Promise<void> {
   }
 
   // ── Step 2: Upsert global Permission rows ──
+  // Serialized to avoid exhausting the serverless Prisma connection pool.
   const permissionMap = new Map<string, string>() // permString → db id
 
-  await Promise.all(
-    Array.from(allPermStrings).map(async (permString) => {
-      const { resource, action, scope } = parsePermissionString(permString)
-      const row = await rawPrisma.permission.upsert({
-        where: { resource_action_scope: { resource, action, scope } },
-        create: { resource, action, scope },
-        update: {},
-        select: { id: true },
-      })
-      permissionMap.set(permString, row.id)
+  for (const permString of allPermStrings) {
+    const { resource, action, scope } = parsePermissionString(permString)
+    const row = await rawPrisma.permission.upsert({
+      where: { resource_action_scope: { resource, action, scope } },
+      create: { resource, action, scope },
+      update: {},
+      select: { id: true },
     })
-  )
+    permissionMap.set(permString, row.id)
+  }
 
   // ── Step 3: Fetch existing system roles for this org ──
   const existingRoles = await rawPrisma.role.findMany({
