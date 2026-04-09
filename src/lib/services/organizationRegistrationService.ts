@@ -374,56 +374,66 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // Hash password (outside transaction — CPU-bound, not a DB operation)
   const passwordHash = await bcrypt.hash(validated.adminPassword, 10)
 
-  // Wrap all DB writes in a transaction so partial failures roll back atomically.
-  // seedOrgDefaults uses rawPrisma internally but it is safe inside the interactive
-  // transaction because Supabase/PostgreSQL serializes the writes at the DB level.
-  // If any step fails the entire org creation rolls back — no orphaned orgs or users.
-  return rawPrisma.$transaction(async (tx) => {
-    // ── Step 1: Create the organization and its first admin user ──
-    // Auto-detect timezone from school address (US states)
-    const detectedTimezone = timezoneFromAddress(validated.physicalAddress)
+  // NOTE: This flow no longer uses an interactive $transaction.
+  //
+  // Supabase's PgBouncer (DATABASE_URL, port 6543) runs in transaction pool
+  // mode, which does NOT support Prisma's interactive transactions — they
+  // hang waiting for a sticky connection that the pooler can't provide,
+  // eventually timing out with PrismaClientKnownRequestError (transaction
+  // invalid / timeout). The old 15s→60s bump just delayed the inevitable.
+  //
+  // Atomicity was already broken anyway: `seedOrgDefaults` used `rawPrisma`
+  // (not `tx`), so half the writes were never part of the transaction.
+  //
+  // Instead, if any step fails after the org is created, we hard-delete
+  // the org via rawPrisma — the schema's `onDelete: Cascade` relations
+  // clean up users, roles, teams, campus, calendars, and everything else.
 
-    const org = await tx.organization.create({
-      data: {
-        name:            validated.name,
-        institutionType: validated.institutionType,
-        gradeLevel:      validated.gradeLevel,
-        slug:            validated.slug.toLowerCase(),
-        physicalAddress: validated.physicalAddress ?? null,
-        ...(detectedTimezone ? { timezone: detectedTimezone } : {}),
-        district:        validated.district ?? null,
-        website:         validated.website ?? null,
-        phone:           validated.phone ?? null,
-        principalName:   validated.principalName ?? validated.adminName,
-        principalEmail:  validated.principalEmail ?? validated.adminEmail,
-        principalPhone:  validated.principalPhone ?? null,
-        gradeRange:      validated.gradeRange ?? null,
-        studentCount:    validated.studentCount ?? null,
-        staffCount:      validated.staffCount ?? null,
-        users: {
-          create: {
-            email:        validated.adminEmail,
-            name:         validated.adminName,
-            passwordHash,
-            status:       'ACTIVE',
-          },
+  // Step 1: Create the organization and its first admin user
+  const detectedTimezone = timezoneFromAddress(validated.physicalAddress)
+
+  const org = await rawPrisma.organization.create({
+    data: {
+      name:            validated.name,
+      institutionType: validated.institutionType,
+      gradeLevel:      validated.gradeLevel,
+      slug:            validated.slug.toLowerCase(),
+      physicalAddress: validated.physicalAddress ?? null,
+      ...(detectedTimezone ? { timezone: detectedTimezone } : {}),
+      district:        validated.district ?? null,
+      website:         validated.website ?? null,
+      phone:           validated.phone ?? null,
+      principalName:   validated.principalName ?? validated.adminName,
+      principalEmail:  validated.principalEmail ?? validated.adminEmail,
+      principalPhone:  validated.principalPhone ?? null,
+      gradeRange:      validated.gradeRange ?? null,
+      studentCount:    validated.studentCount ?? null,
+      staffCount:      validated.staffCount ?? null,
+      users: {
+        create: {
+          email:        validated.adminEmail,
+          name:         validated.adminName,
+          passwordHash,
+          status:       'ACTIVE',
         },
       },
-      include: {
-        users: { select: { id: true } },
-      },
-    })
+    },
+    include: {
+      users: { select: { id: true } },
+    },
+  })
 
-    const adminUser = org.users[0]
-    if (!adminUser) {
-      throw new Error('createOrganization: admin user was not created')
-    }
+  const adminUser = org.users[0]
+  if (!adminUser) {
+    throw new Error('createOrganization: admin user was not created')
+  }
 
-    // ── Step 2: Seed default roles, permissions, and teams ──
+  try {
+    // Step 2: Seed default roles, permissions, teams, campus, calendar
     const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id)
 
-    // ── Step 3: Assign the super-admin role to the first admin user ──
-    const updatedUser = await tx.user.update({
+    // Step 3: Assign the super-admin role to the first admin user
+    const updatedUser = await rawPrisma.user.update({
       where: { id: adminUser.id },
       data:  { roleId: superAdminRoleId },
       select: {
@@ -436,8 +446,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
       },
     })
 
-    // ── Step 4: Create admin's personal calendar + campus assignment ──
-    await (tx as unknown as Record<string, { create: (args: Record<string, unknown>) => Promise<unknown> }>).calendar.create({
+    // Step 4: Create admin's personal calendar
+    await rawPrisma.calendar.create({
       data: {
         organizationId: org.id,
         createdById: adminUser.id,
@@ -449,7 +459,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
       },
     })
 
-    await tx.userCampusAssignment.create({
+    // Step 5: Create admin's campus assignment
+    await rawPrisma.userCampusAssignment.create({
       data: {
         organizationId: org.id,
         userId: adminUser.id,
@@ -463,5 +474,15 @@ export async function createOrganization(input: CreateOrganizationInput) {
       ...org,
       users: [updatedUser],
     }
-  }, { maxWait: 10000, timeout: 60000 })
+  } catch (error) {
+    // Cleanup: hard-delete the org so the next retry gets a clean slate.
+    // Cascade relations remove users, roles, teams, campus, calendars, etc.
+    log.error({ err: String(error), orgId: org.id }, 'createOrganization failed after org row — rolling back')
+    try {
+      await rawPrisma.organization.delete({ where: { id: org.id } })
+    } catch (cleanupErr) {
+      log.error({ err: String(cleanupErr), orgId: org.id }, 'Rollback cleanup failed — manual DB cleanup may be needed')
+    }
+    throw error
+  }
 }
