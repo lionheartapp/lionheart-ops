@@ -4,9 +4,9 @@
  * Plan Checkout Success
  *
  * Landing page after Stripe Checkout completes. The Stripe webhook
- * (/api/webhooks/stripe) persists the Subscription row asynchronously,
+ * (/api/stripe/webhook) persists the Subscription row asynchronously,
  * so by the time this page loads the subscription may or may not be
- * synced yet — either way we continue into the onboarding wizard.
+ * synced yet — either way we drop the user into the dashboard.
  */
 
 import { useEffect, useState } from 'react'
@@ -15,7 +15,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, ArrowRight } from 'lucide-react'
 
 const REDIRECT_DELAY_MS = 2000
-const NEXT_STEP_PATH = '/onboarding/school-info'
+const NEXT_STEP_PATH = '/app'
 
 export default function PlanSuccessPage() {
   const router = useRouter()
@@ -64,8 +64,8 @@ export default function PlanSuccessPage() {
         transition={{ delay: 0.25, duration: 0.4 }}
         className="mt-3 max-w-md text-base text-slate-600"
       >
-        Payment method saved. Your <span className="font-semibold text-slate-900">14-day free trial</span>{' '}
-        has started — you won&apos;t be charged until it ends.
+        Your subscription is active. Thanks for choosing Lionheart — redirecting
+        you back to your workspace now.
       </motion.p>
 
       <motion.div
@@ -80,7 +80,7 @@ export default function PlanSuccessPage() {
           disabled={redirecting}
           className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-semibold text-sm rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Continue to onboarding
+          Go to dashboard
           <ArrowRight className="w-4 h-4" />
         </button>
         <p className="text-xs text-slate-500">

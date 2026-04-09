@@ -36,8 +36,33 @@ import { ok, fail, isAuthError } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext, type RequestContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
+import { getTrialState } from '@/lib/trial-utils'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
+
+// ---------------------------------------------------------------------------
+// Read-only enforcement after trial expiry
+// ---------------------------------------------------------------------------
+
+/**
+ * API path prefixes that stay writable even when the free trial has expired.
+ * Everything here is needed to unlock read-only mode (upgrade flow) or is
+ * session-level plumbing that should always work.
+ */
+const READ_ONLY_WRITE_ALLOWLIST = [
+  '/api/billing/',
+  '/api/stripe/',
+  '/api/auth/',
+  '/api/settings/billing',
+  '/api/settings/organization/delete',
+  '/api/organizations/signup',
+]
+
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+function isWritableDuringReadOnly(pathname: string): boolean {
+  return READ_ONLY_WRITE_ALLOWLIST.some((p) => pathname.startsWith(p))
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -202,6 +227,28 @@ export function withAuth<
       const ctx = await getUserContext(req)
 
       Sentry.setTag('org_id', orgId)
+
+      // Read-only gate — block mutating requests when trial has expired
+      // and there's no active paid subscription. Billing/auth routes stay
+      // open so the user can actually upgrade out of read-only mode.
+      if (MUTATING_METHODS.has(req.method)) {
+        const pathname = new URL(req.url).pathname
+        if (!isWritableDuringReadOnly(pathname)) {
+          const trialState = getTrialState({
+            trialEndsAt: ctx.orgTrialEndsAt,
+            subscriptionStatus: ctx.orgSubscriptionStatus,
+          })
+          if (trialState.readOnly) {
+            return NextResponse.json(
+              fail(
+                'TRIAL_EXPIRED',
+                'Your free trial has ended. Upgrade to a paid plan to continue editing your workspace.'
+              ),
+              { status: 402 }
+            )
+          }
+        }
+      }
 
       // Permission gate — fail fast before doing any work
       if (options?.permission) {

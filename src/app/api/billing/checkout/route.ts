@@ -3,12 +3,13 @@
  *
  * POST /api/billing/checkout
  *
- * Creates a Stripe Checkout Session for the caller's organization with a
- * 14-day free trial + required payment method. Returns the hosted Checkout
- * URL; the client redirects the browser to it.
+ * Creates a Stripe Checkout Session for the caller's organization. The
+ * free trial happens *before* this step (30-day no-card trial tracked on
+ * Organization.trialEndsAt). By the time a user hits checkout they're
+ * opting in to pay — the subscription starts immediately on success.
  *
- * The webhook handler (/api/webhooks/stripe — built separately) is responsible
- * for persisting the resulting Subscription row after the session completes.
+ * The webhook handler (/api/stripe/webhook) persists the resulting
+ * Subscription row after the session completes.
  */
 
 import { NextResponse } from 'next/server'
@@ -18,8 +19,6 @@ import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { logger } from '@/lib/logger'
-
-const TRIAL_DAYS = 14
 
 const checkoutSchema = z.object({
   planId: z.string().min(1, 'planId is required'),
@@ -115,17 +114,16 @@ export const POST = withAuth<z.infer<typeof checkoutSchema>>(
         customer: stripeCustomerId,
         line_items: [{ price: plan.stripePriceId, quantity: 1 }],
         subscription_data: {
-          trial_period_days: TRIAL_DAYS,
           metadata: {
             organizationId: orgId,
             planId: plan.id,
           },
         },
-        // Force payment method collection even during trial so the card is
-        // captured up-front and charged automatically when the trial ends.
+        // Charge immediately on success — the in-app 30-day trial window
+        // already serves as the evaluation period; no Stripe-side trial.
         payment_method_collection: 'always',
         success_url: `${appUrl}/onboarding/plan/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${appUrl}/onboarding/plan`,
+        cancel_url: `${appUrl}/settings?tab=billing`,
         metadata: {
           organizationId: orgId,
           planId: plan.id,

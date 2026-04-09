@@ -39,6 +39,12 @@ model Organization {
   stripeCustomerId  String?       // Stripe Customer ID for billing
   onboardingStatus  OnboardingStatus @default(SIGNED_UP)
   scheduledDeleteAt DateTime?     // Set when org is scheduled for deletion (30-day grace period before hard delete)
+  // No-card 30-day free trial. Set at org creation; enforced by the request wrapper
+  // once expired (read-only until the org starts a paid subscription).
+  trialStartedAt    DateTime?     // Trial clock started — set on org creation
+  trialEndsAt       DateTime?     // Trial expiry — orgs read-only after this if no active subscription
+  trialReminder21SentAt DateTime? // Idempotency flag: 9-days-remaining email sent
+  trialReminder28SentAt DateTime? // Idempotency flag: 2-days-remaining email sent
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
   createdAt     DateTime          @default(now())

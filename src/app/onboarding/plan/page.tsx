@@ -1,18 +1,22 @@
 'use client'
 
 /**
- * Plan Selection (Step 1 of onboarding)
+ * Plan Picker (upgrade flow)
  *
- * Shows the organization the available subscription plans, collects their
- * choice, and redirects to Stripe Checkout to capture a payment method
- * + start a 14-day free trial. After checkout completes the Stripe webhook
- * syncs the Subscription row and the user continues through onboarding.
+ * Standalone full-width plan picker. Used as an upgrade destination from
+ * the trial banner, the in-app expiry prompt, and reminder emails. New
+ * signups do NOT go through this page — they get a 30-day no-card trial
+ * that starts at org creation, and only hit this page when they're ready
+ * to commit to a paid plan.
+ *
+ * Enterprise is a "Contact sales" button (no self-serve Stripe checkout)
+ * because schools at that price tier go through procurement anyway.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Check, Loader2, AlertCircle, Sparkles } from 'lucide-react'
+import { Check, Loader2, AlertCircle, Mail, Sparkles } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -57,6 +61,46 @@ function formatMonthlyPrice(plan: SubscriptionPlan): string {
   return `$${dollars.toLocaleString('en-US')}/mo`
 }
 
+// Features whose keys we never surface to users (internal flags / metadata).
+const HIDDEN_FEATURE_KEYS = new Set(['mostPopular', '_note'])
+
+// Explicit human labels for feature keys. Needed because a naive camelCase
+// splitter turns `fullITSuite` into "Full I T Suite" and `ssoSaml` into
+// "Sso Saml". Keeping this as a lookup keeps acronyms intact.
+const FEATURE_LABELS: Record<string, string> = {
+  campuses: 'Campuses',
+  aiActionsPerMonth: 'AI actions / month',
+  calendaring: 'Calendaring',
+  eventPlanning: 'Event planning',
+  maintenanceTickets: 'Maintenance tickets',
+  itTickets: 'IT tickets',
+  avRequests: 'A/V requests',
+  roomManagement: 'Room management',
+  systemRoles: 'System roles',
+  standardReporting: 'Standard reporting',
+  emailSupport: 'Email support',
+  everythingInEssentials: 'Everything in Essentials',
+  fullMaintenanceSuite: 'Full maintenance suite',
+  fullITSuite: 'Full IT suite',
+  fullAVSuite: 'Full A/V suite',
+  googleCalendarSync: 'Google Calendar sync',
+  outlookCalendarSync: 'Outlook Calendar sync',
+  customRolesAndPermissions: 'Custom roles & permissions',
+  advancedReporting: 'Advanced reporting',
+  prioritySupport: 'Priority support',
+  everythingInPro: 'Everything in Pro',
+  ssoSaml: 'SSO / SAML',
+  auditLogs: 'Audit logs',
+  apiAccess: 'API access',
+  customPermissionScopes: 'Custom permission scopes',
+  whiteLabel: 'White label',
+  dedicatedCSM: 'Dedicated CSM',
+  uptimeSLA: 'Uptime SLA',
+  quarterlyBusinessReviews: 'Quarterly business reviews',
+  phoneSupport: 'Phone support',
+  additionalCampusPrice: 'Additional campus',
+}
+
 function humanizeFeatureKey(key: string): string {
   return key
     .replace(/([A-Z])/g, ' $1')
@@ -64,22 +108,57 @@ function humanizeFeatureKey(key: string): string {
     .trim()
 }
 
+function formatCentsToDollars(cents: number): string {
+  return `$${Math.round(cents / 100).toLocaleString('en-US')}`
+}
+
+function formatFeatureRow(key: string, value: unknown): string {
+  const label = FEATURE_LABELS[key] ?? humanizeFeatureKey(key)
+
+  // Special-case keys that need custom formatting.
+  if (key === 'additionalCampusPrice' && typeof value === 'number') {
+    return `${label}: ${formatCentsToDollars(value)}/yr`
+  }
+  if (key === 'aiActionsPerMonth') {
+    if (value === 'unlimited') return 'Unlimited AI actions / month'
+    return `${label}: ${value}`
+  }
+  if (key === 'campuses' && typeof value === 'number') {
+    return value === 1 ? '1 campus included' : `${value} campuses included`
+  }
+
+  if (typeof value === 'boolean') return value ? label : ''
+  if (typeof value === 'number') return `${label}: ${value.toLocaleString('en-US')}`
+  if (typeof value === 'string') return `${label}: ${value}`
+  return ''
+}
+
 function getFeatureList(plan: SubscriptionPlan): string[] {
   if (!plan.features) return []
   return Object.entries(plan.features)
-    .map(([key, value]) => {
-      const label = humanizeFeatureKey(key)
-      if (typeof value === 'boolean') return value ? label : ''
-      if (typeof value === 'number') return `${label}: ${value.toLocaleString('en-US')}`
-      if (typeof value === 'string') return `${label}: ${value}`
-      return ''
-    })
+    .filter(([key]) => !HIDDEN_FEATURE_KEYS.has(key))
+    .map(([key, value]) => formatFeatureRow(key, value))
     .filter(Boolean)
 }
 
 function isProPlan(plan: SubscriptionPlan): boolean {
   const slug = plan.slug.toLowerCase()
   return slug === 'pro' || slug.includes('pro')
+}
+
+function isEnterprisePlan(plan: SubscriptionPlan): boolean {
+  return plan.slug.toLowerCase().includes('enterprise')
+}
+
+/** Mailto target for Enterprise "Contact sales" CTAs. */
+const SALES_EMAIL = 'sales@lionheartapp.com'
+
+function buildSalesMailto(orgName: string | null): string {
+  const subject = encodeURIComponent('Enterprise plan inquiry')
+  const body = encodeURIComponent(
+    `Hi Lionheart team,\n\nI'd like to talk about the Enterprise plan${orgName ? ` for ${orgName}` : ''}.\n\nThanks,\n`
+  )
+  return `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
@@ -158,8 +237,8 @@ export default function OnboardingPlanPage() {
           Choose your plan
         </h1>
         <p className="mt-3 text-base text-slate-600">
-          Every plan starts with a <span className="font-semibold text-slate-900">14-day free trial</span>.
-          {' '}You won&apos;t be charged until day 15 — cancel any time from settings.
+          Pick a plan to keep your workspace active after your 30-day free trial.
+          {' '}Cancel anytime from settings.
         </p>
       </div>
 
@@ -229,6 +308,7 @@ export default function OnboardingPlanPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {plans.map((plan, idx) => {
               const isFeatured = plan.id === proPlanId
+              const isEnterprise = isEnterprisePlan(plan)
               const isSelected = selectedPlanId === plan.id
               const isAnyLoading = selectedPlanId !== null
               const features = getFeatureList(plan)
@@ -263,7 +343,9 @@ export default function OnboardingPlanPage() {
                       <span className="text-sm text-slate-500">/year</span>
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
-                      Billed {formatMonthlyPrice(plan)} after 14-day trial
+                      {isEnterprise
+                        ? 'Custom pricing available for multi-campus'
+                        : `Billed ${formatMonthlyPrice(plan)}`}
                     </p>
                   </div>
 
@@ -282,34 +364,43 @@ export default function OnboardingPlanPage() {
                     </ul>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelectPlan(plan.id)}
-                    disabled={isAnyLoading}
-                    aria-busy={isSelected}
-                    className={`w-full mt-auto px-4 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-                      isFeatured
-                        ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-primary-300/50 hover:-translate-y-0.5'
-                        : 'bg-slate-900 text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    {isSelected ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Redirecting to checkout…
-                      </>
-                    ) : (
-                      'Start 14-Day Free Trial'
-                    )}
-                  </button>
+                  {isEnterprise ? (
+                    <a
+                      href={buildSalesMailto(null)}
+                      className="w-full mt-auto px-4 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Contact Sales
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectPlan(plan.id)}
+                      disabled={isAnyLoading}
+                      aria-busy={isSelected}
+                      className={`w-full mt-auto px-4 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isFeatured
+                          ? 'bg-gradient-to-r from-primary-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-primary-300/50 hover:-translate-y-0.5'
+                          : 'bg-slate-900 text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      {isSelected ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Redirecting to checkout…
+                        </>
+                      ) : (
+                        `Upgrade to ${plan.name}`
+                      )}
+                    </button>
+                  )}
                 </motion.div>
               )
             })}
           </div>
 
           <p className="mt-8 text-center text-xs text-slate-500">
-            You&apos;ll be redirected to Stripe to securely enter your payment details.
-            {' '}Your card will not be charged during the trial period.
+            Paid plans are billed through Stripe. You can cancel anytime from settings.
           </p>
         </>
       )}

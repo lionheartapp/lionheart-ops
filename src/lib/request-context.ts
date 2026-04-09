@@ -7,6 +7,10 @@ export type RequestContext = {
   organizationId: string
   email: string
   roleName: string | null
+  /** Org's free-trial expiry — null for legacy orgs that predate trials. */
+  orgTrialEndsAt: Date | null
+  /** Latest subscription status on the org, if any. */
+  orgSubscriptionStatus: string | null
 }
 
 /**
@@ -37,6 +41,16 @@ export async function getUserContext(req: NextRequest): Promise<RequestContext> 
       email: true,
       organizationId: true,
       userRole: { select: { name: true } },
+      organization: {
+        select: {
+          trialEndsAt: true,
+          subscriptions: {
+            select: { status: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      },
     },
   })
 
@@ -49,5 +63,7 @@ export async function getUserContext(req: NextRequest): Promise<RequestContext> 
     organizationId: user.organizationId,
     email: user.email,
     roleName: user.userRole?.name ?? null,
+    orgTrialEndsAt: user.organization?.trialEndsAt ?? null,
+    orgSubscriptionStatus: user.organization?.subscriptions[0]?.status ?? null,
   }
 }

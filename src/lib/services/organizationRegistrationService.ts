@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs'
 import { DEFAULT_ROLES, DEFAULT_TEAMS } from '@/lib/permissions'
 import { timezoneFromAddress } from '@/lib/utils/timezone'
 import { logger } from '@/lib/logger'
+import { computeTrialEndDate } from '@/lib/trial-utils'
 
 
 const log = logger.child({ service: 'organizationRegistrationService' })
@@ -456,6 +457,11 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // Step 1: Create the organization and its first admin user
   const detectedTimezone = timezoneFromAddress(validated.physicalAddress)
 
+  // Start the 30-day no-card free trial clock at org creation. No Stripe
+  // subscription exists yet — upgrades happen later from settings → billing.
+  const trialStartedAt = new Date()
+  const trialEndsAt = computeTrialEndDate(trialStartedAt)
+
   const org = await rawPrisma.organization.create({
     data: {
       name:            validated.name,
@@ -473,6 +479,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
       gradeRange:      validated.gradeRange ?? null,
       studentCount:    validated.studentCount ?? null,
       staffCount:      validated.staffCount ?? null,
+      trialStartedAt,
+      trialEndsAt,
       users: {
         create: {
           email:        validated.adminEmail,

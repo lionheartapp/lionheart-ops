@@ -11,12 +11,9 @@ interface OnboardingLayoutProps {
 }
 
 function getStepFromPath(pathname: string): number {
-  // Order matters: check 'plan/success' before 'plan' so the success page
-  // renders as step 1 (still on the plan step, transitioning forward).
-  if (pathname.includes('plan')) return 1
-  if (pathname.includes('school-info')) return 2
-  if (pathname.includes('members')) return 3
-  if (pathname.includes('setup')) return 4
+  if (pathname.includes('school-info')) return 1
+  if (pathname.includes('members')) return 2
+  if (pathname.includes('setup')) return 3
   return 1
 }
 
@@ -32,6 +29,25 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
   const pathname = usePathname()
   const activeStep = getStepFromPath(pathname)
   const completedSteps = getCompletedSteps(activeStep)
+
+  // The plan picker lives under /onboarding/plan for historical reasons,
+  // but it's no longer part of the signup funnel. When it's used as an
+  // upgrade path (from the trial banner, etc.) render full-width with no
+  // sidebar — the signup steps don't apply there.
+  const isPlanStep = pathname.includes('/onboarding/plan')
+  if (isPlanStep) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <div className="min-h-screen bg-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+            <StepTransition stepKey={pathname}>
+              {children}
+            </StepTransition>
+          </div>
+        </div>
+      </MotionConfig>
+    )
+  }
 
   return (
     <MotionConfig reducedMotion="user">

@@ -109,9 +109,10 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         localStorage.setItem('user-email', email)
 
         // Auth token is now in httpOnly cookie — no localStorage write needed.
-        // Plan selection (card + trial) is the FIRST onboarding step so we
-        // collect a payment method before the user invests time in setup.
-        window.location.href = '/onboarding/plan'
+        // New orgs get a 30-day no-card free trial that starts at creation.
+        // Plan selection happens later from settings → billing (or the trial
+        // banner CTA) once the user has actually evaluated the product.
+        window.location.href = '/onboarding/school-info'
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

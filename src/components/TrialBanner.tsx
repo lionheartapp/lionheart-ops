@@ -4,28 +4,27 @@
  * TrialBanner
  *
  * Persistent top-of-app banner that surfaces billing state for the
- * current organization. Renders in four visual modes:
+ * current organization. Renders these visual modes:
  *
- *   • TRIALING  → aurora gradient (amber/red when <=3 days / 0 days)
- *   • PAST_DUE  → red, "update payment method"
- *   • CANCELED  → red, "subscription canceled" (with deletion date if known)
- *   • otherwise → nothing (ACTIVE / PAUSED / no subscription)
+ *   • In-trial (> 7 days)      → aurora gradient, "X days remaining"
+ *   • In-trial (3–7 days)      → aurora gradient, urgency copy
+ *   • In-trial (<= 3 days)     → amber, "upgrade now"
+ *   • Trial expired (read-only)→ red, "workspace is read-only"
+ *   • PAST_DUE                 → red, "update payment method"
+ *   • CANCELED                 → red, "subscription canceled" (with deletion date if known)
+ *   • Paid + active            → nothing
  *
  * Data is fetched via TanStack Query from `/api/settings/billing`.
  * If the request fails (billing not configured, network error, 401)
  * the banner silently renders nothing rather than blocking the UI.
- *
- * TODO(future): add "Snooze for 24h" / "Snooze for 3 days" dismiss
- * affordance. Intentionally omitted per requirement — trial banner
- * must stay visible until the user takes action.
  */
 
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { AlertTriangle, ArrowRight, Clock, Sparkles } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Clock, Lock, Sparkles } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
-import { daysRemaining, formatTrialDate } from '@/lib/trial-utils'
+import { formatTrialDate } from '@/lib/trial-utils'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -42,12 +41,17 @@ interface BillingSubscription {
   trialEndsAt: string | null
   currentPeriodEnd: string | null
   cancelAtPeriodEnd: boolean
-  /**
-   * Optional — populated when the org is scheduled for deletion.
-   * Not currently part of the Subscription schema; kept here so the
-   * banner is ready once that field is added.
-   */
   scheduledDeleteAt?: string | null
+}
+
+interface BillingTrial {
+  startedAt: string | null
+  endsAt: string | null
+  daysLeft: number | null
+  inTrial: boolean
+  expired: boolean
+  paid: boolean
+  readOnly: boolean
 }
 
 interface BillingResponse {
@@ -55,6 +59,7 @@ interface BillingResponse {
   data?: {
     subscription: BillingSubscription | null
     plans: unknown[]
+    trial: BillingTrial
   }
   error?: { code?: string; message?: string }
 }
@@ -84,62 +89,18 @@ interface BannerView {
   buttonLabel: string
 }
 
-function getBannerView(subscription: BillingSubscription): BannerView | null {
-  const { status, trialEndsAt, currentPeriodEnd, scheduledDeleteAt } =
-    subscription
-
-  if (status === 'TRIALING') {
-    const days = daysRemaining(trialEndsAt)
-
-    // No trial end date → don't show (can't compute anything meaningful)
-    if (days === null) return null
-
-    if (days === 0) {
-      return {
-        background: RED_GRADIENT,
-        Icon: AlertTriangle,
-        message: (
-          <>
-            <strong className="font-semibold">Trial ends today.</strong>{' '}
-            Add a payment method to keep your workspace active.
-          </>
-        ),
-        buttonLabel: 'Add Payment',
-      }
-    }
-
-    if (days <= 3) {
-      return {
-        background: AMBER_GRADIENT,
-        Icon: Clock,
-        message: (
-          <>
-            <strong className="font-semibold">
-              Free trial — {days} {days === 1 ? 'day' : 'days'} remaining.
-            </strong>{' '}
-            Upgrade now to avoid service interruption.
-          </>
-        ),
-        buttonLabel: 'Upgrade Now',
-      }
-    }
-
-    return {
-      background: AURORA_GRADIENT,
-      Icon: Sparkles,
-      message: (
-        <>
-          <strong className="font-semibold">
-            Free trial — {days} days remaining.
-          </strong>{' '}
-          Pick a plan whenever you&rsquo;re ready.
-        </>
-      ),
-      buttonLabel: 'Manage Plan',
-    }
+function getBannerView(
+  trial: BillingTrial,
+  subscription: BillingSubscription | null
+): BannerView | null {
+  // Paid + active subscription → the org is a real customer; nothing to show.
+  if (trial.paid && subscription?.status === 'ACTIVE') {
+    return null
   }
 
-  if (status === 'PAST_DUE') {
+  // PAST_DUE takes priority over trial state — paying customer with a
+  // failing card needs to fix it now.
+  if (subscription?.status === 'PAST_DUE') {
     return {
       background: RED_GRADIENT,
       Icon: AlertTriangle,
@@ -153,10 +114,10 @@ function getBannerView(subscription: BillingSubscription): BannerView | null {
     }
   }
 
-  if (status === 'CANCELED') {
-    // Prefer an explicit deletion date; fall back to the current period end
-    // (Stripe's typical grace window), then a generic message.
-    const deletionDate = scheduledDeleteAt ?? currentPeriodEnd
+  // Explicit cancelation state (user hit Cancel + Stripe webhook fired).
+  if (subscription?.status === 'CANCELED') {
+    const deletionDate =
+      subscription.scheduledDeleteAt ?? subscription.currentPeriodEnd
     const message = deletionDate ? (
       <>
         <strong className="font-semibold">Subscription canceled.</strong>{' '}
@@ -168,7 +129,6 @@ function getBannerView(subscription: BillingSubscription): BannerView | null {
         Reactivate to keep access to your workspace.
       </>
     )
-
     return {
       background: RED_GRADIENT,
       Icon: AlertTriangle,
@@ -177,7 +137,74 @@ function getBannerView(subscription: BillingSubscription): BannerView | null {
     }
   }
 
-  // ACTIVE, PAUSED, or anything else → no banner
+  // Trial ended, workspace is read-only until they pick a plan.
+  if (trial.readOnly) {
+    return {
+      background: RED_GRADIENT,
+      Icon: Lock,
+      message: (
+        <>
+          <strong className="font-semibold">Free trial ended.</strong>{' '}
+          Your workspace is read-only — pick a plan to keep editing.
+        </>
+      ),
+      buttonLabel: 'Choose Plan',
+    }
+  }
+
+  // Still inside the free trial — render the countdown.
+  if (trial.inTrial && trial.daysLeft !== null) {
+    const days = trial.daysLeft
+
+    if (days <= 3) {
+      return {
+        background: AMBER_GRADIENT,
+        Icon: Clock,
+        message: (
+          <>
+            <strong className="font-semibold">
+              Free trial — {days} {days === 1 ? 'day' : 'days'} remaining.
+            </strong>{' '}
+            Pick a plan now to avoid read-only mode.
+          </>
+        ),
+        buttonLabel: 'Upgrade Now',
+      }
+    }
+
+    if (days <= 7) {
+      return {
+        background: AURORA_GRADIENT,
+        Icon: Clock,
+        message: (
+          <>
+            <strong className="font-semibold">
+              Free trial — {days} days remaining.
+            </strong>{' '}
+            Pick a plan whenever you&rsquo;re ready.
+          </>
+        ),
+        buttonLabel: 'Choose Plan',
+      }
+    }
+
+    return {
+      background: AURORA_GRADIENT,
+      Icon: Sparkles,
+      message: (
+        <>
+          <strong className="font-semibold">
+            Free trial — {days} days remaining.
+          </strong>{' '}
+          Everything&rsquo;s unlocked. No card required until day {days === 30 ? 31 : '31'}.
+        </>
+      ),
+      buttonLabel: 'See Plans',
+    }
+  }
+
+  // No trial info + no sub (legacy org or plan not yet picked but no trial
+  // data) → render nothing.
   return null
 }
 
@@ -202,9 +229,9 @@ export default function TrialBanner() {
     retry: false,
   })
 
-  if (isError || !data?.ok || !data.data?.subscription) return null
+  if (isError || !data?.ok || !data.data) return null
 
-  const view = getBannerView(data.data.subscription)
+  const view = getBannerView(data.data.trial, data.data.subscription)
   if (!view) return null
 
   const { background, Icon, message, buttonLabel } = view
