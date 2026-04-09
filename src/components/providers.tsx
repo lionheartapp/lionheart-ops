@@ -172,20 +172,40 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// Paths where the floating Leo chat button should NOT render — onboarding
+// funnel in particular needs to stay focused (no chat distraction while
+// the user is trying to set up their school).
+const CHAT_HIDDEN_PREFIXES = ['/onboarding', '/login', '/signup', '/set-password', '/reset-password', '/verify-email']
+
+function shouldHideChat(pathname: string | null): boolean {
+  if (!pathname) return false
+  return CHAT_HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))
+}
+
 function PrefetchGate({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
+  const [pathname, setPathname] = useState<string | null>(null)
 
   useEffect(() => {
     setToken(localStorage.getItem('auth-token'))
+    setPathname(window.location.pathname)
+
+    // Track client-side nav so the chat button hides/shows when routing
+    // through onboarding ↔ dashboard without a full reload.
+    const onNav = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', onNav)
+    return () => window.removeEventListener('popstate', onNav)
   }, [])
 
   // Warm the TanStack Query cache as soon as we know the user is authed
   usePrefetchOnAuth(token)
 
+  const hideChat = shouldHideChat(pathname)
+
   return (
     <>
       {children}
-      {token && <ChatButton />}
+      {token && !hideChat && <ChatButton />}
     </>
   )
 }

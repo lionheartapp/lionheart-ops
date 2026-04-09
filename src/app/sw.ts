@@ -1,6 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist, NetworkFirst, CacheFirst, StaleWhileRevalidate, ExpirationPlugin } from 'serwist'
+import { Serwist, NetworkFirst, NetworkOnly, CacheFirst, StaleWhileRevalidate, ExpirationPlugin } from 'serwist'
 
 declare global {
   interface ServiceWorkerGlobalScope extends SerwistGlobalConfig {
@@ -15,6 +15,14 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
+    // Onboarding pages — NetworkOnly so the user always sees the latest
+    // version of the signup funnel. Caching onboarding bit us when an
+    // older deploy cached the plan picker and new users got served stale
+    // HTML that bypassed Stripe Checkout entirely.
+    {
+      matcher: /^https?:\/\/[^/]+\/onboarding(\/.*)?$/,
+      handler: new NetworkOnly(),
+    },
     // Assigned tickets — NetworkFirst with 24h cache for offline access (OFFLINE-02)
     {
       matcher: /^https?:\/\/.*\/api\/maintenance\/tickets(\?.*)?$/,
