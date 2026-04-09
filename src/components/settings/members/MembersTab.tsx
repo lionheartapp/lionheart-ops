@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, RefreshCw, UserCog, Download } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { logger } from '@/lib/logger'
+import { useToast } from '@/components/Toast'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import MemberListTable from './MemberListTable'
@@ -25,6 +26,7 @@ const STATUS_TABS = [
 
 const MembersTab = (_props: MembersTabProps) => {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   // ─── Cached queries ─────────────────────────────────────────────────────
   const { data: usersData, isLoading: loading, error: usersError } = useQuery(queryOptions.members())
@@ -77,10 +79,12 @@ const MembersTab = (_props: MembersTabProps) => {
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to update status')
       invalidateMembers()
+      toast(`Member ${newStatus === 'ACTIVE' ? 'activated' : 'deactivated'} successfully`, 'success')
     } catch (err) {
       logger.error({ error: String(err) }, 'Failed to update member status')
+      toast(err instanceof Error ? err.message : 'Failed to update member status', 'error')
     }
-  }, [invalidateMembers, getAuthHeaders])
+  }, [invalidateMembers, getAuthHeaders, toast])
 
   // ─── Remove member ──────────────────────────────────────────────────────
   const confirmRemoveUser = async () => {
@@ -94,10 +98,12 @@ const MembersTab = (_props: MembersTabProps) => {
       if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to remove member')
+      toast('Member removed successfully', 'success')
       setUserToRemove(null)
       invalidateMembers()
     } catch (err) {
       logger.error({ error: String(err) }, 'Failed to remove member')
+      toast(err instanceof Error ? err.message : 'Failed to remove member', 'error')
       setUserToRemove(null)
     } finally {
       setRemovingUserId(null)

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const ip = getIp(req)
 
     // Check rate limits before doing any DB work
-    const rateLimit = checkRateLimit(email, ip)
+    const rateLimit = await checkRateLimit(email, ip)
     if (!rateLimit.allowed) {
       return NextResponse.json(
         fail('RATE_LIMITED', 'Too many requests. Please try again later.', [

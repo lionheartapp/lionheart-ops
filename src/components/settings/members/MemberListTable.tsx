@@ -65,13 +65,17 @@ export default function MemberListTable({
       <div className="sm:hidden divide-y divide-slate-100">
         {users.map((u) => (
           <div key={u.id} className="flex items-center gap-3 px-4 py-3">
-            {u.avatar ? (
-              <img src={u.avatar} alt={`${u.firstName} ${u.lastName}`} className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
-            ) : (
-              <span className={`inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
-                {getInitials(u.firstName, u.lastName, u.email)}
-              </span>
-            )}
+            <span className={`relative inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
+              {getInitials(u.firstName, u.lastName, u.email)}
+              {u.avatar && (
+                <img
+                  src={u.avatar}
+                  alt={`${u.firstName} ${u.lastName}`}
+                  className="absolute inset-0 h-9 w-9 rounded-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              )}
+            </span>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-slate-900 text-sm truncate">
                 {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
@@ -104,17 +108,17 @@ export default function MemberListTable({
             <tr key={u.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
-                  {u.avatar ? (
-                    <img
-                      src={u.avatar}
-                      alt={`${u.firstName} ${u.lastName}`}
-                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
-                      {getInitials(u.firstName, u.lastName, u.email)}
-                    </span>
-                  )}
+                  <span className={`relative inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
+                    {getInitials(u.firstName, u.lastName, u.email)}
+                    {u.avatar && (
+                      <img
+                        src={u.avatar}
+                        alt={`${u.firstName} ${u.lastName}`}
+                        className="absolute inset-0 h-8 w-8 rounded-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    )}
+                  </span>
                   <div>
                     <div className="font-medium text-slate-900">
                       {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}

@@ -11,9 +11,12 @@ interface OnboardingLayoutProps {
 }
 
 function getStepFromPath(pathname: string): number {
-  if (pathname.includes('school-info')) return 1
-  if (pathname.includes('members')) return 2
-  if (pathname.includes('setup')) return 3
+  // Order matters: check 'plan/success' before 'plan' so the success page
+  // renders as step 1 (still on the plan step, transitioning forward).
+  if (pathname.includes('plan')) return 1
+  if (pathname.includes('school-info')) return 2
+  if (pathname.includes('members')) return 3
+  if (pathname.includes('setup')) return 4
   return 1
 }
 

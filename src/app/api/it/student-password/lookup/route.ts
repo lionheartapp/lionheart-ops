@@ -2,36 +2,56 @@
  * POST /api/it/student-password/lookup — public student lookup for password reset
  *
  * No authentication required. Returns only masked name for security.
+ * Rate limited to prevent student enumeration attacks.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import { lookupStudent } from '@/lib/services/itStudentPasswordService'
 import { logger } from '@/lib/logger'
+import { studentPasswordRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { getIp } from '@/lib/services/auditService'
+
+const lookupSchema = z
+  .object({
+    orgSlug: z.string().trim().min(1, 'orgSlug is required').max(200),
+    studentId: z.string().trim().min(1).max(200).optional(),
+    email: z.string().trim().toLowerCase().email('Invalid email address').max(320).optional(),
+  })
+  .refine((data) => Boolean(data.studentId) || Boolean(data.email), {
+    message: 'studentId or email is required',
+    path: ['studentId'],
+  })
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { orgSlug, studentId, email } = body as {
-      orgSlug: string
-      studentId?: string
-      email?: string
+    // ─── Rate limit check (per IP, before any body parsing) ──────────
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await studentPasswordRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many requests. Please try again later.'),
+        { status: 429, headers: getRateLimitHeaders(limitResult) }
+      )
     }
 
-    if (!orgSlug) {
+    const raw = await req.json().catch(() => null)
+    const parsed = lookupSchema.safeParse(raw)
+
+    if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'orgSlug is required'),
+        fail(
+          'VALIDATION_ERROR',
+          'Invalid input',
+          parsed.error.issues.map((e) => e.message)
+        ),
         { status: 400 }
       )
     }
 
-    if (!studentId && !email) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'studentId or email is required'),
-        { status: 400 }
-      )
-    }
+    const { orgSlug, studentId, email } = parsed.data
 
     // Look up org by slug (public, no auth context)
     const org = await rawPrisma.organization.findFirst({

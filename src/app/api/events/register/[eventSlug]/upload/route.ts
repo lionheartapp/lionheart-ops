@@ -28,6 +28,7 @@ import { logger } from '@/lib/logger'
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
 
 const uploadRateLimiter = new RateLimiter({
+  name: 'event-registration-upload',
   windowMs: 60 * 60 * 1000, // 1 hour
   maxAttempts: 5,            // 5 uploads per IP per hour
 })
@@ -105,8 +106,7 @@ export async function POST(
     }
 
     // 4. Rate limit by IP
-    uploadRateLimiter.increment(ip)
-    const rateLimitResult = uploadRateLimiter.check(ip)
+    const rateLimitResult = await uploadRateLimiter.hit(ip)
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         fail('RATE_LIMITED', 'Too many upload attempts from this IP. Please try again later.'),

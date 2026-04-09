@@ -18,12 +18,14 @@ const log = logger.child({ service: 'registrationMagicLinkService' })
 
 /** 3 magic links per email per hour (prevent abuse) */
 const emailRateLimiter = new RateLimiter({
+  name: 'magic-link-email',
   windowMs: 60 * 60 * 1000, // 1 hour
   maxAttempts: 3,
 })
 
 /** 10 magic link requests per IP per hour (prevent enumeration) */
 const ipRateLimiter = new RateLimiter({
+  name: 'magic-link-ip',
   windowMs: 60 * 60 * 1000, // 1 hour
   maxAttempts: 10,
 })
@@ -48,12 +50,12 @@ export type PortalTokenClaims = {
  * Check both email and IP rate limiters before issuing a magic link.
  * Records the attempt if allowed.
  */
-export function checkRateLimit(email: string, ip: string): RateLimitCheck {
+export async function checkRateLimit(email: string, ip: string): Promise<RateLimitCheck> {
   const emailKey = `email:${email.toLowerCase()}`
   const ipKey = `ip:${ip}`
 
-  // Check email limiter
-  const emailResult = emailRateLimiter.check(emailKey)
+  // Record + check email limiter (hit = atomic increment + check)
+  const emailResult = await emailRateLimiter.hit(emailKey)
   if (!emailResult.allowed) {
     return {
       allowed: false,
@@ -61,18 +63,14 @@ export function checkRateLimit(email: string, ip: string): RateLimitCheck {
     }
   }
 
-  // Check IP limiter
-  const ipResult = ipRateLimiter.check(ipKey)
+  // Record + check IP limiter
+  const ipResult = await ipRateLimiter.hit(ipKey)
   if (!ipResult.allowed) {
     return {
       allowed: false,
       retryAfterSec: Math.ceil(ipResult.retryAfterMs / 1000),
     }
   }
-
-  // Both allowed — record the attempt
-  emailRateLimiter.increment(emailKey)
-  ipRateLimiter.increment(ipKey)
 
   return { allowed: true }
 }
@@ -181,7 +179,9 @@ export async function consumeMagicLink(rawToken: string): Promise<{
   })
 
   // Sign a portal JWT — separate from staff JWTs, with 'portal' type claim
-  const secret = new TextEncoder().encode(process.env.AUTH_SECRET ?? 'dev-secret-change-me')
+  const authSecret = process.env.AUTH_SECRET
+  if (!authSecret) throw new Error('AUTH_SECRET environment variable is required')
+  const secret = new TextEncoder().encode(authSecret)
   const portalToken = await new SignJWT({
     type: 'portal',
     registrationId: link.registrationId,
@@ -204,7 +204,9 @@ export async function consumeMagicLink(rawToken: string): Promise<{
  * The 'portal' type claim explicitly distinguishes it from staff tokens.
  */
 export async function verifyPortalToken(token: string): Promise<PortalTokenClaims> {
-  const secret = new TextEncoder().encode(process.env.AUTH_SECRET ?? 'dev-secret-change-me')
+  const authSecret = process.env.AUTH_SECRET
+  if (!authSecret) throw new Error('AUTH_SECRET environment variable is required')
+  const secret = new TextEncoder().encode(authSecret)
 
   const { payload } = await jwtVerify(token, secret)
 

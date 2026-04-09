@@ -26,6 +26,7 @@ import { logger } from '@/lib/logger'
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
 
 const registrationRateLimiter = new RateLimiter({
+  name: 'event-registration-submit',
   windowMs: 60 * 60 * 1000, // 1 hour
   maxAttempts: 10,           // 10 registrations per IP per hour
 })
@@ -173,8 +174,7 @@ export async function POST(
     }
 
     // 3. Rate limit by IP
-    registrationRateLimiter.increment(ip)
-    const rateLimitResult = registrationRateLimiter.check(ip)
+    const rateLimitResult = await registrationRateLimiter.hit(ip)
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         fail('RATE_LIMITED', 'Too many registrations from this IP. Please try again later.'),

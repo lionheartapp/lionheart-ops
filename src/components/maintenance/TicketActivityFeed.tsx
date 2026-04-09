@@ -15,6 +15,7 @@ import {
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { listItem, staggerContainer } from '@/lib/animations'
 import { IllustrationMaintenance } from '@/components/illustrations'
+import { formatDateTimeWithTz } from '@/lib/utils/date-format'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -88,14 +89,8 @@ function formatRelative(iso: string): string {
 }
 
 function formatAbsolute(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  // Timezone-aware so users see the abbreviation (e.g. "CDT") alongside the time.
+  return formatDateTimeWithTz(iso)
 }
 
 function getActivityIcon(type: ActivityType, isInternal: boolean) {

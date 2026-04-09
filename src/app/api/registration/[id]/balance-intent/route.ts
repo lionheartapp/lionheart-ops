@@ -93,7 +93,7 @@ export async function POST(
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
     }
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     if (error instanceof Error && error.message === 'No balance remaining') {
       return NextResponse.json(fail('NO_BALANCE', 'No balance remaining for this registration'), { status: 400 })

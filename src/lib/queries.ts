@@ -453,6 +453,9 @@ export const queryOptions = {
       if (filters) {
         Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v) })
       }
+      // Opt into max page size so the tickets list doesn't silently truncate at 50.
+      // TODO: replace with proper pagination UI when ticket volume exceeds 500 active tickets.
+      if (!params.has('limit')) params.set('limit', '500')
       const qs = params.toString()
       return fetchApi<{ tickets: unknown[]; total: number }>(`/api/it/tickets${qs ? `?${qs}` : ''}`)
     },

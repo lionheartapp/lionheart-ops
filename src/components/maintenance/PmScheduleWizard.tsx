@@ -402,8 +402,8 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
               <div>
                 <span className="text-sm font-medium text-slate-700">Avoid School Year</span>
                 <p className="text-xs text-slate-500">
-                  Skip scheduling during active school periods{' '}
-                  <span className="text-amber-600">(enforcement coming soon)</span>
+                  PM tickets that fall inside an active academic year are pushed to the day after it ends.
+                  Requires academic years to be configured in Settings → Academic Calendar.
                 </p>
               </div>
             </label>

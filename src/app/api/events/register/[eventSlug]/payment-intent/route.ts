@@ -28,6 +28,7 @@ import {
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
 
 const paymentIntentRateLimiter = new RateLimiter({
+  name: 'event-registration-payment-intent',
   windowMs: 60 * 60 * 1000, // 1 hour
   maxAttempts: 5,            // 5 per IP per hour
 })
@@ -90,8 +91,7 @@ export async function POST(
     }
 
     // 3. Rate limit by IP
-    paymentIntentRateLimiter.increment(ip)
-    const rateLimitResult = paymentIntentRateLimiter.check(ip)
+    const rateLimitResult = await paymentIntentRateLimiter.hit(ip)
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         fail('RATE_LIMITED', 'Too many payment attempts from this IP. Please try again later.'),

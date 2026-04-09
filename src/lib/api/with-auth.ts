@@ -128,18 +128,22 @@ function classifyError(error: unknown): NextResponse {
     )
   }
 
-  // Permission → 403
+  // Permission → 403 (never leak internal permission details to clients)
   if (isPermissionError(error)) {
+    logger.warn(
+      { error: error instanceof Error ? error.message : String(error) },
+      'Permission denied'
+    )
     return NextResponse.json(
-      fail('FORBIDDEN', error instanceof Error ? error.message : 'Forbidden'),
+      fail('FORBIDDEN', 'You do not have permission to perform this action'),
       { status: 403 }
     )
   }
 
-  // Not found → 404
+  // Not found → 404 (never leak internal "which record" details to clients)
   if (isNotFoundError(error)) {
     return NextResponse.json(
-      fail('NOT_FOUND', error instanceof Error ? error.message : 'Not found'),
+      fail('NOT_FOUND', 'The requested resource was not found'),
       { status: 404 }
     )
   }

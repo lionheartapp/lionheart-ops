@@ -12,6 +12,7 @@ import {
   CheckCircle2, XCircle, PauseCircle, PlayCircle, Loader2,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { formatDateTimeWithTz } from '@/lib/utils/date-format'
 
 interface ITTicketDetailProps {
   ticketId: string | null
@@ -199,7 +200,9 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
               </div>
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="w-4 h-4 text-slate-400" />
-                <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                <span title={formatDateTimeWithTz(ticket.createdAt)}>
+                  {formatDateTimeWithTz(ticket.createdAt)}
+                </span>
               </div>
               {(location || ticket.subRoomText) && (
                 <div className="flex items-center gap-2 text-slate-600 col-span-2">

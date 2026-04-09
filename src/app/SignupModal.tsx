@@ -108,8 +108,10 @@ export default function SignupModal({ onClose }: SignupModalProps) {
         localStorage.setItem('user-name', name)
         localStorage.setItem('user-email', email)
 
-        // Auth token is now in httpOnly cookie — no localStorage write needed
-        window.location.href = '/onboarding/school-info'
+        // Auth token is now in httpOnly cookie — no localStorage write needed.
+        // Plan selection (card + trial) is the FIRST onboarding step so we
+        // collect a payment method before the user invests time in setup.
+        window.location.href = '/onboarding/plan'
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -119,15 +121,9 @@ export default function SignupModal({ onClose }: SignupModalProps) {
     }
   }
 
-  const handleGoogleSignup = () => {
-    // Implement OAuth flow - for now just show placeholder
-    setError('Google sign-up coming soon')
-  }
-
-  const handleMicrosoftSignup = () => {
-    // Implement OAuth flow - for now just show placeholder
-    setError('Microsoft sign-up coming soon')
-  }
+  // TODO: Re-enable when OAuth providers are configured
+  // const handleGoogleSignup = () => { ... }
+  // const handleMicrosoftSignup = () => { ... }
 
   return (
     <div
@@ -168,27 +164,17 @@ export default function SignupModal({ onClose }: SignupModalProps) {
             </div>
           )}
 
-          {/* OAuth Buttons */}
+          {/* TODO: Re-enable OAuth buttons when providers are configured
           <div className="space-y-3">
-            <button
-              onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700"
-              disabled={loading}
-            >
+            <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700">
               <GoogleIcon />
               Continue with Google
             </button>
-            <button
-              onClick={handleMicrosoftSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700"
-              disabled={loading}
-            >
+            <button className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition font-medium text-slate-700">
               <MicrosoftIcon />
               Continue with Microsoft
             </button>
           </div>
-
-          {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200" />
@@ -197,6 +183,7 @@ export default function SignupModal({ onClose }: SignupModalProps) {
               <span className="px-2 bg-white text-slate-500">or</span>
             </div>
           </div>
+          */}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

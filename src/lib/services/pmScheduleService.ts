@@ -17,6 +17,65 @@ export type { PmRecurrenceType, PmCalendarEvent } from '@/lib/types/pm-schedule'
 
 
 const log = logger.child({ service: 'pmScheduleService' })
+
+// ─── School Year Avoidance Helpers ────────────────────────────────────────────
+
+/**
+ * A closed date range representing an active school year.
+ */
+interface SchoolYearRange {
+  startDate: Date
+  endDate: Date
+}
+
+/**
+ * Fetch all academic year ranges for an org. Uses rawPrisma so it works both
+ * inside and outside runWithOrgContext (e.g. from the cron job).
+ */
+async function fetchSchoolYearRanges(orgId: string): Promise<SchoolYearRange[]> {
+  try {
+    const years = await rawPrisma.academicYear.findMany({
+      where: { organizationId: orgId },
+      select: { startDate: true, endDate: true },
+    })
+    return years.map((y) => ({
+      startDate: startOfDay(new Date(y.startDate)),
+      endDate: startOfDay(new Date(y.endDate)),
+    }))
+  } catch (err) {
+    log.warn({ err: String(err), orgId }, 'Failed to fetch academic year ranges; avoidSchoolYear will not be enforced')
+    return []
+  }
+}
+
+/**
+ * If avoidSchoolYear is enabled and the given candidate date lands inside an
+ * active school year, push it forward to the day after that school year ends.
+ * Repeats until the date is outside every known school year range or until
+ * the safety cap is reached (prevents infinite loops if ranges overlap/cover
+ * everything). Returns the original date if avoidance is disabled or no
+ * ranges are known.
+ */
+function skipSchoolYearIfNeeded(
+  candidate: Date,
+  avoidSchoolYear: boolean,
+  ranges: SchoolYearRange[]
+): Date {
+  if (!avoidSchoolYear || ranges.length === 0) return candidate
+  let result = startOfDay(candidate)
+  for (let i = 0; i < 10; i++) {
+    const hit = ranges.find((r) => {
+      const day = result.getTime()
+      return day >= r.startDate.getTime() && day <= r.endDate.getTime()
+    })
+    if (!hit) return result
+    // Jump to the day after the school year ends
+    result = addDays(hit.endDate, 1)
+  }
+  // Safety cap hit — return best-effort result
+  log.warn({ candidate: candidate.toISOString() }, 'skipSchoolYearIfNeeded hit iteration cap')
+  return result
+}
 // ─── PM Status Constants ───────────────────────────────────────────────────────
 
 export const PM_STATUS = {
@@ -135,11 +194,22 @@ export async function createPmSchedule(orgId: string, input: unknown) {
 
   // Compute initial nextDueDate from today
   const today = startOfDay(new Date())
-  const nextDueDate = computeNextDueDate(
+  const rawNextDueDate = computeNextDueDate(
     today,
     data.recurrenceType,
     data.intervalDays,
     data.months
+  )
+
+  // Enforce the "Avoid school year" toggle by pushing the initial due date
+  // past any active school year it lands in.
+  const schoolYearRanges = data.avoidSchoolYear
+    ? await fetchSchoolYearRanges(orgId)
+    : []
+  const nextDueDate = skipSchoolYearIfNeeded(
+    rawNextDueDate,
+    data.avoidSchoolYear,
+    schoolYearRanges
   )
 
   const schedule = await prisma.pmSchedule.create({
@@ -321,8 +391,13 @@ export async function updatePmSchedule(orgId: string, id: string, input: unknown
       const recurrenceType = (data.recurrenceType ?? existing.recurrenceType) as PmRecurrenceType
       const intervalDays = data.intervalDays ?? existing.intervalDays
       const months = data.months ?? existing.months
+      const avoidSchoolYear = data.avoidSchoolYear ?? existing.avoidSchoolYear
       const today = startOfDay(new Date())
-      updateData.nextDueDate = computeNextDueDate(today, recurrenceType, intervalDays, months)
+      const rawNext = computeNextDueDate(today, recurrenceType, intervalDays, months)
+      const schoolYearRanges = avoidSchoolYear
+        ? await fetchSchoolYearRanges(orgId)
+        : []
+      updateData.nextDueDate = skipSchoolYearIfNeeded(rawNext, avoidSchoolYear, schoolYearRanges)
     }
   }
 
@@ -381,8 +456,42 @@ export async function generatePmTickets(): Promise<number> {
     return !isBefore(advanceCutoff, s.nextDueDate) // nextDueDate <= today + advanceNoticeDays
   })
 
+  // Cache school year ranges per org so we don't refetch for every schedule.
+  const schoolYearCache = new Map<string, SchoolYearRange[]>()
+  const getRanges = async (orgId: string): Promise<SchoolYearRange[]> => {
+    const cached = schoolYearCache.get(orgId)
+    if (cached) return cached
+    const ranges = await fetchSchoolYearRanges(orgId)
+    schoolYearCache.set(orgId, ranges)
+    return ranges
+  }
+
   for (const schedule of qualifying) {
     try {
+      // Enforce "Avoid school year" — if the due date lands inside an active
+      // school year, push nextDueDate forward to after the school year ends
+      // and skip ticket creation this run. The next cron run will pick it up
+      // when it's due again.
+      if (schedule.avoidSchoolYear && schedule.nextDueDate) {
+        const ranges = await getRanges(schedule.organizationId)
+        const adjusted = skipSchoolYearIfNeeded(schedule.nextDueDate, true, ranges)
+        if (adjusted.getTime() !== startOfDay(schedule.nextDueDate).getTime()) {
+          await rawPrisma.pmSchedule.update({
+            where: { id: schedule.id },
+            data: { nextDueDate: adjusted },
+          })
+          log.info(
+            {
+              scheduleId: schedule.id,
+              from: schedule.nextDueDate.toISOString(),
+              to: adjusted.toISOString(),
+            },
+            'Pushed PM nextDueDate past active school year'
+          )
+          continue
+        }
+      }
+
       const ticketNumber = await generateTicketNumber(schedule.organizationId)
 
       // Determine category from linked asset, or fall back to OTHER

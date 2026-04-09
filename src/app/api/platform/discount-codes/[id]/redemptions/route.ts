@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(ok(redemptions))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     logger.error({ error: String(error) }, 'Failed to get redemptions')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })

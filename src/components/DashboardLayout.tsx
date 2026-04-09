@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import Sidebar, { type SidebarProps } from './Sidebar'
 import SearchCommand from './SearchCommand'
 import ImpersonationBanner from './ImpersonationBanner'
+import TrialBanner from './TrialBanner'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
 
@@ -120,8 +121,11 @@ export default function DashboardLayout({
         Skip to main content
       </a>
 
-      {/* Impersonation Banner */}
+      {/* Impersonation Banner (fixed, overlays content) */}
       {isImpersonating && <ImpersonationBanner />}
+
+      {/* Trial / billing status banner (inline, pushes content down) */}
+      <TrialBanner />
 
       <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[40px]' : ''}`}>
         {/* Sidebar */}

@@ -1,5 +1,10 @@
 'use client'
 
+// TODO: Re-enable when MDM/provisioning is fully implemented.
+// This tab currently writes provisioning-event rows to the DB, but
+// itProvisioningService does NOT actually provision Google/M365 accounts.
+// All interactive controls are disabled until real integration ships.
+
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
@@ -7,10 +12,14 @@ import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import {
   UserCog, Settings, RefreshCw, AlertTriangle, CheckCircle2,
-  XCircle, Clock, Loader2, ChevronDown, Search,
+  XCircle, Clock, Loader2, ChevronDown, Search, Info,
 } from 'lucide-react'
 import { IllustrationDeployment } from '@/components/illustrations'
 import ITErrorState from './ITErrorState'
+
+// Feature flag: disables all write actions in the Provisioning tab
+// until the upstream integration (Google Admin SDK / Microsoft Graph) ships.
+const PROVISIONING_ENABLED = false
 
 interface ITProvisioningTabProps {
   canManage: boolean
@@ -147,12 +156,36 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
 
   return (
     <div className="space-y-6">
+      {/* Coming Soon Banner ─────────────────────────────────────────────── */}
+      <div
+        role="status"
+        className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/60"
+      >
+        <div className="w-9 h-9 rounded-xl bg-white/70 border border-amber-200 flex items-center justify-center flex-shrink-0">
+          <Info className="w-4.5 h-4.5 text-amber-600" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-amber-900">
+            Account Provisioning — Coming Soon
+          </p>
+          <p className="text-xs text-amber-800/90 mt-1 leading-relaxed">
+            Automated account provisioning requires a connected identity provider
+            (Google Workspace or Microsoft 365). The UI below is a preview of the
+            workflow. Toggles, triggers, and resolution actions are disabled until
+            the integration is live.
+          </p>
+        </div>
+      </div>
+
       {/* Config Section */}
       {canManage && (
-        <div className="ui-glass p-6">
+        <div className="ui-glass p-6 opacity-75">
           <div className="flex items-center gap-2 mb-4">
             <Settings className="w-5 h-5 text-slate-700" />
             <h3 className="text-sm font-semibold text-slate-900">Automation Settings</h3>
+            <span className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 border border-amber-200">
+              Coming soon
+            </span>
           </div>
           {configLoading ? (
             <div className="space-y-3">
@@ -168,10 +201,16 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
                     <p className="text-sm font-medium text-slate-900">{label}</p>
                     <p className="text-xs text-slate-500">{desc}</p>
                   </div>
+                  {/* TODO: Re-enable when MDM/provisioning is fully implemented */}
                   <button
-                    onClick={() => toggleConfig.mutate({ [key]: !(typedConfig?.[key] ?? false) })}
-                    disabled={toggleConfig.isPending}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                    onClick={() => {
+                      if (!PROVISIONING_ENABLED) return
+                      toggleConfig.mutate({ [key]: !(typedConfig?.[key] ?? false) })
+                    }}
+                    disabled={!PROVISIONING_ENABLED || toggleConfig.isPending}
+                    title="Coming soon — requires connected identity provider"
+                    aria-disabled={!PROVISIONING_ENABLED}
+                    className={`relative w-11 h-6 rounded-full transition-colors opacity-50 cursor-not-allowed ${
                       typedConfig?.[key] ? 'bg-blue-500' : 'bg-slate-300'
                     }`}
                   >
@@ -302,25 +341,41 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
                     </p>
                   </div>
                   {canManage && (
+                    // TODO: Re-enable when MDM/provisioning is fully implemented
                     <div className="flex gap-1.5">
                       <button
-                        onClick={() => resolveOrphaned.mutate({ id: account.id, action: 'keep' })}
-                        disabled={resolveOrphaned.isPending}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                        onClick={() => {
+                          if (!PROVISIONING_ENABLED) return
+                          resolveOrphaned.mutate({ id: account.id, action: 'keep' })
+                        }}
+                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
+                        title="Coming soon — requires connected identity provider"
+                        aria-disabled={!PROVISIONING_ENABLED}
+                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-100 text-green-700 transition-colors opacity-50 cursor-not-allowed"
                       >
                         Keep
                       </button>
                       <button
-                        onClick={() => resolveOrphaned.mutate({ id: account.id, action: 'suspend' })}
-                        disabled={resolveOrphaned.isPending}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors"
+                        onClick={() => {
+                          if (!PROVISIONING_ENABLED) return
+                          resolveOrphaned.mutate({ id: account.id, action: 'suspend' })
+                        }}
+                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
+                        title="Coming soon — requires connected identity provider"
+                        aria-disabled={!PROVISIONING_ENABLED}
+                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 transition-colors opacity-50 cursor-not-allowed"
                       >
                         Suspend
                       </button>
                       <button
-                        onClick={() => resolveOrphaned.mutate({ id: account.id, action: 'delete' })}
-                        disabled={resolveOrphaned.isPending}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                        onClick={() => {
+                          if (!PROVISIONING_ENABLED) return
+                          resolveOrphaned.mutate({ id: account.id, action: 'delete' })
+                        }}
+                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
+                        title="Coming soon — requires connected identity provider"
+                        aria-disabled={!PROVISIONING_ENABLED}
+                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 text-red-700 transition-colors opacity-50 cursor-not-allowed"
                       >
                         Delete
                       </button>

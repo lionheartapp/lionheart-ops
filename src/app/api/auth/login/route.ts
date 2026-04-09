@@ -14,8 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     // ─── Rate limit check (per IP, before any body parsing) ──────────
     const ip = getIp(req) ?? 'unknown'
-    loginRateLimiter.increment(ip)
-    const limitResult = loginRateLimiter.check(ip)
+    const limitResult = await loginRateLimiter.hit(ip)
     if (!limitResult.allowed) {
       return NextResponse.json(
         fail('RATE_LIMITED', 'Too many login attempts. Please try again later.'),
@@ -79,7 +78,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Successful credential check — reset the rate limit counter for this IP
-      loginRateLimiter.reset(ip)
+      await loginRateLimiter.reset(ip)
 
       const token = await signAuthToken({
         userId: user.id,

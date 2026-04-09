@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowLeft, BookOpen, Pencil, ExternalLink, Tag } from 'lucide-react'
+import { sanitizeHtml } from '@/lib/sanitize'
 import Link from 'next/link'
 import PondCareDosageCalculator from '@/components/maintenance/calculators/PondCareDosageCalculator'
 import { KBArticleTypeBadge, formatArticleDate } from '@/components/maintenance/KnowledgeBaseList'
@@ -38,7 +39,7 @@ interface KnowledgeBaseArticleViewerProps {
 }
 
 // ─── Markdown renderer ────────────────────────────────────────────────────────
-// Internal tool — XSS risk from trusted org members is acceptable.
+// Content is sanitized via sanitizeHtml() before rendering.
 
 function MarkdownContent({ content }: { content: string }) {
   // Convert basic markdown to HTML manually (no external library needed)
@@ -66,7 +67,7 @@ function MarkdownContent({ content }: { content: string }) {
     <div
       className="prose prose-sm max-w-none"
       // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: wrapped }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(wrapped) }}
     />
   )
 }

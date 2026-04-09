@@ -631,7 +631,7 @@ export async function POST(req: NextRequest) {
       error instanceof Error &&
       error.message.includes('Insufficient permissions')
     ) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     routeLog.error({ err: error }, 'Chat request failed')
     Sentry.captureException(error)

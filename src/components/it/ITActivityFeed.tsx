@@ -6,6 +6,7 @@ import { queryOptions, queryKeys } from '@/lib/queries'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { StatusBadge } from './ITStatusBadge'
 import { Send, Lock, MessageSquare, ArrowRight, UserPlus } from 'lucide-react'
+import { formatDateTimeWithTz } from '@/lib/utils/date-format'
 
 interface Activity {
   id: string
@@ -57,7 +58,9 @@ function ActivityEntry({ activity }: { activity: Activity }) {
         <div className="flex items-center gap-2 text-xs text-slate-500 mb-0.5">
           <span className="font-medium text-slate-700">{actorName}</span>
           <span>&middot;</span>
-          <time>{new Date(activity.createdAt).toLocaleString()}</time>
+          <time dateTime={activity.createdAt} title={formatDateTimeWithTz(activity.createdAt)}>
+            {formatDateTimeWithTz(activity.createdAt)}
+          </time>
           {activity.isInternal && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-medium">
               <Lock className="w-2.5 h-2.5" />

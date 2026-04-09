@@ -349,20 +349,14 @@ export default function ITIntelligenceTab({
               {lemons.length}
             </span>
           </div>
+          {/* TODO: Re-enable when /api/it/intelligence/detect route is implemented */}
           {canManage && (
             <button
-              onClick={() => detectMutation.mutate()}
-              disabled={detectMutation.isPending}
-              className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+              title="Coming soon"
+              className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {detectMutation.isPending ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Detecting...
-                </span>
-              ) : (
-                'Run Lemon Detection'
-              )}
+              Run Lemon Detection
             </button>
           )}
         </div>

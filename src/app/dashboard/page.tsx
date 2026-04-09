@@ -10,7 +10,7 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
-import { Plus, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2, MapPin, Users, Video, Zap } from 'lucide-react'
+import { Plus, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -48,6 +48,39 @@ interface EventData {
   avEquipmentList: Array<{ item: string; quantity: number }> | null
 }
 
+// ─── Inline Error Card ──────────────────────────────────────────────────────────
+// Shown when a dashboard widget fetch fails. Replaces the silent empty state
+// with an actionable message + retry button so users know something went wrong.
+interface DashboardErrorCardProps {
+  widgetName: string
+  message?: string
+  onRetry: () => void
+}
+
+function DashboardErrorCard({ widgetName, message, onRetry }: DashboardErrorCardProps) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
+      <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
+        <AlertTriangle className="w-6 h-6 text-red-500" aria-hidden="true" />
+      </div>
+      <p className="text-base font-semibold text-slate-800 mb-1">
+        Failed to load {widgetName}
+      </p>
+      {message && (
+        <p className="text-xs text-slate-500 mb-4 max-w-xs">{message}</p>
+      )}
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+      >
+        <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+        Retry
+      </button>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   usePageTitle('Dashboard')
   const router = useRouter()
@@ -66,7 +99,12 @@ export default function DashboardPage() {
     const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 14); d.setHours(23, 59, 59, 999); return d
   }, [])
   const calendarIds = useMemo(() => calendarList.map(c => c.id), [calendarList])
-  const { data: upcomingCalEvents = [], isLoading: upcomingCalLoading } = useCalendarEvents(
+  const {
+    data: upcomingCalEvents = [],
+    isLoading: upcomingCalLoading,
+    isError: upcomingCalError,
+    refetch: refetchUpcomingCal,
+  } = useCalendarEvents(
     calendarIds,
     upcomingStart,
     upcomingEnd,
@@ -129,11 +167,13 @@ export default function DashboardPage() {
   // Ticket data from API
   const [tickets, setTickets] = useState<TicketData[]>([])
   const [ticketsLoading, setTicketsLoading] = useState(true)
+  const [ticketsError, setTicketsError] = useState<string | null>(null)
   const [ticketCount, setTicketCount] = useState(0)
 
   // Events data (for admin + AV dashboard modes)
   const [events, setEvents] = useState<EventData[]>([])
   const [eventsLoading, setEventsLoading] = useState(false)
+  const [eventsError, setEventsError] = useState<string | null>(null)
 
   // Plan Event stepper state
   const [eventStepperOpen, setEventStepperOpen] = useState(false)
@@ -175,22 +215,28 @@ export default function DashboardPage() {
   // Fetch tickets — filtered by category based on dashboardMode
   const fetchTickets = useCallback(async (mode?: string) => {
     setTicketsLoading(true)
+    setTicketsError(null)
     try {
       const dashMode = mode ?? user.dashboardMode
       let url = '/api/tickets?limit=10'
       if (dashMode === 'maintenance') url += '&category=MAINTENANCE'
       else if (dashMode === 'it') url += '&category=IT'
       const res = await fetch(url, { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.ok) {
-          const allTickets = Array.isArray(data.data) ? data.data : data.data?.tickets || []
-          setTickets(allTickets)
-          setTicketCount(allTickets.filter((t: TicketData) => t.status !== 'RESOLVED').length)
-        }
+      if (!res.ok) {
+        setTicketsError(`Request failed (${res.status})`)
+        return
       }
-    } catch {
-      // Silently fail — show empty state
+      const data = await res.json()
+      if (!data?.ok) {
+        setTicketsError(data?.error?.message ?? 'Failed to load requests')
+        return
+      }
+      const allTickets = Array.isArray(data.data) ? data.data : data.data?.tickets || []
+      setTickets(allTickets)
+      setTicketCount(allTickets.filter((t: TicketData) => t.status !== 'RESOLVED').length)
+    } catch (err) {
+      logger.error({ error: String(err) }, 'fetchTickets failed')
+      setTicketsError('Network error — check your connection')
     } finally {
       setTicketsLoading(false)
     }
@@ -199,6 +245,7 @@ export default function DashboardPage() {
   // Fetch events — for admin (upcoming this week) and AV (requires AV support)
   const fetchEvents = useCallback(async (mode?: string) => {
     setEventsLoading(true)
+    setEventsError(null)
     try {
       const dashMode = mode ?? user.dashboardMode
       const today = new Date()
@@ -213,15 +260,20 @@ export default function DashboardPage() {
         url += `&requiresAV=true&fromDate=${today.toISOString()}`
       }
       const res = await fetch(url, { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.ok) {
-          const allEvents = Array.isArray(data.data) ? data.data : []
-          setEvents(allEvents)
-        }
+      if (!res.ok) {
+        setEventsError(`Request failed (${res.status})`)
+        return
       }
-    } catch {
-      // Silently fail
+      const data = await res.json()
+      if (!data?.ok) {
+        setEventsError(data?.error?.message ?? 'Failed to load events')
+        return
+      }
+      const allEvents = Array.isArray(data.data) ? data.data : []
+      setEvents(allEvents)
+    } catch (err) {
+      logger.error({ error: String(err) }, 'fetchEvents failed')
+      setEventsError('Network error — check your connection')
     } finally {
       setEventsLoading(false)
     }
@@ -594,6 +646,12 @@ export default function DashboardPage() {
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
+            ) : upcomingCalError ? (
+              <DashboardErrorCard
+                widgetName="upcoming events"
+                message="We couldn't reach the calendar service. Check your connection and try again."
+                onRetry={() => { void refetchUpcomingCal() }}
+              />
             ) : upcomingCalEvents.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -647,6 +705,12 @@ export default function DashboardPage() {
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
+            ) : eventsError ? (
+              <DashboardErrorCard
+                widgetName="A/V events"
+                message={eventsError}
+                onRetry={() => fetchEvents()}
+              />
             ) : events.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -711,6 +775,16 @@ export default function DashboardPage() {
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
+            ) : ticketsError ? (
+              <DashboardErrorCard
+                widgetName={
+                  user.dashboardMode === 'maintenance' ? 'maintenance requests' :
+                  user.dashboardMode === 'it' ? 'IT requests' :
+                  'tasks'
+                }
+                message={ticketsError}
+                onRetry={() => fetchTickets()}
+              />
             ) : tickets.length === 0 ? (
               <div className="text-center py-16">
                 <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />

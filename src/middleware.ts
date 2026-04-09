@@ -78,6 +78,8 @@ function isPublicPath(pathname: string) {
   if (pathname === '/api/it/tickets/sub') return true
   if (pathname.startsWith('/api/webhooks/clever')) return true
   if (pathname.startsWith('/api/webhooks/classlink')) return true
+  // Stripe subscription-lifecycle webhook — Stripe signs the request body
+  if (pathname.startsWith('/api/stripe/webhook')) return true
   if (pathname.startsWith('/api/it/content-filters/webhook/')) return true
   if (pathname.startsWith('/api/cron/')) return true
   // Public ticket status check
@@ -181,8 +183,7 @@ export async function middleware(req: NextRequest) {
     }
 
     if (limiter) {
-      limiter.increment(clientIp)
-      const limitResult = limiter.check(clientIp)
+      const limitResult = await limiter.hit(clientIp)
       if (!limitResult.allowed) {
         return NextResponse.json(
           { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
@@ -226,27 +227,56 @@ export async function middleware(req: NextRequest) {
   }
 
   // ─── CSRF Validation (state-changing API requests) ───────────────
-  // Runs BEFORE directOrgId early-return to prevent CSRF bypass via x-org-id header.
-  // Only validates when csrf-token cookie is present (backward compat for old sessions).
-  if (
+  // Runs BEFORE JWT verification/x-org-id injection to prevent CSRF bypass.
+  // All non-public API routes reaching this point are protected (see isPublicPath
+  // early-return above), so any POST/PUT/PATCH/DELETE here is a state-changing
+  // request against a protected endpoint and MUST carry a valid CSRF token.
+  //
+  // Safe methods (GET/HEAD/OPTIONS) are not checked and may be used by the client
+  // to obtain a csrf-token cookie before issuing a state-changing request.
+  const isStateChanging =
     pathname.startsWith('/api/') &&
     ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)
-  ) {
+
+  if (isStateChanging) {
     const csrfCookie = req.cookies.get('csrf-token')?.value
-    if (csrfCookie) {
-      const csrfHeader = req.headers.get('x-csrf-token')
-      if (!csrfHeader) {
-        return NextResponse.json(
-          { ok: false, error: { code: 'CSRF_INVALID', message: 'Missing CSRF token' } },
-          { status: 403 }
-        )
-      }
-      if (csrfCookie !== csrfHeader) {
-        return NextResponse.json(
-          { ok: false, error: { code: 'CSRF_INVALID', message: 'Invalid CSRF token' } },
-          { status: 403 }
-        )
-      }
+    const csrfHeader = req.headers.get('x-csrf-token')
+
+    // Missing cookie: authenticated pre-existing session without a CSRF token.
+    // Issue one on the 403 response so the client can retry with a matching header.
+    if (!csrfCookie) {
+      const newToken = crypto.randomUUID()
+      const response = NextResponse.json(
+        {
+          ok: false,
+          error: {
+            code: 'CSRF_REQUIRED',
+            message: 'CSRF token missing. Retry this request with the newly issued token.',
+          },
+        },
+        { status: 403 }
+      )
+      response.cookies.set('csrf-token', newToken, {
+        httpOnly: false, // Must be readable by client JS to echo into x-csrf-token header (double-submit pattern)
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      })
+      return response
+    }
+
+    // Cookie present: require a matching header.
+    if (!csrfHeader) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'CSRF_INVALID', message: 'Missing CSRF token header' } },
+        { status: 403 }
+      )
+    }
+    if (csrfCookie !== csrfHeader) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'CSRF_INVALID', message: 'Invalid CSRF token' } },
+        { status: 403 }
+      )
     }
   }
 

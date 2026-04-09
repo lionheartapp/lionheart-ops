@@ -428,13 +428,14 @@ export default function ITReportsTab({}: ITReportsTabProps) {
                 {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {exporting ? 'Exporting...' : 'Download PDF'}
               </button>
+              {/* TODO: Re-enable when /api/it/reports/ai-summary route is implemented */}
               <button
-                onClick={handleGenerateAISummary}
-                disabled={aiLoading || activeQuery?.isLoading}
-                className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
+                disabled
+                title="Coming soon"
+                className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 transition-colors duration-200"
               >
-                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {aiLoading ? 'Generating...' : 'Generate AI Summary'}
+                <Sparkles className="w-4 h-4" />
+                Generate AI Summary
               </button>
             </div>
           </motion.div>

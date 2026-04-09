@@ -7,7 +7,11 @@
 
 import { SignJWT, jwtVerify } from 'jose'
 
-const secret = new TextEncoder().encode(process.env.PLATFORM_AUTH_SECRET || process.env.AUTH_SECRET || 'dev-platform-secret')
+function getPlatformAuthSecret(): Uint8Array {
+  const secret = process.env.PLATFORM_AUTH_SECRET || process.env.AUTH_SECRET
+  if (!secret) throw new Error('PLATFORM_AUTH_SECRET or AUTH_SECRET environment variable is required')
+  return new TextEncoder().encode(secret)
+}
 
 export type PlatformAuthClaims = {
   adminId: string
@@ -20,12 +24,12 @@ export async function signPlatformAuthToken(claims: Omit<PlatformAuthClaims, 'ty
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d') // shorter expiry for admin sessions
-    .sign(secret)
+    .sign(getPlatformAuthSecret())
 }
 
 export async function verifyPlatformAuthToken(token: string): Promise<PlatformAuthClaims | null> {
   try {
-    const { payload } = await jwtVerify(token, secret)
+    const { payload } = await jwtVerify(token, getPlatformAuthSecret())
     if (!payload.adminId || !payload.email || payload.type !== 'platform') return null
     return {
       adminId: String(payload.adminId),

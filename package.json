@@ -33,6 +33,8 @@
     "smoke:settings": "node scripts/smoke-settings-all.mjs",
     "smoke:it": "npm run smoke:campus",
     "smoke:phase22": "node scripts/smoke-phase22.mjs",
+    "stripe:setup": "dotenv -e .env.local -e .env -- node scripts/setup-stripe-products.mjs",
+    "cleanup:churned": "dotenv -e .env.local -e .env -- node scripts/cleanup-churned-orgs.mjs",
     "perf:load": "node scripts/perf/run-perf.mjs load",
     "perf:stress": "node scripts/perf/run-perf.mjs stress",
     "perf:spike": "node scripts/perf/run-perf.mjs spike",

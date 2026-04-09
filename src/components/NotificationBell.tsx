@@ -8,6 +8,7 @@ import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X } from 'lucid
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { badgePop } from '@/lib/animations'
+import { formatDateTimeWithTz, formatDateWithTz } from '@/lib/utils/date-format'
 
 interface NotificationData {
   id: string
@@ -47,7 +48,9 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.floor(hours / 24)
   if (days < 7) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString()
+  // For older notifications, fall back to a timezone-aware date label so the
+  // user can see the actual calendar day in their local zone.
+  return formatDateWithTz(dateStr)
 }
 
 interface NotificationDrawerProps {
@@ -205,7 +208,12 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                   {n.body && (
                     <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
                   )}
-                  <p className="text-xs text-slate-400 mt-1">{timeAgo(n.createdAt)}</p>
+                  <p
+                    className="text-xs text-slate-400 mt-1"
+                    title={formatDateTimeWithTz(n.createdAt)}
+                  >
+                    {timeAgo(n.createdAt)}
+                  </p>
                 </div>
                 {!n.isRead && (
                   <div className="w-2 h-2 rounded-full bg-primary-500 mt-1.5 flex-shrink-0" />

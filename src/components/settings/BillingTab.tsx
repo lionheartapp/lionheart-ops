@@ -11,6 +11,9 @@ import {
   ExternalLink,
   Loader2,
   Star,
+  Ban,
+  AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
@@ -179,6 +182,19 @@ export default function BillingTab() {
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState('')
 
+  // Cancel subscription state
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
+  const [cancelLoading, setCancelLoading] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+  const [reactivateLoading, setReactivateLoading] = useState(false)
+
+  // Delete organization state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [orgName, setOrgName] = useState('')
+
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
   const getHeaders = useCallback((): HeadersInit => {
@@ -238,6 +254,99 @@ export default function BillingTab() {
     }
     fetchInvoices()
   }, [getHeaders])
+
+  // Fetch current org name for the delete-confirmation input
+  useEffect(() => {
+    const fetchOrg = async () => {
+      try {
+        const res = await fetch('/api/settings/school-info', { headers: getHeaders() })
+        const data = await res.json()
+        if (data.ok && data.data?.name) setOrgName(data.data.name)
+      } catch {
+        // non-critical — delete dialog will show a placeholder message
+      }
+    }
+    fetchOrg()
+  }, [getHeaders])
+
+  // Cancel subscription (at period end)
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true)
+    setCancelError('')
+    try {
+      const res = await fetch('/api/settings/billing/cancel', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ immediate: false }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setSubscription(data.data.subscription)
+        setCancelConfirmOpen(false)
+      } else {
+        setCancelError(data.error?.message || 'Failed to cancel subscription.')
+      }
+    } catch {
+      setCancelError('An unexpected error occurred. Please try again.')
+    } finally {
+      setCancelLoading(false)
+    }
+  }
+
+  // Reactivate a scheduled-to-cancel subscription
+  const handleReactivate = async () => {
+    setReactivateLoading(true)
+    try {
+      const res = await fetch('/api/settings/billing/reactivate', {
+        method: 'POST',
+        headers: getHeaders(),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setSubscription(data.data.subscription)
+      }
+    } catch {
+      // noop — button will re-enable on error
+    } finally {
+      setReactivateLoading(false)
+    }
+  }
+
+  // Delete organization (30-day grace period)
+  const handleDeleteOrganization = async () => {
+    if (deleteConfirmationText.trim() !== orgName) {
+      setDeleteError('Organization name does not match.')
+      return
+    }
+    setDeleteLoading(true)
+    setDeleteError('')
+    try {
+      const res = await fetch('/api/settings/organization/delete', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ confirmationText: deleteConfirmationText.trim() }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setDeleteDialogOpen(false)
+        // Log out and redirect after a beat so the user sees the confirmation
+        setTimeout(() => {
+          try {
+            localStorage.removeItem('auth-token')
+          } catch {
+            // ignore
+          }
+          window.location.href = '/login'
+        }, 5000)
+      } else {
+        setDeleteError(data.error?.message || 'Failed to delete organization.')
+      }
+    } catch {
+      setDeleteError('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   // Open plan change dialog and fetch preview
   const handlePlanSelect = async (plan: SubscriptionPlan) => {
@@ -641,6 +750,87 @@ export default function BillingTab() {
         )}
       </section>
 
+      {/* ── Cancel Subscription ─────────────────────────────────────────────── */}
+      {subscription && (subscription.status === 'TRIALING' || subscription.status === 'ACTIVE') && (
+        <section className="ui-glass p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+              <Ban className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">Cancel Subscription</h3>
+              <p className="text-xs text-slate-500">
+                {subscription.cancelAtPeriodEnd
+                  ? `Your subscription will end on ${formatDate(subscription.currentPeriodEnd)}.`
+                  : `You'll keep access until ${formatDate(subscription.currentPeriodEnd)}.`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-sm text-slate-600">
+              {subscription.cancelAtPeriodEnd
+                ? 'Changed your mind? Reactivate your subscription to continue service.'
+                : 'Cancel at the end of the current billing period. You can reactivate any time before the end date.'}
+            </p>
+            {subscription.cancelAtPeriodEnd ? (
+              <button
+                onClick={handleReactivate}
+                disabled={reactivateLoading}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer active:scale-[0.97] shrink-0"
+              >
+                {reactivateLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Reactivate
+              </button>
+            ) : (
+              <button
+                onClick={() => setCancelConfirmOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer active:scale-[0.97] shrink-0"
+              >
+                Cancel Subscription
+              </button>
+            )}
+          </div>
+          {cancelError && (
+            <p className="mt-3 text-sm text-red-600">{cancelError}</p>
+          )}
+        </section>
+      )}
+
+      {/* ── Danger Zone ──────────────────────────────────────────────────────── */}
+      <section className="bg-red-50/50 border-2 border-red-200 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-red-900">Danger Zone</h3>
+            <p className="text-xs text-red-700">Permanently delete your organization and all its data.</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="text-sm text-red-900 max-w-lg">
+            <p className="font-medium">Delete Organization</p>
+            <p className="text-red-700 text-xs mt-1">
+              This will schedule your organization for deletion. You have 30 days to restore by contacting support.
+              After that, all data is permanently erased and cannot be recovered.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setDeleteDialogOpen(true)
+              setDeleteConfirmationText('')
+              setDeleteError('')
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors cursor-pointer active:scale-[0.97] shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Organization
+          </button>
+        </div>
+      </section>
+
       {/* ── Plan Change Confirmation Dialog ──────────────────────────────────── */}
       <ConfirmDialog
         isOpen={!!changingToPlan}
@@ -668,6 +858,95 @@ export default function BillingTab() {
         loadingText={previewLoading ? 'Loading preview...' : 'Changing plan...'}
         confirmDisabled={previewLoading || changePlanLoading}
       />
+
+      {/* ── Cancel Subscription Confirmation Dialog ──────────────────────────── */}
+      <ConfirmDialog
+        isOpen={cancelConfirmOpen}
+        onClose={() => {
+          if (!cancelLoading) {
+            setCancelConfirmOpen(false)
+            setCancelError('')
+          }
+        }}
+        onConfirm={handleCancelSubscription}
+        title="Cancel Subscription?"
+        message={`Your subscription will remain active until ${formatDate(subscription?.currentPeriodEnd ?? null)}. You can reactivate any time before then. Are you sure?`}
+        confirmText={cancelLoading ? 'Canceling...' : 'Yes, Cancel'}
+        cancelText="Keep Subscription"
+        variant="warning"
+        isLoading={cancelLoading}
+        loadingText="Canceling subscription..."
+        confirmDisabled={cancelLoading}
+      />
+
+      {/* ── Delete Organization Dialog ───────────────────────────────────────── */}
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border-2 border-red-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-red-900">Delete Organization</h3>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              <p className="text-sm text-slate-700">
+                This will <span className="font-semibold text-red-700">permanently delete</span> your organization,
+                cancel your subscription, and remove all users, data, and settings.
+              </p>
+              <p className="text-sm text-slate-700">
+                You have <span className="font-semibold">30 days</span> to restore by contacting support.
+                After that, everything is erased and cannot be recovered.
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-900">
+                To confirm, type the organization name below:
+                <div className="mt-1 font-mono font-semibold text-red-700">{orgName || '(loading…)'}</div>
+              </div>
+            </div>
+
+            <input
+              type="text"
+              value={deleteConfirmationText}
+              onChange={(e) => {
+                setDeleteConfirmationText(e.target.value)
+                setDeleteError('')
+              }}
+              placeholder="Type organization name to confirm"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none text-sm mb-3"
+              disabled={deleteLoading}
+            />
+
+            {deleteError && (
+              <p className="text-sm text-red-600 mb-3">{deleteError}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  if (!deleteLoading) {
+                    setDeleteDialogOpen(false)
+                    setDeleteConfirmationText('')
+                    setDeleteError('')
+                  }
+                }}
+                disabled={deleteLoading}
+                className="px-4 py-2 rounded-full bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteOrganization}
+                disabled={deleteLoading || !orgName || deleteConfirmationText.trim() !== orgName}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Delete Organization
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

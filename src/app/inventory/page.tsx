@@ -114,6 +114,9 @@ export default function InventoryPage() {
         // No specific category — filter to dept categories
         params.set('categories', deptCategories.join(','))
       }
+      // Opt into max page size so the inventory list doesn't silently truncate at 25.
+      // TODO: replace with proper pagination UI when inventory grows beyond 500 items.
+      params.set('limit', '500')
       const qs = params.toString()
       return fetchApi<InventoryItem[]>(`/api/inventory${qs ? `?${qs}` : ''}`)
     },

@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays } from 'lucide-react'
 import { IllustrationCalendar } from '@/components/illustrations'
+import ConfirmDialog from '@/components/ConfirmDialog'
+
+// ── Delete confirmation state ──────────────────────────────────────────
+
+type DeleteTarget =
+  | { kind: 'year'; id: string; name: string }
+  | { kind: 'term'; id: string; name: string }
+  | { kind: 'schedule'; id: string; name: string }
+  | { kind: 'specialDay'; id: string; name: string }
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -128,6 +137,7 @@ export default function AcademicCalendarTab() {
   const [showSpecialDayForm, setShowSpecialDayForm] = useState(false)
   const [specialDayForm, setSpecialDayForm] = useState({ date: '', name: '', specialDayType: 'HOLIDAY', isAllSchools: true })
   const [editingSchedule, setEditingSchedule] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
   // ── Mutations ──
 
@@ -221,6 +231,61 @@ export default function AcademicCalendarTab() {
     { key: 'special-days', label: 'Special Days' },
   ]
 
+  // ── Delete confirmation helpers ──────────────────────────────────────
+
+  const deleteDialogCopy = (target: DeleteTarget | null): { title: string; message: string } => {
+    if (!target) return { title: '', message: '' }
+    switch (target.kind) {
+      case 'year':
+        return {
+          title: 'Delete academic year?',
+          message: `This will permanently delete "${target.name}" and all of its terms and marking periods. This cannot be undone.`,
+        }
+      case 'term':
+        return {
+          title: 'Delete term?',
+          message: `This will permanently delete the term "${target.name}" and all of its marking periods. This cannot be undone.`,
+        }
+      case 'schedule':
+        return {
+          title: 'Delete bell schedule?',
+          message: `This will permanently delete the bell schedule "${target.name}". This cannot be undone.`,
+        }
+      case 'specialDay':
+        return {
+          title: 'Delete special day?',
+          message: `This will permanently delete the special day "${target.name}". This cannot be undone.`,
+        }
+    }
+  }
+
+  const isDeletePending =
+    deleteYear.isPending ||
+    deleteTerm.isPending ||
+    deleteSchedule.isPending ||
+    deleteSpecialDayMut.isPending
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return
+    const onSettled = () => setDeleteTarget(null)
+    switch (deleteTarget.kind) {
+      case 'year':
+        deleteYear.mutate(deleteTarget.id, { onSettled })
+        return
+      case 'term':
+        deleteTerm.mutate(deleteTarget.id, { onSettled })
+        return
+      case 'schedule':
+        deleteSchedule.mutate(deleteTarget.id, { onSettled })
+        return
+      case 'specialDay':
+        deleteSpecialDayMut.mutate(deleteTarget.id, { onSettled })
+        return
+    }
+  }
+
+  const dialogCopy = deleteDialogCopy(deleteTarget)
+
   return (
     <div className="space-y-6">
       <div className="ui-glass p-6">
@@ -308,7 +373,7 @@ export default function AcademicCalendarTab() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => setShowTermForm(year.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">+ Term</button>
-                      <button onClick={() => { if (confirm('Delete this academic year and all its terms?')) deleteYear.mutate(year.id) }} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
+                      <button onClick={() => setDeleteTarget({ kind: 'year', id: year.id, name: year.name })} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
                     </div>
                   </div>
 
@@ -337,7 +402,7 @@ export default function AcademicCalendarTab() {
                             <span className="text-sm font-medium text-slate-800">{term.name}</span>
                             <span className="text-xs text-slate-500">{formatDate(term.startDate)} — {formatDate(term.endDate)}</span>
                           </div>
-                          <button onClick={() => { if (confirm('Delete this term?')) deleteTerm.mutate(term.id) }} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
+                          <button onClick={() => setDeleteTarget({ kind: 'term', id: term.id, name: term.name })} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
                         </div>
                       ))}
                     </div>
@@ -419,7 +484,7 @@ export default function AcademicCalendarTab() {
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => startEditSchedule(schedule)} className="text-xs text-blue-600 hover:text-blue-800 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Edit</button>
-                      <button onClick={() => { if (confirm('Delete this bell schedule?')) deleteSchedule.mutate(schedule.id) }} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
+                      <button onClick={() => setDeleteTarget({ kind: 'schedule', id: schedule.id, name: schedule.name })} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
                     </div>
                   </div>
                   {schedule.periods.length > 0 && (
@@ -495,7 +560,7 @@ export default function AcademicCalendarTab() {
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${badge.color}`}>{badge.label}</span>
                       {day.isAllSchools && <span className="text-xs text-slate-400">All schools</span>}
                     </div>
-                    <button onClick={() => { if (confirm('Delete this special day?')) deleteSpecialDayMut.mutate(day.id) }} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
+                    <button onClick={() => setDeleteTarget({ kind: 'specialDay', id: day.id, name: day.name })} className="text-xs text-red-500 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Delete</button>
                   </div>
                 )
               })}
@@ -504,6 +569,18 @@ export default function AcademicCalendarTab() {
         </div>
       )}
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => { if (!isDeletePending) setDeleteTarget(null) }}
+        onConfirm={handleDeleteConfirm}
+        title={dialogCopy.title}
+        message={dialogCopy.message}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={isDeletePending}
+        loadingText="Deleting..."
+      />
     </div>
   )
 }

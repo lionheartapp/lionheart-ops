@@ -17,7 +17,8 @@ import {
 } from 'lucide-react'
 import { tabContent, staggerContainer, fadeInUp } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
-import { useGroups } from '@/lib/hooks/useEventGroups'
+import { useGroups, useAssignToGroup } from '@/lib/hooks/useEventGroups'
+import { useToast } from '@/components/Toast'
 import GroupDragBoard from './groups/GroupDragBoard'
 import ActivityManager from './groups/ActivityManager'
 import DietaryMedicalReport from './groups/DietaryMedicalReport'
@@ -83,9 +84,10 @@ interface AIAssignmentsModalProps {
   result: AIGroupAssignmentResult
   onApply: () => void
   onDismiss: () => void
+  isApplying?: boolean
 }
 
-function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalProps) {
+function AIAssignmentsModal({ result, onApply, onDismiss, isApplying = false }: AIAssignmentsModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onDismiss} />
@@ -164,16 +166,22 @@ function AIAssignmentsModal({ result, onApply, onDismiss }: AIAssignmentsModalPr
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-100">
           <button
             onClick={onDismiss}
-            className="px-4 py-2 rounded-full text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            disabled={isApplying}
+            className="px-4 py-2 rounded-full text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={onApply}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-[0.97] transition-all cursor-pointer"
+            disabled={isApplying || result.assignments.length === 0}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Sparkles className="w-4 h-4" />
-            Apply Suggestions
+            {isApplying ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            {isApplying ? 'Applying...' : 'Apply Suggestions'}
           </button>
         </div>
       </motion.div>
@@ -272,10 +280,13 @@ function ConflictAlert({ report, onDismiss }: ConflictAlertProps) {
 export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTabProps) {
   const [activeTab, setActiveTab] = useState<LogisticsTab>('buses')
   const { data: perms } = usePermissions()
+  const { toast } = useToast()
+  const assignToGroup = useAssignToGroup(eventProjectId)
 
   // AI state
   const [suggestingAssignments, setSuggestingAssignments] = useState(false)
   const [assignmentResult, setAssignmentResult] = useState<AIGroupAssignmentResult | null>(null)
+  const [applyingAssignments, setApplyingAssignments] = useState(false)
   const [checkingConflicts, setCheckingConflicts] = useState(false)
   const [conflictReport, setConflictReport] = useState<AIConflictReport | null>(null)
   const [aiError, setAIError] = useState<string | null>(null)
@@ -338,10 +349,51 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
     }
   }
 
-  function handleApplyAssignments() {
-    // TODO: Wire to existing group assignment mutations when implemented
-    // For now, dismiss the modal — the plan phase that implements assignment writing is separate
+  async function handleApplyAssignments() {
+    if (!assignmentResult || assignmentResult.assignments.length === 0) {
+      setAssignmentResult(null)
+      return
+    }
+
+    setApplyingAssignments(true)
+    setAIError(null)
+
+    // Write each AI suggestion through the existing single-assignment mutation.
+    // The AI returns `participantId` which maps 1:1 to `eventRegistration.id`
+    // (see src/app/api/events/ai/generate-groups/route.ts — participants are
+    // built from `eventRegistration` rows and their `id` is used as-is).
+    let successCount = 0
+    const failures: string[] = []
+
+    for (const a of assignmentResult.assignments) {
+      try {
+        await assignToGroup.mutateAsync({
+          groupId: a.groupId,
+          registrationId: a.participantId,
+        })
+        successCount += 1
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        failures.push(msg)
+      }
+    }
+
+    setApplyingAssignments(false)
     setAssignmentResult(null)
+
+    if (successCount > 0 && failures.length === 0) {
+      toast(
+        `Applied ${successCount} group assignment${successCount === 1 ? '' : 's'}`,
+        'success',
+      )
+    } else if (successCount > 0 && failures.length > 0) {
+      toast(
+        `Applied ${successCount} of ${successCount + failures.length} assignments — ${failures.length} failed`,
+        'warning',
+      )
+    } else {
+      toast('Failed to apply AI group assignments', 'error')
+    }
   }
 
   function renderTabContent() {
@@ -524,7 +576,10 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
           <AIAssignmentsModal
             result={assignmentResult}
             onApply={handleApplyAssignments}
-            onDismiss={() => setAssignmentResult(null)}
+            onDismiss={() => {
+              if (!applyingAssignments) setAssignmentResult(null)
+            }}
+            isApplying={applyingAssignments}
           />
         )}
       </AnimatePresence>

@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
       error instanceof Error &&
       error.message.includes('Insufficient permissions')
     ) {
-      return NextResponse.json(fail('FORBIDDEN', error.message), {
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), {
         status: 403,
       })
     }

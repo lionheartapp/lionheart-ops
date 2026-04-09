@@ -52,14 +52,19 @@ export function getAuthHeaders(): HeadersInit {
  * Generic API fetcher.
  * Sends credentials (cookies) on every request.
  * On 401: clears any legacy localStorage data and redirects to /login.
+ * On 403 CSRF_REQUIRED: transparently retries once after the server issues a
+ *   fresh csrf-token cookie (handles pre-existing sessions without a token).
  * Throws on non-ok JSON responses so TanStack Query treats them as errors.
  */
 export async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers: { ...getAuthHeaders(), ...options?.headers },
-  })
+  const doFetch = async (): Promise<Response> =>
+    fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: { ...getAuthHeaders(), ...options?.headers },
+    })
+
+  let res = await doFetch()
 
   // Session expired or cookie missing — clean up and redirect
   if (res.status === 401 && typeof window !== 'undefined') {
@@ -67,6 +72,21 @@ export async function fetchApi<T>(url: string, options?: RequestInit): Promise<T
     LEGACY_KEYS.forEach((k) => localStorage.removeItem(k))
     window.location.href = '/login'
     throw new Error('Session expired')
+  }
+
+  // Transparent one-time retry for pre-existing sessions that lacked a CSRF token.
+  // The first request receives a freshly issued csrf-token cookie; the retry
+  // echoes it in the X-CSRF-Token header and should succeed.
+  if (res.status === 403) {
+    const cloned = res.clone()
+    try {
+      const maybeJson = await cloned.json()
+      if (maybeJson?.error?.code === 'CSRF_REQUIRED') {
+        res = await doFetch()
+      }
+    } catch {
+      // Non-JSON 403 — fall through to normal error handling
+    }
   }
 
   const json = await res.json()

@@ -108,7 +108,9 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // TODO: Create subscription when billing models are synced
+        // Subscription is created via the Stripe Checkout flow (/onboarding/plan)
+        // and synced to the database by the Stripe webhook. This route just marks
+        // onboarding ACTIVE — no subscription work happens here.
 
         return NextResponse.json(
           ok({

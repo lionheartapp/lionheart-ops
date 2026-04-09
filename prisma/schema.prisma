@@ -38,6 +38,7 @@ model Organization {
   // Platform admin fields
   stripeCustomerId  String?       // Stripe Customer ID for billing
   onboardingStatus  OnboardingStatus @default(SIGNED_UP)
+  scheduledDeleteAt DateTime?     // Set when org is scheduled for deletion (30-day grace period before hard delete)
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
   createdAt     DateTime          @default(now())

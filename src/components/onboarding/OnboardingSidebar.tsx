@@ -4,15 +4,17 @@ import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 const STEPS = [
-  { number: 1, label: 'School Info', subtitle: 'Tell us about your school' },
-  { number: 2, label: 'Add Members', subtitle: 'Invite your team' },
-  { number: 3, label: 'Setup Complete', subtitle: 'Finalize your workspace' },
+  { number: 1, label: 'Choose Plan', subtitle: 'Start your 14-day free trial' },
+  { number: 2, label: 'School Info', subtitle: 'Tell us about your school' },
+  { number: 3, label: 'Add Members', subtitle: 'Invite your team' },
+  { number: 4, label: 'Setup Complete', subtitle: 'Finalize your workspace' },
 ]
 
 const TAGLINES: Record<number, string> = {
-  1: 'Let\u2019s get to know your school',
-  2: 'Your team will love this',
-  3: 'Almost there!',
+  1: 'Pick the plan that fits your school',
+  2: 'Let\u2019s get to know your school',
+  3: 'Your team will love this',
+  4: 'Almost there!',
 }
 
 interface OnboardingSidebarProps {

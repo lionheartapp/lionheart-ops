@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
+import { useToast } from '@/components/Toast'
 import {
   useCalendars,
   useCalendarEvents,
@@ -56,6 +57,7 @@ import SlotChoiceModal from './SlotChoiceModal'
 import EmptyCalendarState from './EmptyCalendarState'
 
 export default function CalendarView() {
+  const { toast } = useToast()
   const {
     currentDate,
     setCurrentDate,
@@ -526,6 +528,7 @@ export default function CalendarView() {
       }
       await createEvent.mutateAsync(payload)
       setIsCreateOpen(false)
+      toast('Event created successfully', 'success')
     } catch (err: unknown) {
       const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
       if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
@@ -548,7 +551,7 @@ export default function CalendarView() {
       setFormError(message)
       logger.error({ error: String(err) }, 'Event creation failed')
     }
-  }, [createEvent])
+  }, [createEvent, toast])
 
   const handleUpdateEvent = useCallback(async (data: EventFormData) => {
     if (!editingEvent) return
@@ -566,6 +569,7 @@ export default function CalendarView() {
       await updateEvent.mutateAsync(payload as { id: string } & Record<string, unknown>)
       setIsCreateOpen(false)
       setEditingEvent(null)
+      toast('Event updated successfully', 'success')
     } catch (err: unknown) {
       const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
       if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
@@ -588,7 +592,7 @@ export default function CalendarView() {
       setFormError(message)
       logger.error({ error: String(err) }, 'Event update failed')
     }
-  }, [updateEvent, editingEvent])
+  }, [updateEvent, editingEvent, toast])
 
   const handleOverrideConflict = useCallback(async () => {
     if (!pendingConflictPayload) return

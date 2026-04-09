@@ -2,10 +2,11 @@
  * POST /api/it/student-password/request — request a password reset token
  *
  * No authentication required. Verifies student exists and email matches,
- * then generates a reset token.
+ * then generates a reset token. Rate limited per IP to prevent abuse.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import {
@@ -14,22 +15,42 @@ import {
 } from '@/lib/services/itStudentPasswordService'
 import { sendPasswordResetEmail } from '@/lib/services/emailService'
 import { logger } from '@/lib/logger'
+import { studentPasswordRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { getIp } from '@/lib/services/auditService'
+
+const requestSchema = z.object({
+  orgSlug: z.string().trim().min(1, 'orgSlug is required').max(200),
+  studentId: z.string().trim().min(1, 'studentId is required').max(200),
+  email: z.string().trim().toLowerCase().email('Invalid email address').max(320),
+})
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { orgSlug, studentId, email } = body as {
-      orgSlug: string
-      studentId: string
-      email: string
+    // ─── Rate limit check (per IP, before any body parsing) ──────────
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await studentPasswordRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many requests. Please try again later.'),
+        { status: 429, headers: getRateLimitHeaders(limitResult) }
+      )
     }
 
-    if (!orgSlug || !studentId || !email) {
+    const raw = await req.json().catch(() => null)
+    const parsed = requestSchema.safeParse(raw)
+
+    if (!parsed.success) {
       return NextResponse.json(
-        fail('VALIDATION_ERROR', 'orgSlug, studentId, and email are required'),
+        fail(
+          'VALIDATION_ERROR',
+          'Invalid input',
+          parsed.error.issues.map((e) => e.message)
+        ),
         { status: 400 }
       )
     }
+
+    const { orgSlug, studentId, email } = parsed.data
 
     // Look up org by slug
     const org = await rawPrisma.organization.findFirst({

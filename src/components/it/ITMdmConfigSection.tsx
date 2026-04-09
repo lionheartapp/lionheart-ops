@@ -1,5 +1,10 @@
 'use client'
 
+// TODO: Re-enable when MDM/provisioning is fully implemented.
+// itMdmService currently returns "not_configured" for every operation.
+// Until we have API credentials for Jamf Pro / Mosyle / Microsoft Intune,
+// provider "Configure" actions are visually disabled with "Coming soon" tooltips.
+
 import { useState } from 'react'
 import { Shield, Settings, ExternalLink, Info } from 'lucide-react'
 
@@ -50,11 +55,15 @@ export default function ITMdmConfigSection({ canManage }: ITMdmConfigSectionProp
         <h3 className="text-sm font-semibold text-slate-900">
           Mobile Device Management (MDM)
         </h3>
+        <span className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 border border-amber-200">
+          Coming soon
+        </span>
       </div>
 
       <p className="text-xs text-slate-500 mb-4">
         Connect your MDM provider to automatically sync device enrollment, push policies, and manage
-        apps across your fleet.
+        apps across your fleet. This integration requires vendor API credentials and is not yet
+        available.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

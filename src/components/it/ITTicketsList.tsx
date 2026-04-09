@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import type { FilterField } from './ITSearchFilterBar'
 import { IllustrationTickets } from '@/components/illustrations'
+import { formatDateTimeWithTz, formatDateWithTz } from '@/lib/utils/date-format'
 
 interface ITTicketsListProps {
   onViewTicket: (ticketId: string) => void
@@ -156,8 +157,11 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
                         )}
                       </td>
                     )}
-                    <td className="px-4 py-3 text-xs text-slate-500">
-                      {new Date(t.createdAt).toLocaleDateString()}
+                    <td
+                      className="px-4 py-3 text-xs text-slate-500"
+                      title={formatDateTimeWithTz(t.createdAt)}
+                    >
+                      {formatDateWithTz(t.createdAt)}
                     </td>
                   </tr>
                 ))}

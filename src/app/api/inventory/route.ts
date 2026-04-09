@@ -8,7 +8,10 @@ import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { prisma } from '@/lib/db'
 
 export const GET = withAuth(async ({ req, orgId, searchParams }) => {
-  const { page, limit, skip } = parsePagination(searchParams)
+  // TODO: replace with proper paginated list UI. For now, allow up to 500 items
+  // per request so the inventory page doesn't silently truncate at 25. Default
+  // remains 25 for callers that opt in to smaller pages.
+  const { page, limit, skip } = parsePagination(searchParams, 25, 500)
   const search = searchParams.get('search') || undefined
   const category = searchParams.get('category') || undefined
   // Multi-category filter: ?categories=AV Equipment,Cables & Adapters

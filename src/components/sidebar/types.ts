@@ -20,7 +20,7 @@ export interface CalendarSidebarData {
   campus?: { id: string; name: string } | null
 }
 
-export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
+export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
 export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
 export type MaintenanceTab = 'dashboard' | 'pm-calendar'
 
