@@ -24,12 +24,20 @@
  * banner silently renders nothing rather than blocking the UI.
  */
 
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { AlertTriangle, ArrowRight, Clock, Lock, Sparkles } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { formatTrialDate } from '@/lib/trial-utils'
+
+/**
+ * Height of the banner in px. Exposed to the rest of the app via the
+ * --trial-banner-h CSS custom property so the fixed Sidebar + any other
+ * position:fixed chrome can offset itself instead of being covered.
+ */
+const BANNER_HEIGHT_PX = 44
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -219,25 +227,43 @@ export default function TrialBanner() {
     retry: false,
   })
 
-  if (isError || !data) return null
+  // Compute the view first so the effect can observe whether the banner
+  // is rendered. When visible, we publish the banner height as a CSS
+  // custom property so the fixed Sidebar can shift down to match.
+  const view = !isError && data ? getBannerView(data.trial, data.subscription) : null
+  const isVisible = view !== null
 
-  const view = getBannerView(data.trial, data.subscription)
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const root = document.documentElement
+    root.style.setProperty(
+      '--trial-banner-h',
+      isVisible ? `${BANNER_HEIGHT_PX}px` : '0px'
+    )
+    return () => {
+      root.style.setProperty('--trial-banner-h', '0px')
+    }
+  }, [isVisible])
+
   if (!view) return null
 
   const { background, Icon, message, buttonLabel } = view
-  const showCta = data.canManageBilling
+  const showCta = data?.canManageBilling ?? false
 
   return (
     <motion.div
       role="status"
       aria-live="polite"
-      initial={{ opacity: 0, y: -12 }}
+      initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
       className="relative z-50 flex-shrink-0 w-full text-white shadow-sm"
-      style={{ background }}
+      style={{ background, minHeight: `${BANNER_HEIGHT_PX}px` }}
     >
-      <div className="flex items-center justify-center gap-3 px-4 py-2.5 text-sm min-h-[44px]">
+      <div
+        className="flex items-center justify-center gap-3 px-4 py-2.5 text-sm"
+        style={{ minHeight: `${BANNER_HEIGHT_PX}px` }}
+      >
         <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
         <span className="flex-1 sm:flex-none text-center sm:text-left">
           {message}

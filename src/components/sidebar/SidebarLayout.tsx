@@ -45,8 +45,17 @@ export default function SidebarLayout({
         />
       )}
 
-      {/* Desktop Layout: Main Nav + Secondary Nav */}
-      <div className={`hidden lg:flex fixed left-0 top-0 h-screen z-sticky transition-shadow duration-300 ${secondaryOpen ? 'shadow-[4px_0_24px_-4px_rgba(100,116,139,0.18)]' : ''}`}>
+      {/* Desktop Layout: Main Nav + Secondary Nav.
+          `top` + `height` read a CSS variable set by TrialBanner so the
+          sidebar slides down out of the way when the trial banner is
+          visible instead of being covered by it. */}
+      <div
+        className={`hidden lg:flex fixed left-0 z-sticky transition-shadow duration-300 ${secondaryOpen ? 'shadow-[4px_0_24px_-4px_rgba(100,116,139,0.18)]' : ''}`}
+        style={{
+          top: 'var(--trial-banner-h, 0px)',
+          height: 'calc(100vh - var(--trial-banner-h, 0px))',
+        }}
+      >
         <aside
           className="flex flex-col w-64 text-slate-700 h-full relative z-10"
           style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? 'none' : '1px solid rgba(200, 210, 225, 0.5)' }}
@@ -69,12 +78,19 @@ export default function SidebarLayout({
         </aside>
       </div>
 
-      {/* Mobile Layout: Sidebar */}
+      {/* Mobile Layout: Sidebar — also respects --trial-banner-h. */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 h-screen w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
-        style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRight: '1px solid rgba(255, 255, 255, 0.55)' }}
+        style={{
+          background: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.55)',
+          top: 'var(--trial-banner-h, 0px)',
+          height: 'calc(100vh - var(--trial-banner-h, 0px))',
+        }}
         role="navigation"
         aria-label="Mobile navigation"
       >
