@@ -115,7 +115,7 @@ export default function DashboardLayout({
   }, [isOnline, queryClient])
 
   return (
-    <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, rgb(243, 249, 255) 0%, rgb(229, 237, 246) 100%)' }}>
+    <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: '#f6f5f2' }}>
       {/* Skip to main content link for keyboard users */}
       <a href="#main-content" className="skip-to-main">
         Skip to main content
@@ -143,11 +143,9 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main id="main-content" className="flex-1 min-w-0 min-h-0 overflow-y-auto relative">
-          {/* Ambient gradient blobs — gives glass cards depth on Aura canvas */}
+          {/* Subtle warm ambient — single neutral glow, not the old blue/violet/indigo blobs */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
-            <div className="absolute -top-32 right-0 w-[500px] h-[500px] rounded-full blur-[140px] bg-blue-300/[0.15]" />
-            <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px] bg-violet-300/[0.12]" />
-            <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px] bg-indigo-200/[0.10]" />
+            <div className="absolute -top-40 right-0 w-[600px] h-[600px] rounded-full blur-[160px]" style={{ backgroundColor: 'rgba(215, 210, 200, 0.25)' }} />
           </div>
           <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-14 pr-4 sm:px-10 flex flex-col min-h-0 h-full">
             {children}

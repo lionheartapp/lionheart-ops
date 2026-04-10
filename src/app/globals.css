@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Primary palette */
+  /* Primary palette — kept for accent usage (trial banner, selected states) */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
@@ -15,19 +15,23 @@
   --color-primary-800: #1e40af;
   --color-primary-900: #1e3a8a;
 
-  /* Semantic tokens */
+  /* ── Warm neutral semantic tokens (Cal.com / Notion influenced) ── */
   --color-surface: #ffffff;
-  --color-surface-secondary: #f9fafb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #4b5563;
-  --color-text-muted: #9ca3af;
-  --color-border: #e5e7eb;
-  --color-border-light: #f3f4f6;
+  --color-surface-secondary: #fafaf9;
+  --color-surface-warm: #fdfcfb;
+  --color-text-primary: #1a1915;
+  --color-text-secondary: #6a6864;
+  --color-text-muted: #a8a49d;
+  --color-border: rgba(17, 15, 10, 0.08);
+  --color-border-light: rgba(17, 15, 10, 0.05);
 
-  /* Shadows */
-  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
-  --shadow-heavy: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  /* ── Shadows — multi-layer Notion-style sub-0.05 stacks ── */
+  --shadow-subtle: 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-medium: 0 0.8px 2.9px rgba(0,0,0,0.02), 0 2px 7.8px rgba(0,0,0,0.027), 0 4px 18px rgba(0,0,0,0.04);
+  --shadow-heavy: 0 4px 18px rgba(0,0,0,0.04), 0 8px 28px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.06);
+
+  /* Shell background — warm neutral instead of blue aura */
+  --shell-bg: #f6f5f2;
 }
 
 /* Accessibility: Smooth scrolling for all and reduced motion support */
@@ -363,46 +367,43 @@ a:visited {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
-  /* ── Aura Glassmorphism surface utilities ── */
+  /* ── Warm surface utilities (replaced blue-frost glassmorphism) ── */
   .ui-glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    @apply rounded-2xl;
+    background: var(--color-surface-warm, #fdfcfb);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-medium);
+    @apply rounded-3xl;
   }
 
   .ui-glass-hover {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    @apply rounded-2xl transition-all duration-200;
+    background: var(--color-surface-warm, #fdfcfb);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-medium);
+    @apply rounded-3xl transition-all duration-200;
   }
   .ui-glass-hover:hover {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    box-shadow: var(--shadow-heavy);
     transform: translateY(-1px);
   }
 
   .ui-glass-table {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    @apply rounded-2xl overflow-hidden;
+    background: var(--color-surface-warm, #fdfcfb);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-medium);
+    @apply rounded-3xl overflow-hidden;
   }
 
   .ui-glass-overlay {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    @apply shadow-heavy;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-heavy);
   }
 
   .ui-glass-dropdown {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    @apply rounded-xl shadow-heavy;
+    border: 1px solid var(--color-border);
+    @apply rounded-xl;
+    box-shadow: var(--shadow-heavy);
   }
 }

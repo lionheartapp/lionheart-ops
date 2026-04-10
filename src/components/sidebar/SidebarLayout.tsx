@@ -25,7 +25,7 @@ export default function SidebarLayout({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-        style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.6)' }}
+        style={{ background: 'rgba(253, 252, 251, 0.9)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(17, 15, 10, 0.08)' }}
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
       >
@@ -57,8 +57,12 @@ export default function SidebarLayout({
         }}
       >
         <aside
-          className="flex flex-col w-64 text-slate-700 h-full relative z-10"
-          style={{ background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? 'none' : '1px solid rgba(200, 210, 225, 0.5)' }}
+          className="flex flex-col w-64 h-full relative z-10"
+          style={{
+            background: '#fdfcfb',
+            borderRight: secondaryOpen ? 'none' : '1px solid rgba(17, 15, 10, 0.06)',
+            color: '#1a1915',
+          }}
           aria-label="Sidebar navigation"
         >
           {mainNavContent}
@@ -68,7 +72,12 @@ export default function SidebarLayout({
           className={`flex flex-col w-60 h-full transition-[max-width,opacity] duration-300 ease-in-out overflow-hidden ${
             secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
-          style={{ background: 'rgba(245, 247, 250, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRight: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.5)' : 'none', borderLeft: secondaryOpen ? '1px solid rgba(200, 210, 225, 0.3)' : 'none' }}
+          style={{
+            background: '#f8f7f4',
+            borderRight: secondaryOpen ? '1px solid rgba(17, 15, 10, 0.06)' : 'none',
+            borderLeft: secondaryOpen ? '1px solid rgba(17, 15, 10, 0.04)' : 'none',
+            color: '#1a1915',
+          }}
           aria-label={secondaryLabel}
           aria-hidden={!secondaryOpen}
         >
@@ -80,14 +89,13 @@ export default function SidebarLayout({
 
       {/* Mobile Layout: Sidebar — also respects --trial-banner-h. */}
       <aside
-        className={`lg:hidden fixed left-0 w-[85vw] max-w-[320px] text-slate-700 flex flex-col transition-transform duration-300 z-navbar ${
+        className={`lg:hidden fixed left-0 w-[85vw] max-w-[320px] flex flex-col transition-transform duration-300 z-navbar ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{
-          background: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.55)',
+          background: '#fdfcfb',
+          borderRight: '1px solid rgba(17, 15, 10, 0.06)',
+          color: '#1a1915',
           top: 'var(--trial-banner-h, 0px)',
           height: 'calc(100vh - var(--trial-banner-h, 0px))',
         }}
