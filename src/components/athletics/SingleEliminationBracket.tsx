@@ -194,7 +194,7 @@ export default function SingleEliminationBracket({ brackets, onMatchClick }: Sin
                   height={MATCH_H}
                   rx={6}
                   fill="white"
-                  stroke={match.winnerId ? '#d1fae5' : '#e5e7eb'}
+                  stroke={match.winnerId ? '#d1fae5' : '#eae8e2'}
                   strokeWidth={1.5}
                   className={hasTeams ? 'hover:stroke-slate-400 transition-colors' : ''}
                 />

@@ -10,7 +10,7 @@ interface MyEventsTabProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: typeof CheckCircle }> = {
-  DRAFT: { label: 'Draft', color: '#64748b', bgColor: '#f1f5f9', icon: Edit },
+  DRAFT: { label: 'Draft', color: '#6a6864', bgColor: '#f5f4f0', icon: Edit },
   SUBMITTED: { label: 'Submitted', color: '#3b82f6', bgColor: '#eff6ff', icon: Clock },
   IN_REVIEW: { label: 'In Review', color: '#8b5cf6', bgColor: '#f5f3ff', icon: Eye },
   APPROVED: { label: 'Approved', color: '#22c55e', bgColor: '#f0fdf4', icon: CheckCircle },

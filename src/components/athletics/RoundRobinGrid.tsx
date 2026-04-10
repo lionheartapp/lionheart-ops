@@ -77,7 +77,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
             <div key={team.id} className="ui-glass p-4 rounded-xl">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                  <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                   <span className="font-medium text-slate-900 text-sm">{team.name}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
@@ -129,7 +129,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                   className="px-3 py-2 text-center text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 min-w-[100px]"
                 >
                   <div className="flex items-center justify-center gap-1.5">
-                    <SportIcon sport={t.sport?.name || ''} size={12} style={{ color: t.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                    <SportIcon sport={t.sport?.name || ''} size={12} style={{ color: t.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                     <span className="truncate">{t.name}</span>
                   </div>
                 </th>
@@ -141,7 +141,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
               <tr key={rowTeam.id}>
                 <td className="px-3 py-2.5 font-medium text-slate-900 bg-white border border-slate-200 sticky left-0 z-10 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <SportIcon sport={rowTeam.sport?.name || ''} size={14} style={{ color: rowTeam.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                    <SportIcon sport={rowTeam.sport?.name || ''} size={14} style={{ color: rowTeam.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                     {rowTeam.name}
                   </div>
                 </td>
@@ -211,7 +211,7 @@ export default function RoundRobinGrid({ brackets, onMatchClick }: RoundRobinGri
                     <td className="px-3 py-2 text-slate-400 font-medium">{idx + 1}</td>
                     <td className="px-3 py-2 font-medium text-slate-900">
                       <div className="flex items-center gap-2">
-                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                         {team.name}
                       </div>
                     </td>

@@ -556,7 +556,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <SportIcon sport={player.athleticTeam?.sport?.name || ''} size={14} style={{ color: player.athleticTeam?.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                          <SportIcon sport={player.athleticTeam?.sport?.name || ''} size={14} style={{ color: player.athleticTeam?.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                           <span className="text-sm text-slate-600">{player.athleticTeam?.name}</span>
                         </div>
                       </td>

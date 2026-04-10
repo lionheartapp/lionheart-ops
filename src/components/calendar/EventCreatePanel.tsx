@@ -309,7 +309,7 @@ function LocationCombobox({
 // ── Main Component ──────────────────────────────────────────────────
 const CATEGORY_COLOR_PRESETS = [
   '#ef4444', '#f97316', '#f59e0b', '#22c55e', '#14b8a6',
-  '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b',
+  '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#6a6864',
 ]
 
 const COLOR_NAMES: Record<string, string> = {
@@ -322,7 +322,7 @@ const COLOR_NAMES: Record<string, string> = {
   '#6366f1': 'Indigo',
   '#a855f7': 'Purple',
   '#ec4899': 'Pink',
-  '#64748b': 'Slate',
+  '#6a6864': 'Slate',
 }
 
 export default function EventCreatePanel({

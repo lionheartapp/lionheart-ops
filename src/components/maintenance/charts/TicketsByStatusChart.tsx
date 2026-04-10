@@ -14,7 +14,7 @@ import type { TicketsByStatusResult } from '@/lib/services/maintenanceAnalyticsS
 
 // Status color map matching the existing maintenance dashboard
 const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: '#64748b',
+  BACKLOG: '#6a6864',
   TODO: '#3b82f6',
   IN_PROGRESS: '#f59e0b',
   ON_HOLD: '#f97316',
@@ -74,7 +74,7 @@ export default function TicketsByStatusChart({ data }: TicketsByStatusChartProps
         <Tooltip
           contentStyle={{
             backgroundColor: 'rgba(255,255,255,0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid rgba(17, 15, 10, 0.08)',
             borderRadius: '8px',
             fontSize: '12px',
           }}
@@ -89,7 +89,7 @@ export default function TicketsByStatusChart({ data }: TicketsByStatusChartProps
             dataKey={status}
             name={status}
             stackId="tickets"
-            fill={STATUS_COLORS[status] ?? '#94a3b8'}
+            fill={STATUS_COLORS[status] ?? '#a8a49d'}
           />
         ))}
       </BarChart>

@@ -53,7 +53,7 @@ export default function TechnicianWorkloadChart({ data }: TechnicianWorkloadChar
           }}
           contentStyle={{
             backgroundColor: 'rgba(255,255,255,0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid rgba(17, 15, 10, 0.08)',
             borderRadius: '8px',
             fontSize: '12px',
           }}

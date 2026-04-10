@@ -12,7 +12,7 @@ export const OUTDOOR_TYPE_COLORS: Record<string, string> = {
   COURT: '#ea580c',    // Orange
   GYM: '#dc2626',      // Red
   COMMON: '#0891b2',   // Cyan
-  PARKING: '#6b7280',  // Gray
+  PARKING: '#6a6864',  // Gray
   OTHER: '#059669',    // Emerald
 }
 

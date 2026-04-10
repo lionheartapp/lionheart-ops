@@ -20,7 +20,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   CUSTODIAL_BIOHAZARD: '#ef4444',
   IT_AV: '#6366f1',
   GROUNDS: '#22c55e',
-  OTHER: '#94a3b8',
+  OTHER: '#a8a49d',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -69,7 +69,7 @@ export default function ResolutionTimeChart({ data }: ResolutionTimeChartProps) 
             position: 'insideBottom',
             offset: -2,
             fontSize: 11,
-            fill: '#6b7280',
+            fill: '#6a6864',
           }}
         />
         <YAxis
@@ -82,7 +82,7 @@ export default function ResolutionTimeChart({ data }: ResolutionTimeChartProps) 
           formatter={(value) => [`${value ?? 0}h`, 'Avg Resolution']}
           contentStyle={{
             backgroundColor: 'rgba(255,255,255,0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid rgba(17, 15, 10, 0.08)',
             borderRadius: '8px',
             fontSize: '12px',
           }}
@@ -91,7 +91,7 @@ export default function ResolutionTimeChart({ data }: ResolutionTimeChartProps) 
           {chartData.map((entry) => (
             <Cell
               key={entry.rawCategory}
-              fill={CATEGORY_COLORS[entry.rawCategory] ?? '#94a3b8'}
+              fill={CATEGORY_COLORS[entry.rawCategory] ?? '#a8a49d'}
             />
           ))}
         </Bar>

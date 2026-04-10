@@ -45,7 +45,7 @@ export function computeSubColumns(
       personId: null,
       label: 'You',
       initials: 'You',
-      color: '#6b7280',
+      color: '#6a6864',
       events: filterByDay(selfEvents),
       columnIndex: 0,
       totalColumns,

@@ -12,7 +12,7 @@ export const COLOR_PRESETS = [
   { name: 'Indigo', value: '#6366f1' },
   { name: 'Purple', value: '#a855f7' },
   { name: 'Pink', value: '#ec4899' },
-  { name: 'Slate', value: '#64748b' },
+  { name: 'Slate', value: '#6a6864' },
 ]
 
 export const CALENDAR_TYPE_OPTIONS = [

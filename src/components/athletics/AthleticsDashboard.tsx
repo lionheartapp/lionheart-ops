@@ -376,7 +376,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                           <div key={g.id} className="flex items-center gap-1.5">
                             <span
                               className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: g.athleticTeam?.sport?.color || '#6b7280' }}
+                              style={{ backgroundColor: g.athleticTeam?.sport?.color || '#6a6864' }}
                             />
                             <span className="text-xs text-slate-700 truncate">
                               <span className="font-semibold">{formatTime(g.startTime)}</span>

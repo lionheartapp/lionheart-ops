@@ -25,7 +25,7 @@ export const COLOR_PRESETS = [
   { name: 'Indigo', value: '#6366f1' },
   { name: 'Purple', value: '#a855f7' },
   { name: 'Pink', value: '#ec4899' },
-  { name: 'Slate', value: '#64748b' },
+  { name: 'Slate', value: '#6a6864' },
 ] as const
 
 export const DEFAULT_CAMPUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ef4444', '#14b8a6'] as const

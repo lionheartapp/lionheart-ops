@@ -283,7 +283,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
-                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                         <span className="text-sm text-slate-900 truncate">{team.name}</span>
                         <span className="text-xs text-slate-400">{team.season?.name}</span>
                       </div>
@@ -339,7 +339,7 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                         className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
-                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6b7280' }} className="flex-shrink-0" />
+                        <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />
                         <span className="text-sm text-slate-900 truncate">{team.name}</span>
                       </div>
                     </label>

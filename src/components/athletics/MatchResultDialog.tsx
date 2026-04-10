@@ -135,7 +135,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   } disabled:opacity-50`}
                 >
-                  <GlassSportTile sport={match.team1?.sport?.name || ''} color={match.team1?.sport?.color || '#6b7280'} size="sm" />
+                  <GlassSportTile sport={match.team1?.sport?.name || ''} color={match.team1?.sport?.color || '#6a6864'} size="sm" />
                   <span className="text-sm font-medium text-slate-900 flex-1">{match.team1?.name || 'TBD'}</span>
                   {match.winnerId === match.team1Id && <Trophy className="w-4 h-4 text-green-600" />}
                 </button>
@@ -151,7 +151,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   } disabled:opacity-50`}
                 >
-                  <GlassSportTile sport={match.team2?.sport?.name || ''} color={match.team2?.sport?.color || '#6b7280'} size="sm" />
+                  <GlassSportTile sport={match.team2?.sport?.name || ''} color={match.team2?.sport?.color || '#6a6864'} size="sm" />
                   <span className="text-sm font-medium text-slate-900 flex-1">{match.team2?.name || 'TBD'}</span>
                   {match.winnerId === match.team2Id && <Trophy className="w-4 h-4 text-green-600" />}
                 </button>

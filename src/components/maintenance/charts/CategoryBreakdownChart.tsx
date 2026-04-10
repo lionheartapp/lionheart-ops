@@ -19,7 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   CUSTODIAL_BIOHAZARD: '#ef4444',
   IT_AV: '#6366f1',
   GROUNDS: '#22c55e',
-  OTHER: '#94a3b8',
+  OTHER: '#a8a49d',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -105,7 +105,7 @@ export default function CategoryBreakdownChart({ data }: CategoryBreakdownChartP
           {chartData.map((entry) => (
             <Cell
               key={entry.rawCategory}
-              fill={CATEGORY_COLORS[entry.rawCategory] ?? '#94a3b8'}
+              fill={CATEGORY_COLORS[entry.rawCategory] ?? '#a8a49d'}
             />
           ))}
         </Pie>
@@ -116,7 +116,7 @@ export default function CategoryBreakdownChart({ data }: CategoryBreakdownChartP
           ]}
           contentStyle={{
             backgroundColor: 'rgba(255,255,255,0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid rgba(17, 15, 10, 0.08)',
             borderRadius: '8px',
             fontSize: '12px',
           }}

@@ -13,7 +13,7 @@ const COLUMN_CONFIG: Record<
   string,
   { label: string; color: string; dot: DotStyle }
 > = {
-  BACKLOG: { label: 'Backlog', color: '#94a3b8', dot: 'dashed' },
+  BACKLOG: { label: 'Backlog', color: '#a8a49d', dot: 'dashed' },
   TODO: { label: 'Todo', color: '#3b82f6', dot: 'outline' },
   IN_PROGRESS: { label: 'In Progress', color: '#f59e0b', dot: 'half' },
   ON_HOLD: { label: 'On Hold', color: '#ef4444', dot: 'filled' },
@@ -100,7 +100,7 @@ export default function KanbanColumn({
   const { setNodeRef, isOver } = useDroppable({ id: status })
   const config = COLUMN_CONFIG[status] ?? {
     label: status,
-    color: '#94a3b8',
+    color: '#a8a49d',
     dot: 'outline' as DotStyle,
   }
 

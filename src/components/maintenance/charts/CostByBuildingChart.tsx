@@ -79,7 +79,7 @@ export default function CostByBuildingChart({ data }: CostByBuildingChartProps) 
       <div
         style={{
           backgroundColor: 'rgba(255,255,255,0.97)',
-          border: '1px solid #e5e7eb',
+          border: '1px solid rgba(17, 15, 10, 0.08)',
           borderRadius: '8px',
           padding: '8px 12px',
           fontSize: '12px',

@@ -62,15 +62,15 @@ function getTypeColor(typeConfig: BlockTypeConfig): string {
     'bg-blue-500': '#3b82f6',
     'bg-green-500': '#22c55e',
     'bg-amber-500': '#f59e0b',
-    'bg-slate-400': '#94a3b8',
+    'bg-slate-400': '#a8a49d',
     'bg-purple-500': '#a855f7',
     'bg-orange-500': '#f97316',
     'bg-red-500': '#ef4444',
     'bg-pink-500': '#ec4899',
     'bg-indigo-500': '#6366f1',
-    'bg-slate-500': '#64748b',
+    'bg-slate-500': '#6a6864',
   }
-  return colorMap[typeConfig.dotColor] || '#94a3b8'
+  return colorMap[typeConfig.dotColor] || '#a8a49d'
 }
 
 function getTypeBgColor(typeConfig: BlockTypeConfig): string {
@@ -79,15 +79,15 @@ function getTypeBgColor(typeConfig: BlockTypeConfig): string {
     'bg-blue-100': '#dbeafe',
     'bg-green-100': '#dcfce7',
     'bg-amber-100': '#fef3c7',
-    'bg-slate-100': '#f1f5f9',
+    'bg-slate-100': '#f5f4f0',
     'bg-purple-100': '#f3e8ff',
     'bg-orange-100': '#ffedd5',
     'bg-red-100': '#fee2e2',
     'bg-pink-100': '#fce7f3',
     'bg-indigo-100': '#e0e7ff',
-    'bg-slate-200': '#e2e8f0',
+    'bg-slate-200': '#eae8e2',
   }
-  return bgMap[typeConfig.bg] || '#f1f5f9'
+  return bgMap[typeConfig.bg] || '#f5f4f0'
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────

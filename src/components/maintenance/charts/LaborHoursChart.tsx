@@ -17,7 +17,7 @@ import type { LaborHoursByMonthResult } from '@/lib/services/maintenanceAnalytic
 const BUILDING_COLORS = [
   '#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444',
   '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#6366f1',
-  '#84cc16', '#64748b',
+  '#84cc16', '#6a6864',
 ]
 
 interface LaborHoursChartProps {
@@ -72,7 +72,7 @@ export default function LaborHoursChart({ data }: LaborHoursChartProps) {
           formatter={(value, name) => [`${value ?? 0}h`, String(name)]}
           contentStyle={{
             backgroundColor: 'rgba(255,255,255,0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid rgba(17, 15, 10, 0.08)',
             borderRadius: '8px',
             fontSize: '12px',
           }}

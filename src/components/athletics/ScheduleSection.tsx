@@ -618,7 +618,7 @@ function GameRow({
   onPlayerStats: () => void
   onDelete: () => void
 }) {
-  const sportColor = game.athleticTeam?.sport?.color || '#6b7280'
+  const sportColor = game.athleticTeam?.sport?.color || '#6a6864'
   const prefix = game.homeAway === 'AWAY' ? '@' : 'vs'
   const score = getScoreDisplay(game)
   const homeAwayLabel = game.homeAway === 'HOME' ? 'Home' : game.homeAway === 'AWAY' ? 'Away' : 'Neutral'
