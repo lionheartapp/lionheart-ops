@@ -33,6 +33,17 @@ import {
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 
+// Warm Cal.com-inspired tokens — shared with UpcomingEventsPanel so
+// both widgets read as siblings in the same design system.
+const SURFACE = '#fdfcfb'
+const BORDER = 'rgba(17, 15, 10, 0.06)'
+const TEXT_PRIMARY = '#1a1915'
+const TEXT_SECONDARY = '#6a6864'
+const TEXT_MUTED = '#a8a49d'
+const HAIRLINE = 'rgba(17, 15, 10, 0.05)'
+const CARD_SHADOW =
+  '0 0.8px 2.9px rgba(0,0,0,0.02), 0 2px 7.8px rgba(0,0,0,0.027), 0 4px 18px rgba(0,0,0,0.04)'
+
 // ─── Types (mirror the service) ──────────────────────────────────────────────
 
 type ChecklistCategory =
@@ -231,24 +242,34 @@ export default function OnboardingChecklistWidget() {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-      className="ui-glass p-6 mb-6"
+      className="rounded-3xl p-7 mb-6"
+      style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, boxShadow: CARD_SHADOW }}
       aria-label="Getting started checklist"
     >
       {/* Header + progress */}
       <div className="flex items-start justify-between gap-4 mb-5">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: TEXT_PRIMARY }}
+          >
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2
+              className="text-[17px] font-semibold"
+              style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}
+            >
               Get started
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-[13px] font-medium mt-0.5" style={{ color: TEXT_SECONDARY }}>
               {completedVisible} of {totalVisible} complete
               {requiredAllComplete && (
-                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium">
-                  <Check className="w-3 h-3" />
+                <span
+                  className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                  style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#047857' }}
+                >
+                  <Check className="w-3 h-3" strokeWidth={3} />
                   Essentials done
                 </span>
               )}
@@ -261,7 +282,8 @@ export default function OnboardingChecklistWidget() {
             type="button"
             onClick={handleDismissWidget}
             disabled={dismissingWidget}
-            className="text-slate-400 hover:text-slate-600 transition-colors duration-200 cursor-pointer disabled:opacity-50"
+            className="transition-colors duration-200 cursor-pointer disabled:opacity-50"
+            style={{ color: TEXT_MUTED }}
             aria-label="Dismiss setup checklist"
           >
             {dismissingWidget ? (
@@ -274,9 +296,10 @@ export default function OnboardingChecklistWidget() {
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-5">
+      <div className="h-1.5 rounded-full overflow-hidden mb-5" style={{ backgroundColor: 'rgba(17,15,10,0.06)' }}>
         <motion.div
-          className="h-full bg-gradient-to-r from-primary-500 to-indigo-500 rounded-full"
+          className="h-full rounded-full"
+          style={{ backgroundColor: TEXT_PRIMARY }}
           initial={{ width: 0 }}
           animate={{ width: `${progressPct}%` }}
           transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
@@ -284,7 +307,7 @@ export default function OnboardingChecklistWidget() {
       </div>
 
       {/* Items */}
-      <ul className="space-y-1.5">
+      <ul className="space-y-0.5">
         <AnimatePresence initial={false}>
           {visibleOrgItems.map((item) => (
             <ChecklistRow
@@ -315,34 +338,26 @@ export default function OnboardingChecklistWidget() {
 function ChecklistSkeleton() {
   return (
     <section
-      className="ui-glass p-6 mb-6 animate-pulse"
+      className="rounded-3xl p-7 mb-6 animate-pulse"
+      style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, boxShadow: CARD_SHADOW }}
       aria-label="Loading getting started checklist"
       aria-busy="true"
     >
       <div className="flex items-start gap-3 mb-5">
-        <div className="w-10 h-10 rounded-xl bg-slate-200 flex-shrink-0" />
+        <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ backgroundColor: 'rgba(17,15,10,0.08)' }} />
         <div className="flex-1 min-w-0">
-          <div className="h-4 w-28 bg-slate-200 rounded mb-2" />
-          <div className="h-3 w-40 bg-slate-100 rounded" />
+          <div className="h-4 w-28 rounded mb-2" style={{ backgroundColor: 'rgba(17,15,10,0.08)' }} />
+          <div className="h-3 w-40 rounded" style={{ backgroundColor: 'rgba(17,15,10,0.05)' }} />
         </div>
       </div>
-      <div className="h-2 bg-slate-100 rounded-full mb-5" />
-      <ul className="space-y-1.5">
+      <div className="h-1.5 rounded-full mb-5" style={{ backgroundColor: 'rgba(17,15,10,0.06)' }} />
+      <ul className="space-y-0.5">
         {[0, 1, 2, 3].map((i) => (
-          <li
-            key={i}
-            className="flex items-center gap-3 p-3 rounded-xl"
-          >
-            <div className="w-6 h-6 rounded-full border-2 border-slate-200 bg-white flex-shrink-0" />
+          <li key={i} className="flex items-center gap-3 p-3 rounded-xl">
+            <div className="w-6 h-6 rounded-full flex-shrink-0" style={{ border: '2px solid rgba(17,15,10,0.1)', backgroundColor: '#ffffff' }} />
             <div className="flex-1 min-w-0">
-              <div
-                className="h-3 bg-slate-200 rounded mb-1.5"
-                style={{ width: `${60 + i * 8}%` }}
-              />
-              <div
-                className="h-2.5 bg-slate-100 rounded"
-                style={{ width: `${40 + i * 10}%` }}
-              />
+              <div className="h-3 rounded mb-1.5" style={{ width: `${60 + i * 8}%`, backgroundColor: 'rgba(17,15,10,0.06)' }} />
+              <div className="h-2.5 rounded" style={{ width: `${40 + i * 10}%`, backgroundColor: 'rgba(17,15,10,0.04)' }} />
             </div>
           </li>
         ))}
@@ -370,60 +385,67 @@ function ChecklistRow({ item, scope, dismissing, onDismiss }: ChecklistRowProps)
       transition={{ duration: 0.2 }}
     >
       <div
-        className={`group flex items-center gap-3 p-3 rounded-xl transition-colors duration-200 ${
-          item.completed
-            ? 'bg-emerald-50/50'
-            : 'hover:bg-slate-50'
-        }`}
+        className="group flex items-center gap-3 py-3 px-2 -mx-2 rounded-xl transition-colors duration-200"
+        style={{
+          backgroundColor: item.completed ? 'rgba(16,185,129,0.04)' : 'transparent',
+          borderBottom: `1px solid ${HAIRLINE}`,
+        }}
+        onMouseEnter={(e) => {
+          if (!item.completed) e.currentTarget.style.backgroundColor = 'rgba(17,15,10,0.02)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = item.completed ? 'rgba(16,185,129,0.04)' : 'transparent'
+        }}
       >
         {/* Status icon */}
         <div
-          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200 ${
+          className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
+          style={
             item.completed
-              ? 'bg-emerald-500 text-white'
-              : item.required
-                ? 'border-2 border-slate-300 bg-white'
-                : 'border-2 border-slate-200 bg-white'
-          }`}
+              ? { backgroundColor: '#10b981', color: '#ffffff' }
+              : { border: `2px solid rgba(17,15,10,${item.required ? 0.2 : 0.12})`, backgroundColor: '#ffffff' }
+          }
           aria-hidden="true"
         >
-          {item.completed && <CheckCircle2 className="w-4 h-4" />}
+          {item.completed && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
         </div>
 
-        {/* Label + description (clickable link to the task) */}
-        <Link
-          href={item.href}
-          className="flex-1 min-w-0 cursor-pointer"
-        >
+        {/* Label + description */}
+        <Link href={item.href} className="flex-1 min-w-0 cursor-pointer">
           <p
-            className={`text-sm font-medium truncate ${
-              item.completed
-                ? 'text-slate-500 line-through decoration-slate-400'
-                : 'text-slate-900'
-            }`}
+            className="text-[14px] font-semibold truncate"
+            style={{
+              color: item.completed ? TEXT_MUTED : TEXT_PRIMARY,
+              textDecoration: item.completed ? 'line-through' : 'none',
+              textDecorationColor: TEXT_MUTED,
+              letterSpacing: '-0.005em',
+            }}
           >
             {item.title}
             {item.required && !item.completed && (
-              <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-rose-600">
+              <span
+                className="ml-2 text-[9px] font-bold uppercase tracking-[0.08em]"
+                style={{ color: '#dc2626' }}
+              >
                 Required
               </span>
             )}
           </p>
           <p
-            className={`text-xs truncate ${
-              item.completed ? 'text-slate-400' : 'text-slate-500'
-            }`}
+            className="text-[12px] truncate mt-0.5"
+            style={{ color: item.completed ? TEXT_MUTED : TEXT_SECONDARY }}
           >
             {item.description}
           </p>
         </Link>
 
-        {/* Action: dismiss (non-essential only) or go-to arrow */}
+        {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {!item.completed && (
             <Link
               href={item.href}
-              className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+              className="p-1.5 rounded-full transition-colors duration-200 cursor-pointer"
+              style={{ color: TEXT_MUTED }}
               aria-label={`Go to ${item.title}`}
             >
               <ArrowRight className="w-4 h-4" />
@@ -438,7 +460,8 @@ function ChecklistRow({ item, scope, dismissing, onDismiss }: ChecklistRowProps)
                 onDismiss(item.id, scope)
               }}
               disabled={dismissing}
-              className="p-1.5 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors duration-200 cursor-pointer opacity-0 group-hover:opacity-100 disabled:opacity-50"
+              className="p-1.5 rounded-full transition-colors duration-200 cursor-pointer opacity-0 group-hover:opacity-100 disabled:opacity-50"
+              style={{ color: TEXT_MUTED }}
               aria-label={`Dismiss ${item.title}`}
             >
               {dismissing ? (
