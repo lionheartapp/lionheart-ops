@@ -481,6 +481,39 @@ a:visited {
   .placeholder\:text-slate-400::placeholder { color: #a8a49d; }
   .placeholder\:text-slate-500::placeholder { color: #6a6864; }
   .placeholder\:text-gray-400::placeholder  { color: #a8a49d; }
+
+  /* ── Opacity-modifier variants (bg-slate-50/80, border-slate-200/60, etc) ──
+   * Tailwind treats these as separate utility classes, so the base remap above
+   * misses them. Leo chat (InputForm, ChatPanel, MessageList) uses these
+   * heavily for translucent layering. Warm them explicitly. */
+  .bg-slate-50\/80  { background-color: rgba(250, 250, 248, 0.8); }
+  .bg-slate-50\/50  { background-color: rgba(250, 250, 248, 0.5); }
+  .bg-slate-100\/80 { background-color: rgba(245, 244, 240, 0.8); }
+  .bg-slate-100\/60 { background-color: rgba(245, 244, 240, 0.6); }
+  .bg-slate-100\/50 { background-color: rgba(245, 244, 240, 0.5); }
+  .bg-slate-200\/80 { background-color: rgba(234, 232, 226, 0.8); }
+  .bg-slate-800     { background-color: #28261f; }
+  .bg-slate-900     { background-color: #1a1915; }
+
+  .border-slate-100\/40 { border-color: rgba(17, 15, 10, 0.04); }
+  .border-slate-100\/50 { border-color: rgba(17, 15, 10, 0.04); }
+  .border-slate-200\/40 { border-color: rgba(17, 15, 10, 0.05); }
+  .border-slate-200\/50 { border-color: rgba(17, 15, 10, 0.06); }
+  .border-slate-200\/60 { border-color: rgba(17, 15, 10, 0.07); }
+  .border-slate-200\/80 { border-color: rgba(17, 15, 10, 0.08); }
+
+  .text-slate-400\/50 { color: rgba(168, 164, 157, 0.5); }
+  .text-slate-500\/70 { color: rgba(106, 104, 100, 0.7); }
+
+  /* Hover variants — same pattern */
+  .hover\:bg-slate-100:hover { background-color: #f5f4f0; }
+  .hover\:bg-slate-200:hover { background-color: #eae8e2; }
+  .hover\:text-slate-600:hover { color: #5a5750; }
+  .hover\:text-slate-500:hover { color: #6a6864; }
+
+  /* Focus ring — warm instead of cool */
+  .focus\:ring-slate-200:focus { --tw-ring-color: rgba(17, 15, 10, 0.12); }
+  .focus\:ring-slate-300:focus { --tw-ring-color: rgba(17, 15, 10, 0.18); }
 }
 
 /* ── Typography: tighter headings globally ──
