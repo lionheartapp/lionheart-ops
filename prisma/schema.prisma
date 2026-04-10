@@ -45,6 +45,10 @@ model Organization {
   trialEndsAt       DateTime?     // Trial expiry — orgs read-only after this if no active subscription
   trialReminder21SentAt DateTime? // Idempotency flag: 9-days-remaining email sent
   trialReminder28SentAt DateTime? // Idempotency flag: 2-days-remaining email sent
+  // Onboarding checklist: items super admins have dismissed (only applies to
+  // dismissable items — essentials cannot be dismissed).
+  onboardingDismissedItems String[] @default([])
+  onboardingWidgetDismissedAt DateTime? // Dashboard widget dismissal — only allowed once essentials are complete
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
   createdAt     DateTime          @default(now())
@@ -216,6 +220,9 @@ model User {
   googleId       String?          @unique
   microsoftId    String?          @unique
   pauseAllNotifications Boolean   @default(false)
+  // Onboarding checklist: items this user has explicitly dismissed. Only
+  // applies to dismissable items (user-level tasks, not org-level essentials).
+  onboardingDismissedItems String[] @default([])
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
