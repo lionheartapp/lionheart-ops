@@ -11,10 +11,6 @@
         "LIONHEART_API_URL": "http://localhost:3004",
         "LIONHEART_API_KEY": ""
       }
-    },
-    "stitch": {
-      "command": "npx",
-      "args": ["@_davideast/stitch-mcp", "proxy"]
     }
   }
 }
