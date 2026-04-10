@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import ConfirmDialog from '@/components/ConfirmDialog'
@@ -18,16 +18,31 @@ import BillingTab from '@/components/settings/BillingTab'
 import IntegrationsTab from '@/components/settings/IntegrationsTab'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
-import { type Tab, type WorkspaceTab, getInitialTab } from './settings-types'
+import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS } from './settings-types'
 
 export default function SettingsPage() {
   usePageTitle('Settings')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isClient, setIsClient] = useState(false)
 
   const [activeTab, setActiveTab] = useState<Tab>(getInitialTab)
   const initialTab = activeTab
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(() => new Set(['profile', initialTab]))
+
+  // Sync activeTab to the ?tab= URL param whenever it changes. Needed because
+  // useState(getInitialTab) runs once and — on SSR/prerender — sees
+  // `typeof window === 'undefined'` and falls back to 'profile', so deep links
+  // like /settings?tab=billing would otherwise land on profile. Also handles
+  // back/forward navigation without remounting.
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as Tab | null
+    if (tabParam && VALID_TABS.includes(tabParam) && tabParam !== activeTab) {
+      setActiveTab(tabParam)
+      setVisitedTabs((prev) => new Set(prev).add(tabParam))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
