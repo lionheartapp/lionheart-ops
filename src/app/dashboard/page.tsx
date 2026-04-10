@@ -22,6 +22,7 @@ import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCrea
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
 import { LeoItemDrawerContent } from '@/components/dashboard/DrawerContents'
+import OnboardingChecklistWidget from '@/components/onboarding/ChecklistWidget'
 
 interface TicketData {
   id: string
@@ -544,6 +545,9 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Getting-started checklist — hides itself once setup is done */}
+      <OnboardingChecklistWidget />
 
       {/* Dashboard Panels Grid */}
       <motion.div

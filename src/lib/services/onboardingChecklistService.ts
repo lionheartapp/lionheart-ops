@@ -256,12 +256,13 @@ export async function getOrgChecklist(orgId: string): Promise<ChecklistResponse>
       dismissable: true,
     },
     {
+      // Lives in settings rather than a dedicated module, so it isn't
+      // gated on module visits — always visible to admins.
       id: 'academic-calendar-year',
       title: 'Set up the school year',
       description: 'Define your academic year, terms, and breaks so they appear everywhere.',
       required: false,
-      category: 'module',
-      module: 'academic',
+      category: 'workspace',
       href: '/settings?tab=academic-calendar',
       completed: academicYearCount > 0,
       dismissed: dismissed.has('academic-calendar-year'),

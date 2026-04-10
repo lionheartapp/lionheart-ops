@@ -21,6 +21,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
 const SUB_TABS: {
   key: MaintenanceTab
@@ -36,6 +37,7 @@ const SUB_TABS: {
  */
 function MaintenanceContent() {
   usePageTitle('Maintenance')
+  useTrackModuleVisit('maintenance')
   const router = useRouter()
   const searchParams = useSearchParams()
 

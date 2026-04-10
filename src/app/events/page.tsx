@@ -40,6 +40,7 @@ import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -761,6 +762,7 @@ function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
 
 export default function EventsPage() {
   usePageTitle('Events')
+  useTrackModuleVisit('events')
   const { isAdmin, isReady } = useAuth()
 
   if (!isReady) {

@@ -22,6 +22,7 @@ import AthleticsOnboarding from '@/components/athletics/AthleticsOnboarding'
 import AthleticsAddMenu from '@/components/athletics/AthleticsAddMenu'
 import AthleticsMegaImport from '@/components/athletics/AthleticsMegaImport'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
@@ -52,6 +53,7 @@ interface CalendarBrief {
 
 export default function AthleticsPage() {
   usePageTitle('Athletics')
+  useTrackModuleVisit('athletics')
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
 

@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/DashboardLayout'
 import CalendarView from '@/components/calendar/CalendarView'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
 export default function CalendarPage() {
   usePageTitle('Calendar')
+  useTrackModuleVisit('events')
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
 
