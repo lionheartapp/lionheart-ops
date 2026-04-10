@@ -19,9 +19,10 @@
  * that each module layout calls on mount.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight,
   Check,
@@ -104,9 +105,10 @@ export function useTrackModuleVisit(moduleKey: Module) {
 
 // ─── Widget ─────────────────────────────────────────────────────────────────
 
+const CHECKLIST_QUERY_KEY = ['onboarding-checklist'] as const
+
 export default function OnboardingChecklistWidget() {
-  const [data, setData] = useState<ChecklistData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [dismissingItem, setDismissingItem] = useState<string | null>(null)
   const [dismissingWidget, setDismissingWidget] = useState(false)
   const [visitedModules, setVisitedModules] = useState<Module[]>([])
@@ -116,21 +118,26 @@ export default function OnboardingChecklistWidget() {
     setVisitedModules(readVisitedModules())
   }, [])
 
-  const fetchChecklist = useCallback(async () => {
-    try {
-      const result = await fetchApi<ChecklistData>('/api/onboarding/checklist')
-      setData(result)
-    } catch {
-      // Silently hide on error — the widget is non-critical chrome.
-      setData(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  // TanStack Query — caches across dashboard navigations so the widget
+  // renders instantly from cache instead of popping in after a fresh
+  // fetch on every visit. Stale after 60s, refetches in the background.
+  const { data, isLoading, isError } = useQuery<ChecklistData | null>({
+    queryKey: CHECKLIST_QUERY_KEY,
+    queryFn: async () => {
+      try {
+        return await fetchApi<ChecklistData>('/api/onboarding/checklist')
+      } catch {
+        return null
+      }
+    },
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  })
 
-  useEffect(() => {
-    fetchChecklist()
-  }, [fetchChecklist])
+  const refetchChecklist = () => {
+    queryClient.invalidateQueries({ queryKey: CHECKLIST_QUERY_KEY })
+  }
 
   // Filter org items: drop per-module items for modules the user hasn't
   // opened yet, so the checklist stays focused on the parts of the
@@ -173,7 +180,7 @@ export default function OnboardingChecklistWidget() {
         body: JSON.stringify({ scope, itemId }),
       })
       if (res.ok) {
-        await fetchChecklist()
+        refetchChecklist()
       }
     } finally {
       setDismissingItem(null)
@@ -190,15 +197,25 @@ export default function OnboardingChecklistWidget() {
         body: JSON.stringify({ scope: 'widget' }),
       })
       if (res.ok) {
-        setData(null)
+        // Optimistically mark the widget as dismissed in the cache so
+        // the component unmounts immediately.
+        queryClient.setQueryData<ChecklistData | null>(
+          CHECKLIST_QUERY_KEY,
+          (prev) => (prev ? { ...prev, org: { ...prev.org, widgetDismissed: true } } : prev)
+        )
       }
     } finally {
       setDismissingWidget(false)
     }
   }
 
-  // ─── Loading + hide conditions ─────────────────────────────────────────
-  if (loading) return null
+  // ─── Skeleton while first load is in flight ───────────────────────────
+  if (isLoading && !data) {
+    return <ChecklistSkeleton />
+  }
+
+  // ─── Hide conditions after data arrives ───────────────────────────────
+  if (isError) return null
   if (!data) return null
   if (data.org.widgetDismissed) return null
   if (totalVisible === 0) return null
@@ -290,6 +307,47 @@ export default function OnboardingChecklistWidget() {
         </AnimatePresence>
       </ul>
     </motion.section>
+  )
+}
+
+// ─── Skeleton (instant first paint while data is in flight) ─────────────────
+
+function ChecklistSkeleton() {
+  return (
+    <section
+      className="ui-glass p-6 mb-6 animate-pulse"
+      aria-label="Loading getting started checklist"
+      aria-busy="true"
+    >
+      <div className="flex items-start gap-3 mb-5">
+        <div className="w-10 h-10 rounded-xl bg-slate-200 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="h-4 w-28 bg-slate-200 rounded mb-2" />
+          <div className="h-3 w-40 bg-slate-100 rounded" />
+        </div>
+      </div>
+      <div className="h-2 bg-slate-100 rounded-full mb-5" />
+      <ul className="space-y-1.5">
+        {[0, 1, 2, 3].map((i) => (
+          <li
+            key={i}
+            className="flex items-center gap-3 p-3 rounded-xl"
+          >
+            <div className="w-6 h-6 rounded-full border-2 border-slate-200 bg-white flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div
+                className="h-3 bg-slate-200 rounded mb-1.5"
+                style={{ width: `${60 + i * 8}%` }}
+              />
+              <div
+                className="h-2.5 bg-slate-100 rounded"
+                style={{ width: `${40 + i * 10}%` }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
