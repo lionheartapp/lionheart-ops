@@ -760,7 +760,7 @@ function ModulesGrid() {
     {
       icon: GraduationCap,
       title: 'Academic Calendar',
-      description: 'Define terms, breaks, early dismissals, and cycle days. The whole school reads from the same source.',
+      description: 'Define terms, breaks, and cycle days so the whole school reads from the same source.',
     },
     {
       icon: ShieldCheck,
@@ -1227,7 +1227,7 @@ function LeoSection() {
             className="text-[17px] mb-8"
             style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}
           >
-            Leo knows every ticket, every event, every asset, every student schedule.
+            Leo knows every ticket, every event, every asset, every work order.
             Ask in plain English, get an answer grounded in your live data —
             not a hallucinated guess.
           </p>
@@ -1296,7 +1296,7 @@ function LeoSection() {
                 color: 'rgba(255,255,255,0.95)',
               }}
             >
-              How many AP students are scheduled for early dismissal next Friday?
+              What do we need to set up for the spring concert next Monday?
             </div>
 
             <div
@@ -1308,9 +1308,10 @@ function LeoSection() {
                 lineHeight: 1.55,
               }}
             >
-              <strong>47 students</strong> have early dismissal next Friday (Apr 18)
-              for the AP exam. I&rsquo;ve notified the cafeteria to adjust lunch counts
-              and flagged the buses that will run modified routes.
+              <strong>Spring Concert</strong> is Monday 6–8pm in the Auditorium.
+              Setup needs: 2 wireless mics, 1 projector, risers (&times;4).
+              Marcus from A/V is assigned. Programs are at the printer —
+              400 copies, pickup Friday.
               <div className="mt-2.5 flex gap-2">
                 <span
                   className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
@@ -1319,7 +1320,7 @@ function LeoSection() {
                     color: 'rgba(255,255,255,0.85)',
                   }}
                 >
-                  View student list
+                  View event details
                 </span>
                 <span
                   className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
@@ -1328,7 +1329,7 @@ function LeoSection() {
                     color: 'rgba(255,255,255,0.85)',
                   }}
                 >
-                  Draft parent email
+                  Check A/V status
                 </span>
               </div>
             </div>
