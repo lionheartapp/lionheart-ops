@@ -59,7 +59,9 @@ export default function SidebarLayout({
         <aside
           className="flex flex-col w-64 h-full relative z-10"
           style={{
-            background: '#fdfcfb',
+            background: 'rgba(253, 252, 249, 0.82)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             borderRight: secondaryOpen ? 'none' : '1px solid rgba(17, 15, 10, 0.06)',
             color: '#1a1915',
           }}
@@ -73,7 +75,9 @@ export default function SidebarLayout({
             secondaryOpen ? 'max-w-60 opacity-100' : 'max-w-0 opacity-0'
           }`}
           style={{
-            background: '#f8f7f4',
+            background: 'rgba(248, 247, 244, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             borderRight: secondaryOpen ? '1px solid rgba(17, 15, 10, 0.06)' : 'none',
             borderLeft: secondaryOpen ? '1px solid rgba(17, 15, 10, 0.04)' : 'none',
             color: '#1a1915',
@@ -93,7 +97,9 @@ export default function SidebarLayout({
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{
-          background: '#fdfcfb',
+          background: 'rgba(253, 252, 249, 0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderRight: '1px solid rgba(17, 15, 10, 0.06)',
           color: '#1a1915',
           top: 'var(--trial-banner-h, 0px)',

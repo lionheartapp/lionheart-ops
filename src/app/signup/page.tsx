@@ -96,10 +96,11 @@ export default function SignupPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2" style={{ backgroundColor: '#fdfcfb' }}>
       {/* Left Panel — Form */}
       <motion.div
-        className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white"
+        className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20"
+        style={{ backgroundColor: '#fdfcfb' }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -110,8 +111,8 @@ export default function SignupPage() {
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Create your account</h1>
-          <p className="text-slate-600 mb-8">
+          <h1 className="text-3xl font-semibold mb-2" style={{ color: '#1a1915', letterSpacing: '-0.025em' }}>Create your account</h1>
+          <p className="mb-8" style={{ color: '#6a6864' }}>
             Set up your school on Lionheart in minutes.
           </p>
 
@@ -130,7 +131,7 @@ export default function SignupPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <label htmlFor="name" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 Your Name
               </label>
               <input
@@ -139,14 +140,14 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Mitchell"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition" style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 Email Address
               </label>
               <input
@@ -155,7 +156,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., sarah@mitchell.edu"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition" style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
                 disabled={loading}
                 required
               />
@@ -173,7 +174,7 @@ export default function SignupPage() {
             />
 
             <div>
-              <label htmlFor="school" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <label htmlFor="school" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 School Name
               </label>
               <input
@@ -182,14 +183,14 @@ export default function SignupPage() {
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
                 placeholder="e.g., Mitchell Academy"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition" style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
                 disabled={loading}
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <label htmlFor="website" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 School Website <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <input
@@ -198,7 +199,7 @@ export default function SignupPage() {
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="e.g., mitchell.edu"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                className="w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition" style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
                 disabled={loading}
               />
               <p className="text-xs text-slate-500 mt-1">
@@ -209,7 +210,8 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full ui-btn-lg ui-btn-accent rounded-lg mt-2 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-full mt-2 flex items-center justify-center gap-2 text-[14px] font-semibold text-white transition-all duration-200 hover:-translate-y-px cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#1a1915', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -218,16 +220,16 @@ export default function SignupPage() {
           </form>
 
           {/* Footer */}
-          <p className="text-xs text-slate-500 text-center mt-6">
+          <p className="text-xs text-center mt-6" style={{ color: '#a8a49d' }}>
             By signing up, you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-slate-700">Terms of Service</Link>
+            <Link href="/terms" className="underline" style={{ color: '#6a6864' }}>Terms of Service</Link>
             {' '}and{' '}
-            <Link href="/privacy" className="underline hover:text-slate-700">Privacy Policy</Link>
+            <Link href="/privacy" className="underline" style={{ color: '#6a6864' }}>Privacy Policy</Link>
           </p>
 
-          <p className="text-sm text-slate-600 text-center mt-4">
+          <p className="text-sm text-center mt-4" style={{ color: '#6a6864' }}>
             Already have an account?{' '}
-            <Link href="/signin" className="text-primary-600 font-medium hover:text-primary-700">
+            <Link href="/signin" className="font-semibold underline" style={{ color: '#1a1915' }}>
               Sign in
             </Link>
           </p>
@@ -235,27 +237,29 @@ export default function SignupPage() {
       </motion.div>
 
       {/* Right Panel — Product Showcase */}
-      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
-        {/* Decorative background circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+      <div className="hidden lg:flex flex-col justify-center items-center p-12 xl:p-16 relative overflow-hidden" style={{ backgroundColor: '#0b0b0e' }}>
+        {/* Ambient gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full pointer-events-none opacity-25" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', filter: 'blur(120px)' }} />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none opacity-15" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', filter: 'blur(120px)' }} />
 
         <div className="relative z-10 max-w-lg text-center">
           <motion.h2
-            className="text-3xl xl:text-4xl font-bold text-white mb-4"
+            className="text-3xl xl:text-4xl font-semibold text-white mb-4"
+            style={{ letterSpacing: '-0.03em' }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Simplify your school operations
+            The operating system for your school
           </motion.h2>
           <motion.p
-            className="text-primary-100 text-lg mb-12"
+            className="text-lg mb-12"
+            style={{ color: 'rgba(255,255,255,0.6)' }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Join schools already using Lionheart to manage IT, maintenance, and operations.
+            Events, maintenance, IT, athletics — and the AI that ties them together.
           </motion.p>
 
           {/* Product mockup cards */}
@@ -266,17 +270,17 @@ export default function SignupPage() {
               variants={showcaseCardVariants}
               initial="hidden"
               animate="visible"
-              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+              className="rounded-2xl p-5 text-left" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
                 <span className="text-white font-semibold">Smart Ticket Management</span>
               </div>
-              <p className="text-primary-100 text-sm">Track and resolve IT and maintenance requests with real-time status updates.</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Track and resolve IT and maintenance requests with real-time status updates.</p>
             </motion.div>
 
             {/* Card 2 — Team collab */}
@@ -285,17 +289,17 @@ export default function SignupPage() {
               variants={showcaseCardVariants}
               initial="hidden"
               animate="visible"
-              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+              className="rounded-2xl p-5 text-left" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
                 <span className="text-white font-semibold">Team Collaboration</span>
               </div>
-              <p className="text-primary-100 text-sm">Assign tickets to teams, communicate across departments, and stay organized.</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Assign tickets to teams, communicate across departments, and stay organized.</p>
             </motion.div>
 
             {/* Card 3 — Quick stats */}
@@ -304,17 +308,17 @@ export default function SignupPage() {
               variants={showcaseCardVariants}
               initial="hidden"
               animate="visible"
-              className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 text-left"
+              className="rounded-2xl p-5 text-left" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
                 <span className="text-white font-semibold">AI-Powered Setup</span>
               </div>
-              <p className="text-primary-100 text-sm">Automatically configure your campus, rooms, and teams with AI-assisted onboarding.</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Automatically configure your campus, rooms, and teams with AI-assisted onboarding.</p>
             </motion.div>
           </div>
 
@@ -332,7 +336,7 @@ export default function SignupPage() {
                 </div>
               ))}
             </div>
-            <p className="text-primary-100 text-sm ml-2">
+            <p className="text-sm ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
               Trusted by school administrators
             </p>
           </motion.div>
