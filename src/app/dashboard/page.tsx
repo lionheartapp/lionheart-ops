@@ -547,9 +547,6 @@ export default function DashboardPage() {
         </motion.div>
       </motion.div>
 
-      {/* Getting-started checklist — hides itself once setup is done */}
-      <OnboardingChecklistWidget />
-
       {/* Dashboard Panels Grid */}
       <motion.div
         className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden mb-10"
@@ -561,17 +558,25 @@ export default function DashboardPage() {
         {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
         {user.dashboardMode === 'admin' ? (
           <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
-            <UpcomingEventsPanel
-              events={upcomingCalEvents}
-              loading={upcomingCalLoading}
-              error={upcomingCalError ? 'We couldn\u2019t reach the calendar service.' : null}
-              onRetry={() => { void refetchUpcomingCal() }}
-              onEventClick={(event) => setSelectedEvent(event)}
-              onCreateEvent={() => openMeetingPanel()}
-            />
+            {/* Getting-started checklist sits above the events panel so Leo
+                (right rail) can stay full-height without the checklist
+                squeezing it from above. */}
+            <OnboardingChecklistWidget />
+            <div className="flex-1 min-h-0">
+              <UpcomingEventsPanel
+                events={upcomingCalEvents}
+                loading={upcomingCalLoading}
+                error={upcomingCalError ? 'We couldn\u2019t reach the calendar service.' : null}
+                onRetry={() => { void refetchUpcomingCal() }}
+                onEventClick={(event) => setSelectedEvent(event)}
+                onCreateEvent={() => openMeetingPanel()}
+              />
+            </div>
           </motion.div>
         ) : (
-        <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover flex flex-col min-h-0">
+        <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
+          <OnboardingChecklistWidget />
+          <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
           {/* Sticky header — stays pinned while events scroll */}
           <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
             <div className="flex items-center justify-between mb-6">
@@ -847,6 +852,7 @@ export default function DashboardPage() {
               </>
             )
           )}
+          </div>
           </div>
           </div>
         </motion.div>
