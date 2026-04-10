@@ -5,9 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import {
   Link2,
-  Calendar,
   MessageSquare,
-  Users,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -18,6 +16,20 @@ import {
   ExternalLink,
   Info,
 } from 'lucide-react'
+
+/**
+ * Brand mark wrapper. Renders an integration partner logo on a neutral
+ * white tile so each partner's real colors carry the identity instead
+ * of a generic gradient box.
+ */
+function BrandMark({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm flex-shrink-0 p-1.5">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="w-full h-full" />
+    </div>
+  )
+}
 import { useToast } from '@/components/Toast'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 
@@ -168,9 +180,7 @@ function PlanningCenterCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <Users className="w-5 h-5 text-white" />
-          </div>
+          <BrandMark src="/logos/planning-center.svg" alt="Planning Center" />
           <div>
             <h3 className="text-sm font-semibold text-slate-900">Planning Center</h3>
             <p className="text-xs text-slate-500">Org-level connection</p>
@@ -307,9 +317,7 @@ function GoogleCalendarCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-sm flex-shrink-0">
-            <Calendar className="w-5 h-5 text-white" />
-          </div>
+          <BrandMark src="/logos/google-calendar.svg" alt="Google Calendar" />
           <div>
             <h3 className="text-sm font-semibold text-slate-900">Google Calendar</h3>
             <p className="text-xs text-slate-500">Personal connection</p>
@@ -466,9 +474,7 @@ function TwilioCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-sm flex-shrink-0">
-            <MessageSquare className="w-5 h-5 text-white" />
-          </div>
+          <BrandMark src="/logos/twilio.svg" alt="Twilio" />
           <div>
             <h3 className="text-sm font-semibold text-slate-900">Twilio SMS</h3>
             <p className="text-xs text-slate-500">Org-level configuration</p>

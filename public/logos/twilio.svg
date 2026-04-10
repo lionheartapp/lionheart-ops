@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Twilio">
+  <circle cx="100" cy="100" r="96" fill="#F22F46"/>
+  <circle cx="68" cy="68" r="20" fill="#ffffff"/>
+  <circle cx="132" cy="68" r="20" fill="#ffffff"/>
+  <circle cx="68" cy="132" r="20" fill="#ffffff"/>
+  <circle cx="132" cy="132" r="20" fill="#ffffff"/>
+</svg>
