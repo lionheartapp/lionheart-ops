@@ -487,10 +487,24 @@ a:visited {
  * Cal.com uses aggressive negative tracking on display/heading text.
  * This catches EVERY heading across the platform without per-file edits. */
 h1, h2, h3 {
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 h4, h5, h6 {
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+}
+
+@layer utilities {
+  /* Soften font-bold from 700 → 620 platform-wide. Inter is a variable
+   * font so 620 renders cleanly — sits between semibold (600) and bold
+   * (700), matching Cal.com's lighter heading weight without losing punch
+   * on small bold text like badges and stats. */
+  .font-bold { font-weight: 620; }
+
+  /* Bump rounded-xl from 12px → 16px for medium panels, drawers, modals.
+   * rounded-lg (8px) stays for small elements (buttons, chips, inputs).
+   * rounded-3xl (24px) stays for glass cards. This tightens the gap so
+   * the scale reads: 8px → 16px → 24px instead of 8px → 12px → 24px. */
+  .rounded-xl { border-radius: 16px; }
 }
 
 /* ── Form inputs: warmer borders + slightly larger radius ── */
