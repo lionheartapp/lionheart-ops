@@ -23,6 +23,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
 import { LeoItemDrawerContent } from '@/components/dashboard/DrawerContents'
 import OnboardingChecklistWidget from '@/components/onboarding/ChecklistWidget'
+import UpcomingEventsPanel from '@/components/dashboard/UpcomingEventsPanel'
 
 interface TicketData {
   id: string
@@ -558,6 +559,18 @@ export default function DashboardPage() {
         variants={staggerContainer(0.1, 0.15)}
       >
         {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
+        {user.dashboardMode === 'admin' ? (
+          <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
+            <UpcomingEventsPanel
+              events={upcomingCalEvents}
+              loading={upcomingCalLoading}
+              error={upcomingCalError ? 'We couldn\u2019t reach the calendar service.' : null}
+              onRetry={() => { void refetchUpcomingCal() }}
+              onEventClick={(event) => setSelectedEvent(event)}
+              onCreateEvent={() => openMeetingPanel()}
+            />
+          </motion.div>
+        ) : (
         <motion.div variants={cardEntrance} className="lg:col-span-2 ui-glass-hover flex flex-col min-h-0">
           {/* Sticky header — stays pinned while events scroll */}
           <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
@@ -837,6 +850,7 @@ export default function DashboardPage() {
           </div>
           </div>
         </motion.div>
+        )}
 
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
