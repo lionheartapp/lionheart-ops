@@ -418,3 +418,98 @@ a:visited {
     box-shadow: var(--shadow-heavy);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * WARM PALETTE REMAP
+ *
+ * The codebase has ~5,000 cold slate/gray Tailwind classes. Instead of editing
+ * every file, we globally remap slate/gray utilities to their warm equivalents.
+ * This is the single lever that turns the entire app from "cold corporate" to
+ * "warm premium" — one CSS file, zero component changes.
+ *
+ * Remove these overrides once the component-level migration is complete.
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* ── Text: cold slate → warm earth ── */
+  .text-slate-900 { color: #1a1915; }
+  .text-slate-800 { color: #28261f; }
+  .text-slate-700 { color: #3d3b35; }
+  .text-slate-600 { color: #5a5750; }
+  .text-slate-500 { color: #6a6864; }
+  .text-slate-400 { color: #a8a49d; }
+  .text-slate-300 { color: #c5c1b8; }
+  .text-slate-200 { color: #dddad3; }
+
+  .text-gray-900 { color: #1a1915; }
+  .text-gray-800 { color: #28261f; }
+  .text-gray-700 { color: #3d3b35; }
+  .text-gray-600 { color: #5a5750; }
+  .text-gray-500 { color: #6a6864; }
+  .text-gray-400 { color: #a8a49d; }
+  .text-gray-300 { color: #c5c1b8; }
+
+  /* ── Backgrounds: cold slate → warm surface ── */
+  .bg-slate-50  { background-color: #fafaf8; }
+  .bg-slate-100 { background-color: #f5f4f0; }
+  .bg-slate-200 { background-color: #eae8e2; }
+  .bg-slate-900 { background-color: #1a1915; }
+
+  .bg-gray-50  { background-color: #fafaf8; }
+  .bg-gray-100 { background-color: #f5f4f0; }
+  .bg-gray-200 { background-color: #eae8e2; }
+
+  /* ── Borders: cold slate → warm whisper ── */
+  .border-slate-100 { border-color: rgba(17, 15, 10, 0.05); }
+  .border-slate-200 { border-color: rgba(17, 15, 10, 0.08); }
+  .border-slate-300 { border-color: rgba(17, 15, 10, 0.12); }
+
+  .border-gray-100 { border-color: rgba(17, 15, 10, 0.05); }
+  .border-gray-200 { border-color: rgba(17, 15, 10, 0.08); }
+  .border-gray-300 { border-color: rgba(17, 15, 10, 0.12); }
+
+  /* ── Divide lines ── */
+  .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(17, 15, 10, 0.05); }
+  .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(17, 15, 10, 0.08); }
+  .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(17, 15, 10, 0.08); }
+
+  /* ── Ring / focus ── */
+  .ring-slate-200 { --tw-ring-color: rgba(17, 15, 10, 0.08); }
+  .ring-slate-300 { --tw-ring-color: rgba(17, 15, 10, 0.12); }
+
+  /* ── Placeholder text ── */
+  .placeholder\:text-slate-400::placeholder { color: #a8a49d; }
+  .placeholder\:text-slate-500::placeholder { color: #6a6864; }
+  .placeholder\:text-gray-400::placeholder  { color: #a8a49d; }
+}
+
+/* ── Typography: tighter headings globally ──
+ * Cal.com uses aggressive negative tracking on display/heading text.
+ * This catches EVERY heading across the platform without per-file edits. */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+h4, h5, h6 {
+  letter-spacing: -0.01em;
+}
+
+/* ── Form inputs: warmer borders + slightly larger radius ── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+select {
+  border-color: rgba(17, 15, 10, 0.12);
+  border-radius: 12px;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(17, 15, 10, 0.25);
+}
+
+/* ── Scrollbar: warm tones ── */
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(17, 15, 10, 0.12);
+}
+.dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(17, 15, 10, 0.2);
+}
