@@ -303,6 +303,62 @@ export function useResubmitForApproval(id: string | null | undefined) {
   })
 }
 
+export type EventTransitionStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED'
+
+/**
+ * Kanban board drag-and-drop transition hook.
+ *
+ * Takes `{ id, toStatus }` — the caller (the board) knows both because it's
+ * dragging a specific card into a specific column. Approvals are NOT handled
+ * here; they go through the Review Approval drawer → useApproveGate.
+ *
+ * Optimistically updates the cached event-projects list so the card lands
+ * in the new column immediately. Rolls back on error.
+ */
+export function useTransitionEventProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, toStatus }: { id: string; toStatus: EventTransitionStatus }) =>
+      fetchApi<EventProject>(`/api/events/projects/${id}/transition`, {
+        method: 'POST',
+        body: JSON.stringify({ toStatus }),
+      }),
+    onMutate: async ({ id, toStatus }) => {
+      // Cancel in-flight refetches so they don't stomp our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['event-projects'] })
+
+      // Snapshot all matching queries for rollback
+      const previous = queryClient.getQueriesData<EventProject[]>({ queryKey: ['event-projects'] })
+
+      // Optimistically patch the status on the dragged card
+      queryClient.setQueriesData<EventProject[]>({ queryKey: ['event-projects'] }, (old) => {
+        if (!old) return old
+        return old.map((p) => (p.id === id ? { ...p, status: toStatus } : p))
+      })
+
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      // Roll back on any error (transition not allowed, network, etc.)
+      if (ctx?.previous) {
+        for (const [key, data] of ctx.previous) {
+          queryClient.setQueryData(key, data)
+        }
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-projects'] })
+      queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
+    },
+  })
+}
+
 /**
  * Fetch EventProjects with a PENDING gate for a specific team.
  */

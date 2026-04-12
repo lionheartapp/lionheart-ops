@@ -1,17 +1,30 @@
 'use client'
 
 /**
- * PresenceBar — Google Docs/Figma-style avatar row showing active collaborators.
+ * PresenceBar — Figma-style avatar row showing active collaborators.
  *
- * Props:
- *   eventProjectId — the event project to track presence on
- *   currentUserId  — the logged-in user's ID (current user gets aurora ring)
- *   activeTab      — the tab currently visible (sent with heartbeats)
+ * Features:
+ *   - Avatar stack with overflow chip
+ *   - Click avatar → popover with name, role, active tab, follow button
+ *   - "Follow" mode: syncs your tab to the followed user's active tab
+ *   - Chat toggle button opens the EventChatPanel
  */
 
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MessageCircle, Eye, EyeOff, ChevronDown } from 'lucide-react'
 import { usePresence } from '@/lib/hooks/usePresence'
 import type { ActiveUser } from '@/lib/hooks/usePresence'
+import {
+  SURFACE,
+  BORDER,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  WARM_CHIP,
+  WARM_CHIP_HOVER,
+  CARD_SHADOW,
+} from '@/lib/design/warm-tokens'
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -23,9 +36,11 @@ interface AvatarProps {
   user: ActiveUser
   isCurrent: boolean
   size?: number
+  onClick?: () => void
+  isFollowed?: boolean
 }
 
-function Avatar({ user, isCurrent, size = 32 }: AvatarProps) {
+function Avatar({ user, isCurrent, size = 32, onClick, isFollowed = false }: AvatarProps) {
   const initials = user.name
     .split(' ')
     .map(n => n[0])
@@ -33,19 +48,13 @@ function Avatar({ user, isCurrent, size = 32 }: AvatarProps) {
     .join('')
     .toUpperCase() || '?'
 
-  const tabLabel = user.activeTab
-    ? user.activeTab.charAt(0).toUpperCase() + user.activeTab.slice(1) + ' tab'
-    : null
-
-  const tooltipText = tabLabel
-    ? `${user.name} — ${tabLabel}`
-    : user.name
-
   return (
-    <div
-      className="relative group flex-shrink-0"
+    <button
+      onClick={onClick}
+      className="relative flex-shrink-0 cursor-pointer group"
       style={{ width: size, height: size }}
-      title={tooltipText}
+      title={user.name}
+      type="button"
     >
       {/* Avatar circle */}
       <div
@@ -72,12 +81,14 @@ function Avatar({ user, isCurrent, size = 32 }: AvatarProps) {
         )}
       </div>
 
-      {/* Aurora gradient ring for current user */}
-      {isCurrent && (
+      {/* Ring — aurora for current user, green for followed */}
+      {(isCurrent || isFollowed) && (
         <div
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)',
+            background: isFollowed
+              ? '#4d8a5c'
+              : 'linear-gradient(90deg, #3B82F6 0%, #6366F1 100%)',
             padding: '2px',
             WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'destination-out',
@@ -85,16 +96,100 @@ function Avatar({ user, isCurrent, size = 32 }: AvatarProps) {
           }}
         />
       )}
+    </button>
+  )
+}
 
-      {/* Tooltip on hover */}
-      <div
-        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10"
-        style={{ fontSize: 11 }}
-      >
-        {tooltipText}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+// ─── User Popover ─────────────────────────────────────────────────────────────
+
+interface UserPopoverProps {
+  user: ActiveUser
+  isCurrent: boolean
+  isFollowing: boolean
+  onFollow: () => void
+  onUnfollow: () => void
+  onClose: () => void
+}
+
+function UserPopover({ user, isCurrent, isFollowing, onFollow, onUnfollow, onClose }: UserPopoverProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [onClose])
+
+  const tabLabel = user.activeTab
+    ? user.activeTab.charAt(0).toUpperCase() + user.activeTab.slice(1)
+    : null
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: -4, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -4, scale: 0.95 }}
+      transition={{ duration: 0.15 }}
+      className="absolute top-full mt-2 right-0 w-56 rounded-xl z-50 overflow-hidden"
+      style={{
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        boxShadow: CARD_SHADOW,
+      }}
+    >
+      <div className="p-3">
+        {/* User info */}
+        <div className="flex items-center gap-2.5 mb-2">
+          <Avatar user={user} isCurrent={isCurrent} size={36} />
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-[13px] font-semibold truncate"
+              style={{ color: TEXT_PRIMARY }}
+            >
+              {user.name}{isCurrent ? ' (you)' : ''}
+            </p>
+            {tabLabel && (
+              <p className="text-[11px] truncate" style={{ color: TEXT_SECONDARY }}>
+                Viewing {tabLabel} tab
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Follow button — only for other users */}
+        {!isCurrent && (
+          <button
+            onClick={isFollowing ? onUnfollow : onFollow}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold transition-colors cursor-pointer mt-1"
+            style={{
+              backgroundColor: isFollowing ? '#e8e3d9' : WARM_CHIP,
+              color: isFollowing ? TEXT_PRIMARY : TEXT_SECONDARY,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = isFollowing ? '#ddd7cb' : WARM_CHIP_HOVER
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = isFollowing ? '#e8e3d9' : WARM_CHIP
+            }}
+          >
+            {isFollowing ? (
+              <>
+                <EyeOff className="w-3.5 h-3.5" strokeWidth={2} />
+                Stop following
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5" strokeWidth={2} />
+                Follow to their tab
+              </>
+            )}
+          </button>
+        )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -104,70 +199,167 @@ interface PresenceBarProps {
   eventProjectId: string
   currentUserId: string | null | undefined
   activeTab?: string
+  /** Callback to switch the active tab (used by follow mode) */
+  onTabChange?: (tab: string) => void
+  /** Callback to toggle the chat panel */
+  onToggleChat?: () => void
+  /** Whether the chat panel is currently open */
+  isChatOpen?: boolean
+  /** Number of unread chat messages */
+  unreadCount?: number
 }
 
-export function PresenceBar({ eventProjectId, currentUserId, activeTab }: PresenceBarProps) {
+export function PresenceBar({
+  eventProjectId,
+  currentUserId,
+  activeTab,
+  onTabChange,
+  onToggleChat,
+  isChatOpen = false,
+  unreadCount = 0,
+}: PresenceBarProps) {
   const { activeUsers } = usePresence(eventProjectId, currentUserId, activeTab)
+  const [popoverUserId, setPopoverUserId] = useState<string | null>(null)
+  const [followingUserId, setFollowingUserId] = useState<string | null>(null)
 
-  // If only the current user is present (or no users), show minimal state
+  // Follow mode: when the followed user changes tabs, switch ours
+  const followedUser = followingUserId
+    ? activeUsers.find(u => u.userId === followingUserId)
+    : null
+
+  useEffect(() => {
+    if (!followedUser?.activeTab || !onTabChange) return
+    if (followedUser.activeTab !== activeTab) {
+      onTabChange(followedUser.activeTab)
+    }
+  }, [followedUser?.activeTab, activeTab, onTabChange])
+
+  // If the followed user leaves, stop following
+  useEffect(() => {
+    if (followingUserId && !activeUsers.some(u => u.userId === followingUserId)) {
+      setFollowingUserId(null)
+    }
+  }, [activeUsers, followingUserId])
+
+  const handleAvatarClick = useCallback((userId: string) => {
+    setPopoverUserId(prev => prev === userId ? null : userId)
+  }, [])
+
   const otherUsers = activeUsers.filter(u => u.userId !== currentUserId)
   const currentUser = activeUsers.find(u => u.userId === currentUserId)
 
-  // Nothing to show if the hook hasn't fetched yet and no one is active
-  if (activeUsers.length === 0) {
-    return null
-  }
-
-  // Only current user active
-  if (otherUsers.length === 0 && currentUser) {
-    return (
-      <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Avatar user={currentUser} isCurrent size={28} />
-        <span>Only you here</span>
-      </div>
-    )
-  }
-
-  // Multiple users: show up to MAX_VISIBLE avatars, then overflow chip
-  const allUsers = currentUser
-    ? [currentUser, ...otherUsers]
-    : otherUsers
-
+  const allUsers = currentUser ? [currentUser, ...otherUsers] : otherUsers
   const visibleUsers = allUsers.slice(0, MAX_VISIBLE)
   const overflowCount = Math.max(0, allUsers.length - MAX_VISIBLE)
 
   return (
-    <div className="flex items-center gap-1.5" aria-label="Active collaborators">
-      <AnimatePresence mode="popLayout">
-        {visibleUsers.map((user) => (
-          <motion.div
-            key={user.userId}
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            style={{ marginLeft: visibleUsers.indexOf(user) > 0 ? -8 : 0 }}
-          >
-            <Avatar
-              user={user}
-              isCurrent={user.userId === currentUserId}
-              size={32}
-            />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+    <div className="flex items-center gap-2">
+      {/* Avatar stack — only show when there are active users */}
+      {allUsers.length > 0 && (
+      <div className="relative flex items-center" aria-label="Active collaborators">
+        <div className="flex items-center">
+          {visibleUsers.map((user, i) => (
+            <div
+              key={user.userId}
+              className="relative"
+              style={{ marginLeft: i > 0 ? -8 : 0, zIndex: MAX_VISIBLE - i }}
+            >
+              <Avatar
+                user={user}
+                isCurrent={user.userId === currentUserId}
+                size={32}
+                onClick={() => handleAvatarClick(user.userId)}
+                isFollowed={user.userId === followingUserId}
+              />
 
-      {/* Overflow chip */}
-      {overflowCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.7 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center flex-shrink-0 text-xs font-semibold text-slate-600"
-          style={{ marginLeft: -8 }}
-          title={`${overflowCount} more collaborator${overflowCount !== 1 ? 's' : ''}`}
+              {/* Popover */}
+              <AnimatePresence>
+                {popoverUserId === user.userId && (
+                  <UserPopover
+                    user={user}
+                    isCurrent={user.userId === currentUserId}
+                    isFollowing={followingUserId === user.userId}
+                    onFollow={() => {
+                      setFollowingUserId(user.userId)
+                      setPopoverUserId(null)
+                    }}
+                    onUnfollow={() => {
+                      setFollowingUserId(null)
+                      setPopoverUserId(null)
+                    }}
+                    onClose={() => setPopoverUserId(null)}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+
+          {overflowCount > 0 && (
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-semibold"
+              style={{
+                marginLeft: -8,
+                backgroundColor: WARM_CHIP,
+                color: TEXT_SECONDARY,
+                border: `2px solid ${SURFACE}`,
+              }}
+              title={`${overflowCount} more`}
+            >
+              +{overflowCount}
+            </div>
+          )}
+        </div>
+
+        {/* Following indicator */}
+        {followedUser && (
+          <div
+            className="flex items-center gap-1 ml-2 px-2 py-1 rounded-full text-[10px] font-semibold"
+            style={{ backgroundColor: '#e8f5e9', color: '#2e7d32' }}
+          >
+            <Eye className="w-3 h-3" strokeWidth={2} />
+            Following {followedUser.name.split(' ')[0]}
+          </div>
+        )}
+      </div>
+      )}
+
+      {/* Chevron dropdown hint */}
+      {allUsers.length > 0 && (
+        <ChevronDown
+          className="w-3 h-3 flex-shrink-0"
+          strokeWidth={2}
+          style={{ color: TEXT_MUTED }}
+        />
+      )}
+
+      {/* Chat toggle */}
+      {onToggleChat && (
+        <button
+          onClick={onToggleChat}
+          className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors cursor-pointer"
+          style={{
+            backgroundColor: isChatOpen ? '#e8e3d9' : WARM_CHIP,
+            color: isChatOpen ? TEXT_PRIMARY : TEXT_SECONDARY,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = isChatOpen ? '#ddd7cb' : WARM_CHIP_HOVER
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = isChatOpen ? '#e8e3d9' : WARM_CHIP
+          }}
+          aria-label="Toggle team chat"
         >
-          +{overflowCount}
-        </motion.div>
+          <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
+          Chat
+          {unreadCount > 0 && (
+            <span
+              className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+              style={{ backgroundColor: '#c28840' }}
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
       )}
     </div>
   )

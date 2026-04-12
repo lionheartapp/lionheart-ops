@@ -174,18 +174,25 @@ export async function processStaleTicketEscalations(): Promise<{ escalated: numb
 // ─── Approval Gate Timeouts ──────────────────────────────────────────────────
 
 /**
- * Find EventProjects with approval gates that have been PENDING for more
- * than 72 hours and send reminder notifications to the responsible teams.
+ * Find EventProjects with approval gates that have been PENDING longer than
+ * the configured escalation hours (per-channel from ApprovalChannelConfig).
+ * Sends reminder notifications to the responsible teams via config-driven lookup.
  */
 export async function processApprovalGateTimeouts(): Promise<{ reminded: number }> {
-  const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000)
   let reminded = 0
 
   try {
-    const stalePendingProjects = await rawPrisma.eventProject.findMany({
+    // Import config-driven helpers (lazy to avoid circular deps)
+    const { getTeamIdForGate, getEscalationHoursForGate, GATE_META } = await import('./eventProject-gates')
+    type GateType = keyof typeof GATE_META
+
+    // Fetch all pending-approval projects (use a generous 24h minimum to
+    // avoid fetching brand-new events)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const pendingProjects = await rawPrisma.eventProject.findMany({
       where: {
         status: 'PENDING_APPROVAL',
-        updatedAt: { lte: seventyTwoHoursAgo },
+        updatedAt: { lte: twentyFourHoursAgo },
         approvalGates: { not: Prisma.JsonNullValueFilter.JsonNull },
         deletedAt: null,
       },
@@ -195,49 +202,41 @@ export async function processApprovalGateTimeouts(): Promise<{ reminded: number 
       take: 30,
     })
 
-    const GATE_TEAM_SLUGS: Record<string, string> = {
-      av: 'av-production',
-      facilities: 'facility-maintenance',
-    }
-
-    const GATE_LABELS: Record<string, string> = {
-      av: 'A/V Production',
-      facilities: 'Facilities',
-      admin: 'Admin',
-    }
-
-    for (const project of stalePendingProjects) {
+    for (const project of pendingProjects) {
       const gates = project.approvalGates as Record<string, Record<string, unknown>> | null
       if (!gates) continue
 
       for (const [gateKey, gate] of Object.entries(gates)) {
         if (!gate || gate.status !== 'PENDING') continue
 
-        // Find team members to remind
-        const teamSlug = GATE_TEAM_SLUGS[gateKey]
-        if (teamSlug) {
-          const team = await rawPrisma.team.findFirst({
-            where: { slug: teamSlug },
-            select: { id: true },
+        // Check per-channel escalation hours from config
+        const escalationHours = await getEscalationHoursForGate(gateKey as GateType)
+        const deadline = new Date(project.updatedAt.getTime() + escalationHours * 60 * 60 * 1000)
+        if (new Date() <= deadline) continue
+
+        // Find team to notify via config
+        const teamId = await getTeamIdForGate(gateKey as GateType)
+        if (!teamId) continue
+
+        const members = await rawPrisma.userTeam.findMany({
+          where: { teamId },
+          select: { userId: true },
+        })
+
+        const meta = GATE_META[gateKey as GateType]
+        const gateLabel = meta?.label ?? gateKey
+        const linkUrl = meta?.defaultUrl ?? '/events'
+
+        for (const member of members) {
+          notificationService.createNotification({
+            userId: member.userId,
+            type: 'event_invite',
+            title: `Overdue: "${project.title}" needs ${gateLabel} approval`,
+            body: `This event has been waiting for ${gateLabel} approval for over ${escalationHours} hours.`,
+            linkUrl,
           })
-          if (team) {
-            const members = await rawPrisma.userTeam.findMany({
-              where: { teamId: team.id },
-              select: { userId: true },
-            })
-            const gateLabel = GATE_LABELS[gateKey] || gateKey
-            for (const member of members) {
-              notificationService.createNotification({
-                userId: member.userId,
-                type: 'event_invite',
-                title: `Overdue: "${project.title}" needs ${gateLabel} approval`,
-                body: `This event has been waiting for ${gateLabel} approval for over 72 hours.`,
-                linkUrl: gateKey === 'av' ? '/av/event-approvals' : '/maintenance/event-approvals',
-              })
-            }
-            reminded++
-          }
         }
+        reminded++
       }
     }
   } catch (err) {

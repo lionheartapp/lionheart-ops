@@ -192,9 +192,17 @@ export function AIEventWizard() {
         className="flex-shrink-0 flex items-center justify-between border-b border-slate-200/50"
       >
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Create with Leo</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Describe your event and Leo will fill in the details.
+          <h1
+            className="text-3xl font-semibold leading-[1.05]"
+            style={{ color: '#1a1915', letterSpacing: '-0.025em' }}
+          >
+            Create with Leo
+          </h1>
+          <p
+            className="mt-2 text-[13.5px] font-medium"
+            style={{ color: '#6a6864' }}
+          >
+            Leo is your AI event planner. Describe what you want in plain English and Leo will draft the event for you — you can edit everything before saving.
           </p>
         </div>
 

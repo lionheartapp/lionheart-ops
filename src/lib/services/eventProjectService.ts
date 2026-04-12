@@ -9,6 +9,7 @@
  */
 
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
+import { getOrgContextId } from '@/lib/org-context'
 import { logger } from '@/lib/logger'
 import * as notificationService from '@/lib/services/notificationService'
 import type {
@@ -17,7 +18,7 @@ import type {
 } from '@/lib/types/event-project'
 
 import {
-  buildApprovalGates,
+  buildApprovalGatesFromConfig,
   isAdminGateActionable,
   allGatesApproved,
   type GateState,
@@ -26,8 +27,19 @@ import {
 } from './eventProject-gates'
 
 import {
+  buildGatesFromFlow,
+  isGateActionable,
+  allGatesCleared,
+  getApprovalFlowEntries,
+  type GateStateV2,
+} from './approvalFlowService'
+
+import {
   notifyTeamsOfPendingApproval,
+  notifyTeamsOfEventInfo,
   notifyCreatorOfGateChange,
+  notifyV2TeamsOfPendingApproval,
+  notifyV2TeamsOfEventInfo,
 } from './eventProject-notifications'
 
 // The db cast is needed because the org-scoped extension models are not in the generated PrismaClient type
@@ -38,10 +50,11 @@ const log = logger.child({ service: 'eventProjectService' })
 // ─── Re-exports from sub-modules ────────────────────────────────────────────
 
 export type { GateState, ApprovalGates, GateType } from './eventProject-gates'
-export { buildApprovalGates, isAdminGateActionable, allGatesApproved } from './eventProject-gates'
+export { buildApprovalGatesFromConfig, buildApprovalGates, isAdminGateActionable, allGatesApproved, GATE_META, GATE_TO_CHANNEL, CHANNEL_TO_GATE } from './eventProject-gates'
 
 export {
   notifyTeamsOfPendingApproval,
+  notifyTeamsOfEventInfo,
   notifyCreatorOfGateChange,
 } from './eventProject-notifications'
 
@@ -94,15 +107,38 @@ export async function createEventProject(
   source: 'DIRECT_REQUEST' | 'PLANNING_SUBMISSION' | 'SERIES',
   sourceId?: string,
 ): Promise<Record<string, unknown>> {
-  const isDirectRequest = source === 'DIRECT_REQUEST'
   const requiresAV = !!(data as Record<string, unknown>).requiresAV
   const requiresFacilities = !!(data as Record<string, unknown>).requiresFacilities
+  const requiresCustodial = !!(data as Record<string, unknown>).requiresCustodial
+  const requiresSecurity = !!(data as Record<string, unknown>).requiresSecurity
+  const requiresAthleticDirector = !!(data as Record<string, unknown>).requiresAthleticDirector
 
-  // Any event that needs AV or Facilities approval goes through the gate workflow,
-  // regardless of source. Direct requests always require admin approval too.
-  const needsGates = isDirectRequest || requiresAV || requiresFacilities
-  const initialStatus = needsGates ? 'PENDING_APPROVAL' : 'CONFIRMED'
-  const approvalGates = needsGates ? buildApprovalGates(requiresAV, requiresFacilities) : null
+  // Build gates from the org's approval flow.
+  // V2 (team-based) is used when ApprovalFlowEntry rows exist.
+  // Falls back to V1 (channel-based ApprovalChannelConfig) otherwise.
+  const orgId = getOrgContextId()
+  const needs = { requiresAV, requiresFacilities, requiresCustodial, requiresSecurity, requiresAthleticDirector }
+
+  const flowEntries = await getApprovalFlowEntries()
+  const useV2 = flowEntries.length > 0
+
+  let approvalGates: Record<string, unknown> | null = null
+  let notifications: unknown[] = []
+
+  if (useV2) {
+    const result = await buildGatesFromFlow(needs)
+    const hasActive = Object.values(result.gates).some((g) => g.status === 'PENDING')
+    approvalGates = hasActive ? result.gates : null
+    notifications = result.notifications
+  } else {
+    const result = await buildApprovalGatesFromConfig(orgId, needs)
+    const hasActive = Object.values(result.gates).some((g) => g?.status === 'PENDING')
+    approvalGates = hasActive ? (result.gates as unknown as Record<string, unknown>) : null
+    notifications = result.notifications
+  }
+
+  const hasActiveGates = !!approvalGates
+  const initialStatus = hasActiveGates ? 'PENDING_APPROVAL' : 'CONFIRMED'
 
   const project = await db.eventProject.create({
     data: {
@@ -155,14 +191,34 @@ export async function createEventProject(
 
   // Notify relevant teams when gates are active (fire-and-forget)
   if (approvalGates) {
-    notifyTeamsOfPendingApproval(project.title as string, project.id as string, approvalGates).catch(() => {})
+    if (useV2) {
+      // V2: gate keys are team IDs — notify team members directly
+      notifyV2TeamsOfPendingApproval(
+        project.title as string,
+        project.id as string,
+        approvalGates as Record<string, GateStateV2>,
+      ).catch(() => {})
+    } else {
+      notifyTeamsOfPendingApproval(project.title as string, project.id as string, approvalGates as ApprovalGates).catch(() => {})
+    }
+  }
+
+  // Send non-blocking notifications for NOTIFICATION-mode (fire-and-forget)
+  if (useV2 && notifications.length > 0) {
+    notifyV2TeamsOfEventInfo(
+      project.title as string,
+      project.id as string,
+      notifications as Array<{ teamId: string; teamName: string }>,
+    ).catch(() => {})
+  } else if (!useV2 && notifications.length > 0) {
+    notifyTeamsOfEventInfo(project.title as string, project.id as string, notifications as string[]).catch(() => {})
   }
 
   // Auto-detect conflicts (fire-and-forget — results stored in metadata)
   runConflictDetection(project.id, data.startsAt, data.endsAt, data.roomId, data.buildingId).catch(() => {})
 
   // For events that don't need gates, auto-confirm by creating the CalendarEvent bridge
-  if (!needsGates) {
+  if (!hasActiveGates) {
     await confirmEventProject(project.id, createdById)
 
     // Trigger Google Calendar sync for the creator (non-fatal)
@@ -452,6 +508,77 @@ export async function rejectEventProject(
     fromStatus: existing.status,
     toStatus: 'CANCELLED',
     reason: reason ?? null,
+  })
+
+  return updated
+}
+
+// ─── Kanban board transitions ───────────────────────────────────────────────
+
+/**
+ * Safe status transitions used by the kanban board's drag-and-drop.
+ *
+ * Only transitions that DON'T require human review are listed here.
+ * Approval-adjacent transitions (anything that lands in CONFIRMED from
+ * PENDING_APPROVAL) must go through `approveEventProject` / the gates
+ * system, which enforces the Review Approval drawer flow.
+ *
+ * Format: `${from}->${to}`
+ */
+const ALLOWED_TRANSITIONS = new Set<string>([
+  // Submit draft for review / withdraw back to draft
+  'DRAFT->PENDING_APPROVAL',
+  'PENDING_APPROVAL->DRAFT',
+
+  // Mark a confirmed event as started / revert
+  'CONFIRMED->IN_PROGRESS',
+  'IN_PROGRESS->CONFIRMED',
+
+  // Mark an in-progress event as completed
+  'IN_PROGRESS->COMPLETED',
+])
+
+type TransitionStatus =
+  | 'DRAFT'
+  | 'PENDING_APPROVAL'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED'
+
+/**
+ * Transitions an EventProject between safe statuses (used by kanban drag-drop).
+ *
+ * Throws if the transition is not in the allowlist — specifically, approvals
+ * are NOT allowed here (use `approveEventProject` via the Review Approval
+ * drawer).
+ */
+export async function transitionEventProject(
+  id: string,
+  toStatus: TransitionStatus,
+  actorId: string,
+): Promise<Record<string, unknown>> {
+  const existing = await db.eventProject.findUnique({ where: { id } })
+  if (!existing) throw new Error(`EventProject not found: ${id}`)
+
+  const fromStatus = existing.status as TransitionStatus
+  const key = `${fromStatus}->${toStatus}`
+
+  if (!ALLOWED_TRANSITIONS.has(key)) {
+    throw new Error(
+      `Transition ${key} is not allowed. Approvals must go through the Review Approval drawer.`,
+    )
+  }
+
+  const updated = await db.eventProject.update({
+    where: { id },
+    data: { status: toStatus },
+  })
+
+  await appendActivityLog(id, actorId, 'STATUS_CHANGED', {
+    fromStatus,
+    toStatus,
+    via: 'kanban-drag',
   })
 
   return updated

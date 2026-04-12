@@ -80,7 +80,6 @@ const tools: Record<string, ToolRegistryEntry> = {
           approvedBy: { select: { name: true } },
           attendees: { select: { user: { select: { name: true, email: true } }, responseStatus: true } },
           resourceRequests: { select: { resourceType: true, requestStatus: true, details: true, responseNote: true } },
-          approvals: { select: { channelType: true, approvalStatus: true, reason: true, respondedBy: { select: { name: true } } } },
           building: { select: { name: true } },
           area: { select: { name: true } },
           category: { select: { name: true } },
@@ -121,12 +120,6 @@ const tools: Record<string, ToolRegistryEntry> = {
           status: r.requestStatus,
           details: r.details,
           note: r.responseNote || undefined,
-        })) || [],
-        approvals: (event as DynRecord).approvals?.map((a: DynRecord) => ({
-          channel: a.channelType,
-          status: a.approvalStatus,
-          reason: a.reason || undefined,
-          respondedBy: a.respondedBy?.name || undefined,
         })) || [],
       })
     },

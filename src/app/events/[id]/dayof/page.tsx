@@ -24,15 +24,19 @@ import DayOfDashboard from '@/components/events/dayof/DayOfDashboard'
 function DayOfSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="h-6 bg-slate-200 rounded w-24 mb-6" />
-      <div className="h-8 bg-slate-200 rounded w-1/2 mb-3" />
-      <div className="h-4 bg-slate-100 rounded w-1/4 mb-8" />
+      <div className="h-6 rounded w-24 mb-6" style={{ backgroundColor: '#ede9e0' }} />
+      <div className="h-8 rounded w-1/2 mb-3" style={{ backgroundColor: '#ede9e0' }} />
+      <div className="h-4 rounded w-1/4 mb-8" style={{ backgroundColor: '#f6f4f0' }} />
       <div className="flex gap-4 mb-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-10 bg-slate-100 rounded-full w-28" />
+          <div
+            key={i}
+            className="h-10 rounded-full w-28"
+            style={{ backgroundColor: '#f6f4f0' }}
+          />
         ))}
       </div>
-      <div className="h-96 bg-slate-100 rounded-2xl" />
+      <div className="h-96 rounded-2xl" style={{ backgroundColor: '#f6f4f0' }} />
     </div>
   )
 }
@@ -42,16 +46,33 @@ function DayOfSkeleton() {
 function EventNotFound({ onBack }: { onBack: () => void }) {
   return (
     <div className="text-center py-16">
-      <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-        <AlertCircle className="w-7 h-7 text-red-400" />
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        style={{ backgroundColor: '#f6f4f0' }}
+      >
+        <AlertCircle
+          className="w-7 h-7"
+          strokeWidth={1.75}
+          style={{ color: '#1a1915' }}
+        />
       </div>
-      <h3 className="text-base font-semibold text-slate-900 mb-2">Event project not found</h3>
-      <p className="text-sm text-slate-500 mb-6">
+      <h3
+        className="text-[17px] font-semibold mb-2"
+        style={{ color: '#1a1915', letterSpacing: '-0.015em' }}
+      >
+        Event not found
+      </h3>
+      <p className="text-[13.5px] mb-6" style={{ color: '#6a6864' }}>
         This event may have been deleted or you may not have access.
       </p>
       <button
         onClick={onBack}
-        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+        className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
+        style={{
+          backgroundColor: '#1a1915',
+          color: '#ffffff',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+        }}
       >
         Back to Events
       </button>

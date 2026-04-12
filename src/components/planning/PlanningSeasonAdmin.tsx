@@ -359,11 +359,11 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDelete}
-        title="Delete Planning Season"
+        title="Delete Year Plan"
         message={`This will permanently delete "${season.name}" and all its submissions, comments, blackout dates, and conflicts. This action cannot be undone.`}
         variant="danger"
         requireText={season.name}
-        confirmText="Delete Season"
+        confirmText="Delete Year Plan"
         isLoading={deleteSeason.isPending}
         loadingText="Deleting..."
       />

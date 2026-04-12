@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createEvent as createCalendarEvent } from '@/lib/services/calendarService'
-import type { ApprovalChannel, MaintenanceTicketStatus, ITIssueType, ITPriority, ITTicketStatus, UserStatus } from '@prisma/client'
+import type { MaintenanceTicketStatus, ITIssueType, ITPriority, ITTicketStatus, UserStatus } from '@prisma/client'
 import { clearPermissionCache } from '@/lib/auth/permissions'
 import { getTimezoneOffset, getOrgTimezone } from '@/lib/utils/timezone'
 
@@ -230,17 +230,8 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
         metadata,
       }, ctx.userId, canPublish)
 
-      // For non-personal calendars, auto-submit the draft for approval
-      let approvalMsg = ''
-      if (!isPersonalCalendar && event.calendarStatus === 'DRAFT') {
-        try {
-          const { submitForApproval } = await import('@/lib/services/calendarService')
-          await submitForApproval(event.id, ctx.userId)
-          approvalMsg = ' — submitted for approval'
-        } catch {
-          approvalMsg = ' — created as draft (submit for approval when ready)'
-        }
-      }
+      // Approval is now handled by EventProject gates, not CalendarEvent approval
+      const approvalMsg = ''
 
       // Wire up attendees from @mentions
       const attendeeNames = String(payload.attendees || '').split(',').map(s => s.trim()).filter(Boolean)
@@ -322,33 +313,6 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       const { deleteEvent } = await import('@/lib/services/calendarService')
       await deleteEvent(String(payload.eventId))
       return { message: `Event cancelled.` }
-    },
-  },
-
-  submit_event_for_approval: {
-    requiredPermission: PERMISSIONS.CALENDAR_EVENTS_CREATE,
-    execute: async (payload, ctx) => {
-      const { submitForApproval } = await import('@/lib/services/calendarService')
-      await submitForApproval(String(payload.eventId), ctx.userId)
-      return { message: `Event submitted for approval.` }
-    },
-  },
-
-  approve_event: {
-    requiredPermission: PERMISSIONS.CALENDAR_EVENTS_APPROVE,
-    execute: async (payload, ctx) => {
-      const { approveEvent } = await import('@/lib/services/calendarService')
-      await approveEvent(String(payload.eventId), String(payload.channel || 'admin') as ApprovalChannel, ctx.userId)
-      return { message: `Event approved.` }
-    },
-  },
-
-  reject_event: {
-    requiredPermission: PERMISSIONS.CALENDAR_EVENTS_APPROVE,
-    execute: async (payload, ctx) => {
-      const { rejectEvent } = await import('@/lib/services/calendarService')
-      await rejectEvent(String(payload.eventId), String(payload.channel || 'admin') as ApprovalChannel, ctx.userId, String(payload.reason || ''))
-      return { message: `Event rejected.` }
     },
   },
 

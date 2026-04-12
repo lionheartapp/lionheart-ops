@@ -125,9 +125,17 @@ export default function PlanningPage() {
       >
         <motion.div variants={fadeInUp} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Calendar Planning</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Collect, review, and coordinate event proposals before publishing to the calendar.
+            <h1
+              className="text-3xl font-semibold leading-[1.05]"
+              style={{ color: '#1a1915', letterSpacing: '-0.025em' }}
+            >
+              Year Plans
+            </h1>
+            <p
+              className="mt-2 text-[13.5px] font-medium"
+              style={{ color: '#6a6864' }}
+            >
+              Plan next year’s events. Collect proposals from staff, review them, and publish approved events to the calendar.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -151,19 +159,20 @@ export default function PlanningPage() {
             {isAdmin && !activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-[13px] font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px"
+                style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
               >
-                <Plus className="w-4 h-4" />
-                Create Planning Season
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Start a Year Plan
               </button>
             )}
             {isAdmin && activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
+                className="flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-slate-700 bg-[#f6f4f0] rounded-full hover:bg-[#ede9e0] transition-colors cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                New Season
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                New Year Plan
               </button>
             )}
             {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
@@ -186,37 +195,51 @@ export default function PlanningPage() {
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
           <motion.div variants={cardEntrance} className="ui-glass p-12 text-center">
             <IllustrationCalendar className="w-48 h-48 mx-auto mb-6 opacity-80" />
-            <h2 className="text-lg font-semibold text-slate-800 mb-2">No Planning Seasons Yet</h2>
-            <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
+            <h2
+              className="text-[20px] font-semibold mb-2"
+              style={{ color: '#1a1915', letterSpacing: '-0.02em' }}
+            >
+              No year plans yet
+            </h2>
+            <p
+              className="text-[13.5px] mb-6 max-w-md mx-auto leading-[1.55]"
+              style={{ color: '#6a6864' }}
+            >
               {isAdmin
-                ? 'Planning seasons let you collect, review, and schedule event proposals from staff before publishing to the master calendar.'
-                : 'Your administrator hasn\u2019t created a planning season yet. Check back soon or contact them to get started.'}
+                ? 'Start a Year Plan for the upcoming school year. Staff can submit event proposals inside it, you review and approve them, and approved events publish to the calendar.'
+                : 'Your administrator hasn\u2019t started a year plan yet. Check back soon or ask them to get started.'}
             </p>
             {isAdmin && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-[13px] font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px"
+                style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
               >
-                <Plus className="w-4 h-4" />
-                Create Planning Season
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                Start Your First Year Plan
               </button>
             )}
           </motion.div>
         )}
 
-        {/* Create Season Form (Admin) */}
+        {/* Create Year Plan Form (Admin) */}
         {showCreateSeason && (
           <motion.div variants={cardEntrance} className="ui-glass p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-slate-900">New Planning Season</h3>
+            <h3
+              className="text-[17px] font-semibold"
+              style={{ color: '#1a1915', letterSpacing: '-0.015em' }}
+            >
+              New Year Plan
+            </h3>
             <FloatingInput
-              label="Season Name"
+              label="Year Plan Name"
               value={seasonName}
               onChange={(e) => setSeasonName(e.target.value)}
-              placeholder="e.g. Fall 2026 Event Planning"
+              placeholder="e.g. 2026–2027 Year Plan"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FloatingInput label="Season Start Date" type="date" value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)} />
-              <FloatingInput label="Season End Date" type="date" value={seasonEnd} onChange={(e) => setSeasonEnd(e.target.value)} />
+              <FloatingInput label="Plan Start Date" type="date" value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)} />
+              <FloatingInput label="Plan End Date" type="date" value={seasonEnd} onChange={(e) => setSeasonEnd(e.target.value)} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FloatingInput label="Submissions Open" type="date" value={seasonSubOpen} onChange={(e) => setSeasonSubOpen(e.target.value)} />
@@ -226,16 +249,17 @@ export default function PlanningPage() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => { setShowCreateSeason(false); setSeasonError('') }}
-                className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                className="flex-1 py-2.5 text-[13px] font-semibold text-slate-700 bg-[#f6f4f0] rounded-full hover:bg-[#ede9e0] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateSeason}
                 disabled={createSeason.isPending}
-                className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition disabled:opacity-50"
+                className="flex-1 py-2.5 text-[13px] font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer disabled:opacity-50"
+                style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
               >
-                {createSeason.isPending ? 'Creating...' : 'Create Season'}
+                {createSeason.isPending ? 'Creating...' : 'Create Year Plan'}
               </button>
             </div>
           </motion.div>

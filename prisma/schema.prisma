@@ -88,6 +88,7 @@ model Organization {
   planningSeasons     PlanningSeason[]
   planningSubmissions PlanningSubmission[]
   approvalChannelConfigs ApprovalChannelConfig[]
+  approvalFlowEntries    ApprovalFlowEntry[]
   eventResourceRequests  EventResourceRequest[]
   tenantModules       TenantModule[]
   notifications       Notification[]
@@ -180,6 +181,7 @@ model Organization {
   eventSurveys                EventSurvey[]
   eventSurveyResponses        EventSurveyResponse[]
   eventPresenceSessions       EventPresenceSession[]
+  eventChatMessages           EventChatMessage[]
   // Phase 22 relations (AI, Budget, Templates, Notifications)
   eventTemplates              EventTemplate[]
   eventNotificationRules      EventNotificationRule[]
@@ -246,7 +248,6 @@ model User {
   feedConnections       CalendarFeedConnection[]
   createdCalendarEvents CalendarEvent[]   @relation("CalendarEventCreator")
   approvedCalendarEvents CalendarEvent[]  @relation("CalendarEventApprover")
-  approvalResponses     EventApproval[]   @relation("ApprovalResponder")
   resourceResponses     EventResourceRequest[] @relation("ResourceResponder")
   planningSubmissions   PlanningSubmission[] @relation("PlanningSubmitter")
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
@@ -313,6 +314,8 @@ model User {
   incidentsReported         EventIncident[]          @relation("IncidentReporter")
   announcementsCreated      EventAnnouncement[]      @relation("AnnouncementAuthor")
   presenceSessions          EventPresenceSession[]   @relation("PresenceUser")
+  eventChatMessages         EventChatMessage[]       @relation("EventChatAuthor")
+  approvalFlowAssignments   ApprovalFlowEntry[]      @relation("ApprovalFlowAssignee")
   // Phase 22 relations
   eventTemplatesCreated     EventTemplate[]          @relation("EventTemplateCreator")
   notificationRulesCreated  EventNotificationRule[]  @relation("NotificationRuleCreator")
@@ -578,6 +581,7 @@ model Campus {
   specialDays    SpecialDay[]
   planningSeasons PlanningSeason[]
   approvalChannelConfigs ApprovalChannelConfig[]
+  approvalFlowEntries    ApprovalFlowEntry[]     @relation("ApprovalFlowCampus")
   tenantModules  TenantModule[]
   itMagicLinks   ITMagicLink[]
   eventProjects  EventProject[]
@@ -862,6 +866,7 @@ model Team {
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members        UserTeam[]
+  approvalFlowEntries ApprovalFlowEntry[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -1336,7 +1341,6 @@ model CalendarEvent {
   approvedBy  User?             @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   embedding        Unsupported("vector(768)")?
   attendees        EventAttendee[]
-  approvals        EventApproval[]
   resourceRequests EventResourceRequest[]
   syncMappings     EventSyncMapping[]
 
@@ -1732,24 +1736,31 @@ model ApprovalChannelConfig {
   @@index([assignedTeamId])
 }
 
-model EventApproval {
-  id            String            @id @default(cuid())
-  eventId       String
-  channelType   ApprovalChannel
-  approvalStatus ApprovalStatus   @default(PENDING)
-  respondedById String?
-  respondedAt   DateTime?
-  reason        String?           // Rejection/revision reason
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+/// Team-based approval flow entry (V2).
+/// Each row = one team participating in the event approval pipeline.
+/// Replaces the hardcoded 6-channel ApprovalChannelConfig system.
+model ApprovalFlowEntry {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  teamId              String
+  mode                String   @default("REQUIRED")  // REQUIRED | NOTIFICATION
+  trigger             String   @default("ALWAYS")    // ALWAYS | WHEN_RESOURCE_REQUESTED
+  resourceType        String?  // e.g. "av", "facilities", "custodial", "security", "athletic", "transportation"
+  escalationHours     Int      @default(72)
+  autoSkipIfNotNeeded Boolean  @default(true)
+  sortOrder           Int      @default(0)           // lower = clears first; highest = final approver
+  assignedUserId      String?  // optional: specific person override instead of whole team
+  campusId            String?  // future: per-campus overrides
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  event       CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  respondedBy User?         @relation("ApprovalResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  assignedUser User?        @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation("ApprovalFlowCampus", fields: [campusId], references: [id], onDelete: SetNull)
 
-  @@unique([eventId, channelType])
-  @@index([eventId])
-  @@index([approvalStatus])
-  @@index([respondedById])
+  @@unique([organizationId, teamId, assignedUserId, campusId])
+  @@index([organizationId])
 }
 
 model EventResourceRequest {
@@ -1909,14 +1920,6 @@ enum ApprovalMode {
   REQUIRED
   NOTIFICATION
   DISABLED
-}
-
-enum ApprovalStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  AUTO_APPROVED
-  SKIPPED
 }
 
 enum ResourceRequestType {
@@ -3888,8 +3891,11 @@ model EventProject {
   approvedById       String?
   approvedAt         DateTime?
   completedAt        DateTime?
-  requiresAV         Boolean             @default(false)
-  requiresFacilities Boolean             @default(false)
+  requiresAV               Boolean             @default(false)
+  requiresFacilities       Boolean             @default(false)
+  requiresCustodial        Boolean             @default(false)
+  requiresSecurity         Boolean             @default(false)
+  requiresAthleticDirector Boolean             @default(false)
   approvalGates      Json?               // { av?: GateState, facilities?: GateState, admin: GateState }
   rejectionReason    String?             // Latest rejection reason (for revision flow)
   metadata           Json?               // Extensible data bag
@@ -3931,6 +3937,8 @@ model EventProject {
   pcoServiceLinks       PCOServiceLink[]
   // Event Team Members
   teamMembers           EventTeamMember[]
+  // Event Chat
+  chatMessages          EventChatMessage[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -4781,6 +4789,26 @@ model EventPresenceSession {
   user         User         @relation("PresenceUser", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventProjectId, userId])
+  @@index([organizationId])
+}
+
+// ─── Event Chat Messages ────────────────────────────────────────────────────────
+
+/// Real-time chat messages scoped to an event project.
+/// Enables Figma-style collaboration between team members viewing the same event.
+model EventChatMessage {
+  id             String   @id @default(cuid())
+  organizationId String
+  eventProjectId String
+  userId         String
+  content        String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  user         User         @relation("EventChatAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventProjectId, createdAt])
   @@index([organizationId])
 }
 

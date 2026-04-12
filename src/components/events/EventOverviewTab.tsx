@@ -29,6 +29,16 @@ import { ConflictBanner } from './overview/ConflictBanner'
 import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import type { ConflictItem } from './overview/ConflictBanner'
+import {
+  SURFACE,
+  BORDER,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  WARM_CHIP,
+  CARD_SHADOW,
+  STATUS_ACCENT,
+} from '@/lib/design/warm-tokens'
 
 /** Typed metadata fields that event projects may contain. */
 interface EventProjectMetadata extends Record<string, unknown> {
@@ -48,10 +58,34 @@ interface StatCardProps {
 
 function StatCard({ icon, value, label }: StatCardProps) {
   return (
-    <div className="ui-glass p-4 text-center">
-      <div className="flex justify-center mb-2 text-indigo-500">{icon}</div>
-      <p className="text-2xl font-bold text-slate-900">{value}</p>
-      <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+    <div
+      className="px-5 py-5 rounded-2xl flex items-center justify-between gap-3"
+      style={{
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        boxShadow: CARD_SHADOW,
+      }}
+    >
+      <div className="min-w-0">
+        <p
+          className="text-3xl font-semibold leading-none"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.03em' }}
+        >
+          {value}
+        </p>
+        <p
+          className="mt-2 text-[10.5px] font-semibold uppercase tracking-[0.1em]"
+          style={{ color: TEXT_MUTED }}
+        >
+          {label}
+        </p>
+      </div>
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY }}
+      >
+        {icon}
+      </div>
     </div>
   )
 }
@@ -68,6 +102,7 @@ const STATUS_STEPS = [
 
 function StatusTimeline({ currentStatus }: { currentStatus: string }) {
   const currentIndex = STATUS_STEPS.findIndex((s) => s.key === currentStatus)
+  const currentAccent = STATUS_ACCENT[currentStatus] ?? TEXT_PRIMARY
 
   return (
     <div className="w-full">
@@ -81,22 +116,26 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
             <div key={step.key} className="flex items-center flex-1 last:flex-none">
               {/* Circle — larger, with checkmark for completed steps */}
               <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                  isCurrent
-                    ? 'bg-indigo-500 ring-4 ring-indigo-100'
+                className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                style={{
+                  backgroundColor: isCurrent
+                    ? currentAccent
                     : isDone
-                    ? 'bg-slate-300'
-                    : 'border-2 border-slate-200 bg-white'
-                }`}
+                    ? TEXT_MUTED
+                    : '#ffffff',
+                  border: isCurrent || isDone ? 'none' : `2px solid ${BORDER}`,
+                  boxShadow: isCurrent ? `0 0 0 4px ${currentAccent}1f` : 'none',
+                }}
               >
                 {isDone && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                 {isCurrent && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
               {i < STATUS_STEPS.length - 1 && (
                 <div
-                  className={`flex-1 h-0.5 mx-2 transition-colors ${
-                    isDone ? 'bg-slate-300' : 'bg-slate-200'
-                  }`}
+                  className="flex-1 h-0.5 mx-2 transition-colors"
+                  style={{
+                    backgroundColor: isDone ? TEXT_MUTED : BORDER,
+                  }}
                 />
               )}
             </div>
@@ -112,9 +151,16 @@ function StatusTimeline({ currentStatus }: { currentStatus: string }) {
           return (
             <span
               key={step.key}
-              className={`text-[10px] font-medium text-center leading-tight ${
-                isCurrent ? 'text-indigo-600 font-semibold' : isDone ? 'text-slate-500' : 'text-slate-300'
-              }`}
+              className="text-[10px] text-center leading-tight"
+              style={{
+                color: isCurrent
+                  ? currentAccent
+                  : isDone
+                  ? TEXT_SECONDARY
+                  : TEXT_MUTED,
+                fontWeight: isCurrent ? 700 : 500,
+                letterSpacing: '-0.005em',
+              }}
             >
               {step.label}
             </span>

@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
  */
 
 export interface AuthUser {
+  id: string | null
   name: string
   email: string
   avatar: string | null
@@ -63,6 +64,7 @@ const LEGACY_KEYS = [
 ] as const
 
 const DEFAULT_USER: AuthUser = {
+  id: null,
   name: 'User',
   email: '',
   avatar: null,
@@ -88,6 +90,7 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
     const name = localStorage.getItem('user-name')
     if (!name) return DEFAULT_USER
     return {
+      id: localStorage.getItem('user-id') || null,
       name,
       email: localStorage.getItem('user-email') || '',
       avatar: localStorage.getItem('user-avatar') || null,

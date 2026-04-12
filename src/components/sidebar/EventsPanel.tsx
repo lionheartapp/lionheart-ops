@@ -7,7 +7,6 @@ import {
   ScrollText,
   Sparkles,
 } from 'lucide-react'
-import { CalendarClock } from 'lucide-react'
 
 interface EventsPanelProps {
   pathname: string
@@ -18,22 +17,19 @@ export default function EventsPanel({
   pathname,
   setIsOpen,
 }: EventsPanelProps) {
+  // Dropped the duplicate "EVENTS" caps header — the column itself is
+  // labeled Events by the main nav, so repeating it was noise.
   const navLinks = [
     { href: '/events', label: 'Events Hub', icon: Home, match: (p: string) => p === '/events' },
     { href: '/calendar', label: 'Calendar', icon: Calendar, match: (p: string) => p.startsWith('/calendar') },
-    { href: '/planning', label: 'Planning', icon: ScrollText, match: (p: string) => p.startsWith('/planning') },
+    { href: '/planning', label: 'Year Plans', icon: ScrollText, match: (p: string) => p.startsWith('/planning') },
     { href: '/events/new/ai', label: 'Create with Leo', icon: Sparkles, match: (p: string) => p.startsWith('/events/new/ai') },
   ]
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 pt-10 pb-4 border-b border-white/30 flex items-center gap-2">
-        <CalendarClock className="w-5 h-5 text-primary-500 flex-shrink-0" aria-hidden="true" />
-        <h2 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">Events</h2>
-      </div>
-
-      <div className="px-3 pt-4 flex-shrink-0">
-        <nav className="space-y-1" aria-label="Events navigation">
+      <div className="px-3 pt-10 flex-shrink-0">
+        <nav className="space-y-0.5" aria-label="Events navigation">
           {navLinks.map((link) => {
             const Icon = link.icon
             const active = link.match(pathname)
@@ -42,14 +38,20 @@ export default function EventsPanel({
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                  active
-                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
-                }`}
+                className="flex items-center gap-3 px-3 py-2.5 min-h-[40px] rounded-xl text-[13.5px] transition-colors focus:outline-none"
+                style={{
+                  backgroundColor: active ? '#f6f4f0' : 'transparent',
+                  color: active ? '#1a1915' : '#6a6864',
+                  fontWeight: active ? 600 : 500,
+                  letterSpacing: '-0.005em',
+                }}
                 aria-current={active ? 'page' : undefined}
               >
-                <Icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                <Icon
+                  className="w-[18px] h-[18px] flex-shrink-0"
+                  strokeWidth={active ? 2.25 : 1.75}
+                  aria-hidden="true"
+                />
                 {link.label}
               </PrefetchLink>
             )

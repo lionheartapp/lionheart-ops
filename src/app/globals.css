@@ -367,55 +367,65 @@ a:visited {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
 
-  /* ── Warm glass surface utilities — light blur for depth, warm tint ── */
+  /* ── Warm editorial surface utilities (Cal.com / Notion inspired) ──
+     Cream background, hairline warm border, multi-layer soft shadow.
+     Used across the events area as the canonical card style. */
   .ui-glass {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: var(--shadow-medium), 0 0 0 1px rgba(17, 15, 10, 0.04);
-    @apply rounded-3xl;
+    background: #fdfcfb;
+    border: 1px solid rgba(17, 15, 10, 0.06);
+    box-shadow:
+      0 0.8px 2.9px rgba(0, 0, 0, 0.02),
+      0 2px 7.8px rgba(0, 0, 0, 0.027),
+      0 4px 18px rgba(0, 0, 0, 0.04);
+    @apply rounded-2xl;
   }
 
   .ui-glass-hover {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: var(--shadow-medium), 0 0 0 1px rgba(17, 15, 10, 0.04);
-    @apply rounded-3xl transition-all duration-200;
+    background: #fdfcfb;
+    border: 1px solid rgba(17, 15, 10, 0.06);
+    box-shadow:
+      0 0.8px 2.9px rgba(0, 0, 0, 0.02),
+      0 2px 7.8px rgba(0, 0, 0, 0.027),
+      0 4px 18px rgba(0, 0, 0, 0.04);
+    @apply rounded-2xl transition-all duration-200;
   }
   .ui-glass-hover:hover {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(255, 255, 255, 0.85);
-    box-shadow: var(--shadow-heavy), 0 0 0 1px rgba(17, 15, 10, 0.03);
+    background: #f8f6f2;
+    border-color: rgba(17, 15, 10, 0.08);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.03),
+      0 4px 12px rgba(0, 0, 0, 0.04),
+      0 8px 24px rgba(0, 0, 0, 0.05);
     transform: translateY(-1px);
   }
 
   .ui-glass-table {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: var(--shadow-medium), 0 0 0 1px rgba(17, 15, 10, 0.04);
-    @apply rounded-3xl overflow-hidden;
+    background: #fdfcfb;
+    border: 1px solid rgba(17, 15, 10, 0.06);
+    box-shadow:
+      0 0.8px 2.9px rgba(0, 0, 0, 0.02),
+      0 2px 7.8px rgba(0, 0, 0, 0.027),
+      0 4px 18px rgba(0, 0, 0, 0.04);
+    @apply rounded-2xl overflow-hidden;
   }
 
   .ui-glass-overlay {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: var(--shadow-heavy);
+    background: #fdfcfb;
+    border: 1px solid rgba(17, 15, 10, 0.06);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.03),
+      0 8px 24px rgba(0, 0, 0, 0.06),
+      0 16px 48px rgba(0, 0, 0, 0.08);
   }
 
   .ui-glass-dropdown {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: #fdfcfb;
+    border: 1px solid rgba(17, 15, 10, 0.06);
     @apply rounded-xl;
-    box-shadow: var(--shadow-heavy);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.03),
+      0 8px 24px rgba(0, 0, 0, 0.06),
+      0 16px 48px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -514,6 +524,44 @@ a:visited {
   /* Focus ring — warm instead of cool */
   .focus\:ring-slate-200:focus { --tw-ring-color: rgba(17, 15, 10, 0.12); }
   .focus\:ring-slate-300:focus { --tw-ring-color: rgba(17, 15, 10, 0.18); }
+
+  /* ── Indigo → warm (legacy primary color, now mostly decorative) ──
+     Used heavily in the events detail tabs and form focus states.
+     Semantic status colors (amber/green/blue/purple/red) are intentionally
+     left untouched — they still carry meaning. */
+  .bg-indigo-50   { background-color: #f6f4f0; }
+  .bg-indigo-100  { background-color: #ede9e0; }
+  .bg-indigo-500  { background-color: #1a1915; }
+  .bg-indigo-600  { background-color: #1a1915; }
+  .bg-indigo-700  { background-color: #28261f; }
+
+  .text-indigo-400 { color: #6a6864; }
+  .text-indigo-500 { color: #1a1915; }
+  .text-indigo-600 { color: #1a1915; }
+  .text-indigo-700 { color: #28261f; }
+
+  .border-indigo-100 { border-color: rgba(17, 15, 10, 0.05); }
+  .border-indigo-200 { border-color: rgba(17, 15, 10, 0.08); }
+  .border-indigo-400 { border-color: rgba(17, 15, 10, 0.18); }
+  .border-indigo-500 { border-color: #1a1915; }
+
+  .hover\:bg-indigo-50:hover   { background-color: #f6f4f0; }
+  .hover\:bg-indigo-100:hover  { background-color: #ede9e0; }
+  .hover\:bg-indigo-600:hover  { background-color: #28261f; }
+  .hover\:bg-indigo-700:hover  { background-color: #000000; }
+  .hover\:text-indigo-600:hover { color: #1a1915; }
+  .hover\:text-indigo-700:hover { color: #000000; }
+
+  .focus\:border-indigo-400:focus { border-color: rgba(17, 15, 10, 0.25); }
+  .focus\:border-indigo-500:focus { border-color: #1a1915; }
+  .focus\:ring-indigo-200:focus   { --tw-ring-color: rgba(17, 15, 10, 0.12); }
+  .focus\:ring-indigo-400:focus   { --tw-ring-color: rgba(17, 15, 10, 0.18); }
+
+  .ring-indigo-100 { --tw-ring-color: rgba(17, 15, 10, 0.05); }
+
+  /* group-hover variants (used in dropdowns) */
+  .group:hover .group-hover\:bg-indigo-50  { background-color: #f6f4f0; }
+  .group:hover .group-hover\:text-indigo-600 { color: #1a1915; }
 }
 
 /* ── Typography: tighter headings globally ──

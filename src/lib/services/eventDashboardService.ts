@@ -48,6 +48,28 @@ const TYPE_PRIORITY: ActionItemType[] = [
   'no_tasks',
 ]
 
+/**
+ * Lightweight relative-time helper for the approval queue description.
+ * Produces strings like "2 hours ago", "3 days ago", "just now".
+ * We intentionally avoid pulling in date-fns here — this file runs on the
+ * server and `date-fns` is a pretty hefty dependency for one helper.
+ */
+function describeRelativeTime(date: Date): string {
+  const now = Date.now()
+  const diffMs = now - date.getTime()
+  if (diffMs < 60 * 1000) return 'just now'
+  const minutes = Math.floor(diffMs / (60 * 1000))
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`
+  const years = Math.floor(months / 12)
+  return `${years} year${years === 1 ? '' : 's'} ago`
+}
+
 // ─── Action Item Collection ───────────────────────────────────────────────────
 
 /**
@@ -81,23 +103,42 @@ export async function collectRawActionItems(orgId: string): Promise<RawActionIte
   // Also fetch PENDING_APPROVAL projects separately for that action item type
   const pendingProjects = await db.eventProject.findMany({
     where: { status: 'PENDING_APPROVAL' },
-    select: { id: true, title: true, createdAt: true, startsAt: true },
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      startsAt: true,
+      createdBy: {
+        select: { firstName: true, lastName: true, email: true },
+      },
+    },
     orderBy: { createdAt: 'asc' },
   })
 
   const items: RawActionItem[] = []
 
   // ── Process PENDING_APPROVAL projects ───────────────────────────────────────
+  // Title = the event's actual name (the most-recognizable identifier).
+  // Description = who submitted + when, not boilerplate "awaiting approval" text.
   for (const project of pendingProjects) {
+    const creator = project.createdBy as { firstName?: string | null; lastName?: string | null; email?: string | null } | null
+    const requesterName = creator?.firstName
+      ? `${creator.firstName} ${creator.lastName || ''}`.trim()
+      : creator?.email || 'Unknown'
+    const submittedAgo = project.createdAt
+      ? describeRelativeTime(new Date(project.createdAt as Date))
+      : null
     items.push({
       id: `pending_approval_${project.id}`,
       type: 'pending_approval',
-      title: 'Event Awaiting Approval',
-      description: `"${project.title}" has been submitted and is waiting for admin approval.`,
-      eventProjectId: project.id,
-      eventProjectTitle: project.title,
-      dueDate: project.startsAt ? new Date(project.startsAt) : undefined,
-      resolveAction: { type: 'approve_event', eventProjectId: project.id },
+      title: project.title as string,
+      description: submittedAgo
+        ? `Submitted ${submittedAgo} by ${requesterName} — needs admin approval`
+        : `Submitted by ${requesterName} — needs admin approval`,
+      eventProjectId: project.id as string,
+      eventProjectTitle: project.title as string,
+      dueDate: project.startsAt ? new Date(project.startsAt as Date) : undefined,
+      resolveAction: { type: 'approve_event', eventProjectId: project.id as string },
     })
   }
 

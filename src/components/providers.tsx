@@ -116,6 +116,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         // Bridge: populate localStorage for backward compat with all existing pages
         localStorage.setItem('auth-token', 'cookie-auth') // sentinel — real JWT is in httpOnly cookie
         localStorage.setItem('org-id', org.id)
+        localStorage.setItem('user-id', user.id || '')
         localStorage.setItem('user-name', user.name || '')
         localStorage.setItem('user-email', user.email || '')
         localStorage.setItem('user-avatar', user.avatar || '')
@@ -205,7 +206,7 @@ function PrefetchGate({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {token && !hideChat && <ChatButton />}
+      {/* Leo floating chat button removed — chat is now per-event via PresenceBar */}
     </>
   )
 }

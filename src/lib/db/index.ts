@@ -118,6 +118,9 @@ const orgScopedModels = new Set([
 	'EventSurvey',
 	'EventSurveyResponse',
 	'EventPresenceSession',
+	'EventChatMessage',
+	// Approval Flow (V2 team-based)
+	'ApprovalFlowEntry',
 	// Phase 22: Notification Orchestration
 	'EventNotificationRule',
 	'EventNotificationLog',

@@ -13,19 +13,30 @@ import {
   DollarSign,
   CheckSquare,
   MessageSquare,
+  type LucideIcon,
 } from 'lucide-react'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import type { MyEventPermissions } from '@/lib/hooks/useEventPermissions'
+import {
+  SURFACE,
+  BORDER,
+  HAIRLINE,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  WARM_CHIP,
+  STATUS_ACCENT,
+} from '@/lib/design/warm-tokens'
 
-// ─── Status badge config ──────────────────────────────────────────────────────
+// ─── Status label (unified vocabulary) ──────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; dotColor: string; bgColor: string; textColor: string }> = {
-  DRAFT: { label: 'Draft', dotColor: 'bg-slate-400', bgColor: 'bg-slate-100', textColor: 'text-slate-600' },
-  PENDING_APPROVAL: { label: 'Pending', dotColor: 'bg-amber-400', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-  CONFIRMED: { label: 'Confirmed', dotColor: 'bg-green-500', bgColor: 'bg-green-50', textColor: 'text-green-700' },
-  IN_PROGRESS: { label: 'In Progress', dotColor: 'bg-blue-500', bgColor: 'bg-blue-50', textColor: 'text-blue-700' },
-  COMPLETED: { label: 'Completed', dotColor: 'bg-purple-500', bgColor: 'bg-purple-50', textColor: 'text-purple-700' },
-  CANCELLED: { label: 'Cancelled', dotColor: 'bg-red-400', bgColor: 'bg-red-50', textColor: 'text-red-600' },
+const STATUS_LABEL: Record<string, string> = {
+  DRAFT: 'Draft',
+  PENDING_APPROVAL: 'Pending Approval',
+  CONFIRMED: 'Confirmed',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
 }
 
 // ─── Nav item definitions ─────────────────────────────────────────────────────
@@ -35,7 +46,7 @@ type TabId = 'overview' | 'schedule' | 'people' | 'registration' | 'documents' |
 interface NavItem {
   id: TabId
   label: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: LucideIcon
   /** Permission key required to see this tab. undefined = always visible. */
   requiredPermission?: keyof MyEventPermissions
 }
@@ -84,7 +95,8 @@ export type { TabId }
 export default function EventSidebar({ project, activeTab, onTabChange, organizationLogoUrl, organizationName, permissions }: EventSidebarProps) {
   const router = useRouter()
 
-  const status = STATUS_CONFIG[project.status] ?? STATUS_CONFIG.DRAFT
+  const statusLabel = STATUS_LABEL[project.status] ?? 'Draft'
+  const statusAccent = STATUS_ACCENT[project.status] ?? STATUS_ACCENT.DRAFT
   const startsAt = new Date(project.startsAt)
   const endsAt = new Date(project.endsAt)
 
@@ -95,7 +107,13 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
   const locationDisplay = project.locationText || undefined
 
   return (
-    <aside className="w-[220px] flex-shrink-0 bg-white border-r border-slate-200/80 flex flex-col h-full overflow-hidden">
+    <aside
+      className="w-[220px] flex-shrink-0 flex flex-col h-full overflow-hidden"
+      style={{
+        backgroundColor: SURFACE,
+        borderRight: `1px solid ${BORDER}`,
+      }}
+    >
       {/* Org logo — matches main nav sizing */}
       <div className="px-4 pt-8 pb-8 flex items-center justify-center">
         {organizationLogoUrl ? (
@@ -105,7 +123,10 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
             className="h-10 max-w-[140px] object-contain"
           />
         ) : (
-          <span className="text-base font-semibold text-slate-800 truncate">
+          <span
+            className="text-base font-semibold truncate"
+            style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}
+          >
             {organizationName || 'School'}
           </span>
         )}
@@ -115,7 +136,16 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
       <div className="px-4 pb-0">
         <button
           onClick={() => router.push('/events')}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] font-medium transition-colors cursor-pointer"
+          style={{ backgroundColor: WARM_CHIP, color: TEXT_SECONDARY }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#ede9e0'
+            e.currentTarget.style.color = TEXT_PRIMARY
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = WARM_CHIP
+            e.currentTarget.style.color = TEXT_SECONDARY
+          }}
         >
           <ArrowLeft className="w-3.5 h-3.5 flex-shrink-0" />
           Back to Events
@@ -123,13 +153,30 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
       </div>
 
       {/* Event info card */}
-      <div className="px-5 pt-8 pb-8 border-b border-slate-100">
-        <div className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-[3px] rounded-full mb-1.5 ${status.bgColor} ${status.textColor}`}>
-          <span className={`w-[5px] h-[5px] rounded-full ${status.dotColor}`} />
-          {status.label}
+      <div
+        className="px-5 pt-8 pb-8"
+        style={{ borderBottom: `1px solid ${HAIRLINE}` }}
+      >
+        <div
+          className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-[3px] rounded-full mb-2"
+          style={{
+            backgroundColor: `${statusAccent}1a`,
+            color: statusAccent,
+          }}
+        >
+          <span
+            className="w-[5px] h-[5px] rounded-full"
+            style={{ backgroundColor: statusAccent }}
+          />
+          {statusLabel}
         </div>
-        <div className="text-[13px] font-semibold text-slate-900 leading-snug">{project.title}</div>
-        <div className="text-[11px] text-slate-400 mt-0.5">
+        <div
+          className="text-[13.5px] font-semibold leading-snug"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.01em' }}
+        >
+          {project.title}
+        </div>
+        <div className="text-[11.5px] mt-1" style={{ color: TEXT_MUTED }}>
           {dateDisplay}
           {locationDisplay && ` · ${locationDisplay}`}
         </div>
@@ -150,10 +197,13 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
 
           return (
             <div key={section.label} className="mb-1">
-              <div className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.07em] px-4 mb-1 mt-3 first:mt-0">
+              <div
+                className="text-[10px] font-semibold uppercase tracking-[0.1em] px-4 mb-1.5 mt-4 first:mt-0"
+                style={{ color: TEXT_MUTED }}
+              >
                 {section.label}
               </div>
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {visibleItems.map((item) => {
                   const Icon = item.icon
                   const isActive = activeTab === item.id
@@ -161,13 +211,30 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
                     <li key={item.id}>
                       <button
                         onClick={() => onTabChange(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          isActive
-                            ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                            : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
-                        }`}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 min-h-[40px] rounded-xl text-[13.5px] transition-colors cursor-pointer focus:outline-none"
+                        style={{
+                          backgroundColor: isActive ? WARM_CHIP : 'transparent',
+                          color: isActive ? TEXT_PRIMARY : TEXT_SECONDARY,
+                          fontWeight: isActive ? 600 : 500,
+                          letterSpacing: '-0.005em',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = '#f8f6f2'
+                            e.currentTarget.style.color = TEXT_PRIMARY
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                            e.currentTarget.style.color = TEXT_SECONDARY
+                          }
+                        }}
                       >
-                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-500' : ''}`} />
+                        <Icon
+                          className="w-[18px] h-[18px] flex-shrink-0"
+                          strokeWidth={isActive ? 2.25 : 1.75}
+                        />
                         {item.label}
                       </button>
                     </li>

@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import {
   Plus,
-  CalendarRange,
   RefreshCw,
   Layers,
   AlertTriangle,
@@ -26,6 +25,9 @@ import {
   ArrowRight,
   ChevronDown,
   Copy,
+  LayoutGrid,
+  List as ListIcon,
+  Archive,
 } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import { staggerContainer, cardEntrance, fadeInUp, listItem } from '@/lib/animations'
@@ -33,14 +35,28 @@ import { useEventProjects, type EventProject } from '@/lib/hooks/useEventProject
 import { useEventDashboard, useResolveAction } from '@/lib/hooks/useEventDashboard'
 import type { ScoredActionItem, ActionItemType, ResolveAction } from '@/lib/services/eventDashboardService'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { useToast } from '@/components/Toast'
 import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
+import { EventBoard } from '@/components/events/board/EventBoard'
+import { ArchiveDrawer } from '@/components/events/board/ArchiveDrawer'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
+import {
+  SURFACE,
+  BORDER,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  TEXT_MUTED,
+  WARM_CHIP,
+  WARM_CHIP_HOVER,
+  CARD_SHADOW,
+  STATUS_ACCENT,
+} from '@/lib/design/warm-tokens'
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -62,7 +78,7 @@ const SOURCE_CONFIG: Record<string, { label: string; bg: string; text: string }>
 const FILTER_TABS = [
   { value: '', label: 'All' },
   { value: 'DRAFT', label: 'Draft' },
-  { value: 'PENDING_APPROVAL', label: 'Pending' },
+  { value: 'PENDING_APPROVAL', label: 'Pending Approval' },
   { value: 'CONFIRMED', label: 'Confirmed' },
   { value: 'IN_PROGRESS', label: 'In Progress' },
   { value: 'COMPLETED', label: 'Completed' },
@@ -102,30 +118,47 @@ const itemExit = {
   transition: { duration: 0.25 },
 }
 
-// ─── Stat Card (styled like reference image) ─────────────────────────────────
+// ─── Stat Card (Cal.com editorial: large number + small uppercase label) ────
 
 interface StatCardProps {
   label: string
   value: number
   icon: React.ElementType
-  iconBg: string
-  iconColor: string
 }
 
-function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps) {
+function StatCard({ label, value, icon: Icon }: StatCardProps) {
   return (
-    <div className="ui-glass flex-1 min-w-[200px] px-5 py-4 flex items-center gap-4">
-      <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-5 h-5 ${iconColor}`} />
-      </div>
+    <div
+      className="flex-1 min-w-[200px] px-6 py-5 rounded-2xl flex items-center justify-between gap-4"
+      style={{
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        boxShadow: CARD_SHADOW,
+      }}
+    >
       <div className="min-w-0">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-xl font-bold text-slate-900 leading-none">
-            <AnimatedCounter value={value} />
-          </span>
-          <span className="text-xs text-slate-400 font-medium">{value === 1 ? 'event' : 'events'}</span>
+        <div
+          className="text-4xl font-semibold leading-none"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.03em' }}
+        >
+          <AnimatedCounter value={value} />
         </div>
-        <p className="text-sm font-semibold text-slate-700 mt-0.5">{label}</p>
+        <p
+          className="mt-2 text-[11px] font-semibold uppercase tracking-[0.1em]"
+          style={{ color: TEXT_MUTED }}
+        >
+          {label}
+        </p>
+      </div>
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: WARM_CHIP }}
+      >
+        <Icon
+          className="w-[18px] h-[18px]"
+          strokeWidth={1.75}
+          style={{ color: TEXT_PRIMARY }}
+        />
       </div>
     </div>
   )
@@ -178,6 +211,10 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
   const sourceConfig = SOURCE_CONFIG[project.source] ?? SOURCE_CONFIG.DIRECT_REQUEST
   const startsAt = new Date(project.startsAt)
   const endsAt = new Date(project.endsAt)
+  const isToday = startsAt.toDateString() === new Date().toDateString()
+  const weekday = startsAt.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+  const dayNum = startsAt.getDate()
+  const accentColor = STATUS_ACCENT[project.status] ?? STATUS_ACCENT.DRAFT
 
   const dateDisplay = project.isMultiDay
     ? `${format(startsAt, 'MMM d')} – ${format(endsAt, 'MMM d, yyyy')}`
@@ -191,52 +228,128 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
     <motion.div
       variants={cardEntrance}
       onClick={onClick}
-      className="ui-glass-hover p-5 rounded-2xl cursor-pointer"
+      className="group flex items-start gap-4 px-5 py-4 rounded-2xl cursor-pointer transition-colors duration-200"
+      style={{
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        boxShadow: CARD_SHADOW,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f6f2')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = SURFACE)}
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <h3 className="text-sm font-semibold text-slate-900 flex-1 min-w-0 truncate">
+      {/* Date chip */}
+      <div className="flex-shrink-0 w-11 text-center pt-0.5">
+        <div
+          className="text-[9px] font-bold uppercase tracking-[0.1em]"
+          style={{ color: isToday ? accentColor : TEXT_MUTED }}
+        >
+          {isToday ? 'TODAY' : weekday}
+        </div>
+        <div
+          className="text-xl font-semibold leading-[1.1] mt-0.5"
+          style={{ color: TEXT_PRIMARY }}
+        >
+          {dayNum}
+        </div>
+      </div>
+
+      {/* Vertical accent bar */}
+      <div
+        className="flex-shrink-0 w-[3px] rounded-full self-stretch my-0.5"
+        style={{ backgroundColor: accentColor }}
+      />
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0">
+        <h3
+          className="text-[15px] font-semibold truncate"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.005em' }}
+        >
           {project.title}
         </h3>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sourceConfig.bg} ${sourceConfig.text}`}>
+
+        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          <span
+            className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: WARM_CHIP, color: TEXT_SECONDARY }}
+          >
             {sourceConfig.label}
           </span>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.text}`}>
+          <span
+            className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{
+              backgroundColor: `${accentColor}1a`,
+              color: accentColor,
+            }}
+          >
             {statusConfig.label}
           </span>
         </div>
-      </div>
 
-      {project.description && (
-        <p className="text-xs text-slate-500 mb-3 line-clamp-2">{project.description}</p>
-      )}
+        {project.description && (
+          <p
+            className="mt-2 text-[12.5px] line-clamp-2"
+            style={{ color: TEXT_SECONDARY }}
+          >
+            {project.description}
+          </p>
+        )}
 
-      <div className="flex items-center gap-3 text-xs text-slate-500">
-        <div className="flex items-center gap-1">
-          <CalendarRange className="w-3.5 h-3.5" />
-          {dateDisplay}
+        <div className="flex items-center gap-2 mt-1.5">
+          <span
+            className="text-[12.5px] font-medium"
+            style={{ color: TEXT_SECONDARY }}
+          >
+            {dateDisplay}
+          </span>
+          {project.locationText && (
+            <>
+              <span style={{ color: TEXT_MUTED }}>·</span>
+              <span
+                className="text-[12.5px] truncate max-w-[160px]"
+                style={{ color: TEXT_SECONDARY }}
+              >
+                {project.locationText}
+              </span>
+            </>
+          )}
         </div>
-        {project.locationText && (
-          <span className="truncate max-w-[120px]">{project.locationText}</span>
+
+        {creatorName && (
+          <p className="text-[11.5px] mt-0.5" style={{ color: TEXT_MUTED }}>
+            By {creatorName}
+          </p>
+        )}
+
+        {/* Approval gate indicators */}
+        {project.approvalGates && project.status === 'PENDING_APPROVAL' && (
+          <GateIndicators gates={project.approvalGates} />
+        )}
+
+        {/* Rejection reason banner */}
+        {project.rejectionReason && project.status === 'DRAFT' && (
+          <div
+            className="mt-2.5 px-3 py-2 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(184, 74, 74, 0.08)',
+              border: '1px solid rgba(184, 74, 74, 0.18)',
+            }}
+          >
+            <p className="text-[11.5px] font-semibold" style={{ color: '#b84a4a' }}>
+              Revision needed
+            </p>
+            <p className="text-[11.5px] mt-0.5" style={{ color: '#b84a4a' }}>
+              {project.rejectionReason}
+            </p>
+          </div>
         )}
       </div>
 
-      {creatorName && (
-        <p className="text-xs text-slate-400 mt-2">By {creatorName}</p>
-      )}
-
-      {/* Approval gate indicators */}
-      {project.approvalGates && project.status === 'PENDING_APPROVAL' && (
-        <GateIndicators gates={project.approvalGates} />
-      )}
-
-      {/* Rejection reason banner */}
-      {project.rejectionReason && project.status === 'DRAFT' && (
-        <div className="mt-2.5 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
-          <p className="text-xs text-red-700 font-medium">Revision needed</p>
-          <p className="text-xs text-red-600 mt-0.5">{project.rejectionReason}</p>
-        </div>
-      )}
+      {/* Chevron on hover */}
+      <ArrowRight
+        className="flex-shrink-0 w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ color: TEXT_MUTED }}
+      />
     </motion.div>
   )
 }
@@ -248,22 +361,21 @@ function ActionItemCard({ item, onResolve, isResolving }: {
   onResolve: (action: ResolveAction, item: ScoredActionItem) => void
   isResolving: boolean
 }) {
+  const router = useRouter()
   const Icon = ACTION_ICONS[item.type] ?? AlertCircle
   const iconColor = ACTION_COLORS[item.type] ?? 'text-slate-400'
   const barColor = urgencyBarColor(item.urgencyScore)
 
+  // Pending approvals are NEVER actioned directly from the queue — the user
+  // must open the event detail page and review context before approving via
+  // the ApprovalReviewDrawer. For everything else (complete_task, navigate),
+  // keep the inline button since those are safe low-stakes actions.
+  const isPendingApproval = item.resolveAction.type === 'approve_event'
+  const hasInlineAction = !isPendingApproval
+
   const resolveLabel = (() => {
     if (item.resolveAction.type === 'complete_task') return 'Mark Done'
-    if (item.resolveAction.type === 'approve_event') return 'Approve'
     return 'Go to Event'
-  })()
-
-  const resolveButtonClass = (() => {
-    if (item.resolveAction.type === 'complete_task')
-      return 'px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-medium hover:bg-green-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
-    if (item.resolveAction.type === 'approve_event')
-      return 'px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
-    return 'px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-700 active:scale-[0.97] transition-all duration-200 cursor-pointer'
   })()
 
   const handleResolve = () => {
@@ -274,41 +386,82 @@ function ActionItemCard({ item, onResolve, isResolving }: {
     onResolve(item.resolveAction, item)
   }
 
+  const handleCardClick = () => {
+    if (isPendingApproval) {
+      router.push(`/events/${item.eventProjectId}`)
+    }
+  }
+
   return (
     <motion.div
       layout
       variants={listItem}
       exit={itemExit}
-      className="ui-glass-hover p-4 flex gap-3"
+      onClick={isPendingApproval ? handleCardClick : undefined}
+      className="group p-4 flex gap-3 rounded-2xl transition-colors duration-200"
+      style={{
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
+        boxShadow: CARD_SHADOW,
+        cursor: isPendingApproval ? 'pointer' : 'default',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8f6f2')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = SURFACE)}
     >
       <div className={`w-1 rounded-full flex-shrink-0 self-stretch ${barColor}`} />
       <div className="flex-shrink-0 mt-0.5">
-        <Icon className={`w-5 h-5 ${iconColor}`} />
+        <Icon className={`w-5 h-5 ${iconColor}`} strokeWidth={1.75} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-slate-900 leading-snug">{item.title}</p>
-            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{item.description}</p>
-            <span className="inline-block mt-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full font-medium">
-              {item.eventProjectTitle}
-            </span>
+            <p
+              className="text-[13.5px] font-semibold leading-snug"
+              style={{ color: TEXT_PRIMARY, letterSpacing: '-0.005em' }}
+            >
+              {item.title}
+            </p>
+            <p
+              className="text-[12px] mt-0.5 leading-relaxed"
+              style={{ color: TEXT_SECONDARY }}
+            >
+              {item.description}
+            </p>
             {item.aiReason && item.aiReason !== '' && !item.aiReason.includes('unavailable') && (
-              <p className="text-xs text-slate-400 mt-1 italic flex items-center gap-1">
+              <p
+                className="text-[11.5px] mt-1 italic flex items-center gap-1"
+                style={{ color: TEXT_MUTED }}
+              >
                 <Sparkles className="w-3 h-3 flex-shrink-0" />
                 {item.aiReason}
               </p>
             )}
           </div>
-          <div className="flex-shrink-0">
-            <button
-              onClick={handleResolve}
-              disabled={isResolving}
-              className={resolveButtonClass}
-            >
-              {isResolving ? <Loader2 className="w-3 h-3 animate-spin" /> : resolveLabel}
-            </button>
-          </div>
+          {hasInlineAction && (
+            <div className="flex-shrink-0">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleResolve()
+                }}
+                disabled={isResolving}
+                className="px-3 py-1.5 rounded-full text-[11.5px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px active:scale-[0.97] disabled:opacity-60"
+                style={{
+                  backgroundColor: TEXT_PRIMARY,
+                  color: '#ffffff',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+                }}
+              >
+                {isResolving ? <Loader2 className="w-3 h-3 animate-spin" /> : resolveLabel}
+              </button>
+            </div>
+          )}
+          {isPendingApproval && (
+            <ArrowRight
+              className="flex-shrink-0 w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              style={{ color: TEXT_MUTED }}
+            />
+          )}
         </div>
       </div>
     </motion.div>
@@ -361,12 +514,20 @@ function StatsSkeleton() {
   return (
     <div className="flex gap-4 animate-pulse">
       {[0, 1].map((i) => (
-        <div key={i} className="ui-glass flex-1 min-w-[200px] px-5 py-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-slate-200 flex-shrink-0" />
-          <div className="space-y-2">
-            <div className="w-12 h-5 bg-slate-200 rounded" />
-            <div className="w-24 h-3 bg-slate-100 rounded" />
+        <div
+          key={i}
+          className="flex-1 min-w-[200px] px-6 py-5 rounded-2xl flex items-center justify-between gap-4"
+          style={{
+            backgroundColor: SURFACE,
+            border: `1px solid ${BORDER}`,
+            boxShadow: CARD_SHADOW,
+          }}
+        >
+          <div className="space-y-3">
+            <div className="w-16 h-9 rounded" style={{ backgroundColor: WARM_CHIP_HOVER }} />
+            <div className="w-24 h-2.5 rounded" style={{ backgroundColor: WARM_CHIP }} />
           </div>
+          <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: WARM_CHIP }} />
         </div>
       ))}
     </div>
@@ -403,22 +564,70 @@ function ApprovalsSkeleton() {
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 
-function EventsEmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
+interface EventsEmptyStateProps {
+  onCreateEvent: () => void
+  onClearFilter?: () => void
+  /** The currently-selected status filter label, or undefined when unfiltered. */
+  filterLabel?: string
+}
+
+function EventsEmptyState({ onCreateEvent, onClearFilter, filterLabel }: EventsEmptyStateProps) {
+  // Filter-aware copy: if the user has filtered to a status with no matches,
+  // don't lie about having "no events" — show a filter-specific state instead.
+  const isFiltered = !!filterLabel
+
   return (
-    <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="text-center py-16">
-      <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-4">
-        <Layers className="w-7 h-7 text-indigo-500" />
-      </div>
-      <h3 className="text-base font-semibold text-slate-900 mb-2">No events yet</h3>
-      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
-        Create your first event to start planning, scheduling, and coordinating everything in one place.
-      </p>
-      <button
-        onClick={onCreateEvent}
-        className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className="text-center py-16"
+    >
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        style={{ backgroundColor: WARM_CHIP }}
       >
-        Create First Event
-      </button>
+        <Layers className="w-7 h-7" strokeWidth={1.75} style={{ color: TEXT_PRIMARY }} />
+      </div>
+      <h3
+        className="text-[17px] font-semibold mb-2"
+        style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}
+      >
+        {isFiltered ? `No ${filterLabel.toLowerCase()} events` : 'No events yet'}
+      </h3>
+      <p
+        className="text-[13.5px] max-w-sm mx-auto mb-6 leading-[1.55]"
+        style={{ color: TEXT_SECONDARY }}
+      >
+        {isFiltered
+          ? `You have events, but none match the "${filterLabel}" filter. Try a different filter or clear it to see everything.`
+          : 'Create your first event to start planning, scheduling, and coordinating everything in one place.'}
+      </p>
+      {isFiltered ? (
+        <button
+          onClick={onClearFilter}
+          className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
+          style={{
+            backgroundColor: TEXT_PRIMARY,
+            color: '#ffffff',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+          }}
+        >
+          Show All Events
+        </button>
+      ) : (
+        <button
+          onClick={onCreateEvent}
+          className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
+          style={{
+            backgroundColor: TEXT_PRIMARY,
+            color: '#ffffff',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+          }}
+        >
+          Create First Event
+        </button>
+      )}
     </motion.div>
   )
 }
@@ -444,8 +653,6 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="Active Events"
               value={stats.totalActiveEvents}
               icon={Calendar}
-              iconBg="bg-blue-50"
-              iconColor="text-blue-500"
             />
           </motion.div>
           <motion.div variants={cardEntrance} className="flex-1">
@@ -453,8 +660,6 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="Needs Approval"
               value={stats.pendingApprovals}
               icon={Shield}
-              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-slate-50'}
-              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-slate-400'}
             />
           </motion.div>
         </>
@@ -465,8 +670,6 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="My Events"
               value={stats.totalActiveEvents}
               icon={Calendar}
-              iconBg="bg-blue-50"
-              iconColor="text-blue-500"
             />
           </motion.div>
           <motion.div variants={cardEntrance} className="flex-1">
@@ -474,8 +677,6 @@ function StatsRow({ isAdmin }: { isAdmin: boolean }) {
               label="Pending Review"
               value={stats.pendingApprovals}
               icon={Hourglass}
-              iconBg={stats.pendingApprovals > 0 ? 'bg-amber-50' : 'bg-slate-50'}
-              iconColor={stats.pendingApprovals > 0 ? 'text-amber-500' : 'text-slate-400'}
             />
           </motion.div>
         </>
@@ -542,13 +743,32 @@ function ApprovalQueue() {
           variants={cardEntrance}
           initial="hidden"
           animate="visible"
-          className="ui-glass p-8 text-center"
+          className="p-8 text-center rounded-2xl"
+          style={{
+            backgroundColor: SURFACE,
+            border: `1px solid ${BORDER}`,
+            boxShadow: CARD_SHADOW,
+          }}
         >
-          <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <PartyPopper className="w-6 h-6 text-green-500" />
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
+            style={{ backgroundColor: WARM_CHIP }}
+          >
+            <PartyPopper
+              className="w-6 h-6"
+              strokeWidth={1.75}
+              style={{ color: TEXT_PRIMARY }}
+            />
           </div>
-          <h3 className="text-sm font-semibold text-slate-900">All caught up!</h3>
-          <p className="text-xs text-slate-500 mt-1">No events waiting for approval.</p>
+          <h3
+            className="text-[14px] font-semibold"
+            style={{ color: TEXT_PRIMARY, letterSpacing: '-0.01em' }}
+          >
+            All caught up!
+          </h3>
+          <p className="text-[12px] mt-1" style={{ color: TEXT_SECONDARY }}>
+            No events waiting for approval.
+          </p>
         </motion.div>
       ) : (
         <motion.div
@@ -573,19 +793,142 @@ function ApprovalQueue() {
   )
 }
 
+// ─── Event Create Menu (page header CTA — dropdown with create modes) ───────
+
+type EventCreateMode = 'single' | 'multiday' | 'recurring' | 'template' | 'ai'
+
+interface EventCreateMenuProps {
+  isAdmin: boolean
+  onSelect: (mode: EventCreateMode) => void
+}
+
+function EventCreateMenu({ isAdmin, onSelect }: EventCreateMenuProps) {
+  const [open, setOpen] = useState(false)
+
+  // "With AI" sits at the top as the recommended path for non-technical users,
+  // visible to everyone. Admin-only options (recurring + template) stay hidden
+  // from non-admins.
+  const EVENT_OPTIONS: {
+    mode: EventCreateMode
+    label: string
+    description: string
+    icon: React.ElementType
+    adminOnly?: boolean
+    highlight?: boolean
+  }[] = [
+    { mode: 'ai', label: 'With AI (Leo)', description: 'Describe your event in plain English and let Leo draft it', icon: Sparkles, highlight: true },
+    { mode: 'single', label: 'Single Event', description: 'A one-time event on a specific date', icon: Calendar },
+    { mode: 'recurring', label: 'Recurring Event', description: 'Repeats on a schedule (weekly, monthly, etc.)', icon: RefreshCw, adminOnly: true },
+    { mode: 'multiday', label: 'Multi-day Event', description: 'Spans across multiple days', icon: CalendarDays },
+    { mode: 'template', label: 'From Template', description: 'Start from a saved event template', icon: Copy, adminOnly: true },
+  ]
+
+  const visibleOptions = isAdmin
+    ? EVENT_OPTIONS
+    : EVENT_OPTIONS.filter((o) => !o.adminOnly)
+
+  const handleSelect = (mode: EventCreateMode) => {
+    setOpen(false)
+    onSelect(mode)
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
+        style={{
+          backgroundColor: TEXT_PRIMARY,
+          color: '#ffffff',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+        }}
+      >
+        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+        Event
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Invisible backdrop to close dropdown */}
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 top-full mt-2 w-72 rounded-xl z-20 overflow-hidden"
+              style={{
+                backgroundColor: SURFACE,
+                border: `1px solid ${BORDER}`,
+                boxShadow: CARD_SHADOW,
+              }}
+            >
+              <div className="p-1.5">
+                {visibleOptions.map((opt) => {
+                  const Icon = opt.icon
+                  return (
+                    <button
+                      key={opt.mode}
+                      onClick={() => handleSelect(opt.mode)}
+                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer group"
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = WARM_CHIP)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = 'transparent')
+                      }
+                    >
+                      <div
+                        className="mt-0.5 p-1.5 rounded-lg transition-colors"
+                        style={{ backgroundColor: WARM_CHIP }}
+                      >
+                        <Icon
+                          className="w-4 h-4"
+                          strokeWidth={1.75}
+                          style={{ color: TEXT_PRIMARY }}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className="text-[13.5px] font-semibold"
+                          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.005em' }}
+                        >
+                          {opt.label}
+                        </p>
+                        <p
+                          className="text-[12px] mt-0.5"
+                          style={{ color: TEXT_SECONDARY }}
+                        >
+                          {opt.description}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ─── My Events Panel ─────────────────────────────────────────────────────────
 
-type EventCreateMode = 'single' | 'multiday' | 'recurring' | 'template'
+interface MyEventsPanelProps {
+  isAdmin: boolean
+  onOpenCreate: (mode: EventCreateMode) => void
+}
 
-function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
+function MyEventsPanel({ isAdmin, onOpenCreate }: MyEventsPanelProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState('')
-  const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [createMode, setCreateMode] = useState<EventCreateMode>('single')
-  const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
-  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const filters = {
     ...(statusFilter ? { status: statusFilter } : {}),
@@ -596,84 +939,16 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
     Object.keys(filters).length > 0 ? filters : undefined
   )
 
-  function openCreate(mode: EventCreateMode) {
-    setDropdownOpen(false)
-    if (mode === 'recurring') {
-      setSeriesDrawerOpen(true)
-    } else if (mode === 'template') {
-      setTemplateDrawerOpen(true)
-    } else {
-      setCreateMode(mode)
-      setCreateModalOpen(true)
-    }
-  }
-
-  const EVENT_OPTIONS: { mode: EventCreateMode; label: string; description: string; icon: React.ElementType; adminOnly?: boolean }[] = [
-    { mode: 'single', label: 'Single Event', description: 'A one-time event on a specific date', icon: Calendar },
-    { mode: 'recurring', label: 'Recurring Event', description: 'Repeats on a schedule (weekly, monthly, etc.)', icon: RefreshCw, adminOnly: true },
-    { mode: 'multiday', label: 'Multi-day Event', description: 'Spans across multiple days', icon: CalendarDays },
-    { mode: 'template', label: 'From Template', description: 'Start from a saved event template', icon: Copy, adminOnly: true },
-  ]
-
-  const visibleOptions = isAdmin ? EVENT_OPTIONS : EVENT_OPTIONS.filter((o) => !o.adminOnly)
-
   return (
     <div>
       {/* Section header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-slate-900">
+        <h2
+          className="text-base font-semibold"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.01em' }}
+        >
           {isAdmin ? 'All Events' : 'My Events'}
         </h2>
-
-        {/* + Event dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Event
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          <AnimatePresence>
-            {dropdownOpen && (
-              <>
-                {/* Invisible backdrop to close dropdown */}
-                <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-
-                <motion.div
-                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-20 overflow-hidden"
-                >
-                  <div className="p-1.5">
-                    {visibleOptions.map((opt) => {
-                      const Icon = opt.icon
-                      return (
-                        <button
-                          key={opt.mode}
-                          onClick={() => openCreate(opt.mode)}
-                          className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
-                        >
-                          <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 group-hover:bg-indigo-50 transition-colors">
-                            <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-slate-900">{opt.label}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
 
       {/* Filter chips */}
@@ -697,7 +972,15 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
       {isLoading ? (
         <EventsListSkeleton />
       ) : !projects || projects.length === 0 ? (
-        <EventsEmptyState onCreateEvent={() => setCreateModalOpen(true)} />
+        <EventsEmptyState
+          onCreateEvent={() => onOpenCreate('single')}
+          onClearFilter={() => setStatusFilter('')}
+          filterLabel={
+            statusFilter
+              ? FILTER_TABS.find((f) => f.value === statusFilter)?.label
+              : undefined
+          }
+        />
       ) : (
         <motion.div
           variants={staggerContainer(0.05)}
@@ -714,8 +997,250 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
           ))}
         </motion.div>
       )}
+    </div>
+  )
+}
 
-      {/* Modals */}
+// ─── View toggle ─────────────────────────────────────────────────────────────
+
+type EventsView = 'board' | 'list'
+
+interface ViewToggleProps {
+  view: EventsView
+  onChange: (v: EventsView) => void
+}
+
+function ViewToggle({ view, onChange }: ViewToggleProps) {
+  return (
+    <div
+      className="inline-flex items-center gap-0.5 p-0.5 rounded-full"
+      style={{ backgroundColor: WARM_CHIP }}
+    >
+      <button
+        onClick={() => onChange('board')}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer"
+        style={{
+          backgroundColor: view === 'board' ? '#ffffff' : 'transparent',
+          color: view === 'board' ? TEXT_PRIMARY : TEXT_SECONDARY,
+          boxShadow:
+            view === 'board'
+              ? '0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04)'
+              : 'none',
+        }}
+        aria-pressed={view === 'board'}
+      >
+        <LayoutGrid className="w-3.5 h-3.5" strokeWidth={2} />
+        Board
+      </button>
+      <button
+        onClick={() => onChange('list')}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer"
+        style={{
+          backgroundColor: view === 'list' ? '#ffffff' : 'transparent',
+          color: view === 'list' ? TEXT_PRIMARY : TEXT_SECONDARY,
+          boxShadow:
+            view === 'list'
+              ? '0 1px 2px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04)'
+              : 'none',
+        }}
+        aria-pressed={view === 'list'}
+      >
+        <ListIcon className="w-3.5 h-3.5" strokeWidth={2} />
+        List
+      </button>
+    </div>
+  )
+}
+
+// ─── Page Header ─────────────────────────────────────────────────────────────
+
+interface EventsPageHeaderProps {
+  isAdmin: boolean
+  onOpenCreate: (mode: EventCreateMode) => void
+  /** Board / list toggle — only rendered for admins on desktop */
+  showViewToggle?: boolean
+  view?: EventsView
+  onViewChange?: (v: EventsView) => void
+  /** Archive button — only rendered in board view */
+  onOpenArchive?: () => void
+  archiveCount?: number
+}
+
+function EventsPageHeader({
+  isAdmin,
+  onOpenCreate,
+  showViewToggle = false,
+  view = 'board',
+  onViewChange,
+  onOpenArchive,
+  archiveCount,
+}: EventsPageHeaderProps) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="min-w-0">
+        <h1
+          className="text-3xl font-semibold leading-[1.05]"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.025em' }}
+        >
+          Events Hub
+        </h1>
+        <p
+          className="mt-2 text-[13.5px] font-medium"
+          style={{ color: TEXT_SECONDARY }}
+        >
+          {isAdmin
+            ? 'Manage all your school events from planning to completion'
+            : 'Your events and submissions'}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        {showViewToggle && view && onViewChange && (
+          <ViewToggle view={view} onChange={onViewChange} />
+        )}
+        {onOpenArchive && (
+          <button
+            onClick={onOpenArchive}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[12px] font-semibold transition-colors cursor-pointer"
+            style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP_HOVER)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP)}
+            aria-label="Open archive"
+          >
+            <Archive className="w-3.5 h-3.5" strokeWidth={2} />
+            Archive
+            {typeof archiveCount === 'number' && archiveCount > 0 && (
+              <span
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                style={{ backgroundColor: '#ffffff', color: TEXT_SECONDARY }}
+              >
+                {archiveCount}
+              </span>
+            )}
+          </button>
+        )}
+        <EventCreateMenu isAdmin={isAdmin} onSelect={onOpenCreate} />
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+const VIEW_STORAGE_KEY = 'events-hub-view'
+
+export default function EventsPage() {
+  usePageTitle('Events')
+  useTrackModuleVisit('events')
+  const router = useRouter()
+  const { isAdmin, isReady, user } = useAuth()
+  const isDesktop = useIsDesktop()
+
+  // Lifted create-flow state so the CTA can live in the page header
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<EventCreateMode>('single')
+  const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
+  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const [archiveDrawerOpen, setArchiveDrawerOpen] = useState(false)
+
+  // View toggle — board is default for admins on desktop. Persisted per-user
+  // in localStorage so repeat visitors stay on their preferred view.
+  const [view, setView] = useState<EventsView>('board')
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
+    if (stored === 'board' || stored === 'list') setView(stored)
+  }, [])
+  const handleViewChange = (v: EventsView) => {
+    setView(v)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, v)
+    }
+  }
+
+  // Mobile (< 768px) always uses the list view — board is desktop-only.
+  const effectiveView: EventsView = !isDesktop ? 'list' : view
+  // Only admins see the board at all.
+  const useBoard = isAdmin && effectiveView === 'board'
+
+  // For the board, fetch ALL admin-visible events in one query (no status
+  // filter, no createdBy filter). The board groups them into columns itself.
+  const { data: allProjects = [] } = useEventProjects(
+    useBoard ? undefined : undefined,
+  )
+  const archiveCount = allProjects.filter(
+    (p) => p.status === 'COMPLETED' || p.status === 'CANCELLED',
+  ).length
+
+  const handleOpenCreate = (mode: EventCreateMode) => {
+    if (mode === 'ai') {
+      router.push('/events/new/ai')
+    } else if (mode === 'recurring') {
+      setSeriesDrawerOpen(true)
+    } else if (mode === 'template') {
+      setTemplateDrawerOpen(true)
+    } else {
+      setCreateMode(mode)
+      setCreateModalOpen(true)
+    }
+  }
+
+  if (!isReady) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen animate-pulse">
+          <div className="h-8 w-48 bg-slate-200 rounded mb-4" />
+          <div className="h-4 w-64 bg-slate-100 rounded" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="min-h-screen space-y-6">
+        {/* Page header with + Event dropdown CTA, view toggle, archive */}
+        <EventsPageHeader
+          isAdmin={isAdmin}
+          onOpenCreate={handleOpenCreate}
+          showViewToggle={isAdmin && isDesktop}
+          view={view}
+          onViewChange={handleViewChange}
+          onOpenArchive={useBoard ? () => setArchiveDrawerOpen(true) : undefined}
+          archiveCount={useBoard ? archiveCount : undefined}
+        />
+
+        {useBoard ? (
+          /* Board view — replaces the list + approval queue split entirely.
+             Columns ARE the filters, column headers ARE the stats, the
+             Pending Approval column IS the approval queue. */
+          <EventBoard
+            projects={allProjects}
+            onCreateDraft={() => handleOpenCreate('single')}
+            currentUserId={user.id}
+          />
+        ) : (
+          <>
+            {/* List view keeps the original stats row + panels */}
+            <StatsRow isAdmin={isAdmin} />
+
+            {isAdmin ? (
+              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8">
+                <div>
+                  <MyEventsPanel isAdmin onOpenCreate={handleOpenCreate} />
+                </div>
+                <div>
+                  <ApprovalQueue />
+                </div>
+              </div>
+            ) : (
+              <MyEventsPanel isAdmin={false} onOpenCreate={handleOpenCreate} />
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Create modals + drawers (lifted so CTA in header can trigger them) */}
       <CreateEventProjectModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
@@ -737,69 +1262,11 @@ function MyEventsPanel({ isAdmin }: { isAdmin: boolean }) {
           onClose={() => setSelectedTemplateId(null)}
         />
       )}
-    </div>
-  )
-}
-
-// ─── Page Header ─────────────────────────────────────────────────────────────
-
-function EventsPageHeader({ isAdmin }: { isAdmin: boolean }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold text-slate-900">Events Hub</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          {isAdmin
-            ? 'Manage all your school events from planning to completion'
-            : 'Your events and submissions'}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-// ─── Page ────────────────────────────────────────────────────────────────────
-
-export default function EventsPage() {
-  usePageTitle('Events')
-  useTrackModuleVisit('events')
-  const { isAdmin, isReady } = useAuth()
-
-  if (!isReady) {
-    return (
-      <DashboardLayout>
-        <div className="min-h-screen animate-pulse">
-          <div className="h-8 w-48 bg-slate-200 rounded mb-4" />
-          <div className="h-4 w-64 bg-slate-100 rounded" />
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  return (
-    <DashboardLayout>
-      <div className="min-h-screen space-y-6">
-        {/* Page header */}
-        <EventsPageHeader isAdmin={isAdmin} />
-
-        {/* Stats row — 2 role-aware cards */}
-        <StatsRow isAdmin={isAdmin} />
-
-        {isAdmin ? (
-          /* Admin: two-column — My Events left, Approval Queue right */
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-8">
-            <div>
-              <MyEventsPanel isAdmin />
-            </div>
-            <div>
-              <ApprovalQueue />
-            </div>
-          </div>
-        ) : (
-          /* Non-admin: full-width My Events */
-          <MyEventsPanel isAdmin={false} />
-        )}
-      </div>
+      <ArchiveDrawer
+        isOpen={archiveDrawerOpen}
+        onClose={() => setArchiveDrawerOpen(false)}
+        projects={allProjects}
+      />
     </DashboardLayout>
   )
 }

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import {
-  Shield, Monitor, Wrench,
+  Shield, Monitor, Wrench, Sparkles, ShieldAlert, Trophy,
   CheckCircle2, XCircle, Clock3, Minus,
 } from 'lucide-react'
 import { fadeInUp } from '@/lib/animations'
@@ -17,17 +17,26 @@ export interface GateState {
 }
 
 export interface ApprovalGates {
-  admin: GateState
+  admin?: GateState
   av?: GateState
   facilities?: GateState
+  custodial?: GateState
+  security?: GateState
+  athletic_director?: GateState
 }
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-const GATE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  admin: { label: 'Admin', icon: Shield, color: 'indigo' },
-  av: { label: 'A/V Production', icon: Monitor, color: 'blue' },
-  facilities: { label: 'Facilities', icon: Wrench, color: 'amber' },
+/** All supported gate types in display order */
+const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security', 'athletic_director'] as const
+
+const GATE_CONFIG: Record<string, { label: string; icon: React.ElementType }> = {
+  admin: { label: 'Admin', icon: Shield },
+  av: { label: 'A/V Production', icon: Monitor },
+  facilities: { label: 'Facilities', icon: Wrench },
+  custodial: { label: 'Custodial', icon: Sparkles },
+  security: { label: 'Security', icon: ShieldAlert },
+  athletic_director: { label: 'Athletic Director', icon: Trophy },
 }
 
 const GATE_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; label: string }> = {
@@ -40,14 +49,23 @@ const GATE_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
-  const activeGates = (['admin', 'av', 'facilities'] as const).filter(
-    (key) => gates[key] && gates[key]!.status !== 'SKIPPED'
+  // Dynamically find which gates exist and are not skipped
+  const activeGates = ALL_GATE_KEYS.filter(
+    (key) => {
+      const gate = gates[key as keyof ApprovalGates]
+      return gate && gate.status !== 'SKIPPED'
+    },
   )
 
   if (activeGates.length === 0) return null
 
-  const allApproved = activeGates.every((key) => gates[key]!.status === 'APPROVED')
-  const anyRejected = activeGates.some((key) => gates[key]!.status === 'REJECTED')
+  const allApproved = activeGates.every((key) => gates[key as keyof ApprovalGates]!.status === 'APPROVED')
+  const anyRejected = activeGates.some((key) => gates[key as keyof ApprovalGates]!.status === 'REJECTED')
+
+  // Responsive grid: 2 cols for ≤3 gates, 3 cols for 4+
+  const gridCols = activeGates.length <= 3
+    ? 'grid-cols-1 sm:grid-cols-3'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
 
   return (
     <motion.div variants={fadeInUp} className="space-y-3">
@@ -71,10 +89,10 @@ export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
       </div>
 
       {/* Individual gate pills */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div className={`grid ${gridCols} gap-2`}>
         {activeGates.map((key) => {
-          const gate = gates[key]!
-          const config = GATE_CONFIG[key]
+          const gate = gates[key as keyof ApprovalGates]!
+          const config = GATE_CONFIG[key] ?? { label: key, icon: Shield }
           const statusStyle = GATE_STATUS_STYLES[gate.status]
           const GateIcon = config.icon
           const StatusIcon = statusStyle.icon
@@ -101,15 +119,22 @@ export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
       {anyRejected && (
         <div className="space-y-1.5">
           {activeGates
-            .filter((key) => gates[key]!.status === 'REJECTED' && gates[key]!.reason)
-            .map((key) => (
-              <div key={key} className="flex items-start gap-2 px-3 py-2 bg-red-50 rounded-lg">
-                <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-red-700">
-                  <span className="font-semibold">{GATE_CONFIG[key].label}:</span> {(gates[key] as GateState).reason}
-                </p>
-              </div>
-            ))}
+            .filter((key) => {
+              const gate = gates[key as keyof ApprovalGates]
+              return gate?.status === 'REJECTED' && gate.reason
+            })
+            .map((key) => {
+              const gate = gates[key as keyof ApprovalGates]!
+              const config = GATE_CONFIG[key] ?? { label: key }
+              return (
+                <div key={key} className="flex items-start gap-2 px-3 py-2 bg-red-50 rounded-lg">
+                  <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-red-700">
+                    <span className="font-semibold">{config.label}:</span> {gate.reason}
+                  </p>
+                </div>
+              )
+            })}
         </div>
       )}
     </motion.div>

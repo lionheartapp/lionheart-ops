@@ -18,12 +18,9 @@ export {
   checkLocationConflict,
 } from './calendar-core'
 
-// ── CalendarEvent CRUD & Approval Workflow ──────────────────────────────
+// ── CalendarEvent CRUD ──────────────────────────────────────────────────
 export {
   createEvent,
-  submitForApproval,
-  approveEvent,
-  rejectEvent,
   countEventsInRange,
   getEventsInRange,
   updateEvent,

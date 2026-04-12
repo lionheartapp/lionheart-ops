@@ -6,7 +6,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { approveGate } from '@/lib/services/eventProjectService'
 
 const schema = z.object({
-  gateType: z.enum(['av', 'facilities', 'admin']),
+  gateType: z.enum(['admin', 'facilities', 'av', 'custodial', 'security', 'athletic_director']),
 })
 
 /**

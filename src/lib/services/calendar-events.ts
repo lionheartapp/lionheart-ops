@@ -10,8 +10,6 @@ import { expandRecurrence } from './recurrenceService'
 import { checkLocationConflict, LocationConflictError } from './calendar-core'
 import type {
   CalendarEventStatus,
-  ApprovalChannel,
-  ApprovalStatus,
   Prisma,
 } from '@prisma/client'
 
@@ -129,154 +127,6 @@ export async function createEvent(
   })
 
   return event
-}
-
-/**
- * Submit a DRAFT event for approval. Creates EventApproval records
- * for each required approval channel.
- */
-export async function submitForApproval(eventId: string, userId: string) {
-  const event = await prisma.calendarEvent.findUnique({
-    where: { id: eventId },
-    include: { calendar: true, resourceRequests: true },
-  })
-
-  if (!event) throw new Error('Event not found')
-  if (event.calendarStatus !== 'DRAFT') {
-    throw new Error('Only DRAFT events can be submitted for approval')
-  }
-  if (event.createdById !== userId) {
-    throw new Error('Only the creator can submit for approval')
-  }
-
-  // Get approval channel configs for this org
-  const channels = await prisma.approvalChannelConfig.findMany({
-    where: { mode: 'REQUIRED' },
-  })
-
-  // Determine which channels apply based on resource needs
-  const resourceTypes = event.resourceRequests.map((r) => r.resourceType)
-  const channelTypeMap: Record<string, string[]> = {
-    ADMIN: [], // Always triggered
-    FACILITIES: ['FACILITY'],
-    AV_PRODUCTION: ['AV_EQUIPMENT'],
-    CUSTODIAL: ['CUSTODIAL'],
-    SECURITY: [],
-    ATHLETIC_DIRECTOR: [],
-  }
-
-  const approvalRecords: Array<{ eventId: string; channelType: ApprovalChannel; approvalStatus: ApprovalStatus }> = []
-
-  for (const channel of channels) {
-    const requiredResourceTypes = channelTypeMap[channel.channelType] || []
-    const isAdmin = channel.channelType === 'ADMIN'
-    const hasRelevantResource = requiredResourceTypes.length === 0 ||
-      requiredResourceTypes.some((rt) => resourceTypes.includes(rt as typeof resourceTypes[number]))
-
-    if (isAdmin || hasRelevantResource) {
-      approvalRecords.push({
-        eventId,
-        channelType: channel.channelType,
-        approvalStatus: 'PENDING',
-      })
-    } else if (channel.autoApproveIfNoResource) {
-      approvalRecords.push({
-        eventId,
-        channelType: channel.channelType,
-        approvalStatus: 'AUTO_APPROVED',
-      })
-    }
-  }
-
-  // If no approval channels configured, just mark ADMIN as required
-  if (approvalRecords.length === 0) {
-    approvalRecords.push({
-      eventId,
-      channelType: 'ADMIN',
-      approvalStatus: 'PENDING',
-    })
-  }
-
-  // Create approvals and update event status in a transaction-like flow
-  for (const record of approvalRecords) {
-    await (prisma.eventApproval.create as Function)({ data: record })
-  }
-
-  return prisma.calendarEvent.update({
-    where: { id: eventId },
-    data: { calendarStatus: 'PENDING_APPROVAL' },
-    include: {
-      approvals: true,
-      calendar: { select: { id: true, name: true, color: true } },
-    },
-  })
-}
-
-/**
- * Approve an event for a specific channel.
- * If all required channels are approved, event becomes CONFIRMED.
- */
-export async function approveEvent(
-  eventId: string,
-  channelType: ApprovalChannel,
-  approverId: string
-) {
-  const approval = await prisma.eventApproval.update({
-    where: { eventId_channelType: { eventId, channelType } },
-    data: {
-      approvalStatus: 'APPROVED',
-      respondedById: approverId,
-      respondedAt: new Date(),
-    },
-  })
-
-  // Check if all channels are approved
-  const allApprovals = await prisma.eventApproval.findMany({
-    where: { eventId },
-  })
-
-  const allApproved = allApprovals.every(
-    (a) => a.approvalStatus === 'APPROVED' || a.approvalStatus === 'AUTO_APPROVED' || a.approvalStatus === 'SKIPPED'
-  )
-
-  if (allApproved) {
-    await prisma.calendarEvent.update({
-      where: { id: eventId },
-      data: {
-        calendarStatus: 'CONFIRMED',
-        approvedById: approverId,
-      },
-    })
-  }
-
-  return approval
-}
-
-/**
- * Reject an event for a specific channel.
- */
-export async function rejectEvent(
-  eventId: string,
-  channelType: ApprovalChannel,
-  approverId: string,
-  reason: string
-) {
-  const approval = await prisma.eventApproval.update({
-    where: { eventId_channelType: { eventId, channelType } },
-    data: {
-      approvalStatus: 'REJECTED',
-      respondedById: approverId,
-      respondedAt: new Date(),
-      reason,
-    },
-  })
-
-  await prisma.calendarEvent.update({
-    where: { id: eventId },
-    data: { calendarStatus: 'REJECTED' },
-  })
-
-  return approval
 }
 
 /**
@@ -661,9 +511,6 @@ export async function getEventById(eventId: string) {
       approvedBy: { select: { id: true, name: true, firstName: true, lastName: true } },
       attendees: {
         include: { user: { select: { id: true, name: true, firstName: true, lastName: true, avatar: true, email: true } } },
-      },
-      approvals: {
-        include: { respondedBy: { select: { id: true, name: true, firstName: true, lastName: true } } },
       },
       resourceRequests: true,
     },

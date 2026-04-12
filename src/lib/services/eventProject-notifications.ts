@@ -1,27 +1,27 @@
 /**
  * Event Project Service — Notification Helpers
  *
- * Team notification dispatch for gate approvals and creator status updates.
+ * Config-driven team notification dispatch for gate approvals,
+ * creator status updates, and NOTIFICATION-mode channel alerts.
  */
 
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import * as notificationService from '@/lib/services/notificationService'
-import type { ApprovalGates, GateType } from './eventProject-gates'
+import {
+  getTeamIdForGate,
+  GATE_META,
+  type ApprovalGates,
+  type GateType,
+} from './eventProject-gates'
 
 const db = prisma as unknown as OrgPrismaClient
-
-// ─── Notification Constants ─────────────────────────────────────────────────
-
-const GATE_TEAM_SLUGS: Record<string, string> = {
-  av: 'av-production',
-  facilities: 'facility-maintenance',
-}
 
 // ─── Notification Helpers ────────────────────────────────────────────────────
 
 /**
  * Notifies team members when an event needs their approval gate.
- * Looks up team membership by slug and sends in-app notifications.
+ * Reads assignedTeamId from ApprovalChannelConfig instead of hardcoded slugs.
+ * Now includes admin gate notifications (previously skipped).
  */
 export async function notifyTeamsOfPendingApproval(
   eventTitle: string,
@@ -29,33 +29,65 @@ export async function notifyTeamsOfPendingApproval(
   gates: ApprovalGates,
 ): Promise<void> {
   for (const [gateKey, gate] of Object.entries(gates)) {
-    if (!gate || gate.status !== 'PENDING' || gateKey === 'admin') continue
+    if (!gate || gate.status !== 'PENDING') continue
 
-    const teamSlug = GATE_TEAM_SLUGS[gateKey]
-    if (!teamSlug) continue
-
-    // Find team members via team slug
-    const team = await rawPrisma.team.findFirst({
-      where: { slug: teamSlug },
-      select: { id: true },
-    })
-    if (!team) continue
+    const teamId = await getTeamIdForGate(gateKey as GateType)
+    if (!teamId) continue
 
     const members = await rawPrisma.userTeam.findMany({
-      where: { teamId: team.id },
+      where: { teamId },
       select: { userId: true },
     })
 
-    const gateLabel = gateKey === 'av' ? 'A/V Production' : 'Facilities'
-    const linkUrl = gateKey === 'av' ? '/av/event-approvals' : '/maintenance/event-approvals'
+    const meta = GATE_META[gateKey as GateType]
+    const gateLabel = meta?.label ?? gateKey
+    const linkUrl = meta?.defaultUrl ?? '/events'
 
     for (const member of members) {
       notificationService.createNotification({
         userId: member.userId,
-        type: 'event_invite', // Closest existing notification type
+        type: 'event_invite',
         title: `Event needs ${gateLabel} approval`,
         body: `"${eventTitle}" requires ${gateLabel} review before it can proceed.`,
         linkUrl,
+      })
+    }
+  }
+}
+
+/**
+ * Sends non-blocking notifications for NOTIFICATION-mode channels.
+ * These are informational — the event doesn't wait for approval.
+ */
+export async function notifyTeamsOfEventInfo(
+  eventTitle: string,
+  eventProjectId: string,
+  channelTypes: string[],
+): Promise<void> {
+  const { CHANNEL_TO_GATE } = await import('./eventProject-gates')
+
+  for (const channelType of channelTypes) {
+    const gateKey = CHANNEL_TO_GATE[channelType]
+    if (!gateKey) continue
+
+    const teamId = await getTeamIdForGate(gateKey)
+    if (!teamId) continue
+
+    const members = await rawPrisma.userTeam.findMany({
+      where: { teamId },
+      select: { userId: true },
+    })
+
+    const meta = GATE_META[gateKey]
+    const gateLabel = meta?.label ?? gateKey
+
+    for (const member of members) {
+      notificationService.createNotification({
+        userId: member.userId,
+        type: 'event_invite',
+        title: `New event: "${eventTitle}"`,
+        body: `This event has been submitted. Your team (${gateLabel}) has been notified for awareness.`,
+        linkUrl: `/events/${eventProjectId}`,
       })
     }
   }
@@ -76,7 +108,8 @@ export async function notifyCreatorOfGateChange(
   })
   if (!project?.createdById) return
 
-  const gateLabel = gateType === 'av' ? 'A/V Production' : gateType === 'facilities' ? 'Facilities' : 'Admin'
+  const meta = GATE_META[gateType]
+  const gateLabel = meta?.label ?? gateType
   const notificationType = status === 'APPROVED' ? 'event_approved' : 'event_rejected'
   const title = status === 'APPROVED'
     ? `${gateLabel} approved your event "${project.title}"`
@@ -94,4 +127,63 @@ export async function notifyCreatorOfGateChange(
     body,
     linkUrl: `/events/${eventProjectId}`,
   })
+}
+
+// ─── V2 Team-Based Notifications ────────────────────────────────────────────
+
+import type { GateStateV2 } from './approvalFlowService'
+
+/**
+ * V2: Notify team members when a team-based gate is pending.
+ * Gate keys are team IDs — notify members of that team directly.
+ */
+export async function notifyV2TeamsOfPendingApproval(
+  eventTitle: string,
+  eventProjectId: string,
+  gates: Record<string, GateStateV2>,
+): Promise<void> {
+  for (const [teamId, gate] of Object.entries(gates)) {
+    if (gate.status !== 'PENDING') continue
+
+    const members = await rawPrisma.userTeam.findMany({
+      where: { teamId },
+      select: { userId: true },
+    })
+
+    for (const member of members) {
+      notificationService.createNotification({
+        userId: member.userId,
+        type: 'event_invite',
+        title: `Event needs ${gate.teamName} approval`,
+        body: `"${eventTitle}" requires ${gate.teamName} review before it can proceed.`,
+        linkUrl: `/events/${eventProjectId}`,
+      })
+    }
+  }
+}
+
+/**
+ * V2: Send non-blocking notifications for NOTIFICATION-mode teams.
+ */
+export async function notifyV2TeamsOfEventInfo(
+  eventTitle: string,
+  eventProjectId: string,
+  entries: Array<{ teamId: string; teamName: string }>,
+): Promise<void> {
+  for (const entry of entries) {
+    const members = await rawPrisma.userTeam.findMany({
+      where: { teamId: entry.teamId },
+      select: { userId: true },
+    })
+
+    for (const member of members) {
+      notificationService.createNotification({
+        userId: member.userId,
+        type: 'event_invite',
+        title: `New event: "${eventTitle}"`,
+        body: `This event has been submitted. Your team (${entry.teamName}) has been notified for awareness.`,
+        linkUrl: `/events/${eventProjectId}`,
+      })
+    }
+  }
 }

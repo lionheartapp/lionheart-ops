@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Loader2, CalendarDays, Users, Calendar, Clock, Monitor, Wrench,
-  Check, ChevronRight, ChevronLeft,
+  Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert, Trophy,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { useCreateEventProject } from '@/lib/hooks/useEventProject'
@@ -62,6 +62,9 @@ interface FormData {
   requiresFacilities: boolean
   facilityNeeds: string[]
   facilityNotes: string
+  requiresCustodial: boolean
+  requiresSecurity: boolean
+  requiresAthleticDirector: boolean
 }
 
 const defaultForm: FormData = {
@@ -78,6 +81,9 @@ const defaultForm: FormData = {
   requiresFacilities: false,
   facilityNeeds: [],
   facilityNotes: '',
+  requiresCustodial: false,
+  requiresSecurity: false,
+  requiresAthleticDirector: false,
 }
 
 const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string }> = {
@@ -88,43 +94,61 @@ const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string }> = {
 // ─── Stepper Header ──────────────────────────────────────────────────────────
 
 function StepperHeader({ currentStep, onStepClick }: { currentStep: Step; onStepClick: (s: Step) => void }) {
+  // Warm editorial stepper — near-black active, warm chip completed, muted pending.
+  const ACTIVE_BG = '#1a1915'
+  const ACTIVE_TEXT = '#ffffff'
+  const COMPLETED_BG = '#ede9e0'
+  const COMPLETED_TEXT = '#1a1915'
+  const PENDING_BG = '#f6f4f0'
+  const PENDING_TEXT = '#a8a49d'
+
   return (
     <div className="flex items-center gap-1 mb-6">
       {STEP_LABELS.map((label, i) => {
         const step = (i + 1) as Step
         const isActive = step === currentStep
         const isCompleted = step < currentStep
+        // Allow clicking any completed step to jump back
         const isClickable = step < currentStep
+
+        const bg = isActive ? ACTIVE_BG : isCompleted ? COMPLETED_BG : PENDING_BG
+        const text = isActive ? ACTIVE_TEXT : isCompleted ? COMPLETED_TEXT : PENDING_TEXT
 
         return (
           <div key={step} className="flex items-center gap-1 flex-1">
             <button
               type="button"
               onClick={() => isClickable && onStepClick(step)}
-              disabled={!isClickable}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all w-full ${
-                isActive
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                  : isCompleted
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer hover:bg-emerald-100'
-                    : 'bg-slate-50 text-slate-400 border border-slate-100'
-              }`}
+              disabled={!isClickable && !isActive}
+              className="flex items-center gap-2 px-3 py-2 rounded-full text-[11.5px] font-semibold transition-all w-full"
+              style={{
+                backgroundColor: bg,
+                color: text,
+                cursor: isClickable ? 'pointer' : 'default',
+                border: 'none',
+                letterSpacing: '-0.005em',
+              }}
             >
               <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white'
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                style={{
+                  backgroundColor: isActive
+                    ? 'rgba(255,255,255,0.2)'
                     : isCompleted
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-200 text-slate-500'
-                }`}
+                    ? '#1a1915'
+                    : 'rgba(17,15,10,0.08)',
+                  color: isCompleted ? '#ffffff' : text,
+                }}
               >
-                {isCompleted ? <Check className="w-3 h-3" /> : step}
+                {isCompleted ? <Check className="w-3 h-3" strokeWidth={3} /> : step}
               </span>
               <span className="truncate">{label}</span>
             </button>
             {i < STEP_LABELS.length - 1 && (
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
+              <ChevronRight
+                className="w-3.5 h-3.5 flex-shrink-0"
+                style={{ color: '#a8a49d' }}
+              />
             )}
           </div>
         )
@@ -159,6 +183,13 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
+  }
+
+  // Clear location error whenever the picker changes — otherwise "Please
+  // select a building" lingers after the user toggles Off Campus.
+  function handleLocationChange(newLocation: LocationData) {
+    setLocation(newLocation)
+    setErrors((prev) => ({ ...prev, location: undefined }))
   }
 
   function handleClose() {
@@ -248,6 +279,9 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       isMultiDay,
       requiresAV: form.requiresAV,
       requiresFacilities: form.requiresFacilities,
+      requiresCustodial: form.requiresCustodial,
+      requiresSecurity: form.requiresSecurity,
+      requiresAthleticDirector: form.requiresAthleticDirector,
       isOffCampus: location.isOffCampus,
       locationText: location.locationText || undefined,
       buildingId: location.isOffCampus ? undefined : (location.buildingId || undefined),
@@ -459,7 +493,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         {/* ═══════════════════ Step 2: Location & Attendance ═══════════════════ */}
         {step === 2 && (
           <div className="space-y-5 animate-in fade-in duration-200">
-            <LocationPicker value={location} onChange={setLocation} error={errors.location} />
+            <LocationPicker value={location} onChange={handleLocationChange} error={errors.location} />
 
             {/* Expected Attendance */}
             <div>
@@ -605,6 +639,72 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                     />
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* ── Additional Resource Toggles ── */}
+            <div className="space-y-2">
+              {/* Custodial */}
+              <div className={`rounded-xl border transition-colors ${form.requiresCustodial ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresCustodial ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                    <Sparkles className={`w-4 h-4 transition-colors ${form.requiresCustodial ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">Custodial</p>
+                    <p className="text-[11px] text-slate-500">Cleaning and setup coordination</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={form.requiresCustodial}
+                    onClick={() => update('requiresCustodial', !form.requiresCustodial)}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresCustodial ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresCustodial ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+              </div>
+
+              {/* Security */}
+              <div className={`rounded-xl border transition-colors ${form.requiresSecurity ? 'border-red-200 bg-red-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresSecurity ? 'bg-red-100' : 'bg-slate-100'}`}>
+                    <ShieldAlert className={`w-4 h-4 transition-colors ${form.requiresSecurity ? 'text-red-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">Security</p>
+                    <p className="text-[11px] text-slate-500">Security presence and parking management</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={form.requiresSecurity}
+                    onClick={() => update('requiresSecurity', !form.requiresSecurity)}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresSecurity ? 'bg-red-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresSecurity ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+              </div>
+
+              {/* Athletic Director */}
+              <div className={`rounded-xl border transition-colors ${form.requiresAthleticDirector ? 'border-purple-200 bg-purple-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresAthleticDirector ? 'bg-purple-100' : 'bg-slate-100'}`}>
+                    <Trophy className={`w-4 h-4 transition-colors ${form.requiresAthleticDirector ? 'text-purple-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">Athletic Director</p>
+                    <p className="text-[11px] text-slate-500">Athletic facility and schedule approval</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={form.requiresAthleticDirector}
+                    onClick={() => update('requiresAthleticDirector', !form.requiresAthleticDirector)}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresAthleticDirector ? 'bg-purple-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresAthleticDirector ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
               </div>
             </div>
 
