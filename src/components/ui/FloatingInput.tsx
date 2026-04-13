@@ -2,13 +2,9 @@
 
 import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode, useState, useRef, useEffect, useCallback } from 'react'
 
-// Shared styles
-const borderBase = 'border border-slate-300 rounded-lg bg-white transition-colors'
-const borderFocus = 'focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10'
-const borderDisabled = 'disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200'
-const labelBase = 'absolute left-3 -top-2.5 px-1 bg-white text-xs text-slate-500 font-medium pointer-events-none transition-all duration-200'
-const labelInside = 'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-500'
-const labelFocused = 'peer-focus:-top-2.5 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-slate-600'
+// Shared styles — top-label pattern (Linear/Stripe style)
+const inputBase = 'w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-lg outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:cursor-not-allowed'
+const labelStyle = 'block text-xs font-medium text-slate-500 mb-1.5'
 
 // ─── FloatingInput ────────────────────────────────────────────────────────────
 
@@ -18,22 +14,19 @@ interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
   ({ label, id, className, required, ...props }, ref) => (
-    <div className="relative">
+    <div>
+      <label htmlFor={id} className={labelStyle}>
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
       <input
         ref={ref}
         id={id}
-        placeholder={label}
+        placeholder={props.placeholder || label}
         required={required}
         aria-required={required || undefined}
-        className={`peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        className={`${inputBase} ${className || ''}`}
         {...props}
       />
-      <label
-        htmlFor={id}
-        className={`${labelBase} ${labelInside} ${labelFocused} peer-disabled:bg-slate-50`}
-      >
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
     </div>
   )
 )
@@ -50,13 +43,16 @@ const chevronSvg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 
 export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
   ({ label, id, className, children, required, ...props }, ref) => (
-    <div className="relative">
+    <div>
+      <label htmlFor={id} className={labelStyle}>
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
       <select
         ref={ref}
         id={id}
         required={required}
         aria-required={required || undefined}
-        className={`peer w-full px-3.5 py-3.5 pr-10 text-sm text-slate-900 outline-none appearance-none bg-no-repeat ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        className={`${inputBase} appearance-none bg-no-repeat pr-10 ${className || ''}`}
         style={{
           backgroundImage: chevronSvg,
           backgroundSize: '16px 16px',
@@ -66,12 +62,6 @@ export const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>
       >
         {children}
       </select>
-      <label
-        htmlFor={id}
-        className={`${labelBase} peer-disabled:bg-slate-50`}
-      >
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
     </div>
   )
 )
@@ -215,7 +205,10 @@ export function FloatingDropdown({
   const hasValue = !!selected
 
   return (
-    <div ref={containerRef} className={`relative ${className || ''}`}>
+    <div ref={containerRef} className={`${className || ''}`}>
+      <label htmlFor={id} className={labelStyle}>
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
       <button
         ref={triggerRef}
         id={id}
@@ -225,7 +218,7 @@ export function FloatingDropdown({
         disabled={disabled}
         onClick={() => !disabled && setOpen((p) => !p)}
         onKeyDown={handleKeyDown}
-        className={`w-full px-3.5 py-3.5 pr-10 text-sm text-left outline-none bg-no-repeat ${borderBase} ${
+        className={`relative ${inputBase} text-left bg-no-repeat pr-10 ${
           open ? 'border-slate-900 ring-1 ring-slate-900/10' : ''
         } ${disabled ? 'bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed' : 'cursor-pointer'}`}
         style={{
@@ -249,15 +242,9 @@ export function FloatingDropdown({
             </span>
           )
         ) : (
-          <span className="text-slate-500">{placeholder || label}</span>
+          <span className="text-slate-400">{placeholder || label}</span>
         )}
       </button>
-      <label
-        htmlFor={id}
-        className={`${labelBase} ${disabled ? 'bg-slate-50' : ''}`}
-      >
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
 
       {open && (
         <div
@@ -265,6 +252,7 @@ export function FloatingDropdown({
           role="listbox"
           aria-label={label}
           className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto ui-glass-dropdown z-50 py-1"
+          style={{ position: 'absolute' }}
         >
           {groupOrder.map((groupName) => {
             const groupOptions = options.filter((o) => o.group === groupName)
@@ -332,21 +320,19 @@ interface FloatingTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaEleme
 }
 
 export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextareaProps>(
-  ({ label, id, className, ...props }, ref) => (
-    <div className="relative">
+  ({ label, id, className, required, ...props }, ref) => (
+    <div>
+      <label htmlFor={id} className={labelStyle}>
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
       <textarea
         ref={ref}
         id={id}
-        placeholder={label}
-        className={`peer w-full px-3.5 pt-5 pb-3 text-sm text-slate-900 placeholder-transparent outline-none resize-none ${borderBase} ${borderFocus} ${borderDisabled} ${className || ''}`}
+        placeholder={props.placeholder || label}
+        required={required}
+        className={`${inputBase} resize-none ${className || ''}`}
         {...props}
       />
-      <label
-        htmlFor={id}
-        className={`${labelBase} peer-placeholder-shown:top-4 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sm peer-placeholder-shown:font-normal peer-placeholder-shown:text-slate-500 ${labelFocused} peer-disabled:bg-slate-50`}
-      >
-        {label}
-      </label>
     </div>
   )
 )
