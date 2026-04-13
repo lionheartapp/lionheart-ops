@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { BarChart3, Medal, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
@@ -274,24 +275,30 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
   return (
     <div>
       {/* View tabs */}
-      <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1 mb-5 w-fit">
+      <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
         {([
-          { key: 'standings' as const, label: 'Standings', icon: Medal },
-          { key: 'leaders' as const, label: 'Stat Leaders', icon: BarChart3 },
-          ...(canWrite ? [{ key: 'config' as const, label: 'Stat Config', icon: Settings }] : []),
-        ]).map(({ key, label, icon: Icon }) => (
+          { key: 'standings' as const, label: 'Standings' },
+          { key: 'leaders' as const, label: 'Stat Leaders' },
+          ...(canWrite ? [{ key: 'config' as const, label: 'Stat Config' }] : []),
+        ]).map(({ key, label }) => (
           <button
             key={key}
             type="button"
             onClick={() => setView(key)}
-            className={`flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer min-w-[100px] ${
+            className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
               view === key
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-stone-500 hover:text-stone-700'
+                ? 'text-white'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Icon className="w-4 h-4" />
-            {label}
+            {view === key && (
+              <motion.div
+                layoutId="athleticsStatsPill"
+                className="absolute inset-0 rounded-full bg-slate-900"
+                transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+              />
+            )}
+            <span className="relative z-10">{label}</span>
           </button>
         ))}
       </div>
