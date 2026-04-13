@@ -12,6 +12,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { rawPrisma } from '@/lib/db'
+import { geocodeAddress } from '@/lib/services/geocodingService'
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const campusId = searchParams.get('campusId')
@@ -68,6 +69,27 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     const org = orgRows[0]
     if (org) {
       mapCenter = { lat: org.latitude, lng: org.longitude, name: org.name, address: org.physicalAddress }
+    }
+  }
+
+  // Auto-geocode if we have an address but no coordinates
+  if (mapCenter && !mapCenter.lat && !mapCenter.lng && mapCenter.address) {
+    const geo = await geocodeAddress(mapCenter.address)
+    if (geo) {
+      mapCenter.lat = geo.lat
+      mapCenter.lng = geo.lng
+      // Persist the geocoded coordinates so we don't re-geocode next time
+      if (selectedCampusId) {
+        await rawPrisma.$executeRaw`
+          UPDATE "Campus" SET latitude = ${geo.lat}, longitude = ${geo.lng}, "updatedAt" = NOW()
+          WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId}
+        `.catch(() => {})
+      } else {
+        await rawPrisma.$executeRaw`
+          UPDATE "Organization" SET latitude = ${geo.lat}, longitude = ${geo.lng}, "updatedAt" = NOW()
+          WHERE id = ${orgId}
+        `.catch(() => {})
+      }
     }
   }
 
