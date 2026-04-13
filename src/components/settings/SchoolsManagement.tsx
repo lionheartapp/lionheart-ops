@@ -27,7 +27,7 @@ interface SchoolsManagementProps {
   campusId?: string
 }
 
-export default function SchoolsManagement({ campusId }: SchoolsManagementProps) {
+export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsManagementProps) {
   const [schools, setSchools] = useState<SchoolData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -38,6 +38,24 @@ export default function SchoolsManagement({ campusId }: SchoolsManagementProps) 
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  // Auto-resolve campusId when not provided
+  const [resolvedCampusId, setResolvedCampusId] = useState<string | null>(null)
+  const campusId = campusIdProp || resolvedCampusId
+
+  // Fetch first campus if no campusId prop provided
+  useEffect(() => {
+    if (campusIdProp) return
+    const fetchDefaultCampus = async () => {
+      try {
+        const res = await fetch('/api/settings/campus/campuses', { credentials: 'include', headers: getCookieAuthHeaders() })
+        const data = await res.json()
+        if (data.ok && Array.isArray(data.data) && data.data.length > 0) {
+          setResolvedCampusId(data.data[0].id)
+        }
+      } catch { /* silent */ }
+    }
+    fetchDefaultCampus()
+  }, [campusIdProp])
 
   // Principal search/create
   const [principalSearch, setPrincipalSearch] = useState('')
