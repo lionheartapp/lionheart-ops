@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { organizationService } from '@/lib/services'
@@ -112,10 +113,12 @@ export default async function LoginPage() {
               </p>
             </div>
 
-            <LoginForm
-              organizationId={branding.id}
-              organizationName={branding.name}
-            />
+            <Suspense fallback={null}>
+              <LoginForm
+                organizationId={branding.id}
+                organizationName={branding.name}
+              />
+            </Suspense>
           </div>
         </div>
       </div>

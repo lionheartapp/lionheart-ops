@@ -81,11 +81,8 @@ const tools: Record<string, ToolRegistryEntry> = {
         })
       }
 
-      // Build time-range filter SQL fragment
+      // Build time-range cutoff
       const cutoff = getCutoffDate(timeRange)
-      const timeFilter = cutoff
-        ? `"createdAt" > '${cutoff.toISOString()}'`
-        : undefined
 
       // Search across requested scopes in parallel
       const searchPromises: Array<Promise<Array<{ id: string; similarity: number; _type: string }>>> = []
@@ -95,7 +92,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           searchSimilar('Ticket', queryVec, {
             limit,
             orgId: ctx.organizationId,
-            filters: timeFilter,
+            createdAfter: cutoff ?? undefined,
           }).then((rows) => rows.map((r) => ({ ...r, _type: 'ticket' })))
         )
       }
@@ -105,7 +102,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           searchSimilar('CalendarEvent', queryVec, {
             limit,
             orgId: ctx.organizationId,
-            filters: timeFilter,
+            createdAfter: cutoff ?? undefined,
           }).then((rows) => rows.map((r) => ({ ...r, _type: 'event' })))
         )
       }
@@ -115,7 +112,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           searchSimilar('InventoryItem', queryVec, {
             limit,
             orgId: ctx.organizationId,
-            filters: timeFilter,
+            createdAfter: cutoff ?? undefined,
           }).then((rows) => rows.map((r) => ({ ...r, _type: 'inventory' })))
         )
       }
@@ -125,7 +122,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           searchSimilar('ConversationMessage', queryVec, {
             limit,
             orgId: ctx.organizationId,
-            filters: timeFilter,
+            createdAfter: cutoff ?? undefined,
           }).then((rows) => rows.map((r) => ({ ...r, _type: 'conversation' })))
         )
       }

@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e10]:
+    - img [ref=e12]
+    - heading "Something went wrong" [level=2] [ref=e14]
+    - paragraph [ref=e15]: An unexpected error occurred. Please try again or contact support if the problem persists.
+    - button "Try again" [ref=e16] [cursor=pointer]
+  - button "Open AI Assistant" [ref=e20] [cursor=pointer]:
+    - img [ref=e22]
+  - generic "Notifications"
+  - generic [ref=e28] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e29]:
+      - img [ref=e30]
+    - generic [ref=e33]:
+      - button "Open issues overlay" [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: "0"
+          - generic [ref=e37]: "1"
+        - generic [ref=e38]: Issue
+      - button "Collapse issues badge" [ref=e39]:
+        - img [ref=e40]
+  - alert [ref=e9]

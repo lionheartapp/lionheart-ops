@@ -479,7 +479,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: {
 
   if (isLoadingScored) {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-500 text-xs rounded-full">
         <Loader2 className="w-3 h-3 animate-spin" />
         AI ranking...
       </span>
@@ -500,7 +500,7 @@ function AiStatusBadge({ isLoadingScored, aiScored, hasItems }: {
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs rounded-full"
+      className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-500 text-xs rounded-full"
       title="Actions sorted by priority type (AI ranking unavailable)"
     >
       Manual Sort
@@ -538,7 +538,7 @@ function EventsListSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="rounded-2xl bg-slate-100 h-28" />
+        <div key={i} className="rounded-2xl bg-stone-100 h-28" />
       ))}
     </div>
   )
@@ -549,12 +549,12 @@ function ApprovalsSkeleton() {
     <div className="space-y-2 animate-pulse">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="ui-glass p-4 flex gap-3">
-          <div className="w-1 bg-slate-200 rounded-full self-stretch" />
-          <div className="w-5 h-5 bg-slate-200 rounded-full flex-shrink-0 mt-0.5" />
+          <div className="w-1 bg-stone-200 rounded-full self-stretch" />
+          <div className="w-5 h-5 bg-stone-200 rounded-full flex-shrink-0 mt-0.5" />
           <div className="flex-1 space-y-2">
             <div className="w-3/4 h-4 bg-slate-200 rounded" />
-            <div className="w-full h-3 bg-slate-100 rounded" />
-            <div className="w-20 h-5 bg-slate-100 rounded-full" />
+            <div className="w-full h-3 bg-stone-100 rounded" />
+            <div className="w-20 h-5 bg-stone-100 rounded-full" />
           </div>
         </div>
       ))}
@@ -722,7 +722,7 @@ function ApprovalQueue() {
     return (
       <div className="ui-glass p-6 text-center">
         <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-slate-600">Failed to load approvals. Please refresh.</p>
+        <p className="text-sm text-stone-600">Failed to load approvals. Please refresh.</p>
       </div>
     )
   }
@@ -960,7 +960,7 @@ function MyEventsPanel({ isAdmin, onOpenCreate }: MyEventsPanelProps) {
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
               statusFilter === f.value
                 ? 'bg-slate-900 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
             }`}
           >
             {f.label}
@@ -1189,8 +1189,8 @@ export default function EventsPage() {
     return (
       <DashboardLayout>
         <div className="min-h-screen animate-pulse">
-          <div className="h-8 w-48 bg-slate-200 rounded mb-4" />
-          <div className="h-4 w-64 bg-slate-100 rounded" />
+          <div className="h-8 w-48 bg-stone-200 rounded mb-4" />
+          <div className="h-4 w-64 bg-stone-100 rounded" />
         </div>
       </DashboardLayout>
     )

@@ -1,0 +1,78 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e356]:
+    - link "Skip to main content" [ref=e357] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e358]:
+      - complementary [ref=e389]:
+        - img "Demo Academy" [ref=e391]
+        - button "Back to Events" [ref=e393] [cursor=pointer]:
+          - img [ref=e394]
+          - text: Back to Events
+        - generic [ref=e396]:
+          - generic [ref=e397]: Pending
+          - generic [ref=e399]: Spring Assembly Preview
+          - generic [ref=e400]: Apr 12, 2026 · Main Hall
+        - navigation [ref=e401]:
+          - generic [ref=e402]:
+            - generic [ref=e403]: Event
+            - list [ref=e404]:
+              - listitem [ref=e405]:
+                - button "Overview" [ref=e406] [cursor=pointer]:
+                  - img [ref=e407]
+                  - text: Overview
+              - listitem [ref=e412]:
+                - button "Schedule" [ref=e413] [cursor=pointer]:
+                  - img [ref=e414]
+                  - text: Schedule
+              - listitem [ref=e416]:
+                - button "Team" [ref=e417] [cursor=pointer]:
+                  - img [ref=e418]
+                  - text: Team
+              - listitem [ref=e423]:
+                - button "Registration" [ref=e424] [cursor=pointer]:
+                  - img [ref=e425]
+                  - text: Registration
+          - generic [ref=e428]:
+            - generic [ref=e429]: Planning
+            - list [ref=e430]:
+              - listitem [ref=e431]:
+                - button "Documents" [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+                  - text: Documents
+              - listitem [ref=e436]:
+                - button "Logistics" [ref=e437] [cursor=pointer]:
+                  - img [ref=e438]
+                  - text: Logistics
+              - listitem [ref=e443]:
+                - button "Budget" [ref=e444] [cursor=pointer]:
+                  - img [ref=e445]
+                  - text: Budget
+              - listitem [ref=e447]:
+                - button "Tasks" [ref=e448] [cursor=pointer]:
+                  - img [ref=e449]
+                  - text: Tasks
+              - listitem [ref=e452]:
+                - button "Comms" [ref=e453] [cursor=pointer]:
+                  - img [ref=e454]
+                  - text: Comms
+      - main [ref=e378]:
+        - generic [ref=e456]:
+          - button "Approve" [ref=e459] [cursor=pointer]
+          - heading "Registration" [level=1] [ref=e687]
+          - generic [ref=e689]:
+            - img [ref=e691]
+            - heading "No Registration Form Yet" [level=3] [ref=e694]
+            - paragraph [ref=e695]: Set up a registration form so parents and participants can sign up for this event. You can configure fields, capacity, payments, and more.
+            - generic [ref=e696]:
+              - button "Set Up Registration" [ref=e697] [cursor=pointer]:
+                - img [ref=e698]
+                - text: Set Up Registration
+              - button "Generate with AI" [ref=e701] [cursor=pointer]:
+                - img [ref=e702]
+                - text: Generate with AI
+  - button "Open AI Assistant" [ref=e352] [cursor=pointer]:
+    - img [ref=e354]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e202] [cursor=pointer]:
+    - img [ref=e203]
+  - alert [ref=e206]: Lionheart Operations Platform

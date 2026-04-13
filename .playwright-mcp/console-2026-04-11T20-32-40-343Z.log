@@ -1,0 +1,9 @@
+[     585ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[  269916ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[  275710ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[  276116ms] [LOG] [Fast Refresh] done in 507ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[  277028ms] [ERROR] Failed to load resource: the server responded with a status of 409 (Conflict) @ http://demo.localhost:3004/api/events/projects/cmnt32ibq0001woapwzb4eo61/transition:0
+[  290162ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[  290172ms] [LOG] [Fast Refresh] done in 111ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[  291035ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[  291182ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0

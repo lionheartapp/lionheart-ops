@@ -24,6 +24,20 @@ export const PATCH = withAuth(async ({ ctx, params, body }) => {
 
 export const DELETE = withAuth(async ({ params }) => {
   const db = prisma as unknown as OrgPrismaClient
+
+  // Look up the project before soft-deleting so we can clean up Google Calendar
+  const project = await db.eventProject.findUnique({ where: { id: params.id } })
+
   await db.eventProject.delete({ where: { id: params.id } })
+
+  // Remove from all users' Google Calendars (fire-and-forget)
+  if (project?.organizationId) {
+    import('@/lib/services/integrations/googleCalendarService')
+      .then(({ removeEventProjectFromCalendars }) =>
+        removeEventProjectFromCalendars(project.organizationId as string, params.id)
+      )
+      .catch(() => {})
+  }
+
   return NextResponse.json(ok({ deleted: true }))
 }, { permission: PERMISSIONS.EVENT_PROJECT_DELETE })

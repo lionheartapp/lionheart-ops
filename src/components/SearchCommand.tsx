@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, User, Calendar, Ticket, MapPin, X } from 'lucide-react'
 import { useGlobalSearch, type SearchResults } from '@/lib/hooks/useGlobalSearch'
@@ -115,7 +115,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
   }, [query])
 
   const { data, isLoading } = useGlobalSearch(debouncedQuery)
-  const items = flattenResults(data)
+  const items = useMemo(() => flattenResults(data), [data])
 
   // Reset on open
   useEffect(() => {
@@ -202,6 +202,9 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
       {/* Dialog */}
       <div className="fixed inset-0 z-command flex items-start justify-center pt-[15vh] px-4" onClick={onClose}>
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search"
           className="w-full max-w-lg ui-glass-overlay rounded-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -225,6 +228,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
               <button
                 onClick={() => setQuery('')}
                 className="p-1 hover:bg-slate-100 rounded transition"
+                aria-label="Clear search"
               >
                 <X className="w-4 h-4 text-slate-400" />
               </button>
@@ -235,7 +239,7 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           </div>
 
           {/* Results */}
-          <div ref={listRef} className="max-h-[360px] overflow-y-auto">
+          <div ref={listRef} className="max-h-[360px] overflow-y-auto" role="listbox" aria-label="Search results">
             {debouncedQuery.length < 2 ? (
               <div className="py-10 text-center text-sm text-slate-400">
                 Type to search...
@@ -259,6 +263,8 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
                   {group.items.map((item) => (
                     <button
                       key={item.id}
+                      role="option"
+                      aria-selected={item.globalIndex === activeIndex}
                       data-index={item.globalIndex}
                       onClick={() => navigate(item.href)}
                       onMouseEnter={() => setActiveIndex(item.globalIndex)}

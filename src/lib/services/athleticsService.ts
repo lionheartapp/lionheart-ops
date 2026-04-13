@@ -13,6 +13,7 @@ export {
   getSports,
   createSport,
   updateSport,
+  deleteSport,
   getAthleticSeasons,
   createAthleticSeason,
   getTeams,

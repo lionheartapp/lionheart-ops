@@ -1,0 +1,24 @@
+[     177ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[     963ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[     975ms] [LOG] [Fast Refresh] done in 114ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67426320ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67426321ms] [LOG] [Fast Refresh] done in 101ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67452576ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67452578ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67464472ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67464825ms] [LOG] [Fast Refresh] done in 454ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67475222ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[67486513ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67486620ms] [LOG] [Fast Refresh] done in 208ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67489848ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67489860ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67501781ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67501784ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[67511060ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67511335ms] [LOG] [Fast Refresh] done in 376ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67511465ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67511643ms] [LOG] [Fast Refresh] done in 307ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67512862ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67513122ms] [LOG] [Fast Refresh] done in 361ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[67513230ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[67513276ms] [LOG] [Fast Refresh] done in 153ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809

@@ -1,0 +1,18 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Registration Portal
+      - heading "Access Your Registration" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - paragraph [ref=e8]: Enter the email address you used when registering to receive a secure access link. No account required.
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Email address
+          - textbox "Email address" [active] [ref=e12]:
+            - /placeholder: you@example.com
+        - button "Send My Link" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+          - text: Send My Link
+      - paragraph [ref=e17]: Links are valid for 48 hours and can only be used once.
+  - generic "Notifications"
+  - alert [ref=e18]

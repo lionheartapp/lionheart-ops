@@ -282,11 +282,12 @@ export default function DraggableEvent({
         <button
           onClick={(e) => { e.stopPropagation(); onClick(event) }}
           aria-label={getEventAriaLabel(event)}
-          className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-medium transition-[box-shadow,background-color] cursor-pointer ${className}`}
+          className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden z-[1] hover:z-[2] hover:shadow-medium transition-[box-shadow,background-color] cursor-pointer border-l-[3px] ${className}`}
           style={{
             ...style,
             height: displayHeight,
-            backgroundColor: `${eventColor}20`,
+            backgroundColor: `${eventColor}12`,
+            borderLeftColor: eventColor,
             top: 0,
           }}
         >
@@ -313,10 +314,11 @@ export default function DraggableEvent({
       {/* Ghost placeholder (original position) */}
       {(isDragging || isResizing) && (
         <div
-          className="absolute left-1 right-1 rounded-xl opacity-30 pointer-events-none"
+          className="absolute left-1 right-1 rounded-xl opacity-30 pointer-events-none border-l-[3px]"
           style={{
             height,
-            backgroundColor: `${eventColor}20`,
+            backgroundColor: `${eventColor}12`,
+            borderLeftColor: eventColor,
           }}
         />
       )}
@@ -340,7 +342,7 @@ export default function DraggableEvent({
           }
         }}
         aria-label={getEventAriaLabel(event)}
-        className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden transition-shadow ${className} ${
+        className={`absolute left-1 right-1 rounded-xl px-3 py-2 text-left overflow-hidden transition-shadow border-l-[3px] ${className} ${
           isResizing
             ? resizeConflict
               ? 'shadow-heavy ring-2 ring-red-400 z-[5]'
@@ -354,7 +356,8 @@ export default function DraggableEvent({
         style={{
           ...style,
           height: displayHeight,
-          backgroundColor: `${eventColor}20`,
+          backgroundColor: `${eventColor}12`,
+          borderLeftColor: eventColor,
           top: 0,
         }}
       >

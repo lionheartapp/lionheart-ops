@@ -16,6 +16,8 @@ import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import { generateSetupToken, hashSetupToken, getSetupLink } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
 import { logger } from '@/lib/logger'
@@ -41,9 +43,10 @@ interface ImportError {
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify authentication
+    // Verify authentication + permission
     const ctx = await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
+    await assertCan(ctx.userId, PERMISSIONS.USERS_INVITE)
 
     // Parse and validate request body
     const body = await req.json()
@@ -194,6 +197,10 @@ export async function POST(req: NextRequest) {
         fail('UNAUTHORIZED', 'Authentication required'),
         { status: 401 }
       )
+    }
+
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
 
     if (error instanceof Error && error.message.includes('Missing x-org-id')) {

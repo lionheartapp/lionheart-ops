@@ -189,7 +189,8 @@ export function BudgetExpenseDrawer({
       toast('Receipt uploaded', 'success')
       // Suppress path unused warning
       void path
-    } catch {
+    } catch (error: unknown) {
+      console.error('Receipt upload failed:', error)
       toast('Failed to upload receipt', 'error')
     } finally {
       setUploadingReceipt(false)

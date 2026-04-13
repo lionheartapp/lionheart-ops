@@ -193,38 +193,60 @@ export default function PlanningPage() {
         )}
 
         {!seasonsLoading && !activeSeason && !showCreateSeason && (
-          <motion.div variants={cardEntrance} className="ui-glass p-12 text-center">
-            <IllustrationCalendar className="w-48 h-48 mx-auto mb-6 opacity-80" />
-            <h2
-              className="text-[20px] font-semibold mb-2"
-              style={{ color: '#1a1915', letterSpacing: '-0.02em' }}
-            >
-              No year plans yet
-            </h2>
-            <p
-              className="text-[13.5px] mb-6 max-w-md mx-auto leading-[1.55]"
-              style={{ color: '#6a6864' }}
-            >
-              {isAdmin
-                ? 'Start a Year Plan for the upcoming school year. Staff can submit event proposals inside it, you review and approve them, and approved events publish to the calendar.'
-                : 'Your administrator hasn\u2019t started a year plan yet. Check back soon or ask them to get started.'}
-            </p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="bg-white border border-stone-200 rounded-2xl p-10 text-center max-w-lg mx-auto" style={{ boxShadow: 'rgba(19,19,22,0.7) 0px 1px 5px -4px, rgba(34,42,53,0.06) 0px 0px 0px 1px, rgba(34,42,53,0.04) 0px 4px 8px 0px' }}>
+              <IllustrationCalendar className="w-36 h-36 mx-auto mb-6" />
+              <h2 className="text-xl font-semibold text-slate-900 mb-2" style={{ letterSpacing: '-0.02em' }}>
+                No year plans yet
+              </h2>
+              <p className="text-sm text-stone-500 mb-8 max-w-sm mx-auto leading-relaxed">
+                {isAdmin
+                  ? 'Start a Year Plan for the upcoming school year. Staff can submit event proposals, you review and approve them, and approved events publish to the calendar.'
+                  : 'Your administrator hasn\u2019t started a year plan yet. Check back soon or ask them to get started.'}
+              </p>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowCreateSeason(true)}
+                  className="inline-flex items-center gap-1.5 px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px"
+                  style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
+                >
+                  <Plus className="w-4 h-4" strokeWidth={2.5} />
+                  Start Your First Year Plan
+                </button>
+              )}
+            </div>
+
             {isAdmin && (
-              <button
-                onClick={() => setShowCreateSeason(true)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-[13px] font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px"
-                style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
-              >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                Start Your First Year Plan
-              </button>
+              <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-sm font-bold text-stone-500">1</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">Create a plan</p>
+                  <p className="text-xs text-stone-400 mt-1">Set the school year dates and submission window</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-sm font-bold text-stone-500">2</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">Collect proposals</p>
+                  <p className="text-xs text-stone-400 mt-1">Staff submit event ideas for the upcoming year</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-sm font-bold text-stone-500">3</span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">Review & publish</p>
+                  <p className="text-xs text-stone-400 mt-1">Approve events and they appear on the calendar</p>
+                </div>
+              </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Create Year Plan Form (Admin) */}
         {showCreateSeason && (
-          <motion.div variants={cardEntrance} className="ui-glass p-6 space-y-4">
+          <div className="ui-glass p-6 space-y-4">
             <h3
               className="text-[17px] font-semibold"
               style={{ color: '#1a1915', letterSpacing: '-0.015em' }}
@@ -262,7 +284,7 @@ export default function PlanningPage() {
                 {createSeason.isPending ? 'Creating...' : 'Create Year Plan'}
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Admin View */}

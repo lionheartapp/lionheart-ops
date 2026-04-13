@@ -96,6 +96,14 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
 
   const unreadInList = notifications.filter(n => !n.isRead).length
 
+  const handleClose = useCallback(() => {
+    setShouldShow(false)
+    setTimeout(() => {
+      setIsAnimating(false)
+      onClose()
+    }, 300)
+  }, [onClose])
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose()
@@ -116,15 +124,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflowY = 'unset'
     }
-  }, [isOpen, isAnimating])
-
-  const handleClose = useCallback(() => {
-    setShouldShow(false)
-    setTimeout(() => {
-      setIsAnimating(false)
-      onClose()
-    }, 300)
-  }, [onClose])
+  }, [isOpen, isAnimating, handleClose])
 
   const handleNotificationClick = (notification: NotificationData) => {
     if (!notification.isRead) {

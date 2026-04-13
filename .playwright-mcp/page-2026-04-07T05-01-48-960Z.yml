@@ -1,0 +1,434 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - complementary "Sidebar navigation" [ref=e5]:
+        - generic [ref=e6]:
+          - img "Demo Academy logo" [ref=e9]
+          - button "Search... ⌘K" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+            - generic [ref=e15]: Search...
+            - generic [ref=e16]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e17]:
+            - list [ref=e18]:
+              - listitem [ref=e19]:
+                - link "Dashboard" [ref=e20] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e21]
+                  - generic [ref=e24]: Dashboard
+              - listitem [ref=e25]:
+                - button "Events" [ref=e26] [cursor=pointer]:
+                  - img [ref=e27]
+                  - generic [ref=e31]: Events
+            - generic [ref=e32]: Support
+            - list [ref=e33]:
+              - listitem [ref=e34]:
+                - button "Expand maintenance" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: Maintenance
+                  - img [ref=e40]
+                - generic [ref=e42]:
+                  - link "Maintenance Hub" [ref=e43] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e44]: Maintenance Hub
+                  - link "Work Orders" [ref=e45] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e46]: Work Orders
+                  - link "Event Approvals" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e48]: Event Approvals
+                  - link "Inventory" [ref=e49] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e50]: Inventory
+                  - link "Assets" [ref=e51] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e52]: Assets
+                  - link "Knowledge Base" [ref=e53] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e54]: Knowledge Base
+              - listitem [ref=e55]:
+                - button "Expand IT Help Desk" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - generic [ref=e59]: IT Help Desk
+                  - img [ref=e61]
+                - generic [ref=e63]:
+                  - link "Help Desk" [ref=e64] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e65]: Help Desk
+                  - link "Devices" [ref=e66] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e67]: Devices
+                  - link "Lifecycle" [ref=e68] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e69]: Lifecycle
+                  - link "Inventory" [ref=e70] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e71]: Inventory
+              - listitem [ref=e72]:
+                - button "Expand A/V Production" [ref=e73] [cursor=pointer]:
+                  - img [ref=e74]
+                  - generic [ref=e78]: A/V Production
+                  - img [ref=e80]
+                - generic [ref=e82]:
+                  - link "Inventory" [ref=e83] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e84]: Inventory
+                  - link "Event Approvals" [ref=e85] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e86]: Event Approvals
+          - generic [ref=e87]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: A
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: Admin User
+                - paragraph [ref=e94]: admin@demo.com
+              - button "User menu" [ref=e95] [cursor=pointer]:
+                - img [ref=e96]
+            - img "Lionheart" [ref=e102]
+      - complementary "Settings navigation" [ref=e103]:
+        - generic [ref=e105]:
+          - heading "Settings" [level=2] [ref=e107]
+          - generic [ref=e108]:
+            - paragraph [ref=e109]: General
+            - navigation "General settings sections" [ref=e110]:
+              - button "My Profile" [ref=e111] [cursor=pointer]:
+                - img [ref=e112]
+                - text: My Profile
+          - generic [ref=e115]:
+            - paragraph [ref=e116]: Workspace
+            - navigation "Workspace settings sections" [ref=e117]:
+              - button "School Information" [ref=e118] [cursor=pointer]:
+                - img [ref=e119]
+                - text: School Information
+              - button "Roles" [ref=e124] [cursor=pointer]:
+                - img [ref=e125]
+                - text: Roles
+              - button "Teams" [ref=e127] [cursor=pointer]:
+                - img [ref=e128]
+                - text: Teams
+              - button "Members" [ref=e133] [cursor=pointer]:
+                - img [ref=e134]
+                - text: Members
+              - button "Campus" [ref=e146] [cursor=pointer]:
+                - img [ref=e147]
+                - text: Campus
+              - button "Billing" [ref=e151] [cursor=pointer]:
+                - img [ref=e152]
+                - text: Billing
+              - button "Add-ons" [ref=e154] [cursor=pointer]:
+                - img [ref=e155]
+                - text: Add-ons
+              - button "Integrations" [ref=e157] [cursor=pointer]:
+                - img [ref=e158]
+                - text: Integrations
+              - button "Activity Log" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+                - text: Activity Log
+    - main [ref=e166]:
+      - generic [ref=e169]:
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - img [ref=e173]
+            - generic [ref=e176]:
+              - heading "My Profile" [level=2] [ref=e177]
+              - paragraph [ref=e178]: Manage your personal information
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - generic [ref=e181]: A
+              - button "Change profile photo" [ref=e182] [cursor=pointer]:
+                - img [ref=e183]
+            - generic [ref=e186]:
+              - paragraph [ref=e187]: Profile Photo
+              - paragraph [ref=e188]: JPG, PNG or GIF. Max 5MB.
+              - generic [ref=e189]:
+                - button "Change Image" [ref=e190] [cursor=pointer]
+                - button "Remove" [disabled] [ref=e191]
+          - generic [ref=e193]:
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - textbox "First Name*" [ref=e196]:
+                  - /placeholder: First Name
+                  - text: Admin
+                - generic: First Name*
+              - generic [ref=e197]:
+                - textbox "Last Name" [ref=e198]: User
+                - generic: Last Name
+            - button "Save Changes" [ref=e200] [cursor=pointer]
+        - generic [ref=e201]:
+          - generic [ref=e202]:
+            - img [ref=e204]
+            - generic [ref=e206]:
+              - heading "Account Security" [level=3] [ref=e207]
+              - paragraph [ref=e208]: Manage your email and password
+          - generic [ref=e209]:
+            - generic [ref=e210]:
+              - generic [ref=e211]:
+                - img [ref=e212]
+                - generic [ref=e215]: Email Address
+              - generic [ref=e216]:
+                - generic [ref=e218]:
+                  - textbox "Email" [ref=e219]: admin@demo.com
+                  - generic: Email
+                - generic [ref=e220]: Contact admin to change
+            - generic [ref=e222]:
+              - generic [ref=e223]:
+                - img [ref=e224]
+                - generic [ref=e227]: Password
+              - generic [ref=e228]:
+                - generic [ref=e230]:
+                  - textbox "Password" [ref=e231]: ••••••••••
+                  - generic: Password
+                - button "Change password" [ref=e232] [cursor=pointer]
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - img [ref=e236]
+            - generic [ref=e239]:
+              - heading "Notification Preferences" [level=3] [ref=e240]
+              - paragraph [ref=e241]: Choose how you want to be notified
+          - generic [ref=e242]:
+            - generic [ref=e257]:
+              - generic [ref=e258]:
+                - paragraph [ref=e259]: Pause all notifications
+                - paragraph [ref=e260]: Temporarily silence all email and in-app notifications
+              - switch "Pause all notifications" [ref=e261] [cursor=pointer]
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - paragraph [ref=e265]: Calendar
+                  - generic [ref=e266]:
+                    - generic [ref=e267]:
+                      - generic [ref=e268]: Email
+                      - switch "Calendar email notifications" [checked] [ref=e269] [cursor=pointer]
+                    - generic [ref=e270]:
+                      - generic [ref=e271]: In-App
+                      - switch "Calendar in-app notifications" [checked] [ref=e272] [cursor=pointer]
+                - generic [ref=e273]:
+                  - generic [ref=e274]:
+                    - generic [ref=e275]: Updated
+                    - generic [ref=e276]:
+                      - switch "Updated email" [checked] [ref=e277] [cursor=pointer]
+                      - switch "Updated in-app" [checked] [ref=e278] [cursor=pointer]
+                  - generic [ref=e279]:
+                    - generic [ref=e280]: Deleted
+                    - generic [ref=e281]:
+                      - switch "Deleted email" [checked] [ref=e282] [cursor=pointer]
+                      - switch "Deleted in-app" [checked] [ref=e283] [cursor=pointer]
+                  - generic [ref=e284]:
+                    - generic [ref=e285]: Invite
+                    - generic [ref=e286]:
+                      - switch "Invite email" [checked] [ref=e287] [cursor=pointer]
+                      - switch "Invite in-app" [checked] [ref=e288] [cursor=pointer]
+                  - generic [ref=e289]:
+                    - generic [ref=e290]: Approved
+                    - generic [ref=e291]:
+                      - switch "Approved email" [checked] [ref=e292] [cursor=pointer]
+                      - switch "Approved in-app" [checked] [ref=e293] [cursor=pointer]
+                  - generic [ref=e294]:
+                    - generic [ref=e295]: Rejected
+                    - generic [ref=e296]:
+                      - switch "Rejected email" [checked] [ref=e297] [cursor=pointer]
+                      - switch "Rejected in-app" [checked] [ref=e298] [cursor=pointer]
+              - generic [ref=e299]:
+                - generic [ref=e300]:
+                  - paragraph [ref=e301]: Maintenance
+                  - generic [ref=e302]:
+                    - generic [ref=e303]:
+                      - generic [ref=e304]: Email
+                      - switch "Maintenance email notifications" [checked] [ref=e305] [cursor=pointer]
+                    - generic [ref=e306]:
+                      - generic [ref=e307]: In-App
+                      - switch "Maintenance in-app notifications" [checked] [ref=e308] [cursor=pointer]
+                - generic [ref=e309]:
+                  - generic [ref=e310]:
+                    - generic [ref=e311]: Submitted
+                    - generic [ref=e312]:
+                      - switch "Submitted email" [checked] [ref=e313] [cursor=pointer]
+                      - switch "Submitted in-app" [checked] [ref=e314] [cursor=pointer]
+                  - generic [ref=e315]:
+                    - generic [ref=e316]: Assigned
+                    - generic [ref=e317]:
+                      - switch "Assigned email" [checked] [ref=e318] [cursor=pointer]
+                      - switch "Assigned in-app" [checked] [ref=e319] [cursor=pointer]
+                  - generic [ref=e320]:
+                    - generic [ref=e321]: Claimed
+                    - generic [ref=e322]:
+                      - switch "Claimed email" [checked] [ref=e323] [cursor=pointer]
+                      - switch "Claimed in-app" [checked] [ref=e324] [cursor=pointer]
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: In Progress
+                    - generic [ref=e327]:
+                      - switch "In Progress email" [checked] [ref=e328] [cursor=pointer]
+                      - switch "In Progress in-app" [checked] [ref=e329] [cursor=pointer]
+                  - generic [ref=e330]:
+                    - generic [ref=e331]: On Hold
+                    - generic [ref=e332]:
+                      - switch "On Hold email" [checked] [ref=e333] [cursor=pointer]
+                      - switch "On Hold in-app" [checked] [ref=e334] [cursor=pointer]
+                  - generic [ref=e335]:
+                    - generic [ref=e336]: Qa Ready
+                    - generic [ref=e337]:
+                      - switch "Qa Ready email" [checked] [ref=e338] [cursor=pointer]
+                      - switch "Qa Ready in-app" [checked] [ref=e339] [cursor=pointer]
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: Done
+                    - generic [ref=e342]:
+                      - switch "Done email" [checked] [ref=e343] [cursor=pointer]
+                      - switch "Done in-app" [checked] [ref=e344] [cursor=pointer]
+                  - generic [ref=e345]:
+                    - generic [ref=e346]: Urgent
+                    - generic [ref=e347]:
+                      - switch "Urgent email" [checked] [ref=e348] [cursor=pointer]
+                      - switch "Urgent in-app" [checked] [ref=e349] [cursor=pointer]
+                  - generic [ref=e350]:
+                    - generic [ref=e351]: Stale Ticket
+                    - generic [ref=e352]:
+                      - switch "Stale Ticket email" [checked] [ref=e353] [cursor=pointer]
+                      - switch "Stale Ticket in-app" [checked] [ref=e354] [cursor=pointer]
+                  - generic [ref=e355]:
+                    - generic [ref=e356]: Qa Rejected
+                    - generic [ref=e357]:
+                      - switch "Qa Rejected email" [checked] [ref=e358] [cursor=pointer]
+                      - switch "Qa Rejected in-app" [checked] [ref=e359] [cursor=pointer]
+                  - generic [ref=e360]:
+                    - generic [ref=e361]: Scheduled Released
+                    - generic [ref=e362]:
+                      - switch "Scheduled Released email" [checked] [ref=e363] [cursor=pointer]
+                      - switch "Scheduled Released in-app" [checked] [ref=e364] [cursor=pointer]
+                  - generic [ref=e365]:
+                    - generic [ref=e366]: Repeat Repair
+                    - generic [ref=e367]:
+                      - switch "Repeat Repair email" [checked] [ref=e368] [cursor=pointer]
+                      - switch "Repeat Repair in-app" [checked] [ref=e369] [cursor=pointer]
+                  - generic [ref=e370]:
+                    - generic [ref=e371]: Cost Threshold
+                    - generic [ref=e372]:
+                      - switch "Cost Threshold email" [checked] [ref=e373] [cursor=pointer]
+                      - switch "Cost Threshold in-app" [checked] [ref=e374] [cursor=pointer]
+                  - generic [ref=e375]:
+                    - generic [ref=e376]: End Of Life
+                    - generic [ref=e377]:
+                      - switch "End Of Life email" [checked] [ref=e378] [cursor=pointer]
+                      - switch "End Of Life in-app" [checked] [ref=e379] [cursor=pointer]
+              - generic [ref=e380]:
+                - generic [ref=e381]:
+                  - paragraph [ref=e382]: IT Help Desk
+                  - generic [ref=e383]:
+                    - generic [ref=e384]:
+                      - generic [ref=e385]: Email
+                      - switch "IT Help Desk email notifications" [checked] [ref=e386] [cursor=pointer]
+                    - generic [ref=e387]:
+                      - generic [ref=e388]: In-App
+                      - switch "IT Help Desk in-app notifications" [checked] [ref=e389] [cursor=pointer]
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - generic [ref=e392]: Submitted
+                    - generic [ref=e393]:
+                      - switch "Submitted email" [checked] [ref=e394] [cursor=pointer]
+                      - switch "Submitted in-app" [checked] [ref=e395] [cursor=pointer]
+                  - generic [ref=e396]:
+                    - generic [ref=e397]: Assigned
+                    - generic [ref=e398]:
+                      - switch "Assigned email" [checked] [ref=e399] [cursor=pointer]
+                      - switch "Assigned in-app" [checked] [ref=e400] [cursor=pointer]
+                  - generic [ref=e401]:
+                    - generic [ref=e402]: In Progress
+                    - generic [ref=e403]:
+                      - switch "In Progress email" [checked] [ref=e404] [cursor=pointer]
+                      - switch "In Progress in-app" [checked] [ref=e405] [cursor=pointer]
+                  - generic [ref=e406]:
+                    - generic [ref=e407]: On Hold
+                    - generic [ref=e408]:
+                      - switch "On Hold email" [checked] [ref=e409] [cursor=pointer]
+                      - switch "On Hold in-app" [checked] [ref=e410] [cursor=pointer]
+                  - generic [ref=e411]:
+                    - generic [ref=e412]: Done
+                    - generic [ref=e413]:
+                      - switch "Done email" [checked] [ref=e414] [cursor=pointer]
+                      - switch "Done in-app" [checked] [ref=e415] [cursor=pointer]
+                  - generic [ref=e416]:
+                    - generic [ref=e417]: Cancelled
+                    - generic [ref=e418]:
+                      - switch "Cancelled email" [checked] [ref=e419] [cursor=pointer]
+                      - switch "Cancelled in-app" [checked] [ref=e420] [cursor=pointer]
+                  - generic [ref=e421]:
+                    - generic [ref=e422]: Urgent
+                    - generic [ref=e423]:
+                      - switch "Urgent email" [checked] [ref=e424] [cursor=pointer]
+                      - switch "Urgent in-app" [checked] [ref=e425] [cursor=pointer]
+                  - generic [ref=e426]:
+                    - generic [ref=e427]: Comment
+                    - generic [ref=e428]:
+                      - switch "Comment email" [checked] [ref=e429] [cursor=pointer]
+                      - switch "Comment in-app" [checked] [ref=e430] [cursor=pointer]
+                  - generic [ref=e431]:
+                    - generic [ref=e432]: Ticket
+                    - generic [ref=e433]:
+                      - switch "Ticket email" [checked] [ref=e434] [cursor=pointer]
+                      - switch "Ticket in-app" [checked] [ref=e435] [cursor=pointer]
+              - generic [ref=e436]:
+                - generic [ref=e437]:
+                  - paragraph [ref=e438]: Compliance
+                  - generic [ref=e439]:
+                    - generic [ref=e440]:
+                      - generic [ref=e441]: Email
+                      - switch "Compliance email notifications" [checked] [ref=e442] [cursor=pointer]
+                    - generic [ref=e443]:
+                      - generic [ref=e444]: In-App
+                      - switch "Compliance in-app notifications" [checked] [ref=e445] [cursor=pointer]
+                - generic [ref=e447]:
+                  - generic [ref=e448]: Reminder
+                  - generic [ref=e449]:
+                    - switch "Reminder email" [checked] [ref=e450] [cursor=pointer]
+                    - switch "Reminder in-app" [checked] [ref=e451] [cursor=pointer]
+              - generic [ref=e452]:
+                - generic [ref=e453]:
+                  - paragraph [ref=e454]: Security
+                  - generic [ref=e455]:
+                    - generic [ref=e456]:
+                      - generic [ref=e457]: Email
+                      - switch "Security email notifications" [checked] [ref=e458] [cursor=pointer]
+                    - generic [ref=e459]:
+                      - generic [ref=e460]: In-App
+                      - switch "Security in-app notifications" [checked] [ref=e461] [cursor=pointer]
+                - generic [ref=e462]:
+                  - generic [ref=e463]:
+                    - generic [ref=e464]: Created
+                    - generic [ref=e465]:
+                      - switch "Created email" [checked] [ref=e466] [cursor=pointer]
+                      - switch "Created in-app" [checked] [ref=e467] [cursor=pointer]
+                  - generic [ref=e468]:
+                    - generic [ref=e469]: Escalated
+                    - generic [ref=e470]:
+                      - switch "Escalated email" [checked] [ref=e471] [cursor=pointer]
+                      - switch "Escalated in-app" [checked] [ref=e472] [cursor=pointer]
+                  - generic [ref=e473]:
+                    - generic [ref=e474]: Status
+                    - generic [ref=e475]:
+                      - switch "Status email" [checked] [ref=e476] [cursor=pointer]
+                      - switch "Status in-app" [checked] [ref=e477] [cursor=pointer]
+                  - generic [ref=e478]:
+                    - generic [ref=e479]: Closed
+                    - generic [ref=e480]:
+                      - switch "Closed email" [checked] [ref=e481] [cursor=pointer]
+                      - switch "Closed in-app" [checked] [ref=e482] [cursor=pointer]
+              - generic [ref=e483]:
+                - generic [ref=e484]:
+                  - paragraph [ref=e485]: Inventory
+                  - generic [ref=e486]:
+                    - generic [ref=e487]:
+                      - generic [ref=e488]: Email
+                      - switch "Inventory email notifications" [checked] [ref=e489] [cursor=pointer]
+                    - generic [ref=e490]:
+                      - generic [ref=e491]: In-App
+                      - switch "Inventory in-app notifications" [checked] [ref=e492] [cursor=pointer]
+                - generic [ref=e494]:
+                  - generic [ref=e495]: Low Stock
+                  - generic [ref=e496]:
+                    - switch "Low Stock email" [checked] [ref=e497] [cursor=pointer]
+                    - switch "Low Stock in-app" [checked] [ref=e498] [cursor=pointer]
+  - button "Open AI Assistant" [ref=e502] [cursor=pointer]:
+    - img [ref=e504]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e252] [cursor=pointer]:
+    - img [ref=e253]
+  - alert [ref=e246]

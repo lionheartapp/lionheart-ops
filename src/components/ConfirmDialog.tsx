@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
@@ -44,6 +44,7 @@ export default function ConfirmDialog({
   extraAction,
 }: ConfirmDialogProps) {
   const [confirmInput, setConfirmInput] = useState('')
+  const titleId = useId()
   const focusTrapRef = useFocusTrap(isOpen)
 
   useEffect(() => {
@@ -103,7 +104,7 @@ export default function ConfirmDialog({
               ref={focusTrapRef}
               role="alertdialog"
               aria-modal="true"
-              aria-labelledby="confirm-dialog-title"
+              aria-labelledby={titleId}
               className="relative w-full max-w-xl transform overflow-hidden rounded-2xl ui-glass-overlay"
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -123,7 +124,7 @@ export default function ConfirmDialog({
           <div className="p-5 sm:p-8">
             {/* Title */}
             <div>
-              <h3 id="confirm-dialog-title" className="text-xl sm:text-2xl font-semibold text-slate-900">
+              <h3 id={titleId} className="text-xl sm:text-2xl font-semibold text-slate-900">
                 {title}
               </h3>
               <div className="mt-4 h-px w-full bg-slate-200" />

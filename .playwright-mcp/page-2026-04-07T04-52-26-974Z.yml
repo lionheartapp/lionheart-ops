@@ -1,0 +1,227 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - complementary "Sidebar navigation" [ref=e5]:
+        - generic [ref=e6]:
+          - img "Demo Academy logo" [ref=e9]
+          - button "Search... ⌘K" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+            - generic [ref=e15]: Search...
+            - generic [ref=e16]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e17]:
+            - list [ref=e18]:
+              - listitem [ref=e19]:
+                - link "Dashboard" [ref=e20] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e21]
+                  - generic [ref=e24]: Dashboard
+              - listitem [ref=e25]:
+                - button "Events" [ref=e26] [cursor=pointer]:
+                  - img [ref=e27]
+                  - generic [ref=e31]: Events
+            - generic [ref=e32]: Support
+            - list [ref=e33]:
+              - listitem [ref=e34]:
+                - button "Expand maintenance" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: Maintenance
+                  - img [ref=e40]
+                - generic [ref=e42]:
+                  - link "Maintenance Hub" [ref=e43] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e44]: Maintenance Hub
+                  - link "Work Orders" [ref=e45] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e46]: Work Orders
+                  - link "Event Approvals" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e48]: Event Approvals
+                  - link "Inventory" [ref=e49] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e50]: Inventory
+                  - link "Assets" [ref=e51] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e52]: Assets
+                  - link "Knowledge Base" [ref=e53] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e54]: Knowledge Base
+              - listitem [ref=e55]:
+                - button "Expand IT Help Desk" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - generic [ref=e59]: IT Help Desk
+                  - img [ref=e61]
+                - generic [ref=e63]:
+                  - link "Help Desk" [ref=e64] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e65]: Help Desk
+                  - link "Devices" [ref=e66] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e67]: Devices
+                  - link "Lifecycle" [ref=e68] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e69]: Lifecycle
+                  - link "Inventory" [ref=e70] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e71]: Inventory
+              - listitem [ref=e72]:
+                - button "Expand A/V Production" [ref=e73] [cursor=pointer]:
+                  - img [ref=e74]
+                  - generic [ref=e78]: A/V Production
+                  - img [ref=e80]
+                - generic [ref=e82]:
+                  - link "Inventory" [ref=e83] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e84]: Inventory
+                  - link "Event Approvals" [ref=e85] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e86]: Event Approvals
+          - generic [ref=e87]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: A
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: Admin User
+                - paragraph [ref=e94]: admin@demo.com
+              - button "User menu" [ref=e95] [cursor=pointer]:
+                - img [ref=e96]
+            - img "Lionheart" [ref=e102]
+      - complementary "Events navigation" [ref=e103]:
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - img [ref=e107]
+            - heading "Events" [level=2] [ref=e111]
+          - navigation "Events navigation" [ref=e113]:
+            - link "Events Hub" [ref=e114] [cursor=pointer]:
+              - /url: /events
+              - img [ref=e115]
+              - text: Events Hub
+            - link "Calendar" [ref=e118] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e119]
+              - text: Calendar
+            - link "Planning" [ref=e121] [cursor=pointer]:
+              - /url: /planning
+              - img [ref=e122]
+              - text: Planning
+            - link "Create with Leo" [ref=e125] [cursor=pointer]:
+              - /url: /events/new/ai
+              - img [ref=e126]
+              - text: Create with Leo
+    - main [ref=e130]:
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - heading "April 2026" [level=2] [ref=e137]
+              - tablist "Calendar view" [ref=e139]:
+                - tab "Month" [selected] [ref=e140] [cursor=pointer]
+                - tab "Week" [ref=e141] [cursor=pointer]
+                - tab "Day" [ref=e142] [cursor=pointer]
+                - tab "Agenda" [ref=e143] [cursor=pointer]
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - button "Previous" [ref=e146] [cursor=pointer]:
+                    - img [ref=e147]
+                  - button "Today" [ref=e149] [cursor=pointer]
+                  - button "Next" [ref=e150] [cursor=pointer]:
+                    - img [ref=e151]
+                - button "Create" [ref=e154] [cursor=pointer]:
+                  - img [ref=e155]
+                  - generic [ref=e156]: Create
+                  - img [ref=e157]
+            - generic [ref=e160]:
+              - img [ref=e161]
+              - textbox "Search events..." [ref=e164]
+          - button "Export CSV" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+            - text: Export CSV
+        - generic [ref=e170]: Loading calendar events
+        - grid "Calendar month view" [ref=e172]:
+          - row "SUN MON TUE WED THU FRI SAT" [ref=e173]:
+            - columnheader "SUN" [ref=e174]
+            - columnheader "MON" [ref=e175]
+            - columnheader "TUE" [ref=e176]
+            - columnheader "WED" [ref=e177]
+            - columnheader "THU" [ref=e178]
+            - columnheader "FRI" [ref=e179]
+            - columnheader "SAT" [ref=e180]
+          - generic [ref=e181]:
+            - row "Sunday, March 29 Monday, March 30 Tuesday, March 31 Wednesday, April 1 Thursday, April 2 Friday, April 3 Saturday, April 4" [ref=e182]:
+              - gridcell "Sunday, March 29" [ref=e183] [cursor=pointer]:
+                - generic [ref=e185]: "29"
+              - gridcell "Monday, March 30" [ref=e187] [cursor=pointer]:
+                - generic [ref=e189]: "30"
+              - gridcell "Tuesday, March 31" [ref=e192] [cursor=pointer]:
+                - generic [ref=e194]: "31"
+              - gridcell "Wednesday, April 1" [ref=e198] [cursor=pointer]:
+                - generic [ref=e200]: "1"
+              - gridcell "Thursday, April 2" [ref=e202] [cursor=pointer]:
+                - generic [ref=e204]: "2"
+              - gridcell "Friday, April 3" [ref=e207] [cursor=pointer]:
+                - generic [ref=e209]: "3"
+              - gridcell "Saturday, April 4" [ref=e213] [cursor=pointer]:
+                - generic [ref=e215]: "4"
+            - row "Sunday, April 5 Monday, April 6 Tuesday, April 7 Wednesday, April 8 Thursday, April 9 Friday, April 10 Saturday, April 11" [ref=e217]:
+              - gridcell "Sunday, April 5" [ref=e218] [cursor=pointer]:
+                - generic [ref=e220]: "5"
+              - gridcell "Monday, April 6" [ref=e223] [cursor=pointer]:
+                - generic [ref=e225]: "6"
+              - gridcell "Tuesday, April 7" [ref=e229] [cursor=pointer]:
+                - generic [ref=e231]: "7"
+              - gridcell "Wednesday, April 8" [ref=e233] [cursor=pointer]:
+                - generic [ref=e235]: "8"
+              - gridcell "Thursday, April 9" [ref=e238] [cursor=pointer]:
+                - generic [ref=e240]: "9"
+              - gridcell "Friday, April 10" [ref=e244] [cursor=pointer]:
+                - generic [ref=e246]: "10"
+              - gridcell "Saturday, April 11" [ref=e248] [cursor=pointer]:
+                - generic [ref=e250]: "11"
+            - row "Sunday, April 12 Monday, April 13 Tuesday, April 14 Wednesday, April 15 Thursday, April 16 Friday, April 17 Saturday, April 18" [ref=e253]:
+              - gridcell "Sunday, April 12" [ref=e254] [cursor=pointer]:
+                - generic [ref=e256]: "12"
+              - gridcell "Monday, April 13" [ref=e260] [cursor=pointer]:
+                - generic [ref=e262]: "13"
+              - gridcell "Tuesday, April 14" [ref=e264] [cursor=pointer]:
+                - generic [ref=e266]: "14"
+              - gridcell "Wednesday, April 15" [ref=e269] [cursor=pointer]:
+                - generic [ref=e271]: "15"
+              - gridcell "Thursday, April 16" [ref=e275] [cursor=pointer]:
+                - generic [ref=e277]: "16"
+              - gridcell "Friday, April 17" [ref=e279] [cursor=pointer]:
+                - generic [ref=e281]: "17"
+              - gridcell "Saturday, April 18" [ref=e284] [cursor=pointer]:
+                - generic [ref=e286]: "18"
+            - row "Sunday, April 19 Monday, April 20 Tuesday, April 21 Wednesday, April 22 Thursday, April 23 Friday, April 24 Saturday, April 25" [ref=e290]:
+              - gridcell "Sunday, April 19" [ref=e291] [cursor=pointer]:
+                - generic [ref=e293]: "19"
+              - gridcell "Monday, April 20" [ref=e295] [cursor=pointer]:
+                - generic [ref=e297]: "20"
+              - gridcell "Tuesday, April 21" [ref=e300] [cursor=pointer]:
+                - generic [ref=e302]: "21"
+              - gridcell "Wednesday, April 22" [ref=e306] [cursor=pointer]:
+                - generic [ref=e308]: "22"
+              - gridcell "Thursday, April 23" [ref=e310] [cursor=pointer]:
+                - generic [ref=e312]: "23"
+              - gridcell "Friday, April 24" [ref=e315] [cursor=pointer]:
+                - generic [ref=e317]: "24"
+              - gridcell "Saturday, April 25" [ref=e321] [cursor=pointer]:
+                - generic [ref=e323]: "25"
+            - row "Sunday, April 26 Monday, April 27 Tuesday, April 28 Wednesday, April 29 Thursday, April 30 Friday, May 1 Saturday, May 2" [ref=e325]:
+              - gridcell "Sunday, April 26" [ref=e326] [cursor=pointer]:
+                - generic [ref=e328]: "26"
+              - gridcell "Monday, April 27" [ref=e331] [cursor=pointer]:
+                - generic [ref=e333]: "27"
+              - gridcell "Tuesday, April 28" [ref=e337] [cursor=pointer]:
+                - generic [ref=e339]: "28"
+              - gridcell "Wednesday, April 29" [ref=e341] [cursor=pointer]:
+                - generic [ref=e343]: "29"
+              - gridcell "Thursday, April 30" [ref=e346] [cursor=pointer]:
+                - generic [ref=e348]: "30"
+              - gridcell "Friday, May 1" [ref=e352] [cursor=pointer]:
+                - generic [ref=e354]: "1"
+              - gridcell "Saturday, May 2" [ref=e356] [cursor=pointer]:
+                - generic [ref=e358]: "2"
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e366] [cursor=pointer]:
+    - img [ref=e367]
+  - alert [ref=e370]

@@ -15,8 +15,8 @@ const defaultOptions: ExportOptions = {
 }
 
 const defaultTypes: BlockTypeConfig[] = [
-  { value: 'session', label: 'Session', dotColor: 'bg-blue-500', hexColor: '#3b82f6', emoji: '' },
-  { value: 'break', label: 'Break', dotColor: 'bg-green-500', hexColor: '#22c55e', emoji: '' },
+  { value: 'session', label: 'Session', dotColor: 'bg-blue-500', color: 'text-blue-700', bg: 'bg-blue-50', hexColor: '#3b82f6' },
+  { value: 'break', label: 'Break', dotColor: 'bg-green-500', color: 'text-green-700', bg: 'bg-green-50', hexColor: '#22c55e' },
 ]
 
 function makeBlock(overrides: Partial<import('@/lib/utils/scheduleExportHtml').ScheduleBlock> = {}): import('@/lib/utils/scheduleExportHtml').ScheduleBlock {

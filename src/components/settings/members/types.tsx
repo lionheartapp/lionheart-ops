@@ -44,14 +44,14 @@ export function formatDate(iso: string) {
 
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    ACTIVE: 'bg-green-100 text-green-700',
-    PENDING: 'bg-yellow-100 text-yellow-700',
-    INACTIVE: 'bg-slate-100 text-slate-500',
-    SUSPENDED: 'bg-red-100 text-red-700',
+    ACTIVE: 'bg-green-50 text-green-600 ring-1 ring-green-200',
+    PENDING: 'bg-yellow-50 text-yellow-600 ring-1 ring-yellow-200',
+    INACTIVE: 'bg-slate-50 text-slate-400 ring-1 ring-slate-200',
+    SUSPENDED: 'bg-red-50 text-red-600 ring-1 ring-red-200',
   }
   const label = status.charAt(0) + status.slice(1).toLowerCase()
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${map[status] ?? 'bg-slate-100 text-slate-600'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${map[status] ?? 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'}`}>
       {label}
     </span>
   )

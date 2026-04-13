@@ -575,7 +575,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
           : 'w-[384px] rounded-2xl border border-slate-200/60 shadow-2xl'
       }`}
       style={{
-        background: 'linear-gradient(rgb(255 255 255) 0%, rgb(249 252 255) 100%)',
+        background: 'linear-gradient(180deg, #fdfcfb 0%, #faf9f7 100%)',
         ...(isEmbedded ? {} : { height: '520px' }),
       }}
     >

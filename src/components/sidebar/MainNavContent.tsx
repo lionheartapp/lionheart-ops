@@ -156,7 +156,7 @@ export default function MainNavContent({
           <Search className="w-4 h-4 flex-shrink-0" />
           <span className="flex-1 text-left">Search...</span>
           <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/50 rounded border border-slate-300/50">
-            &#8984;K
+            {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+'}K
           </kbd>
         </button>
       </div>

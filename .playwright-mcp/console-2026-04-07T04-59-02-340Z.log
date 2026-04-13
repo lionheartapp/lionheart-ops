@@ -1,0 +1,21 @@
+[     156ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   17253ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   20305ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   22902ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   23110ms] [LOG] [Fast Refresh] done in 309ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   23186ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   23383ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   23387ms] [LOG] [Fast Refresh] done in 105ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   24354ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   24355ms] [LOG] [Fast Refresh] done in 101ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   25724ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   26748ms] [LOG] [Fast Refresh] done in 1125ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   26850ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   26876ms] [LOG] [Fast Refresh] done in 127ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   27132ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   27286ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   27332ms] [LOG] [Fast Refresh] done in 148ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   27489ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   27790ms] [LOG] [Fast Refresh] done in 402ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   29079ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://demo.localhost:3004/api/events/projects/new:0
+[   30386ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://demo.localhost:3004/api/events/projects/new:0

@@ -1,0 +1,172 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - complementary "Sidebar navigation" [ref=e7]:
+        - generic [ref=e8]:
+          - img "Demo Academy logo" [ref=e11]
+          - button "Search... ⌘K" [ref=e13] [cursor=pointer]:
+            - img [ref=e14]
+            - generic [ref=e17]: Search...
+            - generic [ref=e18]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e19]:
+            - list [ref=e20]:
+              - listitem [ref=e21]:
+                - link "Dashboard" [ref=e22] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e23]
+                  - generic [ref=e26]: Dashboard
+              - listitem [ref=e27]:
+                - button "Events" [ref=e28] [cursor=pointer]:
+                  - img [ref=e29]
+                  - generic [ref=e33]: Events
+              - listitem [ref=e34]:
+                - button "Athletics" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e42]: Athletics
+            - generic [ref=e43]: Support
+            - list [ref=e44]:
+              - listitem [ref=e45]:
+                - button "Expand maintenance" [ref=e46] [cursor=pointer]:
+                  - img [ref=e47]
+                  - generic [ref=e49]: Maintenance
+                  - img [ref=e51]
+                - generic [ref=e53]:
+                  - link "Maintenance Hub" [ref=e54] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e55]: Maintenance Hub
+                  - link "Work Orders" [ref=e56] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e57]: Work Orders
+                  - link "Event Approvals" [ref=e58] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e59]: Event Approvals
+                  - link "Inventory" [ref=e60] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e61]: Inventory
+                  - link "Assets" [ref=e62] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e63]: Assets
+                  - link "Knowledge Base" [ref=e64] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e65]: Knowledge Base
+              - listitem [ref=e66]:
+                - button "Collapse IT Help Desk" [expanded] [ref=e67] [cursor=pointer]:
+                  - img [ref=e68]
+                  - generic [ref=e70]: IT Help Desk
+                  - img [ref=e72]
+                - generic [ref=e76]:
+                  - link "Help Desk" [ref=e77] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e78]: Help Desk
+                  - link "Devices" [ref=e79] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e80]: Devices
+                  - link "Lifecycle" [ref=e81] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e82]: Lifecycle
+                  - link "Security" [ref=e83] [cursor=pointer]:
+                    - /url: /it/security
+                    - generic [ref=e84]: Security
+                  - link "Reports & Admin" [ref=e85] [cursor=pointer]:
+                    - /url: /it/admin
+                    - generic [ref=e86]: Reports & Admin
+                  - link "Inventory" [ref=e87] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e88]: Inventory
+              - listitem [ref=e89]:
+                - button "Expand A/V Production" [ref=e90] [cursor=pointer]:
+                  - img [ref=e91]
+                  - generic [ref=e95]: A/V Production
+                  - img [ref=e97]
+                - generic [ref=e99]:
+                  - link "Inventory" [ref=e100] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e101]: Inventory
+                  - link "Event Approvals" [ref=e102] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e103]: Event Approvals
+          - generic [ref=e104]:
+            - generic [ref=e107]:
+              - generic [ref=e108]: A
+              - generic [ref=e109]:
+                - paragraph [ref=e110]: Admin User
+                - paragraph [ref=e111]: admin@demo.com
+              - button "User menu" [ref=e112] [cursor=pointer]:
+                - img [ref=e113]
+            - img "Lionheart" [ref=e119]
+      - generic [ref=e121]:
+        - heading [level=2] [ref=e123]: Settings
+        - generic [ref=e124]:
+          - paragraph [ref=e125]: General
+          - navigation [ref=e126]:
+            - button [ref=e127] [cursor=pointer]:
+              - img [ref=e128]
+              - text: My Profile
+        - generic [ref=e131]:
+          - paragraph [ref=e132]: Workspace
+          - navigation [ref=e133]:
+            - button [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+              - text: School Information
+            - button [ref=e140] [cursor=pointer]:
+              - img [ref=e141]
+              - text: Roles
+            - button [ref=e143] [cursor=pointer]:
+              - img [ref=e144]
+              - text: Teams
+            - button [ref=e149] [cursor=pointer]:
+              - img [ref=e150]
+              - text: Members
+            - button [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+              - text: Campus
+            - button [ref=e167] [cursor=pointer]:
+              - img [ref=e168]
+              - text: Billing
+            - button [ref=e170] [cursor=pointer]:
+              - img [ref=e171]
+              - text: Add-ons
+            - button [ref=e173] [cursor=pointer]:
+              - img [ref=e174]
+              - text: Integrations
+            - button [ref=e177] [cursor=pointer]:
+              - img [ref=e178]
+              - text: Activity Log
+    - main [ref=e182]:
+      - generic [ref=e184]:
+        - generic [ref=e185]:
+          - heading "IT Devices" [level=1] [ref=e186]
+          - paragraph [ref=e187]: Manage devices, student assignments, and loaner equipment
+        - generic [ref=e188]:
+          - button "Devices" [ref=e189] [cursor=pointer]:
+            - img [ref=e190]
+            - text: Devices
+          - button "Students" [ref=e192] [cursor=pointer]:
+            - img [ref=e193]
+            - text: Students
+          - button "Loaners" [ref=e196] [cursor=pointer]:
+            - img [ref=e197]
+            - text: Loaners
+        - generic [ref=e202]:
+          - generic [ref=e203]:
+            - generic [ref=e204]:
+              - generic:
+                - img
+              - searchbox "Search by asset tag, serial, make, model..." [ref=e205]
+            - button "Filters" [ref=e207] [cursor=pointer]:
+              - img [ref=e208]
+              - text: Filters
+            - button "Add Device" [ref=e209] [cursor=pointer]:
+              - img [ref=e210]
+              - text: Add Device
+          - generic [ref=e211]:
+            - img [ref=e212]
+            - paragraph [ref=e261]: No devices found
+            - paragraph [ref=e262]: Try adjusting your filters or add a new device
+  - button "Open AI Assistant" [ref=e266] [cursor=pointer]:
+    - img [ref=e268]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e275] [cursor=pointer]:
+    - img [ref=e276]
+  - alert [ref=e279]

@@ -1,0 +1,153 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e356]:
+    - link "Skip to main content" [ref=e357] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e358]:
+      - complementary [ref=e389]:
+        - img "Demo Academy" [ref=e391]
+        - button "Back to Events" [ref=e393] [cursor=pointer]:
+          - img [ref=e394]
+          - text: Back to Events
+        - generic [ref=e396]:
+          - generic [ref=e397]: Pending
+          - generic [ref=e399]: Spring Assembly Preview
+          - generic [ref=e400]: Apr 12, 2026 · Main Hall
+        - navigation [ref=e401]:
+          - generic [ref=e402]:
+            - generic [ref=e403]: Event
+            - list [ref=e404]:
+              - listitem [ref=e405]:
+                - button "Overview" [ref=e406] [cursor=pointer]:
+                  - img [ref=e407]
+                  - text: Overview
+              - listitem [ref=e412]:
+                - button "Schedule" [ref=e413] [cursor=pointer]:
+                  - img [ref=e414]
+                  - text: Schedule
+              - listitem [ref=e416]:
+                - button "Team" [ref=e417] [cursor=pointer]:
+                  - img [ref=e418]
+                  - text: Team
+              - listitem [ref=e423]:
+                - button "Registration" [ref=e424] [cursor=pointer]:
+                  - img [ref=e425]
+                  - text: Registration
+          - generic [ref=e428]:
+            - generic [ref=e429]: Planning
+            - list [ref=e430]:
+              - listitem [ref=e431]:
+                - button "Documents" [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+                  - text: Documents
+              - listitem [ref=e436]:
+                - button "Logistics" [ref=e437] [cursor=pointer]:
+                  - img [ref=e438]
+                  - text: Logistics
+              - listitem [ref=e443]:
+                - button "Budget" [ref=e444] [cursor=pointer]:
+                  - img [ref=e445]
+                  - text: Budget
+              - listitem [ref=e447]:
+                - button "Tasks" [ref=e448] [cursor=pointer]:
+                  - img [ref=e449]
+                  - text: Tasks
+              - listitem [ref=e452]:
+                - button "Comms" [ref=e453] [cursor=pointer]:
+                  - img [ref=e454]
+                  - text: Comms
+      - main [ref=e378]:
+        - generic [ref=e456]:
+          - button "Approve" [ref=e459] [cursor=pointer]
+          - heading "Overview" [level=1] [ref=e461]
+          - generic [ref=e463]:
+            - generic [ref=e464]:
+              - generic [ref=e465]:
+                - img [ref=e466]
+                - text: Awaiting approvals — event cannot be confirmed until all teams approve
+              - generic [ref=e470]:
+                - img [ref=e471]
+                - generic [ref=e473]:
+                  - paragraph [ref=e474]: Admin
+                  - generic [ref=e475]:
+                    - img [ref=e476]
+                    - generic [ref=e479]: Pending
+            - generic [ref=e480]:
+              - generic [ref=e481]:
+                - heading "Event Details" [level=3] [ref=e482]:
+                  - img [ref=e483]
+                  - text: Event Details
+                - button "Edit" [ref=e486] [cursor=pointer]:
+                  - img [ref=e487]
+                  - text: Edit
+              - paragraph [ref=e490]: A short editorial preview event created to validate the new EventCard reskin layout.
+              - generic [ref=e491]:
+                - generic [ref=e492]:
+                  - img [ref=e493]
+                  - generic [ref=e495]:
+                    - paragraph [ref=e496]: Sunday, April 12, 2026
+                    - paragraph [ref=e497]: 8:51 AM – 10:51 AM
+                - generic [ref=e498]:
+                  - img [ref=e499]
+                  - paragraph [ref=e503]: Main Hall
+                - generic [ref=e504]:
+                  - img [ref=e505]
+                  - paragraph [ref=e510]: Created by Admin User
+            - generic [ref=e512]:
+              - generic [ref=e513]:
+                - img [ref=e515]
+                - paragraph [ref=e518]: 0/0
+                - paragraph [ref=e519]: Tasks Done
+              - generic [ref=e520]:
+                - img [ref=e522]
+                - paragraph [ref=e526]: "0"
+                - paragraph [ref=e527]: Schedule Blocks
+              - generic [ref=e528]:
+                - img [ref=e530]
+                - paragraph [ref=e535]: —
+                - paragraph [ref=e536]: Expected Attendance
+              - generic [ref=e537]:
+                - img [ref=e539]
+                - paragraph [ref=e542]: 1 day away
+                - paragraph [ref=e543]: Event Date
+            - generic [ref=e545]:
+              - generic [ref=e546]:
+                - generic [ref=e547]:
+                  - heading "AI Status Summary" [level=3] [ref=e548]:
+                    - img [ref=e549]
+                    - text: AI Status Summary
+                  - button "Refresh" [ref=e552] [cursor=pointer]:
+                    - img [ref=e553]
+                    - text: Refresh
+                - generic [ref=e559]:
+                  - generic [ref=e560]: Overall completion
+                  - generic [ref=e561]: 0%
+                - paragraph [ref=e563]: Internal server error
+              - generic [ref=e564]:
+                - heading "Event Status" [level=3] [ref=e565]
+                - generic [ref=e568]:
+                  - img [ref=e572]
+                  - generic [ref=e587]:
+                    - generic [ref=e588]: Draft
+                    - generic [ref=e589]: Pending Approval
+                    - generic [ref=e590]: Confirmed
+                    - generic [ref=e591]: In Progress
+                    - generic [ref=e592]: Completed
+            - generic [ref=e593]:
+              - generic [ref=e594]:
+                - heading "Recent Activity" [level=3] [ref=e595]
+                - generic [ref=e596]: Last 5 entries
+              - generic [ref=e598]:
+                - generic [ref=e599]:
+                  - generic [ref=e601]: AU
+                  - generic [ref=e602]: Admin User
+                - generic [ref=e603]:
+                  - generic [ref=e604]:
+                    - generic [ref=e605]: Created
+                    - generic [ref=e606]: created this event
+                  - paragraph [ref=e607]: about 1 hour ago
+  - button "Open AI Assistant" [ref=e352] [cursor=pointer]:
+    - img [ref=e354]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e202] [cursor=pointer]:
+    - img [ref=e203]
+  - alert [ref=e206]: Lionheart

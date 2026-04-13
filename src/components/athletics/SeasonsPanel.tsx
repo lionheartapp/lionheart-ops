@@ -103,9 +103,9 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
   if (loading) {
     return (
       <div className="space-y-3">
-        <div className="h-5 w-32 bg-slate-100 rounded animate-pulse" />
-        <div className="h-12 bg-slate-50 rounded-lg animate-pulse" />
-        <div className="h-12 bg-slate-50 rounded-lg animate-pulse" />
+        <div className="h-5 w-32 bg-stone-100 rounded animate-pulse" />
+        <div className="h-12 bg-stone-50 rounded-lg animate-pulse" />
+        <div className="h-12 bg-stone-50 rounded-lg animate-pulse" />
       </div>
     )
   }
@@ -113,11 +113,11 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-700">Seasons</h3>
+        <h3 className="text-sm font-semibold text-stone-700">Seasons</h3>
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-stone-700 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Season
@@ -126,7 +126,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
 
       {/* Inline create form */}
       {showForm && (
-        <div className="mb-4 p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+        <div className="mb-4 p-4 rounded-xl border border-stone-200 bg-stone-50 space-y-3">
           <FloatingInput
             id="season-name"
             label="Season Name"
@@ -152,12 +152,12 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
               required
             />
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
             <input
               type="checkbox"
               checked={form.isCurrent}
               onChange={(e) => setForm({ ...form, isCurrent: e.target.checked })}
-              className="rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
+              className="rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
             />
             Mark as current season
           </label>
@@ -174,7 +174,7 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
             <button
               type="button"
               onClick={() => { setShowForm(false); setError('') }}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition"
+              className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-slate-800 transition"
             >
               Cancel
             </button>
@@ -186,14 +186,14 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
       {seasons.length === 0 ? (
         <div className="text-center py-6">
           <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-          <p className="text-sm text-slate-400">No seasons yet</p>
+          <p className="text-sm text-stone-400">No seasons yet</p>
         </div>
       ) : (
         <div className="space-y-2">
           {seasons.map((season) => (
             <div
               key={season.id}
-              className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white hover:border-slate-200 transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-stone-100 bg-white hover:border-stone-200 transition-colors"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -204,11 +204,11 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-stone-500 mt-0.5">
                   {formatDateRange(season.startDate, season.endDate)}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 flex-shrink-0 ml-3">
+              <div className="flex items-center gap-1.5 text-xs text-stone-400 flex-shrink-0 ml-3">
                 <Trophy className="w-3 h-3" />
                 {season._count.teams} team{season._count.teams !== 1 ? 's' : ''}
               </div>

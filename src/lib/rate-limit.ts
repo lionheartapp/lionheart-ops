@@ -298,6 +298,20 @@ export const studentPasswordRateLimiter = new RateLimiter({
   maxAttempts: 10,
 })
 
+/** Event registration: 20 registrations per hour per IP */
+export const eventRegistrationRateLimiter = new RateLimiter({
+  name: 'event-registration',
+  windowMs: 60 * 60 * 1000,
+  maxAttempts: 20,
+})
+
+/** AI chat: 30 requests per minute per IP */
+export const aiChatRateLimiter = new RateLimiter({
+  name: 'ai-chat',
+  windowMs: 60 * 1000,
+  maxAttempts: 30,
+})
+
 // ─────────────────────────────────────────────
 //  Response header helper
 // ─────────────────────────────────────────────

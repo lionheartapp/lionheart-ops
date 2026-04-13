@@ -1,0 +1,51 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": true,
+  "colorGroups": [
+    {
+      "query": "tag:#design",
+      "color": {
+        "a": 1,
+        "rgb": 6399457
+      }
+    },
+    {
+      "query": "tag:#architecture",
+      "color": {
+        "a": 1,
+        "rgb": 3573503
+      }
+    },
+    {
+      "query": "tag:#feature",
+      "color": {
+        "a": 1,
+        "rgb": 3244543
+      }
+    },
+    {
+      "query": "tag:#development",
+      "color": {
+        "a": 1,
+        "rgb": 16744448
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.5,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1.2931170943849049,
+  "close": false
+}

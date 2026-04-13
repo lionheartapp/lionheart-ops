@@ -862,16 +862,16 @@ export default function CalendarView() {
           sports={athleticsSports}
         />
 
-        {/* Export CSV button */}
-        <div className="flex justify-end mt-2">
+        {/* Export CSV — subtle text link, not a prominent button */}
+        <div className="flex justify-end mt-1">
           <button
             onClick={() => {
               window.open('/api/settings/export/events', '_blank')
             }}
-            className="px-4 py-1.5 rounded-full border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-colors duration-200 flex items-center gap-1.5"
+            className="px-3 py-1.5 text-stone-400 hover:text-stone-600 text-xs font-medium transition-colors duration-200 flex items-center gap-1.5 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            Export CSV
+            Export
           </button>
         </div>
 

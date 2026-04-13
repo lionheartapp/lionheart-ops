@@ -1,0 +1,221 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e356]:
+    - link "Skip to main content" [ref=e357] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e358]:
+      - complementary [ref=e389]:
+        - img "Demo Academy" [ref=e391]
+        - button "Back to Events" [ref=e393] [cursor=pointer]:
+          - img [ref=e394]
+          - text: Back to Events
+        - generic [ref=e396]:
+          - generic [ref=e397]: Pending
+          - generic [ref=e399]: Spring Assembly Preview
+          - generic [ref=e400]: Apr 12, 2026 · Main Hall
+        - navigation [ref=e401]:
+          - generic [ref=e402]:
+            - generic [ref=e403]: Event
+            - list [ref=e404]:
+              - listitem [ref=e405]:
+                - button "Overview" [ref=e406] [cursor=pointer]:
+                  - img [ref=e407]
+                  - text: Overview
+              - listitem [ref=e412]:
+                - button "Schedule" [ref=e413] [cursor=pointer]:
+                  - img [ref=e414]
+                  - text: Schedule
+              - listitem [ref=e416]:
+                - button "Team" [ref=e417] [cursor=pointer]:
+                  - img [ref=e418]
+                  - text: Team
+              - listitem [ref=e423]:
+                - button "Registration" [ref=e424] [cursor=pointer]:
+                  - img [ref=e425]
+                  - text: Registration
+          - generic [ref=e428]:
+            - generic [ref=e429]: Planning
+            - list [ref=e430]:
+              - listitem [ref=e431]:
+                - button "Documents" [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+                  - text: Documents
+              - listitem [ref=e436]:
+                - button "Logistics" [ref=e437] [cursor=pointer]:
+                  - img [ref=e438]
+                  - text: Logistics
+              - listitem [ref=e443]:
+                - button "Budget" [ref=e444] [cursor=pointer]:
+                  - img [ref=e445]
+                  - text: Budget
+              - listitem [ref=e447]:
+                - button "Tasks" [ref=e448] [cursor=pointer]:
+                  - img [ref=e449]
+                  - text: Tasks
+              - listitem [ref=e452]:
+                - button "Comms" [ref=e453] [cursor=pointer]:
+                  - img [ref=e454]
+                  - text: Comms
+      - main [ref=e378]:
+        - generic [ref=e456]:
+          - button "Approve" [ref=e459] [cursor=pointer]
+          - heading "Budget" [level=1] [ref=e816]
+          - generic [ref=e818]:
+            - generic [ref=e819]:
+              - generic [ref=e820]:
+                - button "Expenses" [ref=e821] [cursor=pointer]
+                - button "Revenue" [ref=e822] [cursor=pointer]
+                - button "Report" [ref=e823] [cursor=pointer]
+              - button "Add Expense" [ref=e824] [cursor=pointer]:
+                - img [ref=e825]
+                - text: Add Expense
+            - generic [ref=e827]:
+              - button "AI Estimate" [ref=e829] [cursor=pointer]:
+                - img [ref=e830]
+                - text: AI Estimate
+              - generic [ref=e833]:
+                - generic [ref=e834]:
+                  - 'button "Venue 0 items Budgeted: $0.00 Actual: $0.00" [ref=e835] [cursor=pointer]':
+                    - generic [ref=e836]:
+                      - img [ref=e837]
+                      - generic [ref=e839]: Venue
+                      - generic [ref=e840]: 0 items
+                    - generic [ref=e841]:
+                      - generic [ref=e842]: "Budgeted: $0.00"
+                      - generic [ref=e843]: "Actual: $0.00"
+                  - generic [ref=e844]:
+                    - generic [ref=e845]: No expenses in this category yet
+                    - button "Add Expense" [ref=e847] [cursor=pointer]:
+                      - img [ref=e848]
+                      - text: Add Expense
+                - generic [ref=e849]:
+                  - 'button "Transportation 0 items Budgeted: $0.00 Actual: $0.00" [ref=e850] [cursor=pointer]':
+                    - generic [ref=e851]:
+                      - img [ref=e852]
+                      - generic [ref=e854]: Transportation
+                      - generic [ref=e855]: 0 items
+                    - generic [ref=e856]:
+                      - generic [ref=e857]: "Budgeted: $0.00"
+                      - generic [ref=e858]: "Actual: $0.00"
+                  - generic [ref=e859]:
+                    - generic [ref=e860]: No expenses in this category yet
+                    - button "Add Expense" [ref=e862] [cursor=pointer]:
+                      - img [ref=e863]
+                      - text: Add Expense
+                - generic [ref=e864]:
+                  - 'button "Food & Catering 0 items Budgeted: $0.00 Actual: $0.00" [ref=e865] [cursor=pointer]':
+                    - generic [ref=e866]:
+                      - img [ref=e867]
+                      - generic [ref=e869]: Food & Catering
+                      - generic [ref=e870]: 0 items
+                    - generic [ref=e871]:
+                      - generic [ref=e872]: "Budgeted: $0.00"
+                      - generic [ref=e873]: "Actual: $0.00"
+                  - generic [ref=e874]:
+                    - generic [ref=e875]: No expenses in this category yet
+                    - button "Add Expense" [ref=e877] [cursor=pointer]:
+                      - img [ref=e878]
+                      - text: Add Expense
+                - generic [ref=e879]:
+                  - 'button "Supplies & Materials 0 items Budgeted: $0.00 Actual: $0.00" [ref=e880] [cursor=pointer]':
+                    - generic [ref=e881]:
+                      - img [ref=e882]
+                      - generic [ref=e884]: Supplies & Materials
+                      - generic [ref=e885]: 0 items
+                    - generic [ref=e886]:
+                      - generic [ref=e887]: "Budgeted: $0.00"
+                      - generic [ref=e888]: "Actual: $0.00"
+                  - generic [ref=e889]:
+                    - generic [ref=e890]: No expenses in this category yet
+                    - button "Add Expense" [ref=e892] [cursor=pointer]:
+                      - img [ref=e893]
+                      - text: Add Expense
+                - generic [ref=e894]:
+                  - 'button "Insurance 0 items Budgeted: $0.00 Actual: $0.00" [ref=e895] [cursor=pointer]':
+                    - generic [ref=e896]:
+                      - img [ref=e897]
+                      - generic [ref=e899]: Insurance
+                      - generic [ref=e900]: 0 items
+                    - generic [ref=e901]:
+                      - generic [ref=e902]: "Budgeted: $0.00"
+                      - generic [ref=e903]: "Actual: $0.00"
+                  - generic [ref=e904]:
+                    - generic [ref=e905]: No expenses in this category yet
+                    - button "Add Expense" [ref=e907] [cursor=pointer]:
+                      - img [ref=e908]
+                      - text: Add Expense
+                - generic [ref=e909]:
+                  - 'button "Staffing 0 items Budgeted: $0.00 Actual: $0.00" [ref=e910] [cursor=pointer]':
+                    - generic [ref=e911]:
+                      - img [ref=e912]
+                      - generic [ref=e914]: Staffing
+                      - generic [ref=e915]: 0 items
+                    - generic [ref=e916]:
+                      - generic [ref=e917]: "Budgeted: $0.00"
+                      - generic [ref=e918]: "Actual: $0.00"
+                  - generic [ref=e919]:
+                    - generic [ref=e920]: No expenses in this category yet
+                    - button "Add Expense" [ref=e922] [cursor=pointer]:
+                      - img [ref=e923]
+                      - text: Add Expense
+                - generic [ref=e924]:
+                  - 'button "Equipment Rental 0 items Budgeted: $0.00 Actual: $0.00" [ref=e925] [cursor=pointer]':
+                    - generic [ref=e926]:
+                      - img [ref=e927]
+                      - generic [ref=e929]: Equipment Rental
+                      - generic [ref=e930]: 0 items
+                    - generic [ref=e931]:
+                      - generic [ref=e932]: "Budgeted: $0.00"
+                      - generic [ref=e933]: "Actual: $0.00"
+                  - generic [ref=e934]:
+                    - generic [ref=e935]: No expenses in this category yet
+                    - button "Add Expense" [ref=e937] [cursor=pointer]:
+                      - img [ref=e938]
+                      - text: Add Expense
+                - generic [ref=e939]:
+                  - 'button "Printing & Signage 0 items Budgeted: $0.00 Actual: $0.00" [ref=e940] [cursor=pointer]':
+                    - generic [ref=e941]:
+                      - img [ref=e942]
+                      - generic [ref=e944]: Printing & Signage
+                      - generic [ref=e945]: 0 items
+                    - generic [ref=e946]:
+                      - generic [ref=e947]: "Budgeted: $0.00"
+                      - generic [ref=e948]: "Actual: $0.00"
+                  - generic [ref=e949]:
+                    - generic [ref=e950]: No expenses in this category yet
+                    - button "Add Expense" [ref=e952] [cursor=pointer]:
+                      - img [ref=e953]
+                      - text: Add Expense
+                - generic [ref=e954]:
+                  - 'button "Entertainment 0 items Budgeted: $0.00 Actual: $0.00" [ref=e955] [cursor=pointer]':
+                    - generic [ref=e956]:
+                      - img [ref=e957]
+                      - generic [ref=e959]: Entertainment
+                      - generic [ref=e960]: 0 items
+                    - generic [ref=e961]:
+                      - generic [ref=e962]: "Budgeted: $0.00"
+                      - generic [ref=e963]: "Actual: $0.00"
+                  - generic [ref=e964]:
+                    - generic [ref=e965]: No expenses in this category yet
+                    - button "Add Expense" [ref=e967] [cursor=pointer]:
+                      - img [ref=e968]
+                      - text: Add Expense
+                - generic [ref=e969]:
+                  - 'button "Miscellaneous 0 items Budgeted: $0.00 Actual: $0.00" [ref=e970] [cursor=pointer]':
+                    - generic [ref=e971]:
+                      - img [ref=e972]
+                      - generic [ref=e974]: Miscellaneous
+                      - generic [ref=e975]: 0 items
+                    - generic [ref=e976]:
+                      - generic [ref=e977]: "Budgeted: $0.00"
+                      - generic [ref=e978]: "Actual: $0.00"
+                  - generic [ref=e979]:
+                    - generic [ref=e980]: No expenses in this category yet
+                    - button "Add Expense" [ref=e982] [cursor=pointer]:
+                      - img [ref=e983]
+                      - text: Add Expense
+  - button "Open AI Assistant" [ref=e352] [cursor=pointer]:
+    - img [ref=e354]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e202] [cursor=pointer]:
+    - img [ref=e203]
+  - alert [ref=e206]: Lionheart Operations Platform

@@ -1,0 +1,275 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - complementary "Sidebar navigation" [ref=e7]:
+        - generic [ref=e8]:
+          - img "Demo Academy logo" [ref=e11]
+          - button "Search... ⌘K" [ref=e13] [cursor=pointer]:
+            - img [ref=e14]
+            - generic [ref=e17]: Search...
+            - generic [ref=e18]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e19]:
+            - list [ref=e20]:
+              - listitem [ref=e21]:
+                - link "Dashboard" [ref=e22] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e23]
+                  - generic [ref=e26]: Dashboard
+              - listitem [ref=e27]:
+                - button "Events" [ref=e28] [cursor=pointer]:
+                  - img [ref=e29]
+                  - generic [ref=e33]: Events
+              - listitem [ref=e210]:
+                - button "Athletics" [ref=e211] [cursor=pointer]:
+                  - img [ref=e212]
+                  - generic [ref=e218]: Athletics
+            - generic [ref=e34]: Support
+            - list [ref=e35]:
+              - listitem [ref=e36]:
+                - button "Collapse maintenance" [expanded] [ref=e37] [cursor=pointer]:
+                  - img [ref=e38]
+                  - generic [ref=e40]: Maintenance
+                  - img [ref=e42]
+                - generic [ref=e46]:
+                  - link "Maintenance Hub" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e48]: Maintenance Hub
+                  - link "Work Orders" [ref=e49] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e50]: Work Orders
+                  - link "Event Approvals" [ref=e51] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e52]: Event Approvals
+                  - link "Inventory" [ref=e53] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e54]: Inventory
+                  - link "Assets" [ref=e55] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e56]: Assets
+                  - link "Knowledge Base" [ref=e57] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e58]: Knowledge Base
+              - listitem [ref=e59]:
+                - button "Expand IT Help Desk" [ref=e60] [cursor=pointer]:
+                  - img [ref=e61]
+                  - generic [ref=e63]: IT Help Desk
+                  - img [ref=e65]
+                - generic [ref=e67]:
+                  - link "Help Desk" [ref=e68] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e69]: Help Desk
+                  - link "Devices" [ref=e70] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e71]: Devices
+                  - link "Lifecycle" [ref=e72] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e73]: Lifecycle
+                  - link "Security" [ref=e219] [cursor=pointer]:
+                    - /url: /it/security
+                    - generic [ref=e220]: Security
+                  - link "Reports & Admin" [ref=e221] [cursor=pointer]:
+                    - /url: /it/admin
+                    - generic [ref=e222]: Reports & Admin
+                  - link "Inventory" [ref=e74] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e75]: Inventory
+              - listitem [ref=e76]:
+                - button "Expand A/V Production" [ref=e77] [cursor=pointer]:
+                  - img [ref=e78]
+                  - generic [ref=e82]: A/V Production
+                  - img [ref=e84]
+                - generic [ref=e86]:
+                  - link "Inventory" [ref=e87] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e88]: Inventory
+                  - link "Event Approvals" [ref=e89] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e90]: Event Approvals
+          - generic [ref=e91]:
+            - generic [ref=e94]:
+              - generic [ref=e95]: A
+              - generic [ref=e96]:
+                - paragraph [ref=e97]: Admin User
+                - paragraph [ref=e98]: admin@demo.com
+              - button "User menu" [ref=e99] [cursor=pointer]:
+                - img [ref=e100]
+            - img "Lionheart" [ref=e106]
+      - generic [ref=e108]:
+        - heading [level=2] [ref=e110]: Settings
+        - generic [ref=e111]:
+          - paragraph [ref=e112]: General
+          - navigation [ref=e113]:
+            - button [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+              - text: My Profile
+        - generic [ref=e118]:
+          - paragraph [ref=e119]: Workspace
+          - navigation [ref=e120]:
+            - button [ref=e121] [cursor=pointer]:
+              - img [ref=e122]
+              - text: School Information
+            - button [ref=e127] [cursor=pointer]:
+              - img [ref=e128]
+              - text: Roles
+            - button [ref=e130] [cursor=pointer]:
+              - img [ref=e131]
+              - text: Teams
+            - button [ref=e136] [cursor=pointer]:
+              - img [ref=e137]
+              - text: Members
+            - button [ref=e149] [cursor=pointer]:
+              - img [ref=e150]
+              - text: Campus
+            - button [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+              - text: Billing
+            - button [ref=e157] [cursor=pointer]:
+              - img [ref=e158]
+              - text: Add-ons
+            - button [ref=e160] [cursor=pointer]:
+              - img [ref=e161]
+              - text: Integrations
+            - button [ref=e164] [cursor=pointer]:
+              - img [ref=e165]
+              - text: Activity Log
+    - main [ref=e169]:
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - heading "Maintenance" [level=1] [ref=e174]
+            - link "Board Report" [ref=e223] [cursor=pointer]:
+              - /url: /maintenance/board-report
+              - img [ref=e224]
+              - text: Board Report
+          - paragraph [ref=e175]: Work orders, assets, and facility operations
+        - generic [ref=e227]:
+          - button "Dashboard" [ref=e228] [cursor=pointer]:
+            - img [ref=e229]
+            - text: Dashboard
+          - button "PM Calendar" [ref=e234] [cursor=pointer]:
+            - img [ref=e235]
+            - text: PM Calendar
+        - generic [ref=e240]:
+          - button "Export CSV" [ref=e242] [cursor=pointer]:
+            - img [ref=e243]
+            - text: Export CSV
+          - generic [ref=e246]:
+            - generic [ref=e247] [cursor=pointer]:
+              - img [ref=e250]
+              - generic [ref=e253]: "0"
+              - paragraph [ref=e254]: Open Tickets
+            - generic [ref=e255] [cursor=pointer]:
+              - img [ref=e258]
+              - generic [ref=e260]: "0"
+              - paragraph [ref=e261]: Urgent / Overdue
+            - generic [ref=e262] [cursor=pointer]:
+              - img [ref=e265]
+              - generic [ref=e267]: "0"
+              - paragraph [ref=e268]: In Progress
+            - generic [ref=e269] [cursor=pointer]:
+              - img [ref=e272]
+              - generic [ref=e275]: "0"
+              - paragraph [ref=e276]: Completed (Total)
+          - generic [ref=e277]:
+            - generic [ref=e278]:
+              - generic [ref=e279]:
+                - generic [ref=e280]:
+                  - heading "Tickets by Status" [level=3] [ref=e281]
+                  - link "View all" [ref=e282] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - text: View all
+                    - img [ref=e283]
+                - generic [ref=e285]:
+                  - generic [ref=e286] [cursor=pointer]:
+                    - generic [ref=e287]: Backlog
+                    - generic [ref=e289]: "0"
+                  - generic [ref=e290] [cursor=pointer]:
+                    - generic [ref=e291]: To Do
+                    - generic [ref=e293]: "0"
+                  - generic [ref=e294] [cursor=pointer]:
+                    - generic [ref=e295]: In Progress
+                    - generic [ref=e297]: "0"
+                  - generic [ref=e298] [cursor=pointer]:
+                    - generic [ref=e299]: On Hold
+                    - generic [ref=e301]: "0"
+                  - generic [ref=e302] [cursor=pointer]:
+                    - generic [ref=e303]: Scheduled
+                    - generic [ref=e305]: "0"
+                  - generic [ref=e306] [cursor=pointer]:
+                    - generic [ref=e307]: QA Review
+                    - generic [ref=e309]: "0"
+                  - generic [ref=e310] [cursor=pointer]:
+                    - generic [ref=e311]: Done
+                    - generic [ref=e313]: "0"
+                  - generic [ref=e314] [cursor=pointer]:
+                    - generic [ref=e315]: Cancelled
+                    - generic [ref=e317]: "0"
+              - generic [ref=e318]:
+                - generic [ref=e319]:
+                  - heading "Avg. Resolution Time" [level=3] [ref=e320]
+                  - link "View all" [ref=e321] [cursor=pointer]:
+                    - /url: /maintenance/work-orders?status=DONE
+                    - text: View all
+                    - img [ref=e322]
+                - generic [ref=e324]:
+                  - img [ref=e325]
+                  - paragraph [ref=e356]: No completed tickets yet
+                  - paragraph [ref=e357]: Resolution time will be tracked once tickets are marked done.
+              - generic [ref=e358]:
+                - heading "Tickets by Campus" [level=3] [ref=e360]
+                - generic [ref=e361]: No campus data available
+            - generic [ref=e362]:
+              - generic [ref=e363]:
+                - generic [ref=e364]:
+                  - heading "Urgent / Overdue Alerts" [level=3] [ref=e365]
+                  - link "View all" [ref=e366] [cursor=pointer]:
+                    - /url: /maintenance/work-orders?priority=URGENT
+                    - text: View all
+                    - img [ref=e367]
+                - generic [ref=e369]:
+                  - img [ref=e371]
+                  - paragraph [ref=e374]: No urgent alerts
+                  - paragraph [ref=e375]: Overdue and high-priority tickets will appear here.
+              - generic [ref=e376]:
+                - generic [ref=e377]:
+                  - heading "Unassigned Tickets" [level=3] [ref=e378]
+                  - link "View all" [ref=e379] [cursor=pointer]:
+                    - /url: /maintenance/work-orders?unassigned=true
+                    - text: View all
+                    - img [ref=e380]
+                - generic [ref=e382]:
+                  - img [ref=e383]
+                  - paragraph [ref=e414]: All assigned
+                  - paragraph [ref=e415]: No unassigned active tickets — great work!
+              - generic [ref=e416]:
+                - generic [ref=e417]:
+                  - heading "PM Calendar Preview" [level=3] [ref=e418]
+                  - generic [ref=e419]: —
+                - generic [ref=e420]:
+                  - img [ref=e421]
+                  - paragraph [ref=e452]: No PM schedules configured
+                  - paragraph [ref=e453]: Preventive maintenance schedules will appear here once configured.
+          - generic [ref=e454]:
+            - generic [ref=e455]:
+              - generic [ref=e456]:
+                - heading "Cost Summary" [level=3] [ref=e457]
+                - generic [ref=e458]: —
+              - generic [ref=e459]:
+                - img [ref=e460]
+                - paragraph [ref=e491]: No cost data yet
+                - paragraph [ref=e492]: Labor and material costs will be tracked here once tickets are completed.
+            - generic [ref=e493]:
+              - generic [ref=e494]:
+                - heading "Compliance Status" [level=3] [ref=e495]
+                - generic [ref=e496]: —
+              - generic [ref=e497]:
+                - img [ref=e498]
+                - paragraph [ref=e529]: No compliance domains configured
+                - paragraph [ref=e530]: Compliance tracking domains will appear here once configured.
+  - button "Open AI Assistant" [ref=e196] [cursor=pointer]:
+    - img [ref=e198]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e205] [cursor=pointer]:
+    - img [ref=e206]
+  - alert [ref=e209]

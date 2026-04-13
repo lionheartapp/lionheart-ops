@@ -134,7 +134,7 @@ async function loadRelevantFacts(
       if (queryEmbedding.length > 0) {
         const similar = await searchSimilar('UserMemoryFact', queryEmbedding, {
           limit: 10,
-          filters: `"userId" = '${userId.replace(/'/g, "''")}'`,
+          userId,
         })
 
         if (similar.length > 0) {

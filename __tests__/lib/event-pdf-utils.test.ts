@@ -77,7 +77,7 @@ describe('generateBusManifest', () => {
       groups: [{ name: 'Bus A', passengers: [{ name: 'Alice', grade: '10', medicalFlags: true }] }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('Medical'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('Medical'))).toBe(true)
   })
 })
 
@@ -96,7 +96,7 @@ describe('generateCabinRoster', () => {
       }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('Ms. Smith'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('Ms. Smith'))).toBe(true)
   })
 
   it('adds page per cabin', () => {
@@ -124,7 +124,7 @@ describe('generateMedicalSummary', () => {
       participants: [{ name: 'Alice', allergies: 'Peanuts', medications: null, medicalNotes: null, emergencyName: 'Jane', emergencyPhone: '555-1234' }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('FERPA'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('FERPA'))).toBe(true)
   })
 
   it('renders participant allergies', () => {
@@ -135,7 +135,7 @@ describe('generateMedicalSummary', () => {
       participants: [{ name: 'Alice', allergies: 'Peanuts', medications: null, medicalNotes: null, emergencyName: null, emergencyPhone: null }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('Peanuts'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('Peanuts'))).toBe(true)
   })
 })
 
@@ -156,8 +156,8 @@ describe('generateEmergencyContacts', () => {
       }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('Jane Doe'))).toBe(true)
-    expect(textCalls.some((t: string) => t.includes('555-0000'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('Jane Doe'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('555-0000'))).toBe(true)
   })
 })
 
@@ -177,7 +177,7 @@ describe('generateActivityRoster', () => {
       }],
     })
     const textCalls = doc.text.mock.calls.map((c: unknown[]) => c[0])
-    expect(textCalls.some((t: string) => t.includes('2:00 PM'))).toBe(true)
+    expect(textCalls.some((t) => typeof t === 'string' && t.includes('2:00 PM'))).toBe(true)
   })
 
   it('adds page per activity', () => {

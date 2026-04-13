@@ -10,6 +10,20 @@ import { GoogleGenAI } from '@google/genai'
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
+/** Allowlisted table names that have an `embedding` column. */
+const EMBEDDING_TABLES = new Set([
+  'Ticket',
+  'CalendarEvent',
+  'InventoryItem',
+  'ConversationMessage',
+  'UserMemoryFact',
+])
+
+function assertValidTableName(tableName: string): void {
+  if (!EMBEDDING_TABLES.has(tableName)) {
+    throw new Error(`Invalid embedding table: ${tableName}`)
+  }
+}
 
 const log = logger.child({ service: 'embeddingService' })
 // Lazy initialization flag — avoid re-running extension/index creation
@@ -88,6 +102,7 @@ export async function storeEmbedding(
   embedding: number[]
 ): Promise<void> {
   if (embedding.length === 0) return
+  assertValidTableName(tableName)
 
   await ensurePgvector()
 
@@ -109,10 +124,14 @@ export async function searchSimilar(
   opts: {
     limit?: number
     orgId?: string
-    filters?: string
+    /** Only return records created after this date */
+    createdAfter?: Date
+    /** Filter by userId (for user-scoped tables like UserMemoryFact) */
+    userId?: string
   } = {}
 ): Promise<Array<{ id: string; similarity: number }>> {
   if (queryEmbedding.length === 0) return []
+  assertValidTableName(tableName)
 
   await ensurePgvector()
 
@@ -134,8 +153,16 @@ export async function searchSimilar(
     paramIndex++
   }
 
-  if (opts.filters) {
-    sql += ` AND ${opts.filters}`
+  if (opts.userId) {
+    sql += ` AND "userId" = $${paramIndex}`
+    params.push(opts.userId)
+    paramIndex++
+  }
+
+  if (opts.createdAfter) {
+    sql += ` AND "createdAt" > $${paramIndex}`
+    params.push(opts.createdAfter)
+    paramIndex++
   }
 
   sql += ` ORDER BY embedding <=> $1::vector LIMIT $${paramIndex}`

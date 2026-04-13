@@ -1,0 +1,10 @@
+{
+  "interfaceFontSize": 14,
+  "strictLineBreaks": false,
+  "showLineNumber": true,
+  "defaultViewMode": "preview",
+  "livePreview": true,
+  "showFrontmatter": false,
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest"
+}

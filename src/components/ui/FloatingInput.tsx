@@ -222,7 +222,6 @@ export function FloatingDropdown({
         type="button"
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-required={required || undefined}
         disabled={disabled}
         onClick={() => !disabled && setOpen((p) => !p)}
         onKeyDown={handleKeyDown}

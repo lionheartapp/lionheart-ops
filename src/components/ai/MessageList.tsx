@@ -226,7 +226,7 @@ export default function MessageList({
   }, [])
 
   return (
-    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)' }}>
+    <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #fdfcfb 0%, #f9f8f6 100%)' }}>
       {/* Empty state — animated orb */}
       {conversation.length === 0 && !isLoading && (
         <motion.div

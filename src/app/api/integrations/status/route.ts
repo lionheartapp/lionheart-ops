@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import * as planningCenterService from '@/lib/services/integrations/planningCenterService'
@@ -14,8 +16,15 @@ export async function GET(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
     const ctx = await getUserContext(req)
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
+      // Org info — needed to conditionally show faith-based integrations
+      const org = await rawPrisma.organization.findUnique({
+        where: { id: orgId },
+        select: { institutionType: true },
+      })
+
       // Planning Center — org-level
       const pcoCred = await rawPrisma.integrationCredential.findFirst({
         where: { organizationId: orgId, provider: 'planning_center', isActive: true },
@@ -41,6 +50,7 @@ export async function GET(req: NextRequest) {
       const twilioConfig = twilioCred?.config as Record<string, string> | null
 
       return NextResponse.json(ok({
+        institutionType: org?.institutionType || 'PUBLIC',
         planningCenter: {
           provider: 'planning_center',
           isAvailable: planningCenterService.isAvailable(),

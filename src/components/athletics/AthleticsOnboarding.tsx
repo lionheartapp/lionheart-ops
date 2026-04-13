@@ -253,7 +253,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
           <Dribbble className="w-7 h-7 text-white" />
         </div>
         <h2 className="text-2xl font-semibold text-slate-900 mb-2">Set up your athletics program</h2>
-        <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+        <p className="text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">
           Four quick steps to get your dashboard, teams, and schedules ready to go.
         </p>
       </div>
@@ -261,10 +261,10 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
       {/* ── Progress bar ────────────────────────────────────────── */}
       <div className="mb-10 px-1">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="text-xs font-medium text-slate-500">{Math.min(completedCount, requiredSteps)} of {requiredSteps} steps</span>
+          <span className="text-xs font-medium text-stone-500">{Math.min(completedCount, requiredSteps)} of {requiredSteps} steps</span>
           <span className="text-xs font-semibold text-slate-900">{progressPercent}%</span>
         </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
             initial={{ width: 0 }}
@@ -311,12 +311,12 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
                 }}
                 className={`w-full flex items-center gap-5 px-5 py-4 rounded-2xl text-left transition-all duration-200 ${
                   isExpanded
-                    ? 'bg-white border border-slate-200 shadow-md shadow-slate-200/60'
+                    ? 'bg-white border border-stone-200 shadow-md shadow-slate-200/60'
                     : isCompleted
-                      ? 'bg-white border border-slate-100 hover:border-slate-200'
+                      ? 'bg-white border border-stone-100 hover:border-stone-200'
                       : isLocked
-                        ? 'bg-slate-50/60 border border-transparent opacity-40 cursor-not-allowed'
-                        : 'bg-white border border-slate-100 hover:border-slate-200 hover:shadow-md hover:shadow-slate-200/40 cursor-pointer'
+                        ? 'bg-stone-50/60 border border-transparent opacity-40 cursor-not-allowed'
+                        : 'bg-white border border-stone-100 hover:border-stone-200 hover:shadow-md hover:shadow-slate-200/40 cursor-pointer'
                 }`}
               >
                 {/* Step icon circle */}
@@ -325,7 +325,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
                     ? 'bg-emerald-50 text-emerald-500'
                     : isExpanded
                       ? 'bg-slate-900 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-400'
+                      : 'bg-stone-100 text-stone-400'
                 }`}>
                   {isCompleted ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <StepIcon className="w-5 h-5" />}
                 </div>
@@ -333,16 +333,16 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
                 {/* Label + meta */}
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm font-semibold leading-tight flex items-center gap-2 ${
-                    isCompleted ? 'text-slate-400' : 'text-slate-900'
+                    isCompleted ? 'text-stone-400' : 'text-slate-900'
                   }`}>
                     {step.label}
                     {step.optional && (
-                      <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md uppercase tracking-wide">
+                      <span className="text-[10px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-md uppercase tracking-wide">
                         Optional
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-400 mt-1 leading-snug">
+                  <div className="text-xs text-stone-400 mt-1 leading-snug">
                     {isCompleted && step.key === 'sport' && sports[0] ? (
                       <span className="flex items-center gap-1.5">
                         <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: sports[0].color }} />
@@ -360,7 +360,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
 
                 {/* Expand indicator */}
                 {!isLocked && (
-                  <div className={`flex-shrink-0 transition-transform duration-200 text-slate-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                  <div className={`flex-shrink-0 transition-transform duration-200 text-stone-300 ${isExpanded ? 'rotate-180' : ''}`}>
                     <ChevronDown className="w-5 h-5" />
                   </div>
                 )}
@@ -437,7 +437,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
             Go to Athletics Dashboard
             <ArrowRight className="w-4 h-4" />
           </button>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-stone-400">
             You can schedule games, add roster players, and more from there.
           </p>
         </motion.div>
@@ -451,7 +451,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
           <button
             type="button"
             onClick={onComplete}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-stone-600 transition-colors"
           >
             Skip setup and explore on your own
             <ArrowRight className="w-3.5 h-3.5" />
@@ -487,7 +487,7 @@ function SportForm({ name, setName, color, setColor, seasonType, setSeasonType, 
         options={SEASON_TYPES}
       />
       <div>
-        <label className="block text-[10px] font-semibold text-slate-400 mb-2 uppercase tracking-widest">Team color</label>
+        <label className="block text-[10px] font-semibold text-stone-400 mb-2 uppercase tracking-wide">Team color</label>
         <div className="flex gap-2.5">
           {COLOR_PRESETS.map((c) => (
             <button
@@ -520,8 +520,8 @@ function SeasonForm({ name, setName, start, setStart, end, setEnd, sportName, sa
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
-        For <span className="font-semibold text-slate-700">{sportName}</span>
+      <p className="text-xs text-stone-500">
+        For <span className="font-semibold text-stone-700">{sportName}</span>
       </p>
       <FloatingInput
         id="onboard-season-name"
@@ -561,8 +561,8 @@ function TeamForm({ name, setName, level, setLevel, sportName, seasonName, savin
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
-        For <span className="font-semibold text-slate-700">{sportName}</span> · <span className="font-semibold text-slate-700">{seasonName}</span>
+      <p className="text-xs text-stone-500">
+        For <span className="font-semibold text-stone-700">{sportName}</span> · <span className="font-semibold text-stone-700">{seasonName}</span>
       </p>
       <FloatingInput
         id="onboard-team-name"
@@ -595,8 +595,8 @@ function GameForm({ opponent, setOpponent, homeAway, setHomeAway, start, setStar
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">
-        For <span className="font-semibold text-slate-700">{teamName}</span>
+      <p className="text-xs text-stone-500">
+        For <span className="font-semibold text-stone-700">{teamName}</span>
       </p>
       <FloatingInput
         id="onboard-opponent"

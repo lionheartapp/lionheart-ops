@@ -18,10 +18,12 @@ const mocks = vi.hoisted(() => ({
   }),
   verifyPlatformAuthToken: vi.fn().mockResolvedValue(null),
   publicApiRateLimiter: {
+    hit: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, retryAfterMs: 0 }),
     increment: vi.fn(),
     check: vi.fn().mockReturnValue({ allowed: true }),
   },
   signupRateLimiter: {
+    hit: vi.fn().mockResolvedValue({ allowed: true, remaining: 4, retryAfterMs: 0 }),
     increment: vi.fn(),
     check: vi.fn().mockReturnValue({ allowed: true }),
   },

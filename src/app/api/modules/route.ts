@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     const msg = error instanceof Error ? error.message : ''
-    if (msg.includes('Permission denied')) {
+    if ((msg.includes('Insufficient permissions') || msg.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', msg), { status: 403 })
     }
     if (msg.includes('Missing') || msg.includes('Unauthorized') || msg.includes('Invalid token') || msg.includes('x-org-id')) {
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     log.error({ err: error }, 'Failed to toggle module')

@@ -149,7 +149,7 @@ export default function DashboardLayout({
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(160, 145, 120, 0.08)' }} />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px]" style={{ backgroundColor: 'rgba(140, 130, 110, 0.06)' }} />
           </div>
-          <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-14 pr-4 sm:px-10 flex flex-col min-h-0 h-full">
+          <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-4 pr-4 sm:px-10 flex flex-col min-h-0 h-full">
             {children}
           </div>
         </main>

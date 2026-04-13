@@ -65,8 +65,8 @@ export default function ConversationSidebar({
       if (json.ok && Array.isArray(json.data?.conversations)) {
         setConversations(json.data.conversations)
       }
-    } catch {
-      // silent
+    } catch (error: unknown) {
+      console.error('Failed to fetch conversations:', error)
     } finally {
       setIsLoading(false)
     }
@@ -96,8 +96,8 @@ export default function ConversationSidebar({
         method: 'DELETE',
         credentials: 'include',
       })
-    } catch {
-      // silent — optimistic removal is fine
+    } catch (error: unknown) {
+      console.error('Failed to delete conversation:', error)
     } finally {
       setDeletingId(null)
     }

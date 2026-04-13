@@ -208,6 +208,7 @@ export async function createBellSchedule(data: {
   name: string
   schoolId?: string
   isDefault?: boolean
+  daysOfWeek?: string[]
   periods?: Array<{ name: string; startTime: string; endTime: string; sortOrder?: number }>
 }) {
   if (data.isDefault) {
@@ -221,6 +222,7 @@ export async function createBellSchedule(data: {
       name: data.name,
       schoolId: data.schoolId || null,
       isDefault: data.isDefault ?? false,
+      daysOfWeek: data.daysOfWeek ?? [],
       periods: data.periods?.length
         ? { create: data.periods.map((p, i) => ({ ...p, sortOrder: p.sortOrder ?? i })) }
         : undefined,
@@ -236,6 +238,7 @@ export async function updateBellSchedule(id: string, data: {
   name?: string
   schoolId?: string | null
   isDefault?: boolean
+  daysOfWeek?: string[]
   periods?: Array<{ id?: string; name: string; startTime: string; endTime: string; sortOrder?: number }>
 }) {
   if (data.isDefault) {
@@ -357,6 +360,7 @@ export async function getSpecialDays(filters?: {
 
 export async function createSpecialDay(data: {
   date: Date
+  endDate?: Date | null
   name: string
   specialDayType: string
   schoolId?: string
@@ -366,6 +370,7 @@ export async function createSpecialDay(data: {
   return db.specialDay.create({
     data: {
       date: data.date,
+      endDate: data.endDate || null,
       name: data.name,
       specialDayType: data.specialDayType,
       schoolId: data.schoolId || null,

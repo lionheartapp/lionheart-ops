@@ -1,0 +1,135 @@
+- generic [ref=e1]:
+  - generic [ref=e43]:
+    - generic [ref=e44]:
+      - complementary "Sidebar navigation" [ref=e45]:
+        - generic [ref=e46]:
+          - img "Demo Academy logo" [ref=e49]
+          - button "Search... ⌘K" [ref=e51] [cursor=pointer]:
+            - img [ref=e52]
+            - generic [ref=e55]: Search...
+            - generic [ref=e56]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e57]:
+            - list [ref=e58]:
+              - listitem [ref=e59]:
+                - link "Dashboard" [ref=e60] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e61]
+                  - generic [ref=e64]: Dashboard
+              - listitem [ref=e65]:
+                - button "Events" [ref=e66] [cursor=pointer]:
+                  - img [ref=e67]
+                  - generic [ref=e71]: Events
+            - generic [ref=e72]: Support
+            - list [ref=e73]:
+              - listitem [ref=e74]:
+                - button "Expand A/V Production" [ref=e75] [cursor=pointer]:
+                  - img [ref=e76]
+                  - generic [ref=e80]: A/V Production
+                  - img [ref=e82]
+                - generic [ref=e84]:
+                  - link "Inventory" [ref=e85] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e86]: Inventory
+                  - link "Event Approvals" [ref=e87] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e88]: Event Approvals
+          - generic [ref=e89]:
+            - generic [ref=e92]:
+              - generic [ref=e93]: A
+              - generic [ref=e94]:
+                - paragraph [ref=e95]: Admin User
+                - paragraph [ref=e96]: admin@demo.com
+              - button "User menu" [ref=e97] [cursor=pointer]:
+                - img [ref=e98]
+            - img "Lionheart" [ref=e104]
+      - generic [ref=e106]:
+        - heading [level=2] [ref=e108]: Settings
+        - generic [ref=e109]:
+          - paragraph [ref=e110]: General
+          - navigation [ref=e111]:
+            - button [ref=e112] [cursor=pointer]:
+              - img [ref=e113]
+              - text: My Profile
+        - generic [ref=e116]:
+          - paragraph [ref=e117]: Workspace
+          - navigation [ref=e118]:
+            - button [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+              - text: School Information
+            - button [ref=e125] [cursor=pointer]:
+              - img [ref=e126]
+              - text: Roles
+            - button [ref=e128] [cursor=pointer]:
+              - img [ref=e129]
+              - text: Teams
+            - button [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+              - text: Members
+            - button [ref=e147] [cursor=pointer]:
+              - img [ref=e148]
+              - text: Campus
+            - button [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+              - text: Billing
+            - button [ref=e155] [cursor=pointer]:
+              - img [ref=e156]
+              - text: Add-ons
+            - button [ref=e158] [cursor=pointer]:
+              - img [ref=e159]
+              - text: Integrations
+            - button [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+              - text: Activity Log
+    - main [ref=e167]:
+      - generic [ref=e169]:
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - paragraph [ref=e172]: Monday, April 6
+            - heading "Good evening, Admin" [level=1] [ref=e173]
+          - generic [ref=e174]:
+            - button "Notifications" [ref=e175] [cursor=pointer]:
+              - img [ref=e178]
+            - button "Create new request" [ref=e182] [cursor=pointer]:
+              - img [ref=e183]
+              - text: Create
+              - img [ref=e184]
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - heading "Upcoming Events" [level=2] [ref=e190]
+              - generic [ref=e191]:
+                - generic [ref=e192]:
+                  - paragraph [ref=e193]: "0"
+                  - paragraph [ref=e194]: Events Today
+                - generic [ref=e195]:
+                  - paragraph [ref=e196]: "0"
+                  - paragraph [ref=e197]: Next 2 Weeks
+            - generic [ref=e200]:
+              - img [ref=e201]
+              - paragraph [ref=e203]: No upcoming events
+              - paragraph [ref=e204]: Events on any calendar will appear here.
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - generic [ref=e208]:
+                - img [ref=e210]
+                - heading "Leo" [level=3] [ref=e214]
+              - button "Conversation history" [ref=e216] [cursor=pointer]:
+                - img [ref=e217]
+            - generic [ref=e222]:
+              - paragraph [ref=e235]: Hi! I'm Leo, your AI Assistant
+              - paragraph [ref=e236]: Ask me anything about your school — tickets, events, campus info, or analytics.
+            - generic [ref=e237]:
+              - generic [ref=e238]:
+                - button "Attach image" [ref=e239] [cursor=pointer]:
+                  - img [ref=e240]
+                - textbox "Ask anything..." [active] [ref=e245]
+                - button "Start voice input" [ref=e246] [cursor=pointer]:
+                  - img [ref=e247]
+                - button "Send message" [disabled] [ref=e250] [cursor=pointer]:
+                  - img [ref=e251]
+              - paragraph [ref=e254]: Shift+Enter for new line · Paste or drop images
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e37] [cursor=pointer]:
+    - img [ref=e38]
+  - alert [ref=e41]

@@ -1,4 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Planning Center">
-  <rect width="200" height="200" rx="44" fill="#4A90E2"/>
-  <path d="M60 44h52c24.3 0 44 19.7 44 44s-19.7 44-44 44H94v24c0 6.6-5.4 12-12 12s-12-5.4-12-12V56c0-6.6 5.4-12 12-12zm34 28v32h18c8.8 0 16-7.2 16-16s-7.2-16-16-16H94z" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Planning Center Services">
+  <defs>
+    <linearGradient id="pco-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2BC4AD"/>
+      <stop offset="100%" stop-color="#25A896"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#pco-grad)"/>
+  <!-- Musical note / services icon representing PCO Services -->
+  <g fill="white">
+    <rect x="72" y="28" width="6" height="52" rx="3"/>
+    <rect x="50" y="36" width="6" height="44" rx="3"/>
+    <rect x="50" y="28" width="28" height="6" rx="3"/>
+    <circle cx="44" cy="80" r="12"/>
+    <circle cx="66" cy="80" r="12"/>
+  </g>
 </svg>

@@ -453,7 +453,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-slate-900 text-sm">{role.name}</span>
                       {role.isSystem && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded">System</span>
+                        <span className="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide bg-slate-50 text-slate-400 ring-1 ring-slate-200 rounded-full">System</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">

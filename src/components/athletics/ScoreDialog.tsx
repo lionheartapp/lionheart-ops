@@ -95,11 +95,11 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
           role="dialog"
           aria-modal="true"
           aria-labelledby="score-dialog-title"
-          className="relative w-full max-w-sm transform overflow-hidden rounded-xl border border-slate-200 bg-white shadow-heavy transition-all"
+          className="relative w-full max-w-sm transform overflow-hidden rounded-xl border border-stone-200 bg-white shadow-heavy transition-all"
         >
           <button
             onClick={onClose}
-            className="absolute right-3 top-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+            className="absolute right-3 top-3 p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -109,30 +109,30 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
             <h3 id="score-dialog-title" className="text-lg font-semibold text-slate-900 mb-1">
               Enter Score
             </h3>
-            <p className="text-sm text-slate-500 mb-5">
+            <p className="text-sm text-stone-500 mb-5">
               {game.athleticTeam?.name} vs {game.opponentName}
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">Home Score</label>
+                <label className="block text-xs font-medium text-stone-500 mb-1.5">Home Score</label>
                 <input
                   type="number"
                   min="0"
                   value={homeScore}
                   onChange={(e) => setHomeScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
+                  className="w-full px-3 py-2.5 text-sm border border-stone-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">Away Score</label>
+                <label className="block text-xs font-medium text-stone-500 mb-1.5">Away Score</label>
                 <input
                   type="number"
                   min="0"
                   value={awayScore}
                   onChange={(e) => setAwayScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
+                  className="w-full px-3 py-2.5 text-sm border border-stone-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
@@ -143,9 +143,9 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
                 type="checkbox"
                 checked={isFinal}
                 onChange={(e) => setIsFinal(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
+                className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
               />
-              <span className="text-sm text-slate-700">Mark as final</span>
+              <span className="text-sm text-stone-700">Mark as final</span>
             </label>
 
             {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -155,7 +155,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -173,7 +173,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
               <button
                 type="button"
                 onClick={() => { onClose(); onOpenPlayerStats(game) }}
-                className="w-full mt-2 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition text-center"
+                className="w-full mt-2 py-2 text-sm font-medium text-stone-600 hover:text-slate-900 hover:bg-stone-50 rounded-lg transition text-center cursor-pointer"
               >
                 Enter Player Stats
               </button>

@@ -318,7 +318,7 @@ export default function Sidebar({
       setEventsOpen(true); setSettingsOpen(false); setAthleticsOpen(false); setCalendarOpen(false)
       router.push('/events')
     } else {
-      setEventsOpen(false); router.push('/dashboard')
+      setEventsOpen(false)
     }
   }, [eventsOpen, router])
 
@@ -327,7 +327,7 @@ export default function Sidebar({
       setAthleticsOpen(true); setSettingsOpen(false); setCalendarOpen(false); setEventsOpen(false)
       router.push('/athletics')
     } else {
-      setAthleticsOpen(false); router.push('/dashboard')
+      setAthleticsOpen(false)
     }
   }, [athleticsOpen, router])
 
@@ -336,7 +336,7 @@ export default function Sidebar({
       setSettingsOpen(true); setCalendarOpen(false); setAthleticsOpen(false); setEventsOpen(false)
       router.push('/settings')
     } else {
-      setSettingsOpen(false); router.push('/dashboard')
+      setSettingsOpen(false)
     }
   }, [settingsOpen, router])
 

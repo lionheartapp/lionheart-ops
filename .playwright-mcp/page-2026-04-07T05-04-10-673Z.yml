@@ -1,0 +1,132 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - complementary "Sidebar navigation" [ref=e5]:
+        - generic [ref=e6]:
+          - img "Demo Academy logo" [ref=e9]
+          - button "Search... ⌘K" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+            - generic [ref=e15]: Search...
+            - generic [ref=e16]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e17]:
+            - list [ref=e18]:
+              - listitem [ref=e19]:
+                - link "Dashboard" [ref=e20] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e21]
+                  - generic [ref=e24]: Dashboard
+              - listitem [ref=e25]:
+                - button "Events" [ref=e26] [cursor=pointer]:
+                  - img [ref=e27]
+                  - generic [ref=e31]: Events
+            - generic [ref=e32]: Support
+            - list [ref=e33]:
+              - listitem [ref=e34]:
+                - button "Expand maintenance" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: Maintenance
+                  - img [ref=e40]
+                - generic [ref=e42]:
+                  - link "Maintenance Hub" [ref=e43] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e44]: Maintenance Hub
+                  - link "Work Orders" [ref=e45] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e46]: Work Orders
+                  - link "Event Approvals" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e48]: Event Approvals
+                  - link "Inventory" [ref=e49] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e50]: Inventory
+                  - link "Assets" [ref=e51] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e52]: Assets
+                  - link "Knowledge Base" [ref=e53] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e54]: Knowledge Base
+              - listitem [ref=e55]:
+                - button "Expand IT Help Desk" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - generic [ref=e59]: IT Help Desk
+                  - img [ref=e61]
+                - generic [ref=e63]:
+                  - link "Help Desk" [ref=e64] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e65]: Help Desk
+                  - link "Devices" [ref=e66] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e67]: Devices
+                  - link "Lifecycle" [ref=e68] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e69]: Lifecycle
+                  - link "Inventory" [ref=e70] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e71]: Inventory
+              - listitem [ref=e72]:
+                - button "Expand A/V Production" [ref=e73] [cursor=pointer]:
+                  - img [ref=e74]
+                  - generic [ref=e78]: A/V Production
+                  - img [ref=e80]
+                - generic [ref=e82]:
+                  - link "Inventory" [ref=e83] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e84]: Inventory
+                  - link "Event Approvals" [ref=e85] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e86]: Event Approvals
+          - generic [ref=e87]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: A
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: Admin User
+                - paragraph [ref=e94]: admin@demo.com
+              - button "User menu" [ref=e95] [cursor=pointer]:
+                - img [ref=e96]
+            - img "Lionheart" [ref=e102]
+      - complementary "Events navigation" [ref=e103]:
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - img [ref=e107]
+            - heading "Events" [level=2] [ref=e111]
+          - navigation "Events navigation" [ref=e113]:
+            - link "Events Hub" [ref=e114] [cursor=pointer]:
+              - /url: /events
+              - img [ref=e115]
+              - text: Events Hub
+            - link "Calendar" [ref=e118] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e119]
+              - text: Calendar
+            - link "Planning" [ref=e121] [cursor=pointer]:
+              - /url: /planning
+              - img [ref=e122]
+              - text: Planning
+            - link "Create with Leo" [ref=e125] [cursor=pointer]:
+              - /url: /events/new/ai
+              - img [ref=e126]
+              - text: Create with Leo
+    - main [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e134]:
+          - heading "Events Hub" [level=1] [ref=e135]
+          - paragraph [ref=e136]: Manage all your school events from planning to completion
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - heading "All Events" [level=2] [ref=e152]
+            - button "Event" [ref=e154] [cursor=pointer]:
+              - img [ref=e155]
+              - text: Event
+              - img [ref=e156]
+          - generic [ref=e158]:
+            - button "All" [ref=e159] [cursor=pointer]
+            - button "Draft" [ref=e160] [cursor=pointer]
+            - button "Pending" [ref=e161] [cursor=pointer]
+            - button "Confirmed" [ref=e162] [cursor=pointer]
+            - button "In Progress" [ref=e163] [cursor=pointer]
+            - button "Completed" [ref=e164] [cursor=pointer]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e198] [cursor=pointer]:
+    - img [ref=e199]
+  - alert [ref=e202]

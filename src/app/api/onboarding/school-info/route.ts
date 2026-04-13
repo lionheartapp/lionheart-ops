@@ -13,6 +13,8 @@ import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail, isAuthError } from '@/lib/api-response'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import { geocodeAddress } from '@/lib/services/geocodingService'
 import { logger } from '@/lib/logger'
 
@@ -60,8 +62,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    await getUserContext(req)
+    const ctx = await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     const body = await req.json()
     const validation = UpdateSchoolInfoSchema.safeParse(body)
@@ -118,6 +121,9 @@ export async function PATCH(req: NextRequest) {
   } catch (error) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     logger.error({ error: String(error) }, 'Update school info error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update school info'), { status: 500 })

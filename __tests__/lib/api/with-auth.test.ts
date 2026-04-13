@@ -42,8 +42,13 @@ vi.mock('@/lib/auth/permissions', () => ({
 
 vi.mock('@/lib/logger', () => ({
   logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    fatal: vi.fn(),
     child: vi.fn().mockReturnValue({
-      info: vi.fn(), warn: vi.fn(), error: vi.fn(),
+      info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), fatal: vi.fn(),
     }),
   },
 }))

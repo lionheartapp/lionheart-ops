@@ -123,7 +123,9 @@ function EventBufferSection() {
         setBufferMinutes(data.eventBufferMinutes)
         setSavedValue(data.eventBufferMinutes)
       })
-      .catch(() => {})
+      .catch((error: unknown) => {
+        console.error('Failed to fetch organization settings:', error)
+      })
   }, [])
 
   const handleSave = async () => {
@@ -142,8 +144,8 @@ function EventBufferSection() {
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
       }
-    } catch {
-      // silently fail
+    } catch (error: unknown) {
+      console.error('Failed to save event buffer setting:', error)
     }
     setSaving(false)
   }

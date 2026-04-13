@@ -207,7 +207,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {/* Day headers */}
       <div className="grid grid-cols-7" role="row">
         {dayNames.map((day) => (
-          <div key={day} role="columnheader" className="py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-widest border-b border-slate-200">
+          <div key={day} role="columnheader" className="py-3 text-center text-xs font-medium text-stone-400 uppercase tracking-wide border-b border-stone-200/60">
             {day}
           </div>
         ))}
@@ -243,8 +243,8 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                   onClick={() => onDateClick(date)}
                   onKeyDown={(e) => handleGridKeyDown(e, date)}
                   onFocus={() => setFocusedDate(date)}
-                  className={`border-r border-b border-slate-100 last:border-r-0 p-2 cursor-pointer hover:bg-slate-50/50 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
-                    !isCurrentMonth ? 'bg-slate-50/40' : ''
+                  className={`border-r border-b border-stone-100/50 last:border-r-0 p-2 cursor-pointer hover:bg-stone-50/60 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                    !isCurrentMonth ? 'bg-stone-50/30' : ''
                   }`}
                 >
                   {/* Special day banner */}
@@ -266,7 +266,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                     <span
                       className={`w-7 h-7 flex items-center justify-center text-sm font-medium rounded-full ${
                         today
-                          ? 'bg-primary-600 text-white'
+                          ? 'bg-slate-900 text-white'
                           : isCurrentMonth
                             ? 'text-slate-900'
                             : 'text-slate-400'
@@ -298,7 +298,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             onEventClick(event)
                           }}
                           aria-label={getEventAriaLabel(event)}
-                          className="w-full text-left flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium text-white truncate hover:brightness-90 transition-[filter]"
+                          className="w-full text-left flex items-center gap-1 px-1.5 py-[3px] rounded-md text-[11px] font-medium text-white truncate hover:brightness-90 transition-[filter]"
                           style={{ backgroundColor: getEventColor(event) }}
                         >
                           <CampusShapeIndicator
@@ -317,7 +317,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             onEventClick(event)
                           }}
                           aria-label={getEventAriaLabel(event)}
-                          className="w-full text-left flex items-center gap-1.5 px-1.5 py-0.5 rounded-md text-xs truncate hover:brightness-95 transition-[filter]"
+                          className="w-full text-left flex items-center gap-1.5 px-1.5 py-[3px] rounded-md text-[11px] truncate hover:brightness-95 transition-[filter]"
                           style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event) }}
                         >
                           <CampusShapeIndicator
@@ -355,7 +355,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                     {moreCount > 0 && (
                       <button
                         onClick={(e) => handleMoreClick(e, date)}
-                        className="w-full text-left px-2 py-0.5 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                        className="w-full text-left px-2 py-0.5 text-xs font-medium text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-md transition-colors"
                       >
                         +{moreCount} more
                       </button>
@@ -374,7 +374,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {expandedDay && popoverPos && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          className="fixed z-50 w-72 max-h-80 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 p-3 space-y-1"
+          className="fixed z-50 w-72 max-h-80 overflow-y-auto bg-white rounded-xl shadow-xl border border-stone-200 p-3 space-y-1"
           style={{ top: popoverPos.top, left: popoverPos.left }}
         >
           {/* Header */}
@@ -411,7 +411,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                       setExpandedDay(null)
                       onEventClick(event)
                     }}
-                    className="w-full text-left flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs hover:bg-slate-50 transition-colors"
+                    className="w-full text-left flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs hover:bg-stone-50 transition-colors"
                   >
                     <CampusShapeIndicator
                       shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}

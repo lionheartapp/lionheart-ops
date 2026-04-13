@@ -274,7 +274,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
   return (
     <div>
       {/* View tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5 mb-5 w-fit">
+      <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1 mb-5 w-fit">
         {([
           { key: 'standings' as const, label: 'Standings', icon: Medal },
           { key: 'leaders' as const, label: 'Stat Leaders', icon: BarChart3 },
@@ -284,13 +284,13 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             key={key}
             type="button"
             onClick={() => setView(key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            className={`flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer min-w-[100px] ${
               view === key
                 ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-stone-500 hover:text-stone-700'
             }`}
           >
-            <Icon className="w-3.5 h-3.5" />
+            <Icon className="w-4 h-4" />
             {label}
           </button>
         ))}
@@ -313,47 +313,47 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           ) : standings.length === 0 ? (
             <div className="ui-glass p-8 text-center">
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-slate-700 mb-1">No standings data</h2>
-              <p className="text-sm text-slate-500 mb-3">
+              <h2 className="text-lg font-medium text-stone-700 mb-1">No standings data</h2>
+              <p className="text-sm text-stone-500 mb-3">
                 Standings update when games are marked as final with scores recorded.
               </p>
-              <p className="text-xs text-slate-400">
-                Go to the <span className="font-medium text-slate-600">Schedule</span> tab to score games and mark them final.
+              <p className="text-xs text-stone-400">
+                Go to the <span className="font-medium text-stone-600">Schedule</span> tab to score games and mark them final.
               </p>
             </div>
           ) : (
             <div className="ui-glass-table">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-100">
+                <table className="min-w-full divide-y divide-stone-100">
                   <thead>
-                    <tr className="bg-slate-50/50">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-10">Rank</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Team</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">W</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">L</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">T</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Win%</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">GP</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Roster</th>
+                    <tr className="bg-stone-50/50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider w-10">Rank</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Team</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider">W</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider">L</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider">T</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider hidden sm:table-cell">Win%</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider hidden sm:table-cell">GP</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider hidden md:table-cell">Roster</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-stone-50">
                     {standings.map((s, i) => (
-                      <tr key={s.teamId} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3 text-sm font-bold text-slate-400">{i + 1}</td>
+                      <tr key={s.teamId} className="hover:bg-stone-50/50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-bold text-stone-400">{i + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <GlassSportTile sport={s.sport.name} color={s.sport.color} size="sm" />
                             <span className="text-sm font-medium text-slate-900">{s.teamName}</span>
-                            <span className="text-[10px] text-slate-400">{s.sport.name}</span>
+                            <span className="text-[10px] text-stone-400">{s.sport.name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-green-600">{s.wins}</td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-red-500">{s.losses}</td>
-                        <td className="px-4 py-3 text-sm text-center font-semibold text-slate-500">{s.ties}</td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-700 hidden sm:table-cell">{(s.winPct * 100).toFixed(0)}%</td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-500 hidden sm:table-cell">{s.gamesPlayed}</td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-500 hidden md:table-cell">{s.rosterCount}</td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-stone-500">{s.ties}</td>
+                        <td className="px-4 py-3 text-sm text-center text-stone-700 hidden sm:table-cell">{(s.winPct * 100).toFixed(0)}%</td>
+                        <td className="px-4 py-3 text-sm text-center text-stone-500 hidden sm:table-cell">{s.gamesPlayed}</td>
+                        <td className="px-4 py-3 text-sm text-center text-stone-500 hidden md:table-cell">{s.rosterCount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -382,22 +382,22 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           {!selectedSportId ? (
             <div className="ui-glass p-8 text-center">
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-slate-700 mb-1">Select a sport</h2>
-              <p className="text-sm text-slate-500">Choose a sport to see available stat categories</p>
+              <h2 className="text-lg font-medium text-stone-700 mb-1">Select a sport</h2>
+              <p className="text-sm text-stone-500">Choose a sport to see available stat categories</p>
             </div>
           ) : !selectedStatKey ? (
             <div className="ui-glass p-8 text-center">
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               {statConfigs.length === 0 ? (
                 <>
-                  <h2 className="text-lg font-medium text-slate-700 mb-1">No stat categories configured</h2>
-                  <p className="text-sm text-slate-500 mb-4">
+                  <h2 className="text-lg font-medium text-stone-700 mb-1">No stat categories configured</h2>
+                  <p className="text-sm text-stone-500 mb-4">
                     Set up stat categories for this sport first, then you can track player stats per game.
                   </p>
                   <button
                     type="button"
                     onClick={() => { setView('config'); setConfigSportId(selectedSportId) }}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-stone-700"
                   >
                     Go to Stat Config
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -405,8 +405,8 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                 </>
               ) : (
                 <>
-                  <h2 className="text-lg font-medium text-slate-700 mb-1">Select a stat category</h2>
-                  <p className="text-sm text-slate-500">Choose a category above to see the leaderboard</p>
+                  <h2 className="text-lg font-medium text-stone-700 mb-1">Select a stat category</h2>
+                  <p className="text-sm text-stone-500">Choose a category above to see the leaderboard</p>
                 </>
               )}
             </div>
@@ -415,44 +415,44 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           ) : leaders.length === 0 ? (
             <div className="ui-glass p-8 text-center">
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-slate-700 mb-1">No stats recorded yet</h2>
-              <p className="text-sm text-slate-500 mb-3">
+              <h2 className="text-lg font-medium text-stone-700 mb-1">No stats recorded yet</h2>
+              <p className="text-sm text-stone-500 mb-3">
                 Enter player stats after games to see leaders here.
               </p>
-              <p className="text-xs text-slate-400">
-                Go to <span className="font-medium text-slate-600">Schedule</span> tab, open a game, and select <span className="font-medium text-slate-600">Player Stats</span> to enter data.
+              <p className="text-xs text-stone-400">
+                Go to <span className="font-medium text-stone-600">Schedule</span> tab, open a game, and select <span className="font-medium text-stone-600">Player Stats</span> to enter data.
               </p>
             </div>
           ) : (
             <div className="ui-glass-table">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-100">
+                <table className="min-w-full divide-y divide-stone-100">
                   <thead>
-                    <tr className="bg-slate-50/50">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-10">Rank</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Player</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Team</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">GP</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg</th>
+                    <tr className="bg-stone-50/50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider w-10">Rank</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Player</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider hidden sm:table-cell">Team</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider">Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider hidden sm:table-cell">GP</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider">Avg</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-stone-50">
                     {leaders.map((l) => (
-                      <tr key={l.rosterId} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3 text-sm font-bold text-slate-400">{l.rank}</td>
+                      <tr key={l.rosterId} className="hover:bg-stone-50/50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-bold text-stone-400">{l.rank}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             {l.jerseyNumber && (
-                              <span className="text-xs font-bold text-slate-400">#{l.jerseyNumber}</span>
+                              <span className="text-xs font-bold text-stone-400">#{l.jerseyNumber}</span>
                             )}
                             <span className="text-sm font-medium text-slate-900">{l.playerName}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 hidden sm:table-cell">{l.team.name}</td>
+                        <td className="px-4 py-3 text-sm text-stone-600 hidden sm:table-cell">{l.team.name}</td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-slate-900">{l.total}</td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-500 hidden sm:table-cell">{l.gamesPlayed}</td>
-                        <td className="px-4 py-3 text-sm text-center text-slate-700">{l.average}</td>
+                        <td className="px-4 py-3 text-sm text-center text-stone-500 hidden sm:table-cell">{l.gamesPlayed}</td>
+                        <td className="px-4 py-3 text-sm text-center text-stone-700">{l.average}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -475,8 +475,8 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           {!configSportId ? (
             <div className="ui-glass p-8 text-center">
               <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-slate-700 mb-1">Select a sport</h2>
-              <p className="text-sm text-slate-500">Choose a sport to configure its stat categories</p>
+              <h2 className="text-lg font-medium text-stone-700 mb-1">Select a sport</h2>
+              <p className="text-sm text-stone-500">Choose a sport to configure its stat categories</p>
             </div>
           ) : loadingConfigs ? (
             <AthleticsTableSkeleton columns={3} rows={3} showToolbar={false} />
@@ -484,17 +484,17 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             <div className="space-y-4">
               {/* Existing configs */}
               {configs.length > 0 && (
-                <div className="ui-glass divide-y divide-slate-50">
+                <div className="ui-glass divide-y divide-stone-50">
                   {configs.map((cfg) => (
                     <div key={cfg.id} className="flex items-center gap-3 px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-slate-900">{cfg.label}</div>
-                        <div className="text-xs text-slate-400">Key: {cfg.statKey}</div>
+                        <div className="text-xs text-stone-400">Key: {cfg.statKey}</div>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveConfig(cfg.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                        className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
                         title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -518,7 +518,7 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                     type="button"
                     onClick={handleAddConfig}
                     disabled={!newStatKey.trim() || !newStatLabel.trim() || savingConfig}
-                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     {savingConfig ? 'Adding...' : 'Add'}
@@ -527,10 +527,10 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               </div>
 
               {configs.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center">
+                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center">
                   <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-                  <p className="text-sm text-slate-500 mb-1">No stat categories yet</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-sm text-stone-500 mb-1">No stat categories yet</p>
+                  <p className="text-xs text-stone-400">
                     Add categories above (e.g. Points, Assists, Rebounds for basketball) to start tracking player stats per game.
                   </p>
                 </div>

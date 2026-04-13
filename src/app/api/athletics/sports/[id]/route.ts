@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { updateSport } from '@/lib/services/athleticsService'
+import { updateSport, deleteSport } from '@/lib/services/athleticsService'
 
 const UpdateSportSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -16,3 +16,8 @@ export const PUT = withAuth(async ({ params, body }) => {
   const sport = await updateSport(params.id, body)
   return NextResponse.json(ok(sport))
 }, { permission: PERMISSIONS.ATHLETICS_MANAGE, schema: UpdateSportSchema })
+
+export const DELETE = withAuth(async ({ params }) => {
+  await deleteSport(params.id)
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.ATHLETICS_MANAGE })

@@ -1,0 +1,105 @@
+[    4046ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[    4107ms] [ERROR] %o
+
+%s Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 The above error occurred in the <ClientPageRoot> component. It was handled by the <ErrorBoundaryHandler> error boundary. @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:1247
+[    4112ms] [ERROR] Uncaught error: Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[    4113ms] [ERROR] Uncaught error: Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[    4232ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    5025ms] [LOG] [Fast Refresh] done in 894ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    5230ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    5331ms] [LOG] [Fast Refresh] done in 203ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    5944ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    6278ms] [LOG] [Fast Refresh] done in 436ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    6446ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    6842ms] [LOG] [Fast Refresh] done in 497ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    7275ms] [ERROR] %o
+
+%s Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 The above error occurred in the <ClientPageRoot> component. It was handled by the <ErrorBoundaryHandler> error boundary. @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:1247
+[    7276ms] [ERROR] Uncaught error: Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[    7277ms] [ERROR] Uncaught error: Error: Module [project]/Desktop/Linfield Test/node_modules/lucide-react/dist/esm/icons/calendar-range.js [app-client] (ecmascript) <export default as CalendarRange> was instantiated because it was required from module [project]/Desktop/Linfield Test/src/app/events/page.tsx [app-client] (ecmascript), but the module factory is not available. It might have been deleted in an HMR update.
+    at factoryNotAvailable (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:527:11)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:808:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.esmImport [as i] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:225:20)
+    at __TURBOPACK__module__evaluation__ (http://demo.localhost:3004/_next/static/chunks/Desktop_Linfield%20Test_src_app_events_page_tsx_2e3c5bd8._.js:16:278)
+    at http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:842:13
+    at runModuleExecutionHooks (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:867:13)
+    at instantiateModule (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:840:9)
+    at getOrInstantiateModuleFromParent (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:793:12)
+    at DevContext.commonJsRequire [as r] (http://demo.localhost:3004/_next/static/chunks/turbopack-Desktop_Linfield%20Test_15b775ee._.js:246:12)
+    at requireModule (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2904:84)
+    at initializeModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3616:25)
+    at resolveModuleChunk (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:3543:35)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:4150:24 @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[   41902ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   42035ms] [LOG] [Fast Refresh] done in 234ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809

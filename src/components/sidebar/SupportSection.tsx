@@ -6,7 +6,7 @@ import {
   ChevronDown,
   Wrench,
   Monitor,
-  Package,
+  Video,
 } from 'lucide-react'
 import { useNavIndicator } from '@/lib/hooks/useNavIndicator'
 
@@ -105,7 +105,7 @@ export default function SupportSection({
   return (
     <>
       <div className="px-1 mt-4 mb-1">
-        <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Support</span>
+        <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Operations</span>
       </div>
       <ul className="space-y-1" role="list">
         {/* ── Facilities / Maintenance ── */}
@@ -457,7 +457,7 @@ export default function SupportSection({
               aria-expanded={avOpen}
               aria-label={avOpen ? 'Collapse A/V Production' : 'Expand A/V Production'}
             >
-              <Package className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+              <Video className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
               <span className="text-sm">A/V Production</span>
               {!avOpen && (avGateCount?.count ?? 0) > 0 && (
                 <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">

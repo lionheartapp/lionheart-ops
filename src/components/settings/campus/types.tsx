@@ -101,7 +101,7 @@ export const OUTDOOR_TYPE_LABELS: Record<string, string> = {
 
 export function renderStatusBadge(isActive: boolean) {
   return (
-    <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+    <span className={`text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-600 ring-1 ring-green-200' : 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'}`}>
       {isActive ? 'Active' : 'Inactive'}
     </span>
   )

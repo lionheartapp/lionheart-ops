@@ -93,7 +93,7 @@ export default function RRuleBuilder({ value, onChange }: RRuleBuilderProps) {
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-2">Repeat on</label>
+        <label className="block text-xs font-medium text-stone-500 mb-2">Repeat on</label>
         <div className="flex gap-1.5">
           {DAYS.map((day, idx) => (
             <button
@@ -103,7 +103,7 @@ export default function RRuleBuilder({ value, onChange }: RRuleBuilderProps) {
               className={`w-9 h-9 rounded-full text-xs font-semibold transition-colors ${
                 selectedDays.includes(idx)
                   ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
               }`}
               title={day.label}
             >
@@ -122,7 +122,7 @@ export default function RRuleBuilder({ value, onChange }: RRuleBuilderProps) {
       />
 
       {previewText && (
-        <p className="text-xs text-slate-500 italic">
+        <p className="text-xs text-stone-500 italic">
           {previewText.charAt(0).toUpperCase() + previewText.slice(1)}
         </p>
       )}

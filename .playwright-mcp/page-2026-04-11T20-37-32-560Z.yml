@@ -1,0 +1,157 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e273]:
+    - link "Skip to main content" [ref=e274] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e275]:
+      - complementary [ref=e276]:
+        - img "Demo Academy" [ref=e278]
+        - button "Back to Events" [ref=e280] [cursor=pointer]:
+          - img [ref=e281]
+          - text: Back to Events
+        - generic [ref=e283]:
+          - generic [ref=e284]: Pending Approval
+          - generic [ref=e286]: Fall Open House
+          - generic [ref=e287]: Apr 15, 2026 · Front Lawn
+        - navigation [ref=e288]:
+          - generic [ref=e289]:
+            - generic [ref=e290]: Event
+            - list [ref=e291]:
+              - listitem [ref=e292]:
+                - button "Overview" [ref=e293] [cursor=pointer]:
+                  - img [ref=e294]
+                  - text: Overview
+              - listitem [ref=e299]:
+                - button "Schedule" [ref=e300] [cursor=pointer]:
+                  - img [ref=e301]
+                  - text: Schedule
+              - listitem [ref=e303]:
+                - button "Team" [ref=e304] [cursor=pointer]:
+                  - img [ref=e305]
+                  - text: Team
+              - listitem [ref=e310]:
+                - button "Registration" [ref=e311] [cursor=pointer]:
+                  - img [ref=e312]
+                  - text: Registration
+          - generic [ref=e315]:
+            - generic [ref=e316]: Planning
+            - list [ref=e317]:
+              - listitem [ref=e318]:
+                - button "Documents" [ref=e319] [cursor=pointer]:
+                  - img [ref=e320]
+                  - text: Documents
+              - listitem [ref=e323]:
+                - button "Logistics" [ref=e324] [cursor=pointer]:
+                  - img [ref=e325]
+                  - text: Logistics
+              - listitem [ref=e330]:
+                - button "Budget" [ref=e331] [cursor=pointer]:
+                  - img [ref=e332]
+                  - text: Budget
+              - listitem [ref=e334]:
+                - button "Tasks" [ref=e335] [cursor=pointer]:
+                  - img [ref=e336]
+                  - text: Tasks
+              - listitem [ref=e339]:
+                - button "Comms" [ref=e340] [cursor=pointer]:
+                  - img [ref=e341]
+                  - text: Comms
+      - main [ref=e343]:
+        - generic [ref=e346]:
+          - button "Review Approval" [ref=e349] [cursor=pointer]
+          - heading "Overview" [level=1] [ref=e351]
+          - generic [ref=e353]:
+            - generic [ref=e354]:
+              - generic [ref=e355]:
+                - img [ref=e356]
+                - text: Awaiting approvals — event cannot be confirmed until all teams approve
+              - generic [ref=e360]:
+                - img [ref=e361]
+                - generic [ref=e363]:
+                  - paragraph [ref=e364]: Admin
+                  - generic [ref=e365]:
+                    - img [ref=e366]
+                    - generic [ref=e369]: Pending
+            - generic [ref=e370]:
+              - generic [ref=e371]:
+                - heading "Event Details" [level=3] [ref=e372]:
+                  - img [ref=e373]
+                  - text: Event Details
+                - button "Edit" [ref=e376] [cursor=pointer]:
+                  - img [ref=e377]
+                  - text: Edit
+              - paragraph [ref=e380]: Campus-wide open house for prospective families and students.
+              - generic [ref=e381]:
+                - generic [ref=e382]:
+                  - img [ref=e383]
+                  - generic [ref=e385]:
+                    - paragraph [ref=e386]: Wednesday, April 15, 2026
+                    - paragraph [ref=e387]: 8:51 AM – 10:21 AM
+                - generic [ref=e388]:
+                  - img [ref=e389]
+                  - paragraph [ref=e393]: Front Lawn
+                - generic [ref=e394]:
+                  - img [ref=e395]
+                  - paragraph [ref=e400]: Created by Admin User
+            - generic [ref=e402]:
+              - generic [ref=e403]:
+                - generic [ref=e404]:
+                  - paragraph [ref=e405]: 0/0
+                  - paragraph [ref=e406]: Tasks Done
+                - img [ref=e408]
+              - generic [ref=e411]:
+                - generic [ref=e412]:
+                  - paragraph [ref=e413]: "0"
+                  - paragraph [ref=e414]: Schedule Blocks
+                - img [ref=e416]
+              - generic [ref=e420]:
+                - generic [ref=e421]:
+                  - paragraph [ref=e422]: —
+                  - paragraph [ref=e423]: Expected Attendance
+                - img [ref=e425]
+              - generic [ref=e430]:
+                - generic [ref=e431]:
+                  - paragraph [ref=e432]: 3 days away
+                  - paragraph [ref=e433]: Event Date
+                - img [ref=e435]
+            - generic [ref=e439]:
+              - generic [ref=e440]:
+                - generic [ref=e441]:
+                  - heading "AI Status Summary" [level=3] [ref=e442]:
+                    - img [ref=e443]
+                    - text: AI Status Summary
+                  - button "Refresh" [ref=e446] [cursor=pointer]:
+                    - img [ref=e447]
+                    - text: Refresh
+                - generic [ref=e453]:
+                  - generic [ref=e454]: Overall completion
+                  - generic [ref=e455]: 0%
+                - paragraph [ref=e457]: Internal server error
+              - generic [ref=e458]:
+                - heading "Event Status" [level=3] [ref=e459]
+                - generic [ref=e462]:
+                  - img [ref=e466]
+                  - generic [ref=e481]:
+                    - generic [ref=e482]: Draft
+                    - generic [ref=e483]: Pending Approval
+                    - generic [ref=e484]: Confirmed
+                    - generic [ref=e485]: In Progress
+                    - generic [ref=e486]: Completed
+            - generic [ref=e487]:
+              - generic [ref=e488]:
+                - heading "Recent Activity" [level=3] [ref=e489]
+                - generic [ref=e490]: Last 5 entries
+              - generic [ref=e492]:
+                - generic [ref=e493]:
+                  - generic [ref=e495]: AU
+                  - generic [ref=e496]: Admin User
+                - generic [ref=e497]:
+                  - generic [ref=e498]:
+                    - generic [ref=e499]: Created
+                    - generic [ref=e500]: created this event
+                  - paragraph [ref=e501]: 1 day ago
+  - button "Open AI Assistant" [ref=e259] [cursor=pointer]:
+    - img [ref=e261]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e268] [cursor=pointer]:
+    - img [ref=e269]
+  - alert [ref=e272]: Lionheart

@@ -1,0 +1,8 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img [ref=e4]
+    - heading "Something went wrong" [level=2] [ref=e6]
+    - paragraph [ref=e7]: An unexpected error occurred. Please try again or contact support if the problem persists.
+    - button "Try again" [ref=e8] [cursor=pointer]
+  - generic "Notifications"
+  - alert [ref=e9]

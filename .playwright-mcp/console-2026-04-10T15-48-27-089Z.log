@@ -1,0 +1,10 @@
+[    2198ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[    2280ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/auth/me:0
+[    2325ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/trial-status:0
+[    2326ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/auth/permissions:0
+[    2326ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/auth/me:0
+[    2339ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/auth/me:0
+[    2388ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/events/dashboard?skipAI=true:0
+[    2542ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/events/templates:0
+[    2543ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://maybe-last-day-school.localhost:3004/api/events/projects?createdBy=me:0
+[    2884ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630

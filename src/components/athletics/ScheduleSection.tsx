@@ -377,16 +377,16 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
           />
         </div>
 
-        <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
+        <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1">
           {FILTER_PILLS.map((pill) => (
             <button
               key={pill.key}
               type="button"
               onClick={() => setFilter(pill.key)}
-              className={`px-4 py-2.5 sm:px-3 sm:py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer min-w-[60px] ${
                 filter === pill.key
                   ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  : 'text-stone-500 hover:text-stone-700'
               }`}
             >
               {pill.label}
@@ -399,7 +399,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={openGameCreate}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Game
@@ -407,7 +407,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={() => setPracticeDrawerOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 border border-slate-300 rounded-full hover:bg-slate-50 hover:border-slate-400 transition cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Practice
@@ -422,22 +422,22 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
           <div className="flex items-center gap-2">
             <GlassSportTile sport={selectedTeam.sport.name} color={selectedTeam.sport.color} size="sm" />
             <span className="text-sm font-semibold text-slate-900">{selectedTeam.name}</span>
-            <span className="text-xs text-slate-400">Season Record</span>
+            <span className="text-xs text-stone-400">Season Record</span>
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <div className="text-center">
               <div className="text-lg font-bold text-green-600">{record.wins}</div>
-              <div className="text-[10px] font-medium text-slate-400 uppercase">W</div>
+              <div className="text-[10px] font-medium text-stone-400 uppercase">W</div>
             </div>
-            <div className="w-px h-8 bg-slate-200" />
+            <div className="w-px h-8 bg-stone-200" />
             <div className="text-center">
               <div className="text-lg font-bold text-red-500">{record.losses}</div>
-              <div className="text-[10px] font-medium text-slate-400 uppercase">L</div>
+              <div className="text-[10px] font-medium text-stone-400 uppercase">L</div>
             </div>
-            <div className="w-px h-8 bg-slate-200" />
+            <div className="w-px h-8 bg-stone-200" />
             <div className="text-center">
-              <div className="text-lg font-bold text-slate-500">{record.ties}</div>
-              <div className="text-[10px] font-medium text-slate-400 uppercase">T</div>
+              <div className="text-lg font-bold text-stone-500">{record.ties}</div>
+              <div className="text-[10px] font-medium text-stone-400 uppercase">T</div>
             </div>
           </div>
         </div>
@@ -447,16 +447,16 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       {displayTeams.length === 0 ? (
         <div className="ui-glass p-8 text-center">
           <IllustrationCalendar className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-base font-semibold text-slate-700 mb-1">No teams available</p>
-          <p className="text-sm text-slate-500">Create teams in the Teams tab first</p>
+          <p className="text-base font-semibold text-stone-700 mb-1">No teams available</p>
+          <p className="text-sm text-stone-500">Create teams in the Teams tab first</p>
         </div>
       ) : loadingSchedule ? (
         <ScheduleSkeleton groups={2} />
       ) : agendaItems.length === 0 ? (
         <div className="ui-glass p-8 text-center">
           <IllustrationCalendar className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-base font-semibold text-slate-700 mb-1">No games or practices scheduled</p>
-          <p className="text-sm text-slate-500 mb-4">Get started by creating a game or practice</p>
+          <p className="text-base font-semibold text-stone-700 mb-1">No games or practices scheduled</p>
+          <p className="text-sm text-stone-500 mb-4">Get started by creating a game or practice</p>
           <div className="flex gap-3 justify-center">
             <button
               type="button"
@@ -468,7 +468,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             <button
               type="button"
               onClick={() => setPracticeDrawerOpen(true)}
-              className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors active:scale-[0.97] cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-white border border-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-50 transition-colors active:scale-[0.97] cursor-pointer"
             >
               Add Practice
             </button>
@@ -493,9 +493,9 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                 todayDividerShown = true
                 todayDivider = (
                   <div key="today-divider" className="flex items-center gap-3 py-1">
-                    <div className="flex-1 h-px bg-primary-300" />
-                    <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider">Today</span>
-                    <div className="flex-1 h-px bg-primary-300" />
+                    <div className="flex-1 h-px bg-slate-900/20" />
+                    <span className="text-xs font-semibold text-slate-900 uppercase tracking-wider">Today</span>
+                    <div className="flex-1 h-px bg-slate-900/20" />
                   </div>
                 )
               }
@@ -505,15 +505,15 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                   {todayDivider}
                   <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${
                     isToday
-                      ? 'text-primary-600'
+                      ? 'text-slate-900'
                       : isPast
-                        ? 'text-slate-300'
-                        : 'text-slate-400'
+                        ? 'text-stone-300'
+                        : 'text-stone-400'
                   }`}>
                     {formatDate(group.date)}{isToday ? ' — Today' : ''}
                   </h3>
-                  <div className={`rounded-2xl border bg-white/60 backdrop-blur-sm divide-y divide-slate-50 shadow-sm ${
-                    isPast ? 'border-slate-100/30 opacity-60' : 'border-slate-200/30'
+                  <div className={`rounded-2xl border bg-white/60 backdrop-blur-sm divide-y divide-stone-50 shadow-sm ${
+                    isPast ? 'border-stone-100/30 opacity-60' : 'border-stone-200/30'
                   }`}>
                     {group.items.map((item, idx) => (
                       item.type === 'game' ? (
@@ -624,33 +624,33 @@ function GameRow({
   const homeAwayLabel = game.homeAway === 'HOME' ? 'Home' : game.homeAway === 'AWAY' ? 'Away' : 'Neutral'
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50/50 transition-colors">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50 transition-colors">
       <SportIcon sport={game.athleticTeam?.sport?.name || ''} size={16} style={{ color: sportColor }} className="flex-shrink-0" />
-      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-700 bg-primary-50 rounded">
+      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-600 bg-stone-100 rounded">
         Game
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           {showTeamName && game.athleticTeam && (
-            <span className="text-xs font-medium text-slate-500">{game.athleticTeam.name}</span>
+            <span className="text-xs font-medium text-stone-500">{game.athleticTeam.name}</span>
           )}
           <span className="font-medium text-slate-900 text-sm">
             {prefix} {game.opponentName}
           </span>
-          <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 font-medium">
             {homeAwayLabel}
           </span>
           {score && (
             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-              game.isFinal ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'
+              game.isFinal ? 'bg-green-50 text-green-700' : 'bg-stone-100 text-stone-600'
             }`}>
               {score}{game.isFinal ? ' ✓' : ''}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
           <span>{formatTime(game.startTime)}–{formatTime(game.endTime)}</span>
-          {game.venue && <><span className="text-slate-300">·</span><span>{game.venue}</span></>}
+          {game.venue && <><span className="text-stone-300">·</span><span>{game.venue}</span></>}
         </div>
       </div>
       <RowActionMenu
@@ -679,15 +679,15 @@ function PracticeRow({
   const rruleText = practice.rrule ? getRruleText(practice.rrule) : null
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50/50 transition-colors">
-      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-slate-400" />
-      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 rounded">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50 transition-colors">
+      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-stone-400" />
+      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-500 bg-stone-100 rounded">
         Practice
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           {showTeamName && practice.athleticTeam && (
-            <span className="text-xs font-medium text-slate-500">{practice.athleticTeam.name}</span>
+            <span className="text-xs font-medium text-stone-500">{practice.athleticTeam.name}</span>
           )}
           <span className="font-medium text-slate-900 text-sm">
             {showTeamName && practice.athleticTeam ? `${practice.athleticTeam.sport?.name} Practice` : 'Practice'}
@@ -698,9 +698,9 @@ function PracticeRow({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
           <span>{formatTime(practice.startTime)}–{formatTime(practice.endTime)}</span>
-          {practice.location && <><span className="text-slate-300">·</span><span>{practice.location}</span></>}
+          {practice.location && <><span className="text-stone-300">·</span><span>{practice.location}</span></>}
         </div>
       </div>
       {!isExpanded && (

@@ -12,7 +12,7 @@ interface AddMenuItem {
   label: string
   description: string
   icon: typeof Dribbble
-  tab: AthleticsTab
+  tab: string
   event: string
 }
 
@@ -27,7 +27,7 @@ const MENU_ITEMS: AddMenuItem[] = [
 ]
 
 interface AthleticsAddMenuProps {
-  onTabChange: (tab: AthleticsTab) => void
+  onTabChange: (tab: string) => void
   onImportAll?: () => void
 }
 
@@ -67,7 +67,7 @@ export default function AthleticsAddMenu({ onTabChange, onImportAll }: Athletics
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-20 overflow-hidden"
+              className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-stone-200 shadow-lg z-20 overflow-hidden"
             >
               <div className="p-1.5">
                 {MENU_ITEMS.map((item) => {
@@ -77,14 +77,14 @@ export default function AthleticsAddMenu({ onTabChange, onImportAll }: Athletics
                       key={item.event}
                       type="button"
                       onClick={() => handleSelect(item)}
-                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-stone-50 transition-colors cursor-pointer group"
                     >
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 group-hover:bg-indigo-50 transition-colors">
-                        <Icon className="w-4 h-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-stone-100 group-hover:bg-indigo-50 transition-colors">
+                        <Icon className="w-4 h-4 text-stone-500 group-hover:text-indigo-600 transition-colors" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-slate-900">{item.label}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                        <p className="text-xs text-stone-500 mt-0.5">{item.description}</p>
                       </div>
                     </button>
                   )
@@ -92,18 +92,18 @@ export default function AthleticsAddMenu({ onTabChange, onImportAll }: Athletics
 
                 {onImportAll && (
                   <>
-                    <div className="my-1 mx-3 border-t border-slate-100" />
+                    <div className="my-1 mx-3 border-t border-stone-100" />
                     <button
                       type="button"
                       onClick={() => { setOpen(false); onImportAll() }}
-                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors cursor-pointer group"
+                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-stone-50 transition-colors cursor-pointer group"
                     >
                       <div className="mt-0.5 p-1.5 rounded-lg bg-indigo-50 group-hover:bg-indigo-100 transition-colors">
                         <Upload className="w-4 h-4 text-indigo-500 group-hover:text-indigo-700 transition-colors" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-slate-900">Import from CSV</p>
-                        <p className="text-xs text-slate-500 mt-0.5">Bulk import sports, teams, and players from a file</p>
+                        <p className="text-xs text-stone-500 mt-0.5">Bulk import sports, teams, and players from a file</p>
                       </div>
                     </button>
                   </>

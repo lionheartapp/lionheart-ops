@@ -1,0 +1,15 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e43]:
+    - img "Lionheart" [ref=e45]
+    - generic [ref=e47]:
+      - img [ref=e49]
+      - heading "Check your email" [level=1] [ref=e52]
+      - paragraph [ref=e53]: We've sent a verification link to your email address. Please click the link to verify your account and get started.
+      - paragraph [ref=e54]: Didn't receive it? Check your spam folder, or resend the verification email.
+      - button "Resend verification email" [ref=e55] [cursor=pointer]:
+        - img [ref=e56]
+        - text: Resend verification email
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e37] [cursor=pointer]:
+    - img [ref=e38]
+  - alert [ref=e41]

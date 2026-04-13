@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 
 interface LoginFormProps {
@@ -11,6 +11,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ organizationId, organizationName }: LoginFormProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -84,7 +85,8 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         })
         .catch(() => {}) // Non-fatal — will fetch on first useModules() call
 
-      router.push('/dashboard')
+      const redirectTo = searchParams.get('redirect') || '/dashboard'
+      router.push(redirectTo)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error')
     } finally {
@@ -141,6 +143,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     return (
       <form onSubmit={handleForgotSubmit} className="space-y-6">
         <div>
+          <h2 className="text-xl font-bold text-slate-900 mb-1">Reset your password</h2>
           <p className="text-sm text-slate-600 mb-4">
             Enter your email address and we&apos;ll send you a link to reset your password.
           </p>

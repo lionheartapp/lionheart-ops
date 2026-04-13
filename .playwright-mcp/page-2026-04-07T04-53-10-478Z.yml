@@ -1,0 +1,190 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - complementary "Sidebar navigation" [ref=e5]:
+        - generic [ref=e6]:
+          - img "Demo Academy logo" [ref=e9]
+          - button "Search... ⌘K" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+            - generic [ref=e15]: Search...
+            - generic [ref=e16]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e17]:
+            - list [ref=e18]:
+              - listitem [ref=e19]:
+                - link "Dashboard" [ref=e20] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e21]
+                  - generic [ref=e24]: Dashboard
+              - listitem [ref=e25]:
+                - button "Events" [ref=e26] [cursor=pointer]:
+                  - img [ref=e27]
+                  - generic [ref=e31]: Events
+            - generic [ref=e32]: Support
+            - list [ref=e33]:
+              - listitem [ref=e34]:
+                - button "Expand maintenance" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: Maintenance
+                  - img [ref=e40]
+                - generic [ref=e42]:
+                  - link "Maintenance Hub" [ref=e43] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e44]: Maintenance Hub
+                  - link "Work Orders" [ref=e45] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e46]: Work Orders
+                  - link "Event Approvals" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e48]: Event Approvals
+                  - link "Inventory" [ref=e49] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e50]: Inventory
+                  - link "Assets" [ref=e51] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e52]: Assets
+                  - link "Knowledge Base" [ref=e53] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e54]: Knowledge Base
+              - listitem [ref=e55]:
+                - button "Expand IT Help Desk" [ref=e56] [cursor=pointer]:
+                  - img [ref=e57]
+                  - generic [ref=e59]: IT Help Desk
+                  - img [ref=e61]
+                - generic [ref=e63]:
+                  - link "Help Desk" [ref=e64] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e65]: Help Desk
+                  - link "Devices" [ref=e66] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e67]: Devices
+                  - link "Lifecycle" [ref=e68] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e69]: Lifecycle
+                  - link "Inventory" [ref=e70] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e71]: Inventory
+              - listitem [ref=e72]:
+                - button "Expand A/V Production" [ref=e73] [cursor=pointer]:
+                  - img [ref=e74]
+                  - generic [ref=e78]: A/V Production
+                  - img [ref=e80]
+                - generic [ref=e82]:
+                  - link "Inventory" [ref=e83] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e84]: Inventory
+                  - link "Event Approvals" [ref=e85] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e86]: Event Approvals
+          - generic [ref=e87]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: A
+              - generic [ref=e92]:
+                - paragraph [ref=e93]: Admin User
+                - paragraph [ref=e94]: admin@demo.com
+              - button "User menu" [ref=e95] [cursor=pointer]:
+                - img [ref=e96]
+            - img "Lionheart" [ref=e102]
+      - complementary "Settings navigation" [ref=e103]:
+        - generic [ref=e105]:
+          - heading "Settings" [level=2] [ref=e107]
+          - generic [ref=e108]:
+            - paragraph [ref=e109]: General
+            - navigation "General settings sections" [ref=e110]:
+              - button "My Profile" [ref=e111] [cursor=pointer]:
+                - img [ref=e112]
+                - text: My Profile
+          - generic [ref=e115]:
+            - paragraph [ref=e116]: Workspace
+            - navigation "Workspace settings sections" [ref=e117]:
+              - button "School Information" [ref=e118] [cursor=pointer]:
+                - img [ref=e119]
+                - text: School Information
+              - button "Roles" [ref=e124] [cursor=pointer]:
+                - img [ref=e125]
+                - text: Roles
+              - button "Teams" [ref=e127] [cursor=pointer]:
+                - img [ref=e128]
+                - text: Teams
+              - button "Members" [ref=e133] [cursor=pointer]:
+                - img [ref=e134]
+                - text: Members
+              - button "Campus" [ref=e146] [cursor=pointer]:
+                - img [ref=e147]
+                - text: Campus
+              - button "Billing" [ref=e151] [cursor=pointer]:
+                - img [ref=e152]
+                - text: Billing
+              - button "Add-ons" [ref=e154] [cursor=pointer]:
+                - img [ref=e155]
+                - text: Add-ons
+              - button "Integrations" [ref=e157] [cursor=pointer]:
+                - img [ref=e158]
+                - text: Integrations
+              - button "Activity Log" [ref=e161] [cursor=pointer]:
+                - img [ref=e162]
+                - text: Activity Log
+    - main [ref=e166]:
+      - generic [ref=e169]:
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - img [ref=e173]
+            - generic [ref=e176]:
+              - heading "My Profile" [level=2] [ref=e177]
+              - paragraph [ref=e178]: Manage your personal information
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - generic [ref=e181]: A
+              - button "Change profile photo" [ref=e182] [cursor=pointer]:
+                - img [ref=e183]
+            - generic [ref=e186]:
+              - paragraph [ref=e187]: Profile Photo
+              - paragraph [ref=e188]: JPG, PNG or GIF. Max 5MB.
+              - generic [ref=e189]:
+                - button "Change Image" [ref=e190] [cursor=pointer]
+                - button "Remove" [disabled] [ref=e191]
+          - generic [ref=e193]:
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - textbox "First Name*" [ref=e196]:
+                  - /placeholder: First Name
+                  - text: Admin
+                - generic: First Name*
+              - generic [ref=e197]:
+                - textbox "Last Name" [ref=e198]: User
+                - generic: Last Name
+            - button "Save Changes" [ref=e200] [cursor=pointer]
+        - generic [ref=e201]:
+          - generic [ref=e202]:
+            - img [ref=e204]
+            - generic [ref=e206]:
+              - heading "Account Security" [level=3] [ref=e207]
+              - paragraph [ref=e208]: Manage your email and password
+          - generic [ref=e209]:
+            - generic [ref=e210]:
+              - generic [ref=e211]:
+                - img [ref=e212]
+                - generic [ref=e215]: Email Address
+              - generic [ref=e216]:
+                - generic [ref=e218]:
+                  - textbox "Email" [ref=e219]: admin@demo.com
+                  - generic: Email
+                - generic [ref=e220]: Contact admin to change
+            - generic [ref=e222]:
+              - generic [ref=e223]:
+                - img [ref=e224]
+                - generic [ref=e227]: Password
+              - generic [ref=e228]:
+                - generic [ref=e230]:
+                  - textbox "Password" [ref=e231]: ••••••••••
+                  - generic: Password
+                - button "Change password" [ref=e232] [cursor=pointer]
+        - generic [ref=e234]:
+          - img [ref=e236]
+          - generic [ref=e239]:
+            - heading "Notification Preferences" [level=3] [ref=e240]
+            - paragraph [ref=e241]: Choose how you want to be notified
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e251] [cursor=pointer]:
+    - img [ref=e252]
+  - alert [ref=e255]

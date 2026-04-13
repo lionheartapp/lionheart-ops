@@ -9,6 +9,7 @@ import { getSpecialDays, createSpecialDay } from '@/lib/services/academicCalenda
 
 const CreateSpecialDaySchema = z.object({
   date: z.string().transform((s) => new Date(s)),
+  endDate: z.string().transform((s) => new Date(s)).nullable().optional(),
   name: z.string().trim().min(1).max(100),
   specialDayType: z.enum(['HOLIDAY', 'CLOSURE', 'EARLY_DISMISSAL', 'LATE_START', 'PROFESSIONAL_DEVELOPMENT', 'TESTING', 'OTHER']),
   schoolId: z.string().optional(),
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok(days))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch special days'), { status: 500 })
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create special day'), { status: 500 })

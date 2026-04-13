@@ -53,6 +53,10 @@ export async function updateSport(id: string, data: {
   })
 }
 
+export async function deleteSport(id: string) {
+  return db.sport.delete({ where: { id } })
+}
+
 // ── Athletic Seasons ───────────────────────────────────────────────────
 
 export async function getAthleticSeasons(filters?: { sportId?: string }) {

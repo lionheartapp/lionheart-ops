@@ -344,6 +344,84 @@ export async function removeEventFromCalendar(
   }
 }
 
+// ─── Remove event from all users' calendars ─────────────────────────────────
+
+/**
+ * Removes a Google Calendar event for a given EventProject from ALL users
+ * who have synced it. Used when an event is deleted or cancelled.
+ *
+ * Looks up every active google_calendar credential in the org, checks if
+ * it has a stored Google event ID for this project, and deletes it.
+ */
+export async function removeEventProjectFromCalendars(
+  organizationId: string,
+  eventProjectId: string
+): Promise<{ removed: number; failed: number }> {
+  if (!isAvailable()) return { removed: 0, failed: 0 }
+
+  const credentials = await rawPrisma.integrationCredential.findMany({
+    where: { organizationId, provider: 'google_calendar', isActive: true },
+  })
+
+  let removed = 0
+  let failed = 0
+
+  for (const cred of credentials) {
+    const meta = (cred.config as Record<string, unknown> | null) || {}
+    const eventMeta = meta.events as Record<string, string> | undefined
+    const googleEventId = eventMeta?.[eventProjectId]
+
+    if (!googleEventId) continue
+
+    try {
+      const oauth2Client = await refreshTokenIfNeeded(cred.id)
+      if (!oauth2Client) {
+        failed++
+        continue
+      }
+
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+      await calendar.events.delete({
+        calendarId: 'primary',
+        eventId: googleEventId,
+      })
+
+      // Remove the event ID from credential metadata
+      const { [eventProjectId]: _removed, ...remainingEvents } = eventMeta!
+      await rawPrisma.integrationCredential.update({
+        where: { id: cred.id },
+        data: {
+          config: { ...meta, events: remainingEvents },
+          lastSyncAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })
+
+      removed++
+    } catch {
+      failed++
+    }
+  }
+
+  // Log the bulk removal
+  if (removed > 0 || failed > 0) {
+    await rawPrisma.integrationSyncLog.create({
+      data: {
+        organizationId,
+        credentialId: credentials[0]?.id ?? 'unknown',
+        provider: 'google_calendar',
+        action: 'remove_event',
+        status: failed > 0 ? 'partial' : 'success',
+        recordsProcessed: removed,
+        recordsFailed: failed,
+        metadata: { eventProjectId },
+      },
+    })
+  }
+
+  return { removed, failed }
+}
+
 // ─── Disconnect ──────────────────────────────────────────────────────────────
 
 export async function disconnect(userId: string, organizationId: string): Promise<void> {

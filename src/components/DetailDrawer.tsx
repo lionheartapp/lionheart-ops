@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
@@ -35,6 +35,7 @@ export default function DetailDrawer({
   triggerRef,
 }: DetailDrawerProps) {
   const focusTrapRef = useFocusTrap(isOpen)
+  const titleId = useId()
   const contentRef = useRef<HTMLDivElement>(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [shouldShow, setShouldShow] = useState(false)
@@ -103,13 +104,13 @@ export default function DetailDrawer({
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
-        aria-labelledby="drawer-title"
+        aria-labelledby={titleId}
         aria-modal="true"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 flex-shrink-0">
           <h2
-            id="drawer-title"
+            id={titleId}
             className="text-xs text-slate-500 uppercase tracking-wide font-medium truncate"
           >
             {title}

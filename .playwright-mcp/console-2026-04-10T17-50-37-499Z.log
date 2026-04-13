@@ -1,0 +1,7 @@
+[     607ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[    1752ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    1758ms] [LOG] [Fast Refresh] done in 107ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    2242ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    2254ms] [LOG] [Fast Refresh] done in 112ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    2645ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0
+[    2974ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://demo.localhost:3004/api/events/ai/generate-summary:0

@@ -23,7 +23,6 @@ export default function EventsPanel({
     { href: '/events', label: 'Events Hub', icon: Home, match: (p: string) => p === '/events' },
     { href: '/calendar', label: 'Calendar', icon: Calendar, match: (p: string) => p.startsWith('/calendar') },
     { href: '/planning', label: 'Year Plans', icon: ScrollText, match: (p: string) => p.startsWith('/planning') },
-    { href: '/events/new/ai', label: 'Create with Leo', icon: Sparkles, match: (p: string) => p.startsWith('/events/new/ai') },
   ]
 
   return (

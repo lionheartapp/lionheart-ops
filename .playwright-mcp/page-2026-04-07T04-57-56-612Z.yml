@@ -1,0 +1,32 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - img "Demo Academy campus" [ref=e5]
+      - img "Demo Academy logo" [ref=e8]
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Welcome back" [level=2] [ref=e13]
+        - paragraph [ref=e14]: Sign in to access your Demo Academy operations dashboard
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Email address
+            - textbox "Email address" [active] [ref=e19]:
+              - /placeholder: you@example.com
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - generic [ref=e22]: Password
+              - button "Forgot password?" [ref=e23] [cursor=pointer]
+            - generic [ref=e24]:
+              - textbox "Password" [ref=e25]:
+                - /placeholder: ••••••••
+              - button "Show password" [ref=e26] [cursor=pointer]:
+                - img [ref=e27]
+        - button "Sign in to Demo Academy" [ref=e30] [cursor=pointer]
+        - paragraph [ref=e31]: By signing in, you'll stay logged in for 30 days
+  - button "Open AI Assistant" [ref=e45] [cursor=pointer]:
+    - img [ref=e47]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e37] [cursor=pointer]:
+    - img [ref=e38]
+  - alert [ref=e41]

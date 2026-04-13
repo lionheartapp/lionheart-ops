@@ -106,7 +106,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
         >
           <button
             onClick={onClose}
-            className="absolute right-3 top-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+            className="absolute right-3 top-3 p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -116,12 +116,12 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
             <h3 id="match-result-title" className="text-lg font-semibold text-slate-900 mb-1">
               Select Winner
             </h3>
-            <p className="text-sm text-slate-500 mb-5">
+            <p className="text-sm text-stone-500 mb-5">
               Round {match.round}, Match {match.matchNumber}
             </p>
 
             {!canPickWinner ? (
-              <p className="text-sm text-slate-400 italic">
+              <p className="text-sm text-stone-400 italic">
                 Both teams must be set before picking a winner.
               </p>
             ) : (
@@ -132,7 +132,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition ${
                     match.winnerId === match.team1Id
                       ? 'border-green-300 bg-green-50 ring-1 ring-green-200'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
                   } disabled:opacity-50`}
                 >
                   <GlassSportTile sport={match.team1?.sport?.name || ''} color={match.team1?.sport?.color || '#6a6864'} size="sm" />
@@ -140,7 +140,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   {match.winnerId === match.team1Id && <Trophy className="w-4 h-4 text-green-600" />}
                 </button>
 
-                <div className="text-center text-xs font-medium text-slate-400">vs</div>
+                <div className="text-center text-xs font-medium text-stone-400">vs</div>
 
                 <button
                   onClick={() => handleSelectWinner(match.team2Id!)}
@@ -148,7 +148,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition ${
                     match.winnerId === match.team2Id
                       ? 'border-green-300 bg-green-50 ring-1 ring-green-200'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
                   } disabled:opacity-50`}
                 >
                   <GlassSportTile sport={match.team2?.sport?.name || ''} color={match.team2?.sport?.color || '#6a6864'} size="sm" />
@@ -165,7 +165,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition disabled:opacity-50"
+                className="flex-1 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -174,7 +174,7 @@ export default function MatchResultDialog({ isOpen, onClose, onSaved, match }: M
                   type="button"
                   onClick={handleClear}
                   disabled={saving}
-                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition disabled:opacity-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Clear

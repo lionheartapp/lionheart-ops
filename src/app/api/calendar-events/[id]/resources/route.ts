@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(ok(requests))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch resource requests'), { status: 500 })
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create resource requests'), { status: 500 })

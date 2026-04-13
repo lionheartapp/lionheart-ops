@@ -202,11 +202,11 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
           role="dialog"
           aria-modal="true"
           aria-labelledby="stats-dialog-title"
-          className="relative w-full max-w-4xl transform overflow-hidden rounded-xl border border-slate-200 bg-white shadow-heavy transition-all"
+          className="relative w-full max-w-4xl transform overflow-hidden rounded-xl border border-stone-200 bg-white shadow-heavy transition-all"
         >
           <button
             onClick={onClose}
-            className="absolute right-3 top-3 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition z-10"
+            className="absolute right-3 top-3 p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition z-10"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -216,16 +216,16 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
             <h3 id="stats-dialog-title" className="text-lg font-semibold text-slate-900 mb-1">
               Player Stats
             </h3>
-            <div className="flex items-center gap-2 text-sm text-slate-500 mb-5">
+            <div className="flex items-center gap-2 text-sm text-stone-500 mb-5">
               <span>{game.athleticTeam?.name}</span>
-              <span className="text-slate-300">vs</span>
+              <span className="text-stone-300">vs</span>
               <span>{game.opponentName}</span>
-              <span className="text-slate-300">·</span>
+              <span className="text-stone-300">·</span>
               <span>{dateStr}</span>
               {scoreDisplay && (
                 <>
-                  <span className="text-slate-300">·</span>
-                  <span className="font-medium text-slate-700">{scoreDisplay}</span>
+                  <span className="text-stone-300">·</span>
+                  <span className="font-medium text-stone-700">{scoreDisplay}</span>
                 </>
               )}
             </div>
@@ -233,48 +233,48 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
             {loading ? (
               <div className="space-y-3 py-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-10 bg-slate-50 rounded-lg animate-pulse" />
+                  <div key={i} className="h-10 bg-stone-50 rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : statConfigs.length === 0 ? (
               <div className="text-center py-8">
                 <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-                <p className="text-sm text-slate-500 mb-1">No stat categories configured for this sport.</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-sm text-stone-500 mb-1">No stat categories configured for this sport.</p>
+                <p className="text-xs text-stone-400">
                   Go to the Stats tab and set up stat categories first.
                 </p>
               </div>
             ) : roster.length === 0 ? (
               <div className="text-center py-8">
                 <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-                <p className="text-sm text-slate-500">No players on this team&apos;s roster.</p>
-                <p className="text-xs text-slate-400">Add players in the Roster tab first.</p>
+                <p className="text-sm text-stone-500">No players on this team&apos;s roster.</p>
+                <p className="text-xs text-stone-400">Add players in the Roster tab first.</p>
               </div>
             ) : (
               <div className="overflow-x-auto -mx-6 px-6">
-                <table className="min-w-full divide-y divide-slate-100">
+                <table className="min-w-full divide-y divide-stone-100">
                   <thead>
-                    <tr className="bg-slate-50/50">
-                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider sticky left-0 bg-slate-50/50 min-w-[140px]">
+                    <tr className="bg-stone-50/50">
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider sticky left-0 bg-stone-50/50 min-w-[140px]">
                         Player
                       </th>
                       {statConfigs.map((cfg) => (
                         <th
                           key={cfg.statKey}
-                          className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider min-w-[80px]"
+                          className="px-3 py-2.5 text-center text-xs font-semibold text-stone-500 uppercase tracking-wider min-w-[80px]"
                         >
                           {cfg.label}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-stone-50">
                     {roster.map((player) => (
-                      <tr key={player.id} className="hover:bg-slate-50/30 transition-colors duration-150">
+                      <tr key={player.id} className="hover:bg-stone-50/30 transition-colors duration-150">
                         <td className="px-3 py-2 sticky left-0 bg-white">
                           <div className="flex items-center gap-2">
                             {player.jerseyNumber && (
-                              <span className="text-xs font-bold text-slate-400 w-6 text-right">
+                              <span className="text-xs font-bold text-stone-400 w-6 text-right">
                                 {player.jerseyNumber}
                               </span>
                             )}
@@ -290,7 +290,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                               step="any"
                               value={values[player.id]?.[cfg.statKey] || ''}
                               onChange={(e) => handleCellChange(player.id, cfg.statKey, e.target.value)}
-                              className="w-full px-2 py-1.5 text-sm text-center border border-slate-200 rounded-md focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
+                              className="w-full px-2 py-1.5 text-sm text-center border border-stone-200 rounded-md focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
                               placeholder="—"
                             />
                           </td>
@@ -310,7 +310,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                   type="button"
                   onClick={onClose}
                   disabled={saving}
-                  className="flex-1 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition disabled:opacity-50"
                 >
                   Cancel
                 </button>

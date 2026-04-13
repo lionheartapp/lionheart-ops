@@ -1,0 +1,137 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e356]:
+    - link "Skip to main content" [ref=e357] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e358]:
+      - complementary [ref=e389]:
+        - img "Demo Academy" [ref=e391]
+        - button "Back to Events" [ref=e393] [cursor=pointer]:
+          - img [ref=e394]
+          - text: Back to Events
+        - generic [ref=e396]:
+          - generic [ref=e397]: Pending
+          - generic [ref=e399]: Spring Assembly Preview
+          - generic [ref=e400]: Apr 12, 2026 · Main Hall
+        - navigation [ref=e401]:
+          - generic [ref=e402]:
+            - generic [ref=e403]: Event
+            - list [ref=e404]:
+              - listitem [ref=e405]:
+                - button "Overview" [ref=e406] [cursor=pointer]:
+                  - img [ref=e407]
+                  - text: Overview
+              - listitem [ref=e412]:
+                - button "Schedule" [ref=e413] [cursor=pointer]:
+                  - img [ref=e414]
+                  - text: Schedule
+              - listitem [ref=e416]:
+                - button "Team" [ref=e417] [cursor=pointer]:
+                  - img [ref=e418]
+                  - text: Team
+              - listitem [ref=e423]:
+                - button "Registration" [ref=e424] [cursor=pointer]:
+                  - img [ref=e425]
+                  - text: Registration
+          - generic [ref=e428]:
+            - generic [ref=e429]: Planning
+            - list [ref=e430]:
+              - listitem [ref=e431]:
+                - button "Documents" [ref=e432] [cursor=pointer]:
+                  - img [ref=e433]
+                  - text: Documents
+              - listitem [ref=e436]:
+                - button "Logistics" [ref=e437] [cursor=pointer]:
+                  - img [ref=e438]
+                  - text: Logistics
+              - listitem [ref=e443]:
+                - button "Budget" [ref=e444] [cursor=pointer]:
+                  - img [ref=e445]
+                  - text: Budget
+              - listitem [ref=e447]:
+                - button "Tasks" [ref=e448] [cursor=pointer]:
+                  - img [ref=e449]
+                  - text: Tasks
+              - listitem [ref=e452]:
+                - button "Comms" [ref=e453] [cursor=pointer]:
+                  - img [ref=e454]
+                  - text: Comms
+      - main [ref=e378]:
+        - generic [ref=e456]:
+          - button "Approve" [ref=e459] [cursor=pointer]
+          - heading "Comms" [level=1] [ref=e998]
+          - generic [ref=e1000]:
+            - generic [ref=e1001]:
+              - generic [ref=e1002]:
+                - paragraph [ref=e1003]: "0"
+                - paragraph [ref=e1004]: Announcements sent
+              - generic [ref=e1005]:
+                - paragraph [ref=e1006]: "0"
+                - paragraph [ref=e1007]: Active surveys
+              - generic [ref=e1008]:
+                - paragraph [ref=e1009]: "0"
+                - paragraph [ref=e1010]: Notification rules
+            - generic [ref=e1011]:
+              - button "Announcements" [ref=e1012] [cursor=pointer]:
+                - img [ref=e1013]
+                - text: Announcements
+              - button "Surveys" [ref=e1016] [cursor=pointer]:
+                - img [ref=e1017]
+                - text: Surveys
+              - button "Notifications" [ref=e1020] [cursor=pointer]:
+                - img [ref=e1021]
+                - text: Notifications
+            - generic [ref=e1025]:
+              - generic [ref=e1026]:
+                - heading "Compose Announcement" [level=3] [ref=e1027]:
+                  - img [ref=e1028]
+                  - text: Compose Announcement
+                - generic [ref=e1031]:
+                  - generic [ref=e1032]:
+                    - generic [ref=e1033]: Subject
+                    - textbox "e.g. Important schedule update" [ref=e1034]
+                  - generic [ref=e1035]:
+                    - generic [ref=e1036]: Message
+                    - textbox "Write your announcement here..." [ref=e1037]
+                  - generic [ref=e1038]:
+                    - generic [ref=e1039]: Send to
+                    - generic [ref=e1040]:
+                      - generic [ref=e1041] [cursor=pointer]:
+                        - radio "Team Members Staff assigned to this event" [ref=e1042]
+                        - generic [ref=e1043]:
+                          - paragraph [ref=e1044]: Team Members
+                          - paragraph [ref=e1045]: Staff assigned to this event
+                      - generic [ref=e1046] [cursor=pointer]:
+                        - radio "All Registrants Everyone who is registered" [checked] [ref=e1047]
+                        - generic [ref=e1048]:
+                          - paragraph [ref=e1049]: All Registrants
+                          - paragraph [ref=e1050]: Everyone who is registered
+                      - generic [ref=e1051] [cursor=pointer]:
+                        - radio "Specific Group Members of a selected group" [ref=e1052]
+                        - generic [ref=e1053]:
+                          - paragraph [ref=e1054]: Specific Group
+                          - paragraph [ref=e1055]: Members of a selected group
+                      - generic [ref=e1056] [cursor=pointer]:
+                        - radio "Incomplete Documents Registrants with missing required documents" [ref=e1057]
+                        - generic [ref=e1058]:
+                          - paragraph [ref=e1059]: Incomplete Documents
+                          - paragraph [ref=e1060]: Registrants with missing required documents
+                      - generic [ref=e1061] [cursor=pointer]:
+                        - radio "Paid Only Registrants who have paid in full" [ref=e1062]
+                        - generic [ref=e1063]:
+                          - paragraph [ref=e1064]: Paid Only
+                          - paragraph [ref=e1065]: Registrants who have paid in full
+                  - button "Send Announcement" [disabled] [ref=e1067]:
+                    - img [ref=e1068]
+                    - text: Send Announcement
+              - generic [ref=e1071]:
+                - heading "Sent Announcements" [level=3] [ref=e1072]
+                - generic [ref=e1073]:
+                  - img [ref=e1075]
+                  - paragraph [ref=e1078]: No announcements sent yet
+                  - paragraph [ref=e1079]: Use the form above to send your first announcement.
+  - button "Open AI Assistant" [ref=e352] [cursor=pointer]:
+    - img [ref=e354]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e202] [cursor=pointer]:
+    - img [ref=e203]
+  - alert [ref=e206]: Lionheart Operations Platform

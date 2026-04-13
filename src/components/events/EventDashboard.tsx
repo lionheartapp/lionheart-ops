@@ -305,7 +305,8 @@ export default function EventDashboard() {
             : 'Navigating to event'
 
       toast(successMsg, 'success')
-    } catch {
+    } catch (error: unknown) {
+      console.error('Failed to resolve action:', error)
       toast('Failed to resolve action. Please try again.', 'error')
     } finally {
       setResolvingIds((prev) => {

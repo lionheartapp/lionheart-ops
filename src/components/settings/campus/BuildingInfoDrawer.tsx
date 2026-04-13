@@ -45,7 +45,7 @@ export default function BuildingInfoDrawer({
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-slate-500">Status:</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${building.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}`}>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${building.isActive ? 'bg-green-50 text-green-600 ring-1 ring-green-200' : 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'}`}>
                 {building.isActive ? 'Active' : 'Inactive'}
               </span>
             </div>

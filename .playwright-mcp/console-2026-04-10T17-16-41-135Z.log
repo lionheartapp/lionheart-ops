@@ -1,0 +1,33 @@
+[     127ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[     442ms] [LOG] [Fast Refresh] done in 415ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[     544ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[     549ms] [LOG] [Fast Refresh] done in 107ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[     826ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[     854ms] [ERROR] %o
+
+%s Error: Invalid src prop (https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200) on `next/image`, hostname "images.unsplash.com" is not configured under images in your `next.config.js`
+See more info: https://nextjs.org/docs/messages/next-image-unconfigured-host
+    at defaultLoader (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9218f4f6._.js:2782:49)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9218f4f6._.js:499:36
+    at Array.map (<anonymous>)
+    at generateImgAttrs (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9218f4f6._.js:499:24)
+    at getImgProps (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9218f4f6._.js:893:27)
+    at http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9218f4f6._.js:3182:82
+    at Object.react_stack_bottom_frame (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:13072:24)
+    at renderWithHooks (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:4091:24)
+    at updateForwardRef (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:5342:21)
+    at beginWork (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:6096:46)
+    at runWithFiberInDEV (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:886:74)
+    at performUnitOfWork (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:8298:97)
+    at workLoopSync (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:8190:40)
+    at renderRootSync (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:8173:13)
+    at performWorkOnRoot (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:7932:56)
+    at performWorkOnRootViaSchedulerTask (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:8882:9)
+    at MessagePort.performWorkUntilDeadline (http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_a7cc9217._.js:2601:64) The above error occurred in the <Unknown> component. It was handled by the <ErrorBoundaryHandler> error boundary. @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:1247
+[     859ms] [ERROR] Uncaught error error="Invalid src prop (https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200) on `next/image`, hostname \"images.unsplash.com\" is not configured under images in your `next.config.js`\nSee more info: https://nextjs.org/docs/messages/next-image-unconfigured-host" @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[     859ms] [ERROR] Uncaught error error="Invalid src prop (https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=200) on `next/image`, hostname \"images.unsplash.com\" is not configured under images in your `next.config.js`\nSee more info: https://nextjs.org/docs/messages/next-image-unconfigured-host" @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_9fa3f7b9._.js:2359
+[     973ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[     999ms] [LOG] [Fast Refresh] done in 128ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    1103ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    1155ms] [LOG] [Fast Refresh] done in 153ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    5614ms] [WARNING] The resource https://challenges.cloudflare.com/turnstile/v0/api.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://demo.localhost:3004/events/public/demo/spring-assembly-preview:0

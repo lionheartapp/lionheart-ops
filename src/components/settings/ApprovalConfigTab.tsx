@@ -5,18 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, ArrowRight, AlertTriangle, Clock, Users,
-  CheckCircle2, Trash2, User,
+  ClipboardCheck, Trash2, User,
 } from 'lucide-react'
-import {
-  SURFACE,
-  BORDER,
-  TEXT_PRIMARY,
-  TEXT_SECONDARY,
-  TEXT_MUTED,
-  WARM_CHIP,
-  HAIRLINE,
-  CARD_SHADOW,
-} from '@/lib/design/warm-tokens'
 import { fetchApi } from '@/lib/api-client'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -78,77 +68,53 @@ function FlowEntryCard({ entry, onUpdate, onRemove }: FlowEntryCardProps) {
 
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all duration-200"
-      style={{
-        backgroundColor: SURFACE,
-        border: `1px solid ${isRequired ? 'rgba(17, 15, 10, 0.1)' : BORDER}`,
-        boxShadow: isRequired ? CARD_SHADOW : 'none',
-      }}
+      className={`bg-white border rounded-2xl overflow-hidden transition-all duration-200 ${
+        isRequired ? 'border-slate-200 shadow-sm' : 'border-slate-200/80'
+      }`}
     >
       <div className="px-5 py-4">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4
-                className="text-[14px] font-semibold"
-                style={{ color: TEXT_PRIMARY, letterSpacing: '-0.01em' }}
-              >
+              <h4 className="text-sm font-semibold text-slate-900">
                 {entry.teamName}
               </h4>
               {isRequired ? (
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: '#e8e3d9', color: TEXT_PRIMARY }}
-                >
+                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
                   Must Approve
                 </span>
               ) : (
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: WARM_CHIP, color: TEXT_SECONDARY }}
-                >
+                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
                   Notify Only
                 </span>
               )}
             </div>
-            <p className="text-[12px] mt-0.5" style={{ color: TEXT_SECONDARY }}>
+            <p className="text-xs text-slate-500 mt-0.5">
               {entry.assignedUserId ? (
-                <><User className="w-3 h-3 inline-block mr-1" style={{ verticalAlign: '-2px' }} />{assigneeName}</>
+                <><User className="w-3 h-3 inline-block mr-1 align-[-2px]" />{assigneeName}</>
               ) : (
-                <><Users className="w-3 h-3 inline-block mr-1" style={{ verticalAlign: '-2px' }} />{assigneeName}</>
+                <><Users className="w-3 h-3 inline-block mr-1 align-[-2px]" />{assigneeName}</>
               )}
               {' · '}
-              {entry.trigger === 'ALWAYS'
-                ? 'Every event'
-                : 'When resource needed'
-              }
+              {entry.trigger === 'ALWAYS' ? 'Every event' : 'When resource needed'}
             </p>
           </div>
 
           {/* Mode toggle */}
-          <div
-            className="inline-flex items-center gap-0.5 p-0.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: WARM_CHIP }}
-          >
+          <div className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-slate-100 flex-shrink-0">
             <button
               onClick={() => onUpdate(entry.id, { mode: 'REQUIRED' })}
-              className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap"
-              style={{
-                backgroundColor: isRequired ? '#ffffff' : 'transparent',
-                color: isRequired ? TEXT_PRIMARY : TEXT_MUTED,
-                boxShadow: isRequired ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-              }}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                isRequired ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              }`}
             >
               Must Approve
             </button>
             <button
               onClick={() => onUpdate(entry.id, { mode: 'NOTIFICATION' })}
-              className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap"
-              style={{
-                backgroundColor: !isRequired ? '#ffffff' : 'transparent',
-                color: !isRequired ? TEXT_PRIMARY : TEXT_MUTED,
-                boxShadow: !isRequired ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-              }}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                !isRequired ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              }`}
             >
               Notify Only
             </button>
@@ -156,10 +122,7 @@ function FlowEntryCard({ entry, onUpdate, onRemove }: FlowEntryCardProps) {
 
           <button
             onClick={() => onRemove(entry.id)}
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
-            style={{ color: TEXT_MUTED }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = WARM_CHIP; e.currentTarget.style.color = TEXT_PRIMARY }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = TEXT_MUTED }}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer flex-shrink-0"
             title="Remove from flow"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -170,24 +133,18 @@ function FlowEntryCard({ entry, onUpdate, onRemove }: FlowEntryCardProps) {
       {/* Expanded config for Required */}
       {isRequired && (
         <div className="px-5 pb-4">
-          <div
-            className="rounded-xl px-4 py-3 flex items-center gap-3"
-            style={{ backgroundColor: 'rgba(255,255,255,0.7)', border: `1px solid ${HAIRLINE}` }}
-          >
-            <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: TEXT_MUTED }} />
-            <span className="text-[11px] font-medium" style={{ color: TEXT_SECONDARY }}>
-              Remind after
-            </span>
+          <div className="rounded-xl px-4 py-3 flex items-center gap-3 bg-slate-50/80 border border-slate-100">
+            <Clock className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+            <span className="text-[11px] font-medium text-slate-500">Remind after</span>
             <input
               type="number"
               value={entry.escalationHours}
               onChange={(e) => onUpdate(entry.id, { escalationHours: parseInt(e.target.value) || 72 })}
               min={1}
               max={720}
-              className="w-16 px-2 py-1.5 rounded-lg text-[13px] outline-none text-center"
-              style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY, border: '1px solid transparent' }}
+              className="w-16 px-2 py-1.5 rounded-lg text-[13px] outline-none text-center bg-white border border-slate-200 text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition"
             />
-            <span className="text-[11px]" style={{ color: TEXT_SECONDARY }}>hours with no response</span>
+            <span className="text-[11px] text-slate-500">hours with no response</span>
           </div>
         </div>
       )}
@@ -235,8 +192,7 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-40"
-        style={{ backgroundColor: 'rgba(17, 15, 10, 0.3)' }}
+        className="fixed inset-0 z-40 bg-black/30"
         onClick={onClose}
       />
       <motion.div
@@ -247,20 +203,16 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         <div
-          className="w-full max-w-md rounded-2xl overflow-hidden"
-          style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}`, boxShadow: CARD_SHADOW }}
+          className="w-full max-w-md bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: `1px solid ${HAIRLINE}` }}>
-            <h3 className="text-[17px] font-semibold" style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-900">
               Add to Approval Flow
             </h3>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-              style={{ color: TEXT_SECONDARY }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP)}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -269,16 +221,15 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
           <div className="px-6 py-5 space-y-5">
             {/* Team */}
             <div>
-              <label className="text-[12px] font-medium" style={{ color: TEXT_SECONDARY }}>
+              <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                 Team
               </label>
               <select
                 value={selectedTeamId}
                 onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedUserId(''); setAssignTo('team') }}
-                className="mt-1.5 w-full px-3 py-2.5 rounded-xl text-[13px] cursor-pointer outline-none"
-                style={{ backgroundColor: WARM_CHIP, color: selectedTeamId ? TEXT_PRIMARY : TEXT_MUTED, border: '1px solid transparent' }}
+                className="mt-1.5 w-full px-3 py-2.5 rounded-xl text-sm cursor-pointer outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition"
               >
-                <option value="">Select a team...</option>
+                <option value="" className="text-slate-400">Select a team...</option>
                 {teams.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
@@ -288,28 +239,24 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
             {/* Who specifically */}
             {selectedTeam && (
               <div>
-                <label className="text-[12px] font-medium" style={{ color: TEXT_SECONDARY }}>
+                <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                   Who specifically?
                 </label>
                 <div className="flex gap-2 mt-1.5">
                   <button
                     onClick={() => { setAssignTo('team'); setSelectedUserId('') }}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-colors cursor-pointer"
-                    style={{
-                      backgroundColor: assignTo === 'team' ? '#e8e3d9' : WARM_CHIP,
-                      color: assignTo === 'team' ? TEXT_PRIMARY : TEXT_SECONDARY,
-                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                      assignTo === 'team' ? 'bg-slate-200/80 text-slate-900' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    }`}
                   >
                     <Users className="w-3.5 h-3.5" />
                     Entire team
                   </button>
                   <button
                     onClick={() => setAssignTo('person')}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-colors cursor-pointer"
-                    style={{
-                      backgroundColor: assignTo === 'person' ? '#e8e3d9' : WARM_CHIP,
-                      color: assignTo === 'person' ? TEXT_PRIMARY : TEXT_SECONDARY,
-                    }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                      assignTo === 'person' ? 'bg-slate-200/80 text-slate-900' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    }`}
                   >
                     <User className="w-3.5 h-3.5" />
                     Specific person
@@ -320,10 +267,9 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
                   <select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="mt-2 w-full px-3 py-2.5 rounded-xl text-[13px] cursor-pointer outline-none"
-                    style={{ backgroundColor: WARM_CHIP, color: selectedUserId ? TEXT_PRIMARY : TEXT_MUTED, border: '1px solid transparent' }}
+                    className="mt-2 w-full px-3 py-2.5 rounded-xl text-sm cursor-pointer outline-none bg-slate-50 border border-slate-200 text-slate-900 focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition"
                   >
-                    <option value="">Select a person...</option>
+                    <option value="" className="text-slate-400">Select a person...</option>
                     {selectedTeam.members.map((m) => (
                       <option key={m.id} value={m.id}>{m.name}</option>
                     ))}
@@ -335,27 +281,23 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
             {/* Mode */}
             {selectedTeamId && (
               <div>
-                <label className="text-[12px] font-medium" style={{ color: TEXT_SECONDARY }}>
+                <label className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
                   What should they do?
                 </label>
                 <div className="flex gap-2 mt-1.5">
                   <button
                     onClick={() => setMode('REQUIRED')}
-                    className="flex-1 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-colors cursor-pointer text-center"
-                    style={{
-                      backgroundColor: mode === 'REQUIRED' ? '#e8e3d9' : WARM_CHIP,
-                      color: mode === 'REQUIRED' ? TEXT_PRIMARY : TEXT_SECONDARY,
-                    }}
+                    className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-center ${
+                      mode === 'REQUIRED' ? 'bg-slate-200/80 text-slate-900' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    }`}
                   >
                     Must approve event
                   </button>
                   <button
                     onClick={() => setMode('NOTIFICATION')}
-                    className="flex-1 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-colors cursor-pointer text-center"
-                    style={{
-                      backgroundColor: mode === 'NOTIFICATION' ? '#e8e3d9' : WARM_CHIP,
-                      color: mode === 'NOTIFICATION' ? TEXT_PRIMARY : TEXT_SECONDARY,
-                    }}
+                    className={`flex-1 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer text-center ${
+                      mode === 'NOTIFICATION' ? 'bg-slate-200/80 text-slate-900' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                    }`}
                   >
                     Just get notified
                   </button>
@@ -364,19 +306,17 @@ function AddTeamModal({ teams, onAdd, onClose }: AddTeamModalProps) {
             )}
           </div>
 
-          <div className="flex gap-3 px-6 py-4" style={{ borderTop: `1px solid ${HAIRLINE}` }}>
+          <div className="flex gap-3 px-6 py-4 border-t border-slate-100">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer"
-              style={{ backgroundColor: WARM_CHIP, color: TEXT_SECONDARY }}
+              className="flex-1 px-4 py-2.5 rounded-full text-sm font-medium bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={!selectedTeamId || (assignTo === 'person' && !selectedUserId)}
-              className="flex-1 px-4 py-2.5 rounded-full text-[13px] font-semibold transition-all cursor-pointer disabled:opacity-40"
-              style={{ backgroundColor: TEXT_PRIMARY, color: '#ffffff' }}
+              className="flex-1 px-4 py-2.5 rounded-full text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all cursor-pointer disabled:opacity-40"
             >
               Add to Flow
             </button>
@@ -430,134 +370,131 @@ export default function ApprovalConfigTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold" style={{ color: TEXT_PRIMARY, letterSpacing: '-0.02em' }}>
-            Event Approval Flow
-          </h2>
-          <p className="text-[13px] mt-1.5 max-w-xl" style={{ color: TEXT_SECONDARY }}>
-            When someone creates an event, these teams review it before it's confirmed.
-            Add your teams below and choose who must approve.
-          </p>
+      <div className="ui-glass p-6">
+        {/* Section header */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+            <ClipboardCheck className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Approval Config</h3>
+            <p className="text-xs text-slate-500">Configure which teams review events before they're confirmed</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl" style={{ backgroundColor: WARM_CHIP }}>
+        {/* Flow visualization */}
+        <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 mb-5">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e8e3d9' }}>
-              <span className="text-[11px] font-bold" style={{ color: TEXT_PRIMARY }}>1</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-200/80 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-slate-700">1</span>
             </div>
-            <span className="text-[12px] font-medium" style={{ color: TEXT_PRIMARY }}>Event Created</span>
+            <span className="text-xs font-medium text-slate-700">Event Created</span>
           </div>
-          <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: TEXT_MUTED }} />
+          <ArrowRight className="w-4 h-4 flex-shrink-0 text-slate-300" />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e8e3d9' }}>
-              <span className="text-[11px] font-bold" style={{ color: TEXT_PRIMARY }}>2</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-200/80 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-slate-700">2</span>
             </div>
-            <span className="text-[12px] font-medium" style={{ color: TEXT_PRIMARY }}>Teams Review</span>
+            <span className="text-xs font-medium text-slate-700">Teams Review</span>
           </div>
-          <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: TEXT_MUTED }} />
+          <ArrowRight className="w-4 h-4 flex-shrink-0 text-slate-300" />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e8e3d9' }}>
-              <span className="text-[11px] font-bold" style={{ color: TEXT_PRIMARY }}>3</span>
+            <div className="w-7 h-7 rounded-lg bg-slate-200/80 flex items-center justify-center">
+              <span className="text-[11px] font-bold text-slate-700">3</span>
             </div>
-            <span className="text-[12px] font-medium" style={{ color: TEXT_PRIMARY }}>Event Confirmed</span>
+            <span className="text-xs font-medium text-slate-700">Event Confirmed</span>
           </div>
         </div>
+
+        {/* Warning */}
+        {!isLoading && !hasRequiredEntry && entries.length > 0 && (
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 mb-5">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-500" />
+            <p className="text-[13px] font-medium text-red-800">
+              No teams are set to "Must Approve" — events will skip review and be confirmed immediately.
+            </p>
+          </div>
+        )}
+
+        {/* Live preview */}
+        {!isLoading && entries.length > 0 && (
+          <div className="rounded-2xl px-5 py-4 bg-slate-50 border border-slate-100 mb-5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              With your current settings
+            </p>
+            <p className="text-[13px] leading-relaxed text-slate-700">
+              {summary.required.length > 0 ? (
+                <>
+                  Events need approval from{' '}
+                  <strong className="text-slate-900">
+                    {summary.required.map((e) =>
+                      e.assignedUserName ? `${e.assignedUserName} (${e.teamName})` : e.teamName
+                    ).join(' and ')}
+                  </strong>
+                  {summary.required.some((e) => e.trigger === 'WHEN_RESOURCE_REQUESTED')
+                    ? ' (some only when their resource is needed)'
+                    : ''
+                  }.{' '}
+                </>
+              ) : (
+                <>Events will be auto-confirmed with no review. </>
+              )}
+              {summary.notify.length > 0 && (
+                <>
+                  <strong className="text-slate-900">
+                    {summary.notify.map((e) =>
+                      e.assignedUserName ? `${e.assignedUserName} (${e.teamName})` : e.teamName
+                    ).join(' and ')}
+                  </strong>
+                  {' '}will be notified but won't block confirmation.
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* Flow entries */}
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />)}
+          </div>
+        ) : entries.length === 0 ? (
+          <div className="text-center py-12 rounded-2xl bg-slate-50 border border-slate-100">
+            <div className="w-14 h-14 rounded-2xl bg-slate-200/80 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-7 h-7 text-slate-500" strokeWidth={1.75} />
+            </div>
+            <p className="text-sm font-semibold text-slate-700 mb-1">No teams in the approval flow</p>
+            <p className="text-xs text-slate-500 mb-5 max-w-xs mx-auto">
+              Events will be confirmed immediately. Add a team to require approval before events go live.
+            </p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 cursor-pointer transition-all shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Add First Team
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {entries.map((entry) => (
+              <FlowEntryCard
+                key={entry.id}
+                entry={entry}
+                onUpdate={(id, data) => updateMutation.mutate({ id, ...data })}
+                onRemove={(id) => removeMutation.mutate(id)}
+              />
+            ))}
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-medium border-2 border-dashed border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4" strokeWidth={2} />
+              Add Team
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* Warning */}
-      {!isLoading && !hasRequiredEntry && entries.length > 0 && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
-          <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: '#dc2626' }} />
-          <p className="text-[13px] font-medium" style={{ color: '#991b1b' }}>
-            No teams are set to "Must Approve" — events will skip review and be confirmed immediately.
-          </p>
-        </div>
-      )}
-
-      {/* Live preview — above the entries so the admin sees the summary first */}
-      {!isLoading && entries.length > 0 && (
-        <div className="rounded-2xl px-5 py-4" style={{ backgroundColor: WARM_CHIP, border: `1px solid ${HAIRLINE}` }}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] mb-2" style={{ color: TEXT_MUTED }}>
-            With your current settings
-          </p>
-          <p className="text-[13px] leading-relaxed" style={{ color: TEXT_PRIMARY }}>
-            {summary.required.length > 0 ? (
-              <>
-                Events need approval from{' '}
-                <strong>
-                  {summary.required.map((e) =>
-                    e.assignedUserName ? `${e.assignedUserName} (${e.teamName})` : e.teamName
-                  ).join(' and ')}
-                </strong>
-                {summary.required.some((e) => e.trigger === 'WHEN_RESOURCE_REQUESTED')
-                  ? ' (some only when their resource is needed)'
-                  : ''
-                }.{' '}
-              </>
-            ) : (
-              <>Events will be auto-confirmed with no review. </>
-            )}
-            {summary.notify.length > 0 && (
-              <>
-                <strong>
-                  {summary.notify.map((e) =>
-                    e.assignedUserName ? `${e.assignedUserName} (${e.teamName})` : e.teamName
-                  ).join(' and ')}
-                </strong>
-                {' '}will be notified but won't block confirmation.
-              </>
-            )}
-          </p>
-        </div>
-      )}
-
-      {/* Flow entries */}
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2].map((i) => <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ backgroundColor: WARM_CHIP }} />)}
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="text-center py-12 rounded-2xl" style={{ backgroundColor: WARM_CHIP, border: `1px solid ${HAIRLINE}` }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#e8e3d9' }}>
-            <Users className="w-7 h-7" strokeWidth={1.75} style={{ color: TEXT_PRIMARY }} />
-          </div>
-          <p className="text-[14px] font-semibold mb-1" style={{ color: TEXT_PRIMARY }}>No teams in the approval flow</p>
-          <p className="text-[12px] mb-5 max-w-xs mx-auto" style={{ color: TEXT_SECONDARY }}>
-            Events will be confirmed immediately. Add a team to require approval before events go live.
-          </p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold cursor-pointer hover:-translate-y-px transition-all"
-            style={{ backgroundColor: TEXT_PRIMARY, color: '#ffffff', boxShadow: CARD_SHADOW }}
-          >
-            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            Add First Team
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {entries.map((entry) => (
-            <FlowEntryCard
-              key={entry.id}
-              entry={entry}
-              onUpdate={(id, data) => updateMutation.mutate({ id, ...data })}
-              onRemove={(id) => removeMutation.mutate(id)}
-            />
-          ))}
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-[13px] font-medium transition-colors cursor-pointer"
-            style={{ border: `1px dashed ${BORDER}`, color: TEXT_SECONDARY }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = WARM_CHIP; e.currentTarget.style.borderStyle = 'solid' }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderStyle = 'dashed' }}
-          >
-            <Plus className="w-4 h-4" strokeWidth={2} />
-            Add Team
-          </button>
-        </div>
-      )}
 
       {/* Add modal */}
       <AnimatePresence>

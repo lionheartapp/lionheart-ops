@@ -1,0 +1,244 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - complementary "Sidebar navigation" [ref=e6]:
+          - generic [ref=e7]:
+            - img "Demo Academy logo" [ref=e10]
+            - button "Search... ⌘K" [ref=e12] [cursor=pointer]:
+              - img [ref=e13]
+              - generic [ref=e16]: Search...
+              - generic [ref=e17]: ⌘K
+            - img
+            - navigation "Main navigation" [ref=e18]:
+              - list [ref=e19]:
+                - listitem [ref=e20]:
+                  - link "Dashboard" [ref=e21] [cursor=pointer]:
+                    - /url: /dashboard
+                    - img [ref=e22]
+                    - generic [ref=e25]: Dashboard
+                - listitem [ref=e26]:
+                  - button "Events" [ref=e27] [cursor=pointer]:
+                    - img [ref=e28]
+                    - generic [ref=e32]: Events
+                - listitem [ref=e33]:
+                  - button "Athletics" [ref=e34] [cursor=pointer]:
+                    - img [ref=e35]
+                    - generic [ref=e41]: Athletics
+              - generic [ref=e42]: Support
+              - list [ref=e43]:
+                - listitem [ref=e44]:
+                  - button "Expand maintenance" [ref=e45] [cursor=pointer]:
+                    - img [ref=e46]
+                    - generic [ref=e48]: Maintenance
+                    - img [ref=e50]
+                  - generic [ref=e52]:
+                    - link "Maintenance Hub" [ref=e53] [cursor=pointer]:
+                      - /url: /maintenance
+                      - generic [ref=e54]: Maintenance Hub
+                    - link "Work Orders" [ref=e55] [cursor=pointer]:
+                      - /url: /maintenance/work-orders
+                      - generic [ref=e56]: Work Orders
+                    - link "Event Approvals" [ref=e57] [cursor=pointer]:
+                      - /url: /maintenance/event-approvals
+                      - generic [ref=e58]: Event Approvals
+                    - link "Inventory" [ref=e59] [cursor=pointer]:
+                      - /url: /inventory?dept=maintenance
+                      - generic [ref=e60]: Inventory
+                    - link "Assets" [ref=e61] [cursor=pointer]:
+                      - /url: /maintenance/assets
+                      - generic [ref=e62]: Assets
+                    - link "Knowledge Base" [ref=e63] [cursor=pointer]:
+                      - /url: /maintenance/knowledge-base
+                      - generic [ref=e64]: Knowledge Base
+                    - link "Analytics" [ref=e65] [cursor=pointer]:
+                      - /url: /maintenance/analytics
+                      - generic [ref=e66]: Analytics
+                    - link "Compliance" [ref=e67] [cursor=pointer]:
+                      - /url: /maintenance/compliance
+                      - generic [ref=e68]: Compliance
+                - listitem [ref=e69]:
+                  - button "Expand IT Help Desk" [ref=e70] [cursor=pointer]:
+                    - img [ref=e71]
+                    - generic [ref=e73]: IT Help Desk
+                    - img [ref=e75]
+                  - generic [ref=e77]:
+                    - link "Help Desk" [ref=e78] [cursor=pointer]:
+                      - /url: /it
+                      - generic [ref=e79]: Help Desk
+                    - link "Devices" [ref=e80] [cursor=pointer]:
+                      - /url: /it/devices
+                      - generic [ref=e81]: Devices
+                    - link "Lifecycle" [ref=e82] [cursor=pointer]:
+                      - /url: /it/lifecycle
+                      - generic [ref=e83]: Lifecycle
+                    - link "Security" [ref=e84] [cursor=pointer]:
+                      - /url: /it/security
+                      - generic [ref=e85]: Security
+                    - link "Reports & Admin" [ref=e86] [cursor=pointer]:
+                      - /url: /it/admin
+                      - generic [ref=e87]: Reports & Admin
+                    - link "Inventory" [ref=e88] [cursor=pointer]:
+                      - /url: /inventory?dept=it
+                      - generic [ref=e89]: Inventory
+                - listitem [ref=e90]:
+                  - button "Expand A/V Production" [ref=e91] [cursor=pointer]:
+                    - img [ref=e92]
+                    - generic [ref=e96]: A/V Production
+                    - img [ref=e98]
+                  - generic [ref=e100]:
+                    - link "Inventory" [ref=e101] [cursor=pointer]:
+                      - /url: /inventory
+                      - generic [ref=e102]: Inventory
+                    - link "Event Approvals" [ref=e103] [cursor=pointer]:
+                      - /url: /av/event-approvals
+                      - generic [ref=e104]: Event Approvals
+            - generic [ref=e105]:
+              - generic [ref=e108]:
+                - generic [ref=e109]: A
+                - generic [ref=e110]:
+                  - paragraph [ref=e111]: Admin User
+                  - paragraph [ref=e112]: admin@demo.com
+                - button "User menu" [ref=e113] [cursor=pointer]:
+                  - img [ref=e114]
+              - img "Lionheart" [ref=e120]
+        - complementary "Events navigation" [ref=e121]:
+          - navigation "Events navigation" [ref=e125]:
+            - link "Events Hub" [ref=e126] [cursor=pointer]:
+              - /url: /events
+              - img [ref=e127]
+              - text: Events Hub
+            - link "Calendar" [ref=e130] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e131]
+              - text: Calendar
+            - link "Year Plans" [ref=e133] [cursor=pointer]:
+              - /url: /planning
+              - img [ref=e134]
+              - text: Year Plans
+            - link "Create with Leo" [ref=e137] [cursor=pointer]:
+              - /url: /events/new/ai
+              - img [ref=e138]
+              - text: Create with Leo
+      - main [ref=e142]:
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - heading "Events Hub" [level=1] [ref=e147]
+              - paragraph [ref=e148]: Manage all your school events from planning to completion
+            - button "Event" [ref=e150] [cursor=pointer]:
+              - img [ref=e151]
+              - text: Event
+              - img [ref=e152]
+          - generic [ref=e154]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: "3"
+                - paragraph [ref=e159]: Active Events
+              - img [ref=e161]
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]: "3"
+                - paragraph [ref=e167]: Needs Approval
+              - img [ref=e169]
+          - generic [ref=e171]:
+            - generic [ref=e173]:
+              - heading "All Events" [level=2] [ref=e175]
+              - generic [ref=e176]:
+                - button "All" [ref=e177] [cursor=pointer]
+                - button "Draft" [ref=e178] [cursor=pointer]
+                - button "Pending Approval" [ref=e179] [cursor=pointer]
+                - button "Confirmed" [ref=e180] [cursor=pointer]
+                - button "In Progress" [ref=e181] [cursor=pointer]
+                - button "Completed" [ref=e182] [cursor=pointer]
+              - generic [ref=e183]:
+                - generic [ref=e184] [cursor=pointer]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: SUN
+                    - generic [ref=e187]: "12"
+                  - generic [ref=e189]:
+                    - heading "Spring Assembly Preview" [level=3] [ref=e190]
+                    - generic [ref=e191]:
+                      - generic [ref=e192]: Direct Request
+                      - generic [ref=e193]: Pending Approval
+                    - paragraph [ref=e194]: A short editorial preview event created to validate the new EventCard reskin layout.
+                    - generic [ref=e195]:
+                      - generic [ref=e196]: Apr 12, 2026
+                      - generic [ref=e197]: ·
+                      - generic [ref=e198]: Main Hall
+                    - paragraph [ref=e199]: By Admin User
+                    - 'generic "Admin: Pending" [ref=e201]': Admin
+                  - img [ref=e203]
+                - generic [ref=e205] [cursor=pointer]:
+                  - generic [ref=e206]:
+                    - generic [ref=e207]: WED
+                    - generic [ref=e208]: "15"
+                  - generic [ref=e210]:
+                    - heading "Fall Open House" [level=3] [ref=e211]
+                    - generic [ref=e212]:
+                      - generic [ref=e213]: Direct Request
+                      - generic [ref=e214]: Pending Approval
+                    - paragraph [ref=e215]: Campus-wide open house for prospective families and students.
+                    - generic [ref=e216]:
+                      - generic [ref=e217]: Apr 15, 2026
+                      - generic [ref=e218]: ·
+                      - generic [ref=e219]: Front Lawn
+                    - paragraph [ref=e220]: By Admin User
+                    - 'generic "Admin: Pending" [ref=e222]': Admin
+                  - img [ref=e224]
+                - generic [ref=e226] [cursor=pointer]:
+                  - generic [ref=e227]:
+                    - generic [ref=e228]: MON
+                    - generic [ref=e229]: "20"
+                  - generic [ref=e231]:
+                    - heading "Staff Planning Retreat" [level=3] [ref=e232]
+                    - generic [ref=e233]:
+                      - generic [ref=e234]: Direct Request
+                      - generic [ref=e235]: Pending Approval
+                    - paragraph [ref=e236]: Half-day staff planning session and goal setting.
+                    - generic [ref=e237]:
+                      - generic [ref=e238]: Apr 20, 2026
+                      - generic [ref=e239]: ·
+                      - generic [ref=e240]: Conference Room A
+                    - paragraph [ref=e241]: By Admin User
+                    - 'generic "Admin: Pending" [ref=e243]': Admin
+                  - img [ref=e245]
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - heading "Event Approvals" [level=2] [ref=e250]
+                - generic "Actions ranked by AI based on urgency, deadlines, and event proximity" [ref=e251]:
+                  - img [ref=e252]
+                  - text: AI Ranked
+              - generic [ref=e255]:
+                - generic [ref=e256]:
+                  - img [ref=e259]
+                  - generic [ref=e262]:
+                    - generic [ref=e263]:
+                      - paragraph [ref=e264]: Spring Assembly Preview
+                      - paragraph [ref=e265]: Submitted 2 hours ago by Admin User — needs admin approval
+                      - generic [ref=e266]: Spring Assembly Preview
+                    - button "Approve" [ref=e268] [cursor=pointer]
+                - generic [ref=e269]:
+                  - img [ref=e272]
+                  - generic [ref=e275]:
+                    - generic [ref=e276]:
+                      - paragraph [ref=e277]: Fall Open House
+                      - paragraph [ref=e278]: Submitted 2 hours ago by Admin User — needs admin approval
+                      - generic [ref=e279]: Fall Open House
+                    - button "Approve" [ref=e281] [cursor=pointer]
+                - generic [ref=e282]:
+                  - img [ref=e285]
+                  - generic [ref=e288]:
+                    - generic [ref=e289]:
+                      - paragraph [ref=e290]: Staff Planning Retreat
+                      - paragraph [ref=e291]: Submitted 2 hours ago by Admin User — needs admin approval
+                      - generic [ref=e292]: Staff Planning Retreat
+                    - button "Approve" [ref=e294] [cursor=pointer]
+  - button "Open AI Assistant" [ref=e298] [cursor=pointer]:
+    - img [ref=e300]
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e307] [cursor=pointer]:
+    - img [ref=e308]
+  - alert [ref=e311]

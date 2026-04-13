@@ -21,7 +21,11 @@ export interface CalendarSidebarData {
 }
 
 export type SettingsTab = 'profile' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'integrations' | 'activity-log' | 'billing'
-export type AthleticsTab = 'overview' | 'sports' | 'teams' | 'schedule' | 'roster' | 'tournaments' | 'stats'
+export type AthleticsTab = 'overview' | 'manage' | 'schedule' | 'stats'
+/** Sub-sections within the Manage tab */
+export type AthleticsManageSection = 'sports' | 'teams' | 'roster'
+/** Sub-sections within the Schedule tab */
+export type AthleticsScheduleSection = 'games' | 'tournaments'
 export type MaintenanceTab = 'dashboard' | 'pm-calendar'
 
 export interface EventProjectSummary {

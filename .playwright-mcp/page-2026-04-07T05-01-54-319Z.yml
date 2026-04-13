@@ -1,0 +1,133 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - complementary "Sidebar navigation" [ref=e5]:
+        - generic [ref=e6]:
+          - img "Demo Academy logo" [ref=e9]
+          - button "Search... ⌘K" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+            - generic [ref=e15]: Search...
+            - generic [ref=e16]: ⌘K
+          - img
+          - navigation "Main navigation" [ref=e17]:
+            - list [ref=e18]:
+              - listitem [ref=e19]:
+                - link "Dashboard" [ref=e20] [cursor=pointer]:
+                  - /url: /dashboard
+                  - img [ref=e21]
+                  - generic [ref=e24]: Dashboard
+              - listitem [ref=e25]:
+                - button "Events" [ref=e26] [cursor=pointer]:
+                  - img [ref=e27]
+                  - generic [ref=e31]: Events
+            - generic [ref=e32]: Support
+            - list [ref=e33]:
+              - listitem [ref=e34]:
+                - button "Collapse maintenance" [expanded] [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: Maintenance
+                  - img [ref=e40]
+                - generic [ref=e44]:
+                  - link "Maintenance Hub" [ref=e45] [cursor=pointer]:
+                    - /url: /maintenance
+                    - generic [ref=e46]: Maintenance Hub
+                  - link "Work Orders" [ref=e47] [cursor=pointer]:
+                    - /url: /maintenance/work-orders
+                    - generic [ref=e48]: Work Orders
+                  - link "Event Approvals" [ref=e49] [cursor=pointer]:
+                    - /url: /maintenance/event-approvals
+                    - generic [ref=e50]: Event Approvals
+                  - link "Inventory" [ref=e51] [cursor=pointer]:
+                    - /url: /inventory?dept=maintenance
+                    - generic [ref=e52]: Inventory
+                  - link "Assets" [ref=e53] [cursor=pointer]:
+                    - /url: /maintenance/assets
+                    - generic [ref=e54]: Assets
+                  - link "Knowledge Base" [ref=e55] [cursor=pointer]:
+                    - /url: /maintenance/knowledge-base
+                    - generic [ref=e56]: Knowledge Base
+              - listitem [ref=e57]:
+                - button "Expand IT Help Desk" [ref=e58] [cursor=pointer]:
+                  - img [ref=e59]
+                  - generic [ref=e61]: IT Help Desk
+                  - img [ref=e63]
+                - generic [ref=e65]:
+                  - link "Help Desk" [ref=e66] [cursor=pointer]:
+                    - /url: /it
+                    - generic [ref=e67]: Help Desk
+                  - link "Devices" [ref=e68] [cursor=pointer]:
+                    - /url: /it/devices
+                    - generic [ref=e69]: Devices
+                  - link "Lifecycle" [ref=e70] [cursor=pointer]:
+                    - /url: /it/lifecycle
+                    - generic [ref=e71]: Lifecycle
+                  - link "Inventory" [ref=e72] [cursor=pointer]:
+                    - /url: /inventory?dept=it
+                    - generic [ref=e73]: Inventory
+              - listitem [ref=e74]:
+                - button "Expand A/V Production" [ref=e75] [cursor=pointer]:
+                  - img [ref=e76]
+                  - generic [ref=e80]: A/V Production
+                  - img [ref=e82]
+                - generic [ref=e84]:
+                  - link "Inventory" [ref=e85] [cursor=pointer]:
+                    - /url: /inventory
+                    - generic [ref=e86]: Inventory
+                  - link "Event Approvals" [ref=e87] [cursor=pointer]:
+                    - /url: /av/event-approvals
+                    - generic [ref=e88]: Event Approvals
+          - generic [ref=e89]:
+            - generic [ref=e92]:
+              - generic [ref=e93]: A
+              - generic [ref=e94]:
+                - paragraph [ref=e95]: Admin User
+                - paragraph [ref=e96]: admin@demo.com
+              - button "User menu" [ref=e97] [cursor=pointer]:
+                - img [ref=e98]
+            - img "Lionheart" [ref=e104]
+      - generic [ref=e106]:
+        - heading [level=2] [ref=e108]: Settings
+        - generic [ref=e109]:
+          - paragraph [ref=e110]: General
+          - navigation [ref=e111]:
+            - button [ref=e112] [cursor=pointer]:
+              - img [ref=e113]
+              - text: My Profile
+        - generic [ref=e116]:
+          - paragraph [ref=e117]: Workspace
+          - navigation [ref=e118]:
+            - button [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+              - text: School Information
+            - button [ref=e125] [cursor=pointer]:
+              - img [ref=e126]
+              - text: Roles
+            - button [ref=e128] [cursor=pointer]:
+              - img [ref=e129]
+              - text: Teams
+            - button [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+              - text: Members
+            - button [ref=e147] [cursor=pointer]:
+              - img [ref=e148]
+              - text: Campus
+            - button [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+              - text: Billing
+            - button [ref=e155] [cursor=pointer]:
+              - img [ref=e156]
+              - text: Add-ons
+            - button [ref=e158] [cursor=pointer]:
+              - img [ref=e159]
+              - text: Integrations
+            - button [ref=e162] [cursor=pointer]:
+              - img [ref=e163]
+              - text: Activity Log
+    - main [ref=e167]:
+      - generic [ref=e170]:
+        - heading "Event Approvals" [level=1] [ref=e171]
+        - paragraph [ref=e172]: Events requesting Facilities resources that need your review
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e182] [cursor=pointer]:
+    - img [ref=e183]
+  - alert [ref=e186]

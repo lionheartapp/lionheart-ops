@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { logger } from '@/lib/logger'
@@ -149,6 +149,7 @@ export default function DashboardPage() {
   }, [createCalendarEvent])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
+  const createDropdownRef = useRef<HTMLDivElement>(null)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [eventsScrolled, setEventsScrolled] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
@@ -370,15 +371,14 @@ export default function DashboardPage() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest('[aria-expanded]') && !target.closest('.relative')) {
+      if (createDropdownRef.current && !createDropdownRef.current.contains(e.target as Node)) {
         setIsCreateDropdownOpen(false)
       }
     }
 
     if (isCreateDropdownOpen) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isCreateDropdownOpen])
 
@@ -432,12 +432,8 @@ export default function DashboardPage() {
             </span>
           </motion.button>
 
-          {/* Create button — opens dropdown on hover */}
-          <div
-            className="relative"
-            onMouseEnter={() => setIsCreateDropdownOpen(true)}
-            onMouseLeave={() => setIsCreateDropdownOpen(false)}
-          >
+          {/* Create button — opens dropdown on click */}
+          <div ref={createDropdownRef} className="relative">
           <motion.button
             onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
             className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"

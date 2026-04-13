@@ -39,15 +39,15 @@ interface UserOption {
 
 function getActionBadgeClass(action: string): string {
   if (action.startsWith('user.login') || action.startsWith('user.password')) {
-    return 'bg-blue-100 text-blue-700'
+    return 'bg-blue-50 text-blue-600 ring-1 ring-blue-200'
   }
   if (action.startsWith('user.')) {
-    return 'bg-green-100 text-green-700'
+    return 'bg-green-50 text-green-600 ring-1 ring-green-200'
   }
   if (action.startsWith('role.') || action.startsWith('team.')) {
-    return 'bg-purple-100 text-purple-700'
+    return 'bg-purple-50 text-purple-600 ring-1 ring-purple-200'
   }
-  return 'bg-slate-100 text-slate-700'
+  return 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'
 }
 
 // ─── Relative time helper ─────────────────────────────────────────────────
@@ -118,7 +118,7 @@ function AuditRow({ log }: { log: AuditLog }) {
         </td>
         <td className="px-4 py-3 text-left">
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionBadgeClass(log.action)}`}
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${getActionBadgeClass(log.action)}`}
           >
             {log.action}
           </span>

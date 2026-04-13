@@ -429,7 +429,8 @@ export function BudgetLineItemTable({
       } else {
         setEstimateError(json.error?.message ?? 'Failed to generate estimate')
       }
-    } catch {
+    } catch (error: unknown) {
+      console.error('AI budget estimate failed:', error)
       setEstimateError('Network error — please try again')
     } finally {
       setEstimating(false)

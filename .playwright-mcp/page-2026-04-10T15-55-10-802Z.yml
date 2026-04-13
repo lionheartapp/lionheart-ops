@@ -1,0 +1,243 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - complementary "Sidebar navigation" [ref=e6]:
+          - generic [ref=e7]:
+            - img "Demo Academy logo" [ref=e10]
+            - button "Search... ⌘K" [ref=e12] [cursor=pointer]:
+              - img [ref=e13]
+              - generic [ref=e16]: Search...
+              - generic [ref=e17]: ⌘K
+            - img
+            - navigation "Main navigation" [ref=e18]:
+              - list [ref=e19]:
+                - listitem [ref=e20]:
+                  - link "Dashboard" [ref=e21] [cursor=pointer]:
+                    - /url: /dashboard
+                    - img [ref=e22]
+                    - generic [ref=e25]: Dashboard
+                - listitem [ref=e26]:
+                  - button "Events" [ref=e27] [cursor=pointer]:
+                    - img [ref=e28]
+                    - generic [ref=e32]: Events
+              - generic [ref=e33]: Support
+              - list [ref=e34]:
+                - listitem [ref=e35]:
+                  - button "Expand maintenance" [ref=e36] [cursor=pointer]:
+                    - img [ref=e37]
+                    - generic [ref=e39]: Maintenance
+                    - img [ref=e41]
+                  - generic [ref=e43]:
+                    - link "Maintenance Hub" [ref=e44] [cursor=pointer]:
+                      - /url: /maintenance
+                      - generic [ref=e45]: Maintenance Hub
+                    - link "Work Orders" [ref=e46] [cursor=pointer]:
+                      - /url: /maintenance/work-orders
+                      - generic [ref=e47]: Work Orders
+                    - link "Event Approvals" [ref=e48] [cursor=pointer]:
+                      - /url: /maintenance/event-approvals
+                      - generic [ref=e49]: Event Approvals
+                    - link "Inventory" [ref=e50] [cursor=pointer]:
+                      - /url: /inventory?dept=maintenance
+                      - generic [ref=e51]: Inventory
+                    - link "Assets" [ref=e52] [cursor=pointer]:
+                      - /url: /maintenance/assets
+                      - generic [ref=e53]: Assets
+                    - link "Knowledge Base" [ref=e54] [cursor=pointer]:
+                      - /url: /maintenance/knowledge-base
+                      - generic [ref=e55]: Knowledge Base
+                    - link "Analytics" [ref=e56] [cursor=pointer]:
+                      - /url: /maintenance/analytics
+                      - generic [ref=e57]: Analytics
+                    - link "Compliance" [ref=e58] [cursor=pointer]:
+                      - /url: /maintenance/compliance
+                      - generic [ref=e59]: Compliance
+                - listitem [ref=e60]:
+                  - button "Expand IT Help Desk" [ref=e61] [cursor=pointer]:
+                    - img [ref=e62]
+                    - generic [ref=e64]: IT Help Desk
+                    - img [ref=e66]
+                  - generic [ref=e68]:
+                    - link "Help Desk" [ref=e69] [cursor=pointer]:
+                      - /url: /it
+                      - generic [ref=e70]: Help Desk
+                    - link "Devices" [ref=e71] [cursor=pointer]:
+                      - /url: /it/devices
+                      - generic [ref=e72]: Devices
+                    - link "Lifecycle" [ref=e73] [cursor=pointer]:
+                      - /url: /it/lifecycle
+                      - generic [ref=e74]: Lifecycle
+                    - link "Inventory" [ref=e75] [cursor=pointer]:
+                      - /url: /inventory?dept=it
+                      - generic [ref=e76]: Inventory
+                - listitem [ref=e77]:
+                  - button "Expand A/V Production" [ref=e78] [cursor=pointer]:
+                    - img [ref=e79]
+                    - generic [ref=e83]: A/V Production
+                    - img [ref=e85]
+                  - generic [ref=e87]:
+                    - link "Inventory" [ref=e88] [cursor=pointer]:
+                      - /url: /inventory
+                      - generic [ref=e89]: Inventory
+                    - link "Event Approvals" [ref=e90] [cursor=pointer]:
+                      - /url: /av/event-approvals
+                      - generic [ref=e91]: Event Approvals
+            - generic [ref=e92]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: A
+                - generic [ref=e97]:
+                  - paragraph [ref=e98]: Admin User
+                  - paragraph [ref=e99]: admin@demo.com
+                - button "User menu" [ref=e100] [cursor=pointer]:
+                  - img [ref=e101]
+              - img "Lionheart" [ref=e107]
+        - generic [ref=e109]:
+          - heading [level=2] [ref=e111]: Settings
+          - generic [ref=e112]:
+            - paragraph [ref=e113]: General
+            - navigation [ref=e114]:
+              - button [ref=e115] [cursor=pointer]:
+                - img [ref=e116]
+                - text: My Profile
+          - generic [ref=e119]:
+            - paragraph [ref=e120]: Workspace
+            - navigation [ref=e121]:
+              - button [ref=e122] [cursor=pointer]:
+                - img [ref=e123]
+                - text: School Information
+              - button [ref=e128] [cursor=pointer]:
+                - img [ref=e129]
+                - text: Roles
+              - button [ref=e131] [cursor=pointer]:
+                - img [ref=e132]
+                - text: Teams
+              - button [ref=e137] [cursor=pointer]:
+                - img [ref=e138]
+                - text: Members
+              - button [ref=e150] [cursor=pointer]:
+                - img [ref=e151]
+                - text: Campus
+              - button [ref=e155] [cursor=pointer]:
+                - img [ref=e156]
+                - text: Academic Calendar
+              - button [ref=e158] [cursor=pointer]:
+                - img [ref=e159]
+                - text: Approval Config
+              - button [ref=e163] [cursor=pointer]:
+                - img [ref=e164]
+                - text: Billing
+              - button [ref=e166] [cursor=pointer]:
+                - img [ref=e167]
+                - text: Add-ons
+              - button [ref=e169] [cursor=pointer]:
+                - img [ref=e170]
+                - text: Integrations
+              - button [ref=e173] [cursor=pointer]:
+                - img [ref=e174]
+                - text: Activity Log
+      - main [ref=e178]:
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - paragraph [ref=e183]: Friday, April 10
+              - heading "Good morning, Admin" [level=1] [ref=e184]
+            - generic [ref=e185]:
+              - button "Notifications" [ref=e186] [cursor=pointer]:
+                - img [ref=e189]
+              - button "Create new request" [ref=e193] [cursor=pointer]:
+                - img [ref=e194]
+                - text: Create
+                - img [ref=e195]
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - region "Loading getting started checklist" [ref=e199]:
+                - list [ref=e206]:
+                  - listitem [ref=e207]
+                  - listitem [ref=e212]
+                  - listitem [ref=e217]
+                  - listitem [ref=e222]
+              - region "Upcoming events" [ref=e228]:
+                - generic [ref=e230]:
+                  - generic [ref=e231]:
+                    - heading "The next two weeks" [level=2] [ref=e232]
+                    - paragraph [ref=e233]: Apr 10 – Apr 23
+                  - button "Event" [ref=e234] [cursor=pointer]:
+                    - img [ref=e235]
+                    - text: Event
+                - list "14-day timeline" [ref=e237]:
+                  - listitem [ref=e238]:
+                    - generic [ref=e239]: Fr
+                    - generic [ref=e240]: "10"
+                  - listitem [ref=e243]:
+                    - generic [ref=e244]: Sa
+                    - generic [ref=e245]: "11"
+                  - listitem [ref=e248]:
+                    - generic [ref=e249]: Su
+                    - generic [ref=e250]: "12"
+                  - listitem [ref=e253]:
+                    - generic [ref=e254]: Mo
+                    - generic [ref=e255]: "13"
+                  - listitem [ref=e258]:
+                    - generic [ref=e259]: Tu
+                    - generic [ref=e260]: "14"
+                  - listitem [ref=e263]:
+                    - generic [ref=e264]: We
+                    - generic [ref=e265]: "15"
+                  - listitem [ref=e268]:
+                    - generic [ref=e269]: Th
+                    - generic [ref=e270]: "16"
+                  - listitem [ref=e273]:
+                    - generic [ref=e274]: Fr
+                    - generic [ref=e275]: "17"
+                  - listitem [ref=e278]:
+                    - generic [ref=e279]: Sa
+                    - generic [ref=e280]: "18"
+                  - listitem [ref=e283]:
+                    - generic [ref=e284]: Su
+                    - generic [ref=e285]: "19"
+                  - listitem [ref=e288]:
+                    - generic [ref=e289]: Mo
+                    - generic [ref=e290]: "20"
+                  - listitem [ref=e293]:
+                    - generic [ref=e294]: Tu
+                    - generic [ref=e295]: "21"
+                  - listitem [ref=e298]:
+                    - generic [ref=e299]: We
+                    - generic [ref=e300]: "22"
+                  - listitem [ref=e303]:
+                    - generic [ref=e304]: Th
+                    - generic [ref=e305]: "23"
+                - generic [ref=e311]:
+                  - paragraph [ref=e312]: Your calendar is open
+                  - paragraph [ref=e313]: Nothing scheduled yet. Create your first event and the rhythm of your school year starts here.
+                  - generic [ref=e314]:
+                    - button "Create event" [ref=e315] [cursor=pointer]:
+                      - img [ref=e316]
+                      - text: Create event
+                    - link "Sync a calendar" [ref=e317] [cursor=pointer]:
+                      - /url: /settings?tab=integrations
+            - generic [ref=e319]:
+              - generic [ref=e320]:
+                - generic [ref=e321]:
+                  - img [ref=e323]
+                  - heading "Leo" [level=3] [ref=e327]
+                - button "Conversation history" [ref=e329] [cursor=pointer]:
+                  - img [ref=e330]
+              - generic [ref=e335]:
+                - paragraph [ref=e348]: Hi! I'm Leo, your AI Assistant
+                - paragraph [ref=e349]: Ask me anything about your school — tickets, events, campus info, or analytics.
+              - generic [ref=e350]:
+                - generic [ref=e351]:
+                  - button "Attach image" [ref=e352] [cursor=pointer]:
+                    - img [ref=e353]
+                  - textbox "Ask anything..." [active] [ref=e358]
+                  - button "Start voice input" [ref=e359] [cursor=pointer]:
+                    - img [ref=e360]
+                  - button "Send message" [disabled] [ref=e363] [cursor=pointer]:
+                    - img [ref=e364]
+                - paragraph [ref=e367]: Shift+Enter for new line · Paste or drop images
+  - generic "Notifications"
+  - alert [ref=e368]

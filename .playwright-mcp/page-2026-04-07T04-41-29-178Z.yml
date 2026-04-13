@@ -1,0 +1,21 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - img "Lionheart"
+    - heading "Lionheart Platform" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Enter your school's URL to sign in.
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - textbox "your-school" [active] [ref=e12]
+        - paragraph [ref=e13]:
+          - text: Your school URL looks like
+          - generic [ref=e14]: your-school.lionheartapp.com
+        - button "Continue" [disabled] [ref=e15]:
+          - text: Continue
+          - img [ref=e16]
+      - paragraph [ref=e19]: Don't know your school URL? Contact your school administrator.
+  - generic "Notifications"
+  - button "Open Next.js Dev Tools" [ref=e25] [cursor=pointer]:
+    - img [ref=e26]
+  - alert [ref=e29]

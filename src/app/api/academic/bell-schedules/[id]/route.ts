@@ -15,10 +15,13 @@ const PeriodSchema = z.object({
   sortOrder: z.number().int().optional(),
 })
 
+const DAY_VALUES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const
+
 const UpdateBellScheduleSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   schoolId: z.string().nullable().optional(),
   isDefault: z.boolean().optional(),
+  daysOfWeek: z.array(z.enum(DAY_VALUES)).optional(),
   periods: z.array(PeriodSchema).optional(),
 })
 
@@ -35,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(ok(schedule))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch bell schedule'), { status: 500 })
@@ -59,7 +62,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update bell schedule'), { status: 500 })
@@ -78,7 +81,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete bell schedule'), { status: 500 })

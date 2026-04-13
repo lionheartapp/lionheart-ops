@@ -78,7 +78,8 @@ function usePlacesAutocomplete(query: string) {
         } else {
           setSuggestions([])
         }
-      } catch {
+      } catch (error: unknown) {
+        console.error('Places autocomplete fetch failed:', error)
         setSuggestions([])
       } finally {
         setLoading(false)
@@ -109,8 +110,8 @@ function useCampusBuildings() {
           // Raw buildings include nested areas.rooms + building.rooms
           setBuildings(json.data.buildings ?? [])
         }
-      } catch {
-        // silent
+      } catch (error: unknown) {
+        console.error('Failed to fetch campus buildings:', error)
       } finally {
         setLoading(false)
       }

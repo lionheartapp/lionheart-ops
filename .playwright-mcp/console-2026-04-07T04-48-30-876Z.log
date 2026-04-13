@@ -1,0 +1,81 @@
+[     193ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[     225ms] [LOG] [Fast Refresh] done in 133ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[     250ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[     805ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[     807ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[     807ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[     807ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[    1658ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[    1659ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[    1659ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[    1663ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[    1695ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[    2088ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[    2090ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[    2098ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0
+[    2127ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[    2462ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[    2463ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[    2468ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[    2790ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[    2804ms] [LOG] [Fast Refresh] done in 115ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[    3058ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[    3059ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[    3059ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[    3060ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[    3064ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[    3434ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[    3436ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[    3438ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0
+[   53761ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[   54294ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[   54330ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[   54330ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[   54331ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[   55199ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[   55199ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[   55200ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[   55200ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[   55200ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[   55662ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[   55663ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[   55666ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0
+[   55692ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[   56048ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[   56052ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[   56053ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[   56597ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[   56598ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[   56601ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[   56602ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[   56603ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[   56787ms] [LOG] [Fast Refresh] rebuilding @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5949
+[   56826ms] [LOG] [Fast Refresh] done in 140ms @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_client_cf1dfaa0._.js:5809
+[   57020ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[   57025ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[   57027ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0
+[  105725ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://demo.localhost:3004/_next/static/chunks/2f5e6_next_dist_compiled_react-dom_8bcaacca._.js:14537
+[  106252ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[  106252ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[  106253ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[  106256ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[  107130ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[  107131ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[  107132ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[  107150ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[  107150ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[  107609ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[  107609ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[  107610ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0
+[  107637ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=facilities&countOnly=true:0
+[  107985ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/events/projects/pending-gates?gateType=av&countOnly=true:0
+[  107987ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendar-categories:0
+[  107988ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/calendars:0
+[  108540ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/dashboard:0
+[  108545ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/sports:0
+[  108546ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/teams:0
+[  108547ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/seasons:0
+[  108548ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/tournaments:0
+[  108966ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/games:0
+[  108967ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/practices:0
+[  108968ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://demo.localhost:3004/api/athletics/roster:0

@@ -165,9 +165,9 @@ export default function PracticeDrawer({
             type="checkbox"
             checked={form.recurring}
             onChange={(e) => setForm({ ...form, recurring: e.target.checked, rrule: e.target.checked ? form.rrule : '' })}
-            className="w-4 h-4 rounded border-slate-300 text-primary-500 focus-visible:ring-primary-500"
+            className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
           />
-          <span className="text-sm text-slate-700">Make recurring</span>
+          <span className="text-sm text-stone-700">Make recurring</span>
         </label>
 
         {form.recurring && (

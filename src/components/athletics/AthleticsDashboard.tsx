@@ -19,7 +19,7 @@ import { IllustrationAthletics } from '@/components/illustrations'
 interface AthleticsDashboardProps {
   activeCampusId: string | null
   canWrite: boolean
-  onTabChange: (tab: AthleticsTab) => void
+  onTabChange: (tab: string) => void
 }
 
 interface DashboardData {
@@ -160,25 +160,18 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(59,130,246,0.06))',
               }}
             >
-              <div className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center"
-                style={{
-                  background: 'linear-gradient(145deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04))',
-                  borderColor: 'rgba(59,130,246,0.15)',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(59,130,246,0.15)',
-                }}
-              >
-                <Trophy className="w-5 h-5 text-primary-600" />
+              <div className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center bg-stone-100 border border-stone-200">
+                <Trophy className="w-5 h-5 text-stone-600" />
               </div>
               <div className="text-2xl font-bold text-slate-900 tabular-nums">
                 <AnimatedCounter value={summary.overallRecord.wins} duration={0.6} />
-                <span className="text-slate-300 mx-0.5">-</span>
+                <span className="text-stone-300 mx-0.5">-</span>
                 <AnimatedCounter value={summary.overallRecord.losses} duration={0.6} />
                 {summary.overallRecord.ties > 0 && (
-                  <><span className="text-slate-300 mx-0.5">-</span><AnimatedCounter value={summary.overallRecord.ties} duration={0.6} /></>
+                  <><span className="text-stone-300 mx-0.5">-</span><AnimatedCounter value={summary.overallRecord.ties} duration={0.6} /></>
                 )}
               </div>
-              <div className="text-xs font-medium text-slate-500 mt-1">Overall Record</div>
+              <div className="text-xs font-medium text-stone-500 mt-1">Overall Record</div>
             </div>
           </motion.div>
           <motion.div variants={cardEntrance}>
@@ -197,16 +190,16 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                 <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Upcoming Games</h2>
                 <button
                   onClick={() => onTabChange('schedule')}
-                  className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 font-medium"
+                  className="text-xs text-stone-500 hover:text-stone-700 flex items-center gap-1 font-medium"
                 >
                   View all <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
               {upcomingGames.length === 0 ? (
                 <div className="px-6 pb-6">
-                  <div className="rounded-xl bg-slate-50/50 border border-dashed border-slate-200/60 py-6 text-center">
+                  <div className="rounded-xl bg-stone-50/50 border border-dashed border-stone-200/60 py-6 text-center">
                     <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-                    <p className="text-sm text-slate-400">No upcoming games scheduled</p>
+                    <p className="text-sm text-stone-400">No upcoming games scheduled</p>
                   </div>
                 </div>
               ) : (
@@ -226,7 +219,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                         <div className="text-sm font-medium text-slate-900 truncate">
                           {game.athleticTeam.name} {game.homeAway === 'AWAY' ? '@ ' : 'vs '}{game.opponentName}
                         </div>
-                        <div className="flex items-center gap-2.5 mt-0.5 text-xs text-slate-500">
+                        <div className="flex items-center gap-2.5 mt-0.5 text-xs text-stone-500">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatDate(game.startTime)} &middot; {formatTime(game.startTime)}
@@ -234,7 +227,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                           <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
                             game.homeAway === 'HOME'
                               ? 'bg-green-50 text-green-600'
-                              : 'bg-slate-100/80 text-slate-500'
+                              : 'bg-stone-100/80 text-stone-500'
                           }`}>
                             <MapPin className="w-2.5 h-2.5" />
                             {game.homeAway === 'HOME' ? 'Home' : 'Away'}
@@ -254,9 +247,9 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               </div>
               {recentResults.length === 0 ? (
                 <div className="px-6 pb-6">
-                  <div className="rounded-xl bg-slate-50/50 border border-dashed border-slate-200/60 py-6 text-center">
+                  <div className="rounded-xl bg-stone-50/50 border border-dashed border-stone-200/60 py-6 text-center">
                     <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-                    <p className="text-sm text-slate-400">No completed games yet</p>
+                    <p className="text-sm text-stone-400">No completed games yet</p>
                   </div>
                 </div>
               ) : (
@@ -275,7 +268,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                           <div className="text-sm font-medium text-slate-900 truncate">
                             {game.athleticTeam.name} {game.homeAway === 'AWAY' ? '@ ' : 'vs '}{game.opponentName}
                           </div>
-                          <div className="text-xs text-slate-500 mt-0.5">
+                          <div className="text-xs text-stone-500 mt-0.5">
                             {formatRelativeDate(game.startTime)}
                           </div>
                         </div>
@@ -304,33 +297,33 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                 <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Standings</h2>
                 <button
                   onClick={() => onTabChange('stats')}
-                  className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 font-medium"
+                  className="text-xs text-stone-500 hover:text-stone-700 flex items-center gap-1 font-medium"
                 >
                   View all <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
               {standings.length === 0 ? (
                 <div className="px-6 pb-6">
-                  <div className="rounded-xl bg-slate-50/50 border border-dashed border-slate-200/60 py-6 text-center">
+                  <div className="rounded-xl bg-stone-50/50 border border-dashed border-stone-200/60 py-6 text-center">
                     <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-                    <p className="text-sm text-slate-400">No standings data yet</p>
+                    <p className="text-sm text-stone-400">No standings data yet</p>
                   </div>
                 </div>
               ) : (
                 <div className="px-4 pb-4 space-y-0.5">
                   {standings.map((s, i) => (
                     <div key={s.teamId} className="flex items-center gap-2.5 py-2 px-2 rounded-xl hover:bg-white/60 transition-colors duration-150">
-                      <span className="w-5 text-xs text-slate-400 font-medium text-center flex-shrink-0 tabular-nums">{i + 1}</span>
+                      <span className="w-5 text-xs text-stone-400 font-medium text-center flex-shrink-0 tabular-nums">{i + 1}</span>
                       <GlassSportTile
                         sport={s.sport.name}
                         color={s.sport.color}
                         size="sm"
                       />
                       <span className="flex-1 text-sm text-slate-800 truncate">{s.teamName}</span>
-                      <span className="text-xs text-slate-500 tabular-nums flex-shrink-0">
+                      <span className="text-xs text-stone-500 tabular-nums flex-shrink-0">
                         {s.wins}-{s.losses}{s.ties > 0 ? `-${s.ties}` : ''}
                       </span>
-                      <span className="text-xs font-medium text-slate-600 tabular-nums w-8 text-right flex-shrink-0">
+                      <span className="text-xs font-medium text-stone-600 tabular-nums w-8 text-right flex-shrink-0">
                         {s.gamesPlayed > 0 ? `.${Math.round(s.winPct * 1000).toString().padStart(3, '0')}` : '\u2014'}
                       </span>
                     </div>
@@ -344,7 +337,7 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               <div className="px-6 pt-5 pb-3">
                 <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
                   This Week
-                  <span className="text-[10px] font-normal text-slate-400 ml-2 normal-case tracking-normal">
+                  <span className="text-[10px] font-normal text-stone-400 ml-2 normal-case tracking-normal">
                     {formatWeekRange(weekSchedule.weekStart, weekSchedule.weekEnd)}
                   </span>
                 </h2>
@@ -361,24 +354,24 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                       key={day.label}
                       className={`flex items-start gap-3 py-2 px-2 rounded-xl transition-colors duration-150 ${
                         isToday
-                          ? 'bg-primary-50/40 ring-1 ring-primary-200/40'
+                          ? 'bg-stone-100/50 ring-1 ring-stone-200/40'
                           : hasEvents ? 'hover:bg-white/40' : ''
                       }`}
                     >
                       <span className={`text-[11px] font-semibold w-7 flex-shrink-0 pt-0.5 uppercase tracking-wider ${
-                        isToday ? 'text-primary-600' : hasEvents ? 'text-slate-600' : 'text-slate-300'
+                        isToday ? 'text-slate-900' : hasEvents ? 'text-stone-600' : 'text-stone-300'
                       }`}>
                         {day.label}
                       </span>
                       <div className="flex-1 min-w-0 space-y-0.5">
-                        {!hasEvents && <span className="text-xs text-slate-300">&mdash;</span>}
+                        {!hasEvents && <span className="text-xs text-stone-300">&mdash;</span>}
                         {dayGames.map((g) => (
                           <div key={g.id} className="flex items-center gap-1.5">
                             <span
                               className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                               style={{ backgroundColor: g.athleticTeam?.sport?.color || '#6a6864' }}
                             />
-                            <span className="text-xs text-slate-700 truncate">
+                            <span className="text-xs text-stone-700 truncate">
                               <span className="font-semibold">{formatTime(g.startTime)}</span>
                               {' '}{g.homeAway === 'AWAY' ? '@ ' : 'vs '}{g.opponentName}
                             </span>
@@ -386,8 +379,8 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                         ))}
                         {dayPractices.map((p) => (
                           <div key={p.id} className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-slate-300" />
-                            <span className="text-xs text-slate-500 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-stone-300" />
+                            <span className="text-xs text-stone-500 truncate">
                               <span className="font-medium">{formatTime(p.startTime)}</span>
                               {' '}{p.athleticTeam?.sport?.name} Practice
                             </span>
@@ -438,18 +431,18 @@ function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: strin
   return (
     <div className={`ui-glass-hover p-5 text-center`}>
       <div
-        className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center border border-slate-200/40"
+        className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center border border-stone-200/40"
         style={{
           background: 'linear-gradient(145deg, rgba(249,250,251,0.9), rgba(243,244,246,0.6))',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
         }}
       >
-        <Icon className="w-5 h-5 text-slate-500" />
+        <Icon className="w-5 h-5 text-stone-500" />
       </div>
       <div className="text-2xl font-bold text-slate-900 tabular-nums">
         <AnimatedCounter value={value} duration={0.6} />
       </div>
-      <div className="text-xs font-medium text-slate-500 mt-1">{label}</div>
+      <div className="text-xs font-medium text-stone-500 mt-1">{label}</div>
     </div>
   )
 }
@@ -465,26 +458,26 @@ function QuickAction({ icon: Icon, label, onClick }: {
       className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/60 transition-colors duration-150 text-left"
     >
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-200/40"
+        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border border-stone-200/40"
         style={{
           background: 'linear-gradient(145deg, rgba(249,250,251,0.9), rgba(243,244,246,0.5))',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
         }}
       >
-        <Icon className="w-4 h-4 text-slate-500" />
+        <Icon className="w-4 h-4 text-stone-500" />
       </div>
-      <span className="flex-1 text-sm font-medium text-slate-700">{label}</span>
-      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all duration-150 flex-shrink-0" />
+      <span className="flex-1 text-sm font-medium text-stone-700">{label}</span>
+      <ChevronRight className="w-4 h-4 text-stone-300 group-hover:text-stone-400 group-hover:translate-x-0.5 transition-all duration-150 flex-shrink-0" />
     </button>
   )
 }
 
-function EmptyState({ onTabChange }: { onTabChange: (tab: AthleticsTab) => void }) {
+function EmptyState({ onTabChange }: { onTabChange: (tab: string) => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <IllustrationAthletics className="w-52 h-44 mb-2" />
       <h2 className="text-lg font-semibold text-slate-900 mb-1">Welcome to Athletics</h2>
-      <p className="text-sm text-slate-500 mb-6 text-center max-w-sm">
+      <p className="text-sm text-stone-500 mb-6 text-center max-w-sm">
         Get started by adding your first sport, then create teams and schedules.
       </p>
       <button
@@ -502,31 +495,31 @@ function DashboardSkeleton() {
     <div className="space-y-6 animate-pulse">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white/40 rounded-2xl h-28 border border-slate-100/50" />
+          <div key={i} className="bg-white/40 rounded-2xl h-28 border border-stone-100/50" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/40 rounded-2xl border border-slate-100/50 h-80">
-            <div className="h-12 bg-slate-50/30 rounded-t-2xl" />
+          <div className="bg-white/40 rounded-2xl border border-stone-100/50 h-80">
+            <div className="h-12 bg-stone-50/30 rounded-t-2xl" />
             <div className="p-5 space-y-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100/50" />
+                  <div className="w-9 h-9 rounded-xl bg-stone-100/50" />
                   <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 bg-slate-100/50 rounded w-3/4" />
-                    <div className="h-2.5 bg-slate-50/50 rounded w-1/2" />
+                    <div className="h-3.5 bg-stone-100/50 rounded w-3/4" />
+                    <div className="h-2.5 bg-stone-50/50 rounded w-1/2" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="bg-white/40 rounded-2xl border border-slate-100/50 h-48" />
+          <div className="bg-white/40 rounded-2xl border border-stone-100/50 h-48" />
         </div>
         <div className="space-y-6">
-          <div className="bg-white/40 rounded-2xl border border-slate-100/50 h-64" />
-          <div className="bg-white/40 rounded-2xl border border-slate-100/50 h-56" />
-          <div className="bg-white/40 rounded-2xl border border-slate-100/50 h-40" />
+          <div className="bg-white/40 rounded-2xl border border-stone-100/50 h-64" />
+          <div className="bg-white/40 rounded-2xl border border-stone-100/50 h-56" />
+          <div className="bg-white/40 rounded-2xl border border-stone-100/50 h-40" />
         </div>
       </div>
     </div>

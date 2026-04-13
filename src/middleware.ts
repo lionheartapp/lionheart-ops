@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
-import { publicApiRateLimiter, signupRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { publicApiRateLimiter, signupRateLimiter, eventRegistrationRateLimiter, aiChatRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
 const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings', '/verify-email'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
@@ -180,6 +180,16 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/auth/resend-verification')
     ) {
       limiter = publicApiRateLimiter
+    } else if (pathname.startsWith('/api/events/register/')) {
+      limiter = eventRegistrationRateLimiter
+    } else if (
+      pathname.startsWith('/api/events/check-in/') ||
+      pathname.startsWith('/api/it/student-password/') ||
+      pathname === '/api/it/tickets/sub'
+    ) {
+      limiter = publicApiRateLimiter
+    } else if (pathname === '/api/ai/assistant/chat') {
+      limiter = aiChatRateLimiter
     }
 
     if (limiter) {

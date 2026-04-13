@@ -510,6 +510,15 @@ export async function rejectEventProject(
     reason: reason ?? null,
   })
 
+  // Remove from all users' Google Calendars (fire-and-forget)
+  const orgId = existing.organizationId as string
+  if (orgId) {
+    const { removeEventProjectFromCalendars } = await import(
+      '@/lib/services/integrations/googleCalendarService'
+    )
+    removeEventProjectFromCalendars(orgId, id).catch(() => {})
+  }
+
   return updated
 }
 

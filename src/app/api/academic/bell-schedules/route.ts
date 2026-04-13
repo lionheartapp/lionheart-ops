@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getBellSchedules, createBellSchedule } from '@/lib/services/academicCalendarService'
+import { logger } from '@/lib/logger'
 
 const PeriodSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -14,10 +15,13 @@ const PeriodSchema = z.object({
   sortOrder: z.number().int().optional(),
 })
 
+const DAY_VALUES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const
+
 const CreateBellScheduleSchema = z.object({
   name: z.string().trim().min(1).max(100),
   schoolId: z.string().optional(),
   isDefault: z.boolean().optional(),
+  daysOfWeek: z.array(z.enum(DAY_VALUES)).optional(),
   periods: z.array(PeriodSchema).optional(),
 })
 
@@ -34,7 +38,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok(schedules))
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch bell schedules'), { status: 500 })
@@ -57,12 +61,14 @@ export async function POST(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
     }
-    if (error instanceof Error && error.message.includes('Permission denied')) {
+    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
     if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2002') {
       return NextResponse.json(fail('VALIDATION_ERROR', 'A bell schedule with that name already exists'), { status: 409 })
     }
+    const errMsg = error instanceof Error ? error.message : String(error)
+    logger.error({ error: errMsg }, 'Bell schedule creation failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to create bell schedule'), { status: 500 })
   }
 }

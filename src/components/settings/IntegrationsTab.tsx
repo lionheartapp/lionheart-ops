@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
 import {
   Link2,
   MessageSquare,
-  CheckCircle,
-  XCircle,
   AlertCircle,
   RefreshCw,
   Loader2,
@@ -15,27 +13,15 @@ import {
   Unlink,
   ExternalLink,
   Info,
+  ArrowRight,
 } from 'lucide-react'
-
-/**
- * Brand mark wrapper. Renders an integration partner logo on a neutral
- * white tile so each partner's real colors carry the identity instead
- * of a generic gradient box.
- */
-function BrandMark({ src, alt }: { src: string; alt: string }) {
-  return (
-    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm flex-shrink-0 p-1.5">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="w-full h-full" />
-    </div>
-  )
-}
 import { useToast } from '@/components/Toast'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface IntegrationStatusData {
+  institutionType: string
   planningCenter: {
     isAvailable: boolean
     isConnected: boolean
@@ -72,18 +58,31 @@ function formatRelative(dateStr: string | null): string {
   return `${diffDay}d ago`
 }
 
-function StatusBadge({ isConnected, label }: { isConnected: boolean; label?: string }) {
-  const text = label || (isConnected ? 'Connected' : 'Not Connected')
+/** Brand logo rendered at native size inside a soft container. */
+function BrandLogo({ src, alt, size = 40 }: { src: string; alt: string; size?: number }) {
+  return (
+    <div
+      className="rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden"
+      style={{ width: size, height: size, padding: size * 0.15 }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="w-full h-full object-contain" />
+    </div>
+  )
+}
+
+function StatusPill({ isConnected, label }: { isConnected: boolean; label?: string }) {
+  const text = label || (isConnected ? 'Connected' : 'Not connected')
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase ${
         isConnected
-          ? 'bg-green-100 text-green-700'
-          : 'bg-slate-100 text-slate-500'
+          ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'
+          : 'bg-slate-50 text-slate-400 ring-1 ring-slate-200'
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-slate-400'}`}
+        className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}
       />
       {text}
     </span>
@@ -92,12 +91,28 @@ function StatusBadge({ isConnected, label }: { isConnected: boolean; label?: str
 
 function ConfigRequiredBanner({ serviceName }: { serviceName: string }) {
   return (
-    <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+    <div className="flex items-start gap-3 p-3.5 bg-amber-50/80 border border-amber-200/60 rounded-xl text-sm text-amber-800 backdrop-blur-sm">
       <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-500" />
       <span>
-        <strong>Configuration Required</strong> — Contact your administrator to set up {serviceName} API credentials in the server environment.
+        <strong className="font-semibold">Configuration Required</strong> — Contact your administrator to set up {serviceName} API credentials in the server environment.
       </span>
     </div>
+  )
+}
+
+/** Shared card wrapper with hover effect. */
+function IntegrationCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="group relative bg-white rounded-2xl border border-slate-200/80 p-6 flex flex-col gap-4 h-full transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/50 hover:border-slate-300/80 hover:-translate-y-0.5">
+      {children}
+    </div>
+  )
+}
+
+/** Scope label (org-level vs personal). */
+function ScopeLabel({ scope }: { scope: string }) {
+  return (
+    <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{scope}</span>
   )
 }
 
@@ -176,21 +191,21 @@ function PlanningCenterCard({
   }
 
   return (
-    <div className="ui-glass p-6 flex flex-col gap-4">
+    <IntegrationCard>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <BrandMark src="/logos/planning-center.svg" alt="Planning Center" />
-          <div>
+          <BrandLogo src="/logos/planning-center.svg" alt="Planning Center Services" size={44} />
+          <div className="space-y-0.5">
             <h3 className="text-sm font-semibold text-slate-900">Planning Center</h3>
-            <p className="text-xs text-slate-500">Org-level connection</p>
+            <ScopeLabel scope="Org-level" />
           </div>
         </div>
-        <StatusBadge isConnected={status.isConnected} />
+        <StatusPill isConnected={status.isConnected} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-slate-600 leading-relaxed">
+      <p className="text-[13px] text-slate-500 leading-relaxed flex-grow">
         Sync teams, service plans, people data, and check-ins with Planning Center Online.
       </p>
 
@@ -198,16 +213,15 @@ function PlanningCenterCard({
         <ConfigRequiredBanner serviceName="Planning Center" />
       ) : status.isConnected ? (
         <>
-          {/* Connected state */}
           {status.orgName && (
-            <p className="text-xs text-slate-500">
-              Connected to: <span className="font-medium text-slate-700">{status.orgName}</span>
-            </p>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
+              Connected to <span className="font-medium text-slate-700">{status.orgName}</span>
+            </div>
           )}
           <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
 
           <div className="flex items-center gap-2 pt-1">
-            {/* Sync dropdown */}
             <div className="relative">
               <button
                 onClick={() => setSyncMenuOpen((v) => !v)}
@@ -224,7 +238,7 @@ function PlanningCenterCard({
               </button>
 
               {syncMenuOpen && (
-                <div className="ui-glass-dropdown absolute top-full left-0 mt-1 w-44 z-10 py-1">
+                <div className="absolute top-full left-0 mt-1.5 w-44 z-10 py-1 bg-white rounded-xl border border-slate-200 shadow-lg shadow-slate-200/50">
                   <button
                     onClick={() => handleSync('people')}
                     className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
@@ -252,16 +266,15 @@ function PlanningCenterCard({
           </div>
         </>
       ) : (
-        /* Not connected state */
         <button
           onClick={handleConnect}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+          className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-all duration-200 cursor-pointer group/btn"
         >
-          <Link2 className="w-4 h-4" />
-          Connect Planning Center
+          Connect
+          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
-    </div>
+    </IntegrationCard>
   )
 }
 
@@ -313,21 +326,21 @@ function GoogleCalendarCard({
   }
 
   return (
-    <div className="ui-glass p-6 flex flex-col gap-4">
+    <IntegrationCard>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <BrandMark src="/logos/google-calendar.svg" alt="Google Calendar" />
-          <div>
+          <BrandLogo src="/logos/google-calendar.svg" alt="Google Calendar" size={44} />
+          <div className="space-y-0.5">
             <h3 className="text-sm font-semibold text-slate-900">Google Calendar</h3>
-            <p className="text-xs text-slate-500">Personal connection</p>
+            <ScopeLabel scope="Personal" />
           </div>
         </div>
-        <StatusBadge isConnected={status.isConnected} />
+        <StatusPill isConnected={status.isConnected} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-slate-600 leading-relaxed">
+      <p className="text-[13px] text-slate-500 leading-relaxed flex-grow">
         Sync events to your personal Google Calendar so they appear alongside your other meetings.
       </p>
 
@@ -335,11 +348,11 @@ function GoogleCalendarCard({
         <ConfigRequiredBanner serviceName="Google Calendar" />
       ) : status.isConnected ? (
         <>
-          {/* Connected state */}
           {status.userName && (
-            <p className="text-xs text-slate-500">
-              Connected as: <span className="font-medium text-slate-700">{status.userName}</span>
-            </p>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
+              Signed in as <span className="font-medium text-slate-700">{status.userName}</span>
+            </div>
           )}
           <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
 
@@ -360,21 +373,20 @@ function GoogleCalendarCard({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              Open Google Calendar
+              Open Calendar
             </a>
           </div>
         </>
       ) : (
-        /* Not connected state */
         <button
           onClick={handleConnect}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+          className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-all duration-200 cursor-pointer group/btn"
         >
-          <Link2 className="w-4 h-4" />
-          Connect Google Calendar
+          Connect
+          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
-    </div>
+    </IntegrationCard>
   )
 }
 
@@ -470,38 +482,40 @@ function TwilioCard({
   }
 
   return (
-    <div className="ui-glass p-6 flex flex-col gap-4">
+    <IntegrationCard>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <BrandMark src="/logos/twilio.svg" alt="Twilio" />
-          <div>
+          <BrandLogo src="/logos/twilio.svg" alt="Twilio" size={44} />
+          <div className="space-y-0.5">
             <h3 className="text-sm font-semibold text-slate-900">Twilio SMS</h3>
-            <p className="text-xs text-slate-500">Org-level configuration</p>
+            <ScopeLabel scope="Org-level" />
           </div>
         </div>
-        <StatusBadge isConnected={status.isConnected} label={status.isConnected ? 'Active' : 'Not Configured'} />
+        <StatusPill isConnected={status.isConnected} label={status.isConnected ? 'Active' : 'Not configured'} />
       </div>
 
       {/* Description */}
-      <p className="text-sm text-slate-600 leading-relaxed">
-        Send SMS notifications for day-of updates and deadline reminders. Standard messaging rates apply.
-      </p>
+      <div className="flex-grow">
+        <p className="text-[13px] text-slate-500 leading-relaxed">
+          Send SMS notifications for day-of updates and deadline reminders. Standard messaging rates apply.
+        </p>
+      </div>
 
       {status.isConnected ? (
         <>
-          {/* Active state */}
           {status.phoneNumber && (
-            <p className="text-xs text-slate-500">
-              Sending from: <span className="font-medium text-slate-700 font-mono">{status.phoneNumber}</span>
-            </p>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
+              Sending from <span className="font-medium text-slate-700 font-mono">{status.phoneNumber}</span>
+            </div>
           )}
           <p className="text-xs text-slate-400">Last used: {formatRelative(status.lastSyncAt)}</p>
 
           {/* Test SMS form */}
-          {showTestForm ? (
-            <form onSubmit={handleTestSMS} className="space-y-3 p-4 bg-slate-50 rounded-xl">
-              <p className="text-xs font-medium text-slate-700">Send a test SMS</p>
+          {showTestForm && (
+            <form onSubmit={handleTestSMS} className="space-y-3 p-4 bg-slate-50/80 rounded-xl border border-slate-100">
+              <p className="text-xs font-semibold text-slate-600">Send a test SMS</p>
               <FloatingInput
                 id="test-to"
                 label="Recipient phone (+15555551234)"
@@ -526,7 +540,7 @@ function TwilioCard({
                 </button>
               </div>
             </form>
-          ) : null}
+          )}
 
           <div className="flex items-center gap-2 flex-wrap pt-1">
             {!showTestForm && (
@@ -599,21 +613,15 @@ function TwilioCard({
           </div>
         </form>
       ) : (
-        /* Not configured state */
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+          className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-all duration-200 cursor-pointer group/btn"
         >
-          <MessageSquare className="w-4 h-4" />
-          Configure Twilio SMS
+          Configure
+          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
-
-      {/* Footer note */}
-      <p className="text-xs text-slate-400 border-t border-slate-100 pt-3">
-        SMS is used for urgent day-of updates and deadline reminders only. Standard messaging rates apply.
-      </p>
-    </div>
+    </IntegrationCard>
   )
 }
 
@@ -648,11 +656,13 @@ export default function IntegrationsTab() {
     queryClient.invalidateQueries({ queryKey: ['integration-status'] })
   }
 
+  const showPlanningCenter = data?.institutionType === 'FAITH_BASED'
+
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center shadow-sm">
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
             <Link2 className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -660,18 +670,18 @@ export default function IntegrationsTab() {
             <p className="text-sm text-slate-500">Connect external services and tools</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="ui-glass p-6 animate-pulse">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-200" />
+            <div key={i} className="bg-white rounded-2xl border border-slate-200/80 p-6 animate-pulse">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-11 h-11 rounded-2xl bg-slate-100" />
                 <div className="flex-1">
-                  <div className="h-4 bg-slate-200 rounded w-32 mb-1" />
-                  <div className="h-3 bg-slate-100 rounded w-20" />
+                  <div className="h-4 bg-slate-100 rounded-lg w-28 mb-1.5" />
+                  <div className="h-3 bg-slate-50 rounded-lg w-16" />
                 </div>
               </div>
-              <div className="h-3 bg-slate-100 rounded w-full mb-2" />
-              <div className="h-3 bg-slate-100 rounded w-3/4" />
+              <div className="h-3 bg-slate-50 rounded-lg w-full mb-2" />
+              <div className="h-3 bg-slate-50 rounded-lg w-3/4" />
             </div>
           ))}
         </div>
@@ -681,24 +691,29 @@ export default function IntegrationsTab() {
 
   if (isError || !data) {
     return (
-      <div className="ui-glass p-6 text-center text-slate-500">
-        <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-        <p className="text-sm">Failed to load integration status.</p>
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-10 text-center">
+        <AlertCircle className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+        <p className="text-sm text-slate-500 mb-4">Failed to load integration status.</p>
         <button
           onClick={handleRefresh}
-          className="mt-3 text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
         >
+          <RefreshCw className="w-3.5 h-3.5" />
           Try again
         </button>
       </div>
     )
   }
 
+  // Determine grid columns based on how many cards we show
+  const cardCount = (showPlanningCenter ? 1 : 0) + 2 // Google Calendar + Twilio always show
+  const gridCols = cardCount === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-2 xl:grid-cols-3'
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
           <Link2 className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -708,8 +723,10 @@ export default function IntegrationsTab() {
       </div>
 
       {/* Integration cards grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PlanningCenterCard status={data.planningCenter} onRefresh={handleRefresh} />
+      <div className={`grid grid-cols-1 ${gridCols} gap-5`}>
+        {showPlanningCenter && (
+          <PlanningCenterCard status={data.planningCenter} onRefresh={handleRefresh} />
+        )}
         <GoogleCalendarCard status={data.googleCalendar} onRefresh={handleRefresh} />
         <TwilioCard status={data.twilio} onRefresh={handleRefresh} />
       </div>

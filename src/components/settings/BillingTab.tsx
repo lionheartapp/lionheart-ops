@@ -106,32 +106,32 @@ function daysRemaining(iso: string | null): number | null {
 function getStatusConfig(status: Subscription['status']) {
   switch (status) {
     case 'ACTIVE':
-      return { label: 'Active', className: 'bg-green-100 text-green-700', icon: CheckCircle2 }
+      return { label: 'Active', className: 'bg-green-50 text-green-600 ring-1 ring-green-200', icon: CheckCircle2 }
     case 'TRIALING':
-      return { label: 'Trial', className: 'bg-blue-100 text-blue-700', icon: Clock }
+      return { label: 'Trial', className: 'bg-blue-50 text-blue-600 ring-1 ring-blue-200', icon: Clock }
     case 'PAST_DUE':
-      return { label: 'Past Due', className: 'bg-red-100 text-red-700', icon: AlertCircle }
+      return { label: 'Past Due', className: 'bg-red-50 text-red-600 ring-1 ring-red-200', icon: AlertCircle }
     case 'CANCELED':
-      return { label: 'Canceled', className: 'bg-slate-100 text-slate-700', icon: XCircle }
+      return { label: 'Canceled', className: 'bg-slate-50 text-slate-400 ring-1 ring-slate-200', icon: XCircle }
     case 'PAUSED':
-      return { label: 'Paused', className: 'bg-yellow-100 text-yellow-700', icon: Clock }
+      return { label: 'Paused', className: 'bg-yellow-50 text-yellow-600 ring-1 ring-yellow-200', icon: Clock }
     default:
-      return { label: status, className: 'bg-slate-100 text-slate-700', icon: Clock }
+      return { label: status, className: 'bg-slate-50 text-slate-400 ring-1 ring-slate-200', icon: Clock }
   }
 }
 
 function getInvoiceStatusConfig(status: string) {
   switch (status) {
     case 'SUCCEEDED':
-      return { label: 'Paid', className: 'bg-green-100 text-green-700' }
+      return { label: 'Paid', className: 'bg-green-50 text-green-600 ring-1 ring-green-200' }
     case 'FAILED':
-      return { label: 'Failed', className: 'bg-red-100 text-red-700' }
+      return { label: 'Failed', className: 'bg-red-50 text-red-600 ring-1 ring-red-200' }
     case 'PENDING':
-      return { label: 'Pending', className: 'bg-yellow-100 text-yellow-700' }
+      return { label: 'Pending', className: 'bg-yellow-50 text-yellow-600 ring-1 ring-yellow-200' }
     case 'REFUNDED':
-      return { label: 'Refunded', className: 'bg-slate-100 text-slate-700' }
+      return { label: 'Refunded', className: 'bg-slate-50 text-slate-400 ring-1 ring-slate-200' }
     default:
-      return { label: status, className: 'bg-slate-100 text-slate-700' }
+      return { label: status, className: 'bg-slate-50 text-slate-400 ring-1 ring-slate-200' }
   }
 }
 

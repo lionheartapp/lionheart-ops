@@ -988,6 +988,7 @@ enum InstitutionType {
   PRIVATE
   CHARTER
   HYBRID
+  FAITH_BASED
 }
 
 enum UserStatus {
@@ -1527,6 +1528,7 @@ model BellSchedule {
   schoolId       String?
   name           String   // "Regular", "Early Release", "2-Hour Delay"
   isDefault      Boolean  @default(false)
+  daysOfWeek     String[] @default([]) // e.g. ["MON","TUE","WED","THU","FRI"]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -1577,6 +1579,7 @@ model SpecialDay {
   schoolId       String?
   campusId       String?
   date           DateTime       @db.Date
+  endDate        DateTime?      @db.Date  // null = single day, set = date range
   name           String
   specialDayType SpecialDayType
   isAllSchools   Boolean        @default(true)
