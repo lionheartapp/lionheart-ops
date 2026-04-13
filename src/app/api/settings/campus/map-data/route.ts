@@ -72,6 +72,16 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     }
   }
 
+  // If campus has no address, inherit from org's physicalAddress
+  if (mapCenter && !mapCenter.address) {
+    const orgAddrRows = await rawPrisma.$queryRaw<Array<{ physicalAddress: string | null }>>`
+      SELECT "physicalAddress" FROM "Organization" WHERE id = ${orgId} LIMIT 1
+    `
+    if (orgAddrRows[0]?.physicalAddress) {
+      mapCenter.address = orgAddrRows[0].physicalAddress
+    }
+  }
+
   // Auto-geocode if we have an address but no coordinates
   if (mapCenter && !mapCenter.lat && !mapCenter.lng && mapCenter.address) {
     const geo = await geocodeAddress(mapCenter.address)
