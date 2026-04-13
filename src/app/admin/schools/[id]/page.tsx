@@ -17,9 +17,15 @@ export default function SchoolDetailPage() {
   const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
   // Modules
-  const [orgModules, setOrgModules] = useState<Array<{ id: string; moduleId: string; campusId: string | null }>>([])
+  const [orgModules, setOrgModules] = useState<Array<{ id: string; moduleId: string; campusId: string | null; planTier: string | null }>>([])
   const [orgCampuses, setOrgCampuses] = useState<Array<{ id: string; name: string; isActive: boolean }>>([])
   const [togglingModule, setTogglingModule] = useState<string | null>(null)
+  // Grant add-on modal
+  const [grantAddonModule, setGrantAddonModule] = useState<{ id: string; name: string } | null>(null)
+  const [addonGrantForm, setAddonGrantForm] = useState({ type: 'free' as 'free' | 'discount', discountPercent: 50, months: 12, note: '' })
+  const [addonGranting, setAddonGranting] = useState(false)
+  const [addonGrantSuccess, setAddonGrantSuccess] = useState('')
+  const [addonGrantError, setAddonGrantError] = useState('')
   // Grant access
   const [showGrantModal, setShowGrantModal] = useState(false)
   const [grantForm, setGrantForm] = useState({ type: 'free' as 'free' | 'discount', discountPercent: 50, months: 12, note: '' })
@@ -67,6 +73,36 @@ export default function SchoolDetailPage() {
     if (data.ok) setOrg({ ...org, ...data.data })
     setConfirmAction(null)
     setActionLoading(false)
+  }
+
+  const handleAddonGrant = async () => {
+    if (!grantAddonModule) return
+    setAddonGrantError('')
+    setAddonGrantSuccess('')
+    setAddonGranting(true)
+    const token = localStorage.getItem('platform-token')
+    try {
+      const res = await fetch(`/api/platform/organizations/${params.id}/grant-addon`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ moduleId: grantAddonModule.id, ...addonGrantForm }),
+      })
+      const data = await res.json()
+      if (!data.ok) {
+        setAddonGrantError(data.error?.message || 'Failed to grant add-on')
+      } else {
+        setAddonGrantSuccess(data.data.label + ` (until ${new Date(data.data.endsAt).toLocaleDateString()}) — ${data.data.campusesEnabled} campus${data.data.campusesEnabled !== 1 ? 'es' : ''}`)
+        // Refresh modules
+        const modRes = await fetch(`/api/platform/organizations/${params.id}/modules`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(r => r.json())
+        if (modRes.ok) setOrgModules(modRes.data.modules)
+        setTimeout(() => { setGrantAddonModule(null); setAddonGrantSuccess('') }, 2500)
+      }
+    } catch {
+      setAddonGrantError('Network error')
+    }
+    setAddonGranting(false)
   }
 
   const handleModuleToggle = async (moduleId: string, enabled: boolean, campusId?: string) => {
@@ -359,6 +395,124 @@ export default function SchoolDetailPage() {
         </div>
       )}
 
+      {/* Grant add-on modal */}
+      {grantAddonModule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            {addonGrantSuccess ? (
+              <div className="flex flex-col items-center py-4 gap-3">
+                <CheckCircle size={40} className="text-green-400" />
+                <p className="text-green-400 font-medium text-center">{addonGrantSuccess}</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                    <Gift size={20} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Grant {grantAddonModule.name}</h3>
+                    <p className="text-sm text-slate-400">Give {org.name} free or discounted {grantAddonModule.name}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">Access Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setAddonGrantForm({ ...addonGrantForm, type: 'free' })}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium border transition-colors ${
+                          addonGrantForm.type === 'free'
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                            : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        100% Free
+                      </button>
+                      <button
+                        onClick={() => setAddonGrantForm({ ...addonGrantForm, type: 'discount' })}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium border transition-colors ${
+                          addonGrantForm.type === 'discount'
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                            : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        Discount %
+                      </button>
+                    </div>
+                  </div>
+
+                  {addonGrantForm.type === 'discount' && (
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-1.5">Discount Percentage</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={addonGrantForm.discountPercent}
+                          onChange={(e) => setAddonGrantForm({ ...addonGrantForm, discountPercent: parseInt(e.target.value) || 0 })}
+                          min={1} max={99}
+                          className="flex-1 px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                        <span className="text-slate-400 text-sm">% off</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1.5">Duration</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[3, 6, 12, 24].map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setAddonGrantForm({ ...addonGrantForm, months: m })}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                            addonGrantForm.months === m
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                              : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                          }`}
+                        >
+                          {m >= 12 ? `${m / 12}yr` : `${m}mo`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1.5">Note (optional)</label>
+                    <input
+                      type="text"
+                      value={addonGrantForm.note}
+                      onChange={(e) => setAddonGrantForm({ ...addonGrantForm, note: e.target.value })}
+                      placeholder="e.g., Beta partner, conference demo"
+                      className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    />
+                  </div>
+
+                  {addonGrantError && <p className="text-red-400 text-sm">{addonGrantError}</p>}
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button onClick={() => setGrantAddonModule(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sm rounded-lg transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddonGrant}
+                    disabled={addonGranting}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {addonGranting ? 'Granting...' : addonGrantForm.type === 'free'
+                      ? `Grant ${grantAddonModule.name} Free for ${addonGrantForm.months >= 12 ? `${addonGrantForm.months / 12}yr` : `${addonGrantForm.months}mo`}`
+                      : `Grant ${addonGrantForm.discountPercent}% Off for ${addonGrantForm.months >= 12 ? `${addonGrantForm.months / 12}yr` : `${addonGrantForm.months}mo`}`
+                    }
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Delete confirmation modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -455,23 +609,36 @@ export default function SchoolDetailPage() {
                 return (
                   <div key={mod.id} className="border border-slate-800 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-1">
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">{mod.name}</span>
-                        <span className="text-xs text-slate-500 ml-2">{mod.description}</span>
+                        <span className="text-xs text-slate-500">{mod.description}</span>
                       </div>
-                      {mod.scope === 'org' && (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleModuleToggle(mod.id, !isOrgEnabled)}
-                          disabled={togglingModule === mod.id}
-                          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                            isOrgEnabled
-                              ? 'bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400'
-                              : 'bg-slate-700 text-slate-300 hover:bg-green-500/10 hover:text-green-400'
-                          } ${togglingModule === mod.id ? 'opacity-50' : ''}`}
+                          onClick={() => {
+                            setGrantAddonModule({ id: mod.id, name: mod.name })
+                            setAddonGrantForm({ type: 'free', discountPercent: 50, months: 12, note: '' })
+                            setAddonGrantError('')
+                            setAddonGrantSuccess('')
+                          }}
+                          className="px-2.5 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 rounded-full transition-colors"
                         >
-                          {togglingModule === mod.id ? '...' : isOrgEnabled ? 'Enabled' : 'Disabled'}
+                          Grant
                         </button>
-                      )}
+                        {mod.scope === 'org' && (
+                          <button
+                            onClick={() => handleModuleToggle(mod.id, !isOrgEnabled)}
+                            disabled={togglingModule === mod.id}
+                            className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                              isOrgEnabled
+                                ? 'bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400'
+                                : 'bg-slate-700 text-slate-300 hover:bg-green-500/10 hover:text-green-400'
+                            } ${togglingModule === mod.id ? 'opacity-50' : ''}`}
+                          >
+                            {togglingModule === mod.id ? '...' : isOrgEnabled ? 'Enabled' : 'Disabled'}
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {mod.scope === 'campus' && orgCampuses.length > 0 && (
