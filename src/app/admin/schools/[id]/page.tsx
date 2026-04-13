@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw, Trash2 } from 'lucide-react'
+import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw, Trash2, Gift, CheckCircle } from 'lucide-react'
 
 export default function SchoolDetailPage() {
   const params = useParams()
@@ -16,6 +16,12 @@ export default function SchoolDetailPage() {
   const [deleteSlug, setDeleteSlug] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
+  // Grant access
+  const [showGrantModal, setShowGrantModal] = useState(false)
+  const [grantForm, setGrantForm] = useState({ type: 'free' as 'free' | 'discount', discountPercent: 50, months: 12, note: '' })
+  const [granting, setGranting] = useState(false)
+  const [grantSuccess, setGrantSuccess] = useState('')
+  const [grantError, setGrantError] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('platform-token')
@@ -52,6 +58,31 @@ export default function SchoolDetailPage() {
     if (data.ok) setOrg({ ...org, ...data.data })
     setConfirmAction(null)
     setActionLoading(false)
+  }
+
+  const handleGrant = async () => {
+    setGrantError('')
+    setGrantSuccess('')
+    setGranting(true)
+    const token = localStorage.getItem('platform-token')
+    try {
+      const res = await fetch(`/api/platform/organizations/${params.id}/grant-access`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(grantForm),
+      })
+      const data = await res.json()
+      if (!data.ok) {
+        setGrantError(data.error?.message || 'Failed to grant access')
+      } else {
+        setGrantSuccess(data.data.label + ` (until ${new Date(data.data.endsAt).toLocaleDateString()})`)
+        setOrg({ ...org, onboardingStatus: 'ACTIVE' })
+        setTimeout(() => { setShowGrantModal(false); setGrantSuccess('') }, 2500)
+      }
+    } catch {
+      setGrantError('Network error')
+    }
+    setGranting(false)
   }
 
   const handleDelete = async () => {
@@ -124,12 +155,140 @@ export default function SchoolDetailPage() {
           </button>
         )}
         <button
+          onClick={() => { setShowGrantModal(true); setGrantError(''); setGrantSuccess('') }}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 text-sm font-medium rounded-lg transition-colors"
+        >
+          <Gift size={16} /> Grant Access
+        </button>
+        <button
           onClick={() => { setShowDeleteModal(true); setDeleteSlug(''); setDeleteError('') }}
           className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
         >
           <Trash2 size={16} /> Delete Permanently
         </button>
       </div>
+
+      {/* Grant access modal */}
+      {showGrantModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            {grantSuccess ? (
+              <div className="flex flex-col items-center py-4 gap-3">
+                <CheckCircle size={40} className="text-green-400" />
+                <p className="text-green-400 font-medium text-center">{grantSuccess}</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                    <Gift size={20} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Grant Access</h3>
+                    <p className="text-sm text-slate-400">Give {org.name} free or discounted access</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">Access Type</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setGrantForm({ ...grantForm, type: 'free' })}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium border transition-colors ${
+                          grantForm.type === 'free'
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                            : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        100% Free
+                      </button>
+                      <button
+                        onClick={() => setGrantForm({ ...grantForm, type: 'discount' })}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium border transition-colors ${
+                          grantForm.type === 'discount'
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                            : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        Discount %
+                      </button>
+                    </div>
+                  </div>
+
+                  {grantForm.type === 'discount' && (
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-1.5">Discount Percentage</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={grantForm.discountPercent}
+                          onChange={(e) => setGrantForm({ ...grantForm, discountPercent: parseInt(e.target.value) || 0 })}
+                          min={1}
+                          max={99}
+                          className="flex-1 px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                        <span className="text-slate-400 text-sm">% off</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1.5">Duration</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[3, 6, 12, 24].map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setGrantForm({ ...grantForm, months: m })}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                            grantForm.months === m
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                              : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                          }`}
+                        >
+                          {m >= 12 ? `${m / 12}yr` : `${m}mo`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1.5">Note (optional)</label>
+                    <input
+                      type="text"
+                      value={grantForm.note}
+                      onChange={(e) => setGrantForm({ ...grantForm, note: e.target.value })}
+                      placeholder="e.g., Beta partner, conference sponsor"
+                      className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                    />
+                  </div>
+
+                  {grantError && <p className="text-red-400 text-sm">{grantError}</p>}
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => setShowGrantModal(false)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sm rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleGrant}
+                    disabled={granting}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {granting ? 'Granting...' : grantForm.type === 'free'
+                      ? `Grant ${grantForm.months >= 12 ? `${grantForm.months / 12} Year` : `${grantForm.months} Month`} Free`
+                      : `Grant ${grantForm.discountPercent}% Off for ${grantForm.months >= 12 ? `${grantForm.months / 12}yr` : `${grantForm.months}mo`}`
+                    }
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Confirmation modal */}
       {confirmAction && (
