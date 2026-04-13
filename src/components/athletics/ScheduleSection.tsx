@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { Plus, CalendarDays, Trash2, Edit2, Trophy, ClipboardList } from 'lucide-react'
@@ -366,7 +367,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-5">
         <div className="w-full sm:w-64">
           <FloatingDropdown
             id="schedule-team"
@@ -377,19 +378,26 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
           />
         </div>
 
-        <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1">
+        <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
           {FILTER_PILLS.map((pill) => (
             <button
               key={pill.key}
               type="button"
               onClick={() => setFilter(pill.key)}
-              className={`px-5 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer min-w-[60px] ${
+              className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
                 filter === pill.key
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'text-white'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {pill.label}
+              {filter === pill.key && (
+                <motion.div
+                  layoutId="athleticsScheduleFilter"
+                  className="absolute inset-0 rounded-full bg-slate-900"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                />
+              )}
+              <span className="relative z-10">{pill.label}</span>
             </button>
           ))}
         </div>

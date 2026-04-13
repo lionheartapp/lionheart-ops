@@ -340,16 +340,19 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-4">
         <div className="relative flex-1 max-w-xs w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search teams..."
-            className="w-full pl-9 pr-3 py-3.5 text-sm border border-stone-300 rounded-lg bg-white focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
-          />
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search teams..."
+              className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
+            />
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <div className="w-full sm:w-44">
