@@ -71,9 +71,10 @@ export default function Sidebar({
   const [itOpen, setItOpen] = useState(() => isITPath(pathname, pageSearchParams))
   const [avOpen, setAvOpen] = useState(() => isAVPath(pathname, pageSearchParams))
 
-  // ── Athletics campus state ──
+  // ── Athletics state ──
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsCampuses, setAthleticsCampuses] = useState<AthleticsCampus[]>([])
+  const [athleticsActiveTab, setAthleticsActiveTab] = useState<string>('overview')
   const { data: sidebarModules = [] } = useModules()
   const { data: sidebarCampusesRaw } = useQuery({
     ...queryOptions.campuses(),
@@ -350,6 +351,11 @@ export default function Sidebar({
     window.dispatchEvent(new CustomEvent('athletics-campus-change', { detail: { campusId } }))
   }, [])
 
+  const handleAthleticsTabClick = useCallback((tab: string) => {
+    setAthleticsActiveTab(tab)
+    window.dispatchEvent(new CustomEvent('athletics-tab-change', { detail: { tab } }))
+  }, [])
+
   const handleCreateCalendar = useCallback(() => {
     window.dispatchEvent(new CustomEvent('calendar-create-request'))
   }, [])
@@ -380,7 +386,9 @@ export default function Sidebar({
     <AthleticsPanel
       athleticsCampuses={athleticsCampuses}
       athleticsCampusId={athleticsCampusId}
+      activeTab={athleticsActiveTab}
       onCampusClick={handleAthleticsCampusClick}
+      onTabClick={handleAthleticsTabClick}
     />
   ) : calendarOpen ? (
     <CalendarPanel

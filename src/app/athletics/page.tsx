@@ -10,7 +10,7 @@ import ModuleGate from '@/components/ModuleGate'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
-import { LayoutDashboard, Dribbble, Users, CalendarDays, ClipboardList, Trophy, BarChart3, Settings2 } from 'lucide-react'
+import { Dribbble, Users, CalendarDays, ClipboardList, Trophy } from 'lucide-react'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import SportsSection from '@/components/athletics/SportsSection'
 import TeamsSection from '@/components/athletics/TeamsSection'
@@ -25,15 +25,6 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
 import type { AthleticsTab } from '@/components/Sidebar'
-import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
-import TabIndicator from '@/components/ui/TabIndicator'
-
-const SUB_TABS: { key: AthleticsTab; label: string; icon: typeof Dribbble }[] = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'manage', label: 'Manage', icon: Settings2 },
-  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { key: 'stats', label: 'Stats', icon: BarChart3 },
-]
 
 type ManageSection = 'sports' | 'teams' | 'roster'
 type ScheduleSection = 'games' | 'tournaments'
@@ -137,7 +128,16 @@ export default function AthleticsPage() {
   const [scheduleSection, setScheduleSection] = useState<ScheduleSection>('games')
   const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [megaImportOpen, setMegaImportOpen] = useState(false)
-  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab)
+
+  // Listen for sidebar tab navigation
+  useEffect(() => {
+    const handleTabChange = (e: Event) => {
+      const tab = (e as CustomEvent).detail?.tab
+      if (tab) setActiveTab(tab as AthleticsTab)
+    }
+    window.addEventListener('athletics-tab-change', handleTabChange)
+    return () => window.removeEventListener('athletics-tab-change', handleTabChange)
+  }, [])
 
   // ── Data queries for onboarding / progressive tab visibility ──────
   const { data: onboardSports, isSuccess: sportsLoaded } = useQuery(sharedQueryOptions.athleticsSports())
@@ -156,19 +156,9 @@ export default function AthleticsPage() {
   }, [sportsLoaded, hasSports, onboardingDismissed])
   const showOnboarding = onboardingStarted && !onboardingDismissed
 
-  // Progressive tab visibility: only show tabs whose prerequisites are met
-  const visibleTabs = useMemo(() => {
-    if (onboardingDismissed || (hasSports && hasSeasons && hasTeams)) {
-      return SUB_TABS
-    }
-    return SUB_TABS.filter(({ key }) => {
-      if (key === 'overview') return true
-      if (key === 'manage') return true // always allow sports creation
-      if (key === 'schedule') return hasTeams
-      if (key === 'stats') return hasTeams
-      return true
-    })
-  }, [hasTeams, onboardingDismissed, hasSports, hasSeasons])
+  // Progressive visibility: only allow schedule/stats if prerequisites are met
+  const canShowSchedule = onboardingDismissed || hasTeams
+  const canShowStats = onboardingDismissed || hasTeams
 
   // Helper to navigate from other components (e.g. dashboard "View all" → schedule tab)
   const handleTabChange = useCallback((tab: string) => {
@@ -302,30 +292,6 @@ export default function AthleticsPage() {
             />
           ) : (
             <>
-              {/* Sub-navigation tabs — progressively revealed */}
-              <div ref={tabContainerRef} role="tablist" aria-label="Athletics tabs" className="relative flex gap-0.5 border-b border-stone-200/60 overflow-x-auto scrollbar-hide">
-                {visibleTabs.map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    ref={(el) => setTabRef(key, el)}
-                    role="tab"
-                    aria-selected={activeTab === key}
-                    id={`tab-${key}`}
-                    aria-controls={`tabpanel-${key}`}
-                    onClick={() => setActiveTab(key)}
-                    className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
-                      activeTab === key
-                        ? 'text-slate-900'
-                        : 'text-stone-400 hover:text-stone-600'
-                    }`}
-                  >
-                    <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${activeTab === key ? '' : 'hidden sm:block'}`} />
-                    {label}
-                  </button>
-                ))}
-                <TabIndicator style={indicatorStyle} />
-              </div>
-
               {/* Loading skeleton while campuses/modules load */}
               {dataLoading ? (
                 <AthleticsTableSkeleton columns={5} rows={5} />
@@ -338,22 +304,21 @@ export default function AthleticsPage() {
 
                   {/* Manage — Sports / Teams / Roster */}
                   <div role="tabpanel" id="tabpanel-manage" aria-labelledby="tab-manage" className={activeTab === 'manage' ? '' : 'hidden'} aria-hidden={activeTab !== 'manage'}>
-                    <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1 w-fit mb-5">
+                    <div className="flex gap-1 mb-5">
                       {([
-                        { key: 'sports' as ManageSection, label: 'Sports', icon: Dribbble },
-                        { key: 'teams' as ManageSection, label: 'Teams', icon: Users },
-                        { key: 'roster' as ManageSection, label: 'Roster', icon: ClipboardList },
+                        { key: 'sports' as ManageSection, label: 'Sports' },
+                        { key: 'teams' as ManageSection, label: 'Teams' },
+                        { key: 'roster' as ManageSection, label: 'Roster' },
                       ]).map((s) => (
                         <button
                           key={s.key}
                           onClick={() => setManageSection(s.key)}
-                          className={`flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition cursor-pointer min-w-[100px] ${
+                          className={`px-5 py-2.5 text-sm font-semibold rounded-full transition cursor-pointer ${
                             manageSection === s.key
-                              ? 'bg-white text-slate-900 shadow-sm'
-                              : 'text-stone-500 hover:text-stone-700'
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          <s.icon className="w-4 h-4" />
                           {s.label}
                         </button>
                       ))}
@@ -370,22 +335,21 @@ export default function AthleticsPage() {
                   </div>
 
                   {/* Schedule — Games & Practices / Tournaments */}
-                  <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
-                    <div className="flex gap-1 bg-stone-100/80 rounded-xl p-1 w-fit mb-5">
+                  <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' && canShowSchedule ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
+                    <div className="flex gap-1 mb-5">
                       {([
-                        { key: 'games' as ScheduleSection, label: 'Games & Practices', icon: CalendarDays },
-                        { key: 'tournaments' as ScheduleSection, label: 'Tournaments', icon: Trophy },
+                        { key: 'games' as ScheduleSection, label: 'Games & Practices' },
+                        { key: 'tournaments' as ScheduleSection, label: 'Tournaments' },
                       ]).map((s) => (
                         <button
                           key={s.key}
                           onClick={() => setScheduleSection(s.key)}
-                          className={`flex items-center justify-center gap-1.5 px-5 py-2 text-sm font-medium rounded-lg transition cursor-pointer min-w-[100px] ${
+                          className={`px-5 py-2.5 text-sm font-semibold rounded-full transition cursor-pointer ${
                             scheduleSection === s.key
-                              ? 'bg-white text-slate-900 shadow-sm'
-                              : 'text-stone-500 hover:text-stone-700'
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          <s.icon className="w-4 h-4" />
                           {s.label}
                         </button>
                       ))}
@@ -399,7 +363,7 @@ export default function AthleticsPage() {
                   </div>
 
                   {/* Stats */}
-                  <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
+                  <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' && canShowStats ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
                     <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
                   </div>
                 </>
