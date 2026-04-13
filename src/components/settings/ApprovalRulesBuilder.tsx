@@ -65,22 +65,10 @@ export default function ApprovalRulesBuilder() {
 
   const mutate = useMutation({
     mutationFn: async (action: { method: string; url: string; body?: Record<string, unknown> }) => {
-      const token = localStorage.getItem('auth-token')
-      // Read CSRF token from cookie (required for state-changing requests)
-      const csrfToken = document.cookie.split('; ').find(c => c.startsWith('csrf-token='))?.split('=')[1] || ''
-      const res = await fetch(action.url, {
+      return fetchApi(action.url, {
         method: action.method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'x-csrf-token': csrfToken,
-        },
-        credentials: 'include',
         body: action.body ? JSON.stringify(action.body) : undefined,
       })
-      const data = await res.json()
-      if (!data.ok) throw new Error(data.error?.message || 'Request failed')
-      return data
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules'] }),
   })
