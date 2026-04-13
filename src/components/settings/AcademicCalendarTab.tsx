@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, Building2 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
@@ -436,33 +437,41 @@ export default function AcademicCalendarTab() {
 
   return (
     <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center gap-4">
-        <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-          <CalendarDays className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">Academic Calendar</h3>
-          <p className="text-sm text-slate-500 mt-0.5">Manage academic years, bell schedules, and special days</p>
-        </div>
-      </div>
-
-      {/* Tab bar + action button — single horizontal bar */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
-            {subTabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setSubTab(t.key)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                  subTab === t.key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+      {/* Section header + tabs in one card */}
+      <div className="ui-glass p-6">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+            <CalendarDays className="w-5 h-5 text-white" />
           </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Academic Calendar</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage academic years, bell schedules, and special days</p>
+          </div>
+        </div>
+
+        {/* Tab bar + action button */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+              {subTabs.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setSubTab(t.key)}
+                  className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                    subTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {subTab === t.key && (
+                    <motion.div
+                      layoutId="academicCalendarPill"
+                      className="absolute inset-0 rounded-full bg-slate-900"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </button>
+              ))}
+            </div>
 
           {isMultiSchool && (
             <div className="flex items-center gap-1.5">
@@ -494,6 +503,7 @@ export default function AcademicCalendarTab() {
         </div>
 
         {renderTabAction()}
+        </div>
       </div>
 
       {/* ── Academic Year ────────────────────────────────────────── */}
