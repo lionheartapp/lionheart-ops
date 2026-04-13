@@ -72,13 +72,20 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     }
   }
 
-  // If campus has no address, inherit from org's physicalAddress
+  // If campus has no address, inherit from org's physicalAddress and persist it
   if (mapCenter && !mapCenter.address) {
     const orgAddrRows = await rawPrisma.$queryRaw<Array<{ physicalAddress: string | null }>>`
       SELECT "physicalAddress" FROM "Organization" WHERE id = ${orgId} LIMIT 1
     `
     if (orgAddrRows[0]?.physicalAddress) {
       mapCenter.address = orgAddrRows[0].physicalAddress
+      // Persist to the campus so future loads are instant
+      if (selectedCampusId) {
+        await rawPrisma.$executeRaw`
+          UPDATE "Campus" SET address = ${orgAddrRows[0].physicalAddress}, "updatedAt" = NOW()
+          WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId} AND address IS NULL
+        `.catch(() => {})
+      }
     }
   }
 

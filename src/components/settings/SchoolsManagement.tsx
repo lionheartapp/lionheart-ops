@@ -53,13 +53,21 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
         if (data.ok && Array.isArray(data.data) && data.data.length > 0) {
           setResolvedCampusId(data.data[0].id)
         } else {
-          // No campuses exist — auto-create "Main Campus"
+          // No campuses exist — auto-create "Main Campus" with org address
           const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))?.trim().split('=')[1] || ''
+          // Fetch org address to copy to campus
+          let orgAddress: string | null = null
+          try {
+            const orgRes = await fetch('/api/onboarding/school-info', { credentials: 'include', headers })
+            const orgData = await orgRes.json()
+            if (orgData.ok) orgAddress = orgData.data?.physicalAddress || null
+          } catch { /* silent */ }
+
           const createRes = await fetch('/api/settings/campus/campuses', {
             method: 'POST',
             credentials: 'include',
             headers: { ...headers, 'x-csrf-token': csrfToken },
-            body: JSON.stringify({ name: 'Main Campus', campusType: 'MAIN' }),
+            body: JSON.stringify({ name: 'Main Campus', campusType: 'HEADQUARTERS', address: orgAddress }),
           })
           const createData = await createRes.json()
           if (createData.ok && createData.data?.id) {
