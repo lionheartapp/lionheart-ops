@@ -372,13 +372,13 @@ export default function ApprovalConfigTab() {
     <div className="space-y-6">
       <div className="ui-glass p-6">
         {/* Section header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
             <ClipboardCheck className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Approval Config</h3>
-            <p className="text-xs text-slate-500">Configure which teams review events before they're confirmed</p>
+            <h3 className="text-lg font-semibold text-slate-900">Approval Config</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Configure which teams review events before they're confirmed</p>
           </div>
         </div>
 

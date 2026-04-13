@@ -310,13 +310,13 @@ export default function AuditLogTab() {
     <div className="animate-[fadeIn_200ms_ease-out]">
       {/* Header + Filters */}
       <div className="ui-glass p-6 mb-4">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Activity Log</h3>
-            <p className="text-xs text-slate-500">Track actions performed by organization members</p>
+            <h3 className="text-lg font-semibold text-slate-900">Activity Log</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Track actions performed by organization members</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

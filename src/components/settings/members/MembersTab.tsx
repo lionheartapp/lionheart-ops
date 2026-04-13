@@ -122,17 +122,17 @@ const MembersTab = (_props: MembersTabProps) => {
   })
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="ui-glass p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+      <div className="ui-glass p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
               <UserCog className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Members</h3>
-              <p className="text-xs text-slate-500">Manage organization members</p>
+              <h3 className="text-lg font-semibold text-slate-900">Members</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Manage organization members</p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
@@ -171,7 +171,7 @@ const MembersTab = (_props: MembersTabProps) => {
       )}
 
       {/* Status Tabs */}
-      <div className="mb-4 inline-flex gap-1 rounded-full bg-slate-100 p-1">
+      <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
         {STATUS_TABS.map((t) => (
           <button
             key={t.value}

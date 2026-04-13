@@ -509,13 +509,13 @@ export default function BillingTab() {
 
       {/* ── Current Plan ─────────────────────────────────────────────────────── */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Current Plan</h3>
-            <p className="text-xs text-slate-500">Your active subscription details</p>
+            <h3 className="text-lg font-semibold text-slate-900">Current Plan</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Your active subscription details</p>
           </div>
         </div>
 
@@ -609,13 +609,13 @@ export default function BillingTab() {
       {/* ── Plan Comparison ───────────────────────────────────────────────────── */}
       {plans.length > 0 && (
         <section className="ui-glass p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
               <Star className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Available Plans</h3>
-              <p className="text-xs text-slate-500">Compare and switch between plans</p>
+              <h3 className="text-lg font-semibold text-slate-900">Available Plans</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Compare and switch between plans</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -729,13 +729,13 @@ export default function BillingTab() {
 
       {/* ── Payment Method ────────────────────────────────────────────────────── */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-slate-500 to-slate-500 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Payment Method</h3>
-            <p className="text-xs text-slate-500">Manage your billing details</p>
+            <h3 className="text-lg font-semibold text-slate-900">Payment Method</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage your billing details</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -765,13 +765,13 @@ export default function BillingTab() {
 
       {/* ── Invoice History ───────────────────────────────────────────────────── */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
             <Download className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Invoice History</h3>
-            <p className="text-xs text-slate-500">View and download past invoices</p>
+            <h3 className="text-lg font-semibold text-slate-900">Invoice History</h3>
+            <p className="text-sm text-slate-500 mt-0.5">View and download past invoices</p>
           </div>
         </div>
 
@@ -861,13 +861,13 @@ export default function BillingTab() {
       {/* ── Cancel Subscription ─────────────────────────────────────────────── */}
       {subscription && (subscription.status === 'TRIALING' || subscription.status === 'ACTIVE') && (
         <section className="ui-glass p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
               <Ban className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Cancel Subscription</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-lg font-semibold text-slate-900">Cancel Subscription</h3>
+              <p className="text-sm text-slate-500 mt-0.5">
                 {subscription.cancelAtPeriodEnd
                   ? `Your subscription will end on ${formatDate(subscription.currentPeriodEnd)}.`
                   : `You'll keep access until ${formatDate(subscription.currentPeriodEnd)}.`}
@@ -907,13 +907,13 @@ export default function BillingTab() {
 
       {/* ── Danger Zone ──────────────────────────────────────────────────────── */}
       <section className="bg-red-50/50 border-2 border-red-200 rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-red-900">Danger Zone</h3>
-            <p className="text-xs text-red-700">Permanently delete your organization and all its data.</p>
+            <h3 className="text-lg font-semibold text-red-900">Danger Zone</h3>
+            <p className="text-sm text-red-700 mt-0.5">Permanently delete your organization and all its data.</p>
           </div>
         </div>
 

@@ -481,8 +481,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
     <div className="space-y-6 animate-pulse py-2">
       {/* School Details card */}
       <div className="ui-glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200" />
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
             <div className="h-4 w-28 bg-slate-200 rounded" />
             <div className="h-3 w-48 bg-slate-100 rounded" />
@@ -498,8 +498,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Enrollment & Staffing card */}
       <div className="ui-glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200" />
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
             <div className="h-4 w-36 bg-slate-200 rounded" />
             <div className="h-3 w-32 bg-slate-100 rounded" />
@@ -513,8 +513,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Branding card */}
       <div className="ui-glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200" />
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
             <div className="h-4 w-20 bg-slate-200 rounded" />
             <div className="h-3 w-44 bg-slate-100 rounded" />
@@ -528,8 +528,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Workspace Metadata card */}
       <div className="ui-glass p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200" />
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-slate-200" />
           <div className="space-y-1.5">
             <div className="h-4 w-36 bg-slate-200 rounded" />
             <div className="h-3 w-28 bg-slate-100 rounded" />
@@ -569,13 +569,13 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Section 1 — School Details */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
             <School className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">School Details</h3>
-            <p className="text-xs text-slate-500">Basic information about your institution</p>
+            <h3 className="text-lg font-semibold text-slate-900">School Details</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Basic information about your institution</p>
           </div>
         </div>
 
@@ -619,13 +619,13 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Section 2 — Enrollment & Staffing */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Enrollment & Staffing</h3>
-            <p className="text-xs text-slate-500">Student and staff counts</p>
+            <h3 className="text-lg font-semibold text-slate-900">Enrollment & Staffing</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Student and staff counts</p>
           </div>
         </div>
 
@@ -637,13 +637,13 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Section 3 — Branding */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
             <Palette className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Branding</h3>
-            <p className="text-xs text-slate-500">Logo, login image, and subdomain</p>
+            <h3 className="text-lg font-semibold text-slate-900">Branding</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Logo, login image, and subdomain</p>
           </div>
         </div>
 
@@ -847,13 +847,13 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
       {/* Section 4 — Workspace Metadata */}
       <section className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
             <Globe className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Workspace Metadata</h3>
-            <p className="text-xs text-slate-500">System information</p>
+            <h3 className="text-lg font-semibold text-slate-900">Workspace Metadata</h3>
+            <p className="text-sm text-slate-500 mt-0.5">System information</p>
           </div>
         </div>
 
