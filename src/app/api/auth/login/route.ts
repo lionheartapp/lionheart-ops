@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
           name: true,
           logoUrl: true,
           gradeLevel: true,
+          onboardingStatus: true,
         },
       })
 

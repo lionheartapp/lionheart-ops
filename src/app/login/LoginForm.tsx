@@ -85,7 +85,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         })
         .catch(() => {}) // Non-fatal — will fetch on first useModules() call
 
-      const redirectTo = searchParams.get('redirect') || '/dashboard'
+      // If org is still onboarding, go to onboarding flow instead of dashboard
+      const onboardingStatus = orgData?.onboardingStatus
+      const isOnboarding = onboardingStatus === 'SIGNED_UP' || onboardingStatus === 'ONBOARDING'
+      const redirectTo = searchParams.get('redirect') || (isOnboarding ? '/onboarding/school-info' : '/dashboard')
       router.push(redirectTo)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error')

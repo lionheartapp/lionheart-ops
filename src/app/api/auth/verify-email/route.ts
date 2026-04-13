@@ -101,9 +101,18 @@ export async function GET(req: NextRequest) {
       email: user.email,
     })
 
-    // Redirect to dashboard with auth cookie set
+    // Check org onboarding status to decide where to redirect
+    const org = await rawPrisma.organization.findUnique({
+      where: { id: user.organizationId },
+      select: { onboardingStatus: true },
+    })
+
+    // If org is still in signup/onboarding, return user to onboarding flow
+    // instead of dropping them on the dashboard mid-setup
+    const isOnboarding = org?.onboardingStatus === 'SIGNED_UP' || org?.onboardingStatus === 'ONBOARDING'
+
     const url = req.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = isOnboarding ? '/onboarding/school-info' : '/dashboard'
     url.search = ''
     const response = NextResponse.redirect(url, 302)
 
