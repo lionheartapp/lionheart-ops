@@ -69,17 +69,25 @@ export async function POST(req: NextRequest) {
         if (existing) {
           return NextResponse.json(ok(existing), { status: 200 })
         }
+        // Set 30-day trial period for paid add-ons
+        const trialEndsAt = new Date()
+        trialEndsAt.setDate(trialEndsAt.getDate() + 30)
+
         const mod = await db.tenantModule.create({
           data: {
             organizationId: orgId,
             moduleId: input.moduleId,
             campusId: input.campusId ?? null,
+            planTier: 'trial',
           },
         })
 
-        // Sync role permissions so existing orgs get any new permissions/roles
-        // that were added as part of this module (e.g., IT Coordinator, Secretary)
-        await syncRolePermissions(orgId)
+        // Sync role permissions in the background — don't block the UI
+        // (this upserts ~200+ permission rows which takes several seconds)
+        syncRolePermissions(orgId).catch((err) => {
+          log.error({ err }, 'Background role permission sync failed')
+          Sentry.captureException(err)
+        })
 
         return NextResponse.json(ok(mod), { status: 200 })
       } else {

@@ -15,6 +15,11 @@ interface ModuleDefinition {
   color: string
   gradient: string
   scope: 'org' | 'campus'
+  /** Monthly price in dollars (0 = free) */
+  price: number
+  /** Trial duration in days (0 = no trial) */
+  trialDays: number
+  features: string[]
 }
 
 interface Campus {
@@ -34,6 +39,16 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#f59e0b',
     gradient: 'from-amber-400 to-orange-500',
     scope: 'campus',
+    price: 29,
+    trialDays: 30,
+    features: [
+      'Unlimited sports & teams',
+      'Game scheduling & scores',
+      'Roster management',
+      'Season & tournament brackets',
+      'Public athletics page',
+      'Player stats tracking',
+    ],
   },
 ]
 
@@ -280,33 +295,48 @@ export default function AddOnsTab() {
                     <h3 className="text-sm font-semibold text-slate-900">{mod.name}</h3>
                     {isAdded && (
                       <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                        Added
+                        Active
                       </span>
                     )}
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-5">
+                  <p className="text-sm text-slate-500 leading-relaxed mb-3">
                     {mod.description}
                   </p>
+
+                  {/* Pricing */}
+                  <div className="flex items-baseline gap-1 mb-3">
+                    <span className="text-2xl font-bold text-slate-900">${mod.price}</span>
+                    <span className="text-sm text-slate-500">/mo per campus</span>
+                  </div>
+
+                  {/* Feature list */}
+                  <ul className="space-y-1.5 mb-5">
+                    {mod.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-xs text-slate-600">
+                        <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
 
                   {/* Action button */}
                   {mod.scope === 'campus' ? (
                     isAdded ? (
                       <button
                         onClick={() => setConfigModuleId(mod.id)}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                       >
                         <Settings2 className="w-4 h-4" />
-                        Configuration
+                        Manage Campuses
                       </button>
                     ) : (
                       <button
                         onClick={() => setConfigModuleId(mod.id)}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors"
                       >
-                        <Plus className="w-4 h-4" />
-                        Add to workspace
+                        Start {mod.trialDays}-day free trial
                       </button>
                     )
                   ) : (
@@ -314,7 +344,7 @@ export default function AddOnsTab() {
                     isOrgEnabled ? (
                       <a
                         href="/settings?tab=members"
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
                       >
                         <Users className="w-4 h-4" />
                         Configure Roles
@@ -323,12 +353,19 @@ export default function AddOnsTab() {
                       <button
                         onClick={() => handleToggle(mod.id, false)}
                         disabled={togglingKey === mod.id}
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors disabled:opacity-50"
                       >
-                        <Plus className="w-4 h-4" />
-                        Add to workspace
+                        {togglingKey === mod.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        Start {mod.trialDays}-day free trial
                       </button>
                     )
+                  )}
+
+                  {/* Trial note */}
+                  {!isAdded && mod.trialDays > 0 && (
+                    <p className="text-[11px] text-slate-400 text-center mt-2">
+                      No credit card required. Cancel anytime.
+                    </p>
                   )}
                 </div>
               </div>
