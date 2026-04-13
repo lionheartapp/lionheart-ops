@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw, Trash2 } from 'lucide-react'
 
 export default function SchoolDetailPage() {
   const params = useParams()
@@ -12,6 +12,10 @@ export default function SchoolDetailPage() {
   const [loading, setLoading] = useState(true)
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteSlug, setDeleteSlug] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('platform-token')
@@ -48,6 +52,29 @@ export default function SchoolDetailPage() {
     if (data.ok) setOrg({ ...org, ...data.data })
     setConfirmAction(null)
     setActionLoading(false)
+  }
+
+  const handleDelete = async () => {
+    setDeleteError('')
+    setDeleting(true)
+    const token = localStorage.getItem('platform-token')
+    try {
+      const res = await fetch(`/api/platform/organizations/${params.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmSlug: deleteSlug }),
+      })
+      const data = await res.json()
+      if (!data.ok) {
+        setDeleteError(data.error?.message || 'Failed to delete')
+        setDeleting(false)
+        return
+      }
+      router.push('/admin/schools')
+    } catch {
+      setDeleteError('Network error')
+      setDeleting(false)
+    }
   }
 
   if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>
@@ -96,6 +123,12 @@ export default function SchoolDetailPage() {
             <RotateCcw size={16} /> Reactivate
           </button>
         )}
+        <button
+          onClick={() => { setShowDeleteModal(true); setDeleteSlug(''); setDeleteError('') }}
+          className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
+        >
+          <Trash2 size={16} /> Delete Permanently
+        </button>
       </div>
 
       {/* Confirmation modal */}
@@ -128,6 +161,52 @@ export default function SchoolDetailPage() {
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
                 {actionLoading ? 'Processing...' : `Yes, ${confirmAction.label}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                <Trash2 size={20} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Delete {org.name}?</h3>
+                <p className="text-sm text-red-400/80">This permanently deletes all data — users, events, tickets, everything. This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm text-slate-400 mb-2">
+                Type <span className="font-mono text-slate-200 bg-slate-800 px-1.5 py-0.5 rounded">{org.slug}</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteSlug}
+                onChange={(e) => setDeleteSlug(e.target.value)}
+                placeholder={org.slug}
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 transition-colors"
+                autoFocus
+              />
+              {deleteError && <p className="text-red-400 text-sm mt-2">{deleteError}</p>}
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sm rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteSlug !== org.slug || deleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                {deleting ? 'Deleting...' : 'Delete Forever'}
               </button>
             </div>
           </div>
