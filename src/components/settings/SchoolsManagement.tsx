@@ -42,19 +42,33 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
   const [resolvedCampusId, setResolvedCampusId] = useState<string | null>(null)
   const campusId = campusIdProp || resolvedCampusId
 
-  // Fetch first campus if no campusId prop provided
+  // Fetch first campus if no campusId prop provided, auto-create one if none exist
   useEffect(() => {
     if (campusIdProp) return
-    const fetchDefaultCampus = async () => {
+    const resolveOrCreateCampus = async () => {
       try {
-        const res = await fetch('/api/settings/campus/campuses', { credentials: 'include', headers: getCookieAuthHeaders() })
+        const headers = getCookieAuthHeaders()
+        const res = await fetch('/api/settings/campus/campuses', { credentials: 'include', headers })
         const data = await res.json()
         if (data.ok && Array.isArray(data.data) && data.data.length > 0) {
           setResolvedCampusId(data.data[0].id)
+        } else {
+          // No campuses exist — auto-create "Main Campus"
+          const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))?.trim().split('=')[1] || ''
+          const createRes = await fetch('/api/settings/campus/campuses', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { ...headers, 'x-csrf-token': csrfToken },
+            body: JSON.stringify({ name: 'Main Campus', campusType: 'MAIN' }),
+          })
+          const createData = await createRes.json()
+          if (createData.ok && createData.data?.id) {
+            setResolvedCampusId(createData.data.id)
+          }
         }
       } catch { /* silent */ }
     }
-    fetchDefaultCampus()
+    resolveOrCreateCampus()
   }, [campusIdProp])
 
   // Principal search/create
@@ -116,7 +130,10 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
       const url = editingId ? `/api/settings/schools/${editingId}` : '/api/settings/schools'
       const method = editingId ? 'PATCH' : 'POST'
 
-      const body = campusId && !editingId ? { ...form, campusId } : form
+      if (!editingId && !campusId) {
+        throw new Error('No campus available. Please create a campus first.')
+      }
+      const body = !editingId ? { ...form, campusId } : form
 
       const response = await fetch(url, {
         method,
