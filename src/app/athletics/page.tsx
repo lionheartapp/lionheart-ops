@@ -304,7 +304,7 @@ export default function AthleticsPage() {
 
                   {/* Manage — Sports / Teams / Roster */}
                   <div role="tabpanel" id="tabpanel-manage" aria-labelledby="tab-manage" className={activeTab === 'manage' ? '' : 'hidden'} aria-hidden={activeTab !== 'manage'}>
-                    <div className="flex gap-1 mb-5">
+                    <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
                       {([
                         { key: 'sports' as ManageSection, label: 'Sports' },
                         { key: 'teams' as ManageSection, label: 'Teams' },
@@ -313,13 +313,20 @@ export default function AthleticsPage() {
                         <button
                           key={s.key}
                           onClick={() => setManageSection(s.key)}
-                          className={`px-5 py-2.5 text-sm font-semibold rounded-full transition cursor-pointer ${
+                          className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
                             manageSection === s.key
-                              ? 'bg-slate-900 text-white'
-                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                              ? 'text-white'
+                              : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          {s.label}
+                          {manageSection === s.key && (
+                            <motion.div
+                              layoutId="athleticsManagePill"
+                              className="absolute inset-0 rounded-full bg-slate-900"
+                              transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                            />
+                          )}
+                          <span className="relative z-10">{s.label}</span>
                         </button>
                       ))}
                     </div>
@@ -336,7 +343,7 @@ export default function AthleticsPage() {
 
                   {/* Schedule — Games & Practices / Tournaments */}
                   <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' && canShowSchedule ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
-                    <div className="flex gap-1 mb-5">
+                    <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
                       {([
                         { key: 'games' as ScheduleSection, label: 'Games & Practices' },
                         { key: 'tournaments' as ScheduleSection, label: 'Tournaments' },
@@ -344,13 +351,20 @@ export default function AthleticsPage() {
                         <button
                           key={s.key}
                           onClick={() => setScheduleSection(s.key)}
-                          className={`px-5 py-2.5 text-sm font-semibold rounded-full transition cursor-pointer ${
+                          className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
                             scheduleSection === s.key
-                              ? 'bg-slate-900 text-white'
-                              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                              ? 'text-white'
+                              : 'text-slate-600 hover:text-slate-900'
                           }`}
                         >
-                          {s.label}
+                          {scheduleSection === s.key && (
+                            <motion.div
+                              layoutId="athleticsSchedulePill"
+                              className="absolute inset-0 rounded-full bg-slate-900"
+                              transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                            />
+                          )}
+                          <span className="relative z-10">{s.label}</span>
                         </button>
                       ))}
                     </div>
