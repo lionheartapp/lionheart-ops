@@ -86,11 +86,13 @@ export default function InteractiveCampusMap({
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
 
-  const getAuthHeaders = () => ({
-    Authorization: token ? `Bearer ${token}` : '',
-    'X-Organization-ID': orgId || '',
-    'Content-Type': 'application/json',
-  })
+  const getAuthHeaders = (): Record<string, string> => {
+    const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))?.trim().split('=')[1] || ''
+    return {
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
+    }
+  }
 
   // Use parent-provided map center if available, otherwise fetch independently
   useEffect(() => {
@@ -102,12 +104,12 @@ export default function InteractiveCampusMap({
       })
       return
     }
-    if (!token) return
     const url = campusId
       ? `/api/settings/campus/map-data?campusId=${campusId}`
       : '/api/settings/campus/map-data'
     fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
     })
       .then((r) => r.json())
       .then((data) => {
@@ -120,7 +122,7 @@ export default function InteractiveCampusMap({
         }
       })
       .catch(() => {})
-  }, [mapCenterProp, token, campusId])
+  }, [mapCenterProp, campusId])
 
   // Initialize map
   useEffect(() => {
@@ -261,7 +263,8 @@ export default function InteractiveCampusMap({
       orgMarkerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapConfig])
+  // eslint-disable-next-line react-hooks/exhaustive-deps — use serialized key to avoid re-init on same coords
+  }, [mapConfig?.center.lat, mapConfig?.center.lng])
 
   /* ── Add building as polygon overlay ─────────────────────────────── */
 
@@ -569,6 +572,7 @@ export default function InteractiveCampusMap({
     try {
       const res = await fetch(`/api/settings/campus/buildings/${buildingId}/detect-outline`, {
         method: 'POST',
+        credentials: 'include',
         headers: getAuthHeaders(),
       })
       const json = await res.json()
