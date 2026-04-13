@@ -16,6 +16,10 @@ export default function SchoolDetailPage() {
   const [deleteSlug, setDeleteSlug] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
+  // Modules
+  const [orgModules, setOrgModules] = useState<Array<{ id: string; moduleId: string; campusId: string | null }>>([])
+  const [orgCampuses, setOrgCampuses] = useState<Array<{ id: string; name: string; isActive: boolean }>>([])
+  const [togglingModule, setTogglingModule] = useState<string | null>(null)
   // Grant access
   const [showGrantModal, setShowGrantModal] = useState(false)
   const [grantForm, setGrantForm] = useState({ type: 'free' as 'free' | 'discount', discountPercent: 50, months: 12, note: '' })
@@ -30,9 +34,14 @@ export default function SchoolDetailPage() {
     Promise.all([
       fetch(`/api/platform/organizations/${params.id}`, { headers }).then(r => r.json()),
       fetch(`/api/platform/organizations/${params.id}/users`, { headers }).then(r => r.json()),
-    ]).then(([orgRes, usersRes]) => {
+      fetch(`/api/platform/organizations/${params.id}/modules`, { headers }).then(r => r.json()),
+    ]).then(([orgRes, usersRes, modulesRes]) => {
       if (orgRes.ok) setOrg(orgRes.data)
       if (usersRes.ok) setUsers(usersRes.data)
+      if (modulesRes.ok) {
+        setOrgModules(modulesRes.data.modules)
+        setOrgCampuses(modulesRes.data.campuses)
+      }
       setLoading(false)
     })
   }, [params.id])
@@ -58,6 +67,30 @@ export default function SchoolDetailPage() {
     if (data.ok) setOrg({ ...org, ...data.data })
     setConfirmAction(null)
     setActionLoading(false)
+  }
+
+  const handleModuleToggle = async (moduleId: string, enabled: boolean, campusId?: string) => {
+    const key = campusId ? `${moduleId}:${campusId}` : moduleId
+    setTogglingModule(key)
+    const token = localStorage.getItem('platform-token')
+    try {
+      const res = await fetch(`/api/platform/organizations/${params.id}/modules`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ moduleId, enabled, campusId }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        // Refresh modules
+        const modRes = await fetch(`/api/platform/organizations/${params.id}/modules`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(r => r.json())
+        if (modRes.ok) setOrgModules(modRes.data.modules)
+      }
+    } catch (err) {
+      console.error('Failed to toggle module:', err)
+    }
+    setTogglingModule(null)
   }
 
   const handleGrant = async () => {
@@ -399,6 +432,80 @@ export default function SchoolDetailPage() {
           <div><span className="text-slate-500">Email:</span> <span>{org.principalEmail || '—'}</span></div>
           <div><span className="text-slate-500">Phone:</span> <span>{org.phone || '—'}</span></div>
         </div>
+      </div>
+
+      {/* Add-On Modules */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <h3 className="font-semibold mb-4 flex items-center gap-2"><Shield size={16} /> Add-On Modules</h3>
+        {(() => {
+          const AVAILABLE_MODULES = [
+            { id: 'athletics', name: 'Athletics', description: 'Sports teams, schedules, seasons, rosters', scope: 'campus' as const },
+            { id: 'maintenance', name: 'Maintenance', description: 'Facility work orders, PM schedules, assets', scope: 'campus' as const },
+            { id: 'it-helpdesk', name: 'IT Help Desk', description: 'Device management, tickets, provisioning', scope: 'campus' as const },
+            { id: 'av-production', name: 'A/V Production', description: 'Audio/visual equipment and event production', scope: 'campus' as const },
+            { id: 'planning-season', name: 'Event Planning', description: 'Advanced event planning with budgets and logistics', scope: 'org' as const },
+          ]
+
+          return (
+            <div className="space-y-3">
+              {AVAILABLE_MODULES.map((mod) => {
+                const isOrgEnabled = orgModules.some(m => m.moduleId === mod.id && !m.campusId)
+                const enabledCampusIds = orgModules.filter(m => m.moduleId === mod.id && m.campusId).map(m => m.campusId)
+
+                return (
+                  <div key={mod.id} className="border border-slate-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <span className="font-medium text-sm">{mod.name}</span>
+                        <span className="text-xs text-slate-500 ml-2">{mod.description}</span>
+                      </div>
+                      {mod.scope === 'org' && (
+                        <button
+                          onClick={() => handleModuleToggle(mod.id, !isOrgEnabled)}
+                          disabled={togglingModule === mod.id}
+                          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                            isOrgEnabled
+                              ? 'bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400'
+                              : 'bg-slate-700 text-slate-300 hover:bg-green-500/10 hover:text-green-400'
+                          } ${togglingModule === mod.id ? 'opacity-50' : ''}`}
+                        >
+                          {togglingModule === mod.id ? '...' : isOrgEnabled ? 'Enabled' : 'Disabled'}
+                        </button>
+                      )}
+                    </div>
+
+                    {mod.scope === 'campus' && orgCampuses.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {orgCampuses.map((campus) => {
+                          const campusEnabled = enabledCampusIds.includes(campus.id)
+                          const key = `${mod.id}:${campus.id}`
+                          return (
+                            <button
+                              key={campus.id}
+                              onClick={() => handleModuleToggle(mod.id, !campusEnabled, campus.id)}
+                              disabled={togglingModule === key}
+                              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                                campusEnabled
+                                  ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400'
+                                  : 'border-slate-700 text-slate-400 hover:border-green-500/30 hover:bg-green-500/10 hover:text-green-400'
+                              } ${togglingModule === key ? 'opacity-50' : ''}`}
+                            >
+                              {campus.name} {campusEnabled ? '✓' : ''}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {mod.scope === 'campus' && orgCampuses.length === 0 && (
+                      <p className="text-xs text-slate-500 mt-1">No campuses configured for this school</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
