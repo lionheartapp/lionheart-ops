@@ -88,6 +88,7 @@ model Organization {
   planningSeasons     PlanningSeason[]
   planningSubmissions PlanningSubmission[]
   approvalChannelConfigs ApprovalChannelConfig[]
+  approvalRules          ApprovalRule[]
   approvalFlowEntries    ApprovalFlowEntry[]
   eventResourceRequests  EventResourceRequest[]
   tenantModules       TenantModule[]
@@ -581,6 +582,7 @@ model Campus {
   specialDays    SpecialDay[]
   planningSeasons PlanningSeason[]
   approvalChannelConfigs ApprovalChannelConfig[]
+  approvalRules          ApprovalRule[]          @relation("ApprovalRuleCampus")
   approvalFlowEntries    ApprovalFlowEntry[]     @relation("ApprovalFlowCampus")
   tenantModules  TenantModule[]
   itMagicLinks   ITMagicLink[]
@@ -637,6 +639,8 @@ model School {
   // Compliance module relations
   complianceDomainConfigs ComplianceDomainConfig[]
   complianceRecords       ComplianceRecord[]
+  // Approval rules scoped to this school
+  approvalRules           ApprovalRule[]           @relation("ApprovalRuleSchool")
   // Calendar module relations
   calendars      Calendar[]
   calendarEvents CalendarEvent[]
@@ -1742,9 +1746,39 @@ model ApprovalChannelConfig {
 /// Team-based approval flow entry (V2).
 /// Each row = one team participating in the event approval pipeline.
 /// Replaces the hardcoded 6-channel ApprovalChannelConfig system.
+// Conditional approval rule — defines WHEN an approval chain applies
+model ApprovalRule {
+  id               String   @id @default(cuid())
+  organizationId   String
+  name             String   // "Elementary Events", "High School Events", "All Events"
+  description      String?  // Optional explanation
+  // ── Conditions (null = matches all) ──
+  schoolId         String?  // If set, only events at this school trigger this rule
+  campusId         String?  // If set, only events at this campus trigger this rule
+  eventCategory    String?  // If set, only events with this category trigger this rule
+  // ── Behavior ──
+  isDefault        Boolean  @default(false)  // Catch-all rule when no other conditions match
+  isFinalApprover  Boolean  @default(false)  // Always runs last (e.g., Admin sign-off)
+  sortOrder        Int      @default(0)      // Evaluation priority (lower = checked first)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?       @relation("ApprovalRuleSchool", fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?       @relation("ApprovalRuleCampus", fields: [campusId], references: [id], onDelete: SetNull)
+  steps        ApprovalFlowEntry[]
+
+  @@index([organizationId])
+  @@index([schoolId])
+  @@index([campusId])
+}
+
+// Individual step within an approval rule's chain
 model ApprovalFlowEntry {
   id                  String   @id @default(cuid())
   organizationId      String
+  ruleId              String?  // Links to ApprovalRule (null = legacy entries / migration)
   teamId              String
   mode                String   @default("REQUIRED")  // REQUIRED | NOTIFICATION
   trigger             String   @default("ALWAYS")    // ALWAYS | WHEN_RESOURCE_REQUESTED
@@ -1753,17 +1787,19 @@ model ApprovalFlowEntry {
   autoSkipIfNotNeeded Boolean  @default(true)
   sortOrder           Int      @default(0)           // lower = clears first; highest = final approver
   assignedUserId      String?  // optional: specific person override instead of whole team
-  campusId            String?  // future: per-campus overrides
+  campusId            String?  // deprecated: use ApprovalRule.campusId instead
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  assignedUser User?        @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
-  campus       Campus?      @relation("ApprovalFlowCampus", fields: [campusId], references: [id], onDelete: SetNull)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rule         ApprovalRule? @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  team         Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  assignedUser User?         @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  campus       Campus?       @relation("ApprovalFlowCampus", fields: [campusId], references: [id], onDelete: SetNull)
 
-  @@unique([organizationId, teamId, assignedUserId, campusId])
+  @@unique([organizationId, teamId, assignedUserId, campusId, ruleId])
   @@index([organizationId])
+  @@index([ruleId])
 }
 
 model EventResourceRequest {
