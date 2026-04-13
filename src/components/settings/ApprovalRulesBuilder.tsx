@@ -66,13 +66,21 @@ export default function ApprovalRulesBuilder() {
   const mutate = useMutation({
     mutationFn: async (action: { method: string; url: string; body?: Record<string, unknown> }) => {
       const token = localStorage.getItem('auth-token')
+      // Read CSRF token from cookie (required for state-changing requests)
+      const csrfToken = document.cookie.split('; ').find(c => c.startsWith('csrf-token='))?.split('=')[1] || ''
       const res = await fetch(action.url, {
         method: action.method,
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         credentials: 'include',
         body: action.body ? JSON.stringify(action.body) : undefined,
       })
-      return res.json()
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error?.message || 'Request failed')
+      return data
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules'] }),
   })
@@ -202,10 +210,10 @@ export default function ApprovalRulesBuilder() {
           <div className="p-3 border-t border-slate-200 flex items-center gap-1">
             <button
               onClick={() => {
-                // Add a conditional rule — if schools exist, pick the first unassigned
+                // Add a conditional rule — pick the first unassigned school if any exist
                 const usedSchoolIds = conditionalRules.map(r => r.schoolId).filter(Boolean)
                 const unusedSchool = schools.find(s => !usedSchoolIds.includes(s.id))
-                addRule({ schoolId: unusedSchool?.id || undefined })
+                addRule(unusedSchool ? { schoolId: unusedSchool.id } : {})
               }}
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               title="Add condition"
