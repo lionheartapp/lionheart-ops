@@ -39,7 +39,7 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#f59e0b',
     gradient: 'from-amber-400 to-orange-500',
     scope: 'campus',
-    price: 29,
+    price: 149,
     trialDays: 30,
     features: [
       'Unlimited sports & teams',
