@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline' https://unpkg.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://maps.googleapis.com",
+      "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://maps.googleapis.com https://unpkg.com https://*.tile.openstreetmap.org",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
