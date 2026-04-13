@@ -294,7 +294,7 @@ export default function CalendarToolbar({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search events..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-stone-200 rounded-full bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 focus:border-primary-300 placeholder:text-stone-400"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 hover:bg-stone-100 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2" aria-label="Clear search">

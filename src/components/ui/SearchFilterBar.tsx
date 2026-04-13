@@ -83,7 +83,7 @@ export default function SearchFilterBar({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full pl-9 pr-9 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-full placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400 transition-all"
+            className="w-full pl-9 pr-9 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
           />
           {search && (
             <button

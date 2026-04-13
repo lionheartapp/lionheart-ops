@@ -503,7 +503,7 @@ function UserSearchDropdown({ excludeIds, onSelect, placeholder }: UserSearchDro
           onFocus={() => setIsOpen(true)}
           onClick={() => setIsOpen(true)}
           placeholder={placeholder ?? 'Search by name or email...'}
-          className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition-all"
+          className="w-full pl-10 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
         />
         <button
           onClick={() => {

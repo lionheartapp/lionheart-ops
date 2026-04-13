@@ -321,7 +321,7 @@ export function DocumentMatrix({ eventProjectId, canReadMedical = false }: Docum
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search participants…"
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
           />
         </div>
 
