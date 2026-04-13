@@ -24,10 +24,10 @@ const CreateSchoolSchema = z.object({
   campusId: z.string().min(1, 'Campus is required'),
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  principalName: z.string().trim().max(100).optional().nullable(),
-  principalEmail: z.string().email().optional().nullable(),
-  principalPhone: z.string().trim().max(20).optional().nullable(),
-  principalPhoneExt: z.string().trim().max(20).optional().nullable(),
+  principalName: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(100).nullable().optional()),
+  principalEmail: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().email().nullable().optional()),
+  principalPhone: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(20).nullable().optional()),
+  principalPhoneExt: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(20).nullable().optional()),
 })
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
