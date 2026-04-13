@@ -229,8 +229,25 @@ async function fetchFromBrandfetch(domain: string): Promise<Partial<SchoolLookup
     // Ensure hex colors have # prefix
     const ensureHash = (c: string | null) => c && !c.startsWith('#') ? `#${c}` : c
 
+    // Proxy the logo as a data URL so it doesn't depend on external hotlinks
+    let proxiedLogoUrl: string | null = null
+    if (logoUrl) {
+      try {
+        const logoRes = await fetch(logoUrl, { signal: AbortSignal.timeout(5000) })
+        if (logoRes.ok) {
+          const contentType = logoRes.headers.get('content-type') || 'image/png'
+          const buffer = await logoRes.arrayBuffer()
+          const base64 = Buffer.from(buffer).toString('base64')
+          proxiedLogoUrl = `data:${contentType};base64,${base64}`
+        }
+      } catch {
+        log.warn({ logoUrl }, 'Failed to proxy logo, using original URL')
+        proxiedLogoUrl = logoUrl
+      }
+    }
+
     const result: Partial<SchoolLookupResult> = {
-      logo: logoUrl,
+      logo: proxiedLogoUrl,
       colors: {
         primary: ensureHash(primaryColor),
         secondary: ensureHash(secondaryColor),

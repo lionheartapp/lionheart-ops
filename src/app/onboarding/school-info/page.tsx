@@ -351,12 +351,12 @@ export default function SchoolInfoPage() {
                   src={data.logo}
                   alt={data.name}
                   className="w-16 h-16 bg-white rounded-lg p-2 object-contain"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }}
                 />
-              ) : (
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400">
-                  No logo
-                </div>
-              )}
+              ) : null}
+              <div className={`w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400 text-lg font-bold ${data.logo ? 'hidden' : ''}`}>
+                {data.name?.charAt(0) || '?'}
+              </div>
               <div>
                 <h3 className="text-2xl font-bold">{data.name}</h3>
                 <p className="text-white text-opacity-80">is ready to go</p>
@@ -380,6 +380,11 @@ export default function SchoolInfoPage() {
                   src={data.logo}
                   alt="logo"
                   className="w-20 h-20 bg-slate-100 rounded-lg p-1 object-contain border border-slate-200"
+                  onError={(e) => {
+                    // External logo URL is broken — clear it so user knows to upload
+                    e.currentTarget.style.display = 'none'
+                    setData((prev) => ({ ...prev, logo: '' }))
+                  }}
                 />
               ) : (
                 <div className="w-20 h-20 bg-slate-100 rounded-lg border border-slate-200 border-dashed flex items-center justify-center text-slate-400">
