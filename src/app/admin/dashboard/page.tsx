@@ -37,31 +37,24 @@ export default function DashboardPage() {
 
     const headers = { Authorization: `Bearer ${token}` }
 
-    Promise.all([
-      fetch('/api/platform/organizations?perPage=5', { headers }).then(r => r.json()),
-      fetch('/api/platform/support-tickets?status=OPEN&perPage=1', { headers }).then(r => r.json()),
-      fetch('/api/platform/subscriptions?perPage=1', { headers }).then(r => r.json()),
-    ]).then(([orgsRes, ticketsRes, subsRes]) => {
-      const orgs = orgsRes.ok ? orgsRes.data : { organizations: [], total: 0 }
-      const tickets = ticketsRes.ok ? ticketsRes.data : { total: 0 }
-      const subs = subsRes.ok ? subsRes.data : { subscriptions: [], total: 0 }
-
-      const activeCount = orgs.organizations.filter((o: any) => o.onboardingStatus === 'ACTIVE').length
-      const trialCount = orgs.organizations.filter((o: any) =>
-        o.subscriptions?.[0]?.status === 'TRIALING'
-      ).length
-
-      setStats({
-        totalOrgs: orgs.total,
-        activeOrgs: activeCount,
-        trialOrgs: trialCount,
-        openTickets: tickets.total,
-        mrr: 0,
-        totalUsers: orgs.organizations.reduce((sum: number, o: any) => sum + (o._count?.users || 0), 0),
+    fetch('/api/platform/stats', { headers })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          const d = res.data
+          setStats({
+            totalOrgs: d.totalOrgs,
+            activeOrgs: d.activeOrgs,
+            trialOrgs: d.trialOrgs,
+            openTickets: d.openTickets,
+            mrr: d.mrr,
+            totalUsers: d.totalUsers,
+          })
+          setRecentOrgs(d.recentOrgs)
+        }
+        setLoading(false)
       })
-      setRecentOrgs(orgs.organizations)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+      .catch(() => setLoading(false))
   }, [])
 
   if (loading) {
@@ -75,7 +68,7 @@ export default function DashboardPage() {
         <StatCard label="Active" value={stats?.activeOrgs || 0} icon={TrendingUp} color="bg-green-500/10 text-green-400" />
         <StatCard label="On Trial" value={stats?.trialOrgs || 0} icon={Clock} color="bg-yellow-500/10 text-yellow-400" />
         <StatCard label="Open Tickets" value={stats?.openTickets || 0} icon={LifeBuoy} color="bg-orange-500/10 text-orange-400" />
-        <StatCard label="MRR" value="$0" icon={CreditCard} color="bg-purple-500/10 text-purple-400" />
+        <StatCard label="MRR" value={`$${((stats?.mrr || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={CreditCard} color="bg-purple-500/10 text-purple-400" />
         <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={Users} color="bg-cyan-500/10 text-cyan-400" />
       </div>
 

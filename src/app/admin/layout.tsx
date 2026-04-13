@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, School, CreditCard, LifeBuoy, Settings,
-  LogOut, Menu, X, ChevronDown, Tag, FileText
+  LogOut, Menu, X, ChevronDown, Tag, FileText, ShieldCheck
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
     ]
   },
   { href: '/admin/support', label: 'Support', icon: LifeBuoy },
+  { href: '/admin/admins', label: 'Admins', icon: ShieldCheck },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

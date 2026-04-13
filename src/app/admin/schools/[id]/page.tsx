@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Users, CreditCard, Calendar, Shield } from 'lucide-react'
+import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw } from 'lucide-react'
 
 export default function SchoolDetailPage() {
   const params = useParams()
@@ -10,6 +10,8 @@ export default function SchoolDetailPage() {
   const [org, setOrg] = useState<any>(null)
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('platform-token')
@@ -26,6 +28,16 @@ export default function SchoolDetailPage() {
   }, [params.id])
 
   const handleStatusChange = async (status: string) => {
+    // Destructive actions need confirmation
+    if (status === 'SUSPENDED' || status === 'CHURNED') {
+      setConfirmAction({ status, label: status === 'SUSPENDED' ? 'Suspend' : 'Mark as Churned' })
+      return
+    }
+    await executeStatusChange(status)
+  }
+
+  const executeStatusChange = async (status: string) => {
+    setActionLoading(true)
     const token = localStorage.getItem('platform-token')
     const res = await fetch(`/api/platform/organizations/${params.id}`, {
       method: 'PATCH',
@@ -34,6 +46,8 @@ export default function SchoolDetailPage() {
     })
     const data = await res.json()
     if (data.ok) setOrg({ ...org, ...data.data })
+    setConfirmAction(null)
+    setActionLoading(false)
   }
 
   if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>
@@ -62,6 +76,63 @@ export default function SchoolDetailPage() {
           <option value="CHURNED">Churned</option>
         </select>
       </div>
+
+      {/* Quick action buttons */}
+      <div className="flex flex-wrap gap-2">
+        {org.onboardingStatus === 'ACTIVE' && (
+          <button
+            onClick={() => handleStatusChange('SUSPENDED')}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium rounded-lg transition-colors"
+          >
+            <AlertTriangle size={16} /> Suspend Organization
+          </button>
+        )}
+        {org.onboardingStatus === 'SUSPENDED' && (
+          <button
+            onClick={() => executeStatusChange('ACTIVE')}
+            disabled={actionLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-400 hover:bg-green-500/20 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RotateCcw size={16} /> Reactivate
+          </button>
+        )}
+      </div>
+
+      {/* Confirmation modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                <AlertTriangle size={20} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{confirmAction.label} {org.name}?</h3>
+                <p className="text-sm text-slate-400">
+                  {confirmAction.status === 'SUSPENDED'
+                    ? 'All users will lose access immediately. You can reactivate later.'
+                    : 'This marks the organization as churned.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setConfirmAction(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sm rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => executeStatusChange(confirmAction.status)}
+                disabled={actionLoading}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? 'Processing...' : `Yes, ${confirmAction.label}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
