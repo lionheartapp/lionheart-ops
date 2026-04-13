@@ -122,9 +122,23 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next({ request: { headers: requestHeaders } })
     }
 
+    // Redirect bare /login and / to /admin/login on platform admin host
+    if (pathname === '/login' || pathname === '/') {
+      const url = req.nextUrl.clone()
+      url.pathname = '/admin/login'
+      return NextResponse.redirect(url)
+    }
+
     // Platform admin login page (frontend)
-    if (pathname === '/login' || pathname === '/' || pathname === '/admin/login' || pathname === '/admin') {
+    if (pathname === '/admin/login' || pathname === '/admin') {
       return NextResponse.next({ request: { headers: requestHeaders } })
+    }
+
+    // On admin host, redirect non-admin page paths to the admin panel
+    if (isPlatformAdminHost(host) && !pathname.startsWith('/admin') && !pathname.startsWith('/api/')) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/admin/dashboard'
+      return NextResponse.redirect(url)
     }
 
     // All other platform paths require platform JWT
