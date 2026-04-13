@@ -402,7 +402,7 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col lg:h-full lg:overflow-hidden">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
         className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
@@ -545,7 +545,7 @@ export default function DashboardPage() {
 
       {/* Dashboard Panels Grid */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 overflow-hidden mb-10"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 lg:overflow-hidden overflow-y-auto mb-10"
         style={{ gridTemplateRows: 'minmax(0, 1fr)' }}
         initial="hidden"
         animate="visible"

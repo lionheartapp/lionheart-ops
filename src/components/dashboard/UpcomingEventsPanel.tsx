@@ -141,7 +141,7 @@ export default function UpcomingEventsPanel({
       aria-label="Upcoming events"
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 px-7 pt-7 pb-5">
+      <header className="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5">
         <div className="flex items-start justify-between gap-4 mb-1">
           <div className="min-w-0">
             <h2
@@ -196,12 +196,12 @@ export default function UpcomingEventsPanel({
       </header>
 
       {/* ── Timeline strip — the visual anchor of the widget ──────────── */}
-      <div className="flex-shrink-0 px-7 pb-6">
+      <div className="flex-shrink-0 px-4 sm:px-7 pb-4 sm:pb-6">
         <Timeline cells={timeline} />
       </div>
 
       {/* ── Divider hairline ──────────────────────────────────────────── */}
-      <div className="flex-shrink-0 mx-7" style={{ borderTop: `1px solid ${HAIRLINE}` }} />
+      <div className="flex-shrink-0 mx-4 sm:mx-7" style={{ borderTop: `1px solid ${HAIRLINE}` }} />
 
       {/* ── Content: list, empty state, loading, error ────────────────── */}
       <div className="relative flex-1 min-h-0">
@@ -215,7 +215,7 @@ export default function UpcomingEventsPanel({
           />
         )}
 
-        <div className="h-full overflow-y-auto dashboard-scroll px-7 pt-2 pb-8">
+        <div className="h-full overflow-y-auto dashboard-scroll px-4 sm:px-7 pt-2 pb-8">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -236,66 +236,70 @@ export default function UpcomingEventsPanel({
 function Timeline({ cells }: { cells: DayCell[] }) {
   return (
     <div
-      className="grid gap-1.5"
-      style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}
+      className="overflow-x-auto -mx-2 px-2 scrollbar-none"
       role="list"
       aria-label="14-day timeline"
     >
-      {cells.map((cell, idx) => {
-        const label = cell.date
-          .toLocaleDateString('en-US', { weekday: 'short' })
-          .slice(0, 2)
-        const dayNum = cell.date.getDate()
+      <div
+        className="grid gap-1 sm:gap-1.5"
+        style={{ gridTemplateColumns: 'repeat(14, minmax(40px, 1fr))', minWidth: '560px' }}
+      >
+        {cells.map((cell, idx) => {
+          const label = cell.date
+            .toLocaleDateString('en-US', { weekday: 'short' })
+            .slice(0, 2)
+          const dayNum = cell.date.getDate()
 
-        return (
-          <motion.div
-            key={idx}
-            role="listitem"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: idx * 0.015, ease: [0.25, 0.1, 0.25, 1] }}
-            className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200"
-            style={{
-              backgroundColor: cell.isToday ? TEXT_PRIMARY : 'transparent',
-              color: cell.isToday ? '#ffffff' : TEXT_PRIMARY,
-              minHeight: '62px',
-            }}
-          >
-            <span
-              className="text-[9px] font-semibold uppercase tracking-[0.12em]"
+          return (
+            <motion.div
+              key={idx}
+              role="listitem"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: idx * 0.015, ease: [0.25, 0.1, 0.25, 1] }}
+              className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200"
               style={{
-                color: cell.isToday ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
+                backgroundColor: cell.isToday ? TEXT_PRIMARY : 'transparent',
+                color: cell.isToday ? '#ffffff' : TEXT_PRIMARY,
+                minHeight: '58px',
               }}
             >
-              {label}
-            </span>
-            <span className="text-[15px] font-semibold leading-none">{dayNum}</span>
-            {/* Dot row — up to 3 filled chips by event color, or one hollow dot */}
-            <div className="flex items-center gap-[3px] h-1.5">
-              {cell.eventCount === 0 ? (
-                <span
-                  className="block w-[3px] h-[3px] rounded-full"
-                  style={{
-                    backgroundColor: cell.isToday
-                      ? 'rgba(255,255,255,0.4)'
-                      : 'rgba(17,15,10,0.12)',
-                  }}
-                />
-              ) : (
-                cell.eventColors.slice(0, 3).map((color, i) => (
+              <span
+                className="text-[9px] font-semibold uppercase tracking-[0.12em]"
+                style={{
+                  color: cell.isToday ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
+                }}
+              >
+                {label}
+              </span>
+              <span className="text-[15px] font-semibold leading-none">{dayNum}</span>
+              {/* Dot row — up to 3 filled chips by event color, or one hollow dot */}
+              <div className="flex items-center gap-[3px] h-1.5">
+                {cell.eventCount === 0 ? (
                   <span
-                    key={i}
-                    className="block w-[5px] h-[5px] rounded-full"
+                    className="block w-[3px] h-[3px] rounded-full"
                     style={{
-                      backgroundColor: cell.isToday ? '#ffffff' : color,
+                      backgroundColor: cell.isToday
+                        ? 'rgba(255,255,255,0.4)'
+                        : 'rgba(17,15,10,0.12)',
                     }}
                   />
-                ))
-              )}
-            </div>
-          </motion.div>
-        )
-      })}
+                ) : (
+                  cell.eventColors.slice(0, 3).map((color, i) => (
+                    <span
+                      key={i}
+                      className="block w-[5px] h-[5px] rounded-full"
+                      style={{
+                        backgroundColor: cell.isToday ? '#ffffff' : color,
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
     </div>
   )
 }
