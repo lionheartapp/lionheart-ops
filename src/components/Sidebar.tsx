@@ -375,8 +375,8 @@ export default function Sidebar({
   }, [deleteCalendar])
 
   // ── Determine secondary panel ──
-  // Only show the athletics secondary nav when there are 2+ campuses to switch between
-  const athleticsSecondaryNeeded = athleticsOpen && athleticsCampuses.length >= 2
+  // Always show the athletics secondary nav (it now contains the tab navigation)
+  const athleticsSecondaryNeeded = athleticsOpen
   const secondaryOpen = settingsOpen || calendarOpen || athleticsSecondaryNeeded || eventsOpen
   const secondaryLabel = eventsOpen ? 'Events navigation' : athleticsSecondaryNeeded ? 'Athletics navigation' : calendarOpen ? 'Calendar navigation' : 'Settings navigation'
 
