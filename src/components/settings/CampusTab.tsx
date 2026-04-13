@@ -319,6 +319,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add campus')
       setShowAddCampusModal(false); setSuccessMessage('Campus added')
+      setMapCenter(null) // Re-fetch map with new campus data
       await loadCampuses()
       if (json.data?.id) setSelectedCampusId(json.data.id)
     } catch (e) { setAddCampusError(e instanceof Error ? e.message : 'Failed to add campus') }
@@ -338,7 +339,10 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to update campus')
-      setEditCampusDrawerOpen(false); setEditingCampus(null); setSuccessMessage('Campus updated'); await loadCampuses()
+      setEditCampusDrawerOpen(false); setEditingCampus(null); setSuccessMessage('Campus updated')
+      // Clear mapCenter so the map re-fetches with the updated address/coords
+      setMapCenter(null)
+      await loadCampuses()
     } catch (e) { setEditCampusError(e instanceof Error ? e.message : 'Failed to update campus') }
     finally { setEditCampusSaving(false) }
   }
