@@ -155,23 +155,11 @@ const MembersTab = (_props: MembersTabProps) => {
             <Plus className="w-4 h-4" /> Invite user
           </button>
         </div>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <p className="text-sm text-red-700">{error}</p>
-          <button
-            onClick={invalidateMembers}
-            className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-800 font-medium"
-          >
-            <RefreshCw className="w-4 h-4" /> Retry
-          </button>
         </div>
-      )}
 
-      {/* Status Tabs */}
-      <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+        {/* Status Tabs — inside header card with separator */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60">
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
         {STATUS_TABS.map((t) => (
           <button
             key={t.value}
@@ -201,8 +189,22 @@ const MembersTab = (_props: MembersTabProps) => {
             </span>
           </button>
         ))}
+          </div>
+        </div>
       </div>
-      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-sm text-red-700">{error}</p>
+          <button
+            onClick={invalidateMembers}
+            className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-800 font-medium"
+          >
+            <RefreshCw className="w-4 h-4" /> Retry
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="ui-glass-table overflow-x-auto">
