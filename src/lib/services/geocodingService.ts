@@ -22,6 +22,7 @@ export interface GeocodingResult {
 export async function geocodeAddress(address: string): Promise<GeocodingResult | null> {
   const apiKey = (
     process.env.GOOGLE_MAPS_API_KEY ||
+    process.env.GOOGLE_PLACES_API_KEY ||
     process.env.GEMINI_API_KEY ||
     process.env.NEXT_PUBLIC_GEMINI_API_KEY
   )?.trim()
