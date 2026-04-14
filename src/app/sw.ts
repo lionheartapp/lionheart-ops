@@ -84,6 +84,11 @@ const serwist = new Serwist({
         networkTimeoutSeconds: 10,
       }),
     },
+    // Map tiles (OpenStreetMap, ArcGIS) — passthrough to network, skip SW caching
+    {
+      matcher: /(?:tile\.openstreetmap\.org|server\.arcgisonline\.com)/,
+      handler: new NetworkOnly(),
+    },
     // Static assets (images, fonts, icons) — CacheFirst with 30-day expiry
     {
       matcher: /\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|otf)$/,
