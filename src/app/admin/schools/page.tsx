@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, ChevronLeft, ChevronRight, Building2 } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export default function SchoolsPage() {
   const router = useRouter()
@@ -49,18 +50,19 @@ export default function SchoolsPage() {
             className="ui-input-bordered pl-10"
           />
         </div>
-        <select
+        <FloatingDropdown
+          label="Status"
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-          className="ui-select w-auto"
-        >
-          <option value="">All statuses</option>
-          <option value="SIGNED_UP">Signed Up</option>
-          <option value="ONBOARDING">Onboarding</option>
-          <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="CHURNED">Churned</option>
-        </select>
+          onChange={(value) => { setStatusFilter(value); setPage(1) }}
+          options={[
+            { value: '', label: 'All statuses' },
+            { value: 'SIGNED_UP', label: 'Signed Up' },
+            { value: 'ONBOARDING', label: 'Onboarding' },
+            { value: 'ACTIVE', label: 'Active' },
+            { value: 'SUSPENDED', label: 'Suspended' },
+            { value: 'CHURNED', label: 'Churned' },
+          ]}
+        />
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export default function TicketDetailPage() {
   const params = useParams()
@@ -64,19 +65,31 @@ export default function TicketDetailPage() {
           <p className="text-sm text-slate-400">{ticket.organization?.name || 'Internal'} &middot; {ticket.category}</p>
         </div>
         <div className="flex gap-2">
-          <select aria-label="Ticket status" value={ticket.status} onChange={(e) => updateTicket({ status: e.target.value })} className="ui-select w-auto text-sm">
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="WAITING_ON_CUSTOMER">Waiting</option>
-            <option value="RESOLVED">Resolved</option>
-            <option value="CLOSED">Closed</option>
-          </select>
-          <select aria-label="Ticket priority" value={ticket.priority} onChange={(e) => updateTicket({ priority: e.target.value })} className="ui-select w-auto text-sm">
-            <option value="LOW">Low</option>
-            <option value="NORMAL">Normal</option>
-            <option value="HIGH">High</option>
-            <option value="CRITICAL">Critical</option>
-          </select>
+          <FloatingDropdown
+            label="Status"
+            value={ticket.status}
+            onChange={(value) => updateTicket({ status: value })}
+            options={[
+              { value: 'OPEN', label: 'Open' },
+              { value: 'IN_PROGRESS', label: 'In Progress' },
+              { value: 'WAITING_ON_CUSTOMER', label: 'Waiting' },
+              { value: 'RESOLVED', label: 'Resolved' },
+              { value: 'CLOSED', label: 'Closed' },
+            ]}
+            className="w-auto"
+          />
+          <FloatingDropdown
+            label="Priority"
+            value={ticket.priority}
+            onChange={(value) => updateTicket({ priority: value })}
+            options={[
+              { value: 'LOW', label: 'Low' },
+              { value: 'NORMAL', label: 'Normal' },
+              { value: 'HIGH', label: 'High' },
+              { value: 'CRITICAL', label: 'Critical' },
+            ]}
+            className="w-auto"
+          />
         </div>
       </div>
 

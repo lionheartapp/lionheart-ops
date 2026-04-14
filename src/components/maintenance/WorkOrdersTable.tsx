@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -289,19 +290,16 @@ function RowActionMenu({
             {mode === 'assign' && (
               <div className="px-3 py-2 space-y-2" onClick={(e) => e.stopPropagation()}>
                 <p className="text-xs font-medium text-slate-500 mb-1">Assign to</p>
-                <select
+                <FloatingDropdown
+                  label="Technician"
                   value={selectedTech}
-                  onChange={(e) => setSelectedTech(e.target.value)}
-                  className="ui-select cursor-pointer"
-                  autoFocus
-                >
-                  <option value="">Select technician...</option>
-                  {technicians.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setSelectedTech(value)}
+                  placeholder="Select technician..."
+                  options={technicians.map((t) => ({
+                    value: t.id,
+                    label: `${t.firstName} ${t.lastName}`,
+                  }))}
+                />
                 <div className="flex gap-2">
                   <button
                     onClick={handleAssignSubmit}
@@ -323,19 +321,16 @@ function RowActionMenu({
             {mode === 'status' && (
               <div className="px-3 py-2 space-y-2 min-w-[220px]" onClick={(e) => e.stopPropagation()}>
                 <p className="text-xs font-medium text-slate-500 mb-1">Change to</p>
-                <select
+                <FloatingDropdown
+                  label="Status"
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="ui-select cursor-pointer"
-                  autoFocus
-                >
-                  <option value="">Select status...</option>
-                  {validNextStatuses.map((s) => (
-                    <option key={s} value={s}>
-                      {STATUS_LABELS[s] ?? s}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setSelectedStatus(value)}
+                  placeholder="Select status..."
+                  options={validNextStatuses.map((s) => ({
+                    value: s,
+                    label: STATUS_LABELS[s] ?? s,
+                  }))}
+                />
                 {selectedStatus === 'DONE' && (
                   <input
                     type="text"
@@ -346,18 +341,20 @@ function RowActionMenu({
                   />
                 )}
                 {selectedStatus === 'ON_HOLD' && (
-                  <select
+                  <FloatingDropdown
+                    label="Hold Reason"
                     value={holdReason}
-                    onChange={(e) => setHoldReason(e.target.value)}
-                    className="ui-select cursor-pointer"
-                  >
-                    <option value="">Hold reason (optional)</option>
-                    <option value="AWAITING_PARTS">Awaiting Parts</option>
-                    <option value="AWAITING_VENDOR">Awaiting Vendor</option>
-                    <option value="AWAITING_APPROVAL">Awaiting Approval</option>
-                    <option value="SCHEDULED_MAINTENANCE">Scheduled Maintenance</option>
-                    <option value="OTHER">Other</option>
-                  </select>
+                    onChange={(value) => setHoldReason(value)}
+                    placeholder="Hold reason (optional)"
+                    options={[
+                      { value: '', label: 'None' },
+                      { value: 'AWAITING_PARTS', label: 'Awaiting Parts' },
+                      { value: 'AWAITING_VENDOR', label: 'Awaiting Vendor' },
+                      { value: 'AWAITING_APPROVAL', label: 'Awaiting Approval' },
+                      { value: 'SCHEDULED_MAINTENANCE', label: 'Scheduled Maintenance' },
+                      { value: 'OTHER', label: 'Other' },
+                    ]}
+                  />
                 )}
                 <div className="flex gap-2">
                   <button

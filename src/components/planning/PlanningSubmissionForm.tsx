@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 interface PlanningSubmissionFormProps {
   seasonId: string
@@ -110,12 +111,16 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
           <input type="text" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Students, Parents" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-          <select value={priority} onChange={(e) => setPriority(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
-            <option value="MUST_HAVE">Must Have</option>
-            <option value="IMPORTANT">Important</option>
-            <option value="NICE_TO_HAVE">Nice to Have</option>
-          </select>
+          <FloatingDropdown
+            label="Priority"
+            value={priority}
+            onChange={setPriority}
+            options={[
+              { value: 'MUST_HAVE', label: 'Must Have' },
+              { value: 'IMPORTANT', label: 'Important' },
+              { value: 'NICE_TO_HAVE', label: 'Nice to Have' },
+            ]}
+          />
         </div>
         <div className="flex items-end">
           <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">

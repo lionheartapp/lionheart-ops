@@ -7,7 +7,7 @@ import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
@@ -591,34 +591,36 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
             disabled={!!editingTeam}
           />
 
-          <FloatingSelect
+          <FloatingDropdown
             id="team-grade-level"
             label="Grade Level"
             value={form.gradeLevel}
-            onChange={(e) => setForm({ ...form, gradeLevel: e.target.value })}
-          >
-            <option value="">None</option>
-            <option value="ELEMENTARY">Elementary</option>
-            <option value="MIDDLE_SCHOOL">Middle School</option>
-            <option value="HIGH_SCHOOL">High School</option>
-          </FloatingSelect>
+            onChange={(v) => setForm({ ...form, gradeLevel: v })}
+            options={[
+              { value: '', label: 'None' },
+              { value: 'ELEMENTARY', label: 'Elementary' },
+              { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+              { value: 'HIGH_SCHOOL', label: 'High School' },
+            ]}
+          />
 
-          <FloatingSelect
+          <FloatingDropdown
             id="team-level"
             label="Competition Level"
             value={form.level}
-            onChange={(e) => setForm({ ...form, level: e.target.value })}
-          >
-            <option value="VARSITY">Varsity</option>
-            <option value="VARSITY_B">Varsity B</option>
-            <option value="JUNIOR_VARSITY">Junior Varsity</option>
-            <option value="FRESHMAN">Freshman</option>
-            <option value="FROSH_SOPH">Frosh-Soph</option>
-            <option value="C_TEAM">C-Team</option>
-            <option value="CLUB">Club</option>
-            <option value="INTRAMURAL">Intramural</option>
-            <option value="UNIFIED">Unified</option>
-          </FloatingSelect>
+            onChange={(v) => setForm({ ...form, level: v })}
+            options={[
+              { value: 'VARSITY', label: 'Varsity' },
+              { value: 'VARSITY_B', label: 'Varsity B' },
+              { value: 'JUNIOR_VARSITY', label: 'Junior Varsity' },
+              { value: 'FRESHMAN', label: 'Freshman' },
+              { value: 'FROSH_SOPH', label: 'Frosh-Soph' },
+              { value: 'C_TEAM', label: 'C-Team' },
+              { value: 'CLUB', label: 'Club' },
+              { value: 'INTRAMURAL', label: 'Intramural' },
+              { value: 'UNIFIED', label: 'Unified' },
+            ]}
+          />
 
           <FloatingDropdown
             id="team-coach"

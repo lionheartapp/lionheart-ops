@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { UserPlus, Shield, Trash2, Pencil, X } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 type Admin = {
   id: string
@@ -178,14 +179,15 @@ export default function AdminsPage() {
               required
               minLength={8}
             />
-            <select
+            <FloatingDropdown
+              label="Role"
               value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as 'SUPER_ADMIN' | 'OPERATOR' })}
-              className="ui-select"
-            >
-              <option value="OPERATOR">Operator</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
-            </select>
+              onChange={(value) => setForm({ ...form, role: value as 'SUPER_ADMIN' | 'OPERATOR' })}
+              options={[
+                { value: 'OPERATOR', label: 'Operator' },
+                { value: 'SUPER_ADMIN', label: 'Super Admin' },
+              ]}
+            />
             <div className="sm:col-span-2">
               <button
                 type="submit"
@@ -227,14 +229,15 @@ export default function AdminsPage() {
                     </td>
                     <td className="px-5 py-3 text-slate-400">{admin.email}</td>
                     <td className="px-5 py-3 hidden sm:table-cell">
-                      <select
+                      <FloatingDropdown
+                        label="Role"
                         value={editForm.role}
-                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value as 'SUPER_ADMIN' | 'OPERATOR' })}
-                        className="ui-select text-sm"
-                      >
-                        <option value="OPERATOR">Operator</option>
-                        <option value="SUPER_ADMIN">Super Admin</option>
-                      </select>
+                        onChange={(value) => setEditForm({ ...editForm, role: value as 'SUPER_ADMIN' | 'OPERATOR' })}
+                        options={[
+                          { value: 'OPERATOR', label: 'Operator' },
+                          { value: 'SUPER_ADMIN', label: 'Super Admin' },
+                        ]}
+                      />
                     </td>
                     <td className="px-5 py-3 hidden md:table-cell">
                       <input

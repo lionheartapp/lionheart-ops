@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Tag, Plus, Copy } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export default function DiscountCodesPage() {
   const [codes, setCodes] = useState<any[]>([])
@@ -59,11 +60,15 @@ export default function DiscountCodesPage() {
               <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" className="ui-input-bordered" required />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">Type</label>
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="ui-select">
-                <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="FIXED_AMOUNT">Fixed Amount ($)</option>
-              </select>
+              <FloatingDropdown
+                label="Type"
+                value={form.type}
+                onChange={(value) => setForm({ ...form, type: value })}
+                options={[
+                  { value: 'PERCENTAGE', label: 'Percentage (%)' },
+                  { value: 'FIXED_AMOUNT', label: 'Fixed Amount ($)' },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Value</label>

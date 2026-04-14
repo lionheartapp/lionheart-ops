@@ -6,7 +6,7 @@ import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { logger } from '@/lib/logger'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -547,19 +547,20 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
               autoFocus
             />
 
-            <FloatingSelect
+            <FloatingDropdown
               id="team-type"
               label="Type (optional)"
               value={teamType ?? ''}
-              onChange={(e) => setTeamType(e.target.value ? e.target.value as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
+              onChange={(v) => setTeamType(v ? v as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
               disabled={createLoading}
-            >
-              <option value="">None</option>
-              <option value="PRE_SCHOOL">Pre School</option>
-              <option value="ELEMENTARY">Elementary</option>
-              <option value="MIDDLE_SCHOOL">Middle School</option>
-              <option value="HIGH_SCHOOL">High School</option>
-            </FloatingSelect>
+              options={[
+                { value: '', label: 'None' },
+                { value: 'PRE_SCHOOL', label: 'Pre School' },
+                { value: 'ELEMENTARY', label: 'Elementary' },
+                { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+                { value: 'HIGH_SCHOOL', label: 'High School' },
+              ]}
+            />
 
             <FloatingTextarea
               id="team-description"
@@ -629,19 +630,20 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                 autoFocus
               />
 
-              <FloatingSelect
+              <FloatingDropdown
                 id="edit-team-type"
                 label="Type (optional)"
                 value={editTeamType ?? ''}
-                onChange={(e) => setEditTeamType(e.target.value ? e.target.value as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
+                onChange={(v) => setEditTeamType(v ? v as 'PRE_SCHOOL' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' : null)}
                 disabled={editSaving}
-              >
-                <option value="">None</option>
-                <option value="PRE_SCHOOL">Pre School</option>
-                <option value="ELEMENTARY">Elementary</option>
-                <option value="MIDDLE_SCHOOL">Middle School</option>
-                <option value="HIGH_SCHOOL">High School</option>
-              </FloatingSelect>
+                options={[
+                  { value: '', label: 'None' },
+                  { value: 'PRE_SCHOOL', label: 'Pre School' },
+                  { value: 'ELEMENTARY', label: 'Elementary' },
+                  { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+                  { value: 'HIGH_SCHOOL', label: 'High School' },
+                ]}
+              />
 
               <FloatingTextarea
                 id="edit-team-description"
@@ -680,22 +682,20 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
             </p>
             {availableReassignTeams.length > 0 ? (
               <div className="mt-3">
-                <label htmlFor="reassign-team" className="mb-1.5 block text-sm font-medium text-amber-900">
-                  Move members to
-                </label>
-                <select
+                <FloatingDropdown
                   id="reassign-team"
+                  label="Move members to"
                   value={reassignTeamId}
-                  onChange={(event) => setReassignTeamId(event.target.value)}
-                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none"
-                >
-                  <option value="">Select a team</option>
-                  {availableReassignTeams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => setReassignTeamId(v)}
+                  placeholder="Select a team"
+                  options={[
+                    { value: '', label: 'Select a team' },
+                    ...availableReassignTeams.map((team) => ({
+                      value: team.id,
+                      label: team.name,
+                    })),
+                  ]}
+                />
                 <div className="mt-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
                     Reassign individually
@@ -724,24 +724,25 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
                               </p>
                               <p className="text-xs text-amber-700">{user.email}</p>
                             </div>
-                            <select
-                              aria-label="Reassign members to team"
+                            <FloatingDropdown
+                              label="Reassign to"
                               value={teamUserReassignments[user.id] || ''}
-                              onChange={(event) =>
+                              onChange={(v) =>
                                 setTeamUserReassignments((previous) => ({
                                   ...previous,
-                                  [user.id]: event.target.value,
+                                  [user.id]: v,
                                 }))
                               }
-                              className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none sm:w-56"
-                            >
-                              <option value="">Use bulk team</option>
-                              {availableReassignTeams.map((team) => (
-                                <option key={team.id} value={team.id}>
-                                  {team.name}
-                                </option>
-                              ))}
-                            </select>
+                              className="w-full sm:w-56"
+                              placeholder="Use bulk team"
+                              options={[
+                                { value: '', label: 'Use bulk team' },
+                                ...availableReassignTeams.map((team) => ({
+                                  value: team.id,
+                                  label: team.name,
+                                })),
+                              ]}
+                            />
                           </div>
                         )
                       })}

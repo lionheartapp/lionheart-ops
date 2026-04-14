@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import { handleAuthResponse } from '@/lib/client-auth'
 
 interface Team {
@@ -190,16 +190,17 @@ export default function GameDrawer({
           required
         />
 
-        <FloatingSelect
+        <FloatingDropdown
           id="game-homeaway"
           label="Home / Away"
           value={form.homeAway}
-          onChange={(e) => setForm({ ...form, homeAway: e.target.value })}
-        >
-          <option value="HOME">Home</option>
-          <option value="AWAY">Away</option>
-          <option value="NEUTRAL">Neutral</option>
-        </FloatingSelect>
+          onChange={(v) => setForm({ ...form, homeAway: v })}
+          options={[
+            { value: 'HOME', label: 'Home' },
+            { value: 'AWAY', label: 'Away' },
+            { value: 'NEUTRAL', label: 'Neutral' },
+          ]}
+        />
 
         <FloatingInput
           id="game-start"

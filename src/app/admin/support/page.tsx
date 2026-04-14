@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { LifeBuoy, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export default function SupportPage() {
   const router = useRouter()
@@ -54,14 +55,20 @@ export default function SupportPage() {
   return (
     <div className="space-y-4">
       <div className="flex gap-3">
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }} className="ui-select w-auto">
-          <option value="">All statuses</option>
-          <option value="OPEN">Open</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="WAITING_ON_CUSTOMER">Waiting</option>
-          <option value="RESOLVED">Resolved</option>
-          <option value="CLOSED">Closed</option>
-        </select>
+        <FloatingDropdown
+          label="Status"
+          value={statusFilter}
+          onChange={(value) => { setStatusFilter(value); setPage(1) }}
+          options={[
+            { value: '', label: 'All statuses' },
+            { value: 'OPEN', label: 'Open' },
+            { value: 'IN_PROGRESS', label: 'In Progress' },
+            { value: 'WAITING_ON_CUSTOMER', label: 'Waiting' },
+            { value: 'RESOLVED', label: 'Resolved' },
+            { value: 'CLOSED', label: 'Closed' },
+          ]}
+          className="w-auto"
+        />
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">

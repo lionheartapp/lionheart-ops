@@ -9,7 +9,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
-import { FloatingInput, FloatingTextarea, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Plus, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
@@ -921,17 +921,17 @@ export default function DashboardPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-                <select
+                <FloatingDropdown
+                  label="Priority"
                   value={editForm.priority}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, priority: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="LOW">Low</option>
-                  <option value="NORMAL">Normal</option>
-                  <option value="HIGH">High</option>
-                  <option value="CRITICAL">Critical</option>
-                </select>
+                  onChange={(v) => setEditForm(prev => ({ ...prev, priority: v }))}
+                  options={[
+                    { value: 'LOW', label: 'Low' },
+                    { value: 'NORMAL', label: 'Normal' },
+                    { value: 'HIGH', label: 'High' },
+                    { value: 'CRITICAL', label: 'Critical' },
+                  ]}
+                />
               </div>
             </div>
           ) : (
@@ -1026,17 +1026,18 @@ export default function DashboardPage() {
             value={createForm.locationText}
             onChange={(e) => setCreateForm(f => ({ ...f, locationText: e.target.value }))}
           />
-          <FloatingSelect
+          <FloatingDropdown
             id="create-priority"
             label="Priority"
             value={createForm.priority}
-            onChange={(e) => setCreateForm(f => ({ ...f, priority: e.target.value }))}
-          >
-            <option value="LOW">Low</option>
-            <option value="NORMAL">Normal</option>
-            <option value="HIGH">High</option>
-            <option value="CRITICAL">Critical</option>
-          </FloatingSelect>
+            onChange={(v) => setCreateForm(f => ({ ...f, priority: v }))}
+            options={[
+              { value: 'LOW', label: 'Low' },
+              { value: 'NORMAL', label: 'Normal' },
+              { value: 'HIGH', label: 'High' },
+              { value: 'CRITICAL', label: 'Critical' },
+            ]}
+          />
 
           {createError && (
             <p className="text-sm text-red-600">{createError}</p>

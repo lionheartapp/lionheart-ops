@@ -8,7 +8,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { FloatingInput, FloatingSelect } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import SeasonsPanel from '@/components/athletics/SeasonsPanel'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
@@ -343,17 +343,18 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
             onChange={(e) => setCreateForm({ ...createForm, abbreviation: e.target.value })}
             maxLength={10}
           />
-          <FloatingSelect
+          <FloatingDropdown
             id="sport-season-type"
             label="Season Type"
             value={createForm.seasonType}
-            onChange={(e) => setCreateForm({ ...createForm, seasonType: e.target.value })}
-          >
-            <option value="FALL">Fall</option>
-            <option value="WINTER">Winter</option>
-            <option value="SPRING">Spring</option>
-            <option value="YEAR_ROUND">Year-Round</option>
-          </FloatingSelect>
+            onChange={(v) => setCreateForm({ ...createForm, seasonType: v })}
+            options={[
+              { value: 'FALL', label: 'Fall' },
+              { value: 'WINTER', label: 'Winter' },
+              { value: 'SPRING', label: 'Spring' },
+              { value: 'YEAR_ROUND', label: 'Year-Round' },
+            ]}
+          />
 
           {/* Color swatches */}
           <div>

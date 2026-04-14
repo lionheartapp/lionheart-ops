@@ -8,6 +8,7 @@ import {
   ShieldAlert, Plus, ChevronRight, Clock, Eye, Users,
   AlertTriangle, FileText, Send, X, CheckCircle, Lock, Activity,
 } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import { IllustrationSecurity } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import ITErrorState from './ITErrorState'
@@ -344,10 +345,12 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Incident Type</label>
-                <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm cursor-pointer">
-                  {INCIDENT_TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-                </select>
+                <FloatingDropdown
+                  label="Incident Type"
+                  value={formType}
+                  onChange={setFormType}
+                  options={INCIDENT_TYPES.map((t) => ({ value: t, label: TYPE_LABELS[t] }))}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Severity</label>

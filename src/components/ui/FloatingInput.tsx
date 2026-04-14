@@ -205,7 +205,7 @@ export function FloatingDropdown({
   const hasValue = !!selected
 
   return (
-    <div ref={containerRef} className={`${className || ''}`}>
+    <div ref={containerRef} className={`relative ${className || ''}`}>
       <label htmlFor={id} className={labelStyle}>
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>

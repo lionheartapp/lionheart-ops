@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw, Trash2, Gift, CheckCircle } from 'lucide-react'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 export default function SchoolDetailPage() {
   const params = useParams()
@@ -191,17 +192,18 @@ export default function SchoolDetailPage() {
           <h2 className="text-2xl font-bold">{org.name}</h2>
           <p className="text-slate-400">{org.slug} &middot; {org.institutionType}</p>
         </div>
-        <select
+        <FloatingDropdown
+          label="Status"
           value={org.onboardingStatus}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          className="ui-select w-auto"
-        >
-          <option value="SIGNED_UP">Signed Up</option>
-          <option value="ONBOARDING">Onboarding</option>
-          <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="CHURNED">Churned</option>
-        </select>
+          onChange={(value) => handleStatusChange(value)}
+          options={[
+            { value: 'SIGNED_UP', label: 'Signed Up' },
+            { value: 'ONBOARDING', label: 'Onboarding' },
+            { value: 'ACTIVE', label: 'Active' },
+            { value: 'SUSPENDED', label: 'Suspended' },
+            { value: 'CHURNED', label: 'Churned' },
+          ]}
+        />
       </div>
 
       {/* Quick action buttons */}

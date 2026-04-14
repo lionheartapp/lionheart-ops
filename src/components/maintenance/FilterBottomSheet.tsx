@@ -10,6 +10,7 @@ import type {
   MaintenanceCategory,
 } from './WorkOrdersFilters'
 import { DEFAULT_FILTERS } from './WorkOrdersFilters'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 interface Technician {
   id: string
@@ -53,8 +54,6 @@ const CATEGORY_OPTIONS: { value: MaintenanceCategory; label: string }[] = [
   { value: 'IT_AV', label: 'IT / AV' },
   { value: 'OTHER', label: 'Other' },
 ]
-
-const selectClass = 'ui-select w-full !py-2.5 cursor-pointer'
 
 export default function FilterBottomSheet({
   open,
@@ -139,75 +138,49 @@ export default function FilterBottomSheet({
             {/* Scrollable filter controls */}
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {/* Status */}
-              <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
-                  Status
-                </label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => update({ status: e.target.value as MaintenanceStatus | '' })}
-                  className={selectClass}
-                >
-                  <option value="">All Statuses</option>
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
+              <FloatingDropdown
+                label="Status"
+                value={filters.status}
+                onChange={(value) => update({ status: value as MaintenanceStatus | '' })}
+                options={[
+                  { value: '', label: 'All Statuses' },
+                  ...STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+              />
 
-              {/* Priority */}
-              <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
-                  Priority
-                </label>
-                <select
-                  value={filters.priority}
-                  onChange={(e) => update({ priority: e.target.value as MaintenancePriority | '' })}
-                  className={selectClass}
-                >
-                  <option value="">All Priorities</option>
-                  {PRIORITY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
+              <FloatingDropdown
+                label="Priority"
+                value={filters.priority}
+                onChange={(value) => update({ priority: value as MaintenancePriority | '' })}
+                options={[
+                  { value: '', label: 'All Priorities' },
+                  ...PRIORITY_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+              />
 
-              {/* Category */}
-              <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
-                  Category
-                </label>
-                <select
-                  value={filters.category}
-                  onChange={(e) => update({ category: e.target.value as MaintenanceCategory | '' })}
-                  className={selectClass}
-                >
-                  <option value="">All Categories</option>
-                  {CATEGORY_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
+              <FloatingDropdown
+                label="Category"
+                value={filters.category}
+                onChange={(value) => update({ category: value as MaintenanceCategory | '' })}
+                options={[
+                  { value: '', label: 'All Categories' },
+                  ...CATEGORY_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+              />
 
-              {/* Technician */}
               {technicians.length > 0 && (
-                <div>
-                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
-                    Technician
-                  </label>
-                  <select
-                    value={filters.assignedToId}
-                    onChange={(e) => update({ assignedToId: e.target.value })}
-                    className={selectClass}
-                  >
-                    <option value="">All Technicians</option>
-                    {technicians.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.firstName} {t.lastName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FloatingDropdown
+                  label="Technician"
+                  value={filters.assignedToId}
+                  onChange={(value) => update({ assignedToId: value })}
+                  options={[
+                    { value: '', label: 'All Technicians' },
+                    ...technicians.map((t) => ({
+                      value: t.id,
+                      label: `${t.firstName} ${t.lastName}`,
+                    })),
+                  ]}
+                />
               )}
 
               {/* Search */}

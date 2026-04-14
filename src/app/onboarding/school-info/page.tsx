@@ -6,6 +6,7 @@ import { Upload, AlertCircle, Loader2, Sparkles } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { motion } from 'framer-motion'
 import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 interface SchoolData {
   name: string
@@ -520,22 +521,18 @@ export default function SchoolInfoPage() {
           </AnimatedFormField>
 
           <AnimatedFormField highlight={highlightedFields.has('type')}>
-            <div>
-              <label htmlFor="type" className="block text-sm font-medium text-slate-900 mb-1.5">
-                Institution Type
-              </label>
-              <select
-                id="type"
-                value={data.institutionType}
-                onChange={(e) => setData((prev) => ({ ...prev, institutionType: e.target.value }))}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-select"
-              >
-                <option value="PUBLIC">Public</option>
-                <option value="PRIVATE">Private</option>
-                <option value="CHARTER">Charter</option>
-                <option value="HYBRID">Hybrid</option>
-              </select>
-            </div>
+            <FloatingDropdown
+              id="type"
+              label="Institution Type"
+              value={data.institutionType || ''}
+              onChange={(value) => setData((prev) => ({ ...prev, institutionType: value }))}
+              options={[
+                { value: 'PUBLIC', label: 'Public' },
+                { value: 'PRIVATE', label: 'Private' },
+                { value: 'CHARTER', label: 'Charter' },
+                { value: 'HYBRID', label: 'Hybrid' },
+              ]}
+            />
           </AnimatedFormField>
         </div>
       </div>

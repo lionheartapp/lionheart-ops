@@ -7,7 +7,7 @@ import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
-import { FloatingInput, FloatingSelect, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import TournamentDetail from '@/components/athletics/TournamentDetail'
@@ -393,15 +393,12 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
                 placeholder="Select sport"
               />
 
-              <FloatingSelect
+              <FloatingDropdown
                 label="Format"
                 value={formFormat}
-                onChange={(e) => setFormFormat(e.target.value)}
-              >
-                {FORMAT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </FloatingSelect>
+                onChange={setFormFormat}
+                options={FORMAT_OPTIONS}
+              />
             </>
           )}
 
