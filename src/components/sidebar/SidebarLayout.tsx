@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu, X } from 'lucide-react'
+// Menu and X icons no longer needed — mobile nav replaced by MobileTabBar
 
 interface SidebarLayoutProps {
   isOpen: boolean
@@ -21,29 +21,9 @@ export default function SidebarLayout({
 }: SidebarLayoutProps) {
   return (
     <>
-      {/* Mobile Menu Toggle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-mobilenav p-2 min-h-[44px] min-w-[44px] rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-        style={{ background: 'rgba(253, 252, 251, 0.9)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(17, 15, 10, 0.08)' }}
-        aria-label={isOpen ? 'Close menu' : 'Open menu'}
-        aria-expanded={isOpen}
-      >
-        {isOpen ? (
-          <X className="w-6 h-6 text-slate-700" aria-hidden="true" />
-        ) : (
-          <Menu className="w-6 h-6 text-slate-700" aria-hidden="true" />
-        )}
-      </button>
+      {/* Mobile Menu Toggle — hidden; replaced by MobileTabBar */}
 
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-navbar cursor-pointer"
-          onClick={() => setIsOpen(false)}
-          role="presentation"
-        />
-      )}
+      {/* Mobile Overlay — hidden; replaced by MobileTabBar */}
 
       {/* Desktop Layout: Main Nav + Secondary Nav.
           `top` + `height` read a CSS variable set by TrialBanner so the
@@ -91,30 +71,7 @@ export default function SidebarLayout({
         </aside>
       </div>
 
-      {/* Mobile Layout: Sidebar — also respects --trial-banner-h. */}
-      <aside
-        className={`lg:hidden fixed left-0 w-[85vw] max-w-[320px] flex flex-col transition-transform duration-300 z-navbar ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        style={{
-          background: 'rgba(253, 252, 249, 0.9)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRight: '1px solid rgba(17, 15, 10, 0.06)',
-          color: '#1a1915',
-          top: 'var(--trial-banner-h, 0px)',
-          height: 'calc(100vh - var(--trial-banner-h, 0px))',
-        }}
-        role="navigation"
-        aria-label="Mobile navigation"
-      >
-        {mainNavContent}
-        {secondaryOpen && secondaryContent && (
-          <div className="flex-1 overflow-y-auto border-t border-slate-200/30">
-            {secondaryContent}
-          </div>
-        )}
-      </aside>
+      {/* Mobile Layout: Sidebar — hidden; replaced by MobileTabBar */}
 
       {/* Spacer for desktop layout */}
       <div

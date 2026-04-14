@@ -22,6 +22,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: 'cover',
   themeColor: '#6366f1',
 }
 
@@ -35,8 +36,8 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'Maintenance',
+    statusBarStyle: 'black-translucent',
+    title: 'Lionheart',
   },
 }
 

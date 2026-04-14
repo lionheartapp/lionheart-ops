@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 :root {
+  /* ── Safe area insets — activated by viewport-fit=cover in layout.tsx ── */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
   /* Primary palette — kept for accent usage (trial banner, selected states) */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -146,6 +152,27 @@ a:visited {
 
 .leaflet-popup-tip-container {
   margin-top: -1px;
+}
+
+/* ── Standalone PWA overrides — native app feel when installed ── */
+@media all and (display-mode: standalone) {
+  /* Disable text selection on navigation chrome */
+  nav,
+  .mobile-tab-bar,
+  .mobile-header {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Prevent browser pull-to-refresh (we implement our own) */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Remove tap highlight on all elements */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 @keyframes slideIn {

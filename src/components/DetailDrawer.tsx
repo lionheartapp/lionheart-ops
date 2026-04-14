@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { useSwipeGesture } from '@/lib/hooks/useSwipeGesture'
 
 interface DetailDrawerProps {
   isOpen: boolean
@@ -39,6 +40,13 @@ export default function DetailDrawer({
   const contentRef = useRef<HTMLDivElement>(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [shouldShow, setShouldShow] = useState(false)
+
+  // Swipe right to close on mobile
+  const swipeHandlers = useSwipeGesture({
+    onSwipeRight: () => handleClose(),
+    threshold: 60,
+    enabled: isOpen,
+  })
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -97,12 +105,14 @@ export default function DetailDrawer({
         role="presentation"
       />
 
-      {/* Drawer - Right side slide */}
+      {/* Drawer - Right side slide (swipe right to close on mobile) */}
       <div
         ref={focusTrapRef}
+        {...swipeHandlers}
         className={`fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 ${widths[width]} ui-glass-overlay flex flex-col transition-transform duration-300 ease-out z-modal sm:rounded-2xl ${
           shouldShow ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{ touchAction: 'pan-y' }}
         role="dialog"
         aria-labelledby={titleId}
         aria-modal="true"

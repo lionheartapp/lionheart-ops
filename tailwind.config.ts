@@ -7,6 +7,12 @@ export default {
   ],
   theme: {
     extend: {
+      spacing: {
+        'safe-t': 'var(--safe-area-top)',
+        'safe-b': 'var(--safe-area-bottom)',
+        'safe-l': 'var(--safe-area-left)',
+        'safe-r': 'var(--safe-area-right)',
+      },
       fontFamily: {
         heading: ['var(--font-heading)', 'Oswald', 'sans-serif'],
         body: ['var(--font-body)', 'Poppins', 'system-ui', 'sans-serif'],

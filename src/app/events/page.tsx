@@ -129,7 +129,7 @@ interface StatCardProps {
 function StatCard({ label, value, icon: Icon }: StatCardProps) {
   return (
     <div
-      className="flex-1 min-w-[200px] px-6 py-5 rounded-2xl flex items-center justify-between gap-4"
+      className="flex-1 min-w-0 px-4 sm:px-6 py-5 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 h-full"
       style={{
         backgroundColor: SURFACE,
         border: `1px solid ${BORDER}`,
@@ -516,7 +516,7 @@ function StatsSkeleton() {
       {[0, 1].map((i) => (
         <div
           key={i}
-          className="flex-1 min-w-[200px] px-6 py-5 rounded-2xl flex items-center justify-between gap-4"
+          className="flex-1 min-w-0 px-4 sm:px-6 py-5 rounded-2xl flex items-center justify-between gap-3 sm:gap-4 h-full"
           style={{
             backgroundColor: SURFACE,
             border: `1px solid ${BORDER}`,

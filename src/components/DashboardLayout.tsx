@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useRef, useMemo } from 'react'
+import { ReactNode, useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,6 +10,10 @@ import ImpersonationBanner from './ImpersonationBanner'
 import TrialBanner from './TrialBanner'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
+import { useMobileDetect } from '@/lib/hooks/useMobileDetect'
+
+// Lazy-load mobile components — entire mobile bundle is code-split away from desktop
+const MobileShell = lazy(() => import('./mobile/MobileShell'))
 
 /** Read a localStorage key, returning null during SSR. */
 const ls = (key: string) =>
@@ -41,6 +45,7 @@ export default function DashboardLayout({
   const router = useRouter()
   const queryClient = useQueryClient()
   const isOnline = useConnectivity()
+  const { isMobile } = useMobileDetect()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isImpersonating, setIsImpersonating] = useState(false)
   const prevOnlineRef = useRef(isOnline)
@@ -114,7 +119,7 @@ export default function DashboardLayout({
     }
   }, [isOnline, queryClient])
 
-  return (
+  const contentBody = (
     <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #f5f4f0 0%, #eae8e2 100%)' }}>
       {/* Skip to main content link for keyboard users */}
       <a href="#main-content" className="skip-to-main">
@@ -128,8 +133,8 @@ export default function DashboardLayout({
       <TrialBanner />
 
       <div className={`flex flex-1 min-h-0 ${isImpersonating ? 'pt-[40px]' : ''}`}>
-        {/* Sidebar */}
-        {customSidebar || (
+        {/* Sidebar — desktop only (skip entire component tree on mobile) */}
+        {!isMobile && (customSidebar || (
           <Sidebar
             userName={userName}
             userEmail={userEmail}
@@ -139,19 +144,33 @@ export default function DashboardLayout({
             onLogout={onLogout}
             onSearchOpen={() => setIsSearchOpen(true)}
           />
-        )}
+        ))}
 
         {/* Main Content */}
-        <main id="main-content" className="flex-1 min-w-0 min-h-0 overflow-y-auto relative">
+        <main id="main-content" className={`flex-1 min-w-0 min-h-0 relative ${isMobile ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
           {/* Warm ambient orbs — gives glass cards depth via transparency interaction */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[550px] h-[550px] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(180, 160, 130, 0.12)' }} />
             <div className="absolute top-1/3 -left-32 w-[400px] h-[400px] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(160, 145, 120, 0.08)' }} />
             <div className="absolute bottom-0 right-1/4 w-[350px] h-[350px] rounded-full blur-[120px]" style={{ backgroundColor: 'rgba(140, 130, 110, 0.06)' }} />
           </div>
-          <div className="relative pt-14 sm:pt-6 lg:pt-8 pl-4 pr-4 sm:px-10 flex flex-col min-h-full pb-10">
-            {children}
-          </div>
+          {isMobile ? (
+            <Suspense fallback={null}>
+              <MobileShell
+                userName={userName}
+                userEmail={userEmail}
+                userAvatar={userAvatar}
+                onLogout={onLogout}
+                onSearchOpen={() => setIsSearchOpen(true)}
+              >
+                {children}
+              </MobileShell>
+            </Suspense>
+          ) : (
+            <div className="relative pl-4 pr-4 sm:px-10 flex flex-col min-h-full pt-6 lg:pt-8 pb-10">
+              {children}
+            </div>
+          )}
         </main>
       </div>
 
@@ -161,4 +180,6 @@ export default function DashboardLayout({
 
     </div>
   )
+
+  return contentBody
 }
