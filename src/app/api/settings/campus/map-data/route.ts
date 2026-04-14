@@ -89,6 +89,24 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     }
   }
 
+  // If campus has no coordinates, try to inherit from org
+  if (mapCenter && !mapCenter.lat && !mapCenter.lng) {
+    const orgCoordsRows = await rawPrisma.$queryRaw<Array<{ latitude: number | null; longitude: number | null }>>`
+      SELECT latitude, longitude FROM "Organization" WHERE id = ${orgId} LIMIT 1
+    `
+    if (orgCoordsRows[0]?.latitude && orgCoordsRows[0]?.longitude) {
+      mapCenter.lat = orgCoordsRows[0].latitude
+      mapCenter.lng = orgCoordsRows[0].longitude
+      // Persist to campus
+      if (selectedCampusId) {
+        await rawPrisma.$executeRaw`
+          UPDATE "Campus" SET latitude = ${mapCenter.lat}, longitude = ${mapCenter.lng}, "updatedAt" = NOW()
+          WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId} AND latitude IS NULL
+        `.catch(() => {})
+      }
+    }
+  }
+
   // Auto-geocode if we have an address but no coordinates
   if (mapCenter && !mapCenter.lat && !mapCenter.lng && mapCenter.address) {
     const geo = await geocodeAddress(mapCenter.address)
