@@ -24,6 +24,8 @@ export type Area = {
   name: string
   areaType: 'FIELD' | 'COURT' | 'GYM' | 'COMMON' | 'PARKING' | 'OTHER'
   buildingId: string | null
+  latitude: number | null
+  longitude: number | null
   images: string[] | null
   sortOrder: number
   isActive: boolean

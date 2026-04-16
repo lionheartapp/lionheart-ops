@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
+import { useAuth } from '@/lib/hooks/useAuth'
+import type { EventCreateMode } from '@/components/events/CreateEventMenu'
 import {
   useCalendars,
   useCalendarEvents,
@@ -58,6 +60,8 @@ import EmptyCalendarState from './EmptyCalendarState'
 
 export default function CalendarView() {
   const { toast } = useToast()
+  const router = useRouter()
+  const { isAdmin } = useAuth()
   const {
     currentDate,
     setCurrentDate,
@@ -87,6 +91,34 @@ export default function CalendarView() {
     setPlanEventInitialEnd(undefined)
     setPlanEventOpen(true)
   }, [])
+
+  /**
+   * Unified dispatcher for the 5 event-project create modes. Called by the
+   * toolbar's "+ Create" dropdown so the calendar surface exposes the same
+   * options (including "With AI (Leo)") as /events and the dashboard.
+   */
+  const handleCreateEventProject = useCallback((mode: EventCreateMode) => {
+    if (mode === 'ai') {
+      router.push('/events/new/ai')
+      return
+    }
+    if (mode === 'single') {
+      setSingleEventOpen(true)
+      return
+    }
+    if (mode === 'multiday') {
+      setMultiDayEventOpen(true)
+      return
+    }
+    if (mode === 'recurring') {
+      setRecurringEventOpen(true)
+      return
+    }
+    if (mode === 'template') {
+      setTemplateDrawerOpen(true)
+      return
+    }
+  }, [router])
 
   // Choice modal — shown when user clicks an empty calendar slot
   const [choiceModalOpen, setChoiceModalOpen] = useState(false)
@@ -831,10 +863,8 @@ export default function CalendarView() {
           onToday={goToToday}
           onCreateEvent={handleCreateEvent}
           onPlanEvent={handlePlanEvent}
-          onCreateSingleEvent={() => setSingleEventOpen(true)}
-          onCreateMultiDayEvent={() => setMultiDayEventOpen(true)}
-          onCreateRecurringEvent={() => setRecurringEventOpen(true)}
-          onCreateFromTemplate={() => setTemplateDrawerOpen(true)}
+          onCreateEventProject={handleCreateEventProject}
+          isAdmin={isAdmin}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           categories={categories}

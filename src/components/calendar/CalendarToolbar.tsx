@@ -2,10 +2,11 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Calendar, CalendarDays, RefreshCw, Copy } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
+import { EVENT_CREATE_OPTIONS, type EventCreateMode } from '@/components/events/CreateEventMenu'
 
 interface CategoryChip {
   id: string
@@ -33,9 +34,22 @@ interface CalendarToolbarProps {
   onToday: () => void
   onCreateEvent: () => void
   onPlanEvent?: () => void
+  /**
+   * Unified dispatcher for the 5 event-project create modes (ai / single /
+   * recurring / multiday / template). Preferred over the per-mode handlers
+   * below — keeps this dropdown in lock-step with the Events Hub menu and
+   * the dashboard "+ Create" dropdown.
+   */
+  onCreateEventProject?: (mode: EventCreateMode) => void
+  /** Whether the current user can see admin-only modes (recurring, template). */
+  isAdmin?: boolean
+  /** @deprecated Use `onCreateEventProject('single')` via onCreateEventProject. */
   onCreateSingleEvent?: () => void
+  /** @deprecated Use `onCreateEventProject('multiday')` via onCreateEventProject. */
   onCreateMultiDayEvent?: () => void
+  /** @deprecated Use `onCreateEventProject('recurring')` via onCreateEventProject. */
   onCreateRecurringEvent?: () => void
+  /** @deprecated Use `onCreateEventProject('template')` via onCreateEventProject. */
   onCreateFromTemplate?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -101,6 +115,8 @@ export default function CalendarToolbar({
   onToday,
   onCreateEvent,
   onPlanEvent,
+  onCreateEventProject,
+  isAdmin = false,
   onCreateSingleEvent,
   onCreateMultiDayEvent,
   onCreateRecurringEvent,
@@ -256,26 +272,42 @@ export default function CalendarToolbar({
 
                     <div className="h-px bg-stone-100 mx-3 my-1" />
                     <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wide px-3 py-1.5">School Events</p>
-                    {([
-                      { label: 'Single Event', desc: 'One-time event on a specific date', icon: Calendar, action: onCreateSingleEvent ?? onPlanEvent },
-                      { label: 'Recurring Event', desc: 'Repeats on a schedule', icon: RefreshCw, action: onCreateRecurringEvent },
-                      { label: 'Multi-day Event', desc: 'Spans across multiple days', icon: CalendarDays, action: onCreateMultiDayEvent },
-                      { label: 'From Template', desc: 'Start from a saved template', icon: Copy, action: onCreateFromTemplate },
-                    ] as const).map((opt) => opt.action ? (
-                      <button
-                        key={opt.label}
-                        onClick={() => { opt.action!(); setCreateDropdownOpen(false) }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-50 transition-colors text-left group"
-                      >
-                        <div className="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center flex-shrink-0 transition-colors">
-                          <opt.icon className="w-3.5 h-3.5 text-stone-500 group-hover:text-indigo-600 transition-colors" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{opt.label}</p>
-                          <p className="text-xs text-stone-500">{opt.desc}</p>
-                        </div>
-                      </button>
-                    ) : null)}
+                    {/* Render the 5 unified event-create modes. If a parent
+                        passes the `onCreateEventProject` dispatcher we use it;
+                        otherwise we fall back to the (deprecated) per-mode
+                        handlers so older callers don't break. The AI option
+                        was previously missing on the calendar — now it's in
+                        parity with the Events Hub & dashboard. */}
+                    {EVENT_CREATE_OPTIONS
+                      .filter((o) => !o.adminOnly || isAdmin)
+                      .map((opt) => {
+                        const Icon = opt.icon
+                        const legacyAction =
+                          opt.mode === 'single' ? (onCreateSingleEvent ?? onPlanEvent)
+                            : opt.mode === 'multiday' ? onCreateMultiDayEvent
+                            : opt.mode === 'recurring' ? onCreateRecurringEvent
+                            : opt.mode === 'template' ? onCreateFromTemplate
+                            : undefined
+                        const action = onCreateEventProject
+                          ? () => onCreateEventProject(opt.mode)
+                          : legacyAction
+                        if (!action) return null
+                        return (
+                          <button
+                            key={opt.mode}
+                            onClick={() => { action(); setCreateDropdownOpen(false) }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-50 transition-colors text-left group"
+                          >
+                            <div className="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <Icon className="w-3.5 h-3.5 text-stone-500 group-hover:text-indigo-600 transition-colors" strokeWidth={1.75} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">{opt.label}</p>
+                              <p className="text-xs text-stone-500">{opt.description}</p>
+                            </div>
+                          </button>
+                        )
+                      })}
                   </div>
                 </motion.div>
               )}

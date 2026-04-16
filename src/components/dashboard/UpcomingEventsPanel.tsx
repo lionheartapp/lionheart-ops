@@ -21,8 +21,10 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowRight, Loader2, Plus, RefreshCw } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Layers, Loader2, RefreshCw } from 'lucide-react'
 import type { CalendarEventData } from '@/lib/hooks/useCalendar'
+import type { EventProject } from '@/lib/hooks/useEventProject'
+import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
 
 // ─── Design tokens (kept inline so this component is self-contained) ────────
 
@@ -40,13 +42,75 @@ const CARD_SHADOW =
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/**
+ * Unified shape for anything that can show up in the "Next two weeks" list.
+ * A discriminated union keeps the data types honest — calendar meetings and
+ * event projects share very different underlying schemas but only a small
+ * set of fields matter for the panel's compact renderer.
+ */
+export type UpcomingItem =
+  | { kind: 'meeting'; data: CalendarEventData }
+  | { kind: 'project'; data: EventProject }
+
+/** Pull a JS Date out of either kind. */
+function getItemStart(item: UpcomingItem): Date {
+  return new Date(item.kind === 'meeting' ? item.data.startTime : item.data.startsAt)
+}
+function getItemEnd(item: UpcomingItem): Date {
+  return new Date(item.kind === 'meeting' ? item.data.endTime : item.data.endsAt)
+}
+function getItemTitle(item: UpcomingItem): string {
+  return item.data.title
+}
+function getItemLocation(item: UpcomingItem): string | null {
+  return item.kind === 'meeting'
+    ? (item.data.locationText ?? null)
+    : (item.data.locationText ?? null)
+}
+/**
+ * The saturated color chip for an item. Meetings use the calendar/category
+ * color; projects use a neutral slate so the list still reads as two
+ * visually-distinct categories (informal meeting vs. formal event project).
+ */
+function getItemColor(item: UpcomingItem): string {
+  if (item.kind === 'meeting') {
+    return item.data.category?.color || item.data.calendar.color || '#6366f1'
+  }
+  // Projects: use a single shared color so the whole "event project" category
+  // reads coherently. #6366f1 matches the indigo used throughout the UI.
+  return '#6366f1'
+}
+/** Bottom-line subtitle: the calendar name for meetings, "Event project" for projects. */
+function getItemSubtitle(item: UpcomingItem): string {
+  return item.kind === 'meeting' ? item.data.calendar.name : 'Event project'
+}
+
+// Back-compat: keep the `CalendarEventData` shape accepted for callers that
+// haven't migrated yet. Internally we always normalize to UpcomingItem[].
 interface UpcomingEventsPanelProps {
-  events: CalendarEventData[]
+  /**
+   * Unified list of calendar meetings + event projects. If provided, takes
+   * precedence over `events`. Prefer this — it lets the dashboard surface
+   * both informal meetings and formal event projects in one sorted list.
+   */
+  items?: UpcomingItem[]
+  /** @deprecated Pass `items` instead. Retained for back-compat. */
+  events?: CalendarEventData[]
   loading: boolean
   error: string | null
   onRetry: () => void
+  /** Called when a calendar meeting row is clicked. */
   onEventClick: (event: CalendarEventData) => void
-  onCreateEvent: () => void
+  /** Called when an event-project row is clicked. Optional — if omitted, projects are non-interactive. */
+  onProjectClick?: (project: EventProject) => void
+  /**
+   * Called when a user picks a create mode from the "+ Event" menu.
+   * The caller is responsible for dispatching the right flow (AI planner,
+   * single-event modal, series drawer, template drawer, etc.).
+   */
+  onCreateSelect: (mode: EventCreateMode) => void
+  /** Whether the current user can see admin-only create modes (recurring, template). */
+  isAdmin: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -58,7 +122,7 @@ interface DayCell {
   eventColors: string[]
 }
 
-function buildTimeline(events: CalendarEventData[]): DayCell[] {
+function buildTimeline(items: UpcomingItem[]): DayCell[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -67,19 +131,17 @@ function buildTimeline(events: CalendarEventData[]): DayCell[] {
     const date = new Date(today)
     date.setDate(today.getDate() + i)
 
-    const dayEvents = events.filter((event) => {
-      const eventDate = new Date(event.startTime)
-      eventDate.setHours(0, 0, 0, 0)
-      return eventDate.getTime() === date.getTime()
+    const dayItems = items.filter((item) => {
+      const itemDate = getItemStart(item)
+      itemDate.setHours(0, 0, 0, 0)
+      return itemDate.getTime() === date.getTime()
     })
 
     cells.push({
       date,
       isToday: i === 0,
-      eventCount: dayEvents.length,
-      eventColors: dayEvents
-        .slice(0, 3)
-        .map((e) => e.category?.color || e.calendar.color || '#6366f1'),
+      eventCount: dayItems.length,
+      eventColors: dayItems.slice(0, 3).map(getItemColor),
     })
   }
   return cells
@@ -94,9 +156,16 @@ function formatDateRange(cells: DayCell[]): string {
   return `${startStr} – ${endStr}`
 }
 
-function formatEventRow(event: CalendarEventData) {
-  const startDate = new Date(event.startTime)
-  const endDate = new Date(event.endTime)
+interface ItemRowInfo {
+  weekday: string
+  dayNum: number
+  timeRange: string
+  startDate: Date
+}
+
+function formatItemRow(item: UpcomingItem): ItemRowInfo {
+  const startDate = getItemStart(item)
+  const endDate = getItemEnd(item)
   const weekday = startDate
     .toLocaleDateString('en-US', { weekday: 'short' })
     .toUpperCase()
@@ -115,17 +184,32 @@ function formatEventRow(event: CalendarEventData) {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function UpcomingEventsPanel({
+  items,
   events,
   loading,
   error,
   onRetry,
   onEventClick,
-  onCreateEvent,
+  onProjectClick,
+  onCreateSelect,
+  isAdmin,
 }: UpcomingEventsPanelProps) {
-  const timeline = useMemo(() => buildTimeline(events), [events])
+  // Normalize inputs into a single `UpcomingItem[]` sorted by start time.
+  // New callers should pass `items`; `events` is kept for back-compat and
+  // is shimmed into `UpcomingItem[]` as meeting-kind rows.
+  const normalizedItems = useMemo<UpcomingItem[]>(() => {
+    const source: UpcomingItem[] = items
+      ? [...items]
+      : (events ?? []).map((e) => ({ kind: 'meeting' as const, data: e }))
+    return source.sort(
+      (a, b) => getItemStart(a).getTime() - getItemStart(b).getTime(),
+    )
+  }, [items, events])
+
+  const timeline = useMemo(() => buildTimeline(normalizedItems), [normalizedItems])
   const dateRange = useMemo(() => formatDateRange(timeline), [timeline])
   const todayCount = timeline[0]?.eventCount ?? 0
-  const totalCount = events.length
+  const totalCount = normalizedItems.length
 
   return (
     <motion.section
@@ -179,19 +263,17 @@ export default function UpcomingEventsPanel({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onCreateEvent}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
-            style={{
-              backgroundColor: TEXT_PRIMARY,
-              color: '#ffffff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
-            }}
-          >
-            <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-            Event
-          </button>
+          {/* Shared dropdown — same 5 create modes as the Events Hub header
+              so AI / Recurring / Multi-day / Template are never hidden from
+              the dashboard. `size="sm"` matches this panel's header scale. */}
+          <div className="flex-shrink-0">
+            <CreateEventMenu
+              isAdmin={isAdmin}
+              onSelect={onCreateSelect}
+              size="sm"
+              align="right"
+            />
+          </div>
         </div>
       </header>
 
@@ -206,7 +288,7 @@ export default function UpcomingEventsPanel({
       {/* ── Content: list, empty state, loading, error ────────────────── */}
       <div className="relative flex-1 min-h-0">
         {/* Fade-out mask at the bottom for long lists */}
-        {events.length > 3 && (
+        {normalizedItems.length > 3 && (
           <div
             className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 z-10"
             style={{
@@ -220,10 +302,14 @@ export default function UpcomingEventsPanel({
             <LoadingState />
           ) : error ? (
             <ErrorState message={error} onRetry={onRetry} />
-          ) : events.length === 0 ? (
-            <EmptyState onCreateEvent={onCreateEvent} />
+          ) : normalizedItems.length === 0 ? (
+            <EmptyState onCreateSelect={onCreateSelect} isAdmin={isAdmin} />
           ) : (
-            <EventList events={events} onEventClick={onEventClick} />
+            <ItemList
+              items={normalizedItems}
+              onEventClick={onEventClick}
+              onProjectClick={onProjectClick}
+            />
           )}
         </div>
       </div>
@@ -304,25 +390,133 @@ function Timeline({ cells }: { cells: DayCell[] }) {
   )
 }
 
-// ─── Event list ─────────────────────────────────────────────────────────────
+// ─── Item list (meetings + event projects, unified) ─────────────────────────
 
-function EventList({
-  events,
-  onEventClick,
-}: {
-  events: CalendarEventData[]
+interface ItemListProps {
+  items: UpcomingItem[]
   onEventClick: (event: CalendarEventData) => void
-}) {
+  onProjectClick?: (project: EventProject) => void
+}
+
+function ItemList({ items, onEventClick, onProjectClick }: ItemListProps) {
   return (
     <ul role="list" className="pb-12">
-      {events.map((event, idx) => {
-        const { weekday, dayNum, timeRange, startDate } = formatEventRow(event)
+      {items.map((item, idx) => {
+        const { weekday, dayNum, timeRange, startDate } = formatItemRow(item)
         const isToday = startDate.toDateString() === new Date().toDateString()
-        const color = event.category?.color || event.calendar.color || '#6366f1'
+        const color = getItemColor(item)
+        const title = getItemTitle(item)
+        const location = getItemLocation(item)
+        const subtitle = getItemSubtitle(item)
+        const key =
+          item.kind === 'meeting'
+            ? `meeting-${item.data.id}`
+            : `project-${item.data.id}`
+
+        // Meetings are always clickable. Projects are only clickable if the
+        // caller supplied an `onProjectClick` — otherwise we render the row
+        // as a non-interactive div to avoid giving users a button that does
+        // nothing.
+        const isInteractive =
+          item.kind === 'meeting' || typeof onProjectClick === 'function'
+        const handleClick = () => {
+          if (item.kind === 'meeting') {
+            onEventClick(item.data)
+          } else if (onProjectClick) {
+            onProjectClick(item.data)
+          }
+        }
+
+        const content = (
+          <>
+            {/* Date chip */}
+            <div className="flex-shrink-0 w-11 text-center">
+              <div
+                className="text-[9px] font-bold uppercase tracking-[0.1em]"
+                style={{ color: isToday ? color : TEXT_MUTED }}
+              >
+                {isToday ? 'TODAY' : weekday}
+              </div>
+              <div
+                className="text-xl font-semibold leading-[1.1] mt-0.5"
+                style={{ color: TEXT_PRIMARY }}
+              >
+                {dayNum}
+              </div>
+            </div>
+
+            {/* Calendar / project color bar */}
+            <div
+              className="flex-shrink-0 w-[3px] rounded-full self-stretch my-0.5"
+              style={{ backgroundColor: color }}
+            />
+
+            {/* Main content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p
+                  className="text-[15px] font-semibold truncate"
+                  style={{
+                    color: TEXT_PRIMARY,
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  {title}
+                </p>
+                {item.kind === 'project' && (
+                  <span
+                    className="inline-flex items-center gap-1 flex-shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em]"
+                    style={{
+                      backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                      color: '#4f46e5',
+                    }}
+                    aria-label="Event project"
+                  >
+                    <Layers className="w-2.5 h-2.5" />
+                    Project
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className="text-[12.5px] font-medium"
+                  style={{ color: TEXT_SECONDARY }}
+                >
+                  {timeRange}
+                </span>
+                {location && (
+                  <>
+                    <span style={{ color: TEXT_MUTED }}>·</span>
+                    <span
+                      className="text-[12.5px] truncate"
+                      style={{ color: TEXT_SECONDARY }}
+                    >
+                      {location}
+                    </span>
+                  </>
+                )}
+              </div>
+              <p
+                className="text-[11.5px] mt-0.5 truncate"
+                style={{ color: TEXT_MUTED }}
+              >
+                {subtitle}
+              </p>
+            </div>
+
+            {/* Chevron — only shown on interactive rows */}
+            {isInteractive && (
+              <ArrowRight
+                className="flex-shrink-0 w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                style={{ color: TEXT_MUTED }}
+              />
+            )}
+          </>
+        )
 
         return (
           <motion.li
-            key={event.id}
+            key={key}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -331,84 +525,29 @@ function EventList({
               ease: [0.25, 0.1, 0.25, 1],
             }}
           >
-            <button
-              type="button"
-              onClick={() => onEventClick(event)}
-              className="group w-full flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl transition-colors duration-200 text-left cursor-pointer"
-              style={{ borderBottom: `1px solid ${HAIRLINE}` }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = '#f8f6f2')
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = 'transparent')
-              }
-            >
-              {/* Date chip */}
-              <div className="flex-shrink-0 w-11 text-center">
-                <div
-                  className="text-[9px] font-bold uppercase tracking-[0.1em]"
-                  style={{ color: isToday ? color : TEXT_MUTED }}
-                >
-                  {isToday ? 'TODAY' : weekday}
-                </div>
-                <div
-                  className="text-xl font-semibold leading-[1.1] mt-0.5"
-                  style={{ color: TEXT_PRIMARY }}
-                >
-                  {dayNum}
-                </div>
-              </div>
-
-              {/* Calendar color bar */}
+            {isInteractive ? (
+              <button
+                type="button"
+                onClick={handleClick}
+                className="group w-full flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl transition-colors duration-200 text-left cursor-pointer"
+                style={{ borderBottom: `1px solid ${HAIRLINE}` }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = '#f8f6f2')
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = 'transparent')
+                }
+              >
+                {content}
+              </button>
+            ) : (
               <div
-                className="flex-shrink-0 w-[3px] rounded-full self-stretch my-0.5"
-                style={{ backgroundColor: color }}
-              />
-
-              {/* Main content */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[15px] font-semibold truncate"
-                  style={{
-                    color: TEXT_PRIMARY,
-                    letterSpacing: '-0.005em',
-                  }}
-                >
-                  {event.title}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span
-                    className="text-[12.5px] font-medium"
-                    style={{ color: TEXT_SECONDARY }}
-                  >
-                    {timeRange}
-                  </span>
-                  {event.locationText && (
-                    <>
-                      <span style={{ color: TEXT_MUTED }}>·</span>
-                      <span
-                        className="text-[12.5px] truncate"
-                        style={{ color: TEXT_SECONDARY }}
-                      >
-                        {event.locationText}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <p
-                  className="text-[11.5px] mt-0.5 truncate"
-                  style={{ color: TEXT_MUTED }}
-                >
-                  {event.calendar.name}
-                </p>
+                className="group w-full flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl text-left"
+                style={{ borderBottom: `1px solid ${HAIRLINE}` }}
+              >
+                {content}
               </div>
-
-              {/* Chevron */}
-              <ArrowRight
-                className="flex-shrink-0 w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                style={{ color: TEXT_MUTED }}
-              />
-            </button>
+            )}
           </motion.li>
         )
       })}
@@ -418,7 +557,13 @@ function EventList({
 
 // ─── Empty state ────────────────────────────────────────────────────────────
 
-function EmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
+function EmptyState({
+  onCreateSelect,
+  isAdmin,
+}: {
+  onCreateSelect: (mode: EventCreateMode) => void
+  isAdmin: boolean
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -444,19 +589,14 @@ function EmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
       </p>
 
       <div className="flex items-center gap-2 mt-6">
-        <button
-          type="button"
-          onClick={onCreateEvent}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
-          style={{
-            backgroundColor: TEXT_PRIMARY,
-            color: '#ffffff',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
-          }}
-        >
-          <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-          Create event
-        </button>
+        {/* Full create menu so the empty state doesn't quietly hide AI /
+            recurring / template options behind a generic "Create event". */}
+        <CreateEventMenu
+          isAdmin={isAdmin}
+          onSelect={onCreateSelect}
+          align="left"
+          label="Create event"
+        />
         <Link
           href="/settings?tab=integrations"
           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
@@ -464,12 +604,12 @@ function EmptyState({ onCreateEvent }: { onCreateEvent: () => void }) {
             backgroundColor: WARM_CHIP,
             color: TEXT_PRIMARY,
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = WARM_CHIP_HOVER)
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = WARM_CHIP)
-          }
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = WARM_CHIP_HOVER
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = WARM_CHIP
+          }}
         >
           Sync a calendar
         </Link>

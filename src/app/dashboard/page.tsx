@@ -10,20 +10,25 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Plus, ChevronDown, Calendar, Sparkles, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getAuthHeaders } from '@/lib/api-client'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
-import PlanEventDrawer from '@/components/calendar/PlanEventDrawer'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
 import { LeoItemDrawerContent } from '@/components/dashboard/DrawerContents'
 import OnboardingChecklistWidget from '@/components/onboarding/ChecklistWidget'
-import UpcomingEventsPanel from '@/components/dashboard/UpcomingEventsPanel'
+import UpcomingEventsPanel, { type UpcomingItem } from '@/components/dashboard/UpcomingEventsPanel'
+import { EVENT_CREATE_OPTIONS, type EventCreateMode } from '@/components/events/CreateEventMenu'
+import { useEventProjects } from '@/lib/hooks/useEventProject'
+import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
+import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
+import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
+import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 
 interface TicketData {
   id: string
@@ -87,7 +92,7 @@ export default function DashboardPage() {
   usePageTitle('Dashboard')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, org, isReady, logout } = useAuth()
+  const { user, org, isReady, isAdmin, logout } = useAuth()
 
   // Calendar hooks — power the Schedule Meeting form (EventCreatePanel)
   const { data: calendarList = [] } = useCalendars()
@@ -112,6 +117,47 @@ export default function DashboardPage() {
     upcomingEnd,
     isReady && user.dashboardMode === 'admin' && calendarIds.length > 0
   )
+
+  // Pull upcoming event projects so the "Next two weeks" panel surfaces both
+  // informal calendar meetings AND formal event projects in one merged list.
+  // We filter client-side to the 14-day window to match the calendar fetch.
+  const {
+    data: upcomingProjects = [],
+    isLoading: upcomingProjectsLoading,
+    isError: upcomingProjectsError,
+  } = useEventProjects(
+    isReady && user.dashboardMode === 'admin' ? { limit: 50 } : undefined,
+  )
+
+  // Merge meetings + projects into a single `UpcomingItem[]` sorted by start,
+  // clamped to the same 14-day window used by the timeline.
+  const upcomingItems = useMemo<UpcomingItem[]>(() => {
+    const windowStart = upcomingStart.getTime()
+    const windowEnd = upcomingEnd.getTime()
+
+    const meetings: UpcomingItem[] = upcomingCalEvents.map((e) => ({
+      kind: 'meeting' as const,
+      data: e,
+    }))
+
+    const projects: UpcomingItem[] = upcomingProjects
+      .filter((p) => {
+        const starts = new Date(p.startsAt).getTime()
+        return starts >= windowStart && starts <= windowEnd
+      })
+      .map((p) => ({ kind: 'project' as const, data: p }))
+
+    return [...meetings, ...projects].sort(
+      (a, b) =>
+        new Date(
+          a.kind === 'meeting' ? a.data.startTime : a.data.startsAt,
+        ).getTime() -
+        new Date(
+          b.kind === 'meeting' ? b.data.startTime : b.data.startsAt,
+        ).getTime(),
+    )
+  }, [upcomingCalEvents, upcomingProjects, upcomingStart, upcomingEnd])
+
   const createCalendarEvent = useCreateEvent()
   const createCalendarCategory = useCreateCategory()
 
@@ -178,8 +224,13 @@ export default function DashboardPage() {
   const [eventsLoading, setEventsLoading] = useState(false)
   const [eventsError, setEventsError] = useState<string | null>(null)
 
-  // Plan Event stepper state
-  const [eventStepperOpen, setEventStepperOpen] = useState(false)
+  // Event-project create flows (mirrors the Events Hub page so the dashboard's
+  // "+ Event" dropdown has full parity with /events — no more hidden modes).
+  const [projectModalOpen, setProjectModalOpen] = useState(false)
+  const [projectModalMode, setProjectModalMode] = useState<'single' | 'multiday'>('single')
+  const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
+  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
 
   // Leo item click drawer state
   const [leoDrawerOpen, setLeoDrawerOpen] = useState(false)
@@ -363,10 +414,34 @@ export default function DashboardPage() {
     }
   }
 
-  const openEventStepper = useCallback(() => {
+  /**
+   * Dispatches the 5 EventCreateMode options to the correct flow. Mirrors the
+   * routing used in /events (`handleOpenCreate`) so the dashboard's shared
+   * CreateEventMenu never points users at a dead-end.
+   *
+   *   ai         → /events/new/ai (Leo assistant)
+   *   single     → CreateEventProjectModal (formal event project, one-time)
+   *   multiday   → CreateEventProjectModal (formal event project, multi-day)
+   *   recurring  → EventSeriesDrawer (admin-only)
+   *   template   → TemplateListDrawer → CreateFromTemplateWizard
+   */
+  const handleUpcomingCreate = useCallback((mode: EventCreateMode) => {
     setIsCreateDropdownOpen(false)
-    setEventStepperOpen(true)
-  }, [])
+    if (mode === 'ai') {
+      router.push('/events/new/ai')
+      return
+    }
+    if (mode === 'recurring') {
+      setSeriesDrawerOpen(true)
+      return
+    }
+    if (mode === 'template') {
+      setTemplateDrawerOpen(true)
+      return
+    }
+    setProjectModalMode(mode)
+    setProjectModalOpen(true)
+  }, [router])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -484,26 +559,31 @@ export default function DashboardPage() {
                 <div className="h-px bg-slate-200" />
               </div>
 
-              {/* Events Section */}
+              {/* Events Section — uses the same 5 modes as the Events Hub
+                  header dropdown. Previously the dashboard exposed only
+                  "Plan Event" + a disabled "AI Event Planner (Soon)", which
+                  meant AI / Recurring / Multi-day / Template were hidden
+                  from anyone starting from the dashboard. Sourcing the
+                  options from EVENT_CREATE_OPTIONS keeps parity automatic
+                  if we add or re-order modes in the future. */}
               <div className="p-3 space-y-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">School Events</p>
-                <button
-                  onClick={() => openEventStepper()}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                >
-                  <Calendar className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-slate-900">Plan Event</p>
-                    <p className="text-xs text-slate-600">Formal — AV, facilities &amp; admin approval</p>
-                  </div>
-                </button>
-                <div className="w-full flex items-start gap-3 p-3 rounded-lg text-left opacity-50 cursor-not-allowed">
-                  <Sparkles className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-slate-500">AI Event Planner <span className="ml-1 text-[10px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">Soon</span></p>
-                    <p className="text-xs text-slate-400">Plan an event with AI assistance</p>
-                  </div>
-                </div>
+                {EVENT_CREATE_OPTIONS.filter((o) => !o.adminOnly || isAdmin).map((opt) => {
+                  const Icon = opt.icon
+                  return (
+                    <button
+                      key={opt.mode}
+                      onClick={() => handleUpcomingCreate(opt.mode)}
+                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                    >
+                      <Icon className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                      <div>
+                        <p className="font-medium text-slate-900">{opt.label}</p>
+                        <p className="text-xs text-slate-600">{opt.description}</p>
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
 
               {/* Divider */}
@@ -560,12 +640,20 @@ export default function DashboardPage() {
             <OnboardingChecklistWidget />
             <div className="flex-1 min-h-0">
               <UpcomingEventsPanel
-                events={upcomingCalEvents}
-                loading={upcomingCalLoading}
-                error={upcomingCalError ? 'We couldn\u2019t reach the calendar service.' : null}
+                items={upcomingItems}
+                loading={upcomingCalLoading || upcomingProjectsLoading}
+                error={
+                  upcomingCalError
+                    ? 'We couldn\u2019t reach the calendar service.'
+                    : upcomingProjectsError
+                      ? 'We couldn\u2019t load event projects.'
+                      : null
+                }
                 onRetry={() => { void refetchUpcomingCal() }}
                 onEventClick={(event) => setSelectedEvent(event)}
-                onCreateEvent={() => openMeetingPanel()}
+                onProjectClick={(project) => router.push(`/events/${project.id}`)}
+                onCreateSelect={handleUpcomingCreate}
+                isAdmin={isAdmin}
               />
             </div>
           </motion.div>
@@ -1044,12 +1132,28 @@ export default function DashboardPage() {
           )}
         </div>
       </DetailDrawer>
-      {/* ─── Plan Event Stepper Drawer ────────────────────────────────────── */}
-      <PlanEventDrawer
-        isOpen={eventStepperOpen}
-        onClose={() => setEventStepperOpen(false)}
-        onSuccess={fetchEvents}
+      {/* ─── Event Project Create flows (same as Events Hub) ───────────────── */}
+      <CreateEventProjectModal
+        isOpen={projectModalOpen}
+        onClose={() => setProjectModalOpen(false)}
+        initialMode={projectModalMode}
       />
+      <EventSeriesDrawer
+        isOpen={seriesDrawerOpen}
+        onClose={() => setSeriesDrawerOpen(false)}
+      />
+      <TemplateListDrawer
+        isOpen={templateDrawerOpen}
+        onClose={() => setTemplateDrawerOpen(false)}
+        onSelect={(templateId: string) => setSelectedTemplateId(templateId)}
+      />
+      {selectedTemplateId && (
+        <CreateFromTemplateWizard
+          templateId={selectedTemplateId}
+          isOpen={!!selectedTemplateId}
+          onClose={() => setSelectedTemplateId(null)}
+        />
+      )}
 
       {/* Leo Item Detail Drawer */}
       <DetailDrawer

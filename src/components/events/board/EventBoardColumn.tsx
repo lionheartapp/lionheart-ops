@@ -33,6 +33,13 @@ interface EventBoardColumnProps {
   aiRanked?: boolean
   /** Show + button in header (used on Draft column) */
   onAdd?: () => void
+  /**
+   * Override the default "+" icon button with a custom node (e.g. the
+   * shared CreateEventMenu render-prop trigger). Supplants `onAdd` when
+   * provided. Used to make the Draft column expose the full 5-option
+   * event-create dropdown instead of jumping straight to a single event.
+   */
+  addTrigger?: React.ReactNode
   /** Whether this column is a valid drop target for the currently-dragged card */
   isValidDropTarget?: boolean
   /** Whether there's an active drag anywhere on the board */
@@ -47,6 +54,7 @@ export function EventBoardColumn({
   projects,
   aiRanked = false,
   onAdd,
+  addTrigger,
   isValidDropTarget = true,
   isDragActive = false,
   currentUserId,
@@ -105,7 +113,7 @@ export function EventBoardColumn({
             </span>
           )}
         </div>
-        {onAdd && (
+        {addTrigger ?? (onAdd && (
           <button
             onClick={onAdd}
             className="w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
@@ -122,7 +130,7 @@ export function EventBoardColumn({
           >
             <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
           </button>
-        )}
+        ))}
       </div>
 
       {/* Drop zone */}

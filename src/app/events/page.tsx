@@ -5,15 +5,12 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import {
-  Plus,
-  RefreshCw,
   Layers,
   AlertTriangle,
   Clock,
   Shield,
   AlertCircle,
   Calendar,
-  CalendarDays,
   CheckSquare,
   Sparkles,
   Loader2,
@@ -23,8 +20,6 @@ import {
   XCircle,
   Hourglass,
   ArrowRight,
-  ChevronDown,
-  Copy,
   LayoutGrid,
   List as ListIcon,
   Archive,
@@ -44,6 +39,7 @@ import { TemplateListDrawer } from '@/components/events/templates/TemplateListDr
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import { EventBoard } from '@/components/events/board/EventBoard'
 import { ArchiveDrawer } from '@/components/events/board/ArchiveDrawer'
+import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import {
@@ -793,132 +789,6 @@ function ApprovalQueue() {
   )
 }
 
-// ─── Event Create Menu (page header CTA — dropdown with create modes) ───────
-
-type EventCreateMode = 'single' | 'multiday' | 'recurring' | 'template' | 'ai'
-
-interface EventCreateMenuProps {
-  isAdmin: boolean
-  onSelect: (mode: EventCreateMode) => void
-}
-
-function EventCreateMenu({ isAdmin, onSelect }: EventCreateMenuProps) {
-  const [open, setOpen] = useState(false)
-
-  // "With AI" sits at the top as the recommended path for non-technical users,
-  // visible to everyone. Admin-only options (recurring + template) stay hidden
-  // from non-admins.
-  const EVENT_OPTIONS: {
-    mode: EventCreateMode
-    label: string
-    description: string
-    icon: React.ElementType
-    adminOnly?: boolean
-    highlight?: boolean
-  }[] = [
-    { mode: 'ai', label: 'With AI (Leo)', description: 'Describe your event in plain English and let Leo draft it', icon: Sparkles, highlight: true },
-    { mode: 'single', label: 'Single Event', description: 'A one-time event on a specific date', icon: Calendar },
-    { mode: 'recurring', label: 'Recurring Event', description: 'Repeats on a schedule (weekly, monthly, etc.)', icon: RefreshCw, adminOnly: true },
-    { mode: 'multiday', label: 'Multi-day Event', description: 'Spans across multiple days', icon: CalendarDays },
-    { mode: 'template', label: 'From Template', description: 'Start from a saved event template', icon: Copy, adminOnly: true },
-  ]
-
-  const visibleOptions = isAdmin
-    ? EVENT_OPTIONS
-    : EVENT_OPTIONS.filter((o) => !o.adminOnly)
-
-  const handleSelect = (mode: EventCreateMode) => {
-    setOpen(false)
-    onSelect(mode)
-  }
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
-        style={{
-          backgroundColor: TEXT_PRIMARY,
-          color: '#ffffff',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
-        }}
-      >
-        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-        Event
-        <ChevronDown
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <>
-            {/* Invisible backdrop to close dropdown */}
-            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-
-            <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-72 rounded-xl z-20 overflow-hidden"
-              style={{
-                backgroundColor: SURFACE,
-                border: `1px solid ${BORDER}`,
-                boxShadow: CARD_SHADOW,
-              }}
-            >
-              <div className="p-1.5">
-                {visibleOptions.map((opt) => {
-                  const Icon = opt.icon
-                  return (
-                    <button
-                      key={opt.mode}
-                      onClick={() => handleSelect(opt.mode)}
-                      className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer group"
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = WARM_CHIP)
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'transparent')
-                      }
-                    >
-                      <div
-                        className="mt-0.5 p-1.5 rounded-lg transition-colors"
-                        style={{ backgroundColor: WARM_CHIP }}
-                      >
-                        <Icon
-                          className="w-4 h-4"
-                          strokeWidth={1.75}
-                          style={{ color: TEXT_PRIMARY }}
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className="text-[13.5px] font-semibold"
-                          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.005em' }}
-                        >
-                          {opt.label}
-                        </p>
-                        <p
-                          className="text-[12px] mt-0.5"
-                          style={{ color: TEXT_SECONDARY }}
-                        >
-                          {opt.description}
-                        </p>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
 // ─── My Events Panel ─────────────────────────────────────────────────────────
 
 interface MyEventsPanelProps {
@@ -1118,7 +988,7 @@ function EventsPageHeader({
             )}
           </button>
         )}
-        <EventCreateMenu isAdmin={isAdmin} onSelect={onOpenCreate} />
+        <CreateEventMenu isAdmin={isAdmin} onSelect={onOpenCreate} />
       </div>
     </div>
   )
@@ -1216,7 +1086,8 @@ export default function EventsPage() {
              Pending Approval column IS the approval queue. */
           <EventBoard
             projects={allProjects}
-            onCreateDraft={() => handleOpenCreate('single')}
+            onCreateDraftSelect={handleOpenCreate}
+            isAdmin={isAdmin}
             currentUserId={user.id}
           />
         ) : (

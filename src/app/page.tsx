@@ -13,7 +13,8 @@
  */
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
+import { animate, motion, useInView, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   Calendar,
@@ -49,6 +50,60 @@ const HERO_MOCKUP_SHADOW =
   '0 0 0 1px rgba(34,42,53,0.08), 0 30px 60px -20px rgba(15,15,15,0.18), 0 18px 36px -18px rgba(15,15,15,0.12)'
 
 const AI_GRADIENT = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #ec4899 100%)'
+
+// ─── Scroll-reveal + count-up primitives ────────────────────────────────────
+
+/** Smooth "aurora" easing used across the page — matches design-system memory. */
+const EASE = [0.25, 0.1, 0.25, 1] as const
+
+/** Reusable viewport trigger: fires once, ~80px before the section enters the viewport. */
+const REVEAL_VIEWPORT = { once: true, margin: '-80px' } as const
+
+/** Standard fade-up variants for whole sections. */
+const REVEAL_VARIANTS = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+} as const
+
+/**
+ * Counts up from 0 to `to` when the element enters the viewport.
+ * Respects prefers-reduced-motion — jumps straight to the final value.
+ */
+function CountUp({
+  to,
+  duration = 1.4,
+  suffix = '',
+  prefix = '',
+  format = (n: number) => Math.round(n).toLocaleString('en-US'),
+}: {
+  to: number
+  duration?: number
+  suffix?: string
+  prefix?: string
+  format?: (n: number) => string
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const reduced = useReducedMotion()
+
+  useEffect(() => {
+    if (!inView || !ref.current) return
+    if (reduced) {
+      ref.current.textContent = `${prefix}${format(to)}${suffix}`
+      return
+    }
+    const controls = animate(0, to, {
+      duration,
+      ease: EASE,
+      onUpdate: (latest) => {
+        if (ref.current) ref.current.textContent = `${prefix}${format(latest)}${suffix}`
+      },
+    })
+    return () => controls.stop()
+  }, [inView, to, duration, suffix, prefix, format, reduced])
+
+  return <span ref={ref}>{`${prefix}${format(0)}${suffix}`}</span>
+}
 
 // ─── Entry component ────────────────────────────────────────────────────────
 
@@ -554,16 +609,27 @@ function MockLeoRail() {
 // ─── Trust bar ──────────────────────────────────────────────────────────────
 
 function TrustBar() {
-  const stats = [
-    { value: '8', label: 'integrated modules' },
-    { value: '30 days', label: 'free trial, no card' },
+  type Stat = {
+    label: string
+    // Either a countable number (+ optional suffix) or a static string
+    count?: number
+    suffix?: string
+    value?: string
+  }
+  const stats: Stat[] = [
+    { count: 8, label: 'integrated modules' },
+    { count: 30, suffix: ' days', label: 'free trial, no card' },
     { value: 'K–12', label: 'public, private, charter' },
     { value: 'Multi-campus', label: 'single-school to district' },
   ]
   return (
-    <section
+    <motion.section
       className="border-y"
       style={{ borderColor: BORDER_SOFT, backgroundColor: SURFACE_ALT }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
     >
       <div className="max-w-[1200px] mx-auto px-6 py-10">
         <p
@@ -576,14 +642,18 @@ function TrustBar() {
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <div
-                className="font-semibold"
+                className="font-semibold tabular-nums"
                 style={{
                   fontSize: 'clamp(22px, 2.2vw, 28px)',
                   color: TEXT_PRIMARY,
                   letterSpacing: '-0.02em',
                 }}
               >
-                {s.value}
+                {s.count !== undefined ? (
+                  <CountUp to={s.count} suffix={s.suffix ?? ''} />
+                ) : (
+                  s.value
+                )}
               </div>
               <div className="text-[13px] mt-1" style={{ color: TEXT_SECONDARY }}>
                 {s.label}
@@ -592,7 +662,7 @@ function TrustBar() {
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -608,7 +678,13 @@ function WhatItReplaces() {
     'Paper binders for compliance',
   ]
   return (
-    <section className="px-6 py-24">
+    <motion.section
+      className="px-6 py-24"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
       <div className="max-w-[1100px] mx-auto">
         <div className="text-center mb-14">
           <p
@@ -724,7 +800,7 @@ function WhatItReplaces() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -776,10 +852,14 @@ function ModulesGrid() {
   ]
 
   return (
-    <section
+    <motion.section
       id="modules"
       className="px-6 py-24"
       style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
     >
       <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-14">
@@ -845,7 +925,7 @@ function ModulesGrid() {
           })}
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -853,7 +933,13 @@ function ModulesGrid() {
 
 function DeepDiveEvents() {
   return (
-    <section className="px-6 py-24">
+    <motion.section
+      className="px-6 py-24"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
       <div className="max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-16 items-center">
         <div>
           <p
@@ -902,7 +988,7 @@ function DeepDiveEvents() {
 
         <MockEventDetailCard />
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -1008,9 +1094,13 @@ function MockEventDetailCard() {
 
 function DeepDiveMaintenance() {
   return (
-    <section
+    <motion.section
       className="px-6 py-24"
       style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
     >
       <div className="max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-16 items-center">
         <MockMaintenanceCard />
@@ -1060,7 +1150,7 @@ function DeepDiveMaintenance() {
           </ul>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -1168,10 +1258,14 @@ function MockMaintenanceCard() {
 
 function LeoSection() {
   return (
-    <section
+    <motion.section
       id="leo"
       className="relative px-6 py-28 overflow-hidden"
       style={{ backgroundColor: DARK_SURFACE, color: '#ffffff' }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
     >
       {/* Ambient gradient orbs */}
       <div
@@ -1346,7 +1440,7 @@ function LeoSection() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -1419,7 +1513,14 @@ function Pricing() {
   ]
 
   return (
-    <section id="pricing" className="px-6 py-24">
+    <motion.section
+      id="pricing"
+      className="px-6 py-24"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
       <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-14">
           <p
@@ -1576,7 +1677,7 @@ function Pricing() {
           All plans include unlimited users, SSL, daily backups, and U.S.-based support.
         </p>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -1611,10 +1712,14 @@ function FAQ() {
   ]
 
   return (
-    <section
+    <motion.section
       id="faq"
       className="px-6 py-24"
       style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
     >
       <div className="max-w-[820px] mx-auto">
         <div className="text-center mb-12">
@@ -1674,7 +1779,7 @@ function FAQ() {
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 
@@ -1682,7 +1787,13 @@ function FAQ() {
 
 function ClosingCTA() {
   return (
-    <section className="px-6 py-28">
+    <motion.section
+      className="px-6 py-28"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
       <div className="max-w-[900px] mx-auto text-center">
         <h2
           className="font-semibold mb-6"
@@ -1725,7 +1836,7 @@ function ClosingCTA() {
           </a>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
 

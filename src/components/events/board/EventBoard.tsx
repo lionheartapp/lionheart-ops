@@ -35,10 +35,11 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { Users, User } from 'lucide-react'
+import { Plus, Users, User } from 'lucide-react'
 import { EventBoardColumn } from './EventBoardColumn'
 import { EventBoardCard } from './EventBoardCard'
 import { ApprovalReviewDrawer } from '@/components/events/ApprovalReviewDrawer'
+import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
 import {
   useTransitionEventProject,
   useApproveEventProject,
@@ -47,6 +48,7 @@ import {
 } from '@/lib/hooks/useEventProject'
 import { useToast } from '@/components/Toast'
 import {
+  TEXT_MUTED,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   WARM_CHIP,
@@ -96,11 +98,18 @@ type BoardScope = 'all' | 'mine'
 
 interface EventBoardProps {
   projects: EventProject[]
-  onCreateDraft: () => void
+  /**
+   * Called when a user selects any create mode from the Draft column's
+   * "+" menu. Mirrors `handleOpenCreate` on the Events Hub page so all
+   * create surfaces dispatch through the same switch.
+   */
+  onCreateDraftSelect: (mode: EventCreateMode) => void
+  /** Required to decide which menu options to show (admin-only modes). */
+  isAdmin: boolean
   currentUserId?: string | null
 }
 
-export function EventBoard({ projects, onCreateDraft, currentUserId }: EventBoardProps) {
+export function EventBoard({ projects, onCreateDraftSelect, isAdmin, currentUserId }: EventBoardProps) {
   const { toast } = useToast()
   const transitionMutation = useTransitionEventProject()
 
@@ -328,7 +337,41 @@ export function EventBoard({ projects, onCreateDraft, currentUserId }: EventBoar
               title={col.title}
               projects={byColumn[col.status]}
               aiRanked={col.aiRanked}
-              onAdd={col.status === 'DRAFT' ? onCreateDraft : undefined}
+              addTrigger={
+                col.status === 'DRAFT' ? (
+                  <CreateEventMenu
+                    isAdmin={isAdmin}
+                    onSelect={onCreateDraftSelect}
+                    align="right"
+                    renderTrigger={({ open, toggle }) => (
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        aria-haspopup="menu"
+                        aria-expanded={open}
+                        className="w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+                        style={{
+                          color: open ? TEXT_PRIMARY : TEXT_MUTED,
+                          backgroundColor: open ? WARM_CHIP : 'transparent',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = WARM_CHIP
+                          e.currentTarget.style.color = TEXT_PRIMARY
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!open) {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                            e.currentTarget.style.color = TEXT_MUTED
+                          }
+                        }}
+                        aria-label="Create new event"
+                      >
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      </button>
+                    )}
+                  />
+                ) : undefined
+              }
               isValidDropTarget={
                 !activeProject || validDropTargets.has(col.status)
               }

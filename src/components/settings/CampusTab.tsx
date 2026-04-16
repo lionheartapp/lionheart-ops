@@ -80,6 +80,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [lastCreatedBuilding, setLastCreatedBuilding] = useState<Building | null>(null)
   const [placeOnMapBuilding, setPlaceOnMapBuilding] = useState<Building | null>(null)
   const [placingExistingBuilding, setPlacingExistingBuilding] = useState<Building | null>(null)
+  const [placingExistingOutdoor, setPlacingExistingOutdoor] = useState<Area | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
   const [outdoorMapSpaces, setOutdoorMapSpaces] = useState<any[]>([])
 
@@ -186,7 +187,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     setBuildings([]); setAreas([]); setRooms([]); setOutdoorMapSpaces([])
     setBuildingDrawerOpen(false); setOutdoorDrawerOpen(false); setRoomsBuilding(null)
     setEditingBuilding(null); setEditingOutdoor(null)
-    setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlaceOnMapBuilding(null)
+    setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null); setPlaceOnMapBuilding(null)
     loadData()
   }, [selectedCampusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -241,6 +242,32 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       await loadData()
     } catch (e) { setOutdoorFormError(e instanceof Error ? e.message : 'Failed to save outdoor space') }
     finally { setOutdoorFormSaving(false) }
+  }
+
+  // ─── Place existing on map (buildings + outdoor) ───────────────────────
+  /**
+   * Puts the map into quick-place mode for an existing building/outdoor space
+   * and scrolls the map into view so the user can click anywhere to assign
+   * coordinates. Fires when the user picks "Place on Map" from a row action
+   * or clicks the "Not placed" pill on a row.
+   */
+  const scrollMapIntoView = () => {
+    const mapEl = document.querySelector('.leaflet-container')
+    if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  const handlePlaceBuildingOnMap = (b: Building) => {
+    setPlacingExistingOutdoor(null) // ensure modes are mutually exclusive
+    setPlacingExistingBuilding(b)
+    setSuccessMessage(`Click anywhere on the map to place "${b.name}"`)
+    scrollMapIntoView()
+  }
+
+  const handlePlaceOutdoorOnMap = (a: Area) => {
+    setPlacingExistingBuilding(null)
+    setPlacingExistingOutdoor(a)
+    setSuccessMessage(`Click anywhere on the map to place "${a.name}"`)
+    scrollMapIntoView()
   }
 
   // ─── Room CRUD (called from RoomsDrawer) ───────────────────────────────
@@ -418,8 +445,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         outdoorSpaces={outdoorMapSpaces}
         schools={schools}
         editable
-        quickPlaceMode={placingExistingBuilding ? 'building' : null}
-        onQuickPlaceDone={() => setPlacingExistingBuilding(null)}
+        quickPlaceMode={placingExistingBuilding ? 'building' : placingExistingOutdoor ? 'outdoor' : null}
+        onQuickPlaceDone={() => { setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null) }}
         onOrgCenterChange={async (lat, lng) => { try { const res = await fetch('/api/settings/campus/map-data', { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('School center position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save school center position') } }}
         onBuildingPositionChange={async (buildingId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage('Building position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building position') } }}
         onAddBuildingAtPosition={async (lat, lng) => {
@@ -430,7 +457,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
           }
           setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds: [] }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
-        onAddOutdoorSpaceAtPosition={(lat, lng) => { setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds: [] }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' }) }}
+        onAddOutdoorSpaceAtPosition={async (lat, lng) => {
+          if (placingExistingOutdoor) {
+            const area = placingExistingOutdoor; setPlacingExistingOutdoor(null)
+            try { const res = await fetch(`/api/settings/campus/areas/${area.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setAreas((prev) => prev.map((a) => (a.id === area.id ? { ...a, latitude: lat, longitude: lng } : a))); setSuccessMessage(`"${area.name}" placed on map`) } } catch { setError('Failed to place outdoor space on map') }
+            await loadData(); return
+          }
+          setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds: [] }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' })
+        }}
         onBuildingSelected={setSelectedMapBuildingId}
         onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
         onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/areas/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
@@ -460,9 +494,11 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onEditBuilding={openEditBuilding}
         onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)}
         onManageRooms={(b) => setRoomsBuilding(b)}
+        onPlaceBuildingOnMap={handlePlaceBuildingOnMap}
         onAddOutdoor={(schoolIds) => openAddOutdoor(schoolIds)}
         onEditOutdoor={openEditOutdoor}
         onDeleteOutdoor={(id, name) => openDeleteConfirm('outdoor', id, name)}
+        onPlaceOutdoorOnMap={handlePlaceOutdoorOnMap}
         onAddSchool={() => schoolsRef.current?.openNew()}
         onEditSchool={(id) => schoolsRef.current?.openEdit(id)}
         onDeleteSchool={(id) => schoolsRef.current?.promptDelete(id)}

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Building2, MapPin, DoorOpen, Edit2, Trash2, Plus, ChevronDown, ChevronRight, Users, School as SchoolIcon } from 'lucide-react'
+import { Building2, MapPin, MapPinOff, DoorOpen, Edit2, Trash2, Plus, ChevronDown, ChevronRight, Users, School as SchoolIcon } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
 import { IllustrationCampus } from '@/components/illustrations'
 import {
@@ -28,6 +28,9 @@ type Props = {
   onAddOutdoor: (schoolIds: string[]) => void
   onEditOutdoor: (a: Area) => void
   onDeleteOutdoor: (id: string, name: string) => void
+  /** Trigger quick-place mode for an existing building/outdoor without coordinates */
+  onPlaceBuildingOnMap: (b: Building) => void
+  onPlaceOutdoorOnMap: (a: Area) => void
   /** School CRUD — wired up to SchoolsManagement imperative API */
   onAddSchool: () => void
   onEditSchool: (schoolId: string) => void
@@ -51,6 +54,8 @@ export default function SchoolGroupedFacilities({
   onAddOutdoor,
   onEditOutdoor,
   onDeleteOutdoor,
+  onPlaceBuildingOnMap,
+  onPlaceOutdoorOnMap,
   onAddSchool,
   onEditSchool,
   onDeleteSchool,
@@ -139,9 +144,11 @@ export default function SchoolGroupedFacilities({
         onEditBuilding={onEditBuilding}
         onDeleteBuilding={onDeleteBuilding}
         onManageRooms={onManageRooms}
+        onPlaceBuildingOnMap={onPlaceBuildingOnMap}
         onAddOutdoor={() => onAddOutdoor([])}
         onEditOutdoor={onEditOutdoor}
         onDeleteOutdoor={onDeleteOutdoor}
+        onPlaceOutdoorOnMap={onPlaceOutdoorOnMap}
       />
 
       {/* One card per school */}
@@ -166,9 +173,11 @@ export default function SchoolGroupedFacilities({
             onEditBuilding={onEditBuilding}
             onDeleteBuilding={onDeleteBuilding}
             onManageRooms={onManageRooms}
+            onPlaceBuildingOnMap={onPlaceBuildingOnMap}
             onAddOutdoor={() => onAddOutdoor([school.id])}
             onEditOutdoor={onEditOutdoor}
             onDeleteOutdoor={onDeleteOutdoor}
+            onPlaceOutdoorOnMap={onPlaceOutdoorOnMap}
             onEditSchool={() => onEditSchool(school.id)}
             onDeleteSchool={() => onDeleteSchool(school.id)}
           />
@@ -196,9 +205,11 @@ type FacilitiesCardProps = {
   onEditBuilding: (b: Building) => void
   onDeleteBuilding: (id: string, name: string) => void
   onManageRooms: (b: Building) => void
+  onPlaceBuildingOnMap: (b: Building) => void
   onAddOutdoor: () => void
   onEditOutdoor: (a: Area) => void
   onDeleteOutdoor: (id: string, name: string) => void
+  onPlaceOutdoorOnMap: (a: Area) => void
   /** Only provided for actual school cards, not the "Shared" card */
   onEditSchool?: () => void
   onDeleteSchool?: () => void
@@ -219,9 +230,11 @@ function FacilitiesCard({
   onEditBuilding,
   onDeleteBuilding,
   onManageRooms,
+  onPlaceBuildingOnMap,
   onAddOutdoor,
   onEditOutdoor,
   onDeleteOutdoor,
+  onPlaceOutdoorOnMap,
   onEditSchool,
   onDeleteSchool,
 }: FacilitiesCardProps) {
@@ -320,6 +333,7 @@ function FacilitiesCard({
                   onEditBuilding={onEditBuilding}
                   onDeleteBuilding={onDeleteBuilding}
                   onManageRooms={onManageRooms}
+                  onPlaceOnMap={onPlaceBuildingOnMap}
                 />
               )}
               {outdoorSpaces.length > 0 && (
@@ -328,6 +342,7 @@ function FacilitiesCard({
                   schools={schools}
                   onEditOutdoor={onEditOutdoor}
                   onDeleteOutdoor={onDeleteOutdoor}
+                  onPlaceOnMap={onPlaceOutdoorOnMap}
                 />
               )}
             </div>
@@ -347,6 +362,7 @@ function BuildingsList({
   onEditBuilding,
   onDeleteBuilding,
   onManageRooms,
+  onPlaceOnMap,
 }: {
   buildings: Building[]
   rooms: Room[]
@@ -354,6 +370,7 @@ function BuildingsList({
   onEditBuilding: (b: Building) => void
   onDeleteBuilding: (id: string, name: string) => void
   onManageRooms: (b: Building) => void
+  onPlaceOnMap: (b: Building) => void
 }) {
   return (
     <div>
@@ -377,10 +394,14 @@ function BuildingsList({
             {buildings.map((b) => {
               const roomCount = rooms.filter((r) => r.buildingId === b.id).length
               const sharedWith = b.schools ?? []
+              const notPlaced = b.latitude == null || b.longitude == null
               return (
                 <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                   <td className="py-2.5 px-4">
-                    <div className="font-medium text-slate-900">{b.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{b.name}</span>
+                      {notPlaced && <NotPlacedPill onClick={() => onPlaceOnMap(b)} />}
+                    </div>
                     {b.code && <div className="text-xs text-slate-400 mt-0.5">{b.code}</div>}
                     {sharedWith.length > 1 && (
                       <SharedPill schools={sharedWith} allSchools={schools} />
@@ -393,6 +414,7 @@ function BuildingsList({
                     <div className="flex justify-end">
                       <RowActionMenu
                         items={[
+                          { label: notPlaced ? 'Place on Map' : 'Move on Map', icon: <MapPin className="w-4 h-4" />, onClick: () => onPlaceOnMap(b) },
                           { label: 'Manage Rooms', icon: <DoorOpen className="w-4 h-4" />, onClick: () => onManageRooms(b) },
                           { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => onEditBuilding(b) },
                           { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeleteBuilding(b.id, b.name), variant: 'danger' as const },
@@ -417,11 +439,13 @@ function OutdoorList({
   schools,
   onEditOutdoor,
   onDeleteOutdoor,
+  onPlaceOnMap,
 }: {
   outdoorSpaces: Area[]
   schools: SchoolInfo[]
   onEditOutdoor: (a: Area) => void
   onDeleteOutdoor: (id: string, name: string) => void
+  onPlaceOnMap: (a: Area) => void
 }) {
   return (
     <div>
@@ -443,10 +467,14 @@ function OutdoorList({
           <tbody>
             {outdoorSpaces.map((a) => {
               const sharedWith = a.schools ?? []
+              const notPlaced = a.latitude == null || a.longitude == null
               return (
                 <tr key={a.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                   <td className="py-2.5 px-4">
-                    <div className="font-medium text-slate-900">{a.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{a.name}</span>
+                      {notPlaced && <NotPlacedPill onClick={() => onPlaceOnMap(a)} />}
+                    </div>
                     {sharedWith.length > 1 && (
                       <SharedPill schools={sharedWith} allSchools={schools} />
                     )}
@@ -457,6 +485,7 @@ function OutdoorList({
                     <div className="flex justify-end">
                       <RowActionMenu
                         items={[
+                          { label: notPlaced ? 'Place on Map' : 'Move on Map', icon: <MapPin className="w-4 h-4" />, onClick: () => onPlaceOnMap(a) },
                           { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => onEditOutdoor(a) },
                           { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeleteOutdoor(a.id, a.name), variant: 'danger' as const },
                         ]}
@@ -484,5 +513,22 @@ function SharedPill({ schools, allSchools }: { schools: { id: string; name: stri
       <Users className="w-3 h-3" />
       <span>Shared with {names}</span>
     </div>
+  )
+}
+
+/**
+ * "Not placed" pill — shown next to a building/outdoor name when it has no
+ * map coordinates yet. Clicking it triggers quick-place mode on the map.
+ */
+function NotPlacedPill({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+    >
+      <MapPinOff className="w-3 h-3" />
+      <span>Not placed</span>
+    </button>
   )
 }
