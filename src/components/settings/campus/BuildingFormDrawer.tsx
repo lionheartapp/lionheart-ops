@@ -5,6 +5,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageUpload from '@/components/settings/ImageUpload'
 import SchoolAccessSelector from './SchoolAccessSelector'
+import NameCombobox, { type ComboboxOption } from './NameCombobox'
 import type { Building, SchoolInfo } from './types'
 
 type BuildingFormDrawerProps = {
@@ -20,6 +21,12 @@ type BuildingFormDrawerProps = {
   onImageClick?: (images: string[], index: number) => void
   onNameChangeWithCoords?: (name: string) => void
   schools: SchoolInfo[]
+  /** All existing buildings — powers the search+add combobox when creating a new one. */
+  existingBuildings?: Building[]
+  /** Called when the user picks an existing building from the combobox. */
+  onSelectExistingBuilding?: (b: Building) => void
+  /** True when the drawer was opened from a map click (coords are pending). Tweaks the combobox copy. */
+  hasPendingCoords?: boolean
 }
 
 export default function BuildingFormDrawer({
@@ -35,7 +42,20 @@ export default function BuildingFormDrawer({
   onImageClick,
   onNameChangeWithCoords,
   schools,
+  existingBuildings,
+  onSelectExistingBuilding,
+  hasPendingCoords,
 }: BuildingFormDrawerProps) {
+  const comboboxOptions: ComboboxOption[] = React.useMemo(() => {
+    if (!existingBuildings) return []
+    return existingBuildings.map((b) => ({
+      id: b.id,
+      name: b.name,
+      notPlaced: b.latitude == null || b.longitude == null,
+      hint: b.code ?? undefined,
+    }))
+  }, [existingBuildings])
+
   return (
     <DetailDrawer
       isOpen={isOpen}
@@ -59,18 +79,43 @@ export default function BuildingFormDrawer({
           <div className="border-b border-slate-200 pb-3">
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Building Details</h3>
           </div>
-          <FloatingInput
-            id="ct-buildingName"
-            label="Building name"
-            value={form.name}
-            onChange={(e) => {
-              onFormChange({ name: e.target.value })
-              onNameChangeWithCoords?.(e.target.value)
-            }}
-            disabled={saving}
-            autoFocus
-            required
-          />
+          {!editingBuilding && existingBuildings && onSelectExistingBuilding ? (
+            <NameCombobox
+              id="ct-buildingName"
+              label="Building name"
+              value={form.name}
+              onChange={(v) => {
+                onFormChange({ name: v })
+                onNameChangeWithCoords?.(v)
+              }}
+              options={comboboxOptions}
+              onSelectExisting={(opt) => {
+                const match = existingBuildings.find((b) => b.id === opt.id)
+                if (match) onSelectExistingBuilding(match)
+              }}
+              disabled={saving}
+              autoFocus
+              required
+              contextHint={
+                hasPendingCoords
+                  ? 'Have you already added this building? Pick it below to place it at this location.'
+                  : undefined
+              }
+            />
+          ) : (
+            <FloatingInput
+              id="ct-buildingName"
+              label="Building name"
+              value={form.name}
+              onChange={(e) => {
+                onFormChange({ name: e.target.value })
+                onNameChangeWithCoords?.(e.target.value)
+              }}
+              disabled={saving}
+              autoFocus
+              required
+            />
+          )}
           <FloatingInput
             id="ct-buildingCode"
             label="Short code (optional)"

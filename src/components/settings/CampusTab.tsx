@@ -270,6 +270,59 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     scrollMapIntoView()
   }
 
+  /**
+   * Invoked from the Add Building combobox when the user picks an existing
+   * building that matches what they were typing. If the drawer was opened
+   * from a map click (pendingBuildingCoords set), we PATCH the existing
+   * record's coordinates to "adopt" it into that spot. Otherwise we close
+   * the Add drawer and open the Edit drawer for that building instead —
+   * they effectively wanted to edit, not create a duplicate.
+   */
+  const handleSelectExistingBuildingFromCombobox = async (b: Building) => {
+    if (pendingBuildingCoords) {
+      const coords = pendingBuildingCoords
+      setBuildingDrawerOpen(false); setEditingBuilding(null)
+      setPendingBuildingCoords(null); setPendingMarkerData(null)
+      try {
+        const res = await fetch(`/api/settings/campus/buildings/${b.id}`, {
+          method: 'PATCH', headers: getAuthHeaders(),
+          body: JSON.stringify({ latitude: coords.lat, longitude: coords.lng }),
+        })
+        if (handleAuthResponse(res)) return
+        const json = await res.json()
+        if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to place building')
+        setSuccessMessage(`"${b.name}" placed on map`)
+        await loadData()
+      } catch (e) { setError(e instanceof Error ? e.message : 'Failed to place building') }
+      return
+    }
+    // No pending coords — user just wanted to edit the existing one
+    setBuildingDrawerOpen(false); setPendingMarkerData(null)
+    openEditBuilding(b)
+  }
+
+  const handleSelectExistingOutdoorFromCombobox = async (a: Area) => {
+    if (pendingOutdoorCoords) {
+      const coords = pendingOutdoorCoords
+      setOutdoorDrawerOpen(false); setEditingOutdoor(null)
+      setPendingOutdoorCoords(null); setPendingMarkerData(null)
+      try {
+        const res = await fetch(`/api/settings/campus/areas/${a.id}`, {
+          method: 'PATCH', headers: getAuthHeaders(),
+          body: JSON.stringify({ latitude: coords.lat, longitude: coords.lng }),
+        })
+        if (handleAuthResponse(res)) return
+        const json = await res.json()
+        if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to place outdoor space')
+        setSuccessMessage(`"${a.name}" placed on map`)
+        await loadData()
+      } catch (e) { setError(e instanceof Error ? e.message : 'Failed to place outdoor space') }
+      return
+    }
+    setOutdoorDrawerOpen(false); setPendingMarkerData(null)
+    openEditOutdoor(a)
+  }
+
   // ─── Room CRUD (called from RoomsDrawer) ───────────────────────────────
   const handleAddRoom = async (form: { roomNumber: string; displayName: string; floor: string }) => {
     if (!roomsBuilding) return
@@ -505,9 +558,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       />
 
       {/* Drawers */}
-      <BuildingFormDrawer isOpen={buildingDrawerOpen} onClose={closeBuildingDrawer} editingBuilding={editingBuilding} form={buildingForm} onFormChange={(u) => setBuildingForm((p) => ({ ...p, ...u }))} error={buildingFormError} saving={buildingFormSaving} onSubmit={saveBuildingForm} onImagesChange={editingBuilding ? (imgs) => { setEditingBuilding({ ...editingBuilding, images: imgs }); setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingBuildingCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} />
+      <BuildingFormDrawer isOpen={buildingDrawerOpen} onClose={closeBuildingDrawer} editingBuilding={editingBuilding} form={buildingForm} onFormChange={(u) => setBuildingForm((p) => ({ ...p, ...u }))} error={buildingFormError} saving={buildingFormSaving} onSubmit={saveBuildingForm} onImagesChange={editingBuilding ? (imgs) => { setEditingBuilding({ ...editingBuilding, images: imgs }); setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingBuildingCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} existingBuildings={buildings} onSelectExistingBuilding={handleSelectExistingBuildingFromCombobox} hasPendingCoords={!!pendingBuildingCoords} />
 
-      <OutdoorFormDrawer isOpen={outdoorDrawerOpen} onClose={closeOutdoorDrawer} editingOutdoor={editingOutdoor} form={outdoorForm} onFormChange={(u) => setOutdoorForm((p) => ({ ...p, ...u }))} error={outdoorFormError} saving={outdoorFormSaving} onSubmit={saveOutdoorForm} onImagesChange={editingOutdoor ? (imgs) => { setEditingOutdoor({ ...editingOutdoor, images: imgs }); setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingOutdoorCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} />
+      <OutdoorFormDrawer isOpen={outdoorDrawerOpen} onClose={closeOutdoorDrawer} editingOutdoor={editingOutdoor} form={outdoorForm} onFormChange={(u) => setOutdoorForm((p) => ({ ...p, ...u }))} error={outdoorFormError} saving={outdoorFormSaving} onSubmit={saveOutdoorForm} onImagesChange={editingOutdoor ? (imgs) => { setEditingOutdoor({ ...editingOutdoor, images: imgs }); setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingOutdoorCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} existingOutdoorSpaces={outdoorSpaces} onSelectExistingOutdoor={handleSelectExistingOutdoorFromCombobox} hasPendingCoords={!!pendingOutdoorCoords} />
 
       <RoomsDrawer building={roomsBuilding} rooms={buildingRooms} onClose={() => { setRoomsBuilding(null) }} onAddRoom={handleAddRoom} onEditRoom={handleEditRoom} onDeactivateRoom={(id, name) => openDeactivateConfirm('room', id, name)} onRoomImagesChange={(roomId, imgs) => setRooms((prev) => prev.map((r) => r.id === roomId ? { ...r, images: imgs } : r))} onImageClick={openLightbox} />
 

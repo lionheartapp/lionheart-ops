@@ -5,6 +5,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageUpload from '@/components/settings/ImageUpload'
 import SchoolAccessSelector from './SchoolAccessSelector'
+import NameCombobox, { type ComboboxOption } from './NameCombobox'
 import type { Area, SchoolInfo } from './types'
 
 type OutdoorFormDrawerProps = {
@@ -20,6 +21,10 @@ type OutdoorFormDrawerProps = {
   onImageClick?: (images: string[], index: number) => void
   onNameChangeWithCoords?: (name: string) => void
   schools: SchoolInfo[]
+  /** All existing outdoor spaces — powers the search+add combobox when creating. */
+  existingOutdoorSpaces?: Area[]
+  onSelectExistingOutdoor?: (a: Area) => void
+  hasPendingCoords?: boolean
 }
 
 export default function OutdoorFormDrawer({
@@ -35,7 +40,19 @@ export default function OutdoorFormDrawer({
   onImageClick,
   onNameChangeWithCoords,
   schools,
+  existingOutdoorSpaces,
+  onSelectExistingOutdoor,
+  hasPendingCoords,
 }: OutdoorFormDrawerProps) {
+  const comboboxOptions: ComboboxOption[] = React.useMemo(() => {
+    if (!existingOutdoorSpaces) return []
+    return existingOutdoorSpaces.map((a) => ({
+      id: a.id,
+      name: a.name,
+      notPlaced: a.latitude == null || a.longitude == null,
+    }))
+  }, [existingOutdoorSpaces])
+
   return (
     <DetailDrawer
       isOpen={isOpen}
@@ -60,18 +77,43 @@ export default function OutdoorFormDrawer({
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Space Details</h3>
             <p className="mt-1 text-sm text-slate-500">Name it the way your staff and students already know it.</p>
           </div>
-          <FloatingInput
-            id="ct-areaName"
-            label="Name"
-            value={form.name}
-            onChange={(e) => {
-              onFormChange({ name: e.target.value })
-              onNameChangeWithCoords?.(e.target.value)
-            }}
-            disabled={saving}
-            autoFocus
-            required
-          />
+          {!editingOutdoor && existingOutdoorSpaces && onSelectExistingOutdoor ? (
+            <NameCombobox
+              id="ct-areaName"
+              label="Name"
+              value={form.name}
+              onChange={(v) => {
+                onFormChange({ name: v })
+                onNameChangeWithCoords?.(v)
+              }}
+              options={comboboxOptions}
+              onSelectExisting={(opt) => {
+                const match = existingOutdoorSpaces.find((a) => a.id === opt.id)
+                if (match) onSelectExistingOutdoor(match)
+              }}
+              disabled={saving}
+              autoFocus
+              required
+              contextHint={
+                hasPendingCoords
+                  ? 'Have you already added this space? Pick it below to place it at this location.'
+                  : undefined
+              }
+            />
+          ) : (
+            <FloatingInput
+              id="ct-areaName"
+              label="Name"
+              value={form.name}
+              onChange={(e) => {
+                onFormChange({ name: e.target.value })
+                onNameChangeWithCoords?.(e.target.value)
+              }}
+              disabled={saving}
+              autoFocus
+              required
+            />
+          )}
           <FloatingDropdown
             id="ct-areaType"
             label="Type"
