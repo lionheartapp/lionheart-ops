@@ -70,6 +70,11 @@ export const queryKeys = {
     range: (campusIds: string[], start: string, end: string) =>
       ['athletics-calendar-events', campusIds.join(','), start, end] as const,
   },
+  externalCalendar: {
+    all: ['external-calendar-events'] as const,
+    range: (start: string, end: string) =>
+      ['external-calendar-events', start, end] as const,
+  },
   athleticsSports: {
     all: ['athletics-sports'] as const,
   },
@@ -374,6 +379,17 @@ export const queryOptions = {
       return fetchApi<unknown[]>(`/api/athletics/calendar-events?${params}`)
     },
     staleTime: 5 * 60_000,
+  }),
+
+  externalCalendarEvents: (start: string, end: string) => ({
+    queryKey: queryKeys.externalCalendar.range(start, end),
+    queryFn: () => {
+      const params = new URLSearchParams({ start, end })
+      return fetchApi<unknown[]>(`/api/calendar-events/external?${params}`)
+    },
+    // Fresh for 1 min — external events can drift from upstream,
+    // so don't cache for long. 30-min cron refills the DB.
+    staleTime: 60_000,
   }),
 
   athleticsSports: () => ({

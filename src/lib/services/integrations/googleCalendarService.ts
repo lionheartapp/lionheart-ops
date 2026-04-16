@@ -6,7 +6,7 @@
  * All functions gracefully return null if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are not set.
  */
 
-import { google } from 'googleapis'
+import { google, calendar_v3 } from 'googleapis'
 import { rawPrisma } from '@/lib/db'
 import type { GoogleCalendarEvent } from '@/lib/types/integrations'
 import type { EventProject } from '@prisma/client'
@@ -308,6 +308,199 @@ export async function syncEventToCalendar(
     })
     return null
   }
+}
+
+// ─── Pull (inbound) sync: fetch user's Google events → ExternalCalendarEvent ──
+
+/**
+ * Default window for inbound sync: 7 days back, 90 days forward. Covers the
+ * user's immediate schedule so conflict checks are accurate, without pulling
+ * years of history we'd never reference.
+ */
+const INBOUND_PAST_DAYS = 7
+const INBOUND_FUTURE_DAYS = 90
+
+/**
+ * Pulls events from the user's primary Google Calendar into the
+ * ExternalCalendarEvent table. Idempotent — upserts by (userId, provider,
+ * externalId). Cancelled events from Google are soft-deleted locally so
+ * conflict checks ignore them.
+ *
+ * Returns { imported, deleted, error? } with counts so the caller can
+ * surface feedback in the UI.
+ */
+export async function importEventsFromGoogleCalendar(
+  userId: string,
+  organizationId: string
+): Promise<{ imported: number; deleted: number; error?: string }> {
+  if (!isAvailable()) {
+    return { imported: 0, deleted: 0, error: 'Google Calendar credentials not configured' }
+  }
+
+  const cred = await rawPrisma.integrationCredential.findFirst({
+    where: { organizationId, userId, provider: 'google_calendar', isActive: true },
+  })
+  if (!cred) {
+    return { imported: 0, deleted: 0, error: 'No active Google Calendar connection for this user' }
+  }
+
+  try {
+    const oauth2Client = await refreshTokenIfNeeded(cred.id)
+    if (!oauth2Client) {
+      return { imported: 0, deleted: 0, error: 'Failed to refresh Google Calendar token' }
+    }
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+
+    const now = new Date()
+    const timeMin = new Date(now.getTime() - INBOUND_PAST_DAYS * 24 * 60 * 60 * 1000)
+    const timeMax = new Date(now.getTime() + INBOUND_FUTURE_DAYS * 24 * 60 * 60 * 1000)
+
+    // Paginate events.list — recurring events are expanded via singleEvents=true
+    // so we store concrete instances, which is what conflict checks need.
+    let pageToken: string | undefined = undefined
+    const allItems: calendar_v3.Schema$Event[] = []
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const res: { data: calendar_v3.Schema$Events } = await calendar.events.list({
+        calendarId: 'primary',
+        timeMin: timeMin.toISOString(),
+        timeMax: timeMax.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 2500,
+        showDeleted: true,
+        pageToken,
+      })
+      if (res.data.items) allItems.push(...res.data.items)
+      if (!res.data.nextPageToken) break
+      pageToken = res.data.nextPageToken
+    }
+
+    const primaryCalendarName = 'primary'
+    let imported = 0
+    let deleted = 0
+
+    for (const item of allItems) {
+      const externalId = item.id
+      if (!externalId) continue
+
+      // Cancelled events — soft-delete the local row
+      if (item.status === 'cancelled') {
+        const hit = await rawPrisma.externalCalendarEvent.updateMany({
+          where: { userId, provider: 'google_calendar', externalId },
+          data: { deletedAt: new Date(), status: 'cancelled', lastSyncedAt: new Date() },
+        })
+        if (hit.count > 0) deleted += hit.count
+        continue
+      }
+
+      const { startsAt, endsAt, isAllDay } = normalizeGoogleTime(item.start, item.end)
+      if (!startsAt || !endsAt) continue
+
+      await rawPrisma.externalCalendarEvent.upsert({
+        where: {
+          userId_provider_externalId: { userId, provider: 'google_calendar', externalId },
+        },
+        create: {
+          organizationId,
+          userId,
+          provider: 'google_calendar',
+          externalId,
+          sourceCalendarId: 'primary',
+          sourceCalendarName: primaryCalendarName,
+          title: item.summary ?? '(No title)',
+          description: item.description ?? null,
+          location: item.location ?? null,
+          url: item.htmlLink ?? null,
+          startsAt,
+          endsAt,
+          isAllDay,
+          status: item.status ?? 'confirmed',
+          timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
+          lastSyncedAt: new Date(),
+        },
+        update: {
+          title: item.summary ?? '(No title)',
+          description: item.description ?? null,
+          location: item.location ?? null,
+          url: item.htmlLink ?? null,
+          startsAt,
+          endsAt,
+          isAllDay,
+          status: item.status ?? 'confirmed',
+          timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
+          lastSyncedAt: new Date(),
+          deletedAt: null, // resurrect if previously tombstoned
+          updatedAt: new Date(),
+        },
+      })
+      imported++
+    }
+
+    // Mark the credential's last-sync timestamp for UI display
+    await rawPrisma.integrationCredential.update({
+      where: { id: cred.id },
+      data: { lastSyncAt: new Date(), updatedAt: new Date() },
+    })
+
+    // Audit log
+    await rawPrisma.integrationSyncLog.create({
+      data: {
+        organizationId,
+        credentialId: cred.id,
+        provider: 'google_calendar',
+        action: 'pull_events',
+        status: 'success',
+        recordsProcessed: imported,
+        recordsFailed: 0,
+        metadata: { imported, deleted, windowDays: INBOUND_PAST_DAYS + INBOUND_FUTURE_DAYS },
+      },
+    })
+
+    return { imported, deleted }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error during Google Calendar import'
+    await rawPrisma.integrationSyncLog.create({
+      data: {
+        organizationId,
+        credentialId: cred.id,
+        provider: 'google_calendar',
+        action: 'pull_events',
+        status: 'failed',
+        recordsProcessed: 0,
+        recordsFailed: 1,
+        errorMessage: message,
+      },
+    })
+    return { imported: 0, deleted: 0, error: message }
+  }
+}
+
+/**
+ * Normalizes a Google event's `start` / `end` fields into Date objects and
+ * an all-day flag. Google returns either `dateTime` (timed) or `date` (all-day),
+ * never both. All-day end dates are exclusive — Google says end=2026-05-01
+ * means the event runs through Apr 30 inclusive.
+ */
+function normalizeGoogleTime(
+  start: { date?: string | null; dateTime?: string | null; timeZone?: string | null } | null | undefined,
+  end: { date?: string | null; dateTime?: string | null; timeZone?: string | null } | null | undefined,
+): { startsAt: Date | null; endsAt: Date | null; isAllDay: boolean } {
+  if (!start || !end) return { startsAt: null, endsAt: null, isAllDay: false }
+
+  if (start.dateTime && end.dateTime) {
+    return { startsAt: new Date(start.dateTime), endsAt: new Date(end.dateTime), isAllDay: false }
+  }
+
+  if (start.date && end.date) {
+    // All-day event — treat end as exclusive per the iCal/Google convention
+    const startsAt = new Date(`${start.date}T00:00:00`)
+    const endsAt = new Date(`${end.date}T00:00:00`)
+    return { startsAt, endsAt, isAllDay: true }
+  }
+
+  return { startsAt: null, endsAt: null, isAllDay: false }
 }
 
 // ─── Remove event from calendar ──────────────────────────────────────────────

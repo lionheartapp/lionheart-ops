@@ -289,6 +289,7 @@ function GoogleCalendarCard({
 }) {
   const { toast } = useToast()
   const [disconnecting, setDisconnecting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const handleConnect = async () => {
     try {
@@ -305,6 +306,32 @@ function GoogleCalendarCard({
       }
     } catch {
       toast('Failed to connect Google Calendar', 'error')
+    }
+  }
+
+  const handleSyncNow = async () => {
+    setSyncing(true)
+    try {
+      const token = localStorage.getItem('auth-token')
+      const res = await fetch('/api/integrations/google-calendar/sync-inbound', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) {
+        toast(data.error?.message || 'Sync failed', 'error')
+        return
+      }
+      const { imported = 0, deleted = 0 } = data.data ?? {}
+      const parts: string[] = []
+      if (imported > 0) parts.push(`${imported} event${imported === 1 ? '' : 's'} synced`)
+      if (deleted > 0) parts.push(`${deleted} removed`)
+      toast(parts.length ? parts.join(' · ') : 'Calendar is already up to date', 'success')
+      onRefresh()
+    } catch {
+      toast('Failed to sync Google Calendar', 'error')
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -341,7 +368,8 @@ function GoogleCalendarCard({
 
       {/* Description */}
       <p className="text-[13px] text-slate-500 leading-relaxed flex-grow">
-        Sync events to your personal Google Calendar so they appear alongside your other meetings.
+        Pull events from your personal Google Calendar into Lionheart so you see conflicts when booking,
+        and push Lionheart events back to your calendar.
       </p>
 
       {!status.isAvailable ? (
@@ -356,7 +384,15 @@ function GoogleCalendarCard({
           )}
           <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <button
+              onClick={handleSyncNow}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing…' : 'Sync Now'}
+            </button>
             <button
               onClick={handleDisconnect}
               disabled={disconnecting}

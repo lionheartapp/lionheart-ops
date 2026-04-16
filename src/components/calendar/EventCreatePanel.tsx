@@ -9,6 +9,8 @@ import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCa
 import { FloatingInput, FloatingTextarea, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RecurrenceBuilder from './RecurrenceBuilder'
 import AttendeePicker, { type AttendeeSelection } from './AttendeePicker'
+import ExternalConflictDialog, { type ExternalConflict } from './ExternalConflictDialog'
+import { fetchApi } from '@/lib/api-client'
 
 interface EventCreatePanelProps {
   isOpen: boolean
@@ -458,28 +460,75 @@ export default function EventCreatePanel({
 
   const [timeError, setTimeError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.title.trim() || !form.calendarId) return
+  // ─── External calendar conflict check ───────────────────────────────
+  const [conflictData, setConflictData] = useState<ExternalConflict[]>([])
+  const [showConflictDialog, setShowConflictDialog] = useState(false)
+  const [pendingSubmitData, setPendingSubmitData] = useState<EventFormData | null>(null)
+  const [checkingConflicts, setCheckingConflicts] = useState(false)
 
+  const buildFormData = (): EventFormData | null => {
+    if (!form.title.trim() || !form.calendarId) return null
     const start = new Date(form.startTime)
     const end = new Date(form.endTime)
     if (!form.isAllDay && end <= start) {
       setTimeError('End time must be after start time')
-      return
+      return null
     }
     setTimeError(null)
-
-    onSubmit({
+    return {
       ...form,
       categoryId: form.categoryId || '',
-      startTime: new Date(form.startTime).toISOString(),
-      endTime: new Date(form.endTime).toISOString(),
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
       buildingId: form.buildingId || null,
       areaId: form.areaId || null,
       rrule: form.rrule || null,
       attendeeIds: attendees.length > 0 ? attendees.map((a) => a.id) : undefined,
-    })
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const data = buildFormData()
+    if (!data) return
+
+    // Check for conflicts with the user's connected external calendars.
+    // Skip if this is an edit (the user already accepted the time when creating).
+    if (!isEditing) {
+      setCheckingConflicts(true)
+      try {
+        const params = new URLSearchParams({ startsAt: data.startTime, endsAt: data.endTime })
+        const result = await fetchApi<{ conflicts: ExternalConflict[] }>(
+          `/api/calendar-events/external/conflicts?${params}`
+        )
+        if (result.conflicts && result.conflicts.length > 0) {
+          setConflictData(result.conflicts)
+          setPendingSubmitData(data)
+          setShowConflictDialog(true)
+          setCheckingConflicts(false)
+          return // Wait for the user to confirm or cancel
+        }
+      } catch {
+        // Network error or user has no connected calendars — proceed without blocking.
+      }
+      setCheckingConflicts(false)
+    }
+
+    onSubmit(data)
+  }
+
+  const handleConflictContinue = () => {
+    setShowConflictDialog(false)
+    if (pendingSubmitData) {
+      onSubmit(pendingSubmitData)
+      setPendingSubmitData(null)
+    }
+  }
+
+  const handleConflictCancel = () => {
+    setShowConflictDialog(false)
+    setPendingSubmitData(null)
+    setConflictData([])
   }
 
   const selectedCalendar = calendars.find((c) => c.id === form.calendarId)
@@ -511,6 +560,7 @@ export default function EventCreatePanel({
   }, [])
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -840,11 +890,11 @@ export default function EventCreatePanel({
             <div className="px-6 pb-6 pt-2 space-y-3">
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !form.title.trim() || !form.calendarId}
+                disabled={isSubmitting || checkingConflicts || !form.title.trim() || !form.calendarId}
                 className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
-                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isEditing ? 'Save Changes' : (isMeeting ? 'Schedule Meeting' : 'Create Event')}
+                {(isSubmitting || checkingConflicts) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {checkingConflicts ? 'Checking conflicts…' : isEditing ? 'Save Changes' : (isMeeting ? 'Schedule Meeting' : 'Create Event')}
               </button>
               {!form.calendarId && form.title.trim() && (
                 <p className="text-xs text-amber-600 text-center">Please select a calendar</p>
@@ -861,5 +911,14 @@ export default function EventCreatePanel({
         </>
       )}
     </AnimatePresence>
+
+    <ExternalConflictDialog
+      isOpen={showConflictDialog}
+      conflicts={conflictData}
+      onCancel={handleConflictCancel}
+      onContinue={handleConflictContinue}
+      proposedTitle={form.title.trim()}
+    />
+    </>
   )
 }

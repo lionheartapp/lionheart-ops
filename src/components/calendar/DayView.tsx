@@ -316,6 +316,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                             onClick={onEventClick}
                             dragAxis="y"
                             subColumnStyle={colStyle}
+                            readOnly={event.sourceModule === 'external'}
                           >
                             <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: eventColor }}>
                               <CampusShapeIndicator
@@ -349,7 +350,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           onClick={onEventClick}
                           dragAxis="y"
                           subColumnStyle={colStyle}
-                          readOnly={!isSelf}
+                          readOnly={!isSelf || event.sourceModule === 'external'}
                           style={!isSelf ? {
                             backgroundColor: `${col.color}15`,
                             borderLeft: `3px solid ${col.color}`,
@@ -397,6 +398,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                           onClick={onEventClick}
                           dragAxis="y"
                           subColumnStyle={colStyle}
+                          readOnly={event.sourceModule === 'external'}
                         >
                           <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>
                             <CampusShapeIndicator

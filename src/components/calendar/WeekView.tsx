@@ -370,6 +370,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                   columnWidth={columnWidth}
                                   weekDates={weekDates}
                                   subColumnStyle={colStyle}
+                                  readOnly={event.sourceModule === 'external'}
                                 >
                                   <div className="font-semibold text-xs truncate flex items-center gap-1" style={{ color: eventColor }}>
                                     {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
@@ -444,6 +445,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                 dragAxis="both"
                                 columnWidth={columnWidth}
                                 weekDates={weekDates}
+                                readOnly={event.sourceModule === 'external'}
                                 subColumnStyle={colStyle}
                               >
                                 <div className="font-semibold text-sm truncate flex items-center gap-1" style={{ color: getEventColor(event) }}>

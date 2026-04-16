@@ -45,6 +45,7 @@ import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
+import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
 // queryOptions removed — userCampuses uses inline fetch
@@ -326,6 +327,15 @@ export default function CalendarView() {
   )
   const { data: athleticsSports = [] } = useAthleticsSports(anyAthleticsVisible)
 
+  // Current user's external (Google/Microsoft) calendar events, rendered as
+  // read-only "busy" blocks. Safe to always-on — endpoint returns an empty
+  // array for users who haven't connected any calendars.
+  const { data: externalEvents = [] } = useExternalCalendarEvents(
+    start.toISOString(),
+    end.toISOString(),
+    true,
+  )
+
   // Build unique campus list from calendars that have campus info
   const athleticsCampuses = useMemo(() => {
     if (!anyAthleticsVisible) return []
@@ -397,8 +407,19 @@ export default function CalendarView() {
       result = [...result, ...athEvents]
     }
 
+    // Merge user's external (Google/Microsoft) calendar events. These are
+    // read-only "busy" blocks — they participate in search but not category
+    // filtering, since they don't belong to any Lionheart category.
+    if (externalEvents.length > 0) {
+      let extEvents = externalEvents
+      if (q) {
+        extEvents = extEvents.filter((e) => e.title.toLowerCase().includes(q))
+      }
+      result = [...result, ...extEvents]
+    }
+
     return result
-  }, [events, searchQuery, calendarFilter.categoryIds, filteredAthleticsEvents])
+  }, [events, searchQuery, calendarFilter.categoryIds, filteredAthleticsEvents, externalEvents])
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -509,6 +530,15 @@ export default function CalendarView() {
   }
 
   const handleEventClick = useCallback((event: CalendarEventData) => {
+    // External (Google/Microsoft) events are read-only in Lionheart — open
+    // the source event in a new tab if the provider gave us a URL, otherwise
+    // do nothing. We deliberately don't open the EventDetailPanel because
+    // there's nothing to edit here.
+    if (event.sourceModule === 'external') {
+      const meta = event.metadata as { url?: string | null } | null | undefined
+      if (meta?.url) window.open(meta.url, '_blank', 'noopener,noreferrer')
+      return
+    }
     setSelectedEvent(event)
   }, [])
 
