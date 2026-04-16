@@ -7,6 +7,7 @@ import { ok, fail } from '@/lib/api-response'
 import { rawPrisma } from '@/lib/db'
 import * as planningCenterService from '@/lib/services/integrations/planningCenterService'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
+import * as microsoftCalendarService from '@/lib/services/integrations/microsoftCalendarService'
 
 /**
  * GET /api/integrations/status
@@ -41,6 +42,14 @@ export async function GET(req: NextRequest) {
 
       const gcalConfig = gcalCred?.config as Record<string, string> | null
 
+      // Microsoft Calendar — per-user
+      const mscalCred = await rawPrisma.integrationCredential.findFirst({
+        where: { organizationId: orgId, userId: ctx.userId, provider: 'microsoft_calendar', isActive: true },
+        select: { config: true, lastSyncAt: true },
+      })
+
+      const mscalConfig = mscalCred?.config as Record<string, string> | null
+
       // Twilio — org-level
       const twilioCred = await rawPrisma.integrationCredential.findFirst({
         where: { organizationId: orgId, provider: 'twilio', isActive: true },
@@ -64,6 +73,13 @@ export async function GET(req: NextRequest) {
           isConnected: !!gcalCred,
           lastSyncAt: gcalCred?.lastSyncAt || null,
           userName: gcalConfig?.googleEmail || null,
+        },
+        microsoftCalendar: {
+          provider: 'microsoft_calendar',
+          isAvailable: microsoftCalendarService.isAvailable(),
+          isConnected: !!mscalCred,
+          lastSyncAt: mscalCred?.lastSyncAt || null,
+          userName: mscalConfig?.msEmail || null,
         },
         twilio: {
           provider: 'twilio',
