@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
+import { ok, fail, classifyServiceError } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
@@ -38,10 +38,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(ok(schedule))
     })
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
-      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to fetch bell schedule'), { status: 500 })
+    const classified = classifyServiceError(error, 'Failed to fetch bell schedule')
+    return NextResponse.json(classified.body, { status: classified.status })
   }
 }
 
@@ -59,13 +57,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(ok(schedule))
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
-    }
-    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
-      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to update bell schedule'), { status: 500 })
+    const classified = classifyServiceError(error, 'Failed to update bell schedule')
+    return NextResponse.json(classified.body, { status: classified.status })
   }
 }
 
@@ -81,9 +74,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
-      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
-    }
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to delete bell schedule'), { status: 500 })
+    const classified = classifyServiceError(error, 'Failed to delete bell schedule')
+    return NextResponse.json(classified.body, { status: classified.status })
   }
 }

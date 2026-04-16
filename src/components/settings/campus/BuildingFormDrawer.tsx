@@ -4,13 +4,14 @@ import React from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageUpload from '@/components/settings/ImageUpload'
-import type { Building } from './types'
+import SchoolAccessSelector from './SchoolAccessSelector'
+import type { Building, SchoolInfo } from './types'
 
 type BuildingFormDrawerProps = {
   isOpen: boolean
   onClose: () => void
   editingBuilding: Building | null
-  form: { name: string; code: string; schoolDivision: string; buildingType: string }
+  form: { name: string; code: string; schoolDivision: string; buildingType: string; schoolIds: string[] }
   onFormChange: (update: Partial<BuildingFormDrawerProps['form']>) => void
   error: string
   saving: boolean
@@ -18,6 +19,7 @@ type BuildingFormDrawerProps = {
   onImagesChange?: (imgs: string[]) => void
   onImageClick?: (images: string[], index: number) => void
   onNameChangeWithCoords?: (name: string) => void
+  schools: SchoolInfo[]
 }
 
 export default function BuildingFormDrawer({
@@ -32,6 +34,7 @@ export default function BuildingFormDrawer({
   onImagesChange,
   onImageClick,
   onNameChangeWithCoords,
+  schools,
 }: BuildingFormDrawerProps) {
   return (
     <DetailDrawer
@@ -76,19 +79,6 @@ export default function BuildingFormDrawer({
             disabled={saving}
           />
           <FloatingDropdown
-            id="ct-buildingDivision"
-            label="School division"
-            value={form.schoolDivision}
-            onChange={(v) => onFormChange({ schoolDivision: v })}
-            disabled={saving}
-            options={[
-              { value: 'GLOBAL', label: 'Global (all divisions)' },
-              { value: 'ELEMENTARY', label: 'Elementary' },
-              { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
-              { value: 'HIGH_SCHOOL', label: 'High School' },
-            ]}
-          />
-          <FloatingDropdown
             id="ct-buildingType"
             label="Building type"
             value={form.buildingType}
@@ -101,6 +91,15 @@ export default function BuildingFormDrawer({
               { value: 'ADMINISTRATION', label: 'Administration' },
               { value: 'SUPPORT_SERVICES', label: 'Support Services' },
             ]}
+          />
+        </section>
+
+        <section className="space-y-4 border-t border-slate-200 pt-6">
+          <SchoolAccessSelector
+            selectedIds={form.schoolIds}
+            schools={schools}
+            onChange={(ids) => onFormChange({ schoolIds: ids })}
+            disabled={saving}
           />
         </section>
 

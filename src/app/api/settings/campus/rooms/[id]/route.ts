@@ -4,6 +4,7 @@ import { ok, fail } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { withAuth } from '@/lib/api/with-auth'
+import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const UpdateRoomSchema = z.object({
   buildingId: z.string().min(1).optional(),
@@ -77,6 +78,8 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
     },
   })
 
+  invalidateOrgCache(orgId)
+
   return NextResponse.json(ok(room))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateRoomSchema })
 
@@ -88,5 +91,6 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params }
   }
 
   const room = await prisma.room.update({ where: { id: params.id }, data: { isActive: false } })
+  invalidateOrgCache(orgId)
   return NextResponse.json(ok(room))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })

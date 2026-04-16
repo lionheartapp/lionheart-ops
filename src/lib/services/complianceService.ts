@@ -207,133 +207,144 @@ export async function updateComplianceDomainConfig(
 
 /**
  * For each enabled domain config, compute due dates in the given year range
- * and upsert ComplianceRecord rows (idempotent).
+ * and create ComplianceRecord rows (idempotent).
+ *
+ * Performance notes: all Prisma work is batched into a constant number of
+ * round trips — (1) load configs, (2) createMany missing configs,
+ * (3) reload after create, (4) single findMany for existing records across
+ * all configs, (5) single createMany for all new records. Previous
+ * implementation did ~6 N+1 queries per domain and used a broken upsert.
  */
 export async function populateComplianceCalendar(
   orgId: string,
   schoolYearStart: Date,
   schoolYearEnd: Date
-) {
-  // Get all domain configs for this org (including those without custom config)
-  const configs = await rawPrisma.complianceDomainConfig.findMany({
-    where: { organizationId: orgId, isEnabled: true },
+): Promise<number> {
+  // 1) Load existing configs for the org (default scope = schoolId: null)
+  const initialConfigs = await rawPrisma.complianceDomainConfig.findMany({
+    where: { organizationId: orgId, schoolId: null },
   })
 
-  // Also handle domains that have no row yet (defaults to enabled)
-  const allDomains = COMPLIANCE_DOMAINS
+  const configByDomain = new Map(initialConfigs.map((c) => [c.domain, c]))
 
-  let createdCount = 0
+  // 2) Create any missing default configs for enabled domains in one round trip
+  const missingDomains = COMPLIANCE_DOMAINS.filter((d) => !configByDomain.has(d))
 
-  for (const domain of allDomains) {
-    const config = configs.find((c) => c.domain === domain)
-    const meta = COMPLIANCE_DOMAIN_DEFAULTS[domain]
-
-    // Skip if explicitly disabled
-    if (config && !config.isEnabled) continue
-
-    // Get or create the config row (find-or-create to handle nullable schoolId)
-    let configId: string
-    if (config) {
-      configId = config.id
-    } else {
-      const existingDefault = await rawPrisma.complianceDomainConfig.findFirst({
-        where: { organizationId: orgId, schoolId: null, domain },
-      })
-      if (existingDefault) {
-        configId = existingDefault.id
-      } else {
-        const newConfig = await rawPrisma.complianceDomainConfig.create({
-          data: {
-            organizationId: orgId,
-            schoolId: null,
-            domain,
-            isEnabled: true,
-          },
-        })
-        configId = newConfig.id
-      }
-    }
-
-    const deadlineMonth = config?.customDeadlineMonth ?? meta.defaultMonth
-    const deadlineDay = config?.customDeadlineDay ?? meta.defaultDay
-    const schoolId = config?.schoolId ?? null
-
-    // Check last completed record to determine if due this year
-    const lastRecord = await rawPrisma.complianceRecord.findFirst({
-      where: {
+  if (missingDomains.length > 0) {
+    await rawPrisma.complianceDomainConfig.createMany({
+      data: missingDomains.map((domain) => ({
         organizationId: orgId,
-        domainConfigId: configId,
-        outcome: 'PASSED',
-        deletedAt: null,
-      },
-      orderBy: { dueDate: 'desc' },
+        schoolId: null,
+        domain,
+        isEnabled: true,
+      })),
+      skipDuplicates: true,
     })
 
-    // Compute due dates in range based on frequency
+    // 3) Reload to get IDs for the newly created configs
+    const refreshed = await rawPrisma.complianceDomainConfig.findMany({
+      where: { organizationId: orgId, schoolId: null },
+    })
+    refreshed.forEach((c) => configByDomain.set(c.domain, c))
+  }
+
+  // Filter to only enabled configs
+  const enabledConfigs = Array.from(configByDomain.values()).filter(
+    (c) => c.isEnabled !== false
+  )
+
+  if (enabledConfigs.length === 0) return 0
+
+  const enabledConfigIds = enabledConfigs.map((c) => c.id)
+
+  // 4) Single query for ALL relevant existing records across every config
+  const existingRecords = await rawPrisma.complianceRecord.findMany({
+    where: {
+      organizationId: orgId,
+      domainConfigId: { in: enabledConfigIds },
+      deletedAt: null,
+      dueDate: { gte: schoolYearStart, lte: schoolYearEnd },
+    },
+    select: {
+      domainConfigId: true,
+      dueDate: true,
+      outcome: true,
+    },
+  })
+
+  // Build fast lookups:
+  // - existingKey set: prevents duplicate creation for (config,dueDate)
+  // - lastPassedByConfig: latest PASSED record per config for frequency gating
+  const existingKey = new Set<string>()
+  const lastPassedByConfig = new Map<string, Date>()
+
+  for (const rec of existingRecords) {
+    existingKey.add(`${rec.domainConfigId}:${rec.dueDate.toISOString()}`)
+    if (rec.outcome === 'PASSED') {
+      const current = lastPassedByConfig.get(rec.domainConfigId)
+      if (!current || rec.dueDate > current) {
+        lastPassedByConfig.set(rec.domainConfigId, rec.dueDate)
+      }
+    }
+  }
+
+  // 5) Compose the list of records to create
+  type NewRecord = {
+    organizationId: string
+    domainConfigId: string
+    schoolId: string | null
+    domain: (typeof COMPLIANCE_DOMAINS)[number]
+    title: string
+    dueDate: Date
+    outcome: 'PENDING'
+    status: ComplianceStatus
+  }
+
+  const toCreate: NewRecord[] = []
+
+  for (const config of enabledConfigs) {
+    const domain = config.domain
+    const meta = COMPLIANCE_DOMAIN_DEFAULTS[domain]
+    const deadlineMonth = config.customDeadlineMonth ?? meta.defaultMonth
+    const deadlineDay = config.customDeadlineDay ?? meta.defaultDay
+
+    const lastPassed = lastPassedByConfig.get(config.id) ?? null
     const dueDates = computeDueDates(
       schoolYearStart,
       schoolYearEnd,
       deadlineMonth,
       deadlineDay,
       meta.frequencyYears,
-      lastRecord?.dueDate ?? null
+      lastPassed
     )
 
     for (const dueDate of dueDates) {
-      const yearLabel = dueDate.getFullYear()
-      const title = `${meta.label} ${yearLabel}`
+      const key = `${config.id}:${dueDate.toISOString()}`
+      if (existingKey.has(key)) continue
 
-      try {
-        await rawPrisma.complianceRecord.upsert({
-          where: {
-            // We need a unique key — use a composite approach via findFirst + create
-            // Since there's no @@unique on (orgId, domainConfigId, dueDate), we simulate idempotency
-            // by checking existence first
-            id: 'non-existent-id', // Force create path
-          },
-          create: {
-            organizationId: orgId,
-            domainConfigId: configId,
-            schoolId,
-            domain,
-            title,
-            dueDate,
-            outcome: 'PENDING',
-            status: computeStatusFromDueDate(dueDate),
-          },
-          update: {},
-        })
-        createdCount++
-      } catch {
-        // Record may already exist — check and skip
-        const existing = await rawPrisma.complianceRecord.findFirst({
-          where: {
-            organizationId: orgId,
-            domainConfigId: configId,
-            dueDate,
-            deletedAt: null,
-          },
-        })
-        if (!existing) {
-          await rawPrisma.complianceRecord.create({
-            data: {
-              organizationId: orgId,
-              domainConfigId: configId,
-              schoolId,
-              domain,
-              title,
-              dueDate,
-              outcome: 'PENDING',
-              status: computeStatusFromDueDate(dueDate),
-            },
-          })
-          createdCount++
-        }
-      }
+      toCreate.push({
+        organizationId: orgId,
+        domainConfigId: config.id,
+        schoolId: config.schoolId ?? null,
+        domain,
+        title: `${meta.label} ${dueDate.getFullYear()}`,
+        dueDate,
+        outcome: 'PENDING',
+        status: computeStatusFromDueDate(dueDate),
+      })
+      existingKey.add(key)
     }
   }
 
-  return createdCount
+  if (toCreate.length === 0) return 0
+
+  // 6) Bulk create in a single round trip
+  const result = await rawPrisma.complianceRecord.createMany({
+    data: toCreate,
+    skipDuplicates: true,
+  })
+
+  return result.count
 }
 
 function computeDueDates(

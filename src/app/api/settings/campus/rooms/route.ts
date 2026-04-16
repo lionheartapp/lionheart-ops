@@ -4,6 +4,7 @@ import { ok, fail } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { withAuth } from '@/lib/api/with-auth'
+import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const CreateRoomSchema = z.object({
   buildingId: z.string().min(1),
@@ -75,6 +76,8 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
       area: { select: { id: true, name: true, areaType: true } },
     },
   })
+
+  invalidateOrgCache(orgId)
 
   return NextResponse.json(ok(room), { status: 201 })
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateRoomSchema })

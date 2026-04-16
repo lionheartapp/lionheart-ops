@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { Plus, Edit2, Trash2, Check } from 'lucide-react'
@@ -23,11 +23,26 @@ import type { SchoolFormData, SuccessModalData, PrincipalEditorData } from '@/li
 
 type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
-interface SchoolsManagementProps {
-  campusId?: string
+export type SchoolsManagementHandle = {
+  openNew: () => void
+  openEdit: (schoolId: string) => void
+  promptDelete: (schoolId: string) => void
+  /** Called after any change so parent can refresh facility views */
+  reload: () => void
 }
 
-export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsManagementProps) {
+interface SchoolsManagementProps {
+  campusId?: string
+  /** Hide the default Schools table + header; only render drawers/modals. Use the ref API to drive CRUD. */
+  hideTable?: boolean
+  /** Called whenever schools list changes so parent components can refresh. */
+  onSchoolsChanged?: () => void
+}
+
+const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementProps>(function SchoolsManagement(
+  { campusId: campusIdProp, hideTable = false, onSchoolsChanged }: SchoolsManagementProps,
+  ref
+) {
   const [schools, setSchools] = useState<SchoolData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -91,6 +106,24 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Expose imperative API so parent components (e.g. SchoolGroupedFacilities
+  // inside CampusTab) can drive Add/Edit/Delete from their own buttons while
+  // we keep ownership of drawers + modals here.
+  useImperativeHandle(
+    ref,
+    () => ({
+      openNew: () => handleOpenNew(),
+      openEdit: (schoolId: string) => {
+        const school = schools.find((s) => s.id === schoolId)
+        if (school) handleEdit(school)
+      },
+      promptDelete: (schoolId: string) => setDeleteConfirmId(schoolId),
+      reload: () => loadSchools(),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [schools]
+  )
 
   const getAuthHeaders = () => getCookieAuthHeaders()
 
@@ -193,6 +226,7 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
         setForm(EMPTY_FORM)
         setCreatedPrincipalInFlow(false)
         setPrincipalSearch('')
+        onSchoolsChanged?.()
       } else {
         // For new schools, show success modal only when principal was created via Add Principal
         if (createdPrincipalInFlow) {
@@ -214,6 +248,7 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
         setSelectedPrincipalId(null)
         setCreatedPrincipalInFlow(false)
         setPrincipalSearch('')
+        onSchoolsChanged?.()
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save school'
@@ -244,6 +279,7 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
 
       setSchools((prev) => prev.filter((s) => s.id !== id))
       setDeleteConfirmId(null)
+      onSchoolsChanged?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete school')
     } finally {
@@ -316,30 +352,34 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
     setPrincipalEditor(null)
   }
 
-  if (loading) {
+  if (loading && !hideTable) {
     return <div className="text-sm text-slate-500">Loading schools...</div>
   }
 
+  const deletingSchool = deleteConfirmId ? schools.find((s) => s.id === deleteConfirmId) : null
+
   return (
-    <div className="space-y-3">
-      {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+    <div className={hideTable ? '' : 'space-y-3'}>
+      {error && !hideTable && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">Schools</h3>
-          <p className="text-sm text-slate-500 mt-0.5">Schools operating from this campus</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleOpenNew}
-          className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add School
-        </button>
-      </div>
+      {!hideTable && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">Schools</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Schools operating from this campus</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenNew}
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[36px] text-sm font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition"
+            >
+              <Plus className="w-4 h-4" />
+              Add School
+            </button>
+          </div>
 
-      <div className="ui-glass-table">
+          <div className="ui-glass-table">
         {schools.length === 0 ? (
           <div className="text-center py-14">
             <IllustrationCampus className="w-48 h-40 mx-auto mb-2" />
@@ -422,6 +462,41 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
           </table>
         )}
       </div>
+        </>
+      )}
+
+      {/* Modal confirm for deletes triggered externally (when table is hidden) */}
+      {hideTable && deletingSchool && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Delete {deletingSchool.name}?</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                This removes the school from this campus. Buildings and outdoor spaces scoped to this school will become shared.
+              </p>
+            </div>
+            {error && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteSchool(deletingSchool.id)}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                {saving ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* School Drawer */}
       <DetailDrawer
@@ -578,4 +653,6 @@ export default function SchoolsManagement({ campusId: campusIdProp }: SchoolsMan
       />
     </div>
   )
-}
+})
+
+export default SchoolsManagement

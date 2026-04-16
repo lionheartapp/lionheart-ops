@@ -4,13 +4,14 @@ import React from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import ImageUpload from '@/components/settings/ImageUpload'
-import type { Area } from './types'
+import SchoolAccessSelector from './SchoolAccessSelector'
+import type { Area, SchoolInfo } from './types'
 
 type OutdoorFormDrawerProps = {
   isOpen: boolean
   onClose: () => void
   editingOutdoor: Area | null
-  form: { name: string; areaType: string }
+  form: { name: string; areaType: string; schoolIds: string[] }
   onFormChange: (update: Partial<OutdoorFormDrawerProps['form']>) => void
   error: string
   saving: boolean
@@ -18,6 +19,7 @@ type OutdoorFormDrawerProps = {
   onImagesChange?: (imgs: string[]) => void
   onImageClick?: (images: string[], index: number) => void
   onNameChangeWithCoords?: (name: string) => void
+  schools: SchoolInfo[]
 }
 
 export default function OutdoorFormDrawer({
@@ -32,6 +34,7 @@ export default function OutdoorFormDrawer({
   onImagesChange,
   onImageClick,
   onNameChangeWithCoords,
+  schools,
 }: OutdoorFormDrawerProps) {
   return (
     <DetailDrawer
@@ -83,6 +86,15 @@ export default function OutdoorFormDrawer({
               { value: 'PARKING', label: 'Parking' },
               { value: 'OTHER', label: 'Other' },
             ]}
+          />
+        </section>
+
+        <section className="space-y-4 border-t border-slate-200 pt-6">
+          <SchoolAccessSelector
+            selectedIds={form.schoolIds}
+            schools={schools}
+            onChange={(ids) => onFormChange({ schoolIds: ids })}
+            disabled={saving}
           />
         </section>
 

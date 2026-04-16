@@ -4,12 +4,15 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
+import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const CreateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120),
   code: z.string().trim().min(1).max(30).optional().nullable(),
   campusId: z.string().min(1, 'Campus is required'),
   schoolId: z.string().optional().nullable(),
+  /** M:N school scoping. Empty array = shared with all schools. */
+  schoolIds: z.array(z.string()).optional(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ATHLETICS', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
   sortOrder: z.number().int().optional(),
@@ -27,17 +30,26 @@ export const GET = withAuth(
       where: {
         organizationId: orgId,
         ...(includeInactive ? {} : { isActive: true }),
-        ...(schoolId ? { schoolId } : {}),
+        ...(schoolId ? { OR: [{ schoolId }, { schoolLinks: { some: { schoolId } } }] } : {}),
         ...(campusId ? { campusId } : {}),
       },
       include: {
         school: { select: { id: true, name: true, gradeLevel: true, color: true } },
         campus: { select: { id: true, name: true, campusType: true } },
+        schoolLinks: {
+          select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+        },
       },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     })
 
-    return NextResponse.json(ok(buildings))
+    // Flatten schoolLinks → schools array for easier client consumption
+    const result = buildings.map((b) => {
+      const { schoolLinks, ...rest } = b
+      return { ...rest, schools: schoolLinks.map((l) => l.school) }
+    })
+
+    return NextResponse.json(ok(result))
   },
   { permission: PERMISSIONS.SETTINGS_READ }
 )
@@ -67,6 +79,21 @@ export const POST = withAuth(
       }
     }
 
+    // Validate schoolIds belong to this org + campus
+    const schoolIds = Array.isArray(body.schoolIds) ? body.schoolIds : []
+    if (schoolIds.length > 0) {
+      const valid = await prisma.school.findMany({
+        where: { id: { in: schoolIds }, organizationId: orgId, campusId: body.campusId, deletedAt: null },
+        select: { id: true },
+      })
+      if (valid.length !== schoolIds.length) {
+        return NextResponse.json(
+          fail('VALIDATION_ERROR', 'One or more schools do not belong to this campus'),
+          { status: 400 }
+        )
+      }
+    }
+
     const building = await prisma.building.create({
       data: {
         organizationId: orgId,
@@ -80,14 +107,25 @@ export const POST = withAuth(
         isActive: body.isActive ?? true,
         latitude: body.latitude ?? null,
         longitude: body.longitude ?? null,
+        ...(schoolIds.length > 0 ? {
+          schoolLinks: { create: schoolIds.map((id: string) => ({ schoolId: id })) },
+        } : {}),
       },
       include: {
         school: { select: { id: true, name: true, gradeLevel: true, color: true } },
         campus: { select: { id: true, name: true, campusType: true } },
+        schoolLinks: {
+          select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+        },
       },
     })
 
-    return NextResponse.json(ok(building), { status: 201 })
+    invalidateOrgCache(orgId)
+
+    const { schoolLinks, ...rest } = building
+    const result = { ...rest, schools: schoolLinks.map((l) => l.school) }
+
+    return NextResponse.json(ok(result), { status: 201 })
   },
   { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateBuildingSchema }
 )

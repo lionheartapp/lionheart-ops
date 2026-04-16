@@ -1,5 +1,7 @@
 // Shared types and constants for the Campus settings tab
 
+export type SchoolLink = { id: string; name: string; gradeLevel: string; color: string }
+
 export type Building = {
   id: string
   name: string
@@ -12,6 +14,8 @@ export type Building = {
   sortOrder: number
   isActive: boolean
   school?: { id: string; name: string; gradeLevel: string; color: string } | null
+  /** Schools this building is scoped to (M:N). Empty array = shared with all schools. */
+  schools?: SchoolLink[]
   polygonCoordinates?: Array<{ lat: number; lng: number }> | null
 }
 
@@ -24,6 +28,8 @@ export type Area = {
   sortOrder: number
   isActive: boolean
   building?: { id: string; name: string; code: string | null } | null
+  /** Schools this area is scoped to (M:N). Empty array = shared with all schools. */
+  schools?: SchoolLink[]
 }
 
 export type Room = {
@@ -48,6 +54,7 @@ export type Campus = {
 }
 
 export type SchoolInfo = {
+  id: string
   name: string
   color: string
   gradeLevel: string

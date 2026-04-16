@@ -452,6 +452,7 @@ model Building {
   school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   areas          Area[]
   rooms          Room[]
+  schoolLinks    BuildingSchool[]  // M:N — scopes building to specific schools; empty = shared with all
   calendarEvents CalendarEvent[]
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
@@ -489,6 +490,7 @@ model Area {
   campus         Campus?      @relation(fields: [campusId], references: [id], onDelete: Restrict)
   building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   rooms          Room[]
+  schoolLinks    AreaSchool[]  // M:N — scopes area to specific schools; empty = shared with all
   calendarEvents CalendarEvent[]
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
@@ -535,6 +537,35 @@ model Room {
   @@index([areaId])
   @@index([organizationId, deletedAt])
   @@index([organizationId, isActive, deletedAt, buildingId, sortOrder])  // campus page query
+}
+
+/// Scopes a Building to a specific School. When a building has zero rows in this
+/// junction, it is treated as "shared with all schools" (available everywhere).
+/// When it has one or more rows, it is only available to those specific schools.
+model BuildingSchool {
+  buildingId String
+  schoolId   String
+  createdAt  DateTime @default(now())
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@id([buildingId, schoolId])
+  @@index([schoolId])
+  @@index([buildingId])
+}
+
+/// Scopes an Area (outdoor space) to a specific School. Same semantics as
+/// BuildingSchool — empty junction = shared with all schools.
+model AreaSchool {
+  areaId    String
+  schoolId  String
+  createdAt DateTime @default(now())
+  area      Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  school    School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@id([areaId, schoolId])
+  @@index([schoolId])
+  @@index([areaId])
 }
 
 model UserRoomAssignment {
@@ -631,6 +662,8 @@ model School {
   campus         Campus?       @relation(fields: [campusId], references: [id], onDelete: Restrict)
   users          User[]
   buildings      Building[]
+  buildingLinks  BuildingSchool[]  // M:N — buildings scoped to this school via junction
+  areaLinks      AreaSchool[]      // M:N — areas (outdoor spaces) scoped to this school via junction
   tickets        Ticket[]
   // Maintenance module relations
   maintenanceTickets MaintenanceTicket[]

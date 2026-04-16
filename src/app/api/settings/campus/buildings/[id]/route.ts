@@ -5,11 +5,14 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma, rawPrisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 import { PERMISSIONS } from '@/lib/permissions'
+import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const UpdateBuildingSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   code: z.string().trim().min(1).max(30).optional().nullable(),
   schoolId: z.string().optional().nullable(),
+  /** M:N school scoping. Empty array = shared with all schools. Undefined = leave unchanged. */
+  schoolIds: z.array(z.string()).optional(),
   schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
   buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ATHLETICS', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
   sortOrder: z.number().int().optional(),
@@ -36,18 +39,56 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, para
   const body = await req.json()
   const input = UpdateBuildingSchema.parse(body)
 
-  const existing = await prisma.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  const existing = await prisma.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true, campusId: true } })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
 
+  // Extract schoolIds from input — handled separately via junction table
+  const { schoolIds, ...fieldInput } = input
+
+  // If schoolIds provided, validate and replace junction rows
+  if (schoolIds !== undefined) {
+    if (schoolIds.length > 0) {
+      const valid = await prisma.school.findMany({
+        where: { id: { in: schoolIds }, organizationId: orgId, campusId: existing.campusId, deletedAt: null },
+        select: { id: true },
+      })
+      if (valid.length !== schoolIds.length) {
+        return NextResponse.json(
+          fail('VALIDATION_ERROR', 'One or more schools do not belong to this campus'),
+          { status: 400 }
+        )
+      }
+    }
+
+    // Replace junction: delete existing, insert new
+    await prisma.buildingSchool.deleteMany({ where: { buildingId: params.id } })
+    if (schoolIds.length > 0) {
+      await prisma.buildingSchool.createMany({
+        data: schoolIds.map((schoolId) => ({ buildingId: params.id, schoolId })),
+        skipDuplicates: true,
+      })
+    }
+  }
+
   const building = await prisma.building.update({
     where: { id: params.id },
-    data: Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined)) as Prisma.BuildingUpdateInput,
-    include: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+    data: Object.fromEntries(Object.entries(fieldInput).filter(([, v]) => v !== undefined)) as Prisma.BuildingUpdateInput,
+    include: {
+      school: { select: { id: true, name: true, gradeLevel: true, color: true } },
+      schoolLinks: {
+        select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+      },
+    },
   })
 
-  return NextResponse.json(ok(building))
+  invalidateOrgCache(orgId)
+
+  const { schoolLinks, ...rest } = building
+  const result = { ...rest, schools: schoolLinks.map((l) => l.school) }
+
+  return NextResponse.json(ok(result))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })
 
 export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params, searchParams }) => {
@@ -63,10 +104,12 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params, 
     await rawPrisma.room.deleteMany({ where: { buildingId: params.id, organizationId: orgId } })
     await rawPrisma.area.updateMany({ where: { buildingId: params.id, organizationId: orgId }, data: { buildingId: null } })
     await rawPrisma.building.delete({ where: { id: params.id } })
+    invalidateOrgCache(orgId)
     return NextResponse.json(ok({ id: params.id, deleted: true }))
   } else {
     // Soft deactivate
     const building = await prisma.building.update({ where: { id: params.id }, data: { isActive: false } })
+    invalidateOrgCache(orgId)
     return NextResponse.json(ok(building))
   }
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })

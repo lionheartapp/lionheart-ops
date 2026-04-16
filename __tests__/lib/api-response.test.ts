@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { ok, fail, isAuthError } from '@/lib/api-response'
+import { ZodError } from 'zod'
+import { ok, fail, isAuthError, classifyServiceError } from '@/lib/api-response'
 import type { ApiSuccess, ApiFailure, ApiResult } from '@/lib/api-response'
 
 // ── ok() ────────────────────────────────────────────────────────────────────
@@ -106,5 +107,131 @@ describe('isAuthError', () => {
 
   it('returns false for object that is not an Error', () => {
     expect(isAuthError({ message: 'Missing or invalid authorization' })).toBe(false)
+  })
+})
+
+// ── classifyServiceError() ──────────────────────────────────────────────────
+
+describe('classifyServiceError', () => {
+  it('classifies auth errors as 401', () => {
+    const classified = classifyServiceError(new Error('Missing or invalid authorization header'))
+    expect(classified.status).toBe(401)
+    expect(classified.body.error.code).toBe('UNAUTHORIZED')
+  })
+
+  it('classifies permission errors as 403', () => {
+    const classified = classifyServiceError(new Error('Insufficient permissions'))
+    expect(classified.status).toBe(403)
+    expect(classified.body.error.code).toBe('FORBIDDEN')
+  })
+
+  it('classifies ZodError as 400 with issues detail', () => {
+    const zodError = new ZodError([
+      {
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'number',
+        path: ['name'],
+        message: 'Expected string, received number',
+      },
+    ])
+    const classified = classifyServiceError(zodError)
+    expect(classified.status).toBe(400)
+    expect(classified.body.error.code).toBe('VALIDATION_ERROR')
+    expect(classified.body.error.details).toBeTruthy()
+  })
+
+  it('classifies Prisma P2025 as 404', () => {
+    const prismaError = Object.assign(new Error('Record to update not found.'), {
+      code: 'P2025',
+    })
+    const classified = classifyServiceError(prismaError)
+    expect(classified.status).toBe(404)
+    expect(classified.body.error.code).toBe('NOT_FOUND')
+  })
+
+  it('classifies Prisma P2002 as 409 and reports conflicting field', () => {
+    const prismaError = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: ['email'] },
+    })
+    const classified = classifyServiceError(prismaError)
+    expect(classified.status).toBe(409)
+    expect(classified.body.error.code).toBe('CONFLICT')
+    expect(classified.body.error.message).toContain('email')
+  })
+
+  it('classifies Prisma P2003 as 400 BAD_REQUEST', () => {
+    const prismaError = Object.assign(new Error('Foreign key constraint failed'), {
+      code: 'P2003',
+    })
+    const classified = classifyServiceError(prismaError)
+    expect(classified.status).toBe(400)
+    expect(classified.body.error.code).toBe('BAD_REQUEST')
+  })
+
+  it('classifies "not found" message errors as 404', () => {
+    const classified = classifyServiceError(new Error('Academic year not found'))
+    expect(classified.status).toBe(404)
+    expect(classified.body.error.code).toBe('NOT_FOUND')
+  })
+
+  it('classifies "does not exist" message errors as 404', () => {
+    const classified = classifyServiceError(new Error('The referenced resource does not exist'))
+    expect(classified.status).toBe(404)
+  })
+
+  it('classifies "no active assignment" as 404', () => {
+    const classified = classifyServiceError(
+      new Error('NO_ACTIVE_ASSIGNMENT: No active assignment found for this device.')
+    )
+    expect(classified.status).toBe(404)
+  })
+
+  it('classifies "is already taken" as 409', () => {
+    const classified = classifyServiceError(new Error("Share slug 'hello' is already taken"))
+    expect(classified.status).toBe(409)
+    expect(classified.body.error.code).toBe('CONFLICT')
+  })
+
+  it('classifies "already exists" as 409', () => {
+    const classified = classifyServiceError(new Error('Record already exists for this period'))
+    expect(classified.status).toBe(409)
+  })
+
+  it('classifies "not configured" errors as 400', () => {
+    const classified = classifyServiceError(
+      new Error('SYNC_NOT_CONFIGURED: No Google Admin sync configuration found')
+    )
+    expect(classified.status).toBe(400)
+    expect(classified.body.error.code).toBe('BAD_REQUEST')
+  })
+
+  it('classifies unknown provider errors as 400', () => {
+    const classified = classifyServiceError(
+      new Error('UNKNOWN_PROVIDER: Roster sync provider "foo" is not supported.')
+    )
+    expect(classified.status).toBe(400)
+  })
+
+  it('falls back to 500 INTERNAL_ERROR with custom message', () => {
+    const classified = classifyServiceError(new Error('Totally unexpected'), 'Failed to do thing')
+    expect(classified.status).toBe(500)
+    expect(classified.body.error.code).toBe('INTERNAL_ERROR')
+    expect(classified.body.error.message).toBe('Failed to do thing')
+  })
+
+  it('falls back to 500 for non-Error values', () => {
+    const classified = classifyServiceError('a string error')
+    expect(classified.status).toBe(500)
+    expect(classified.body.error.code).toBe('INTERNAL_ERROR')
+  })
+
+  it('prefers auth over permission classification', () => {
+    // Auth error pattern takes precedence
+    const classified = classifyServiceError(
+      new Error('Missing or invalid authorization: Insufficient permissions')
+    )
+    expect(classified.status).toBe(401)
   })
 })

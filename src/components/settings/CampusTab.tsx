@@ -1,15 +1,14 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Building2, MapPin, DoorOpen, Plus } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
-import SchoolsManagement from '@/components/settings/SchoolsManagement'
+import SchoolsManagement, { type SchoolsManagementHandle } from '@/components/settings/SchoolsManagement'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
 import CampusSelector from './campus/CampusSelector'
-import BuildingsTable from './campus/BuildingsTable'
-import OutdoorSpacesTable from './campus/OutdoorSpacesTable'
+import SchoolGroupedFacilities from './campus/SchoolGroupedFacilities'
 import BuildingFormDrawer from './campus/BuildingFormDrawer'
 import OutdoorFormDrawer from './campus/OutdoorFormDrawer'
 import RoomsDrawer from './campus/RoomsDrawer'
@@ -56,14 +55,14 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Building drawer ───────────────────────────────────────────────────
   const [buildingDrawerOpen, setBuildingDrawerOpen] = useState(false)
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null)
-  const [buildingForm, setBuildingForm] = useState({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' })
+  const [buildingForm, setBuildingForm] = useState<{ name: string; code: string; schoolDivision: string; buildingType: string; schoolIds: string[] }>({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds: [] })
   const [buildingFormError, setBuildingFormError] = useState('')
   const [buildingFormSaving, setBuildingFormSaving] = useState(false)
 
   // ─── Outdoor space drawer ──────────────────────────────────────────────
   const [outdoorDrawerOpen, setOutdoorDrawerOpen] = useState(false)
   const [editingOutdoor, setEditingOutdoor] = useState<Area | null>(null)
-  const [outdoorForm, setOutdoorForm] = useState({ name: '', areaType: 'FIELD' })
+  const [outdoorForm, setOutdoorForm] = useState<{ name: string; areaType: string; schoolIds: string[] }>({ name: '', areaType: 'FIELD', schoolIds: [] })
   const [outdoorFormError, setOutdoorFormError] = useState('')
   const [outdoorFormSaving, setOutdoorFormSaving] = useState(false)
 
@@ -98,6 +97,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Feedback ──────────────────────────────────────────────────────────
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+
+  // ─── Schools CRUD handle (imperative API into SchoolsManagement) ───────
+  const schoolsRef = useRef<SchoolsManagementHandle>(null)
 
   // ─── Computed ──────────────────────────────────────────────────────────
   const outdoorSpaces = useMemo(() => areas.filter((a) => a.buildingId === null), [areas])
@@ -162,7 +164,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       setRooms(campusJson.data.rooms || [])
       if (schoolsRes.ok) {
         const sj = await schoolsRes.json()
-        if (sj.ok && sj.data) setSchools(sj.data.map((s: any) => ({ name: s.name, color: s.color, gradeLevel: s.gradeLevel })))
+        if (sj.ok && sj.data) setSchools(sj.data.map((s: any) => ({ id: s.id, name: s.name, color: s.color, gradeLevel: s.gradeLevel })))
       }
       if (mapRes.ok) {
         const mj = await mapRes.json()
@@ -189,8 +191,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   }, [selectedCampusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Building CRUD ─────────────────────────────────────────────────────
-  const openAddBuilding = () => { setEditingBuilding(null); setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
-  const openEditBuilding = (b: Building) => { setEditingBuilding(b); setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision, buildingType: b.buildingType || 'GENERAL' }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
+  const openAddBuilding = (schoolIds: string[] = []) => { setEditingBuilding(null); setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
+  const openEditBuilding = (b: Building) => { setEditingBuilding(b); setBuildingForm({ name: b.name, code: b.code || '', schoolDivision: b.schoolDivision, buildingType: b.buildingType || 'GENERAL', schoolIds: (b.schools ?? []).map((s) => s.id) }); setBuildingFormError(''); setBuildingDrawerOpen(true) }
   const closeBuildingDrawer = () => { if (buildingFormSaving) return; setBuildingDrawerOpen(false); setEditingBuilding(null); setPendingMarkerData(null) }
 
   const saveBuildingForm = async (e: React.FormEvent) => {
@@ -202,7 +204,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       const url = editingBuilding ? `/api/settings/campus/buildings/${editingBuilding.id}` : '/api/settings/campus/buildings'
       const res = await fetch(url, {
         method: editingBuilding ? 'PATCH' : 'POST', headers: getAuthHeaders(),
-        body: JSON.stringify({ name, code: buildingForm.code || null, schoolDivision: buildingForm.schoolDivision, buildingType: buildingForm.buildingType, ...(selectedCampusId && !editingBuilding ? { campusId: selectedCampusId } : {}), ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}) }),
+        body: JSON.stringify({ name, code: buildingForm.code || null, schoolDivision: buildingForm.schoolDivision, buildingType: buildingForm.buildingType, schoolIds: buildingForm.schoolIds, ...(selectedCampusId && !editingBuilding ? { campusId: selectedCampusId } : {}), ...(pendingBuildingCoords && !editingBuilding ? { latitude: pendingBuildingCoords.lat, longitude: pendingBuildingCoords.lng } : {}) }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
@@ -216,8 +218,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   }
 
   // ─── Outdoor CRUD ──────────────────────────────────────────────────────
-  const openAddOutdoor = () => { setEditingOutdoor(null); setOutdoorForm({ name: '', areaType: 'FIELD' }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
-  const openEditOutdoor = (a: Area) => { setEditingOutdoor(a); setOutdoorForm({ name: a.name, areaType: a.areaType }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
+  const openAddOutdoor = (schoolIds: string[] = []) => { setEditingOutdoor(null); setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
+  const openEditOutdoor = (a: Area) => { setEditingOutdoor(a); setOutdoorForm({ name: a.name, areaType: a.areaType, schoolIds: (a.schools ?? []).map((s) => s.id) }); setOutdoorFormError(''); setOutdoorDrawerOpen(true) }
   const closeOutdoorDrawer = () => { if (outdoorFormSaving) return; setOutdoorDrawerOpen(false); setEditingOutdoor(null); setPendingMarkerData(null) }
 
   const saveOutdoorForm = async (e: React.FormEvent) => {
@@ -229,7 +231,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
       const url = editingOutdoor ? `/api/settings/campus/areas/${editingOutdoor.id}` : '/api/settings/campus/areas'
       const res = await fetch(url, {
         method: editingOutdoor ? 'PATCH' : 'POST', headers: getAuthHeaders(),
-        body: JSON.stringify({ name, areaType: outdoorForm.areaType, buildingId: null, ...(selectedCampusId && !editingOutdoor ? { campusId: selectedCampusId } : {}), ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}) }),
+        body: JSON.stringify({ name, areaType: outdoorForm.areaType, buildingId: null, schoolIds: outdoorForm.schoolIds, ...(selectedCampusId && !editingOutdoor ? { campusId: selectedCampusId } : {}), ...(pendingOutdoorCoords && !editingOutdoor ? { latitude: pendingOutdoorCoords.lat, longitude: pendingOutdoorCoords.lng } : {}) }),
       })
       if (handleAuthResponse(res)) return
       const json = await res.json()
@@ -426,9 +428,9 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
             try { const res = await fetch(`/api/settings/campus/buildings/${building.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === building.id ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage(`"${building.name}" placed on map`) } } catch { setError('Failed to place building on map') }
             await loadData(); return
           }
-          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL' }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
+          setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds: [] }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
-        onAddOutdoorSpaceAtPosition={(lat, lng) => { setOutdoorForm({ name: '', areaType: 'FIELD' }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' }) }}
+        onAddOutdoorSpaceAtPosition={(lat, lng) => { setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds: [] }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' }) }}
         onBuildingSelected={setSelectedMapBuildingId}
         onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
         onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/areas/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
@@ -440,16 +442,36 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         pendingMarker={pendingMarkerData}
       />
 
-      <SchoolsManagement campusId={selectedCampusId || undefined} />
+      {/* Headless — renders only drawers/modals. Trigger CRUD via schoolsRef. */}
+      <SchoolsManagement
+        ref={schoolsRef}
+        campusId={selectedCampusId || undefined}
+        hideTable
+        onSchoolsChanged={loadData}
+      />
 
-      <BuildingsTable buildings={buildings} rooms={rooms} schools={schools} loading={loading} onAddBuilding={openAddBuilding} onEditBuilding={openEditBuilding} onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)} onManageRooms={(b) => setRoomsBuilding(b)} />
-
-      <OutdoorSpacesTable outdoorSpaces={outdoorSpaces} loading={loading} onAddOutdoor={openAddOutdoor} onEditOutdoor={openEditOutdoor} onDeleteOutdoor={(id, name) => openDeleteConfirm('outdoor', id, name)} />
+      <SchoolGroupedFacilities
+        buildings={buildings}
+        outdoorSpaces={outdoorSpaces}
+        rooms={rooms}
+        schools={schools}
+        loading={loading}
+        onAddBuilding={(schoolIds) => openAddBuilding(schoolIds)}
+        onEditBuilding={openEditBuilding}
+        onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)}
+        onManageRooms={(b) => setRoomsBuilding(b)}
+        onAddOutdoor={(schoolIds) => openAddOutdoor(schoolIds)}
+        onEditOutdoor={openEditOutdoor}
+        onDeleteOutdoor={(id, name) => openDeleteConfirm('outdoor', id, name)}
+        onAddSchool={() => schoolsRef.current?.openNew()}
+        onEditSchool={(id) => schoolsRef.current?.openEdit(id)}
+        onDeleteSchool={(id) => schoolsRef.current?.promptDelete(id)}
+      />
 
       {/* Drawers */}
-      <BuildingFormDrawer isOpen={buildingDrawerOpen} onClose={closeBuildingDrawer} editingBuilding={editingBuilding} form={buildingForm} onFormChange={(u) => setBuildingForm((p) => ({ ...p, ...u }))} error={buildingFormError} saving={buildingFormSaving} onSubmit={saveBuildingForm} onImagesChange={editingBuilding ? (imgs) => { setEditingBuilding({ ...editingBuilding, images: imgs }); setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingBuildingCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} />
+      <BuildingFormDrawer isOpen={buildingDrawerOpen} onClose={closeBuildingDrawer} editingBuilding={editingBuilding} form={buildingForm} onFormChange={(u) => setBuildingForm((p) => ({ ...p, ...u }))} error={buildingFormError} saving={buildingFormSaving} onSubmit={saveBuildingForm} onImagesChange={editingBuilding ? (imgs) => { setEditingBuilding({ ...editingBuilding, images: imgs }); setBuildings((prev) => prev.map((b) => b.id === editingBuilding.id ? { ...b, images: imgs } : b)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingBuildingCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} />
 
-      <OutdoorFormDrawer isOpen={outdoorDrawerOpen} onClose={closeOutdoorDrawer} editingOutdoor={editingOutdoor} form={outdoorForm} onFormChange={(u) => setOutdoorForm((p) => ({ ...p, ...u }))} error={outdoorFormError} saving={outdoorFormSaving} onSubmit={saveOutdoorForm} onImagesChange={editingOutdoor ? (imgs) => { setEditingOutdoor({ ...editingOutdoor, images: imgs }); setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingOutdoorCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} />
+      <OutdoorFormDrawer isOpen={outdoorDrawerOpen} onClose={closeOutdoorDrawer} editingOutdoor={editingOutdoor} form={outdoorForm} onFormChange={(u) => setOutdoorForm((p) => ({ ...p, ...u }))} error={outdoorFormError} saving={outdoorFormSaving} onSubmit={saveOutdoorForm} onImagesChange={editingOutdoor ? (imgs) => { setEditingOutdoor({ ...editingOutdoor, images: imgs }); setAreas((prev) => prev.map((a) => a.id === editingOutdoor.id ? { ...a, images: imgs } : a)) } : undefined} onImageClick={openLightbox} onNameChangeWithCoords={pendingOutdoorCoords ? (name) => setPendingMarkerData((prev) => (prev ? { ...prev, label: name } : null)) : undefined} schools={schools} />
 
       <RoomsDrawer building={roomsBuilding} rooms={buildingRooms} onClose={() => { setRoomsBuilding(null) }} onAddRoom={handleAddRoom} onEditRoom={handleEditRoom} onDeactivateRoom={(id, name) => openDeactivateConfirm('room', id, name)} onRoomImagesChange={(roomId, imgs) => setRooms((prev) => prev.map((r) => r.id === roomId ? { ...r, images: imgs } : r))} onImageClick={openLightbox} />
 

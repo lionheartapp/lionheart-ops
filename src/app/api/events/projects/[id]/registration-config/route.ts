@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { prisma } from '@/lib/db'
 import {
   createRegistrationForm,
   updateRegistrationForm,
@@ -94,6 +95,28 @@ export const POST = withAuth(async ({ req, orgId, params }) => {
     return NextResponse.json(
       fail('VALIDATION_ERROR', 'Invalid form data', parsed.error.issues),
       { status: 400 },
+    )
+  }
+
+  // Guard: verify the event project exists before create to avoid P2003
+  // falling through as a generic 5xx. Org-scoped Prisma enforces org boundary.
+  const eventProject = await prisma.eventProject.findUnique({
+    where: { id: eventProjectId },
+    select: { id: true },
+  })
+  if (!eventProject) {
+    return NextResponse.json(
+      fail('NOT_FOUND', 'Event project not found'),
+      { status: 404 },
+    )
+  }
+
+  // Guard: don't allow duplicate forms for the same event project (1:1)
+  const existing = await getRegistrationForm(eventProjectId)
+  if (existing) {
+    return NextResponse.json(
+      fail('CONFLICT', 'A registration form already exists for this event project'),
+      { status: 409 },
     )
   }
 

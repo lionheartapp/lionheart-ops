@@ -122,9 +122,43 @@ function isPermissionError(error: unknown): boolean {
   return PERMISSION_PATTERNS.some((p) => error.message.includes(p))
 }
 
+const NOT_FOUND_HINT_PATTERNS = [
+  'not found',
+  'does not exist',
+  'no active assignment',
+]
+
 function isNotFoundError(error: unknown): boolean {
   if (!(error instanceof Error)) return false
-  return error.message.toLowerCase().includes('not found')
+  const lower = error.message.toLowerCase()
+  return NOT_FOUND_HINT_PATTERNS.some((p) => lower.includes(p))
+}
+
+const BAD_REQUEST_PATTERNS = [
+  'unknown_provider',
+  'is not supported',
+  'sync_not_configured',
+  'not configured',
+  'invalid input',
+]
+
+function isBadRequestError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const lower = error.message.toLowerCase()
+  return BAD_REQUEST_PATTERNS.some((p) => lower.includes(p))
+}
+
+const CONFLICT_PATTERNS = [
+  'is already taken',
+  'already exists',
+  'already_exists',
+  'conflict',
+]
+
+function isConflictError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const lower = error.message.toLowerCase()
+  return CONFLICT_PATTERNS.some((p) => lower.includes(p))
 }
 
 function isPrismaUniqueConstraint(error: unknown): boolean {
@@ -133,6 +167,24 @@ function isPrismaUniqueConstraint(error: unknown): boolean {
     typeof error === 'object' &&
     'code' in error &&
     (error as { code: string }).code === 'P2002'
+  )
+}
+
+function isPrismaRecordNotFound(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code: string }).code === 'P2025'
+  )
+}
+
+function isPrismaForeignKeyViolation(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code: string }).code === 'P2003'
   )
 }
 
@@ -173,6 +225,22 @@ function classifyError(error: unknown): NextResponse {
     )
   }
 
+  // Known business-logic bad-request hints → 400
+  if (isBadRequestError(error)) {
+    return NextResponse.json(
+      fail('BAD_REQUEST', error instanceof Error ? error.message : 'Invalid request'),
+      { status: 400 }
+    )
+  }
+
+  // Known business-logic conflict hints → 409
+  if (isConflictError(error)) {
+    return NextResponse.json(
+      fail('CONFLICT', error instanceof Error ? error.message : 'Conflict'),
+      { status: 409 }
+    )
+  }
+
   // Prisma unique constraint → 409
   if (isPrismaUniqueConstraint(error)) {
     const target = (error as { meta?: { target?: string[] } }).meta?.target
@@ -180,6 +248,22 @@ function classifyError(error: unknown): NextResponse {
     return NextResponse.json(
       fail('CONFLICT', `A record with that ${field} already exists`),
       { status: 409 }
+    )
+  }
+
+  // Prisma record-not-found → 404 (e.g. .update/.delete/.findUniqueOrThrow on a missing row)
+  if (isPrismaRecordNotFound(error)) {
+    return NextResponse.json(
+      fail('NOT_FOUND', 'The requested resource was not found'),
+      { status: 404 }
+    )
+  }
+
+  // Prisma FK violation → 400 (user passed an id that references a non-existent row)
+  if (isPrismaForeignKeyViolation(error)) {
+    return NextResponse.json(
+      fail('BAD_REQUEST', 'Referenced resource does not exist'),
+      { status: 400 }
     )
   }
 

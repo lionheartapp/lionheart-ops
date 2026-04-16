@@ -47,6 +47,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         include: {
           school: { select: { id: true, name: true, gradeLevel: true, color: true } },
           campus: { select: { id: true, name: true, campusType: true } },
+          schoolLinks: {
+            select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+          },
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       }),
@@ -55,6 +58,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         include: {
           building: { select: { id: true, name: true, code: true } },
           campus: { select: { id: true, name: true, campusType: true } },
+          schoolLinks: {
+            select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
+          },
         },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       }),
@@ -72,7 +78,18 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
       }),
     ])
-    return { buildings, areas, rooms, campusId: selectedCampusId }
+
+    // Flatten schoolLinks → schools array for easier client consumption
+    const flatBuildings = buildings.map((b) => {
+      const { schoolLinks, ...rest } = b
+      return { ...rest, schools: schoolLinks.map((l) => l.school) }
+    })
+    const flatAreas = areas.map((a) => {
+      const { schoolLinks, ...rest } = a
+      return { ...rest, schools: schoolLinks.map((l) => l.school) }
+    })
+
+    return { buildings: flatBuildings, areas: flatAreas, rooms, campusId: selectedCampusId }
   })
 
   return NextResponse.json(ok(data))
