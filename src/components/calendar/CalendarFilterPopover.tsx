@@ -10,8 +10,8 @@ export interface CalendarFilter {
   schoolLevels: Set<string>
   sportIds: Set<string>
   teamLevels: Set<string>
-  /** Whether to show external calendar events (Google/Microsoft). Defaults to true. */
-  showExternalEvents?: boolean
+  /** IDs of external calendars to hide. Empty = show all. */
+  hiddenExternalCalendarIds: Set<string>
 }
 
 interface CategoryChip {
@@ -45,8 +45,8 @@ interface CalendarFilterPopoverProps {
   campuses: CampusChip[]
   sports: Sport[]
   anchorRef: React.RefObject<HTMLButtonElement | null>
-  /** Whether the user has a connected external calendar (Google/Microsoft). */
-  hasExternalCalendar?: boolean
+  /** List of external calendars the user has synced events from. */
+  externalCalendars?: { id: string; name: string; provider: string }[]
 }
 
 const SCHOOL_LEVELS = [
@@ -88,7 +88,7 @@ export default function CalendarFilterPopover({
   campuses,
   sports,
   anchorRef,
-  hasExternalCalendar = false,
+  externalCalendars = [],
 }: CalendarFilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -134,7 +134,7 @@ export default function CalendarFilterPopover({
   if (!isOpen) return null
 
   const activeCount =
-    filter.categoryIds.size + filter.campusIds.size + filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size
+    filter.categoryIds.size + filter.campusIds.size + filter.schoolLevels.size + filter.sportIds.size + filter.teamLevels.size + (filter.hiddenExternalCalendarIds?.size || 0)
 
   const handleClear = () => {
     onFilterChange({
@@ -143,6 +143,7 @@ export default function CalendarFilterPopover({
       schoolLevels: new Set(),
       sportIds: new Set(),
       teamLevels: new Set(),
+      hiddenExternalCalendarIds: new Set(),
     })
   }
 
@@ -194,27 +195,41 @@ export default function CalendarFilterPopover({
         </div>
       )}
 
-      {/* External Calendars — toggle Google/Microsoft events */}
-      {hasExternalCalendar && (
+      {/* External Calendars — toggle individual synced calendars */}
+      {externalCalendars.length > 0 && (
         <div className="px-5 py-3 border-t border-slate-100">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">External Calendars</p>
-            <button
-              onClick={() => onFilterChange({ ...filter, showExternalEvents: !(filter.showExternalEvents ?? true) })}
-              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
-                (filter.showExternalEvents ?? true)
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-              }`}
-            >
-              {(filter.showExternalEvents ?? true) ? 'Showing' : 'Hidden'}
-            </button>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            {(filter.showExternalEvents ?? true)
-              ? 'Google & Microsoft calendar events are visible'
-              : 'External calendar events are hidden'}
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+            {externalCalendars.every((c) => c.provider === 'google_calendar')
+              ? 'Google Calendar'
+              : externalCalendars.every((c) => c.provider === 'microsoft_calendar')
+                ? 'Microsoft Calendar'
+                : 'External Calendars'}
           </p>
+          <div className="flex flex-wrap gap-2">
+            {externalCalendars.map((cal) => {
+              const isHidden = filter.hiddenExternalCalendarIds?.has(cal.id)
+              return (
+                <button
+                  key={cal.id}
+                  onClick={() => onFilterChange({
+                    ...filter,
+                    hiddenExternalCalendarIds: toggleInSet(filter.hiddenExternalCalendarIds || new Set(), cal.id),
+                  })}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                    isHidden
+                      ? 'bg-slate-100 text-slate-400 line-through'
+                      : 'bg-blue-500 text-white'
+                  }`}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isHidden ? '#94a3b8' : '#ffffff' }}
+                  />
+                  {cal.name}
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 

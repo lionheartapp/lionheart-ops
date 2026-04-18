@@ -63,8 +63,8 @@ interface CalendarToolbarProps {
   onToggleAllAthletics?: (enabled: boolean) => void
   campuses?: CampusChip[]
   sports?: SportChip[]
-  /** Whether the user has a connected external calendar. */
-  hasExternalCalendar?: boolean
+  /** List of external calendars the user has synced events from. */
+  externalCalendars?: { id: string; name: string; provider: string }[]
 }
 
 const viewLabels: Record<CalendarViewType, string> = {
@@ -135,7 +135,7 @@ export default function CalendarToolbar({
   onToggleAllAthletics,
   campuses = [],
   sports = [],
-  hasExternalCalendar = false,
+  externalCalendars = [],
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -372,7 +372,7 @@ export default function CalendarToolbar({
               campuses={campuses}
               sports={sports}
               anchorRef={filterBtnRef}
-              hasExternalCalendar={hasExternalCalendar}
+              externalCalendars={externalCalendars}
             />
           </>
         )}

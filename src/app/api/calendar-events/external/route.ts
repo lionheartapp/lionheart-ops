@@ -65,10 +65,15 @@ export async function GET(req: NextRequest) {
     })
 
     const shaped = events.map((e) => {
-      const cal = e.provider === 'microsoft_calendar' ? EXTERNAL_MICROSOFT_CALENDAR : EXTERNAL_GOOGLE_CALENDAR
+      const baseCal = e.provider === 'microsoft_calendar' ? EXTERNAL_MICROSOFT_CALENDAR : EXTERNAL_GOOGLE_CALENDAR
+      // Use the actual source calendar ID + name so the filter popover
+      // can toggle individual external calendars (Work, Personal, etc.)
+      const calId = e.sourceCalendarId
+        ? `external:${e.provider}:${e.sourceCalendarId}`
+        : baseCal.id
       return {
         id: `ext:${e.id}`,
-        calendarId: cal.id,
+        calendarId: calId,
         title: e.title,
         description: e.description,
         startTime: e.startsAt.toISOString(),
@@ -82,11 +87,17 @@ export async function GET(req: NextRequest) {
           provider: e.provider,
           url: e.url,
           conferenceUrl: e.conferenceUrl,
+          sourceCalendarId: e.sourceCalendarId,
           sourceCalendarName: e.sourceCalendarName,
         },
         sourceModule: 'external',
         sourceId: e.id,
-        calendar: cal,
+        calendar: {
+          id: calId,
+          name: e.sourceCalendarName || baseCal.name,
+          color: baseCal.color,
+          calendarType: 'external',
+        },
         category: null,
         building: null,
         area: null,

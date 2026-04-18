@@ -159,7 +159,10 @@ export function MockEventsPanel() {
         </div>
 
         {/* Timeline strip */}
-        <div className="grid grid-cols-14 gap-[3px] mb-4">
+        <div
+          className="grid gap-[3px] mb-4"
+          style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}
+        >
           {days.map((d, i) => (
             <div
               key={i}

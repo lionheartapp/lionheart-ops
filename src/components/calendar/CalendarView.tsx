@@ -306,6 +306,7 @@ export default function CalendarView() {
     schoolLevels: new Set(),
     sportIds: new Set(),
     teamLevels: new Set(),
+    hiddenExternalCalendarIds: new Set(),
   })
 
   const {
@@ -332,6 +333,22 @@ export default function CalendarView() {
     true,
   )
 
+  // Build unique list of external calendars from synced events for the filter popover
+  const externalCalendarList = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string; provider: string }>()
+    for (const e of externalEvents) {
+      if (!seen.has(e.calendarId)) {
+        const meta = e.metadata as { provider?: string; sourceCalendarName?: string } | null
+        seen.set(e.calendarId, {
+          id: e.calendarId,
+          name: e.calendar?.name || meta?.sourceCalendarName || 'External',
+          provider: meta?.provider || 'google_calendar',
+        })
+      }
+    }
+    return Array.from(seen.values())
+  }, [externalEvents])
+
   // Search filter state
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -356,10 +373,14 @@ export default function CalendarView() {
       result = [...result, ...athEvents]
     }
 
-    // Merge user's external (Google/Microsoft) calendar events when enabled.
-    // Controlled by the "External Calendars" toggle in the Filters popover.
-    if ((calendarFilter.showExternalEvents ?? true) && externalEvents.length > 0) {
+    // Merge user's external (Google/Microsoft) calendar events, filtering
+    // out any calendars the user has hidden via the Filters popover.
+    if (externalEvents.length > 0) {
+      const hidden = calendarFilter.hiddenExternalCalendarIds
       let extEvents = externalEvents
+      if (hidden && hidden.size > 0) {
+        extEvents = extEvents.filter((e) => !hidden.has(e.calendarId))
+      }
       if (q) {
         extEvents = extEvents.filter((e) => e.title.toLowerCase().includes(q))
       }
@@ -651,7 +672,7 @@ export default function CalendarView() {
           }}
           campuses={athleticsCampuses}
           sports={athleticsSports}
-          hasExternalCalendar={externalEvents.length > 0}
+          externalCalendars={externalCalendarList}
         />
 
         {/* Export CSV — subtle text link, not a prominent button */}
