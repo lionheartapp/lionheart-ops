@@ -13,9 +13,17 @@ import { UpdateScheduleSectionSchema } from '@/lib/types/event-project'
 export const PATCH = withAuth(async ({ params, body }) => {
   const db = prisma as unknown as OrgPrismaClient
 
+  // Explicit field whitelist — prevents mass-assignment of fields like
+  // createdAt, organizationId, eventProjectId that Zod validates but
+  // shouldn't be updatable by the client.
   const section = await db.eventScheduleSection.update({
     where: { id: params.sectionId },
-    data: body,
+    data: {
+      ...(body.title !== undefined && { title: body.title }),
+      ...(body.startTime !== undefined && { startTime: body.startTime }),
+      ...(body.layout !== undefined && { layout: body.layout }),
+      ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
+    },
   })
   return NextResponse.json(ok(section))
 }, { permission: PERMISSIONS.EVENT_PROJECT_UPDATE_ALL, schema: UpdateScheduleSectionSchema })

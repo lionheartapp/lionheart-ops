@@ -35,12 +35,24 @@ import { ZodError } from 'zod'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { sendVerificationEmail } from '@/lib/services/emailService'
+import { getIp } from '@/lib/services/auditService'
+import { signupRateLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/organizations/signup', method: 'POST' })
   try {
+    // Rate limit: 5 signups/hour per IP to prevent org creation spam
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await signupRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many signup attempts. Please wait before trying again.'),
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(limitResult.retryAfterMs / 1000)) } }
+      )
+    }
+
     const body = await req.json()
 
     const result = await organizationRegistrationService.createOrganization(body)

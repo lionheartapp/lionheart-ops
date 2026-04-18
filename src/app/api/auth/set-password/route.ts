@@ -5,12 +5,24 @@ import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { passwordSchema } from '@/lib/validation/password'
 import { ZodError } from 'zod'
+import { getIp } from '@/lib/services/auditService'
+import { studentPasswordRateLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/auth/set-password', method: 'POST' })
   try {
+    // Rate limit: 10 attempts/minute per IP to prevent token brute-force
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await studentPasswordRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many attempts. Please wait before trying again.'),
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(limitResult.retryAfterMs / 1000)) } }
+      )
+    }
+
     const passwordSetupTokenModel = (prisma as unknown as Record<string, PrismaDelegate>).passwordSetupToken
     const body = (await req.json()) as { token?: string; password?: string }
     const token = body.token?.trim()

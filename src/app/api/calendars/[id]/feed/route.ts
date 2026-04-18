@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { fail } from '@/lib/api-response'
+import { getIp } from '@/lib/services/auditService'
+import { publicApiRateLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 
 function escapeIcal(text: string): string {
@@ -13,6 +15,19 @@ function formatIcalDate(date: Date): string {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Rate limit: prevent token brute-force on this public endpoint.
+    // NOTE: Token is in query param (not header) because iCal subscribers
+    // (Apple Calendar, Google Calendar, Outlook) only support URL-based auth
+    // for .ics feeds. This is an industry-standard trade-off.
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await publicApiRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many requests.'),
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(limitResult.retryAfterMs / 1000)) } }
+      )
+    }
+
     const { id } = await params
     const { searchParams } = new URL(req.url)
     const token = searchParams.get('token')

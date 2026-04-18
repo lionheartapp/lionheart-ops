@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth/password-setup'
 import { sendPasswordResetEmail } from '@/lib/services/emailService'
 import { audit, getIp } from '@/lib/services/auditService'
+import { publicApiRateLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -22,6 +23,16 @@ const GENERIC_SUCCESS = { message: 'If an account exists, we sent a reset link.'
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/auth/forgot-password', method: 'POST' })
   try {
+    // Rate limit: 30 requests/minute per IP to prevent email flooding
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await publicApiRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many requests. Please wait before trying again.'),
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(limitResult.retryAfterMs / 1000)) } }
+      )
+    }
+
     const body = await req.json()
     const parsed = schema.safeParse(body)
 
