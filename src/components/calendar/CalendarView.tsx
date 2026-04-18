@@ -469,14 +469,7 @@ export default function CalendarView() {
   }
 
   const handleEventClick = useCallback((event: CalendarEventData) => {
-    // External (Google/Microsoft) events are read-only in Lionheart — open
-    // the source event in a new tab if the provider gave us a URL, otherwise
-    // do nothing.
-    if (event.sourceModule === 'external') {
-      const meta = event.metadata as { url?: string | null } | null | undefined
-      if (meta?.url) window.open(meta.url, '_blank', 'noopener,noreferrer')
-      return
-    }
+    // All events (including external Google/Microsoft) open the detail panel
     setSelectedEvent(event)
   }, [])
 

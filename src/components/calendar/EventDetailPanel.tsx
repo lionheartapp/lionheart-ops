@@ -117,6 +117,8 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   const eventMeta: EventMetadata | null = event ? getEventMetadata(event) : null
   const isAthletics = !!eventMeta?.athleticsType
   const athleticsMeta = isAthletics ? eventMeta : null
+  const isExternal = event?.sourceModule === 'external'
+  const externalMeta = isExternal ? (event?.metadata as { url?: string | null; description?: string | null; location?: string | null; sourceCalendarName?: string | null } | null) : null
 
   const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
   return (
@@ -153,7 +155,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5 -mt-0.5">
-                  {!isAthletics && (isAdmin || isCreator) && (
+                  {!isAthletics && !isExternal && (isAdmin || isCreator) && (
                     <button
                       onClick={() => onEdit(event)}
                       className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
@@ -162,7 +164,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                       <Edit className="w-4 h-4 text-slate-400" />
                     </button>
                   )}
-                  {!isAthletics && isAdmin && (
+                  {!isAthletics && !isExternal && isAdmin && (
                     <button
                       onClick={() => onDelete(event)}
                       className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
@@ -188,6 +190,34 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {/* External calendar event info */}
+              {isExternal && (
+                <div className="mb-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-600">
+                      {externalMeta?.sourceCalendarName || event.calendar?.name || 'Google Calendar'}
+                    </span>
+                    <span className="text-xs text-slate-400">External</span>
+                  </div>
+
+                  {externalMeta?.url && (
+                    <a
+                      href={externalMeta.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open in Google Calendar
+                    </a>
+                  )}
+
+                  <p className="text-xs text-slate-400 mt-3">
+                    This event is synced from your connected calendar (read-only)
+                  </p>
+                </div>
+              )}
+
               {/* Event Project deep-link */}
               {event.sourceModule === 'event-project' && event.sourceId && (
                 <div className="mb-4 pb-4 border-b border-slate-100">
