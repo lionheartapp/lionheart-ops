@@ -520,6 +520,9 @@ export async function importEventsFromGoogleCalendar(
         const { startsAt, endsAt, isAllDay } = normalizeGoogleTime(item.start, item.end)
         if (!startsAt || !endsAt) continue
 
+        // Extract conference link (Google Meet, Zoom, Teams, etc.)
+        const conferenceUrl = extractConferenceUrl(item)
+
         await rawPrisma.externalCalendarEvent.upsert({
           where: {
             userId_provider_externalId: { userId, provider: 'google_calendar', externalId },
@@ -535,6 +538,7 @@ export async function importEventsFromGoogleCalendar(
             description: item.description ?? null,
             location: item.location ?? null,
             url: item.htmlLink ?? null,
+            conferenceUrl,
             startsAt,
             endsAt,
             isAllDay,
@@ -549,6 +553,7 @@ export async function importEventsFromGoogleCalendar(
             description: item.description ?? null,
             location: item.location ?? null,
             url: item.htmlLink ?? null,
+            conferenceUrl,
             startsAt,
             endsAt,
             isAllDay,
@@ -600,6 +605,26 @@ export async function importEventsFromGoogleCalendar(
     })
     return { imported: 0, deleted: 0, error: message }
   }
+}
+
+/**
+ * Extracts the best video conference URL from a Google Calendar event.
+ * Checks conferenceData.entryPoints first (supports Google Meet, Zoom, Teams,
+ * Webex, etc.), then falls back to hangoutLink.
+ */
+function extractConferenceUrl(item: calendar_v3.Schema$Event): string | null {
+  // conferenceData.entryPoints — preferred, supports all providers
+  const entryPoints = item.conferenceData?.entryPoints
+  if (entryPoints && entryPoints.length > 0) {
+    // Prefer "video" type, then any with a URI
+    const video = entryPoints.find((ep) => ep.entryPointType === 'video')
+    if (video?.uri) return video.uri
+    const any = entryPoints.find((ep) => ep.uri)
+    if (any?.uri) return any.uri
+  }
+  // Fallback: legacy hangoutLink field
+  if (item.hangoutLink) return item.hangoutLink
+  return null
 }
 
 /**

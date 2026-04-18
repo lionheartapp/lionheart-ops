@@ -5105,6 +5105,8 @@ model ExternalCalendarEvent {
   location            String?
   /// Web URL to the event in the external provider (e.g. htmlLink on Google)
   url                 String?
+  /// Video conference link (Google Meet, Zoom, Teams, etc.)
+  conferenceUrl       String?
   startsAt            DateTime
   endsAt              DateTime
   isAllDay            Boolean  @default(false)

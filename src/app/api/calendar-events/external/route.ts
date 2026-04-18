@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
           external: true,
           provider: e.provider,
           url: e.url,
+          conferenceUrl: e.conferenceUrl,
           sourceCalendarName: e.sourceCalendarName,
         },
         sourceModule: 'external',

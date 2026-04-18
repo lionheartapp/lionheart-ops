@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -118,7 +118,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   const isAthletics = !!eventMeta?.athleticsType
   const athleticsMeta = isAthletics ? eventMeta : null
   const isExternal = event?.sourceModule === 'external'
-  const externalMeta = isExternal ? (event?.metadata as { url?: string | null; description?: string | null; location?: string | null; sourceCalendarName?: string | null } | null) : null
+  const externalMeta = isExternal ? (event?.metadata as { url?: string | null; conferenceUrl?: string | null; sourceCalendarName?: string | null } | null) : null
 
   const status = event ? (statusStyles[event.calendarStatus] || statusStyles.DRAFT) : statusStyles.DRAFT
   return (
@@ -200,17 +200,31 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                     <span className="text-xs text-slate-400">External</span>
                   </div>
 
-                  {externalMeta?.url && (
-                    <a
-                      href={externalMeta.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      Open in Google Calendar
-                    </a>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {externalMeta?.conferenceUrl && (
+                      <a
+                        href={externalMeta.conferenceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors cursor-pointer"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        Join Meeting
+                      </a>
+                    )}
+
+                    {externalMeta?.url && (
+                      <a
+                        href={externalMeta.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Open in Google Calendar
+                      </a>
+                    )}
+                  </div>
 
                   <p className="text-xs text-slate-400 mt-3">
                     This event is synced from your connected calendar (read-only)
