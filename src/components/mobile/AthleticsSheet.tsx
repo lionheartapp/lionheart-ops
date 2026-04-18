@@ -8,6 +8,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import ActionSheet from '@/components/ui/ActionSheet'
+import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 
 interface AthleticsSheetProps {
   open: boolean
@@ -23,7 +24,7 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
       label: 'Overview',
       description: 'Athletics dashboard',
       onClick: () => {
-        window.dispatchEvent(new CustomEvent('athletics-tab-change', { detail: { tab: 'overview' } }))
+        emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'overview' })
         router.push('/athletics')
       },
     },
@@ -32,7 +33,7 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
       label: 'Manage',
       description: 'Sports, teams, and rosters',
       onClick: () => {
-        window.dispatchEvent(new CustomEvent('athletics-tab-change', { detail: { tab: 'manage' } }))
+        emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'manage' })
         router.push('/athletics')
       },
     },
@@ -41,7 +42,7 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
       label: 'Schedule',
       description: 'Games and practices',
       onClick: () => {
-        window.dispatchEvent(new CustomEvent('athletics-tab-change', { detail: { tab: 'schedule' } }))
+        emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'schedule' })
         router.push('/athletics')
       },
     },
@@ -50,7 +51,7 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
       label: 'Stats',
       description: 'Player statistics',
       onClick: () => {
-        window.dispatchEvent(new CustomEvent('athletics-tab-change', { detail: { tab: 'stats' } }))
+        emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'stats' })
         router.push('/athletics')
       },
     },

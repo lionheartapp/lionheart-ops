@@ -76,9 +76,14 @@ function installCsrfInterceptor() {
 }
 
 // ── Auth Bridge ─────────────────────────────────────────────────────
-// Fetches /api/auth/me (reads httpOnly cookie) and populates localStorage
-// so all existing pages keep working with zero changes. Blocks rendering
-// of children on auth-required pages until the check completes.
+// Audit ref C1/H4: Fetches /api/auth/me (reads httpOnly cookie) and bridges
+// non-secret user metadata (name, email, role, org info) to localStorage so
+// existing pages can render without an extra round-trip. The `auth-token`
+// localStorage key holds the sentinel `cookie-auth` (NOT the real JWT —
+// the JWT is in an httpOnly cookie that JS cannot read). Pages that pass
+// `Authorization: Bearer ${localStorage.getItem('auth-token')}` are
+// effectively no-ops because middleware reads the cookie first; they should
+// migrate to `fetchApi` from `@/lib/api-client` (cookie auth + CSRF).
 function AuthBridge({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
   const ran = useRef(false)

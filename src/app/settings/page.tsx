@@ -19,6 +19,8 @@ import IntegrationsTab from '@/components/settings/IntegrationsTab'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
 import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS } from './settings-types'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { fetchApi } from '@/lib/api-client'
 
 export default function SettingsPage() {
   usePageTitle('Settings')
@@ -57,46 +59,47 @@ export default function SettingsPage() {
   const [schoolInfoSaveHandler, setSchoolInfoSaveHandler] = useState<(() => Promise<boolean>) | null>(null)
   const [schoolInfoDiscardHandler, setSchoolInfoDiscardHandler] = useState<(() => void) | null>(null)
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
-  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
-  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
-  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
-  )
+  // Audit ref C3/H4: cookie-based auth via useAuth.
+  const { user, org, orgId, isReady, logout } = useAuth({ redirectTo: '/login' })
+  const userName = user.name
+  const userEmail = user.email
+  const userAvatar = user.avatar
+  const userTeam = user.team
+  const userSchoolScope = user.schoolScope
+  const userRole = user.role
+  const orgName = org.name
+  const orgSchoolType = org.schoolType
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
 
   // Optimistic check: show workspace settings immediately for admins
   const optimisticCanManageWorkspace = userRole
     ? (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super'))
     : false
 
-  // Fetch org logo from API if not in localStorage
+  // Keep local logo in sync with useAuth
   useEffect(() => {
-    if (orgLogoUrl || !token) return
-    const fetchLogo = async () => {
-      try {
-        const res = await fetch('/api/onboarding/school-info', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.ok && data.data?.logoUrl) {
-            setOrgLogoUrl(data.data.logoUrl)
-            localStorage.setItem('org-logo-url', data.data.logoUrl)
-          }
-        }
-      } catch {
-        // Silently fail — logo is non-critical
-      }
+    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
+      setOrgLogoUrl(org.logoUrl)
     }
-    fetchLogo()
-  }, [orgLogoUrl, token])
+  }, [org.logoUrl, orgLogoUrl])
+
+  // Fetch org logo via cookie-auth if not already loaded
+  useEffect(() => {
+    if (orgLogoUrl || !isReady) return
+    let cancelled = false
+    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
+      .then((data) => {
+        if (!cancelled && data?.logoUrl) {
+          setOrgLogoUrl(data.logoUrl)
+        }
+      })
+      .catch(() => {
+        // Silently fail — logo is non-critical
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [orgLogoUrl, isReady])
 
   // Update both state and URL when switching tabs
   const switchToTab = (tab: Tab) => {
@@ -126,10 +129,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setIsClient(true)
-    if (!token || !orgId) {
-      router.push('/login')
-    }
-  }, [token, orgId, router])
+    // useAuth handles the redirect now — we just need the SSR-safe flag flip.
+  }, [])
 
   useEffect(() => {
     if (!optimisticCanManageWorkspace) return
@@ -142,7 +143,7 @@ export default function SettingsPage() {
   // The activeTab is always added to visitedTabs when selected.
 
   useEffect(() => {
-    if (!token) return
+    if (!orgId) return
 
     const fetchPermissions = async () => {
       const normalizedRole = (userRole || '').toLowerCase()
@@ -154,30 +155,20 @@ export default function SettingsPage() {
       }
 
       try {
-        const response = await fetch('/api/auth/permissions', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to load permissions')
-        }
-
-        const data = await response.json()
-        const allowed = Boolean(data?.data?.canManageWorkspace)
+        const response = await fetchApi<{ canManageWorkspace?: boolean }>(
+          '/api/auth/permissions',
+        )
+        const allowed = Boolean(response?.canManageWorkspace)
         setCanManageWorkspace(allowed)
       } catch {
-        setCanManageWorkspace(
-          optimisticWorkspaceAccess
-        )
+        setCanManageWorkspace(optimisticWorkspaceAccess)
       } finally {
         setPermissionsLoaded(true)
       }
     }
 
     fetchPermissions()
-  }, [token, userRole])
+  }, [orgId, userRole])
 
   useEffect(() => {
     if (!permissionsLoaded || canManageWorkspace) return
@@ -271,21 +262,10 @@ export default function SettingsPage() {
     : 'You have unsaved changes in this tab. If you leave now, they will be discarded.'
 
   const handleLogout = () => {
-    localStorage.removeItem('auth-token')
-    localStorage.removeItem('org-id')
-    localStorage.removeItem('user-name')
-    localStorage.removeItem('user-email')
-    localStorage.removeItem('user-avatar')
-    localStorage.removeItem('user-team')
-    localStorage.removeItem('user-school-scope')
-    localStorage.removeItem('user-role')
-    localStorage.removeItem('org-name')
-    localStorage.removeItem('org-school-type')
-    localStorage.removeItem('org-logo-url')
-    router.push('/login')
+    logout()
   }
 
-  if (!isClient || !token || !orgId) {
+  if (!isClient || !isReady || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
@@ -311,7 +291,7 @@ export default function SettingsPage() {
                   userName={userName}
                   userEmail={userEmail}
                   userAvatar={userAvatar}
-                  token={token}
+                  token={isReady ? 'cookie-auth' : null}
                 />
               )}
 

@@ -2,12 +2,53 @@ import { type ReactNode } from 'react'
 import { Clock, AlertCircle, CheckCircle } from 'lucide-react'
 import { createElement } from 'react'
 
-/** Returns a time-based greeting string ("Good morning" / "Good afternoon" / "Good evening"). */
-export function getGreeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
+/**
+ * Options for `getGreeting`.
+ *
+ * Audit ref L4: the original signature only returned an English string.
+ * Consumers that wanted a different locale had to rewrite the helper inline,
+ * and there was no way to test the evening-branch deterministically. The
+ * `locale` + `now` options make the function i18n-ready and trivially unit-
+ * testable while preserving the existing zero-arg call sites.
+ */
+export interface GetGreetingOptions {
+  /** BCP 47 locale tag. Defaults to `'en-US'`. */
+  locale?: string
+  /** Override "now" — useful for tests. */
+  now?: Date
+}
+
+const GREETINGS_BY_LOCALE: Record<string, [string, string, string]> = {
+  'en-US': ['Good morning', 'Good afternoon', 'Good evening'],
+  'en-GB': ['Good morning', 'Good afternoon', 'Good evening'],
+  'es': ['Buenos días', 'Buenas tardes', 'Buenas noches'],
+  'es-MX': ['Buenos días', 'Buenas tardes', 'Buenas noches'],
+  'fr': ['Bonjour', 'Bon après-midi', 'Bonsoir'],
+  'fr-FR': ['Bonjour', 'Bon après-midi', 'Bonsoir'],
+  'de': ['Guten Morgen', 'Guten Tag', 'Guten Abend'],
+  'it': ['Buongiorno', 'Buon pomeriggio', 'Buonasera'],
+  'pt': ['Bom dia', 'Boa tarde', 'Boa noite'],
+  'pt-BR': ['Bom dia', 'Boa tarde', 'Boa noite'],
+}
+
+/**
+ * Returns a time-based greeting string. Defaults to English (morning /
+ * afternoon / evening) but falls back through the locale hierarchy so
+ * `'en-AU'` will use `'en-US'` copy if no exact match exists.
+ */
+export function getGreeting(options: GetGreetingOptions = {}): string {
+  const { locale = 'en-US', now = new Date() } = options
+  const hour = now.getHours()
+
+  const baseLocale = locale.split('-')[0]
+  const copy =
+    GREETINGS_BY_LOCALE[locale] ||
+    GREETINGS_BY_LOCALE[baseLocale] ||
+    GREETINGS_BY_LOCALE['en-US']
+
+  if (hour < 12) return copy[0]
+  if (hour < 18) return copy[1]
+  return copy[2]
 }
 
 /** Maps a ticket status string to a status icon (lucide-react component). */

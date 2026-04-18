@@ -6,6 +6,7 @@ import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { logger } from '@/lib/logger'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
+import ErrorCard from '@/components/ErrorCard'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
@@ -19,7 +20,9 @@ import EventCreatePanel, { type EventFormData } from '@/components/calendar/Even
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
+import { httpErrorMessage } from '@/lib/errors/http-message'
 import { LeoItemDrawerContent } from '@/components/dashboard/DrawerContents'
 import OnboardingChecklistWidget from '@/components/onboarding/ChecklistWidget'
 import UpcomingEventsPanel, { type UpcomingItem } from '@/components/dashboard/UpcomingEventsPanel'
@@ -55,38 +58,9 @@ interface EventData {
   avEquipmentList: Array<{ item: string; quantity: number }> | null
 }
 
-// ─── Inline Error Card ──────────────────────────────────────────────────────────
-// Shown when a dashboard widget fetch fails. Replaces the silent empty state
-// with an actionable message + retry button so users know something went wrong.
-interface DashboardErrorCardProps {
-  widgetName: string
-  message?: string
-  onRetry: () => void
-}
-
-function DashboardErrorCard({ widgetName, message, onRetry }: DashboardErrorCardProps) {
-  return (
-    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
-      <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
-        <AlertTriangle className="w-6 h-6 text-red-500" aria-hidden="true" />
-      </div>
-      <p className="text-base font-semibold text-slate-800 mb-1">
-        Failed to load {widgetName}
-      </p>
-      {message && (
-        <p className="text-xs text-slate-500 mb-4 max-w-xs">{message}</p>
-      )}
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-      >
-        <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-        Retry
-      </button>
-    </div>
-  )
-}
+// (The old inline DashboardErrorCard has been promoted to
+// `@/components/ErrorCard` — audit ref M1 — so every dashboard widget,
+// events page, inventory page, etc. uses the same retry affordance.)
 
 export default function DashboardPage() {
   usePageTitle('Dashboard')
@@ -277,7 +251,7 @@ export default function DashboardPage() {
       else if (dashMode === 'it') url += '&category=IT'
       const res = await fetch(url, { credentials: 'include' })
       if (!res.ok) {
-        setTicketsError(`Request failed (${res.status})`)
+        setTicketsError(httpErrorMessage(res.status, 'load requests').message)
         return
       }
       const data = await res.json()
@@ -290,7 +264,7 @@ export default function DashboardPage() {
       setTicketCount(allTickets.filter((t: TicketData) => t.status !== 'RESOLVED').length)
     } catch (err) {
       logger.error({ error: String(err) }, 'fetchTickets failed')
-      setTicketsError('Network error — check your connection')
+      setTicketsError(httpErrorMessage(null, 'load requests').message)
     } finally {
       setTicketsLoading(false)
     }
@@ -315,7 +289,7 @@ export default function DashboardPage() {
       }
       const res = await fetch(url, { credentials: 'include' })
       if (!res.ok) {
-        setEventsError(`Request failed (${res.status})`)
+        setEventsError(httpErrorMessage(res.status, 'load events').message)
         return
       }
       const data = await res.json()
@@ -327,7 +301,7 @@ export default function DashboardPage() {
       setEvents(allEvents)
     } catch (err) {
       logger.error({ error: String(err) }, 'fetchEvents failed')
-      setEventsError('Network error — check your connection')
+      setEventsError(httpErrorMessage(null, 'load events').message)
     } finally {
       setEventsLoading(false)
     }
@@ -457,10 +431,72 @@ export default function DashboardPage() {
     }
   }, [isCreateDropdownOpen])
 
+  // Audit ref M2: Escape closes the dropdown for keyboard users.
+  useEscapeKey(isCreateDropdownOpen, () => setIsCreateDropdownOpen(false))
+
   if (!isReady) {
+    // Audit ref H2: Replaced bare spinner with a layout-shaped skeleton so the
+    // shell doesn't flash in after auth. role=status + sr-only label keeps AT
+    // users informed while the visual skeleton mirrors the final grid.
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #e8eaf0, #d4dbe8, #c8d4e4, #d8dce8, #e4e6ec)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
+      <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className="min-h-screen px-6 py-8 bg-app-mist"
+      >
+        <span className="sr-only">Loading your dashboard…</span>
+        <div className="max-w-7xl mx-auto">
+          {/* Greeting row skeleton */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="space-y-3">
+              <div className="h-4 w-44 rounded-full bg-white/60 animate-pulse" />
+              <div className="h-9 w-72 rounded-lg bg-white/70 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-white/70 animate-pulse" />
+              <div className="w-32 h-11 rounded-full bg-white/70 animate-pulse" />
+            </div>
+          </div>
+
+          {/* Stat-row skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white/70 border border-white/50 rounded-xl p-5 space-y-3"
+              >
+                <div className="h-3 w-20 rounded bg-slate-200/80 animate-pulse" />
+                <div className="h-7 w-16 rounded bg-slate-200/80 animate-pulse" />
+                <div className="h-2 w-28 rounded bg-slate-200/60 animate-pulse" />
+              </div>
+            ))}
+          </div>
+
+          {/* Panel grid skeleton — matches the 2-column tickets/events layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white/70 border border-white/50 rounded-xl p-6 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="h-5 w-40 rounded bg-slate-200/80 animate-pulse" />
+                  <div className="h-4 w-16 rounded bg-slate-200/60 animate-pulse" />
+                </div>
+                {Array.from({ length: 4 }).map((_, row) => (
+                  <div key={row} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-200/80 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-3/4 rounded bg-slate-200/80 animate-pulse" />
+                      <div className="h-2 w-1/3 rounded bg-slate-200/60 animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -753,8 +789,8 @@ export default function DashboardPage() {
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
             ) : upcomingCalError ? (
-              <DashboardErrorCard
-                widgetName="upcoming events"
+              <ErrorCard
+                resource="upcoming events"
                 message="We couldn't reach the calendar service. Check your connection and try again."
                 onRetry={() => { void refetchUpcomingCal() }}
               />
@@ -812,8 +848,8 @@ export default function DashboardPage() {
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
             ) : eventsError ? (
-              <DashboardErrorCard
-                widgetName="A/V events"
+              <ErrorCard
+                resource="A/V events"
                 message={eventsError}
                 onRetry={() => fetchEvents()}
               />
@@ -882,8 +918,8 @@ export default function DashboardPage() {
                 <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
               </div>
             ) : ticketsError ? (
-              <DashboardErrorCard
-                widgetName={
+              <ErrorCard
+                resource={
                   user.dashboardMode === 'maintenance' ? 'maintenance requests' :
                   user.dashboardMode === 'it' ? 'IT requests' :
                   'tasks'

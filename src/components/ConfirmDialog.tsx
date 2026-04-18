@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 
 interface ConfirmDialogProps {
@@ -45,6 +45,9 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   const [confirmInput, setConfirmInput] = useState('')
   const titleId = useId()
+  const confirmInputId = useId()
+  const confirmHintId = useId()
+  const confirmStatusId = useId()
   const focusTrapRef = useFocusTrap(isOpen)
 
   useEffect(() => {
@@ -81,8 +84,23 @@ export default function ConfirmDialog({
   const requiresConfirmation = Boolean(requireText)
   const normalizedRequire = requireText?.trim().toLowerCase() || ''
   const normalizedInput = confirmInput.trim().toLowerCase()
+  const matchesRequireText =
+    requiresConfirmation && normalizedInput === normalizedRequire
+  const hasTypedSomething = requiresConfirmation && confirmInput.length > 0
   const canConfirm =
-    (!requiresConfirmation || normalizedInput === normalizedRequire) && !confirmDisabled
+    (!requiresConfirmation || matchesRequireText) && !confirmDisabled
+
+  // Audit ref M5: provide live feedback on the require-text input so users
+  // know *why* the confirm button is still disabled instead of silently
+  // comparing strings. Status message is surfaced to AT via aria-live.
+  let confirmStatusMessage = ''
+  if (requiresConfirmation) {
+    if (matchesRequireText) {
+      confirmStatusMessage = `Match confirmed — you can now ${confirmText.toLowerCase()}.`
+    } else if (hasTypedSomething) {
+      confirmStatusMessage = `That doesn't match "${requireText}" yet.`
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -137,15 +155,59 @@ export default function ConfirmDialog({
 
             {requiresConfirmation && (
               <div className="mt-6">
-                <p className="text-sm text-slate-500">
-                  To confirm this, type &ldquo;{requireText}&rdquo;
+                <label
+                  id={confirmHintId}
+                  htmlFor={confirmInputId}
+                  className="text-sm text-slate-700"
+                >
+                  To confirm this, type &ldquo;<span className="font-semibold">{requireText}</span>&rdquo;
+                </label>
+                <div className="relative mt-3">
+                  <input
+                    id={confirmInputId}
+                    value={confirmInput}
+                    onChange={(event) => setConfirmInput(event.target.value)}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    aria-describedby={`${confirmHintId} ${confirmStatusId}`}
+                    aria-invalid={hasTypedSomething && !matchesRequireText}
+                    className={`w-full rounded-lg border bg-white px-3 py-2.5 pr-10 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 transition-colors ${
+                      matchesRequireText
+                        ? 'border-emerald-400 focus-visible:ring-emerald-200'
+                        : hasTypedSomething
+                          ? 'border-red-300 focus-visible:ring-red-200'
+                          : 'border-slate-300 focus:border-slate-400 focus-visible:ring-slate-200'
+                    }`}
+                    placeholder={requireText}
+                  />
+                  {matchesRequireText && (
+                    <Check
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {hasTypedSomething && !matchesRequireText && (
+                    <X
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+                <p
+                  id={confirmStatusId}
+                  role="status"
+                  aria-live="polite"
+                  className={`mt-2 min-h-[1.25rem] text-xs ${
+                    matchesRequireText
+                      ? 'text-emerald-600'
+                      : hasTypedSomething
+                        ? 'text-red-600'
+                        : 'text-transparent'
+                  }`}
+                >
+                  {confirmStatusMessage || '\u00A0'}
                 </p>
-                <input
-                  value={confirmInput}
-                  onChange={(event) => setConfirmInput(event.target.value)}
-                  className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
-                  placeholder={requireText}
-                />
                 <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3">
                   <button
                     type="button"

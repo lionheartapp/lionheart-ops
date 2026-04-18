@@ -8,6 +8,7 @@ import {
   Bug,
 } from 'lucide-react'
 import ActionSheet from '@/components/ui/ActionSheet'
+import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 
 interface ProfileSheetProps {
   open: boolean
@@ -42,7 +43,7 @@ export default function ProfileSheet({
       label: 'Report a Bug',
       onClick: () => {
         // Dispatch event to open bug dialog (matches existing Sidebar pattern)
-        window.dispatchEvent(new CustomEvent('open-bug-dialog'))
+        emitAppEvent(AppEventName.OPEN_BUG_DIALOG)
       },
     },
     ...(isSuperAdmin
@@ -52,7 +53,7 @@ export default function ProfileSheet({
             label: 'View as User',
             description: 'Impersonate another user',
             onClick: () => {
-              window.dispatchEvent(new CustomEvent('open-view-as-dialog'))
+              emitAppEvent(AppEventName.OPEN_VIEW_AS_DIALOG)
             },
           },
         ]

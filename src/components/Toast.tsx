@@ -60,6 +60,12 @@ const ICON_STYLES: Record<ToastVariant, string> = {
 
 const DEFAULT_DURATION = 4000
 
+// Shorten a message for aria-label so screen readers don't read 400-char toasts.
+function truncate(text: string, max = 80): string {
+  if (text.length <= max) return text
+  return `${text.slice(0, max - 1).trimEnd()}…`
+}
+
 function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   const Icon = ICONS[t.variant]
 
@@ -67,6 +73,10 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
     const timer = setTimeout(() => onDismiss(t.id), t.duration || DEFAULT_DURATION)
     return () => clearTimeout(timer)
   }, [t.id, t.duration, onDismiss])
+
+  // Audit ref H6: aria-label includes the message preview + variant so stacked
+  // toasts are distinguishable for voice-control and screen-reader users.
+  const dismissLabel = `Dismiss ${t.variant} notification: ${truncate(t.message)}`
 
   return (
     <motion.div
@@ -79,10 +89,11 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
       role="status"
       aria-live="polite"
     >
-      <Icon className={`w-5 h-5 flex-shrink-0 ${ICON_STYLES[t.variant]}`} />
+      <Icon className={`w-5 h-5 flex-shrink-0 ${ICON_STYLES[t.variant]}`} aria-hidden="true" />
       <p className="text-sm font-medium flex-1">{t.message}</p>
       {t.action && (
         <button
+          type="button"
           onClick={() => {
             t.action!.onClick()
             onDismiss(t.id)
@@ -93,11 +104,12 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: (id: stri
         </button>
       )}
       <button
+        type="button"
         onClick={() => onDismiss(t.id)}
         className="p-0.5 rounded-md hover:bg-black/5 transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-        aria-label="Dismiss"
+        aria-label={dismissLabel}
       >
-        <X className="w-4 h-4 opacity-50" />
+        <X className="w-4 h-4 opacity-50" aria-hidden="true" />
       </button>
     </motion.div>
   )

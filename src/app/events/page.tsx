@@ -599,31 +599,39 @@ function EventsEmptyState({ onCreateEvent, onClearFilter, filterLabel }: EventsE
           ? `You have events, but none match the "${filterLabel}" filter. Try a different filter or clear it to see everything.`
           : 'Create your first event to start planning, scheduling, and coordinating everything in one place.'}
       </p>
-      {isFiltered ? (
+      {/* Audit ref M6: even in the filtered-no-matches state, surface the
+          Create CTA so users aren't forced to clear the filter just to add a
+          new event. When completely empty (no events at all), only Create is
+          shown since there's nothing to "Show All" of. */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        {isFiltered && (
+          <button
+            type="button"
+            onClick={onClearFilter}
+            className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+            style={{
+              backgroundColor: '#ffffff',
+              color: TEXT_PRIMARY,
+              border: '1px solid rgba(15, 23, 42, 0.12)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+            }}
+          >
+            Show All Events
+          </button>
+        )}
         <button
-          onClick={onClearFilter}
-          className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
-          style={{
-            backgroundColor: TEXT_PRIMARY,
-            color: '#ffffff',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
-          }}
-        >
-          Show All Events
-        </button>
-      ) : (
-        <button
+          type="button"
           onClick={onCreateEvent}
-          className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px"
+          className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
           style={{
             backgroundColor: TEXT_PRIMARY,
             color: '#ffffff',
             boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
           }}
         >
-          Create First Event
+          {isFiltered ? 'Create Event' : 'Create First Event'}
         </button>
-      )}
+      </div>
     </motion.div>
   )
 }

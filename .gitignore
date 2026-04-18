@@ -12,3 +12,11 @@ figma-debrander/
 
 # Performance test results (k6 JSON output)
 scripts/perf/results/
+
+# Playwright / E2E
+.env.e2e
+playwright-report/
+test-results/
+playwright/.cache/
+blob-report/
+.playwright-mcp/

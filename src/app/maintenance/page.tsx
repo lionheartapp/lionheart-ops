@@ -18,6 +18,8 @@ import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { fetchApi } from '@/lib/api-client'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
 import { useQueryClient } from '@tanstack/react-query'
@@ -41,59 +43,57 @@ function MaintenanceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
-  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
-  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
-  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
-  )
-  const [isClient, setIsClient] = useState(false)
+  // Audit ref C1/H4: cookie-based auth via useAuth — no more localStorage
+  // JWT reads or Bearer header construction.
+  const { user, org, orgId, isReady } = useAuth({ redirectTo: '/login' })
+  const userName = user.name
+  const userEmail = user.email
+  const userAvatar = user.avatar
+  const userRole = user.role
+  const orgName = org.name
+  const orgSchoolType = org.schoolType
+  const userSchoolScope = user.schoolScope
+  const userTeam = user.team
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
+  const isClient = isReady
 
-  // Hydration guard + auth redirect
+  // Keep the local logo copy in sync when useAuth refreshes it
   useEffect(() => {
-    setIsClient(true)
-    if (!token || !orgId) {
-      router.push('/login')
+    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
+      setOrgLogoUrl(org.logoUrl)
     }
-  }, [token, orgId, router])
+  }, [org.logoUrl, orgLogoUrl])
 
   // Cache assigned tickets for offline access on mount (when online)
   useEffect(() => {
-    if (!token || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') ?? '' : ''
-    cacheAssignedTickets(token, orgId, userId).catch(() => {
+    if (!isReady || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
+    const userId = user.id ?? ''
+    // cacheAssignedTickets is part of legacy offline sync that still takes a
+    // token arg; pass the sentinel so it no-ops cleanly until the sync layer
+    // migrates to cookie auth in a follow-up.
+    cacheAssignedTickets('cookie-auth', orgId, userId).catch(() => {
       // Non-fatal — silently ignore cache failures
     })
-  }, [token, orgId])
+  }, [isReady, orgId, user.id])
 
-  // Fetch org logo from API if not in localStorage
+  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
   useEffect(() => {
-    if (orgLogoUrl || !token) return
-    const fetchLogo = async () => {
-      try {
-        const res = await fetch('/api/onboarding/school-info', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.ok && data.data?.logoUrl) {
-            setOrgLogoUrl(data.data.logoUrl)
-            localStorage.setItem('org-logo-url', data.data.logoUrl)
-          }
+    if (orgLogoUrl || !isReady) return
+    let cancelled = false
+    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
+      .then((data) => {
+        if (cancelled) return
+        if (data?.logoUrl) {
+          setOrgLogoUrl(data.logoUrl)
         }
-      } catch {
+      })
+      .catch(() => {
         // Silently fail — logo is non-critical
-      }
+      })
+    return () => {
+      cancelled = true
     }
-    fetchLogo()
-  }, [orgLogoUrl, token])
+  }, [orgLogoUrl, isReady])
 
   const { data: perms } = usePermissions()
   const canManageMaintenance = perms?.canManageMaintenance ?? false
@@ -137,23 +137,13 @@ function MaintenanceContent() {
 
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [showDashboardTabs])
 
+  const { logout } = useAuth({ redirectTo: '' })
   const handleLogout = () => {
-    localStorage.removeItem('auth-token')
-    localStorage.removeItem('org-id')
-    localStorage.removeItem('user-name')
-    localStorage.removeItem('user-email')
-    localStorage.removeItem('user-avatar')
-    localStorage.removeItem('user-team')
-    localStorage.removeItem('user-school-scope')
-    localStorage.removeItem('user-role')
-    localStorage.removeItem('org-name')
-    localStorage.removeItem('org-school-type')
-    localStorage.removeItem('org-logo-url')
-    router.push('/login')
+    logout()
   }
 
   // Loading screen during hydration
-  if (!isClient || !token || !orgId) {
+  if (!isClient || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />

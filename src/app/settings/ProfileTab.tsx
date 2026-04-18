@@ -14,6 +14,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { Camera, User, Shield, Lock, Mail, Bell } from 'lucide-react'
+import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 
 interface ProfileTabProps {
   userName: string | null
@@ -108,7 +109,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
             setDisplayAvatar(data.data.user.avatar)
 
             if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: data.data.user.avatar } }))
+              emitAppEvent(AppEventName.AVATAR_UPDATED, { avatar: data.data.user.avatar })
             }
 
             setAvatarUpdating(false)
@@ -178,7 +179,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
         setDisplayAvatar(null)
 
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatar: null } }))
+          emitAppEvent(AppEventName.AVATAR_UPDATED, { avatar: null })
         }
 
         setAvatarUpdating(false)
@@ -233,7 +234,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
       localStorage.setItem('user-name', newName)
       setProfileSuccess(true)
 
-      window.dispatchEvent(new CustomEvent('profile-updated', { detail: { name: newName } }))
+      emitAppEvent(AppEventName.PROFILE_UPDATED, { name: newName })
 
       setTimeout(() => setProfileSuccess(false), 3000)
     } catch (err) {

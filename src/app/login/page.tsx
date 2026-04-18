@@ -22,7 +22,9 @@ export default async function LoginPage() {
         <div className="w-full max-w-sm text-center">
           <img src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white mb-2">Lionheart Platform</h1>
-          <p className="text-slate-400 mb-8">
+          {/* Audit ref L1: slate-400 on slate-900 was washed-out (AA-barely);
+              slate-200 reads as body copy, not disabled text. */}
+          <p className="text-slate-200 mb-8 leading-relaxed">
             Enter your school&apos;s URL to sign in.
           </p>
           <SchoolLookup />
@@ -38,7 +40,7 @@ export default async function LoginPage() {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white">Organization Not Found</h1>
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-slate-200">
             No school is configured at &quot;{subdomain}.lionheartapp.com&quot;.
           </p>
         </div>
@@ -75,7 +77,7 @@ export default async function LoginPage() {
         ) : (
           <div className="text-center px-12">
             <h1 className="text-5xl font-bold text-white mb-4">{branding.name}</h1>
-            <p className="text-xl text-slate-400 mb-12">Operations Platform</p>
+            <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
             <img
               src="/logo-white.svg"
               alt="Lionheart"

@@ -11,6 +11,8 @@ import {
   ChevronDown,
   AlertTriangle,
   Eye,
+  Loader2,
+  X,
 } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -26,6 +28,7 @@ import { getStockStatus } from './inventory-utils'
 import StockBadge from './StockBadge'
 import TableSkeleton from './TableSkeleton'
 import ItemDetailContent from './ItemDetailContent'
+import { useEscapeKey } from '@/hooks/useEscapeKey'
 
 // Types, constants, utils, and sub-components are imported from co-located files:
 // - inventory-types.ts    (InventoryItem, StockFilter, inventoryKeys, STOCK_FILTER_OPTIONS)
@@ -78,6 +81,10 @@ export default function InventoryPage() {
     return () => clearTimeout(t)
   }, [rawSearch])
 
+  // Audit ref L2: surface the debounce window in the UI so the input doesn't
+  // look "broken" while the user is mid-typing.
+  const isSearchDebouncing = rawSearch !== search
+
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -91,6 +98,14 @@ export default function InventoryPage() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  // Audit ref M2: Escape closes whichever dropdown is open. If both are open
+  // (shouldn't happen since the outside-click handler enforces one-at-a-time,
+  // but defensive) we close both.
+  useEscapeKey(categoryOpen || stockOpen, () => {
+    setCategoryOpen(false)
+    setStockOpen(false)
+  })
 
   // ── Drawer state ──
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
@@ -305,16 +320,39 @@ export default function InventoryPage() {
           animate="visible"
           variants={fadeInUp}
         >
-          {/* Search */}
+          {/* Search — Audit ref L2: show a debounce spinner while the 300ms
+              timer is in flight so users know the results will update; show a
+              clear (X) button once the query has settled so they can reset
+              without selecting-all + delete. */}
           <div className="flex-1 min-w-[180px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
               placeholder="Search items…"
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+              aria-label="Search items"
+              className="w-full pl-9 pr-9 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
             />
+            {isSearchDebouncing ? (
+              <span
+                role="status"
+                aria-live="polite"
+                aria-label="Updating search results"
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center"
+              >
+                <Loader2 className="w-4 h-4 text-slate-400 animate-spin" aria-hidden="true" />
+              </span>
+            ) : rawSearch ? (
+              <button
+                type="button"
+                onClick={() => setRawSearch('')}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            ) : null}
           </div>
 
           {/* Category filter */}

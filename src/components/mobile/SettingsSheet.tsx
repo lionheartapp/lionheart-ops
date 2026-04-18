@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
 } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
+import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 
 interface SettingsSheetProps {
   open: boolean
@@ -57,7 +58,7 @@ export default function SettingsSheet({
   const navigate = (tab: string) => {
     onClose()
     // Dispatch event to change settings tab (matches existing sidebar pattern)
-    window.dispatchEvent(new CustomEvent('settings-tab-change', { detail: { tab } }))
+    emitAppEvent(AppEventName.SETTINGS_TAB_CHANGE, { tab })
     router.push('/settings')
   }
 

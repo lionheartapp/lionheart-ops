@@ -42,7 +42,20 @@
     "perf:benchmark": "node scripts/perf/run-perf.mjs benchmark",
     "perf:benchmark:json": "node scripts/perf/run-perf.mjs benchmark --json",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:api": "playwright test --project=api",
+    "test:e2e:perms": "playwright test --project=permissions",
+    "test:e2e:a11y": "playwright test --project=a11y",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:crawl": "E2E_CRAWLER_SCREENSHOT=1 playwright test --project=chromium e2e/ui/link-crawler.spec.ts",
+    "test:e2e:visual": "E2E_SCREENSHOTS=all playwright test --project=chromium",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:install": "playwright install --with-deps chromium firefox webkit",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -97,6 +110,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.58.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

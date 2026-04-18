@@ -7,23 +7,33 @@ import {
   ClipboardList, Trophy, Dumbbell, Upload,
 } from 'lucide-react'
 import type { AthleticsTab } from '@/components/Sidebar'
+import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
+
+type AthleticsAddEvent =
+  | typeof AppEventName.ATHLETICS_ADD_SPORT
+  | typeof AppEventName.ATHLETICS_ADD_SEASON
+  | typeof AppEventName.ATHLETICS_ADD_TEAM
+  | typeof AppEventName.ATHLETICS_ADD_GAME
+  | typeof AppEventName.ATHLETICS_ADD_PRACTICE
+  | typeof AppEventName.ATHLETICS_ADD_PLAYER
+  | typeof AppEventName.ATHLETICS_ADD_TOURNAMENT
 
 interface AddMenuItem {
   label: string
   description: string
   icon: typeof Dribbble
   tab: string
-  event: string
+  event: AthleticsAddEvent
 }
 
 const MENU_ITEMS: AddMenuItem[] = [
-  { label: 'Sport', description: 'Add a new sport to your program', icon: Dribbble, tab: 'sports', event: 'athletics-add-sport' },
-  { label: 'Season', description: 'Create a season for a sport', icon: CalendarDays, tab: 'sports', event: 'athletics-add-season' },
-  { label: 'Team', description: 'Set up a team within a season', icon: Users, tab: 'teams', event: 'athletics-add-team' },
-  { label: 'Game', description: 'Schedule a game or match', icon: CalendarPlus, tab: 'schedule', event: 'athletics-add-game' },
-  { label: 'Practice', description: 'Schedule a team practice', icon: Dumbbell, tab: 'schedule', event: 'athletics-add-practice' },
-  { label: 'Player', description: 'Add a player to a roster', icon: ClipboardList, tab: 'roster', event: 'athletics-add-player' },
-  { label: 'Tournament', description: 'Create a tournament bracket', icon: Trophy, tab: 'tournaments', event: 'athletics-add-tournament' },
+  { label: 'Sport', description: 'Add a new sport to your program', icon: Dribbble, tab: 'sports', event: AppEventName.ATHLETICS_ADD_SPORT },
+  { label: 'Season', description: 'Create a season for a sport', icon: CalendarDays, tab: 'sports', event: AppEventName.ATHLETICS_ADD_SEASON },
+  { label: 'Team', description: 'Set up a team within a season', icon: Users, tab: 'teams', event: AppEventName.ATHLETICS_ADD_TEAM },
+  { label: 'Game', description: 'Schedule a game or match', icon: CalendarPlus, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_GAME },
+  { label: 'Practice', description: 'Schedule a team practice', icon: Dumbbell, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_PRACTICE },
+  { label: 'Player', description: 'Add a player to a roster', icon: ClipboardList, tab: 'roster', event: AppEventName.ATHLETICS_ADD_PLAYER },
+  { label: 'Tournament', description: 'Create a tournament bracket', icon: Trophy, tab: 'tournaments', event: AppEventName.ATHLETICS_ADD_TOURNAMENT },
 ]
 
 interface AthleticsAddMenuProps {
@@ -40,7 +50,7 @@ export default function AthleticsAddMenu({ onTabChange, onImportAll }: Athletics
     onTabChange(item.tab)
     // Give the tab a moment to render, then dispatch the event to open the create form
     setTimeout(() => {
-      window.dispatchEvent(new CustomEvent(item.event))
+      emitAppEvent(item.event)
     }, 100)
   }
 
