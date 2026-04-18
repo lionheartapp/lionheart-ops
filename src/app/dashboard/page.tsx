@@ -32,6 +32,7 @@ import { CreateEventProjectModal } from '@/components/events/CreateEventProjectM
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
+import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 
 interface TicketData {
   id: string
@@ -103,13 +104,20 @@ export default function DashboardPage() {
     isReady && user.dashboardMode === 'admin' ? { limit: 50 } : undefined,
   )
 
-  // Merge meetings + projects into a single `UpcomingItem[]` sorted by start,
-  // clamped to the same 14-day window used by the timeline.
+  // Pull external calendar events (Google/Microsoft) for the same window
+  const { data: externalCalEvents = [] } = useExternalCalendarEvents(
+    upcomingStart.toISOString(),
+    upcomingEnd.toISOString(),
+    isReady,
+  )
+
+  // Merge meetings + projects + external events into a single `UpcomingItem[]`
+  // sorted by start, clamped to the same 14-day window used by the timeline.
   const upcomingItems = useMemo<UpcomingItem[]>(() => {
     const windowStart = upcomingStart.getTime()
     const windowEnd = upcomingEnd.getTime()
 
-    const meetings: UpcomingItem[] = upcomingCalEvents.map((e) => ({
+    const meetings: UpcomingItem[] = [...upcomingCalEvents, ...externalCalEvents].map((e) => ({
       kind: 'meeting' as const,
       data: e,
     }))
@@ -130,7 +138,7 @@ export default function DashboardPage() {
           b.kind === 'meeting' ? b.data.startTime : b.data.startsAt,
         ).getTime(),
     )
-  }, [upcomingCalEvents, upcomingProjects, upcomingStart, upcomingEnd])
+  }, [upcomingCalEvents, externalCalEvents, upcomingProjects, upcomingStart, upcomingEnd])
 
   const createCalendarEvent = useCreateEvent()
   const createCalendarCategory = useCreateCategory()
