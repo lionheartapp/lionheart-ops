@@ -15,6 +15,10 @@ interface ITTicketsListProps {
   onViewTicket: (ticketId: string) => void
   onCreateTicket: () => void
   canManage: boolean
+  /** 'mine' = my tickets + unassigned, 'all' = everything */
+  scope?: 'mine' | 'all'
+  /** Current user's ID — used for "mine" scope filtering */
+  currentUserId?: string
 }
 
 interface Ticket {
@@ -59,7 +63,7 @@ const TYPE_OPTIONS = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage }: ITTicketsListProps) {
+export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage, scope = 'mine', currentUserId }: ITTicketsListProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
@@ -78,8 +82,15 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage 
 
   if (isLoading) return <TicketsListSkeleton />
 
-  const tickets = ((data as { tickets?: Ticket[] })?.tickets ?? []) as Ticket[]
-  const total = (data as { total?: number })?.total ?? 0
+  const allTickets = ((data as { tickets?: Ticket[] })?.tickets ?? []) as Ticket[]
+
+  // Apply scope filter client-side: "mine" shows my tickets + unassigned
+  const tickets = useMemo(() => {
+    if (scope !== 'mine' || !currentUserId) return allTickets
+    return allTickets.filter((t) => !t.assignedTo || t.assignedTo.id === currentUserId)
+  }, [allTickets, scope, currentUserId])
+
+  const total = tickets.length
 
   return (
     <div className="space-y-4">

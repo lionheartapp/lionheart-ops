@@ -27,6 +27,10 @@ import ITSearchFilterBar from './ITSearchFilterBar'
 
 interface ITKanbanBoardProps {
   onTicketClick: (id: string) => void
+  /** 'mine' = my tickets + unassigned, 'all' = everything */
+  scope?: 'mine' | 'all'
+  /** Current user's ID — used for "mine" scope filtering */
+  currentUserId?: string
 }
 
 const BOARD_COLUMNS = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD'] as const
@@ -49,7 +53,7 @@ const PRIORITY_OPTIONS = [
   { value: 'URGENT', label: 'Urgent' },
 ]
 
-export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
+export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUserId }: ITKanbanBoardProps) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [activeTicket, setActiveTicket] = useState<KanbanTicket | null>(null)
@@ -67,16 +71,17 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  // Apply client-side filters
+  // Apply client-side filters (scope + manual filters)
   const filteredBoardData = useMemo(() => {
     const raw = (boardData ?? {}) as Record<string, KanbanTicket[]>
-    const hasFilters = filterIssueType || filterPriority || filterUnassigned
-
-    if (!hasFilters) return raw
 
     const filtered: Record<string, KanbanTicket[]> = {}
     for (const [col, tickets] of Object.entries(raw)) {
       filtered[col] = (tickets as KanbanTicket[]).filter((t) => {
+        // Scope filter: "mine" shows my tickets + unassigned
+        if (scope === 'mine' && currentUserId && t.assignedTo) {
+          if (t.assignedTo.id !== currentUserId) return false
+        }
         if (filterIssueType && t.issueType !== filterIssueType) return false
         if (filterPriority && t.priority !== filterPriority) return false
         if (filterUnassigned && t.assignedTo) return false
@@ -84,7 +89,7 @@ export default function ITKanbanBoard({ onTicketClick }: ITKanbanBoardProps) {
       })
     }
     return filtered
-  }, [boardData, filterIssueType, filterPriority, filterUnassigned])
+  }, [boardData, scope, currentUserId, filterIssueType, filterPriority, filterUnassigned])
 
   // Count urgent tickets across all columns (from raw data, not filtered)
   const urgentCount = useMemo(() => {

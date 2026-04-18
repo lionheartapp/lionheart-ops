@@ -16,7 +16,7 @@ export interface KanbanTicket {
   photos?: string[]
   createdAt: string
   submittedBy?: { firstName: string; lastName: string; avatar?: string | null } | null
-  assignedTo?: { firstName: string; lastName: string; avatar?: string | null } | null
+  assignedTo?: { id?: string; firstName: string; lastName: string; avatar?: string | null } | null
   building?: { name: string } | null
   room?: { roomNumber?: string; displayName?: string | null } | null
   school?: { name: string } | null

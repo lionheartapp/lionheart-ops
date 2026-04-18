@@ -93,6 +93,16 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
   const hasInitialFilter = !!(initialStatus || initialPriority || initialUnassigned)
   const [viewMode, setViewMode] = useState<'board' | 'table'>(hasInitialFilter ? 'table' : 'board')
 
+  // Scope: mine (my tickets + unassigned) vs all
+  const [scope, setScope] = useState<'mine' | 'all'>(() => {
+    if (typeof window === 'undefined') return 'mine'
+    return (localStorage.getItem(`maint-scope:${currentUserId}`) as 'mine' | 'all') || 'mine'
+  })
+  const handleScopeChange = (s: 'mine' | 'all') => {
+    setScope(s)
+    if (currentUserId) localStorage.setItem(`maint-scope:${currentUserId}`, s)
+  }
+
   // Filter state — merge URL-provided initial filters
   const [filters, setFilters] = useState<WorkOrdersFilterState>({
     ...DEFAULT_FILTERS,
@@ -237,14 +247,17 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
   // ─── Specialty filtering ──────────────────────────────────────────────────
 
   const displayedTickets = useCallback(() => {
-    // If user is not a tech or perms are admin, show all
-    if (!canClaim || canManage) return mainTickets
-    // Tech view: filter to specialty matches unless showAll
-    if (!showAll) {
-      return mainTickets.filter((t) => t.matchesSpecialty !== false)
+    let tickets = mainTickets
+    // If user is not a tech or perms are admin, show all specialties
+    if (canClaim && !canManage && !showAll) {
+      tickets = tickets.filter((t) => t.matchesSpecialty !== false)
     }
-    return mainTickets
-  }, [mainTickets, canClaim, canManage, showAll])()
+    // Scope filter: "mine" shows my tickets + unassigned
+    if (scope === 'mine' && currentUserId) {
+      tickets = tickets.filter((t) => !t.assignedTo || t.assignedTo.id === currentUserId)
+    }
+    return tickets
+  }, [mainTickets, canClaim, canManage, showAll, scope, currentUserId])()
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -280,6 +293,34 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
           )}
         </div>
 
+        <div className="flex items-center gap-3">
+        {/* Scope toggle */}
+        <div className="flex items-center bg-slate-100 rounded-lg p-0.5">
+          <button
+            onClick={() => handleScopeChange('mine')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+              scope === 'mine'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            My Queue
+          </button>
+          <button
+            onClick={() => handleScopeChange('all')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+              scope === 'all'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            All Tickets
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-slate-200" />
+
         {/* Board / Table toggle */}
         <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg">
           <button
@@ -304,6 +345,7 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
           >
             <List className="w-4 h-4" />
           </button>
+        </div>
         </div>
       </motion.div>
 
