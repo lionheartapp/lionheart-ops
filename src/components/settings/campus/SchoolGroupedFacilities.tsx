@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import { Building2, MapPin, MapPinOff, DoorOpen, Edit2, Trash2, Plus, ChevronDown, ChevronRight, Users, School as SchoolIcon } from 'lucide-react'
+import React, { useRef, useMemo, useState } from 'react'
+import { Building2, MapPin, MapPinOff, DoorOpen, Edit2, Trash2, Plus, ChevronDown, ChevronRight, Users, School as SchoolIcon, Check, X } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
 import { IllustrationCampus } from '@/components/illustrations'
 import {
@@ -31,6 +31,9 @@ type Props = {
   /** Trigger quick-place mode for an existing building/outdoor without coordinates */
   onPlaceBuildingOnMap: (b: Building) => void
   onPlaceOutdoorOnMap: (a: Area) => void
+  /** Inline rename — lightweight PATCH for name only */
+  onRenameBuilding: (buildingId: string, newName: string) => Promise<void>
+  onRenameRoom: (roomId: string, newName: string) => Promise<void>
   /** School CRUD — wired up to SchoolsManagement imperative API */
   onAddSchool: () => void
   onEditSchool: (schoolId: string) => void
@@ -56,6 +59,8 @@ export default function SchoolGroupedFacilities({
   onDeleteOutdoor,
   onPlaceBuildingOnMap,
   onPlaceOutdoorOnMap,
+  onRenameBuilding,
+  onRenameRoom,
   onAddSchool,
   onEditSchool,
   onDeleteSchool,
@@ -145,6 +150,8 @@ export default function SchoolGroupedFacilities({
         onDeleteBuilding={onDeleteBuilding}
         onManageRooms={onManageRooms}
         onPlaceBuildingOnMap={onPlaceBuildingOnMap}
+        onRenameBuilding={onRenameBuilding}
+        onRenameRoom={onRenameRoom}
         onAddOutdoor={() => onAddOutdoor([])}
         onEditOutdoor={onEditOutdoor}
         onDeleteOutdoor={onDeleteOutdoor}
@@ -174,6 +181,8 @@ export default function SchoolGroupedFacilities({
             onDeleteBuilding={onDeleteBuilding}
             onManageRooms={onManageRooms}
             onPlaceBuildingOnMap={onPlaceBuildingOnMap}
+            onRenameBuilding={onRenameBuilding}
+            onRenameRoom={onRenameRoom}
             onAddOutdoor={() => onAddOutdoor([school.id])}
             onEditOutdoor={onEditOutdoor}
             onDeleteOutdoor={onDeleteOutdoor}
@@ -206,6 +215,8 @@ type FacilitiesCardProps = {
   onDeleteBuilding: (id: string, name: string) => void
   onManageRooms: (b: Building) => void
   onPlaceBuildingOnMap: (b: Building) => void
+  onRenameBuilding: (buildingId: string, newName: string) => Promise<void>
+  onRenameRoom: (roomId: string, newName: string) => Promise<void>
   onAddOutdoor: () => void
   onEditOutdoor: (a: Area) => void
   onDeleteOutdoor: (id: string, name: string) => void
@@ -231,6 +242,8 @@ function FacilitiesCard({
   onDeleteBuilding,
   onManageRooms,
   onPlaceBuildingOnMap,
+  onRenameBuilding,
+  onRenameRoom,
   onAddOutdoor,
   onEditOutdoor,
   onDeleteOutdoor,
@@ -334,6 +347,8 @@ function FacilitiesCard({
                   onDeleteBuilding={onDeleteBuilding}
                   onManageRooms={onManageRooms}
                   onPlaceOnMap={onPlaceBuildingOnMap}
+                  onRenameBuilding={onRenameBuilding}
+                  onRenameRoom={onRenameRoom}
                 />
               )}
               {outdoorSpaces.length > 0 && (
@@ -363,6 +378,8 @@ function BuildingsList({
   onDeleteBuilding,
   onManageRooms,
   onPlaceOnMap,
+  onRenameBuilding,
+  onRenameRoom,
 }: {
   buildings: Building[]
   rooms: Room[]
@@ -371,7 +388,69 @@ function BuildingsList({
   onDeleteBuilding: (id: string, name: string) => void
   onManageRooms: (b: Building) => void
   onPlaceOnMap: (b: Building) => void
+  onRenameBuilding: (buildingId: string, newName: string) => Promise<void>
+  onRenameRoom: (roomId: string, newName: string) => Promise<void>
 }) {
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
+  const toggleExpand = (id: string) =>
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }))
+
+  // Inline edit state for building names
+  const [editingBuildingId, setEditingBuildingId] = useState<string | null>(null)
+  const [editingBuildingName, setEditingBuildingName] = useState('')
+  const [savingBuildingId, setSavingBuildingId] = useState<string | null>(null)
+  const buildingInputRef = useRef<HTMLInputElement>(null)
+
+  // Inline edit state for room names
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null)
+  const [editingRoomName, setEditingRoomName] = useState('')
+  const [savingRoomId, setSavingRoomId] = useState<string | null>(null)
+  const roomInputRef = useRef<HTMLInputElement>(null)
+
+  const startEditBuilding = (b: Building, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingBuildingId(b.id)
+    setEditingBuildingName(b.name)
+    setTimeout(() => buildingInputRef.current?.select(), 0)
+  }
+
+  const cancelEditBuilding = () => {
+    setEditingBuildingId(null)
+    setEditingBuildingName('')
+  }
+
+  const saveEditBuilding = async (buildingId: string, originalName: string) => {
+    const trimmed = editingBuildingName.trim()
+    if (!trimmed || trimmed === originalName) { cancelEditBuilding(); return }
+    setSavingBuildingId(buildingId)
+    try {
+      await onRenameBuilding(buildingId, trimmed)
+    } catch { /* parent handles error */ }
+    finally { setSavingBuildingId(null); setEditingBuildingId(null) }
+  }
+
+  const startEditRoom = (r: Room, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingRoomId(r.id)
+    setEditingRoomName(r.displayName || '')
+    setTimeout(() => roomInputRef.current?.select(), 0)
+  }
+
+  const cancelEditRoom = () => {
+    setEditingRoomId(null)
+    setEditingRoomName('')
+  }
+
+  const saveEditRoom = async (roomId: string, originalName: string | null) => {
+    const trimmed = editingRoomName.trim()
+    if (trimmed === (originalName || '')) { cancelEditRoom(); return }
+    setSavingRoomId(roomId)
+    try {
+      await onRenameRoom(roomId, trimmed)
+    } catch { /* parent handles error */ }
+    finally { setSavingRoomId(null); setEditingRoomId(null) }
+  }
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
@@ -392,37 +471,167 @@ function BuildingsList({
           </thead>
           <tbody>
             {buildings.map((b) => {
-              const roomCount = rooms.filter((r) => r.buildingId === b.id).length
+              const buildingRooms = rooms.filter((r) => r.buildingId === b.id)
+              const roomCount = buildingRooms.length
               const sharedWith = b.schools ?? []
               const notPlaced = b.latitude == null || b.longitude == null
+              const isExpanded = !!expandedIds[b.id]
+              const isEditingName = editingBuildingId === b.id
               return (
-                <tr key={b.id} className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
-                  <td className="py-2.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-900">{b.name}</span>
-                      {notPlaced && <NotPlacedPill onClick={() => onPlaceOnMap(b)} />}
-                    </div>
-                    {b.code && <div className="text-xs text-slate-400 mt-0.5">{b.code}</div>}
-                    {sharedWith.length > 1 && (
-                      <SharedPill schools={sharedWith} allSchools={schools} />
-                    )}
-                  </td>
-                  <td className="py-2.5 px-4 text-slate-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
-                  <td className="py-2.5 px-4 text-slate-500">{roomCount}</td>
-                  <td className="py-2.5 px-4">{renderStatusBadge(b.isActive)}</td>
-                  <td className="py-2.5 pl-4 pr-6">
-                    <div className="flex justify-end">
-                      <RowActionMenu
-                        items={[
-                          { label: notPlaced ? 'Place on Map' : 'Move on Map', icon: <MapPin className="w-4 h-4" />, onClick: () => onPlaceOnMap(b) },
-                          { label: 'Manage Rooms', icon: <DoorOpen className="w-4 h-4" />, onClick: () => onManageRooms(b) },
-                          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => onEditBuilding(b) },
-                          { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeleteBuilding(b.id, b.name), variant: 'danger' as const },
-                        ]}
-                      />
-                    </div>
-                  </td>
-                </tr>
+                <React.Fragment key={b.id}>
+                  <tr
+                    className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+                    onClick={() => { if (!isEditingName) onEditBuilding(b) }}
+                  >
+                    <td className="py-2.5 px-4">
+                      <div className="flex items-center gap-2">
+                        {roomCount > 0 ? (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); toggleExpand(b.id) }}
+                            className="flex-shrink-0 p-0.5 -ml-1 text-slate-400 hover:text-slate-600 rounded transition-colors cursor-pointer"
+                            aria-label={isExpanded ? 'Collapse rooms' : 'Expand rooms'}
+                          >
+                            <ChevronRight
+                              className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                            />
+                          </button>
+                        ) : (
+                          <span className="w-5 -ml-1 flex-shrink-0" />
+                        )}
+                        {isEditingName ? (
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              ref={buildingInputRef}
+                              value={editingBuildingName}
+                              onChange={(e) => setEditingBuildingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveEditBuilding(b.id, b.name)
+                                if (e.key === 'Escape') cancelEditBuilding()
+                              }}
+                              onBlur={() => saveEditBuilding(b.id, b.name)}
+                              disabled={savingBuildingId === b.id}
+                              className="font-medium text-slate-900 bg-white border border-primary-300 rounded px-1.5 py-0.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-40"
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <span
+                            className="font-medium text-slate-900 hover:text-primary-600 transition-colors cursor-text"
+                            onClick={(e) => startEditBuilding(b, e)}
+                            title="Click to rename"
+                          >
+                            {b.name}
+                          </span>
+                        )}
+                        {notPlaced && !isEditingName && <NotPlacedPill onClick={() => onPlaceOnMap(b)} />}
+                      </div>
+                      {b.code && <div className="text-xs text-slate-400 mt-0.5 pl-6">{b.code}</div>}
+                      {sharedWith.length > 1 && (
+                        <div className="pl-6">
+                          <SharedPill schools={sharedWith} allSchools={schools} />
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-4 text-slate-500 text-xs">{BUILDING_TYPE_LABELS[b.buildingType] || 'General'}</td>
+                    <td className="py-2.5 px-4">
+                      {roomCount > 0 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(b.id) }}
+                          className="text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+                        >
+                          {roomCount}
+                        </button>
+                      ) : (
+                        <span className="text-slate-400">0</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-4">{renderStatusBadge(b.isActive)}</td>
+                    <td className="py-2.5 pl-4 pr-6" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end">
+                        <RowActionMenu
+                          items={[
+                            { label: notPlaced ? 'Place on Map' : 'Move on Map', icon: <MapPin className="w-4 h-4" />, onClick: () => onPlaceOnMap(b) },
+                            { label: 'Manage Rooms', icon: <DoorOpen className="w-4 h-4" />, onClick: () => onManageRooms(b) },
+                            { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => onEditBuilding(b) },
+                            { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeleteBuilding(b.id, b.name), variant: 'danger' as const },
+                          ]}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && buildingRooms.length > 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-0">
+                        <div className="bg-slate-50/70 border-t border-slate-100">
+                          <div className="py-2 px-4 pl-10">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <DoorOpen className="w-3.5 h-3.5 text-slate-400" />
+                                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                                  Rooms ({buildingRooms.length})
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onManageRooms(b)}
+                                className="text-[11px] font-medium text-primary-600 hover:text-primary-700 transition-colors cursor-pointer"
+                              >
+                                Manage
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-x-4 text-[11px] text-slate-400 font-medium pb-1 border-b border-slate-200/60">
+                              <span>Room</span>
+                              <span>Name</span>
+                              <span>Floor</span>
+                              <span>Status</span>
+                            </div>
+                            {buildingRooms.map((r) => {
+                              const isEditingRoom = editingRoomId === r.id
+                              return (
+                                <div
+                                  key={r.id}
+                                  className="grid grid-cols-[1fr_1fr_auto_auto] gap-x-4 py-1.5 text-xs border-b border-slate-100/80 last:border-b-0 items-center"
+                                >
+                                  <span className="font-medium text-slate-700">{r.roomNumber}</span>
+                                  {isEditingRoom ? (
+                                    <div className="flex items-center gap-1">
+                                      <input
+                                        ref={roomInputRef}
+                                        value={editingRoomName}
+                                        onChange={(e) => setEditingRoomName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') saveEditRoom(r.id, r.displayName)
+                                          if (e.key === 'Escape') cancelEditRoom()
+                                        }}
+                                        onBlur={() => saveEditRoom(r.id, r.displayName)}
+                                        disabled={savingRoomId === r.id}
+                                        placeholder="Display name"
+                                        className="text-xs text-slate-700 bg-white border border-primary-300 rounded px-1.5 py-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-28"
+                                        autoFocus
+                                      />
+                                    </div>
+                                  ) : (
+                                    <span
+                                      className="text-slate-500 hover:text-primary-600 transition-colors cursor-text"
+                                      onClick={(e) => startEditRoom(r, e)}
+                                      title="Click to rename"
+                                    >
+                                      {r.displayName || <span className="text-slate-300 italic">Add name</span>}
+                                    </span>
+                                  )}
+                                  <span className="text-slate-500 min-w-[3rem]">{r.floor || <span className="text-slate-300">--</span>}</span>
+                                  <span>{renderStatusBadge(r.isActive)}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               )
             })}
           </tbody>

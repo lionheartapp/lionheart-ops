@@ -98,20 +98,20 @@ export default function RoomsDrawer({
       title={building ? `${building.name} — Rooms` : 'Rooms'}
       width="lg"
     >
-      <div className="p-8 space-y-6">
+      <div className="p-5 space-y-4">
         {/* Add form */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
           <p className="text-sm font-semibold text-slate-700">Add a room</p>
           {addError && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{addError}</div>
           )}
-          <form onSubmit={handleAdd} className="space-y-4">
+          <form onSubmit={handleAdd} className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FloatingInput id="ct-roomNumber" label="Room # / ID" value={addForm.roomNumber} onChange={(e) => setAddForm((p) => ({ ...p, roomNumber: e.target.value }))} disabled={addSaving} required />
               <FloatingInput id="ct-roomDisplayName" label="Name (optional)" value={addForm.displayName} onChange={(e) => setAddForm((p) => ({ ...p, displayName: e.target.value }))} disabled={addSaving} />
               <FloatingInput id="ct-roomFloor" label="Floor (optional)" value={addForm.floor} onChange={(e) => setAddForm((p) => ({ ...p, floor: e.target.value }))} disabled={addSaving} />
             </div>
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end">
               <button
                 type="submit"
                 className="flex items-center gap-2 px-5 py-2 min-h-[38px] bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -135,32 +135,32 @@ export default function RoomsDrawer({
             <p className="text-sm">No rooms yet — add one above.</p>
           </div>
         ) : (
-          <div className="ui-glass-table">
-            <table className="min-w-full text-sm">
+          <div className="ui-glass-table overflow-x-auto">
+            <table className="min-w-full text-sm whitespace-nowrap">
               <thead>
                 <tr className="text-slate-500 border-b bg-slate-50">
-                  <th className="py-3 px-4 text-left font-medium">Room</th>
-                  <th className="py-3 px-4 text-left font-medium">Display name</th>
-                  <th className="py-3 px-4 text-left font-medium">Floor</th>
-                  <th className="py-3 px-4 text-left font-medium">Status</th>
-                  <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
+                  <th className="py-2.5 px-3 text-left font-medium">Room</th>
+                  <th className="py-2.5 px-3 text-left font-medium">Display name</th>
+                  <th className="py-2.5 px-3 text-left font-medium">Floor</th>
+                  <th className="py-2.5 px-3 text-left font-medium">Status</th>
+                  <th className="py-2.5 pl-3 pr-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {rooms.map((r) =>
                   editingId === r.id ? (
                     <tr key={r.id} className="border-b last:border-b-0 bg-primary-50">
-                      <td className="py-2 px-4">
+                      <td className="py-2 px-3">
                         <input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} autoFocus />
                       </td>
-                      <td className="py-2 px-4">
+                      <td className="py-2 px-3">
                         <input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
                       </td>
-                      <td className="py-2 px-4">
+                      <td className="py-2 px-3">
                         <input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
                       </td>
-                      <td className="py-2 px-4">{renderStatusBadge(r.isActive)}</td>
-                      <td className="py-2 pl-4 pr-10">
+                      <td className="py-2 px-3">{renderStatusBadge(r.isActive)}</td>
+                      <td className="py-2 pl-3 pr-3">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={() => saveEdit(r.id)} disabled={editSaving} className="p-2 text-green-600 hover:bg-green-50 rounded-full transition disabled:opacity-40" title="Save" aria-label="Save">
                             <Save className="w-4 h-4" />
@@ -174,11 +174,11 @@ export default function RoomsDrawer({
                   ) : (
                     <React.Fragment key={r.id}>
                       <tr className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
-                        <td className="py-3 px-4 font-medium text-slate-900">{r.roomNumber}</td>
-                        <td className="py-3 px-4 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
-                        <td className="py-3 px-4 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
-                        <td className="py-3 px-4">{renderStatusBadge(r.isActive)}</td>
-                        <td className="py-3 pl-4 pr-10">
+                        <td className="py-2.5 px-3 font-medium text-slate-900">{r.roomNumber}</td>
+                        <td className="py-2.5 px-3 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
+                        <td className="py-2.5 px-3 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
+                        <td className="py-2.5 px-3">{renderStatusBadge(r.isActive)}</td>
+                        <td className="py-2.5 pl-3 pr-3">
                           <div className="flex justify-end">
                             <RowActionMenu
                               items={[

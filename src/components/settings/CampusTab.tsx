@@ -347,6 +347,29 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     await loadData()
   }
 
+  // ─── Inline rename (building name / room displayName) ──────────────────
+  const handleRenameBuilding = async (buildingId: string, newName: string) => {
+    const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, {
+      method: 'PATCH', headers: getAuthHeaders(),
+      body: JSON.stringify({ name: newName.trim() }),
+    })
+    if (handleAuthResponse(res)) return
+    const json = await res.json()
+    if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to rename building')
+    setBuildings((prev) => prev.map((b) => b.id === buildingId ? { ...b, name: newName.trim() } : b))
+  }
+
+  const handleRenameRoom = async (roomId: string, newName: string) => {
+    const res = await fetch(`/api/settings/campus/rooms/${roomId}`, {
+      method: 'PATCH', headers: getAuthHeaders(),
+      body: JSON.stringify({ displayName: newName.trim() || null }),
+    })
+    if (handleAuthResponse(res)) return
+    const json = await res.json()
+    if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to rename room')
+    setRooms((prev) => prev.map((r) => r.id === roomId ? { ...r, displayName: newName.trim() || null } : r))
+  }
+
   // ─── Delete/Deactivate ────────────────────────────────────────────────
   const openDeleteConfirm = (type: 'building' | 'outdoor', id: string, name: string) => {
     const roomCount = type === 'building' ? rooms.filter((r) => r.buildingId === id).length : 0
@@ -548,6 +571,8 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)}
         onManageRooms={(b) => setRoomsBuilding(b)}
         onPlaceBuildingOnMap={handlePlaceBuildingOnMap}
+        onRenameBuilding={handleRenameBuilding}
+        onRenameRoom={handleRenameRoom}
         onAddOutdoor={(schoolIds) => openAddOutdoor(schoolIds)}
         onEditOutdoor={openEditOutdoor}
         onDeleteOutdoor={(id, name) => openDeleteConfirm('outdoor', id, name)}
