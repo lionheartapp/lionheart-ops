@@ -34,8 +34,7 @@ export function GoogleCalendarCard({
       })
       const data = await res.json()
       if (data.ok && data.data?.authUrl) {
-        window.open(data.data.authUrl, '_blank', 'width=600,height=700,scrollbars=yes')
-        toast('Complete the Google sign-in in the popup, then refresh this page.', 'info')
+        window.location.href = data.data.authUrl
       } else {
         toast(data.error?.message || 'Failed to start Google Calendar connection', 'error')
       }
