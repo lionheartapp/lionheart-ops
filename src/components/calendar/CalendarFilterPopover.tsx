@@ -10,6 +10,8 @@ export interface CalendarFilter {
   schoolLevels: Set<string>
   sportIds: Set<string>
   teamLevels: Set<string>
+  /** Whether to show external calendar events (Google/Microsoft). Defaults to true. */
+  showExternalEvents?: boolean
 }
 
 interface CategoryChip {
@@ -43,6 +45,8 @@ interface CalendarFilterPopoverProps {
   campuses: CampusChip[]
   sports: Sport[]
   anchorRef: React.RefObject<HTMLButtonElement | null>
+  /** Whether the user has a connected external calendar (Google/Microsoft). */
+  hasExternalCalendar?: boolean
 }
 
 const SCHOOL_LEVELS = [
@@ -84,6 +88,7 @@ export default function CalendarFilterPopover({
   campuses,
   sports,
   anchorRef,
+  hasExternalCalendar = false,
 }: CalendarFilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -186,6 +191,30 @@ export default function CalendarFilterPopover({
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* External Calendars — toggle Google/Microsoft events */}
+      {hasExternalCalendar && (
+        <div className="px-5 py-3 border-t border-slate-100">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">External Calendars</p>
+            <button
+              onClick={() => onFilterChange({ ...filter, showExternalEvents: !(filter.showExternalEvents ?? true) })}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
+                (filter.showExternalEvents ?? true)
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              {(filter.showExternalEvents ?? true) ? 'Showing' : 'Hidden'}
+            </button>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            {(filter.showExternalEvents ?? true)
+              ? 'Google & Microsoft calendar events are visible'
+              : 'External calendar events are hidden'}
+          </p>
         </div>
       )}
 

@@ -356,10 +356,9 @@ export default function CalendarView() {
       result = [...result, ...athEvents]
     }
 
-    // Merge user's external (Google/Microsoft) calendar events. These are
-    // read-only "busy" blocks — they participate in search but not category
-    // filtering, since they don't belong to any Lionheart category.
-    if (externalEvents.length > 0) {
+    // Merge user's external (Google/Microsoft) calendar events when enabled.
+    // Controlled by the "External Calendars" toggle in the Filters popover.
+    if ((calendarFilter.showExternalEvents ?? true) && externalEvents.length > 0) {
       let extEvents = externalEvents
       if (q) {
         extEvents = extEvents.filter((e) => e.title.toLowerCase().includes(q))
@@ -368,7 +367,7 @@ export default function CalendarView() {
     }
 
     return result
-  }, [events, searchQuery, calendarFilter.categoryIds, filteredAthleticsEvents, externalEvents])
+  }, [events, searchQuery, calendarFilter, filteredAthleticsEvents, externalEvents])
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -652,6 +651,7 @@ export default function CalendarView() {
           }}
           campuses={athleticsCampuses}
           sports={athleticsSports}
+          hasExternalCalendar={externalEvents.length > 0}
         />
 
         {/* Export CSV — subtle text link, not a prominent button */}
