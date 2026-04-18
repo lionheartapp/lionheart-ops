@@ -357,7 +357,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
             .slice(0, 2)
           const dayNum = cell.date.getDate()
           const isSelected = selectedDate.getTime() === cell.date.getTime()
-          const isHighlighted = cell.isToday || isSelected
+          const isTodayButNotSelected = cell.isToday && !isSelected
 
           return (
             <motion.div
@@ -369,15 +369,15 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
               onClick={() => onDayClick(cell.date)}
               className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200 cursor-pointer hover:bg-[rgba(17,15,10,0.04)]"
               style={{
-                backgroundColor: isHighlighted ? TEXT_PRIMARY : 'transparent',
-                color: isHighlighted ? '#ffffff' : TEXT_PRIMARY,
+                backgroundColor: isSelected ? TEXT_PRIMARY : isTodayButNotSelected ? 'rgba(17,15,10,0.06)' : 'transparent',
+                color: isSelected ? '#ffffff' : TEXT_PRIMARY,
                 minHeight: '58px',
               }}
             >
               <span
                 className="text-[9px] font-semibold uppercase tracking-[0.12em]"
                 style={{
-                  color: isHighlighted ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
+                  color: isSelected ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
                 }}
               >
                 {label}
@@ -389,7 +389,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
                   <span
                     className="block w-[3px] h-[3px] rounded-full"
                     style={{
-                      backgroundColor: isHighlighted
+                      backgroundColor: isSelected
                         ? 'rgba(255,255,255,0.4)'
                         : 'rgba(17,15,10,0.12)',
                     }}
@@ -400,7 +400,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
                       key={i}
                       className="block w-[5px] h-[5px] rounded-full"
                       style={{
-                        backgroundColor: isHighlighted ? '#ffffff' : color,
+                        backgroundColor: isSelected ? '#ffffff' : color,
                       }}
                     />
                   ))
