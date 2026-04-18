@@ -18,7 +18,7 @@
  *     event color chips carry the only saturation.
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowRight, Layers, Loader2, RefreshCw } from 'lucide-react'
@@ -211,6 +211,29 @@ export default function UpcomingEventsPanel({
   const todayCount = timeline[0]?.eventCount ?? 0
   const totalCount = normalizedItems.length
 
+  // Day selection — click a day in the timeline to filter the list
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+
+  const handleDayClick = (date: Date) => {
+    if (selectedDate && selectedDate.getTime() === date.getTime()) {
+      setSelectedDate(null) // deselect to show all
+    } else {
+      setSelectedDate(date)
+    }
+  }
+
+  const displayItems = useMemo(() => {
+    if (!selectedDate) return normalizedItems
+    return normalizedItems.filter((item) => {
+      const itemDate = new Date(getItemStart(item))
+      return (
+        itemDate.getFullYear() === selectedDate.getFullYear() &&
+        itemDate.getMonth() === selectedDate.getMonth() &&
+        itemDate.getDate() === selectedDate.getDate()
+      )
+    })
+  }, [normalizedItems, selectedDate])
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
@@ -279,7 +302,7 @@ export default function UpcomingEventsPanel({
 
       {/* ── Timeline strip — the visual anchor of the widget ──────────── */}
       <div className="flex-shrink-0 px-4 sm:px-7 pb-4 sm:pb-6">
-        <Timeline cells={timeline} />
+        <Timeline cells={timeline} selectedDate={selectedDate} onDayClick={handleDayClick} />
       </div>
 
       {/* ── Divider hairline ──────────────────────────────────────────── */}
@@ -304,9 +327,23 @@ export default function UpcomingEventsPanel({
             <ErrorState message={error} onRetry={onRetry} />
           ) : normalizedItems.length === 0 ? (
             <EmptyState onCreateSelect={onCreateSelect} isAdmin={isAdmin} />
+          ) : displayItems.length === 0 && selectedDate ? (
+            <div className="flex flex-col items-center text-center px-6 py-12">
+              <p className="text-[14px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                Nothing on {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSelectedDate(null)}
+                className="mt-3 text-[12px] font-medium transition-colors cursor-pointer"
+                style={{ color: TEXT_SECONDARY }}
+              >
+                Show all events
+              </button>
+            </div>
           ) : (
             <ItemList
-              items={normalizedItems}
+              items={displayItems}
               onEventClick={onEventClick}
               onProjectClick={onProjectClick}
             />
@@ -319,7 +356,7 @@ export default function UpcomingEventsPanel({
 
 // ─── Timeline strip ─────────────────────────────────────────────────────────
 
-function Timeline({ cells }: { cells: DayCell[] }) {
+function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selectedDate: Date | null; onDayClick: (date: Date) => void }) {
   return (
     <div
       className="overflow-x-auto -mx-2 px-2 scrollbar-none"
@@ -335,6 +372,8 @@ function Timeline({ cells }: { cells: DayCell[] }) {
             .toLocaleDateString('en-US', { weekday: 'short' })
             .slice(0, 2)
           const dayNum = cell.date.getDate()
+          const isSelected = selectedDate?.getTime() === cell.date.getTime()
+          const isHighlighted = cell.isToday || isSelected
 
           return (
             <motion.div
@@ -343,17 +382,18 @@ function Timeline({ cells }: { cells: DayCell[] }) {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: idx * 0.015, ease: [0.25, 0.1, 0.25, 1] }}
-              className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200"
+              onClick={() => onDayClick(cell.date)}
+              className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200 cursor-pointer hover:bg-[rgba(17,15,10,0.04)]"
               style={{
-                backgroundColor: cell.isToday ? TEXT_PRIMARY : 'transparent',
-                color: cell.isToday ? '#ffffff' : TEXT_PRIMARY,
+                backgroundColor: isHighlighted ? TEXT_PRIMARY : 'transparent',
+                color: isHighlighted ? '#ffffff' : TEXT_PRIMARY,
                 minHeight: '58px',
               }}
             >
               <span
                 className="text-[9px] font-semibold uppercase tracking-[0.12em]"
                 style={{
-                  color: cell.isToday ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
+                  color: isHighlighted ? 'rgba(255,255,255,0.7)' : TEXT_MUTED,
                 }}
               >
                 {label}
@@ -365,7 +405,7 @@ function Timeline({ cells }: { cells: DayCell[] }) {
                   <span
                     className="block w-[3px] h-[3px] rounded-full"
                     style={{
-                      backgroundColor: cell.isToday
+                      backgroundColor: isHighlighted
                         ? 'rgba(255,255,255,0.4)'
                         : 'rgba(17,15,10,0.12)',
                     }}
@@ -376,7 +416,7 @@ function Timeline({ cells }: { cells: DayCell[] }) {
                       key={i}
                       className="block w-[5px] h-[5px] rounded-full"
                       style={{
-                        backgroundColor: cell.isToday ? '#ffffff' : color,
+                        backgroundColor: isHighlighted ? '#ffffff' : color,
                       }}
                     />
                   ))

@@ -90,7 +90,7 @@ export default function DashboardPage() {
     calendarIds,
     upcomingStart,
     upcomingEnd,
-    isReady && user.dashboardMode === 'admin' && calendarIds.length > 0
+    isReady && calendarIds.length > 0
   )
 
   // Pull upcoming event projects so the "Next two weeks" panel surfaces both
@@ -101,7 +101,7 @@ export default function DashboardPage() {
     isLoading: upcomingProjectsLoading,
     isError: upcomingProjectsError,
   } = useEventProjects(
-    isReady && user.dashboardMode === 'admin' ? { limit: 50 } : undefined,
+    isReady ? { limit: 50 } : undefined,
   )
 
   // Pull external calendar events (Google/Microsoft) for the same window
