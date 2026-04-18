@@ -1,11 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   RefreshCw,
   Unlink,
   ExternalLink,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Loader2,
 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
 import { IntegrationCard, ScopeLabel } from './IntegrationCard'
@@ -14,6 +18,15 @@ import { StatusPill } from './StatusPill'
 import { ConfigRequiredBanner } from './ConfigRequiredBanner'
 import { formatRelative } from './integration-types'
 import type { IntegrationStatusData } from './integration-types'
+
+interface GoogleCalendarInfo {
+  id: string
+  summary: string
+  description?: string
+  primary: boolean
+  backgroundColor?: string
+  selected: boolean
+}
 
 export function GoogleCalendarCard({
   status,
@@ -25,6 +38,70 @@ export function GoogleCalendarCard({
   const { toast } = useToast()
   const [disconnecting, setDisconnecting] = useState(false)
   const [syncing, setSyncing] = useState(false)
+
+  // Calendar picker state
+  const [showCalendarPicker, setShowCalendarPicker] = useState(false)
+  const [calendars, setCalendars] = useState<GoogleCalendarInfo[]>([])
+  const [calendarsLoading, setCalendarsLoading] = useState(false)
+  const [savingCalendars, setSavingCalendars] = useState(false)
+
+  const fetchCalendars = useCallback(async () => {
+    setCalendarsLoading(true)
+    try {
+      const token = localStorage.getItem('auth-token')
+      const res = await fetch('/api/integrations/google-calendar/calendars', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setCalendars(data.data.calendars)
+      }
+    } catch {
+      toast('Failed to load calendars', 'error')
+    } finally {
+      setCalendarsLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
+    if (showCalendarPicker && calendars.length === 0) {
+      fetchCalendars()
+    }
+  }, [showCalendarPicker, calendars.length, fetchCalendars])
+
+  const toggleCalendar = (calendarId: string) => {
+    setCalendars((prev) =>
+      prev.map((c) => (c.id === calendarId ? { ...c, selected: !c.selected } : c))
+    )
+  }
+
+  const saveCalendarSelection = async () => {
+    const selectedIds = calendars.filter((c) => c.selected).map((c) => c.id)
+    if (selectedIds.length === 0) {
+      toast('Select at least one calendar', 'error')
+      return
+    }
+    setSavingCalendars(true)
+    try {
+      const token = localStorage.getItem('auth-token')
+      const res = await fetch('/api/integrations/google-calendar/calendars', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendarIds: selectedIds }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        toast('Calendar selection saved', 'success')
+        setShowCalendarPicker(false)
+      } else {
+        toast(data.error?.message || 'Failed to save', 'error')
+      }
+    } catch {
+      toast('Failed to save calendar selection', 'error')
+    } finally {
+      setSavingCalendars(false)
+    }
+  }
 
   const handleConnect = async () => {
     try {
@@ -86,6 +163,8 @@ export function GoogleCalendarCard({
     }
   }
 
+  const selectedCount = calendars.filter((c) => c.selected).length
+
   return (
     <IntegrationCard>
       {/* Header */}
@@ -117,6 +196,79 @@ export function GoogleCalendarCard({
             </div>
           )}
           <p className="text-xs text-slate-400">Last sync: {formatRelative(status.lastSyncAt)}</p>
+
+          {/* Calendar picker toggle */}
+          <button
+            onClick={() => setShowCalendarPicker(!showCalendarPicker)}
+            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+          >
+            {showCalendarPicker ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            Choose calendars to sync
+            {selectedCount > 0 && !showCalendarPicker && (
+              <span className="text-[10px] text-slate-400">({selectedCount} selected)</span>
+            )}
+          </button>
+
+          {/* Calendar picker list */}
+          {showCalendarPicker && (
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              {calendarsLoading ? (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm text-slate-400">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading calendars...
+                </div>
+              ) : calendars.length === 0 ? (
+                <div className="py-6 text-center text-sm text-slate-400">No calendars found</div>
+              ) : (
+                <>
+                  <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+                    {calendars.map((cal) => (
+                      <label
+                        key={cal.id}
+                        className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={cal.selected}
+                            onChange={() => toggleCalendar(cal.id)}
+                            className="sr-only"
+                          />
+                          <div className={`w-4.5 h-4.5 rounded flex items-center justify-center border transition-colors ${
+                            cal.selected
+                              ? 'bg-slate-900 border-slate-900'
+                              : 'border-slate-300 bg-white'
+                          }`}>
+                            {cal.selected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                        </div>
+                        {cal.backgroundColor && (
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: cal.backgroundColor }}
+                          />
+                        )}
+                        <span className="text-sm text-slate-700 flex-1 truncate">
+                          {cal.summary}
+                          {cal.primary && <span className="text-[10px] text-slate-400 ml-1.5">(primary)</span>}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border-t border-slate-200">
+                    <span className="text-xs text-slate-400">{selectedCount} selected</span>
+                    <button
+                      onClick={saveCalendarSelection}
+                      disabled={savingCalendars || selectedCount === 0}
+                      className="px-3.5 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer"
+                    >
+                      {savingCalendars ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button

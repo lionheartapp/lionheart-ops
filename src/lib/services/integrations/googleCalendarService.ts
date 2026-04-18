@@ -11,7 +11,10 @@ import { rawPrisma } from '@/lib/db'
 import type { GoogleCalendarEvent } from '@/lib/types/integrations'
 import type { EventProject } from '@prisma/client'
 
-const GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+const GOOGLE_SCOPES = [
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/calendar.readonly',
+]
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
 // ─── Availability check ──────────────────────────────────────────────────────
@@ -221,6 +224,79 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
   }
 }
 
+// ─── List user's Google calendars ────────────────────────────────────────────
+
+export interface GoogleCalendarInfo {
+  id: string
+  summary: string
+  description?: string
+  primary: boolean
+  backgroundColor?: string
+  selected: boolean
+}
+
+/**
+ * Lists all calendars the user has access to in Google Calendar.
+ * Marks which ones are currently selected for sync.
+ */
+export async function listCalendars(
+  userId: string,
+  organizationId: string
+): Promise<{ calendars: GoogleCalendarInfo[]; selectedIds: string[] } | null> {
+  if (!isAvailable()) return null
+
+  const cred = await rawPrisma.integrationCredential.findFirst({
+    where: { organizationId, userId, provider: 'google_calendar', isActive: true },
+  })
+  if (!cred) return null
+
+  const oauth2Client = await refreshTokenIfNeeded(cred.id)
+  if (!oauth2Client) return null
+
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+  const res = await calendar.calendarList.list({ showHidden: false })
+  const items = res.data.items || []
+
+  const config = (cred.config as Record<string, unknown>) || {}
+  const selectedIds = (config.selectedCalendarIds as string[] | undefined) || ['primary']
+
+  const calendars: GoogleCalendarInfo[] = items
+    .filter((item) => item.id && item.accessRole !== 'freeBusyReader')
+    .map((item) => ({
+      id: item.id!,
+      summary: item.summaryOverride || item.summary || item.id!,
+      description: item.description || undefined,
+      primary: !!item.primary,
+      backgroundColor: item.backgroundColor || undefined,
+      selected: selectedIds.includes(item.id!) || (!!item.primary && selectedIds.includes('primary')),
+    }))
+
+  return { calendars, selectedIds }
+}
+
+/**
+ * Saves the user's selected calendar IDs for sync.
+ */
+export async function setSelectedCalendars(
+  userId: string,
+  organizationId: string,
+  calendarIds: string[]
+): Promise<void> {
+  const cred = await rawPrisma.integrationCredential.findFirst({
+    where: { organizationId, userId, provider: 'google_calendar', isActive: true },
+  })
+  if (!cred) return
+
+  const config = (cred.config as Record<string, unknown>) || {}
+  await rawPrisma.integrationCredential.update({
+    where: { id: cred.id },
+    data: {
+      config: { ...config, selectedCalendarIds: calendarIds },
+      updatedAt: new Date(),
+    },
+  })
+}
+
 // ─── Sync event to calendar ──────────────────────────────────────────────────
 
 /**
@@ -384,86 +460,107 @@ export async function importEventsFromGoogleCalendar(
     const timeMin = new Date(now.getTime() - INBOUND_PAST_DAYS * 24 * 60 * 60 * 1000)
     const timeMax = new Date(now.getTime() + INBOUND_FUTURE_DAYS * 24 * 60 * 60 * 1000)
 
-    // Paginate events.list — recurring events are expanded via singleEvents=true
-    // so we store concrete instances, which is what conflict checks need.
-    let pageToken: string | undefined = undefined
-    const allItems: calendar_v3.Schema$Event[] = []
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const res: { data: calendar_v3.Schema$Events } = await calendar.events.list({
-        calendarId: 'primary',
-        timeMin: timeMin.toISOString(),
-        timeMax: timeMax.toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 2500,
-        showDeleted: true,
-        pageToken,
-      })
-      if (res.data.items) allItems.push(...res.data.items)
-      if (!res.data.nextPageToken) break
-      pageToken = res.data.nextPageToken
+    // Determine which calendars to sync — default to 'primary' for backwards compat
+    const credConfig = (cred.config as Record<string, unknown>) || {}
+    const selectedCalendarIds = (credConfig.selectedCalendarIds as string[] | undefined) || ['primary']
+
+    // Fetch calendar names for display
+    const calendarNames = new Map<string, string>()
+    try {
+      const calList = await calendar.calendarList.list({ showHidden: false })
+      for (const item of calList.data.items || []) {
+        if (item.id) {
+          calendarNames.set(item.id, item.summaryOverride || item.summary || item.id)
+        }
+      }
+    } catch {
+      // Non-fatal — we just won't have display names
     }
 
-    const primaryCalendarName = 'primary'
     let imported = 0
     let deleted = 0
 
-    for (const item of allItems) {
-      const externalId = item.id
-      if (!externalId) continue
+    for (const calendarId of selectedCalendarIds) {
+      const calendarName = calendarNames.get(calendarId) || calendarId
 
-      // Cancelled events — soft-delete the local row
-      if (item.status === 'cancelled') {
-        const hit = await rawPrisma.externalCalendarEvent.updateMany({
-          where: { userId, provider: 'google_calendar', externalId },
-          data: { deletedAt: new Date(), status: 'cancelled', lastSyncedAt: new Date() },
+      // Paginate events.list — recurring events are expanded via singleEvents=true
+      let pageToken: string | undefined = undefined
+      const allItems: calendar_v3.Schema$Event[] = []
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const res: { data: calendar_v3.Schema$Events } = await calendar.events.list({
+          calendarId,
+          timeMin: timeMin.toISOString(),
+          timeMax: timeMax.toISOString(),
+          singleEvents: true,
+          orderBy: 'startTime',
+          maxResults: 2500,
+          showDeleted: true,
+          pageToken,
         })
-        if (hit.count > 0) deleted += hit.count
-        continue
+        if (res.data.items) allItems.push(...res.data.items)
+        if (!res.data.nextPageToken) break
+        pageToken = res.data.nextPageToken
       }
 
-      const { startsAt, endsAt, isAllDay } = normalizeGoogleTime(item.start, item.end)
-      if (!startsAt || !endsAt) continue
+      for (const item of allItems) {
+        const externalId = item.id
+        if (!externalId) continue
 
-      await rawPrisma.externalCalendarEvent.upsert({
-        where: {
-          userId_provider_externalId: { userId, provider: 'google_calendar', externalId },
-        },
-        create: {
-          organizationId,
-          userId,
-          provider: 'google_calendar',
-          externalId,
-          sourceCalendarId: 'primary',
-          sourceCalendarName: primaryCalendarName,
-          title: item.summary ?? '(No title)',
-          description: item.description ?? null,
-          location: item.location ?? null,
-          url: item.htmlLink ?? null,
-          startsAt,
-          endsAt,
-          isAllDay,
-          status: item.status ?? 'confirmed',
-          timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
-          lastSyncedAt: new Date(),
-        },
-        update: {
-          title: item.summary ?? '(No title)',
-          description: item.description ?? null,
-          location: item.location ?? null,
-          url: item.htmlLink ?? null,
-          startsAt,
-          endsAt,
-          isAllDay,
-          status: item.status ?? 'confirmed',
-          timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
-          lastSyncedAt: new Date(),
-          deletedAt: null, // resurrect if previously tombstoned
-          updatedAt: new Date(),
-        },
-      })
-      imported++
+        // Cancelled events — soft-delete the local row
+        if (item.status === 'cancelled') {
+          const hit = await rawPrisma.externalCalendarEvent.updateMany({
+            where: { userId, provider: 'google_calendar', externalId },
+            data: { deletedAt: new Date(), status: 'cancelled', lastSyncedAt: new Date() },
+          })
+          if (hit.count > 0) deleted += hit.count
+          continue
+        }
+
+        const { startsAt, endsAt, isAllDay } = normalizeGoogleTime(item.start, item.end)
+        if (!startsAt || !endsAt) continue
+
+        await rawPrisma.externalCalendarEvent.upsert({
+          where: {
+            userId_provider_externalId: { userId, provider: 'google_calendar', externalId },
+          },
+          create: {
+            organizationId,
+            userId,
+            provider: 'google_calendar',
+            externalId,
+            sourceCalendarId: calendarId,
+            sourceCalendarName: calendarName,
+            title: item.summary ?? '(No title)',
+            description: item.description ?? null,
+            location: item.location ?? null,
+            url: item.htmlLink ?? null,
+            startsAt,
+            endsAt,
+            isAllDay,
+            status: item.status ?? 'confirmed',
+            timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
+            lastSyncedAt: new Date(),
+          },
+          update: {
+            sourceCalendarId: calendarId,
+            sourceCalendarName: calendarName,
+            title: item.summary ?? '(No title)',
+            description: item.description ?? null,
+            location: item.location ?? null,
+            url: item.htmlLink ?? null,
+            startsAt,
+            endsAt,
+            isAllDay,
+            status: item.status ?? 'confirmed',
+            timeZone: item.start?.timeZone ?? item.end?.timeZone ?? null,
+            lastSyncedAt: new Date(),
+            deletedAt: null,
+            updatedAt: new Date(),
+          },
+        })
+        imported++
+      }
     }
 
     // Mark the credential's last-sync timestamp for UI display
