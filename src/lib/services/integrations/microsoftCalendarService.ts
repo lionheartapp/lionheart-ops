@@ -30,13 +30,28 @@ export function isAvailable(): boolean {
 }
 
 function getRedirectUri(): string {
-  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''
+  const base = process.env.NEXT_PUBLIC_APP_URL || ''
   return `${base}/api/integrations/microsoft-calendar/callback`
 }
 
 // ─── Auth URL ────────────────────────────────────────────────────────────────
 
-export function getAuthUrl(userId: string): string | null {
+/** Encode userId + tenant origin into the OAuth state parameter. */
+export function encodeOAuthState(userId: string, tenantOrigin?: string): string {
+  return Buffer.from(JSON.stringify({ userId, origin: tenantOrigin || '' })).toString('base64url')
+}
+
+/** Decode the OAuth state parameter back to userId + tenant origin. */
+export function decodeOAuthState(state: string): { userId: string; origin: string } {
+  try {
+    const parsed = JSON.parse(Buffer.from(state, 'base64url').toString())
+    return { userId: parsed.userId || '', origin: parsed.origin || '' }
+  } catch {
+    return { userId: state, origin: '' }
+  }
+}
+
+export function getAuthUrl(userId: string, tenantOrigin?: string): string | null {
   if (!isAvailable()) return null
   const params = new URLSearchParams({
     client_id: process.env.AZURE_AD_CLIENT_ID!,
@@ -45,7 +60,7 @@ export function getAuthUrl(userId: string): string | null {
     scope: SCOPES,
     response_mode: 'query',
     prompt: 'consent',
-    state: userId,
+    state: encodeOAuthState(userId, tenantOrigin),
   })
   return `${MS_AUTH_BASE}/authorize?${params}`
 }

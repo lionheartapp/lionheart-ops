@@ -1,32 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
-import { verifyAuthToken } from '@/lib/auth'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
 
 /**
  * GET /api/integrations/google-calendar/callback
- * Handles OAuth callback from Google — redirects to settings page.
- * The `state` param carries the userId. We look up the org from the JWT cookie.
+ * Handles OAuth callback from Google — redirects to the tenant's settings page.
+ * The `state` param encodes { userId, origin } so we redirect to the correct subdomain.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
-  const state = searchParams.get('state') // userId
+  const stateParam = searchParams.get('state')
   const error = searchParams.get('error')
 
-  const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''
-  const settingsUrl = `${appUrl}/settings`
+  // Decode the state to get userId and tenant origin
+  const { userId, origin } = stateParam
+    ? googleCalendarService.decodeOAuthState(stateParam)
+    : { userId: '', origin: '' }
 
-  if (error || !code || !state) {
+  // Build settings URL — prefer the tenant origin encoded in state, fall back to platform URL
+  const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || ''
+  const settingsUrl = `${baseUrl}/settings`
+
+  if (error || !code || !userId) {
     return NextResponse.redirect(
       `${settingsUrl}?tab=integrations&gcal_error=${encodeURIComponent(error || 'Missing code or state')}`
     )
   }
 
-  // Resolve organizationId from the user record
   try {
     const user = await rawPrisma.user.findFirst({
-      where: { id: state, deletedAt: null },
+      where: { id: userId, deletedAt: null },
       select: { organizationId: true },
     })
 
@@ -34,7 +38,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${settingsUrl}?tab=integrations&gcal_error=User+not+found`)
     }
 
-    const result = await googleCalendarService.handleCallback(state, user.organizationId, code)
+    const result = await googleCalendarService.handleCallback(userId, user.organizationId, code)
 
     if (!result.success) {
       return NextResponse.redirect(

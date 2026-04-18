@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const authUrl = microsoftCalendarService.getAuthUrl(ctx.userId)
+    const host = req.headers.get('host') || ''
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const tenantOrigin = `${protocol}://${host}`
+
+    const authUrl = microsoftCalendarService.getAuthUrl(ctx.userId, tenantOrigin)
     return NextResponse.json(ok({ authUrl }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {

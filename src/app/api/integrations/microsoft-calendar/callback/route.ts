@@ -4,19 +4,23 @@ import * as microsoftCalendarService from '@/lib/services/integrations/microsoft
 
 /**
  * GET /api/integrations/microsoft-calendar/callback
- * OAuth callback from Microsoft — exchanges code for tokens, redirects to settings.
- * The `state` param carries the userId.
+ * OAuth callback from Microsoft — exchanges code for tokens, redirects to the tenant's settings.
+ * The `state` param encodes { userId, origin } so we redirect to the correct subdomain.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
-  const state = searchParams.get('state') // userId
+  const stateParam = searchParams.get('state')
   const error = searchParams.get('error')
 
-  const appUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''
-  const settingsUrl = `${appUrl}/settings`
+  const { userId, origin } = stateParam
+    ? microsoftCalendarService.decodeOAuthState(stateParam)
+    : { userId: '', origin: '' }
 
-  if (error || !code || !state) {
+  const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || ''
+  const settingsUrl = `${baseUrl}/settings`
+
+  if (error || !code || !userId) {
     return NextResponse.redirect(
       `${settingsUrl}?tab=integrations&mscal_error=${encodeURIComponent(error || 'Missing code or state')}`
     )
@@ -24,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = await rawPrisma.user.findFirst({
-      where: { id: state, deletedAt: null },
+      where: { id: userId, deletedAt: null },
       select: { organizationId: true },
     })
 
@@ -32,7 +36,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${settingsUrl}?tab=integrations&mscal_error=User+not+found`)
     }
 
-    const result = await microsoftCalendarService.handleCallback(state, user.organizationId, code)
+    const result = await microsoftCalendarService.handleCallback(userId, user.organizationId, code)
 
     if (!result.success) {
       return NextResponse.redirect(

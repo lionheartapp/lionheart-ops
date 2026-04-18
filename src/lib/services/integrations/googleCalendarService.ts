@@ -22,13 +22,39 @@ export function isAvailable(): boolean {
 
 // ─── OAuth2 client factory ───────────────────────────────────────────────────
 
+/**
+ * Returns the fixed redirect URI for Google OAuth.
+ * Uses NEXT_PUBLIC_APP_URL so a single URI works for all tenant subdomains.
+ * This must match what's registered in Google Cloud Console.
+ */
+function getRedirectUri(): string {
+  return `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/google-calendar/callback`
+}
+
 function createOAuth2Client() {
-  const redirectUri = `${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/google-calendar/callback`
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri
+    getRedirectUri()
   )
+}
+
+// ─── OAuth state encoding ───────────────────────────────────────────────────
+
+/** Encode userId + tenant origin into the OAuth state parameter. */
+export function encodeOAuthState(userId: string, tenantOrigin?: string): string {
+  return Buffer.from(JSON.stringify({ userId, origin: tenantOrigin || '' })).toString('base64url')
+}
+
+/** Decode the OAuth state parameter back to userId + tenant origin. */
+export function decodeOAuthState(state: string): { userId: string; origin: string } {
+  try {
+    const parsed = JSON.parse(Buffer.from(state, 'base64url').toString())
+    return { userId: parsed.userId || '', origin: parsed.origin || '' }
+  } catch {
+    // Backwards compat: old state was just the raw userId string
+    return { userId: state, origin: '' }
+  }
 }
 
 // ─── Auth URL ────────────────────────────────────────────────────────────────
@@ -36,8 +62,10 @@ function createOAuth2Client() {
 /**
  * Returns the Google OAuth authorization URL for a per-user calendar connection.
  * Returns null if Google credentials are not configured.
+ * @param tenantOrigin - The tenant's subdomain origin (e.g. https://school.lionheartapp.com)
+ *   so the callback can redirect back to the correct subdomain.
  */
-export function getAuthUrl(userId: string): string | null {
+export function getAuthUrl(userId: string, tenantOrigin?: string): string | null {
   if (!isAvailable()) return null
 
   const oauth2Client = createOAuth2Client()
@@ -45,7 +73,7 @@ export function getAuthUrl(userId: string): string | null {
     access_type: 'offline',
     scope: GOOGLE_SCOPES,
     prompt: 'consent',
-    state: userId,
+    state: encodeOAuthState(userId, tenantOrigin),
   })
 }
 

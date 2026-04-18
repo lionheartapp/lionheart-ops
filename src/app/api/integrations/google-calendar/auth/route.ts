@@ -21,7 +21,12 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const authUrl = googleCalendarService.getAuthUrl(ctx.userId)
+    // Pass the tenant's origin so the callback can redirect back to the correct subdomain
+    const host = req.headers.get('host') || ''
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const tenantOrigin = `${protocol}://${host}`
+
+    const authUrl = googleCalendarService.getAuthUrl(ctx.userId, tenantOrigin)
     return NextResponse.json(ok({ authUrl }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {

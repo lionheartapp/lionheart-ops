@@ -30,7 +30,7 @@ export function getAuthUrl(organizationId: string): string | null {
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.PCO_APP_ID!,
-    redirect_uri: `${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/planning-center/callback`,
+    redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/planning-center/callback`,
     scope: 'people services check_ins',
     state: organizationId,
   })
@@ -58,7 +58,7 @@ export async function handleCallback(
         code,
         client_id: process.env.PCO_APP_ID,
         client_secret: process.env.PCO_SECRET,
-        redirect_uri: `${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/planning-center/callback`,
+        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/planning-center/callback`,
       }),
     })
 
