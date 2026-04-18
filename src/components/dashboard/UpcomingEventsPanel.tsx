@@ -211,19 +211,18 @@ export default function UpcomingEventsPanel({
   const todayCount = timeline[0]?.eventCount ?? 0
   const totalCount = normalizedItems.length
 
-  // Day selection — click a day in the timeline to filter the list
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  // Day selection — defaults to today, click a day to switch
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  })
 
   const handleDayClick = (date: Date) => {
-    if (selectedDate && selectedDate.getTime() === date.getTime()) {
-      setSelectedDate(null) // deselect to show all
-    } else {
-      setSelectedDate(date)
-    }
+    setSelectedDate(date)
   }
 
   const displayItems = useMemo(() => {
-    if (!selectedDate) return normalizedItems
     return normalizedItems.filter((item) => {
       const itemDate = new Date(getItemStart(item))
       return (
@@ -270,17 +269,7 @@ export default function UpcomingEventsPanel({
                   <span className="mx-2" style={{ color: TEXT_MUTED }}>
                     ·
                   </span>
-                  {totalCount} {totalCount === 1 ? 'event' : 'events'}
-                  {todayCount > 0 && (
-                    <>
-                      <span className="mx-2" style={{ color: TEXT_MUTED }}>
-                        ·
-                      </span>
-                      <span style={{ color: TEXT_PRIMARY }} className="font-semibold">
-                        {todayCount} today
-                      </span>
-                    </>
-                  )}
+                  {totalCount} {totalCount === 1 ? 'event' : 'events'} this period
                 </>
               )}
             </p>
@@ -327,19 +316,14 @@ export default function UpcomingEventsPanel({
             <ErrorState message={error} onRetry={onRetry} />
           ) : normalizedItems.length === 0 ? (
             <EmptyState onCreateSelect={onCreateSelect} isAdmin={isAdmin} />
-          ) : displayItems.length === 0 && selectedDate ? (
+          ) : displayItems.length === 0 ? (
             <div className="flex flex-col items-center text-center px-6 py-12">
               <p className="text-[14px] font-semibold" style={{ color: TEXT_PRIMARY }}>
                 Nothing on {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </p>
-              <button
-                type="button"
-                onClick={() => setSelectedDate(null)}
-                className="mt-3 text-[12px] font-medium transition-colors cursor-pointer"
-                style={{ color: TEXT_SECONDARY }}
-              >
-                Show all events
-              </button>
+              <p className="mt-1.5 text-[12px]" style={{ color: TEXT_MUTED }}>
+                {totalCount} {totalCount === 1 ? 'event' : 'events'} coming up — tap another day
+              </p>
             </div>
           ) : (
             <ItemList
@@ -356,7 +340,7 @@ export default function UpcomingEventsPanel({
 
 // ─── Timeline strip ─────────────────────────────────────────────────────────
 
-function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selectedDate: Date | null; onDayClick: (date: Date) => void }) {
+function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selectedDate: Date; onDayClick: (date: Date) => void }) {
   return (
     <div
       className="overflow-x-auto -mx-2 px-2 scrollbar-none"
@@ -372,7 +356,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
             .toLocaleDateString('en-US', { weekday: 'short' })
             .slice(0, 2)
           const dayNum = cell.date.getDate()
-          const isSelected = selectedDate?.getTime() === cell.date.getTime()
+          const isSelected = selectedDate.getTime() === cell.date.getTime()
           const isHighlighted = cell.isToday || isSelected
 
           return (
