@@ -1,20 +1,16 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { MapPin, Loader2, Building2, TreePine } from 'lucide-react'
 
-import type { LatLng, MapBuilding, OutdoorSpace, MapConfig, InteractiveCampusMapProps } from './campus/map-types'
+import type { MapConfig, InteractiveCampusMapProps } from './campus/map-types'
 import { loadLeaflet } from './campus/leaflet-loader'
-import {
-  getBuildingColor,
-  getOutdoorColor,
-  createBuildingCircleIcon,
-  createOutdoorIcon,
-  createOrgIcon,
-  createPolygonLabel,
-} from './campus/map-icons'
+import { getBuildingColor, getOutdoorColor, createOrgIcon } from './campus/map-icons'
 import MapToolbar from './campus/MapToolbar'
 import MapLegend from './campus/MapLegend'
+import { useMapDrawing } from './campus/useMapDrawing'
+import { usePolygonEditing } from './campus/usePolygonEditing'
+import { useMapMarkers } from './campus/useMapMarkers'
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -54,16 +50,14 @@ export default function InteractiveCampusMap({
   const [mapReady, setMapReady] = useState(0) // increments each time map finishes init
   const [mapConfig, setMapConfig] = useState<MapConfig | null>(null)
   const [placingMode, setPlacingMode] = useState<'unified' | null>(null)
-  const [activeLayer, setActiveLayer] = useState<'satellite' | 'street'>('satellite')
   const [pendingMoves, setPendingMoves] = useState<Map<string, { lat: number; lng: number }>>(new Map())
   const [clickPopover, setClickPopover] = useState<{
     position: { x: number; y: number }
     coordinates: { lat: number; lng: number }
   } | null>(null)
-  const tileLayersRef = useRef<{ satellite: any; street: any }>({ satellite: null, street: null })
   const pendingMarkerRef = useRef<any>(null)
 
-  // Build a division→color lookup from schools (so buildings without a direct school link still get the right color)
+  // Build a division->color lookup from schools
   const schoolColorByDivision = useMemo(() => {
     const map: Record<string, string> = {}
     for (const s of schools) {
@@ -72,29 +66,78 @@ export default function InteractiveCampusMap({
     return map
   }, [schools])
 
-  // AI detection state
-  const [detectingId, setDetectingId] = useState<string | null>(null)
-  const [editingPolygon, setEditingPolygon] = useState<{ buildingId: string; coordinates: LatLng[] } | null>(null)
-  const editingPolygonLayerRef = useRef<any>(null)
-  const editingVertexMarkersRef = useRef<any[]>([])
+  /* ── Polygon editing hook ────────────────────────────────────────── */
 
-  // Manual drawing mode state
-  const [drawingMode, setDrawingMode] = useState<{ buildingId: string; points: LatLng[] } | null>(null)
-  const drawingMarkersRef = useRef<any[]>([])
-  const drawingPolylineRef = useRef<any>(null)
+  // Drawing hook needs polygon editing refs, and polygon editing needs
+  // drawing clear — break the cycle by using the clear ref pattern.
+  // We define polygon editing first so its layerRef is available to drawing.
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
+  // Forward-declare clearDrawingMode so polygon editing can call it
+  const drawingClearRef = useRef<() => void>(() => {})
 
-  const getAuthHeaders = (): Record<string, string> => {
-    const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))?.trim().split('=')[1] || ''
-    return {
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
-    }
-  }
+  const {
+    editingPolygon,
+    setEditingPolygon,
+    editingPolygonLayerRef,
+    showEditablePolygon,
+    clearEditingPolygon,
+    handleSavePolygon,
+    handleCancelPolygon,
+    detectingId,
+    handleDetectOutline,
+  } = usePolygonEditing({
+    mapInstanceRef,
+    markersRef,
+    polygonsRef,
+    labelsRef,
+    buildings,
+    schoolColorByDivision,
+    onPolygonSaved,
+    drawingModeClear: () => drawingClearRef.current(),
+  })
 
-  // Use parent-provided map center if available, otherwise fetch independently
+  /* ── Drawing hook ────────────────────────────────────────────────── */
+
+  const {
+    drawingMode,
+    startDrawing,
+    finishDrawing,
+    undoDrawingPoint,
+    clearDrawingMode,
+  } = useMapDrawing({
+    mapInstanceRef,
+    editingPolygonLayerRef,
+    onShowEditablePolygon: showEditablePolygon,
+    onSetEditingPolygon: setEditingPolygon,
+  })
+
+  // Wire the forward ref
+  drawingClearRef.current = clearDrawingMode
+
+  /* ── Marker management hook ──────────────────────────────────────── */
+
+  const {
+    addBuildingPolygon,
+    addBuildingMarker,
+    addOutdoorPolygon,
+    addOutdoorMarker,
+  } = useMapMarkers({
+    markersRef,
+    polygonsRef,
+    labelsRef,
+    editable,
+    setPendingMoves,
+    onBuildingSelected,
+    onEditBuilding,
+    onDeleteBuilding,
+    onManageRooms,
+    onEditOutdoor,
+    onDeleteOutdoor,
+    onOutdoorPositionChange,
+  })
+
+  /* ── Map config fetch ────────────────────────────────────────────── */
+
   useEffect(() => {
     if (mapCenterProp) {
       setMapConfig({
@@ -124,11 +167,11 @@ export default function InteractiveCampusMap({
       .catch(() => {})
   }, [mapCenterProp, campusId])
 
-  // Initialize map
+  /* ── Initialize map ──────────────────────────────────────────────── */
+
   useEffect(() => {
     if (!mapConfig || !mapContainerRef.current) return
 
-    // Reset loading on every map init (including campus switches)
     setLoading(true)
 
     let cancelled = false
@@ -141,9 +184,7 @@ export default function InteractiveCampusMap({
         mapInstanceRef.current.remove()
       }
 
-      // Create a bounding box around the campus center (~0.5 mile radius)
-      // This prevents users from panning away from campus
-      const CAMPUS_RADIUS = 0.006 // ~0.4 miles in degrees (generous for most campuses)
+      const CAMPUS_RADIUS = 0.006
       const campusBounds = L.latLngBounds(
         [mapConfig.center.lat - CAMPUS_RADIUS, mapConfig.center.lng - CAMPUS_RADIUS],
         [mapConfig.center.lat + CAMPUS_RADIUS, mapConfig.center.lng + CAMPUS_RADIUS]
@@ -152,10 +193,10 @@ export default function InteractiveCampusMap({
       const map = L.map(mapContainerRef.current, {
         center: [mapConfig.center.lat, mapConfig.center.lng],
         zoom: 17,
-        minZoom: 15,       // Can't zoom out further than neighborhood level
-        maxZoom: 18,       // Esri satellite has no data beyond ~18 in most areas
+        minZoom: 15,
+        maxZoom: 18,
         maxBounds: campusBounds,
-        maxBoundsViscosity: 0.8, // Gentle elastic bounce when hitting edge
+        maxBoundsViscosity: 0.8,
         zoomControl: false,
         attributionControl: false,
       })
@@ -178,15 +219,8 @@ export default function InteractiveCampusMap({
       satellite.addTo(map)
       labels.addTo(map)
 
-      tileLayersRef.current = { satellite, street }
       mapInstanceRef.current = map
 
-      // Fix container size so tiles load at the correct dimensions.
-      // Without this, Leaflet may see a 0x0 or partially-laid-out
-      // container and request the wrong tiles (grey map).
-      // A single rAF isn't enough when the container starts hidden
-      // (e.g. inside a CSS `hidden` tab), so we also use a
-      // ResizeObserver to catch when the container actually gains size.
       requestAnimationFrame(() => {
         if (!cancelled && map) map.invalidateSize()
       })
@@ -199,11 +233,10 @@ export default function InteractiveCampusMap({
           }
         })
         ro.observe(container)
-        // Store for cleanup
         ;(map as any)._resizeObserver = ro
       }
 
-      // Org center marker — DRAGGABLE
+      // Org center marker -- DRAGGABLE
       const orgMarker = L.marker([mapConfig.center.lat, mapConfig.center.lng], {
         icon: createOrgIcon(L),
         draggable: editable,
@@ -225,10 +258,6 @@ export default function InteractiveCampusMap({
       }
       orgMarkerRef.current = orgMarker
 
-      // Wait for satellite tiles to load, then signal map is ready.
-      // Don't set loading=false here — the building sync effect will
-      // do that after placing markers, so the spinner covers the full
-      // init cycle (tiles + markers) with zero flashes.
       let revealed = false
       const reveal = () => {
         if (cancelled || revealed) return
@@ -237,15 +266,12 @@ export default function InteractiveCampusMap({
         setMapReady(n => n + 1)
       }
 
-      // If tiles are already cached, the 'load' event may have fired
-      // before we attached the listener. Check if tiles are loaded.
       if (satellite.isLoading && !satellite.isLoading()) {
         reveal()
       } else {
         satellite.once('load', reveal)
       }
 
-      // Fallback: reveal after 1.5s even if tiles are slow
       setTimeout(reveal, 1500)
     })
 
@@ -263,509 +289,7 @@ export default function InteractiveCampusMap({
       orgMarkerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps — use serialized key to avoid re-init on same coords
   }, [mapConfig?.center.lat, mapConfig?.center.lng])
-
-  /* ── Add building as polygon overlay ─────────────────────────────── */
-
-  const addBuildingPolygon = useCallback((L: any, map: any, building: MapBuilding, color: string) => {
-    if (!building.polygonCoordinates || building.polygonCoordinates.length < 3) return
-
-    const coords = building.polygonCoordinates.map((p: LatLng) => [p.lat, p.lng])
-
-    const polygon = L.polygon(coords, {
-      color: color,
-      weight: 2,
-      opacity: 0.9,
-      fillColor: color,
-      fillOpacity: 0.25,
-      className: 'campus-building-polygon',
-    }).addTo(map)
-
-    polygon.bindTooltip(building.name, {
-      sticky: true,
-      className: 'campus-tooltip',
-      direction: 'top',
-      offset: [0, -10],
-    })
-
-    polygon.on('click', () => {
-      if (onBuildingSelected) onBuildingSelected(building.id)
-    })
-
-    polygonsRef.current.set(building.id, polygon)
-
-    const center = polygon.getBounds().getCenter()
-    const label = L.marker(center, {
-      icon: createPolygonLabel(L, building.code || building.name, color),
-      interactive: false,
-    }).addTo(map)
-    labelsRef.current.set(building.id, label)
-  }, [onBuildingSelected])
-
-  /* ── Add building as marker (no polygon yet) ─────────────────────── */
-
-  const addBuildingMarker = useCallback((L: any, map: any, building: MapBuilding, color: string) => {
-    if (!building.latitude || !building.longitude) return
-
-    const marker = L.marker([building.latitude, building.longitude], {
-      icon: createBuildingCircleIcon(L, building.code || building.name, color),
-      draggable: editable,
-      zIndexOffset: 100,
-    }).addTo(map)
-
-    // Build popup with action menu
-    const popupContent = document.createElement('div')
-    popupContent.style.minWidth = '140px'
-    popupContent.innerHTML = `
-      <strong style="font-size: 13px; line-height: 1.3;">${building.name}</strong>
-      ${building.code ? `<br/><span style="color: #6a6864; font-size: 11px;">${building.code}</span>` : ''}
-      ${editable ? '<span style="color: #a8a49d; font-size: 10px; margin-top: 1px; display: block;">Drag to reposition</span>' : ''}
-    `
-
-    {
-      const menuContainer = document.createElement('div')
-      menuContainer.style.cssText = 'margin-top:6px;border-top:1px solid #eae8e2;padding-top:2px;display:flex;flex-direction:column;'
-
-      const menuItemStyle = 'display:flex;align-items:center;gap:6px;padding:6px 2px;border:none;background:none;width:100%;text-align:left;font-size:12px;color:#3d3b35;cursor:pointer;border-radius:4px;'
-      const menuItemHover = 'background:#f5f4f0;'
-
-      // View Details (always visible)
-      if (onBuildingSelected) {
-        const viewBtn = document.createElement('button')
-        viewBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> View Details`
-        viewBtn.style.cssText = menuItemStyle
-        viewBtn.onmouseover = () => { viewBtn.style.cssText = menuItemStyle + menuItemHover }
-        viewBtn.onmouseout = () => { viewBtn.style.cssText = menuItemStyle }
-        viewBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onBuildingSelected(building.id) }
-        menuContainer.appendChild(viewBtn)
-      }
-
-      // Edit Building (only in edit mode)
-      if (editable && onEditBuilding) {
-        const editBtn = document.createElement('button')
-        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Building`
-        editBtn.style.cssText = menuItemStyle
-        editBtn.onmouseover = () => { editBtn.style.cssText = menuItemStyle + menuItemHover }
-        editBtn.onmouseout = () => { editBtn.style.cssText = menuItemStyle }
-        editBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onEditBuilding(building.id) }
-        menuContainer.appendChild(editBtn)
-      }
-
-      // Add Rooms (only in edit mode)
-      if (editable && onManageRooms) {
-        const roomsBtn = document.createElement('button')
-        roomsBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/></svg> Manage Rooms`
-        roomsBtn.style.cssText = menuItemStyle
-        roomsBtn.onmouseover = () => { roomsBtn.style.cssText = menuItemStyle + menuItemHover }
-        roomsBtn.onmouseout = () => { roomsBtn.style.cssText = menuItemStyle }
-        roomsBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onManageRooms(building.id) }
-        menuContainer.appendChild(roomsBtn)
-      }
-
-      // Delete Building (only in edit mode)
-      if (editable && onDeleteBuilding) {
-        const deleteBtn = document.createElement('button')
-        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
-        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;'
-        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;background:#fef2f2;' }
-        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;' }
-        deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteBuilding(building.id) }
-        menuContainer.appendChild(deleteBtn)
-      }
-
-      popupContent.appendChild(menuContainer)
-    }
-
-    marker.bindPopup(popupContent, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
-
-    // Open popup on click (works on both desktop and mobile)
-    marker.on('click', () => {
-      marker.openPopup()
-    })
-
-    if (editable) {
-      marker.on('dragend', (e: any) => {
-        const latlng = e.target.getLatLng()
-        setPendingMoves((prev) => {
-          const updated = new Map(prev)
-          updated.set(building.id, { lat: latlng.lat, lng: latlng.lng })
-          return updated
-        })
-      })
-    }
-
-    markersRef.current.set(building.id, marker)
-  }, [editable, onEditBuilding, onDeleteBuilding, onManageRooms])
-
-  /* ── Add outdoor space as polygon ────────────────────────────────── */
-
-  const addOutdoorPolygon = useCallback((L: any, map: any, space: OutdoorSpace, color: string) => {
-    if (!space.polygonCoordinates || space.polygonCoordinates.length < 3) return
-
-    const coords = space.polygonCoordinates.map((p: LatLng) => [p.lat, p.lng])
-
-    const polygon = L.polygon(coords, {
-      color: color,
-      weight: 2,
-      opacity: 0.8,
-      fillColor: color,
-      fillOpacity: 0.15,
-      dashArray: '4 3',
-    }).addTo(map)
-
-    polygon.bindTooltip(space.name, {
-      sticky: true,
-      direction: 'top',
-      offset: [0, -10],
-    })
-
-    polygonsRef.current.set(`outdoor-${space.id}`, polygon)
-
-    const center = polygon.getBounds().getCenter()
-    const label = L.marker(center, {
-      icon: createPolygonLabel(L, space.name, color),
-      interactive: false,
-    }).addTo(map)
-    labelsRef.current.set(`outdoor-${space.id}`, label)
-  }, [])
-
-  /* ── Add outdoor space as marker ─────────────────────────────────── */
-
-  const addOutdoorMarker = useCallback((L: any, map: any, space: OutdoorSpace, color: string) => {
-    if (!space.lat || !space.lng) return
-
-    const marker = L.marker([space.lat, space.lng], {
-      icon: createOutdoorIcon(L, space.name, space.areaType, color),
-      draggable: editable,
-      zIndexOffset: 50,
-    }).addTo(map)
-
-    // Build outdoor popup with action menu
-    const outdoorPopup = document.createElement('div')
-    outdoorPopup.style.minWidth = '140px'
-    outdoorPopup.innerHTML = `
-      <strong style="font-size: 13px; line-height: 1.3;">${space.name}</strong>
-      <br/><span style="color: #6a6864; font-size: 11px;">${space.areaType.replace('_', ' ')}</span>
-      ${editable ? '<span style="color: #a8a49d; font-size: 10px; margin-top: 1px; display: block;">Drag to reposition</span>' : ''}
-    `
-
-    if (editable) {
-      const menuContainer = document.createElement('div')
-      menuContainer.style.cssText = 'margin-top:6px;border-top:1px solid #eae8e2;padding-top:2px;display:flex;flex-direction:column;'
-
-      const menuItemStyle = 'display:flex;align-items:center;gap:6px;padding:6px 2px;border:none;background:none;width:100%;text-align:left;font-size:12px;color:#3d3b35;cursor:pointer;border-radius:4px;'
-      const menuItemHover = 'background:#f5f4f0;'
-
-      if (onEditOutdoor) {
-        const editBtn = document.createElement('button')
-        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Space`
-        editBtn.style.cssText = menuItemStyle
-        editBtn.onmouseover = () => { editBtn.style.cssText = menuItemStyle + menuItemHover }
-        editBtn.onmouseout = () => { editBtn.style.cssText = menuItemStyle }
-        editBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onEditOutdoor(space.id) }
-        menuContainer.appendChild(editBtn)
-      }
-
-      if (onDeleteOutdoor) {
-        const deleteBtn = document.createElement('button')
-        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Delete`
-        deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;'
-        deleteBtn.onmouseover = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;background:#fef2f2;' }
-        deleteBtn.onmouseout = () => { deleteBtn.style.cssText = menuItemStyle + 'color:#dc2626;margin-top:2px;border-top:1px solid #eae8e2;padding-top:6px;border-radius:0 0 4px 4px;' }
-        deleteBtn.onclick = (e) => { e.stopPropagation(); marker.closePopup(); onDeleteOutdoor(space.id) }
-        menuContainer.appendChild(deleteBtn)
-      }
-
-      outdoorPopup.appendChild(menuContainer)
-    }
-
-    marker.bindPopup(outdoorPopup, { closeButton: false, autoPan: true, autoPanPadding: [20, 20] })
-
-    // Open popup on click (works on both desktop and mobile)
-    marker.on('click', () => {
-      marker.openPopup()
-    })
-
-    if (editable) {
-      marker.on('dragend', (e: any) => {
-        const latlng = e.target.getLatLng()
-        if (onOutdoorPositionChange) {
-          onOutdoorPositionChange(space.id, latlng.lat, latlng.lng)
-        }
-      })
-    }
-
-    markersRef.current.set(`outdoor-${space.id}`, marker)
-  }, [editable, onOutdoorPositionChange, onEditOutdoor, onDeleteOutdoor])
-
-  /* ── Manual polygon drawing ──────────────────────────────────────── */
-
-  const startDrawing = (buildingId: string) => {
-    setDrawingMode({ buildingId, points: [] })
-    const map = mapInstanceRef.current
-    if (map) {
-      map.getContainer().style.cursor = 'crosshair'
-    }
-  }
-
-  const clearDrawingMode = () => {
-    const map = mapInstanceRef.current
-    if (map) {
-      map.getContainer().style.cursor = ''
-    }
-    drawingMarkersRef.current.forEach((m) => {
-      if (map) map.removeLayer(m)
-    })
-    drawingMarkersRef.current = []
-    if (drawingPolylineRef.current && map) {
-      map.removeLayer(drawingPolylineRef.current)
-    }
-    drawingPolylineRef.current = null
-    setDrawingMode(null)
-  }
-
-  const finishDrawing = () => {
-    if (!drawingMode || drawingMode.points.length < 3) return
-    showEditablePolygon(drawingMode.points)
-    setEditingPolygon({ buildingId: drawingMode.buildingId, coordinates: drawingMode.points })
-    clearDrawingMode()
-  }
-
-  const undoDrawingPoint = () => {
-    if (!drawingMode || drawingMode.points.length === 0) return
-    const map = mapInstanceRef.current
-    const L = (window as any).L
-    if (!L || !map) return
-
-    // Remove last marker
-    if (drawingMarkersRef.current.length > 0) {
-      const lastMarker = drawingMarkersRef.current.pop()
-      map.removeLayer(lastMarker)
-    }
-
-    // Update points
-    const newPoints = drawingMode.points.slice(0, -1)
-    setDrawingMode({ ...drawingMode, points: newPoints })
-
-    // Redraw polyline
-    if (drawingPolylineRef.current) {
-      map.removeLayer(drawingPolylineRef.current)
-      drawingPolylineRef.current = null
-    }
-
-    if (newPoints.length >= 2) {
-      const polylineCoords = newPoints.map((p) => [p.lat, p.lng])
-      const polyline = L.polyline(polylineCoords, {
-        color: '#0891b2',
-        weight: 2,
-        opacity: 0.8,
-      }).addTo(map)
-      drawingPolylineRef.current = polyline
-    }
-  }
-
-  /* ── AI outline detection ────────────────────────────────────────── */
-
-  const handleDetectOutline = async (buildingId: string) => {
-    setDetectingId(buildingId)
-    try {
-      const res = await fetch(`/api/settings/campus/buildings/${buildingId}/detect-outline`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-      })
-      const json = await res.json()
-
-      if (json.ok && json.data?.coordinates?.length >= 3) {
-        setEditingPolygon({ buildingId, coordinates: json.data.coordinates })
-        showEditablePolygon(json.data.coordinates)
-      } else {
-        alert(json.error?.message || 'Could not detect the building outline. Try repositioning the marker closer to the building center.')
-      }
-    } catch {
-      alert('Failed to detect building outline. Please try again.')
-    } finally {
-      setDetectingId(null)
-    }
-  }
-
-  /* ── Show editable polygon with draggable vertices ───────────────── */
-
-  const showEditablePolygon = (coordinates: LatLng[]) => {
-    const L = (window as any).L
-    const map = mapInstanceRef.current
-    if (!L || !map) return
-
-    clearEditingPolygon()
-
-    const coords = coordinates.map((p) => [p.lat, p.lng])
-
-    const polygon = L.polygon(coords, {
-      color: '#f59e0b',
-      weight: 3,
-      opacity: 0.9,
-      fillColor: '#f59e0b',
-      fillOpacity: 0.2,
-      dashArray: '6 4',
-    }).addTo(map)
-
-    editingPolygonLayerRef.current = polygon
-
-    const vertexMarkers: any[] = []
-    coordinates.forEach((coord) => {
-      const vertexIcon = L.divIcon({
-        className: 'polygon-vertex',
-        html: `<div style="
-          width: 12px; height: 12px; border-radius: 50%;
-          background: white; border: 3px solid #f59e0b;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-          cursor: grab; transform: translate(-6px, -6px);
-        "></div>`,
-        iconSize: [0, 0],
-      })
-
-      const vertexMarker = L.marker([coord.lat, coord.lng], {
-        icon: vertexIcon,
-        draggable: true,
-        zIndexOffset: 1000,
-      }).addTo(map)
-
-      vertexMarker.on('drag', () => {
-        const newCoords = vertexMarkers.map((vm) => vm.getLatLng())
-        polygon.setLatLngs(newCoords)
-
-        setEditingPolygon((prev) => {
-          if (!prev) return prev
-          const updated = vertexMarkers.map((vm) => {
-            const ll = vm.getLatLng()
-            return { lat: ll.lat, lng: ll.lng }
-          })
-          return { ...prev, coordinates: updated }
-        })
-      })
-
-      vertexMarkers.push(vertexMarker)
-    })
-
-    editingVertexMarkersRef.current = vertexMarkers
-    map.fitBounds(polygon.getBounds(), { padding: [60, 60], maxZoom: 18 })
-  }
-
-  const clearEditingPolygon = () => {
-    const map = mapInstanceRef.current
-    if (!map) return
-
-    if (editingPolygonLayerRef.current) {
-      map.removeLayer(editingPolygonLayerRef.current)
-      editingPolygonLayerRef.current = null
-    }
-    editingVertexMarkersRef.current.forEach((m) => map.removeLayer(m))
-    editingVertexMarkersRef.current = []
-
-    // Also clear drawing mode if active
-    if (drawingMode) {
-      clearDrawingMode()
-    }
-  }
-
-  const handleSavePolygon = async () => {
-    if (!editingPolygon || !onPolygonSaved) return
-    onPolygonSaved(editingPolygon.buildingId, editingPolygon.coordinates)
-    clearEditingPolygon()
-
-    const L = (window as any).L
-    const map = mapInstanceRef.current
-    if (L && map) {
-      const marker = markersRef.current.get(editingPolygon.buildingId)
-      if (marker) {
-        map.removeLayer(marker)
-        markersRef.current.delete(editingPolygon.buildingId)
-      }
-
-      const building = buildings.find((b) => b.id === editingPolygon.buildingId)
-      if (building) {
-        addBuildingPolygon(L, map, { ...building, polygonCoordinates: editingPolygon.coordinates }, getBuildingColor(building, schoolColorByDivision))
-      }
-    }
-
-    setEditingPolygon(null)
-  }
-
-  const handleCancelPolygon = () => {
-    clearEditingPolygon()
-    setEditingPolygon(null)
-  }
-
-  /* ── Drawing mode clicks ─────────────────────────────────────────── */
-
-  useEffect(() => {
-    const map = mapInstanceRef.current
-    const L = (window as any).L
-    if (!L || !map || !drawingMode) return
-
-    const handleDrawingClick = (e: any) => {
-      const newPoint: LatLng = { lat: e.latlng.lat, lng: e.latlng.lng }
-      const updatedPoints = [...drawingMode.points, newPoint]
-      setDrawingMode({ ...drawingMode, points: updatedPoints })
-
-      // Add vertex marker
-      const vertexIcon = L.divIcon({
-        className: 'drawing-vertex-marker',
-        html: `<div style="
-          width: 10px; height: 10px; border-radius: 50%;
-          background: white; border: 2px solid #0891b2;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-          transform: translate(-5px, -5px);
-        "></div>`,
-        iconSize: [0, 0],
-      })
-
-      const vertexMarker = L.marker([newPoint.lat, newPoint.lng], {
-        icon: vertexIcon,
-        zIndexOffset: 500,
-      }).addTo(map)
-      drawingMarkersRef.current.push(vertexMarker)
-
-      // Update or create polyline
-      if (drawingPolylineRef.current) {
-        map.removeLayer(drawingPolylineRef.current)
-      }
-
-      const polylineCoords = updatedPoints.map((p) => [p.lat, p.lng])
-      const polyline = L.polyline(polylineCoords, {
-        color: '#0891b2',
-        weight: 2,
-        opacity: 0.8,
-      }).addTo(map)
-      drawingPolylineRef.current = polyline
-
-      // If 3+ points, add semi-transparent polygon
-      if (updatedPoints.length >= 3) {
-        // Check if polygon already exists and remove it
-        if (editingPolygonLayerRef.current) {
-          map.removeLayer(editingPolygonLayerRef.current)
-        }
-
-        const polygonCoords = [...polylineCoords, polylineCoords[0]] // Close the polygon
-        const polygon = L.polygon(polygonCoords, {
-          color: '#0891b2',
-          weight: 2,
-          opacity: 0.6,
-          fillColor: '#0891b2',
-          fillOpacity: 0.15,
-          dashArray: '4 3',
-        }).addTo(map)
-        editingPolygonLayerRef.current = polygon
-      }
-    }
-
-    map.on('click', handleDrawingClick)
-
-    return () => {
-      map.off('click', handleDrawingClick)
-    }
-  }, [drawingMode])
 
   /* ── Placing mode clicks ─────────────────────────────────────────── */
 
@@ -849,7 +373,8 @@ export default function InteractiveCampusMap({
     setPlacingMode(null)
   }
 
-  // Re-render all buildings when they change (handles updates like color changes)
+  /* ── Sync buildings to map ───────────────────────────────────────── */
+
   useEffect(() => {
     const L = (window as any).L
     const map = mapInstanceRef.current
@@ -895,11 +420,11 @@ export default function InteractiveCampusMap({
       }
     })
 
-    // Buildings are placed — drop the loading spinner
     setLoading(false)
   }, [buildings, addBuildingMarker, addBuildingPolygon, schoolColorByDivision, mapReady])
 
-  // Re-render all outdoor spaces when they change
+  /* ── Sync outdoor spaces to map ──────────────────────────────────── */
+
   useEffect(() => {
     const L = (window as any).L
     const map = mapInstanceRef.current
@@ -946,13 +471,13 @@ export default function InteractiveCampusMap({
     })
   }, [outdoorSpaces, addOutdoorMarker, addOutdoorPolygon, mapReady])
 
-  // Handle pending marker (marker shown while user fills in form)
+  /* ── Pending marker (shown while user fills in form) ─────────────── */
+
   useEffect(() => {
     const L = (window as any).L
     const map = mapInstanceRef.current
     if (!L || !map) return
 
-    // Remove existing pending marker
     if (pendingMarkerRef.current) {
       map.removeLayer(pendingMarkerRef.current)
       pendingMarkerRef.current = null
@@ -995,21 +520,7 @@ export default function InteractiveCampusMap({
     pendingMarkerRef.current = marker
   }, [pendingMarker])
 
-  const toggleLayer = () => {
-    const map = mapInstanceRef.current
-    if (!map) return
-
-    const { satellite, street } = tileLayersRef.current
-    if (activeLayer === 'satellite') {
-      map.removeLayer(satellite)
-      street.addTo(map)
-      setActiveLayer('street')
-    } else {
-      map.removeLayer(street)
-      satellite.addTo(map)
-      setActiveLayer('satellite')
-    }
-  }
+  /* ── Save pending position moves ─────────────────────────────────── */
 
   const handleSavePositions = async () => {
     if (pendingMoves.size === 0) return
@@ -1020,6 +531,8 @@ export default function InteractiveCampusMap({
     }
     setPendingMoves(new Map())
   }
+
+  /* ── Fit all markers ─────────────────────────────────────────────── */
 
   const fitAllMarkers = () => {
     const map = mapInstanceRef.current
@@ -1045,6 +558,8 @@ export default function InteractiveCampusMap({
       map.fitBounds(L.latLngBounds(points), { padding: [40, 40] })
     }
   }
+
+  /* ── Render ───────────────────────────────────────────────────────── */
 
   // No address yet
   if (!mapConfig && !loading) {

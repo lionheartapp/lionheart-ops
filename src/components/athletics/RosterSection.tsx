@@ -1,49 +1,23 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, Search, Users, Trash2, Edit2, Upload, UserPlus, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Plus, Search, Users, Upload, UserPlus } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
-import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import RowActionMenu from '@/components/RowActionMenu'
 import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
 import { IllustrationAthletics, IllustrationTeam } from '@/components/illustrations'
 
-interface Team {
-  id: string
-  name: string
-  level: string
-  schoolId: string | null
-  sport: { id: string; name: string; color: string }
-  season: { id: string; name: string }
-}
-
-interface RosterPlayer {
-  id: string
-  athleticTeamId: string
-  firstName: string
-  lastName: string
-  jerseyNumber: string | null
-  position: string | null
-  grade: string | null
-  height: string | null
-  weight: string | null
-  userId: string | null
-  isActive: boolean
-  user: { id: string; firstName: string | null; lastName: string | null; email: string } | null
-  athleticTeam: { id: string; name: string; sport: { name: string; color: string } }
-}
-
-interface OrgUser {
-  id: string
-  firstName: string | null
-  lastName: string | null
-  email: string
-}
+import type { Team, RosterPlayer, OrgUser } from './roster/roster-types'
+import RosterPlayerForm from './roster/RosterPlayerForm'
+import RosterCSVImport from './roster/RosterCSVImport'
+import type { ParsedPlayer, UploadResult } from './roster/RosterCSVImport'
+import RosterTable from './roster/RosterTable'
+import RosterCards from './roster/RosterCards'
 
 interface RosterSectionProps {
   activeCampusId: string | null
@@ -101,15 +75,11 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   const [drawerMode, setDrawerMode] = useState<'single' | 'upload'>('single')
 
   // Bulk upload state
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploadParsed, setUploadParsed] = useState<Array<{
-    firstName: string; lastName: string; jerseyNumber?: string;
-    position?: string; grade?: string; height?: string; weight?: string
-  }>>([])
+  const [uploadParsed, setUploadParsed] = useState<ParsedPlayer[]>([])
   const [uploadFileName, setUploadFileName] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [uploadResult, setUploadResult] = useState<{ created: number; errors: string[] } | null>(null)
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
@@ -177,163 +147,14 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
 
   // ─── Drawer handlers ──────────────────────────────────────────────
 
-  // ─── CSV parsing ──────────────────────────────────────────────────
-
-  const CSV_HEADERS = ['First Name', 'Last Name', 'Jersey Number', 'Position', 'Grade', 'Height', 'Weight']
-
-  const downloadTemplate = () => {
-    const csv = CSV_HEADERS.join(',') + '\nJohn,Doe,23,Guard,10th,6\'1",185\nJane,Smith,7,Forward,11th,5\'9",160\n'
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'roster-import-template.csv'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const parseCSV = (text: string) => {
-    const lines = text.split(/\r?\n/).filter((l) => l.trim())
-    if (lines.length < 2) {
-      setUploadError('File must have a header row and at least one player row')
-      return
-    }
-
-    // Flexible header detection — normalize column names
-    const headerLine = lines[0]
-    const rawHeaders = splitCSVLine(headerLine).map((h) => h.toLowerCase().replace(/[^a-z]/g, ''))
-
-    const colMap: Record<string, number> = {}
-    rawHeaders.forEach((h, i) => {
-      if (h.includes('first')) colMap.firstName = i
-      else if (h.includes('last')) colMap.lastName = i
-      else if (h.includes('jersey') || h.includes('number') || h === 'no' || h === 'num') colMap.jerseyNumber = i
-      else if (h.includes('pos')) colMap.position = i
-      else if (h.includes('grade') || h.includes('year') || h.includes('class')) colMap.grade = i
-      else if (h.includes('height') || h === 'ht') colMap.height = i
-      else if (h.includes('weight') || h === 'wt') colMap.weight = i
-    })
-
-    if (colMap.firstName === undefined || colMap.lastName === undefined) {
-      setUploadError('CSV must have "First Name" and "Last Name" columns')
-      return
-    }
-
-    const players = []
-    const rowErrors: string[] = []
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = splitCSVLine(lines[i])
-      const firstName = cols[colMap.firstName]?.trim() || ''
-      const lastName = cols[colMap.lastName]?.trim() || ''
-
-      if (!firstName && !lastName) continue // skip blank rows
-
-      if (!firstName || !lastName) {
-        rowErrors.push(`Row ${i + 1}: Missing ${!firstName ? 'first' : 'last'} name`)
-        continue
-      }
-
-      players.push({
-        firstName,
-        lastName,
-        jerseyNumber: colMap.jerseyNumber !== undefined ? cols[colMap.jerseyNumber]?.trim() : undefined,
-        position: colMap.position !== undefined ? cols[colMap.position]?.trim() : undefined,
-        grade: colMap.grade !== undefined ? cols[colMap.grade]?.trim() : undefined,
-        height: colMap.height !== undefined ? cols[colMap.height]?.trim() : undefined,
-        weight: colMap.weight !== undefined ? cols[colMap.weight]?.trim() : undefined,
-      })
-    }
-
-    if (players.length === 0) {
-      setUploadError(rowErrors.length ? rowErrors.join('; ') : 'No valid player rows found')
-      return
-    }
-    if (rowErrors.length) {
-      setUploadError(`${rowErrors.length} row(s) skipped: ${rowErrors[0]}${rowErrors.length > 1 ? ` and ${rowErrors.length - 1} more` : ''}`)
-    }
-
-    setUploadParsed(players)
-  }
-
-  /** Simple CSV line splitter that handles quoted fields */
-  const splitCSVLine = (line: string): string[] => {
-    const result: string[] = []
-    let current = ''
-    let inQuotes = false
-    for (const char of line) {
-      if (char === '"') { inQuotes = !inQuotes; continue }
-      if (char === ',' && !inQuotes) { result.push(current); current = ''; continue }
-      current += char
-    }
-    result.push(current)
-    return result
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploadError('')
-    setUploadParsed([])
-    setUploadResult(null)
-
-    const ext = file.name.split('.').pop()?.toLowerCase()
-    if (ext !== 'csv') {
-      setUploadError('Please upload a .csv file')
-      return
-    }
-    if (file.size > 1024 * 1024) {
-      setUploadError('File must be under 1 MB')
-      return
-    }
-
-    setUploadFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result
-      if (typeof text === 'string') parseCSV(text)
-    }
-    reader.readAsText(file)
-    // Reset input so re-selecting the same file works
-    e.target.value = ''
-  }
-
-  const handleBulkUpload = async () => {
-    if (!selectedTeamId || uploadParsed.length === 0) return
-    setUploading(true)
-    setUploadError('')
-    setUploadResult(null)
-
-    try {
-      const res = await fetch('/api/athletics/roster/bulk-import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ athleticTeamId: selectedTeamId, players: uploadParsed }),
-      })
-      if (handleAuthResponse(res)) return
-      const data = await res.json()
-      if (!data.ok) {
-        setUploadError(data.error?.message || 'Import failed')
-        return
-      }
-      setUploadResult(data.data)
-      invalidateRoster()
-    } catch {
-      setUploadError('Something went wrong')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const resetUploadState = () => {
+  const resetUploadState = useCallback(() => {
     setUploadParsed([])
     setUploadFileName('')
     setUploadError('')
     setUploadResult(null)
-  }
+  }, [])
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null)
     setDrawerMode('single')
     setFirstName('')
@@ -347,9 +168,9 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     setError('')
     resetUploadState()
     setDrawerOpen(true)
-  }
+  }, [resetUploadState])
 
-  const openEdit = (player: RosterPlayer) => {
+  const openEdit = useCallback((player: RosterPlayer) => {
     setEditing(player)
     setFirstName(player.firstName)
     setLastName(player.lastName)
@@ -361,7 +182,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     setLinkedUserId(player.userId || '')
     setError('')
     setDrawerOpen(true)
-  }
+  }, [])
 
   const handleSave = async () => {
     if (!firstName.trim() || !lastName.trim()) {
@@ -433,6 +254,37 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       setDeleting(false)
     }
   }
+
+  const handleBulkUpload = async () => {
+    if (!selectedTeamId || uploadParsed.length === 0) return
+    setUploading(true)
+    setUploadError('')
+    setUploadResult(null)
+
+    try {
+      const res = await fetch('/api/athletics/roster/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ athleticTeamId: selectedTeamId, players: uploadParsed }),
+      })
+      if (handleAuthResponse(res)) return
+      const data = await res.json()
+      if (!data.ok) {
+        setUploadError(data.error?.message || 'Import failed')
+        return
+      }
+      setUploadResult(data.data)
+      invalidateRoster()
+    } catch {
+      setUploadError('Something went wrong')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDeletePlayer = useCallback((player: RosterPlayer) => {
+    setDeleteTarget({ id: player.id, name: `${player.firstName} ${player.lastName}` })
+  }, [])
 
   // ─── Render ────────────────────────────────────────────────────────
 
@@ -552,7 +404,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                   {filteredRoster.map((player) => (
                     <tr key={player.id} className="hover:bg-stone-50/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {player.jerseyNumber || '—'}
+                        {player.jerseyNumber || '\u2014'}
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">
                         {player.firstName} {player.lastName}
@@ -563,8 +415,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
                           <span className="text-sm text-stone-600">{player.athleticTeam?.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{player.position || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600 hidden sm:table-cell">{player.grade || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-stone-600">{player.position || '\u2014'}</td>
+                      <td className="px-4 py-3 text-sm text-stone-600 hidden sm:table-cell">{player.grade || '\u2014'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -601,95 +453,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         </div>
       ) : (
         <div className="ui-glass-table">
-          {/* Mobile card list */}
-          <div className="sm:hidden divide-y divide-stone-100">
-            {filteredRoster.map((player) => (
-              <div key={player.id} className="flex items-center gap-3 px-4 py-3">
-                <div className="w-8 text-center text-sm font-semibold text-slate-900 flex-shrink-0">
-                  {player.jerseyNumber || '—'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-900">
-                    {player.firstName} {player.lastName}
-                    {!player.isActive && (
-                      <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium">Inactive</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
-                    <span>{player.position || '—'}</span>
-                    {player.grade && <><span className="text-stone-300">|</span><span>{player.grade}</span></>}
-                  </div>
-                </div>
-                <RowActionMenu
-                  items={[
-                    { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(player) },
-                    { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteTarget({ id: player.id, name: `${player.firstName} ${player.lastName}` }), variant: 'danger' },
-                  ]}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop table */}
-          <div className="overflow-x-auto hidden sm:block">
-            <table className="min-w-full divide-y divide-stone-100">
-              <thead>
-                <tr className="bg-stone-50/50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider w-12">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Position</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Grade</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider hidden md:table-cell">Ht/Wt</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider hidden lg:table-cell">Linked User</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-stone-500 uppercase tracking-wider w-12" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-50">
-                {filteredRoster.map((player) => (
-                  <tr key={player.id} className="hover:bg-stone-50/50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                      {player.jerseyNumber || '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-slate-900">
-                        {player.firstName} {player.lastName}
-                      </div>
-                      {!player.isActive && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium">
-                          Inactive
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-stone-600">{player.position || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-stone-600">{player.grade || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-stone-600 hidden md:table-cell">
-                      {player.height || player.weight
-                        ? `${player.height || '—'} / ${player.weight || '—'}`
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-stone-500 hidden lg:table-cell">
-                      {player.user
-                        ? `${player.user.firstName || ''} ${player.user.lastName || ''}`.trim() || player.user.email
-                        : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <RowActionMenu
-                        items={[
-                          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEdit(player) },
-                          {
-                            label: 'Delete',
-                            icon: <Trash2 className="w-4 h-4" />,
-                            onClick: () => setDeleteTarget({ id: player.id, name: `${player.firstName} ${player.lastName}` }),
-                            variant: 'danger',
-                          },
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RosterCards players={filteredRoster} onEdit={openEdit} onDelete={handleDeletePlayer} />
+          <RosterTable players={filteredRoster} onEdit={openEdit} onDelete={handleDeletePlayer} />
           <div className="border-t border-stone-100 px-4 py-2.5 text-xs text-stone-500">
             {filteredRoster.length} player{filteredRoster.length !== 1 ? 's' : ''}
           </div>
@@ -743,7 +508,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           )
         }
       >
-        {/* Tab switcher — only show when creating (not editing) */}
+        {/* Tab switcher -- only show when creating (not editing) */}
         {!editing && (
           <div className="flex gap-1 p-1 bg-stone-100 rounded-lg mb-5">
             <button
@@ -775,146 +540,41 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
 
         {/* Single player form */}
         {(drawerMode === 'single' || editing) && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <FloatingInput id="first-name" label="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-              <FloatingInput id="last-name" label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            </div>
-            <FloatingInput id="jersey-number" label="Jersey Number" value={jerseyNumber} onChange={(e) => setJerseyNumber(e.target.value)} />
-            <FloatingInput id="position" label="Position" value={position} onChange={(e) => setPosition(e.target.value)} />
-            <FloatingInput id="grade" label="Grade" value={grade} onChange={(e) => setGrade(e.target.value)} />
-            <div className="grid grid-cols-2 gap-3">
-              <FloatingInput id="height" label="Height" value={height} onChange={(e) => setHeight(e.target.value)} />
-              <FloatingInput id="weight" label="Weight" value={weight} onChange={(e) => setWeight(e.target.value)} />
-            </div>
-            <FloatingDropdown
-              id="linked-user"
-              label="Link to User (optional)"
-              value={linkedUserId}
-              onChange={setLinkedUserId}
-              options={userOptions}
-            />
-            {error && <p className="text-sm text-red-600">{error}</p>}
-          </div>
+          <RosterPlayerForm
+            firstName={firstName}
+            lastName={lastName}
+            jerseyNumber={jerseyNumber}
+            position={position}
+            grade={grade}
+            height={height}
+            weight={weight}
+            linkedUserId={linkedUserId}
+            userOptions={userOptions}
+            error={error}
+            onFirstNameChange={setFirstName}
+            onLastNameChange={setLastName}
+            onJerseyNumberChange={setJerseyNumber}
+            onPositionChange={setPosition}
+            onGradeChange={setGrade}
+            onHeightChange={setHeight}
+            onWeightChange={setWeight}
+            onLinkedUserIdChange={setLinkedUserId}
+          />
         )}
 
         {/* Upload file view */}
         {drawerMode === 'upload' && !editing && (
-          <div className="space-y-5">
-            {/* Template download */}
-            <button
-              type="button"
-              onClick={downloadTemplate}
-              className="w-full flex items-center gap-3 px-4 py-3 border border-dashed border-stone-300 rounded-xl text-left hover:border-stone-400 hover:bg-stone-50/50 transition-colors group cursor-pointer"
-            >
-              <div className="p-2 rounded-lg bg-stone-100 group-hover:bg-indigo-50 transition-colors">
-                <Download className="w-4 h-4 text-stone-500 group-hover:text-indigo-600 transition-colors" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900">Download CSV Template</p>
-                <p className="text-xs text-stone-500 mt-0.5">Pre-formatted with the correct column headers</p>
-              </div>
-            </button>
-
-            {/* File drop zone */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full flex flex-col items-center gap-3 px-4 py-8 border-2 border-dashed border-stone-200 rounded-xl hover:border-stone-400 hover:bg-stone-50/30 transition-colors cursor-pointer"
-            >
-              <div className="p-3 rounded-full bg-stone-100">
-                <FileSpreadsheet className="w-6 h-6 text-stone-400" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-stone-700">
-                  {uploadFileName || 'Click to upload a CSV file'}
-                </p>
-                <p className="text-xs text-stone-400 mt-1">
-                  Columns: First Name, Last Name, Jersey Number, Position, Grade, Height, Weight
-                </p>
-              </div>
-            </button>
-
-            {/* Parse error */}
-            {uploadError && !uploadResult && (
-              <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-red-50 border border-red-100">
-                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-red-700">{uploadError}</p>
-              </div>
-            )}
-
-            {/* Preview table */}
-            {uploadParsed.length > 0 && !uploadResult && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-stone-700">
-                    {uploadParsed.length} player{uploadParsed.length !== 1 ? 's' : ''} ready to import
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => { resetUploadState() }}
-                    className="text-xs text-stone-500 hover:text-stone-700 transition-colors cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                </div>
-                <div className="border border-stone-200 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-                  <table className="min-w-full text-xs">
-                    <thead className="bg-stone-50 sticky top-0">
-                      <tr>
-                        <th className="px-3 py-2 text-left font-semibold text-stone-500">Name</th>
-                        <th className="px-3 py-2 text-left font-semibold text-stone-500">#</th>
-                        <th className="px-3 py-2 text-left font-semibold text-stone-500">Pos</th>
-                        <th className="px-3 py-2 text-left font-semibold text-stone-500">Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {uploadParsed.map((p, i) => (
-                        <tr key={i} className="hover:bg-stone-50/50">
-                          <td className="px-3 py-1.5 text-slate-900 font-medium">{p.firstName} {p.lastName}</td>
-                          <td className="px-3 py-1.5 text-stone-600">{p.jerseyNumber || '—'}</td>
-                          <td className="px-3 py-1.5 text-stone-600">{p.position || '—'}</td>
-                          <td className="px-3 py-1.5 text-stone-600">{p.grade || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Upload result */}
-            {uploadResult && (
-              <div className="space-y-3">
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-emerald-50 border border-emerald-100">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-emerald-800 font-medium">
-                    Successfully imported {uploadResult.created} player{uploadResult.created !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                {uploadResult.errors.length > 0 && (
-                  <div className="px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-100 space-y-1">
-                    <p className="text-sm font-medium text-amber-800">{uploadResult.errors.length} issue{uploadResult.errors.length !== 1 ? 's' : ''}</p>
-                    <ul className="text-xs text-amber-700 space-y-0.5">
-                      {uploadResult.errors.slice(0, 5).map((err, i) => (
-                        <li key={i}>• {err}</li>
-                      ))}
-                      {uploadResult.errors.length > 5 && (
-                        <li className="text-amber-500">...and {uploadResult.errors.length - 5} more</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <RosterCSVImport
+            uploadParsed={uploadParsed}
+            uploadFileName={uploadFileName}
+            uploadError={uploadError}
+            uploading={uploading}
+            uploadResult={uploadResult}
+            onParsed={setUploadParsed}
+            onFileNameChange={setUploadFileName}
+            onErrorChange={setUploadError}
+            onResetUpload={resetUploadState}
+          />
         )}
       </DetailDrawer>
 

@@ -1,203 +1,25 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Save, School, CheckCircle, XCircle, Pencil, Users, Palette, Globe } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { Save, School, Users, Globe } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
-import { fetchApi, getAuthHeaders } from '@/lib/api-client'
-import { Clock } from 'lucide-react'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import ImageDropZone from '@/components/settings/ImageDropZone'
-
-type SchoolInfo = {
-  id: string
-  name: string
-  institutionType: 'PUBLIC' | 'PRIVATE' | 'CHARTER' | 'HYBRID' | null
-  gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' | 'MULTI_SCHOOL_CAMPUS' | null
-  slug: string
-  physicalAddress: string | null
-  district: string | null
-  website: string | null
-  phone: string | null
-  gradeRange: string | null
-  studentCount: number | null
-  staffCount: number | null
-  logoUrl: string | null
-  heroImageUrl: string | null
-  imagePosition: 'LEFT' | 'RIGHT'
-  createdAt: string
-  updatedAt: string
-  primaryAdminContact: {
-    name: string | null
-    email: string | null
-    phone: string | null
-    title: string | null
-  }
-  campusSnapshot: {
-    buildings: number
-    areas: number
-    rooms: number
-  }
-}
-
-type FormState = {
-  name: string
-  institutionType: 'PUBLIC' | 'PRIVATE' | 'CHARTER' | 'HYBRID' | ''
-  gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL' | 'GLOBAL' | 'MULTI_SCHOOL_CAMPUS' | ''
-  slug: string
-  physicalAddress: string
-  district: string
-  website: string
-  phone: string
-  gradeRange: string
-  studentCount: string
-  staffCount: string
-  logoUrl: string
-  heroImageUrl: string
-  imagePosition: 'LEFT' | 'RIGHT'
-}
-
-const EMPTY_FORM: FormState = {
-  name: '',
-  institutionType: '',
-  gradeLevel: '',
-  slug: '',
-  physicalAddress: '',
-  district: '',
-  website: '',
-  phone: '',
-  gradeRange: '',
-  studentCount: '',
-  staffCount: '',
-  logoUrl: '',
-  heroImageUrl: '',
-  imagePosition: 'LEFT',
-}
-
-function toFormState(data: SchoolInfo): FormState {
-  return {
-    name: data.name,
-    institutionType: data.institutionType || '',
-    gradeLevel: data.gradeLevel || '',
-    slug: data.slug,
-    physicalAddress: data.physicalAddress || '',
-    district: data.district || '',
-    website: data.website || '',
-    phone: data.phone || '',
-    gradeRange: data.gradeRange || '',
-    studentCount: data.studentCount == null ? '' : String(data.studentCount),
-    staffCount: data.staffCount == null ? '' : String(data.staffCount),
-    logoUrl: data.logoUrl || '',
-    heroImageUrl: data.heroImageUrl || '',
-    imagePosition: data.imagePosition,
-  }
-}
-
-function formatTimestamp(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleString()
-}
+import EventBufferSection from '@/components/settings/school-info/EventBufferSection'
+import BrandingSection from '@/components/settings/school-info/BrandingSection'
+import {
+  type SchoolInfo,
+  type FormState,
+  EMPTY_FORM,
+  toFormState,
+  formatTimestamp,
+  areFormsEqual,
+} from '@/components/settings/school-info/school-info-types'
 
 type SchoolInfoTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
   onRegisterSave?: (handler: () => Promise<boolean>) => void
   onRegisterDiscard?: (handler: () => void) => void
-}
-
-function areFormsEqual(a: FormState, b: FormState) {
-  return JSON.stringify(a) === JSON.stringify(b)
-}
-
-// ─── Standalone Event Buffer Section ────────────────────────────────────
-function EventBufferSection() {
-  const [bufferMinutes, setBufferMinutes] = useState<number | null>(null)
-  const [savedValue, setSavedValue] = useState<number | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    fetchApi<{ eventBufferMinutes: number }>('/api/settings/organization')
-      .then((data) => {
-        setBufferMinutes(data.eventBufferMinutes)
-        setSavedValue(data.eventBufferMinutes)
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to fetch organization settings:', error)
-      })
-  }, [])
-
-  const handleSave = async () => {
-    if (bufferMinutes === null || bufferMinutes === savedValue) return
-    setSaving(true)
-    try {
-      const res = await fetch('/api/settings/organization', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ eventBufferMinutes: bufferMinutes }),
-      })
-      const json = await res.json()
-      if (json.ok) {
-        setSavedValue(bufferMinutes)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2000)
-      }
-    } catch (error: unknown) {
-      console.error('Failed to save event buffer setting:', error)
-    }
-    setSaving(false)
-  }
-
-  if (bufferMinutes === null) return null
-
-  const isDirty = bufferMinutes !== savedValue
-
-  return (
-    <section>
-      <h3 className="text-lg font-semibold text-slate-900">Event Settings</h3>
-      <div className="h-px bg-slate-200 mt-2 mb-4" />
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-          <Clock className="w-5 h-5 text-blue-600" />
-        </div>
-        <div className="flex-1 space-y-1">
-          <label htmlFor="event-buffer" className="text-sm font-medium text-slate-900">
-            Location buffer time
-          </label>
-          <p className="text-xs text-slate-500">
-            Minimum minutes between events at the same location. Set to 0 to disable.
-          </p>
-          <div className="flex items-center gap-3 mt-2">
-            <input
-              id="event-buffer"
-              type="number"
-              min={0}
-              max={480}
-              value={bufferMinutes}
-              onChange={(e) => setBufferMinutes(Math.max(0, Math.min(480, parseInt(e.target.value) || 0)))}
-              className="w-24 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
-            />
-            <span className="text-sm text-slate-500">minutes</span>
-            {isDirty && (
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition-colors"
-              >
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            )}
-            {saved && (
-              <span className="text-xs text-green-600 font-medium">Saved</span>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
 }
 
 export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard }: SchoolInfoTabProps) {
@@ -636,214 +458,22 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       </section>
 
       {/* Section 3 — Branding */}
-      <section className="ui-glass p-6">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
-            <Palette className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">Branding</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Logo, login image, and subdomain</p>
-          </div>
-        </div>
-
-        {/* Subdomain slug management */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <div>
-              <p className="text-sm font-medium text-slate-700">Subdomain</p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                <span className="font-mono text-slate-800">{form.slug || 'your-school'}</span>
-                .lionheartapp.com
-              </p>
-            </div>
-            {!slugEditing && (
-              <button
-                type="button"
-                onClick={openSlugEdit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
-              >
-                <Pencil className="w-3 h-3" />
-                Change Slug
-              </button>
-            )}
-          </div>
-
-          <AnimatePresence>
-            {slugSuccess && !slugEditing && (
-              <motion.div
-                key="slug-success"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                  {slugSuccess}
-                </div>
-              </motion.div>
-            )}
-
-            {slugEditing && (
-              <motion.div
-                key="slug-edit"
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4">
-                  <div className="rounded-lg border border-amber-300 bg-amber-100 px-4 py-3 text-sm text-amber-800">
-                    Changing your subdomain will update all links to your organization. Existing bookmarks will stop working.
-                  </div>
-
-                  {slugError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                      {slugError}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-slate-700">
-                      Type the new slug to confirm
-                    </label>
-                    <div className="relative">
-                      <FloatingInput
-                        id="si-slug-new"
-                        label="New subdomain slug"
-                        value={slugInput}
-                        onChange={(e) => handleSlugInputChange(e.target.value)}
-                        disabled={slugSaving}
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                        {slugValidating && (
-                          <span className="inline-block h-4 w-4 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin" />
-                        )}
-                        {!slugValidating && slugValid === true && (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                        )}
-                        {!slugValidating && typeof slugValid === 'string' && (
-                          <XCircle className="w-4 h-4 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    {typeof slugValid === 'string' && (
-                      <p className="text-xs text-red-600">{slugValid}</p>
-                    )}
-                    {slugValid === true && slugInput !== form.slug && (
-                      <p className="text-xs text-green-600">
-                        {slugInput}.lionheartapp.com is available
-                      </p>
-                    )}
-                    {slugValid === true && slugInput === form.slug && (
-                      <p className="text-xs text-slate-500">
-                        That is already your current slug
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleSlugSave}
-                      disabled={slugValid !== true || slugSaving || slugInput === form.slug}
-                      className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {slugSaving ? 'Saving...' : 'Confirm Change'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelSlugEdit}
-                      disabled={slugSaving}
-                      className="px-4 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Divider between slug section and image uploads */}
-        <div className="h-px bg-slate-200 my-4" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-          <ImageDropZone
-            label="Logo"
-            imageUrl={form.logoUrl}
-            imageType="logo"
-            onImageChange={(url) => setForm((prev) => ({ ...prev, logoUrl: url || '' }))}
-            aspectRatio="aspect-[3/2]"
-            disabled={saving}
-            compact
-          />
-          <ImageDropZone
-            label="Login Image"
-            imageUrl={form.heroImageUrl}
-            imageType="hero"
-            onImageChange={(url) => setForm((prev) => ({ ...prev, heroImageUrl: url || '' }))}
-            aspectRatio="aspect-[3/2]"
-            disabled={saving}
-            compact
-          />
-
-          {/* Visual Layout Position Picker */}
-          <div className="md:col-span-2">
-            <label className="block text-xs text-slate-500 font-medium mb-2">Login Page Layout</label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, imagePosition: 'LEFT' }))}
-                className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
-                  form.imagePosition === 'LEFT'
-                    ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="1" width="158" height="98" rx="6" stroke="#E5E7EB" strokeWidth="1" fill="white" />
-                  <rect x="4" y="4" width="74" height="92" rx="4" fill="#E0E7FF" />
-                  <circle cx="120" cy="30" r="8" fill="#E5E7EB" />
-                  <rect x="100" y="44" width="40" height="4" rx="2" fill="#D1D5DB" />
-                  <rect x="105" y="52" width="30" height="4" rx="2" fill="#E5E7EB" />
-                  <rect x="100" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
-                  <rect x="100" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
-                </svg>
-                <span className={`text-xs font-medium ${form.imagePosition === 'LEFT' ? 'text-blue-700' : 'text-slate-500'}`}>
-                  Image Left
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, imagePosition: 'RIGHT' }))}
-                className={`flex-1 rounded-xl border p-3 cursor-pointer transition-all ${
-                  form.imagePosition === 'RIGHT'
-                    ? 'ring-2 ring-blue-500 border-blue-200 bg-blue-50/50'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <svg viewBox="0 0 160 100" className="w-full h-auto mb-2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="1" width="158" height="98" rx="6" stroke="#E5E7EB" strokeWidth="1" fill="white" />
-                  <rect x="82" y="4" width="74" height="92" rx="4" fill="#E0E7FF" />
-                  <circle cx="40" cy="30" r="8" fill="#E5E7EB" />
-                  <rect x="20" y="44" width="40" height="4" rx="2" fill="#D1D5DB" />
-                  <rect x="25" y="52" width="30" height="4" rx="2" fill="#E5E7EB" />
-                  <rect x="20" y="64" width="40" height="8" rx="3" fill="#C7D2FE" />
-                  <rect x="20" y="76" width="40" height="8" rx="3" fill="#E5E7EB" />
-                </svg>
-                <span className={`text-xs font-medium ${form.imagePosition === 'RIGHT' ? 'text-blue-700' : 'text-slate-500'}`}>
-                  Image Right
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <BrandingSection
+        form={form}
+        setForm={setForm}
+        saving={saving}
+        slugEditing={slugEditing}
+        slugInput={slugInput}
+        slugValidating={slugValidating}
+        slugValid={slugValid}
+        slugSaving={slugSaving}
+        slugSuccess={slugSuccess}
+        slugError={slugError}
+        openSlugEdit={openSlugEdit}
+        cancelSlugEdit={cancelSlugEdit}
+        handleSlugInputChange={handleSlugInputChange}
+        handleSlugSave={handleSlugSave}
+      />
 
       {/* Section 4 — Workspace Metadata */}
       <section className="ui-glass p-6">

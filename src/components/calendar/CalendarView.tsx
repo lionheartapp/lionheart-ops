@@ -20,9 +20,7 @@ import {
   useCategories,
   useCreateCategory,
   useRsvp,
-  getEventMetadata,
   type CalendarEventData,
-  type EventMetadata,
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
 import MonthView from './MonthView'
@@ -31,7 +29,7 @@ import DayView from './DayView'
 import AgendaView from './AgendaView'
 import MobileMonthView from './MobileMonthView'
 import EventDetailPanel from './EventDetailPanel'
-import EventCreatePanel, { type EventFormData } from './EventCreatePanel'
+import EventCreatePanel from './EventCreatePanel'
 import PlanEventDrawer from './PlanEventDrawer'
 import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
@@ -39,16 +37,14 @@ import { TemplateListDrawer } from '@/components/events/templates/TemplateListDr
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import type { AttendeeSelection } from './AttendeePicker'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import RecurringEditDialog, { type RecurringEditMode } from './RecurringEditDialog'
+import RecurringEditDialog from './RecurringEditDialog'
 import CancellationNotifyDialog from './CancellationNotifyDialog'
 import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
-import { useAthleticsCalendarEvents, useAthleticsSports } from '@/lib/hooks/useAthleticsCalendar'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
-// queryOptions removed — userCampuses uses inline fetch
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { Download } from 'lucide-react'
@@ -58,6 +54,10 @@ import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import CreateCalendarDrawer from './CreateCalendarDrawer'
 import SlotChoiceModal from './SlotChoiceModal'
 import EmptyCalendarState from './EmptyCalendarState'
+import { useCalendarEventCrud } from '@/lib/hooks/useCalendarEventCrud'
+import { useCalendarDeleteFlow } from '@/lib/hooks/useCalendarDeleteFlow'
+import { useCalendarDragResize } from '@/lib/hooks/useCalendarDragResize'
+import { useAthleticsOverlay } from '@/lib/hooks/useAthleticsOverlay'
 
 export default function CalendarView() {
   const { toast } = useToast()
@@ -120,6 +120,16 @@ export default function CalendarView() {
       return
     }
   }, [router])
+
+  // Event interaction state
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<'event' | 'meeting'>('event')
+  const [createInitialStart, setCreateInitialStart] = useState<Date | undefined>()
+  const [createInitialEnd, setCreateInitialEnd] = useState<Date | undefined>()
+
+  // Edit event state
+  const [editingEvent, setEditingEvent] = useState<CalendarEventData | null>(null)
 
   // Choice modal — shown when user clicks an empty calendar slot
   const [choiceModalOpen, setChoiceModalOpen] = useState(false)
@@ -204,7 +214,7 @@ export default function CalendarView() {
   const deleteCalendarMutation = useDeleteCalendar()
   const createEvent = useCreateEvent()
   const updateEvent = useUpdateEvent()
-  const deleteEvent = useDeleteEvent()
+  const deleteEventMutation = useDeleteEvent()
 
   // Sync calendar data to the Sidebar via CustomEvent
   useEffect(() => {
@@ -290,7 +300,6 @@ export default function CalendarView() {
     staleTime: 5 * 60_000,
   })
 
-  const [visibleAthleticsCampusIds, setVisibleAthleticsCampusIds] = useState<Set<string>>(new Set())
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
     categoryIds: new Set(),
     campusIds: new Set(),
@@ -299,33 +308,20 @@ export default function CalendarView() {
     teamLevels: new Set(),
   })
 
-  // Listen for athletics-calendar-toggle from Sidebar
-  useEffect(() => {
-    const handleToggle = (e: Event) => {
-      const event = e as CustomEvent<{ campusId: string; visible: boolean }>
-      if (event.detail?.campusId) {
-        setVisibleAthleticsCampusIds((prev) => {
-          const next = new Set(prev)
-          if (event.detail.visible) next.add(event.detail.campusId)
-          else next.delete(event.detail.campusId)
-          return next
-        })
-      }
-    }
-    window.addEventListener('athletics-calendar-toggle', handleToggle)
-    return () => window.removeEventListener('athletics-calendar-toggle', handleToggle)
-  }, [])
-
-  const athleticsCampusArray = useMemo(() => Array.from(visibleAthleticsCampusIds), [visibleAthleticsCampusIds])
-  const anyAthleticsVisible = athleticsCampusArray.length > 0
-
-  const { data: athleticsEvents = [] } = useAthleticsCalendarEvents(
-    athleticsCampusArray,
-    start.toISOString(),
-    end.toISOString(),
+  const {
     anyAthleticsVisible,
-  )
-  const { data: athleticsSports = [] } = useAthleticsSports(anyAthleticsVisible)
+    filteredAthleticsEvents,
+    athleticsCampuses,
+    athleticsSports,
+    athleticsCampusArray,
+    visibleAthleticsCampusIds,
+    setVisibleAthleticsCampusIds,
+  } = useAthleticsOverlay({
+    calendars,
+    start,
+    end,
+    calendarFilter,
+  })
 
   // Current user's external (Google/Microsoft) calendar events, rendered as
   // read-only "busy" blocks. Safe to always-on — endpoint returns an empty
@@ -335,53 +331,6 @@ export default function CalendarView() {
     end.toISOString(),
     true,
   )
-
-  // Build unique campus list from calendars that have campus info
-  const athleticsCampuses = useMemo(() => {
-    if (!anyAthleticsVisible) return []
-    const seen = new Map<string, string>()
-    for (const cal of calendars) {
-      const campus = cal.campus as { id: string; name: string } | null | undefined
-      if (campus && visibleAthleticsCampusIds.has(campus.id) && !seen.has(campus.id)) {
-        seen.set(campus.id, campus.name)
-      }
-    }
-    return Array.from(seen, ([id, name]) => ({ id, name }))
-  }, [calendars, visibleAthleticsCampusIds, anyAthleticsVisible])
-
-  // Apply athletics filters
-  const filteredAthleticsEvents = useMemo(() => {
-    if (!anyAthleticsVisible) return []
-    let result = athleticsEvents
-    const { campusIds, schoolLevels, sportIds, teamLevels } = calendarFilter
-    if (campusIds.size > 0) {
-      result = result.filter((e) => {
-        const meta: EventMetadata | null = getEventMetadata(e)
-        return meta?.campusId && campusIds.has(meta.campusId)
-      })
-    }
-    if (schoolLevels.size > 0) {
-      result = result.filter((e) => {
-        const meta: EventMetadata | null = getEventMetadata(e)
-        // Map gradeLevel values to display labels
-        const level = meta?.schoolLevel || meta?.teamLevel
-        return level && schoolLevels.has(level)
-      })
-    }
-    if (sportIds.size > 0) {
-      result = result.filter((e) => {
-        const meta: EventMetadata | null = getEventMetadata(e)
-        return meta?.sportId && sportIds.has(meta.sportId)
-      })
-    }
-    if (teamLevels.size > 0) {
-      result = result.filter((e) => {
-        const meta: EventMetadata | null = getEventMetadata(e)
-        return meta?.teamLevel && teamLevels.has(meta.teamLevel)
-      })
-    }
-    return result
-  }, [athleticsEvents, calendarFilter, anyAthleticsVisible])
 
   // Search filter state
   const [searchQuery, setSearchQuery] = useState('')
@@ -454,16 +403,6 @@ export default function CalendarView() {
     return map
   }, [meetWithPeople, schedule0.data, schedule1.data, schedule2.data, schedule3.data, schedule4.data])
 
-  // Event interaction state
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [createMode, setCreateMode] = useState<'event' | 'meeting'>('event')
-  const [createInitialStart, setCreateInitialStart] = useState<Date | undefined>()
-  const [createInitialEnd, setCreateInitialEnd] = useState<Date | undefined>()
-
-  // Edit event state
-  const [editingEvent, setEditingEvent] = useState<CalendarEventData | null>(null)
-
   // Compute initial attendees from meet-with people for the create panel
   const meetWithAttendees: AttendeeSelection[] = useMemo(() => {
     return meetWithPeople.map((p) => ({
@@ -532,8 +471,7 @@ export default function CalendarView() {
   const handleEventClick = useCallback((event: CalendarEventData) => {
     // External (Google/Microsoft) events are read-only in Lionheart — open
     // the source event in a new tab if the provider gave us a URL, otherwise
-    // do nothing. We deliberately don't open the EventDetailPanel because
-    // there's nothing to edit here.
+    // do nothing.
     if (event.sourceModule === 'external') {
       const meta = event.metadata as { url?: string | null } | null | undefined
       if (meta?.url) window.open(meta.url, '_blank', 'noopener,noreferrer')
@@ -561,256 +499,57 @@ export default function CalendarView() {
     setIsCreateOpen(true)
   }, [])
 
-  const [formError, setFormError] = useState<string | null>(null)
-
-  // Location conflict override flow
-  const [conflictWarning, setConflictWarning] = useState<{
-    conflictingEventTitle: string
-    conflictingStart: string
-    conflictingEnd: string
-    bufferMinutes: number
-    location: string
-  } | null>(null)
-  const [pendingConflictPayload, setPendingConflictPayload] = useState<{
-    type: 'create' | 'update'
-    payload: Record<string, unknown>
-  } | null>(null)
-
-  const handleSubmitEvent = useCallback(async (data: EventFormData) => {
-    setFormError(null)
-    try {
-      const { categoryId, rrule, buildingId, areaId, attendeeIds, ...rest } = data
-      const payload: Record<string, unknown> = {
-        ...rest,
-        ...(categoryId ? { categoryId } : {}),
-        ...(rrule ? { rrule } : {}),
-        ...(buildingId ? { buildingId } : {}),
-        ...(areaId ? { areaId } : {}),
-        ...(attendeeIds && attendeeIds.length > 0 ? { attendeeIds } : {}),
-      }
-      await createEvent.mutateAsync(payload)
-      setIsCreateOpen(false)
-      toast('Event created successfully', 'success')
-    } catch (err: unknown) {
-      const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
-      if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
-        setConflictWarning(apiErr.details as typeof conflictWarning)
-        const { categoryId, rrule, buildingId, areaId, attendeeIds, ...rest } = data
-        setPendingConflictPayload({
-          type: 'create',
-          payload: {
-            ...rest,
-            ...(categoryId ? { categoryId } : {}),
-            ...(rrule ? { rrule } : {}),
-            ...(buildingId ? { buildingId } : {}),
-            ...(areaId ? { areaId } : {}),
-            ...(attendeeIds && attendeeIds.length > 0 ? { attendeeIds } : {}),
-          },
-        })
-        return
-      }
-      const message = err instanceof Error ? err.message : 'Failed to create event'
-      setFormError(message)
-      logger.error({ error: String(err) }, 'Event creation failed')
-    }
-  }, [createEvent, toast])
-
-  const handleUpdateEvent = useCallback(async (data: EventFormData) => {
-    if (!editingEvent) return
-    setFormError(null)
-    try {
-      const { categoryId, calendarId, rrule, buildingId, areaId, ...rest } = data
-      const payload: Record<string, unknown> = {
-        id: editingEvent.id,
-        ...rest,
-        ...(categoryId ? { categoryId } : {}),
-        ...(rrule ? { rrule } : {}),
-        ...(buildingId ? { buildingId } : {}),
-        ...(areaId ? { areaId } : {}),
-      }
-      await updateEvent.mutateAsync(payload as { id: string } & Record<string, unknown>)
+  // ── Event CRUD hook ──────────────────────────────────────────────────
+  const {
+    handleSubmitEvent,
+    handleUpdateEvent,
+    handleOverrideConflict,
+    handleCancelConflict,
+    conflictWarning,
+    formError,
+    setFormError,
+  } = useCalendarEventCrud({
+    createEvent,
+    updateEvent,
+    editingEvent,
+    toast,
+    onCreateSuccess: () => setIsCreateOpen(false),
+    onUpdateSuccess: () => {
       setIsCreateOpen(false)
       setEditingEvent(null)
-      toast('Event updated successfully', 'success')
-    } catch (err: unknown) {
-      const apiErr = err as Error & { code?: string; details?: Record<string, unknown> }
-      if (apiErr.code === 'LOCATION_CONFLICT' && apiErr.details) {
-        setConflictWarning(apiErr.details as typeof conflictWarning)
-        const { categoryId, calendarId, rrule, buildingId, areaId, ...rest } = data
-        setPendingConflictPayload({
-          type: 'update',
-          payload: {
-            id: editingEvent.id,
-            ...rest,
-            ...(categoryId ? { categoryId } : {}),
-            ...(rrule ? { rrule } : {}),
-            ...(buildingId ? { buildingId } : {}),
-            ...(areaId ? { areaId } : {}),
-          },
-        })
-        return
-      }
-      const message = err instanceof Error ? err.message : 'Failed to update event'
-      setFormError(message)
-      logger.error({ error: String(err) }, 'Event update failed')
-    }
-  }, [updateEvent, editingEvent, toast])
+    },
+  })
 
-  const handleOverrideConflict = useCallback(async () => {
-    if (!pendingConflictPayload) return
-    setConflictWarning(null)
-    try {
-      if (pendingConflictPayload.type === 'create') {
-        await createEvent.mutateAsync({ ...pendingConflictPayload.payload, skipConflictCheck: true })
-      } else {
-        await updateEvent.mutateAsync({ ...pendingConflictPayload.payload, skipConflictCheck: true } as unknown as { id: string } & Record<string, unknown>)
-      }
-      setIsCreateOpen(false)
-      setEditingEvent(null)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save event'
-      setFormError(message)
-    }
-    setPendingConflictPayload(null)
-  }, [pendingConflictPayload, createEvent, updateEvent])
+  // ── Delete flow hook ─────────────────────────────────────────────────
+  const {
+    pendingDelete,
+    deleteRecurringMode,
+    showCancellationNotify,
+    deleteError,
+    handleDeleteEvent,
+    handleDeleteRecurringConfirm,
+    confirmDeleteEvent,
+    cancelPendingDelete,
+    setShowCancellationNotify,
+    isRecurring,
+  } = useCalendarDeleteFlow({
+    deleteEvent: deleteEventMutation,
+    queryClient,
+    onDeleted: () => setSelectedEvent(null),
+  })
 
-  const handleCancelConflict = useCallback(() => {
-    setConflictWarning(null)
-    setPendingConflictPayload(null)
-  }, [])
-
-  // Delete flow state — multi-step for recurring events
-  const [pendingDelete, setPendingDelete] = useState<CalendarEventData | null>(null)
-  const [deleteRecurringMode, setDeleteRecurringMode] = useState<RecurringEditMode | null>(null)
-  const [showCancellationNotify, setShowCancellationNotify] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const handleDeleteEvent = useCallback((event: CalendarEventData) => {
-    setPendingDelete(event)
-    setDeleteRecurringMode(null)
-    setDeleteError(null)
-  }, [])
-
-  // Drag-and-drop reschedule + resize
+  // ── Drag-and-drop reschedule + resize hook ───────────────────────────
   const { reschedule } = useDragReschedule()
-
-  // Multi-step modal flow state
-  const [pendingChange, setPendingChange] = useState<{
-    event: CalendarEventData
-    newStart: string
-    newEnd: string
-    type: 'drag' | 'resize'
-  } | null>(null)
-  const [recurringMode, setRecurringMode] = useState<RecurringEditMode | null>(null)
-  const [showNotifyDialog, setShowNotifyDialog] = useState(false)
-  const [pendingEditMode, setPendingEditMode] = useState<RecurringEditMode>('all')
-  const isRecurring = (event: CalendarEventData) => !!(event.rrule || event.parentEventId)
-
-  // Execute the pending change (called after notify dialog)
-  const executePendingChange = useCallback((notify: boolean) => {
-    if (!pendingChange) return
-    reschedule({
-      event: pendingChange.event,
-      newStartTime: pendingChange.newStart,
-      newEndTime: pendingChange.newEnd,
-      editMode: pendingEditMode,
-      notify,
-    })
-    setPendingChange(null)
-    setPendingEditMode('all')
-    setShowNotifyDialog(false)
-  }, [pendingChange, pendingEditMode, reschedule])
-
-  const handleDragReschedule = useCallback((event: CalendarEventData, deltaMinutes: number, deltaDays: number) => {
-    const start = new Date(event.startTime)
-    const end = new Date(event.endTime)
-    const newStart = new Date(start.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
-    const newEnd = new Date(end.getTime() + deltaMinutes * 60_000 + deltaDays * 86_400_000)
-
-    const change = {
-      event,
-      newStart: newStart.toISOString(),
-      newEnd: newEnd.toISOString(),
-      type: 'drag' as const,
-    }
-    setPendingChange(change)
-    // Recurring → RecurringEditDialog first, then notify dialog
-    // Non-recurring → show notify dialog directly
-    if (!isRecurring(event)) {
-      setPendingEditMode('all')
-      setShowNotifyDialog(true)
-    }
-  }, [])
-
-  const handleResize = useCallback((event: CalendarEventData, deltaMinutes: number) => {
-    const newEnd = new Date(new Date(event.endTime).getTime() + deltaMinutes * 60_000)
-
-    const change = {
-      event,
-      newStart: event.startTime,
-      newEnd: newEnd.toISOString(),
-      type: 'resize' as const,
-    }
-    setPendingChange(change)
-    // Recurring → RecurringEditDialog first, then notify dialog
-    // Non-recurring → show notify dialog directly
-    if (!isRecurring(event)) {
-      setPendingEditMode('all')
-      setShowNotifyDialog(true)
-    }
-  }, [])
-
-  // Called after recurring dialog confirms a mode — show notify dialog next
-  const handleRecurringConfirm = useCallback((mode: RecurringEditMode) => {
-    setPendingEditMode(mode)
-    setRecurringMode(null)
-    setShowNotifyDialog(true)
-  }, [])
-
-  const cancelPendingChange = useCallback(() => {
-    setPendingChange(null)
-    setRecurringMode(null)
-    setPendingEditMode('all')
-    setShowNotifyDialog(false)
-  }, [])
-
-  // Called when RecurringEditDialog picks a mode for delete
-  const handleDeleteRecurringConfirm = useCallback((mode: RecurringEditMode) => {
-    setDeleteRecurringMode(mode)
-  }, [])
-
-  const confirmDeleteEvent = useCallback(async () => {
-    if (!pendingDelete) return
-    try {
-      setDeleteError(null)
-      const editMode = isRecurring(pendingDelete) ? (deleteRecurringMode || 'all') : 'all'
-      await deleteEvent.mutateAsync({ id: pendingDelete.id, editMode })
-      setSelectedEvent(null)
-      setPendingDelete(null)
-      setDeleteRecurringMode(null)
-      setShowCancellationNotify(true)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete event'
-      logger.error({ error: msg }, 'Delete event failed')
-
-      // Ghost event — already deleted or doesn't exist. Refresh the calendar.
-      if (msg.toLowerCase().includes('not found')) {
-        queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
-        setSelectedEvent(null)
-        setPendingDelete(null)
-        setDeleteRecurringMode(null)
-        return
-      }
-
-      setDeleteError(msg)
-    }
-  }, [deleteEvent, pendingDelete, deleteRecurringMode, queryClient])
-
-  const cancelPendingDelete = useCallback(() => {
-    setPendingDelete(null)
-    setDeleteRecurringMode(null)
-    setDeleteError(null)
-  }, [])
+  const {
+    pendingChange,
+    showNotifyDialog,
+    isRecurring: isDragRecurring,
+    executePendingChange,
+    handleDragReschedule,
+    handleResize,
+    handleRecurringConfirm,
+    cancelPendingChange,
+  } = useCalendarDragResize({ reschedule })
 
   // Prefetch adjacent time ranges for instant navigation
   useCalendarPrefetch(currentDate, view, !calendarsLoading, athleticsCampusArray)
@@ -1079,7 +818,7 @@ export default function CalendarView() {
         }
         confirmText="Delete"
         variant="danger"
-        isLoading={deleteEvent.isPending}
+        isLoading={deleteEventMutation.isPending}
         loadingText="Deleting..."
       >
         {deleteError && (
@@ -1097,7 +836,7 @@ export default function CalendarView() {
 
       {/* Recurring event edit mode dialog (drag/resize) */}
       <RecurringEditDialog
-        isOpen={!!pendingChange && isRecurring(pendingChange.event) && !showNotifyDialog}
+        isOpen={!!pendingChange && isDragRecurring(pendingChange.event) && !showNotifyDialog}
         onClose={cancelPendingChange}
         onConfirm={handleRecurringConfirm}
       />
