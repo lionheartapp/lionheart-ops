@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import Link from 'next/link'
 import { motion, MotionConfig } from 'framer-motion'
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { CheckCircle2, ArrowRight } from 'lucide-react'
 import PublicNav from '@/components/public/PublicNav'
 import PublicFooter from '@/components/public/PublicFooter'
 
@@ -15,52 +15,7 @@ const fadeInUp = {
   }),
 }
 
-type FormState = 'idle' | 'loading' | 'success' | 'error'
-
 export default function AboutPage() {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [subject, setSubject] = useState('')
-  const [message, setMessage] = useState('')
-  const [formState, setFormState] = useState<FormState>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormState('loading')
-    setErrorMessage('')
-
-    try {
-      const res = await fetch('/api/public/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, subject: subject || undefined, message }),
-      })
-      const data = await res.json()
-
-      if (!data.ok) {
-        const msg = data.error?.message || 'Failed to send message'
-        setErrorMessage(msg)
-        setFormState('error')
-        return
-      }
-
-      setFormState('success')
-      setName('')
-      setEmail('')
-      setSubject('')
-      setMessage('')
-    } catch {
-      setErrorMessage('Network error. Please try again.')
-      setFormState('error')
-    }
-  }
-
-  const inputClass =
-    'w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition disabled:opacity-60 disabled:cursor-not-allowed'
-
-  const isLoading = formState === 'loading'
-
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen bg-white">
@@ -138,133 +93,32 @@ export default function AboutPage() {
           </motion.div>
         </section>
 
-        {/* Contact Section */}
+        {/* Contact CTA — full form now lives at /contact */}
         <section
           id="contact"
           className="bg-slate-50 border-y border-slate-200 py-16 sm:py-24"
         >
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Get in Touch</h2>
-              <p className="text-slate-600 mb-8">
-                Questions about Lionheart? We&apos;d love to hear from you.
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+                Get in Touch
+              </h2>
+              <p className="text-slate-600 mb-8 max-w-lg mx-auto">
+                Questions about Lionheart? We&apos;d love to hear from you. Fill out
+                our contact form and we&apos;ll get back to you within one business day.
               </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {formState === 'success' ? (
-                <div className="flex flex-col items-center text-center py-12 gap-4">
-                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-7 h-7 text-green-600" aria-hidden="true" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Message sent!</h3>
-                  <p className="text-slate-600">We&apos;ll get back to you soon.</p>
-                  <button
-                    onClick={() => setFormState('idle')}
-                    className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
-                  >
-                    Send another message
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-4 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8">
-                  {formState === 'error' && errorMessage && (
-                    <div
-                      className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
-                      role="alert"
-                      aria-live="polite"
-                    >
-                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                      <p className="text-sm text-red-700">{errorMessage}</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="contact-name" className="block text-sm font-medium text-slate-900 mb-1.5">
-                        Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="contact-name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Your name"
-                        className={inputClass}
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="contact-email" className="block text-sm font-medium text-slate-900 mb-1.5">
-                        Email <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="contact-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@school.edu"
-                        className={inputClass}
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-subject" className="block text-sm font-medium text-slate-900 mb-1.5">
-                      Subject <span className="text-slate-400 font-normal">(optional)</span>
-                    </label>
-                    <input
-                      id="contact-subject"
-                      type="text"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="e.g., Demo request, Question about pricing"
-                      className={inputClass}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-message" className="block text-sm font-medium text-slate-900 mb-1.5">
-                      Message <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      id="contact-message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Tell us how we can help..."
-                      rows={5}
-                      className={`${inputClass} resize-none`}
-                      disabled={isLoading}
-                      required
-                      minLength={10}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full ui-btn-lg ui-btn-accent rounded-lg flex items-center justify-center gap-2 cursor-pointer"
-                    aria-busy={isLoading}
-                  >
-                    {isLoading && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
-                    {isLoading ? 'Sending...' : 'Send Message'}
-                  </button>
-                </form>
-              )}
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-primary-600 text-white font-semibold rounded-full hover:bg-primary-700 transition-colors active:scale-[0.97]"
+              >
+                Open the contact form
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
             </motion.div>
           </div>
         </section>

@@ -3,14 +3,13 @@
 import { CheckCircle2, Loader2, Mail, Star } from 'lucide-react'
 import { getFeatureList, isEnterprisePlan } from '@/lib/plan-features'
 import type { Subscription, SubscriptionPlan } from './billing-types'
-import { formatCents, buildSalesMailto } from './billing-types'
+import { formatCents, buildSalesContactHref } from './billing-types'
 
 interface PlanComparisonSectionProps {
   plans: SubscriptionPlan[]
   currentPlanId: string | null
   currentPlanOrder: number
   subscription: Subscription | null
-  orgName: string
   checkoutLoading: string | null
   onStartCheckout: (plan: SubscriptionPlan) => void
   onPlanSelect: (plan: SubscriptionPlan) => void
@@ -21,7 +20,6 @@ export function PlanComparisonSection({
   currentPlanId,
   currentPlanOrder,
   subscription,
-  orgName,
   checkoutLoading,
   onStartCheckout,
   onPlanSelect,
@@ -104,7 +102,7 @@ export function PlanComparisonSection({
                   </div>
                 ) : isEnterprise ? (
                   <a
-                    href={buildSalesMailto(orgName)}
+                    href={buildSalesContactHref()}
                     className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97]"
                   >
                     <Mail className="w-4 h-4" />

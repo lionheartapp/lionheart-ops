@@ -82,7 +82,7 @@ export default function PlatformLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@lionheartapp.com"
+                placeholder="you@example.com"
                 className="ui-input-bordered pl-10"
                 required
               />

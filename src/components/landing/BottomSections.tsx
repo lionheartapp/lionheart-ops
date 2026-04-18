@@ -392,8 +392,8 @@ export function Pricing() {
               </ul>
 
               {plan.slug === 'enterprise' ? (
-                <a
-                  href="mailto:sales@lionheartapp.com"
+                <Link
+                  href="/contact?topic=sales"
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
                   style={{
                     backgroundColor: '#ffffff',
@@ -403,7 +403,7 @@ export function Pricing() {
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Contact sales
-                </a>
+                </Link>
               ) : (
                 <Link
                   href="/signup"
@@ -580,13 +580,13 @@ export function ClosingCTA() {
             Start your 30-day free trial
             <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
           </Link>
-          <a
-            href="mailto:sales@lionheartapp.com"
+          <Link
+            href="/contact?topic=sales"
             className="inline-flex items-center gap-2 px-7 py-4 rounded-full text-[15px] font-semibold transition-colors duration-200"
             style={{ color: TEXT_PRIMARY }}
           >
             Talk to sales
-          </a>
+          </Link>
         </div>
       </div>
     </motion.section>
@@ -611,8 +611,8 @@ export function Footer() {
       heading: 'Company',
       links: [
         { label: 'About', href: '/about' },
-        { label: 'Contact', href: 'mailto:hello@lionheartapp.com' },
-        { label: 'Sales', href: 'mailto:sales@lionheartapp.com' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Sales', href: '/contact?topic=sales' },
       ],
     },
     {
@@ -656,16 +656,24 @@ export function Footer() {
                 {col.heading}
               </h4>
               <ul className="space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-[13px] transition-colors duration-200 hover:text-white"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const isInternal = link.href.startsWith('/')
+                  const className =
+                    'text-[13px] transition-colors duration-200 hover:text-white'
+                  return (
+                    <li key={link.label}>
+                      {isInternal ? (
+                        <Link href={link.href} className={className}>
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <a href={link.href} className={className}>
+                          {link.label}
+                        </a>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </nav>
           ))}

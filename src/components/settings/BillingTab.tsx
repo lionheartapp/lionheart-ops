@@ -352,7 +352,6 @@ export default function BillingTab() {
         currentPlanId={currentPlanId}
         currentPlanOrder={currentPlanOrder}
         subscription={subscription}
-        orgName={orgName}
         checkoutLoading={checkoutLoading}
         onStartCheckout={handleStartCheckout}
         onPlanSelect={handlePlanSelect}

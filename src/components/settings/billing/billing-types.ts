@@ -105,13 +105,8 @@ export function getInvoiceStatusConfig(status: string) {
   }
 }
 
-// Enterprise contact-sales target — kept in sync with onboarding/plan/page.tsx.
-export const SALES_EMAIL = 'sales@lionheartapp.com'
-
-export function buildSalesMailto(orgName: string): string {
-  const subject = encodeURIComponent('Enterprise plan inquiry')
-  const body = encodeURIComponent(
-    `Hi Lionheart team,\n\nI'd like to talk about the Enterprise plan${orgName ? ` for ${orgName}` : ''}.\n\nThanks,\n`
-  )
-  return `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`
+// Enterprise contact-sales destination — kept in sync with onboarding/plan/page.tsx.
+// Routes users to the on-site contact form so no email addresses are ever exposed.
+export function buildSalesContactHref(): string {
+  return '/contact?topic=sales'
 }

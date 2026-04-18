@@ -45,7 +45,7 @@ export default function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/about#contact"
+                  href="/contact"
                   className="hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded px-2 py-1 inline-block transition"
                 >
                   Contact

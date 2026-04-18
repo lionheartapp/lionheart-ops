@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import PublicNav from '@/components/public/PublicNav'
 import PublicFooter from '@/components/public/PublicFooter'
 
@@ -161,7 +162,14 @@ export default function PrivacyPage() {
             <strong>Non-disclosure commitment:</strong> We will not disclose education records
             to third parties without written consent from the school, except as permitted or
             required by FERPA and this Privacy Policy. Schools seeking to verify our FERPA
-            compliance practices may contact us at privacy@lionheartapp.com.
+            compliance practices may contact us through our{' '}
+            <Link
+              href="/contact?topic=privacy"
+              className="text-primary-600 hover:text-primary-700 underline"
+            >
+              contact form
+            </Link>
+            .
           </p>
 
           <h2 className="text-xl font-semibold text-slate-900 mt-10 mb-4">
@@ -211,7 +219,14 @@ export default function PrivacyPage() {
             period, all organization data — including user accounts, tickets, events, and
             operational records — is permanently deleted from our systems. We do not maintain
             archived copies of deleted organization data. If you require a data export prior
-            to cancellation, please contact us at privacy@lionheartapp.com.
+            to cancellation, please reach out through our{' '}
+            <Link
+              href="/contact?topic=privacy"
+              className="text-primary-600 hover:text-primary-700 underline"
+            >
+              contact form
+            </Link>
+            .
           </p>
 
           <h2 className="text-xl font-semibold text-slate-900 mt-10 mb-4">
@@ -272,16 +287,14 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-slate-700 leading-relaxed mb-4">
             If you have questions, concerns, or requests regarding this Privacy Policy or our
-            data practices, please contact our privacy team at:
-          </p>
-          <p className="text-slate-700 leading-relaxed mb-4">
-            <strong>Email:</strong>{' '}
-            <a
-              href="mailto:privacy@lionheartapp.com"
-              className="text-primary-600 hover:text-primary-700 underline"
+            data practices, please reach out to our privacy team through our{' '}
+            <Link
+              href="/contact?topic=privacy"
+              className="text-primary-600 hover:text-primary-700 underline font-medium"
             >
-              privacy@lionheartapp.com
-            </a>
+              contact form
+            </Link>
+            .
           </p>
           <p className="text-slate-700 leading-relaxed mb-4">
             We are committed to resolving privacy-related concerns and will respond to

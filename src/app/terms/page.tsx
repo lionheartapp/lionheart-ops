@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import PublicNav from '@/components/public/PublicNav'
 import PublicFooter from '@/components/public/PublicFooter'
 
@@ -233,9 +234,15 @@ export default function TermsPage() {
           </h2>
           <p className="text-slate-700 leading-relaxed mb-4">
             <strong>Termination by you:</strong> You may cancel your subscription at any time
-            through the account settings or by contacting us at legal@lionheartapp.com. Cancellation
-            takes effect at the end of the current billing period. You will retain access to the
-            Service until the end of the paid period.
+            through the account settings or by reaching out through our{' '}
+            <Link
+              href="/contact?topic=legal"
+              className="text-primary-600 hover:text-primary-700 underline"
+            >
+              contact form
+            </Link>
+            . Cancellation takes effect at the end of the current billing period. You will
+            retain access to the Service until the end of the paid period.
           </p>
           <p className="text-slate-700 leading-relaxed mb-4">
             <strong>Termination by Lionheart:</strong> We may suspend or terminate your account
@@ -297,16 +304,14 @@ export default function TermsPage() {
           </h2>
           <p className="text-slate-700 leading-relaxed mb-4">
             If you have questions about these Terms of Service, wish to report a violation, or
-            need to contact us regarding legal matters, please reach out to:
-          </p>
-          <p className="text-slate-700 leading-relaxed mb-4">
-            <strong>Email:</strong>{' '}
-            <a
-              href="mailto:legal@lionheartapp.com"
-              className="text-primary-600 hover:text-primary-700 underline"
+            need to contact us regarding legal matters, please reach out through our{' '}
+            <Link
+              href="/contact?topic=legal"
+              className="text-primary-600 hover:text-primary-700 underline font-medium"
             >
-              legal@lionheartapp.com
-            </a>
+              contact form
+            </Link>
+            .
           </p>
           <p className="text-slate-700 leading-relaxed">
             We are committed to resolving concerns in a fair and timely manner and will respond

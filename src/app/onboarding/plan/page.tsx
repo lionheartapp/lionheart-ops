@@ -67,15 +67,12 @@ function isProPlan(plan: SubscriptionPlan): boolean {
   return slug === 'pro' || slug.includes('pro')
 }
 
-/** Mailto target for Enterprise "Contact sales" CTAs. */
-const SALES_EMAIL = 'sales@lionheartapp.com'
-
-function buildSalesMailto(orgName: string | null): string {
-  const subject = encodeURIComponent('Enterprise plan inquiry')
-  const body = encodeURIComponent(
-    `Hi Lionheart team,\n\nI'd like to talk about the Enterprise plan${orgName ? ` for ${orgName}` : ''}.\n\nThanks,\n`
-  )
-  return `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`
+/**
+ * Href for the Enterprise "Contact sales" CTA.
+ * Routes users to the on-site contact form (no email addresses exposed).
+ */
+function buildSalesContactHref(): string {
+  return '/contact?topic=sales'
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
@@ -283,7 +280,7 @@ export default function OnboardingPlanPage() {
 
                   {isEnterprise ? (
                     <a
-                      href={buildSalesMailto(null)}
+                      href={buildSalesContactHref()}
                       className="w-full mt-auto px-4 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
                     >
                       <Mail className="w-4 h-4" />

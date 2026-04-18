@@ -93,7 +93,7 @@ const plans: Plan[] = [
     annualPrice: null,
     recommended: false,
     cta: 'Contact Sales',
-    ctaHref: '/about#contact',
+    ctaHref: '/contact?topic=sales',
     ctaVariant: 'outline',
     features: [
       'Everything in Professional, plus:',
@@ -165,7 +165,7 @@ const faqs: FaqItem[] = [
   },
   {
     question: 'Do you offer discounts for schools?',
-    answer: 'Choosing annual billing saves 20% versus monthly. For multi-school districts or special circumstances, contact us at sales@lionheartapp.com — we\'re happy to work with your procurement process.',
+    answer: 'Choosing annual billing saves 20% versus monthly. For multi-school districts or special circumstances, reach out through our contact form — we\'re happy to work with your procurement process.',
   },
   {
     question: 'How do I cancel?',
@@ -633,7 +633,7 @@ export default function PricingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Frequently asked questions</h2>
               <p className="text-slate-500">
                 Still have questions?{' '}
-                <Link href="/about#contact" className="text-primary-600 hover:text-primary-700 underline">
+                <Link href="/contact" className="text-primary-600 hover:text-primary-700 underline">
                   Contact us
                 </Link>
                 .
@@ -682,7 +682,7 @@ export default function PricingPage() {
                 Start Free Trial
               </Link>
               <Link
-                href="/about#contact"
+                href="/contact?topic=sales"
                 className="px-8 py-4 min-h-[48px] border border-white/40 text-white font-semibold rounded-xl hover:bg-white/10 transition inline-flex items-center justify-center gap-2 active:scale-[0.97]"
               >
                 Talk to Sales
