@@ -195,7 +195,7 @@ export default function CalendarFilterPopover({
         </div>
       )}
 
-      {/* External Calendars — toggle individual synced calendars */}
+      {/* External Calendars — checkbox list, Cal.com style */}
       {externalCalendars.length > 0 && (
         <div className="px-5 py-3 border-t border-slate-100">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
@@ -205,9 +205,10 @@ export default function CalendarFilterPopover({
                 ? 'Microsoft Calendar'
                 : 'External Calendars'}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="space-y-1">
             {externalCalendars.map((cal) => {
               const isHidden = filter.hiddenExternalCalendarIds?.has(cal.id)
+              const isVisible = !isHidden
               return (
                 <button
                   key={cal.id}
@@ -215,17 +216,24 @@ export default function CalendarFilterPopover({
                     ...filter,
                     hiddenExternalCalendarIds: toggleInSet(filter.hiddenExternalCalendarIds || new Set(), cal.id),
                   })}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-                    isHidden
-                      ? 'bg-slate-100 text-slate-400 line-through'
-                      : 'bg-blue-500 text-white'
-                  }`}
+                  className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer text-left group"
                 >
                   <div
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: isHidden ? '#94a3b8' : '#ffffff' }}
-                  />
-                  {cal.name}
+                    className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors ${
+                      isVisible
+                        ? 'bg-blue-500 border-blue-500'
+                        : 'bg-white border-slate-300 group-hover:border-slate-400'
+                    }`}
+                  >
+                    {isVisible && (
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>
+                    {cal.name}
+                  </span>
                 </button>
               )
             })}

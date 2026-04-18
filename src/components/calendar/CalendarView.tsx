@@ -62,7 +62,7 @@ import { useAthleticsOverlay } from '@/lib/hooks/useAthleticsOverlay'
 export default function CalendarView() {
   const { toast } = useToast()
   const router = useRouter()
-  const { isAdmin } = useAuth()
+  const { isAdmin, user: authUser } = useAuth()
   const {
     currentDate,
     setCurrentDate,
@@ -300,14 +300,49 @@ export default function CalendarView() {
     staleTime: 5 * 60_000,
   })
 
-  const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>({
-    categoryIds: new Set(),
-    campusIds: new Set(),
-    schoolLevels: new Set(),
-    sportIds: new Set(),
-    teamLevels: new Set(),
-    hiddenExternalCalendarIds: new Set(),
+  const filterStorageKey = authUser.id ? `calendar-filter:${authUser.id}` : null
+
+  const [calendarFilter, setCalendarFilterRaw] = useState<CalendarFilter>(() => {
+    const empty: CalendarFilter = {
+      categoryIds: new Set(),
+      campusIds: new Set(),
+      schoolLevels: new Set(),
+      sportIds: new Set(),
+      teamLevels: new Set(),
+      hiddenExternalCalendarIds: new Set(),
+    }
+    if (typeof window === 'undefined' || !filterStorageKey) return empty
+    try {
+      const raw = localStorage.getItem(filterStorageKey)
+      if (!raw) return empty
+      const parsed = JSON.parse(raw)
+      return {
+        categoryIds: new Set(parsed.categoryIds || []),
+        campusIds: new Set(parsed.campusIds || []),
+        schoolLevels: new Set(parsed.schoolLevels || []),
+        sportIds: new Set(parsed.sportIds || []),
+        teamLevels: new Set(parsed.teamLevels || []),
+        hiddenExternalCalendarIds: new Set(parsed.hiddenExternalCalendarIds || []),
+      }
+    } catch {
+      return empty
+    }
   })
+
+  const setCalendarFilter = useCallback((next: CalendarFilter) => {
+    setCalendarFilterRaw(next)
+    if (!filterStorageKey) return
+    try {
+      localStorage.setItem(filterStorageKey, JSON.stringify({
+        categoryIds: [...next.categoryIds],
+        campusIds: [...next.campusIds],
+        schoolLevels: [...next.schoolLevels],
+        sportIds: [...next.sportIds],
+        teamLevels: [...next.teamLevels],
+        hiddenExternalCalendarIds: [...next.hiddenExternalCalendarIds],
+      }))
+    } catch { /* quota exceeded — silently skip */ }
+  }, [filterStorageKey])
 
   const {
     anyAthleticsVisible,
@@ -339,9 +374,18 @@ export default function CalendarView() {
     for (const e of externalEvents) {
       if (!seen.has(e.calendarId)) {
         const meta = e.metadata as { provider?: string; sourceCalendarName?: string } | null
+        const rawName = e.calendar?.name || meta?.sourceCalendarName || ''
+        // Clean up raw Google calendar names — strip URLs, emails, encoded strings
+        let displayName = rawName
+        if (!displayName || displayName.startsWith('http') || displayName.includes('%')) {
+          displayName = 'Calendar'
+        } else if (displayName.includes('@')) {
+          // Show just the local part of email addresses
+          displayName = displayName.split('@')[0]
+        }
         seen.set(e.calendarId, {
           id: e.calendarId,
-          name: e.calendar?.name || meta?.sourceCalendarName || 'External',
+          name: displayName,
           provider: meta?.provider || 'google_calendar',
         })
       }
