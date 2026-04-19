@@ -63,6 +63,10 @@ export async function POST(req: NextRequest) {
       if (!data.title || !data.description || !data.module) {
         return NextResponse.json(fail('VALIDATION_ERROR', 'Title, description, and module are required'), { status: 400 })
       }
+      // Maintenance tickets require a submitter
+      if (data.module === 'MAINTENANCE' && !userId) {
+        return NextResponse.json(fail('AUTH_REQUIRED', 'Authentication required for maintenance tickets'), { status: 401 })
+      }
 
       const ticket = await runWithOrgContext(orgId, async () => {
         if (data.module === 'IT') {
@@ -82,7 +86,6 @@ export async function POST(req: NextRequest) {
               priority: (data.priority ?? 'MEDIUM') as import('@prisma/client').ITPriority,
               status: 'TODO',
               source: 'AUTHENTICATED',
-              locationText: data.locationText ?? null,
               customFields: data.customFields ? (data.customFields as Record<string, string>) : undefined,
               submittedById: userId,
             },
@@ -106,9 +109,8 @@ export async function POST(req: NextRequest) {
               specialty: 'GENERAL' as import('@prisma/client').MaintenanceSpecialty,
               priority: (data.priority ?? 'MEDIUM') as import('@prisma/client').MaintenancePriority,
               status: 'TODO',
-              locationText: data.locationText ?? null,
               customFields: data.customFields ? (data.customFields as Record<string, string>) : undefined,
-              submittedById: userId,
+              submittedById: userId!,
             },
             select: { id: true, ticketNumber: true },
           })
