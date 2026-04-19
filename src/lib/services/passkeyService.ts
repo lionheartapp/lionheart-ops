@@ -26,8 +26,20 @@ const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost'
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3004'
 const CHALLENGE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
-function getExpectedOrigins(): string[] {
-  return ORIGIN.split(',').map((o) => o.trim())
+function getExpectedOrigins(): string | ((origin: string) => boolean) {
+  // In production with subdomains (*.lionheartapp.com), accept any origin
+  // matching the RP ID domain rather than listing every tenant subdomain.
+  if (RP_ID !== 'localhost') {
+    return (origin: string) => {
+      try {
+        const url = new URL(origin)
+        return url.protocol === 'https:' && (url.hostname === RP_ID || url.hostname.endsWith(`.${RP_ID}`))
+      } catch {
+        return false
+      }
+    }
+  }
+  return ORIGIN
 }
 
 // ─── Registration ────────────────────────────────────────────────────────────
