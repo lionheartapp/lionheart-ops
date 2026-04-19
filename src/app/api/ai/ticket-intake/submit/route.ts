@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
         if (data.module === 'IT') {
           const counter = await rawPrisma.iTTicketCounter.upsert({
             where: { organizationId: orgId },
-            create: { organizationId: orgId, lastNumber: 1 },
-            update: { lastNumber: { increment: 1 } },
+            create: { organizationId: orgId, lastTicketNumber: 1 },
+            update: { lastTicketNumber: { increment: 1 } },
           })
 
           return rawPrisma.iTTicket.create({
             data: {
               organizationId: orgId,
-              ticketNumber: `IT-${String(counter.lastNumber).padStart(4, '0')}`,
+              ticketNumber: `IT-${String(counter.lastTicketNumber).padStart(4, '0')}`,
               title: data.title!,
               description: data.description!,
               issueType: data.category ?? 'OTHER',
@@ -92,14 +92,14 @@ export async function POST(req: NextRequest) {
           // Maintenance ticket
           const counter = await rawPrisma.maintenanceCounter.upsert({
             where: { organizationId: orgId },
-            create: { organizationId: orgId, lastNumber: 1 },
-            update: { lastNumber: { increment: 1 } },
+            create: { organizationId: orgId, lastTicketNumber: 1 },
+            update: { lastTicketNumber: { increment: 1 } },
           })
 
           return rawPrisma.maintenanceTicket.create({
             data: {
               organizationId: orgId,
-              ticketNumber: `MR-${String(counter.lastNumber).padStart(4, '0')}`,
+              ticketNumber: `MR-${String(counter.lastTicketNumber).padStart(4, '0')}`,
               title: data.title!,
               description: data.description!,
               category: data.category ?? 'OTHER',
