@@ -11,7 +11,7 @@ import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
 const schema = z.object({
-  credential: z.record(z.unknown()),
+  credential: z.record(z.string(), z.unknown()),
   challengeId: z.string().min(1),
   name: z.string().max(100).optional(),
 })

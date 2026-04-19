@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger'
 
 const schema = z.object({
   mfaToken: z.string().min(1, 'MFA token is required'),
-  credential: z.record(z.unknown()),
+  credential: z.record(z.string(), z.unknown()),
   challengeId: z.string().min(1),
 })
 
