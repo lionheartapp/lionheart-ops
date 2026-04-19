@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
         avatar: true,
         schoolScope: true,
         organizationId: true,
+        mfaEnabled: true,
         userRole: {
           select: { name: true, slug: true },
         },
@@ -112,6 +113,7 @@ export async function GET(req: NextRequest) {
           team: teamName,
           teamSlugs,
           dashboardMode,
+          mfaEnabled: user.mfaEnabled,
         },
         org: {
           id: user.organization?.id ?? user.organizationId,

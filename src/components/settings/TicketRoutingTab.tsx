@@ -17,6 +17,7 @@ import {
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { queryKeys, queryOptions } from '@/lib/queries'
 import RoutingDashboard from './RoutingDashboard'
+import CategoryFormEditor from './CategoryFormEditor'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -127,6 +128,7 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
   const [activeModule, setActiveModule] = useState<TicketModule>(defaultModule)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [expandedFormCategory, setExpandedFormCategory] = useState<string | null>(null)
 
   // Fetch routing configs
   const { data: routingConfigs, isLoading: loadingConfigs } = useQuery({
@@ -511,8 +513,27 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                   <tbody>
                     {categoryConfigs.map((cat: CategoryConfig) => (
                       <tr key={cat.id} className="border-b border-slate-50 last:border-0">
-                        <td className="py-3 px-3 font-medium text-slate-900">
-                          {CATEGORY_LABELS[cat.categoryKey] ?? cat.categoryKey}
+                        <td className="py-3 px-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedFormCategory(
+                                expandedFormCategory === cat.categoryKey
+                                  ? null
+                                  : cat.categoryKey
+                              )
+                            }
+                            className={`font-medium cursor-pointer hover:text-blue-600 transition-colors duration-200 text-left ${
+                              expandedFormCategory === cat.categoryKey
+                                ? 'text-blue-600'
+                                : 'text-slate-900'
+                            }`}
+                          >
+                            {CATEGORY_LABELS[cat.categoryKey] ?? cat.categoryKey}
+                            <span className="text-[10px] text-[#a8a49d] ml-1.5">
+                              {expandedFormCategory === cat.categoryKey ? '▾ form' : '▸ form'}
+                            </span>
+                          </button>
                         </td>
                         <td className="py-3 px-3">
                           <UserPicker
@@ -565,6 +586,15 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                   </tbody>
                 </table>
               </div>
+            )}
+
+            {/* Expanded category form editor */}
+            {expandedFormCategory && (
+              <CategoryFormEditor
+                categoryKey={expandedFormCategory.toLowerCase()}
+                categoryLabel={CATEGORY_LABELS[expandedFormCategory] ?? expandedFormCategory}
+                module={activeModule}
+              />
             )}
           </div>
 

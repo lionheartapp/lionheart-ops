@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Trash2, ChevronDown, ChevronUp, Plus, X } from 'lucide-react'
 import type { FormField } from '@/lib/hooks/useRegistrationForm'
+import DragHandle from '@/components/forms/DragHandle'
 
 // ─── Input type options ────────────────────────────────────────────────────────
 
@@ -13,6 +14,15 @@ const INPUT_TYPES: Array<{ value: FormField['inputType']; label: string }> = [
   { value: 'NUMBER', label: 'Number' },
   { value: 'DATE', label: 'Date' },
   { value: 'FILE', label: 'File Upload' },
+  { value: 'EMAIL', label: 'Email' },
+  { value: 'PHONE', label: 'Phone' },
+  { value: 'TEXTAREA', label: 'Textarea' },
+  { value: 'MULTI_SELECT', label: 'Multi-select' },
+  { value: 'SIGNATURE', label: 'Signature' },
+  { value: 'ASSET_PICKER', label: 'Asset Picker' },
+  { value: 'USER_PICKER', label: 'User Picker' },
+  { value: 'LOCATION_PICKER', label: 'Location Picker' },
+  { value: 'GRADE_SELECTOR', label: 'Grade Selector' },
 ]
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
@@ -21,11 +31,13 @@ interface FormFieldEditorProps {
   field: FormField
   onChange: (field: FormField) => void
   onRemove: () => void
+  dragListeners?: Record<string, unknown>
+  dragAttributes?: Record<string, unknown>
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorProps) {
+export function FormFieldEditor({ field, onChange, onRemove, dragListeners, dragAttributes }: FormFieldEditorProps) {
   const [showHelpText, setShowHelpText] = useState(!!field.helpText)
   const [showPlaceholder, setShowPlaceholder] = useState(!!field.placeholder)
 
@@ -55,8 +67,13 @@ export function FormFieldEditor({ field, onChange, onRemove }: FormFieldEditorPr
 
   return (
     <div className="ui-glass p-4 rounded-xl space-y-3 border border-slate-200/60">
-      {/* Row 1: Input type + label + required toggle + remove */}
+      {/* Row 1: Drag handle + input type + label + required toggle + remove */}
       <div className="flex items-start gap-3">
+        {/* Drag handle */}
+        <div className="flex-shrink-0 pt-6">
+          <DragHandle listeners={dragListeners} attributes={dragAttributes} />
+        </div>
+
         {/* Input type selector */}
         <div className="w-36 flex-shrink-0">
           <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>

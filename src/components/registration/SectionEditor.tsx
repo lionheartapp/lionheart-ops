@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Trash2, ChevronUp, ChevronDown, Plus, ChevronDownIcon } from 'lucide-react'
 import type { FormSection, FormField } from '@/lib/hooks/useRegistrationForm'
 import { FormFieldEditor } from './FormFieldEditor'
+import SortableList from '@/components/forms/SortableList'
+import DragHandle from '@/components/forms/DragHandle'
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
@@ -156,18 +158,28 @@ export function SectionEditor({
           )}
         </div>
 
-        {/* Fields */}
+        {/* Fields — drag-and-drop sortable */}
         {section.fields.length > 0 && (
-          <div className="space-y-2">
-            {section.fields.map((field, i) => (
+          <SortableList
+            items={section.fields}
+            keyFn={(f, i) => f.id ?? `new-${i}`}
+            onReorder={(reordered) =>
+              update({
+                fields: reordered.map((f, i) => ({ ...f, sortOrder: i })),
+              })
+            }
+            renderItem={(field, i, { listeners, attributes }) => (
               <FormFieldEditor
                 key={field.id ?? `new-${i}`}
                 field={field}
                 onChange={(updated) => handleFieldChange(i, updated)}
                 onRemove={() => removeField(i)}
+                dragListeners={listeners}
+                dragAttributes={attributes}
               />
-            ))}
-          </div>
+            )}
+            className="space-y-2"
+          />
         )}
 
         {/* Add custom field */}

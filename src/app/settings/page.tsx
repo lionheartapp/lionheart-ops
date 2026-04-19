@@ -10,6 +10,7 @@ import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
 import CampusTab from '@/components/settings/CampusTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
+import SecuritySettingsSection from '@/components/settings/SecuritySettingsSection'
 import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
 import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
 import AddOnsTab from '@/components/settings/AddOnsTab'
@@ -307,6 +308,9 @@ export default function SettingsPage() {
                     onRegisterSave={(handler) => setSchoolInfoSaveHandler(() => handler)}
                     onRegisterDiscard={(handler) => setSchoolInfoDiscardHandler(() => handler)}
                   />
+                  <div className="mt-6">
+                    <SecuritySettingsSection />
+                  </div>
                 </div>
               )}
 

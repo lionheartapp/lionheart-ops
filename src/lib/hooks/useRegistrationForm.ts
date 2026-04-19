@@ -32,7 +32,7 @@ export interface FormField {
   id?: string
   fieldType: 'COMMON' | 'CUSTOM'
   fieldKey: string | null
-  inputType: 'TEXT' | 'DROPDOWN' | 'CHECKBOX' | 'NUMBER' | 'DATE' | 'FILE' | 'SIGNATURE'
+  inputType: 'TEXT' | 'TEXTAREA' | 'DROPDOWN' | 'MULTI_SELECT' | 'CHECKBOX' | 'NUMBER' | 'DATE' | 'EMAIL' | 'PHONE' | 'FILE' | 'SIGNATURE' | 'ASSET_PICKER' | 'USER_PICKER' | 'LOCATION_PICKER' | 'GRADE_SELECTOR'
   label: string
   helpText: string | null
   placeholder: string | null

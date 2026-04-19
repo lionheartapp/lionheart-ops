@@ -13,7 +13,7 @@ import { cardEntrance, staggerContainer } from '@/lib/animations'
 import DetailDrawer from '@/components/DetailDrawer'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
-import { Camera, User, Shield, Lock, Mail, Bell } from 'lucide-react'
+import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check } from 'lucide-react'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 import { getAuthHeaders } from '@/lib/api-client'
 
@@ -39,6 +39,21 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
   const [profileError, setProfileError] = useState('')
   const [profileSuccess, setProfileSuccess] = useState(false)
 
+  // MFA state
+  const [mfaEnabled, setMfaEnabled] = useState(false)
+  const [mfaSetupOpen, setMfaSetupOpen] = useState(false)
+  const [mfaQrCode, setMfaQrCode] = useState('')
+  const [mfaSecret, setMfaSecret] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaError, setMfaError] = useState('')
+  const [mfaBackupCodes, setMfaBackupCodes] = useState<string[]>([])
+  const [mfaDisableOpen, setMfaDisableOpen] = useState(false)
+  const [mfaDisablePassword, setMfaDisablePassword] = useState('')
+  const [mfaDisableLoading, setMfaDisableLoading] = useState(false)
+  const [mfaDisableError, setMfaDisableError] = useState('')
+  const [backupCodesCopied, setBackupCodesCopied] = useState(false)
+
   // Change password drawer
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -54,6 +69,14 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
     const nameParts = (userName || '').split(' ')
     setFirstName(nameParts[0] || '')
     setLastName(nameParts.slice(1).join(' ') || '')
+
+    // Check MFA status
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok) setMfaEnabled(!!data.data?.mfaEnabled)
+      })
+      .catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Avatar helpers ─────────────────────────────────────────────────────────
@@ -541,6 +564,225 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
           </section>
         </form>
       </DetailDrawer>
+
+      {/* Two-Factor Authentication */}
+      <motion.section variants={cardEntrance} className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Two-Factor Authentication</h3>
+            <p className="text-sm text-slate-500">Add an extra layer of security to your account</p>
+          </div>
+        </div>
+
+        {mfaBackupCodes.length > 0 ? (
+          /* Show backup codes after setup */
+          <div className="space-y-4">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              <p className="font-medium">Save your backup codes</p>
+              <p className="mt-1">These codes can be used to access your account if you lose your authenticator app. Each code can only be used once. Store them somewhere safe.</p>
+            </div>
+            <div className="bg-slate-50 rounded-lg p-4 font-mono text-sm grid grid-cols-2 gap-2">
+              {mfaBackupCodes.map((code, i) => (
+                <span key={i} className="text-slate-700">{code}</span>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(mfaBackupCodes.join('\n'))
+                  setBackupCodesCopied(true)
+                  setTimeout(() => setBackupCodesCopied(false), 2000)
+                }}
+                className="ui-btn flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+              >
+                {backupCodesCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                {backupCodesCopied ? 'Copied' : 'Copy codes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMfaBackupCodes([])}
+                className="ui-btn px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : mfaSetupOpen ? (
+          /* MFA setup flow */
+          <div className="space-y-5">
+            {mfaQrCode ? (
+              <>
+                <p className="text-sm text-slate-600">Scan this QR code with your authenticator app (Google Authenticator, Microsoft Authenticator, etc.), then enter the 6-digit code it shows.</p>
+                <div className="flex justify-center">
+                  <img src={mfaQrCode} alt="Scan this QR code with your authenticator app" className="w-48 h-48" />
+                </div>
+                <div>
+                  <label htmlFor="mfa-verify-code" className="block text-sm font-medium text-slate-700 mb-1">
+                    Enter the 6-digit code
+                  </label>
+                  <input
+                    id="mfa-verify-code"
+                    type="text"
+                    inputMode="numeric"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none transition-colors"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
+                {mfaError && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{mfaError}</div>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    disabled={mfaLoading || mfaCode.length !== 6}
+                    onClick={async () => {
+                      setMfaLoading(true)
+                      setMfaError('')
+                      try {
+                        const res = await fetch('/api/auth/mfa/confirm', {
+                          method: 'POST',
+                          headers: getAuthHeaders(),
+                          body: JSON.stringify({ secret: mfaSecret, code: mfaCode }),
+                        })
+                        const data = await res.json()
+                        if (!data.ok) throw new Error(data.error?.message || 'Failed to verify code')
+                        setMfaEnabled(true)
+                        setMfaBackupCodes(data.data.backupCodes)
+                        setMfaSetupOpen(false)
+                        setMfaQrCode('')
+                        setMfaSecret('')
+                        setMfaCode('')
+                      } catch (err) {
+                        setMfaError(err instanceof Error ? err.message : 'Verification failed')
+                      } finally {
+                        setMfaLoading(false)
+                      }
+                    }}
+                    className="flex-1 ui-btn px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {mfaLoading ? 'Verifying...' : 'Verify & Enable'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMfaSetupOpen(false); setMfaQrCode(''); setMfaSecret(''); setMfaCode(''); setMfaError('') }}
+                    className="ui-btn px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full" />
+              </div>
+            )}
+          </div>
+        ) : mfaDisableOpen ? (
+          /* MFA disable confirmation */
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">Enter your password to disable two-factor authentication.</p>
+            <input
+              type="password"
+              value={mfaDisablePassword}
+              onChange={(e) => setMfaDisablePassword(e.target.value)}
+              placeholder="Your password"
+              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none transition-colors"
+              autoComplete="current-password"
+              autoFocus
+            />
+            {mfaDisableError && (
+              <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{mfaDisableError}</div>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                disabled={mfaDisableLoading || !mfaDisablePassword}
+                onClick={async () => {
+                  setMfaDisableLoading(true)
+                  setMfaDisableError('')
+                  try {
+                    const res = await fetch('/api/auth/mfa/disable', {
+                      method: 'POST',
+                      headers: getAuthHeaders(),
+                      body: JSON.stringify({ password: mfaDisablePassword }),
+                    })
+                    const data = await res.json()
+                    if (!data.ok) throw new Error(data.error?.message || 'Failed to disable')
+                    setMfaEnabled(false)
+                    setMfaDisableOpen(false)
+                    setMfaDisablePassword('')
+                  } catch (err) {
+                    setMfaDisableError(err instanceof Error ? err.message : 'Failed to disable')
+                  } finally {
+                    setMfaDisableLoading(false)
+                  }
+                }}
+                className="flex-1 ui-btn px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {mfaDisableLoading ? 'Disabling...' : 'Disable 2FA'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMfaDisableOpen(false); setMfaDisablePassword(''); setMfaDisableError('') }}
+                className="ui-btn px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Default state — show status + action button */
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-2.5 h-2.5 rounded-full ${mfaEnabled ? 'bg-green-500' : 'bg-slate-300'}`} />
+              <span className="text-sm text-slate-700">
+                {mfaEnabled ? 'Enabled — your account is protected' : 'Not enabled'}
+              </span>
+            </div>
+            {mfaEnabled ? (
+              <button
+                type="button"
+                onClick={() => setMfaDisableOpen(true)}
+                className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+              >
+                Disable
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  setMfaSetupOpen(true)
+                  setMfaError('')
+                  try {
+                    const res = await fetch('/api/auth/mfa/setup', {
+                      method: 'POST',
+                      headers: getAuthHeaders(),
+                    })
+                    const data = await res.json()
+                    if (!data.ok) throw new Error(data.error?.message || 'Failed to start setup')
+                    setMfaQrCode(data.data.qrCodeDataUrl)
+                    setMfaSecret(data.data.secret)
+                  } catch (err) {
+                    setMfaError(err instanceof Error ? err.message : 'Setup failed')
+                    setMfaSetupOpen(false)
+                  }
+                }}
+                className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
+              >
+                Enable 2FA
+              </button>
+            )}
+          </div>
+        )}
+      </motion.section>
 
       {/* Notification Preferences */}
       <motion.section variants={cardEntrance} className="ui-glass p-6">

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import FormRenderer from '@/components/forms/FormRenderer'
+import type { FormFieldData } from '@/components/forms/FormFieldRenderer'
 import {
   Monitor, CheckCircle2, AlertTriangle, Loader2,
   Wrench, Wifi, Phone, ChevronLeft,
@@ -13,6 +15,7 @@ import {
 
 interface TokenValidation {
   valid: boolean
+  organizationId: string
   campus?: { id: string; name: string }
   school?: { id: string; name: string }
   expiresAt: string
@@ -65,6 +68,32 @@ function SubFormContent() {
   const [maintTitle, setMaintTitle] = useState('')
   const [maintDescription, setMaintDescription] = useState('')
 
+  // Form definition fields (new configurable forms system)
+  const [formDefFields, setFormDefFields] = useState<FormFieldData[]>([])
+  const [formFieldResponses, setFormFieldResponses] = useState<Record<string, unknown>>({})
+  const [loadingFormFields, setLoadingFormFields] = useState(false)
+
+  // Fetch form definition fields when issue type changes
+  useEffect(() => {
+    if (!issueType || !validation?.organizationId) {
+      setFormDefFields([])
+      setFormFieldResponses({})
+      return
+    }
+    setLoadingFormFields(true)
+    fetch(`/api/public/forms/category/${issueType.toLowerCase()}?orgId=${validation.organizationId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok && data.data?.fields) {
+          setFormDefFields(data.data.fields)
+        } else {
+          setFormDefFields([])
+        }
+      })
+      .catch(() => setFormDefFields([]))
+      .finally(() => setLoadingFormFields(false))
+  }, [issueType, validation?.organizationId])
+
   // Validate token on mount
   useEffect(() => {
     if (!token) {
@@ -103,7 +132,13 @@ function SubFormContent() {
       const res = await fetch('/api/it/tickets/sub', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, roomText: roomText.trim(), issueType, description: description.trim() }),
+        body: JSON.stringify({
+          token,
+          roomText: roomText.trim(),
+          issueType,
+          description: description.trim(),
+          ...(Object.keys(formFieldResponses).length > 0 && { customFields: formFieldResponses }),
+        }),
       })
 
       const data = await res.json()
@@ -306,6 +341,22 @@ function SubFormContent() {
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 resize-none"
                 />
               </div>
+
+              {/* Form definition fields (configurable per-category) */}
+              {loadingFormFields && (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="h-12 rounded-xl bg-slate-100 animate-pulse" />
+                  ))}
+                </div>
+              )}
+              {!loadingFormFields && formDefFields.length > 0 && (
+                <FormRenderer
+                  fields={formDefFields}
+                  responses={formFieldResponses}
+                  setResponses={setFormFieldResponses}
+                />
+              )}
 
               {submitError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{submitError}</div>

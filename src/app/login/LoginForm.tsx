@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, useRef, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
 
 interface LoginFormProps {
   organizationId: string
@@ -24,6 +24,51 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
 
+  // MFA state
+  const [mfaMode, setMfaMode] = useState(false)
+  const [mfaToken, setMfaToken] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaError, setMfaError] = useState('')
+  const mfaInputRef = useRef<HTMLInputElement>(null)
+
+  // ── Hydrate localStorage after successful login ──
+  function hydrateSession(data: {
+    token?: string
+    organizationId?: string
+    organization?: { name?: string; logoUrl?: string; gradeLevel?: string; onboardingStatus?: string }
+    user?: { name?: string; email?: string; avatar?: string; team?: string; teamSlugs?: string[]; schoolScope?: string; role?: string }
+  }) {
+    localStorage.setItem('auth-token', data.token || 'cookie-auth')
+    localStorage.setItem('org-id', data.organizationId || '')
+    localStorage.setItem('user-name', data.user?.name || '')
+    localStorage.setItem('user-email', data.user?.email || '')
+    localStorage.setItem('user-avatar', data.user?.avatar || '')
+    localStorage.setItem('user-team', data.user?.team || '')
+    localStorage.setItem('user-team-slugs', JSON.stringify(data.user?.teamSlugs || []))
+    localStorage.setItem('user-school-scope', data.user?.schoolScope || '')
+    localStorage.setItem('user-role', data.user?.role || '')
+    localStorage.setItem('org-name', data.organization?.name || '')
+    localStorage.setItem('org-school-type', data.organization?.gradeLevel || '')
+    localStorage.setItem('org-logo-url', data.organization?.logoUrl || '')
+
+    // Prefetch modules so add-ons render instantly on first page load
+    fetch('/api/modules', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.ok && Array.isArray(json.data)) {
+          localStorage.setItem('cached-modules', JSON.stringify(json.data))
+        }
+      })
+      .catch(() => {})
+
+    const onboardingStatus = data.organization?.onboardingStatus
+    const isOnboarding = onboardingStatus === 'SIGNED_UP' || onboardingStatus === 'ONBOARDING'
+    const redirectTo = searchParams.get('redirect') || (isOnboarding ? '/onboarding/school-info' : '/dashboard')
+    router.push(redirectTo)
+  }
+
+  // ── Login submit ──
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
@@ -32,7 +77,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        credentials: 'include', // Required so browser stores the Set-Cookie response
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, organizationId }),
       })
@@ -40,7 +85,6 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       const data = await res.json()
 
       if (!data.ok) {
-        // Handle unverified email — redirect to verify-email page with context
         if (data.error?.code === 'EMAIL_NOT_VERIFIED') {
           const details = data.error?.details?.[0] as { email?: string; organizationId?: string } | undefined
           const params = new URLSearchParams()
@@ -53,43 +97,18 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         return
       }
 
-      // Hydrate localStorage so all existing pages have auth context immediately
-      const { token: authToken, organizationId: orgId, organization: orgData, user: userData } = data.data
-      localStorage.setItem('auth-token', authToken || 'cookie-auth')
-      localStorage.setItem('org-id', orgId || '')
-      localStorage.setItem('user-name', userData?.name || '')
-      localStorage.setItem('user-email', userData?.email || '')
-      localStorage.setItem('user-avatar', userData?.avatar || '')
-      localStorage.setItem('user-team', userData?.team || '')
-      localStorage.setItem('user-team-slugs', JSON.stringify(userData?.teamSlugs || []))
-      localStorage.setItem('user-school-scope', userData?.schoolScope || '')
-      localStorage.setItem('user-role', userData?.role || '')
-      localStorage.setItem('org-name', orgData?.name || '')
-      localStorage.setItem('org-school-type', orgData?.gradeLevel || '')
-      localStorage.setItem('org-logo-url', orgData?.logoUrl || '')
-
-      // Prefetch modules so add-ons render instantly on first page load
-      const moduleFetchHeaders: Record<string, string> = {}
-      if (authToken && authToken !== 'cookie-auth') {
-        moduleFetchHeaders.Authorization = `Bearer ${authToken}`
+      // Check if MFA is required
+      if (data.data?.mfaRequired) {
+        setMfaToken(data.data.mfaToken)
+        setMfaMode(true)
+        setMfaCode('')
+        setMfaError('')
+        // Auto-focus the code input after render
+        setTimeout(() => mfaInputRef.current?.focus(), 100)
+        return
       }
-      fetch('/api/modules', {
-        headers: moduleFetchHeaders,
-        credentials: 'include',
-      })
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.ok && Array.isArray(json.data)) {
-            localStorage.setItem('cached-modules', JSON.stringify(json.data))
-          }
-        })
-        .catch(() => {}) // Non-fatal — will fetch on first useModules() call
 
-      // If org is still onboarding, go to onboarding flow instead of dashboard
-      const onboardingStatus = orgData?.onboardingStatus
-      const isOnboarding = onboardingStatus === 'SIGNED_UP' || onboardingStatus === 'ONBOARDING'
-      const redirectTo = searchParams.get('redirect') || (isOnboarding ? '/onboarding/school-info' : '/dashboard')
-      router.push(redirectTo)
+      hydrateSession(data.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error')
     } finally {
@@ -97,6 +116,43 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     }
   }
 
+  // ── MFA verify submit ──
+  async function handleMfaSubmit(e: FormEvent) {
+    e.preventDefault()
+    setMfaError('')
+    setMfaLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/mfa/verify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaToken, code: mfaCode.trim() }),
+      })
+
+      const data = await res.json()
+
+      if (!data.ok) {
+        if (data.error?.code === 'INVALID_TOKEN') {
+          // Token expired — go back to password
+          setMfaMode(false)
+          setMfaToken('')
+          setError('Your verification session expired. Please sign in again.')
+          return
+        }
+        setMfaError(data.error?.message || 'Verification failed')
+        return
+      }
+
+      hydrateSession(data.data)
+    } catch (err) {
+      setMfaError(err instanceof Error ? err.message : 'Network error')
+    } finally {
+      setMfaLoading(false)
+    }
+  }
+
+  // ── Forgot password handlers ──
   async function handleForgotSubmit(e: FormEvent) {
     e.preventDefault()
     setForgotLoading(true)
@@ -107,10 +163,8 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail, organizationId }),
       })
-      // Always show success message regardless of response to prevent email enumeration
       setForgotSent(true)
     } catch {
-      // Still show success to prevent enumeration
       setForgotSent(true)
     } finally {
       setForgotLoading(false)
@@ -121,6 +175,69 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     setForgotMode(false)
     setForgotEmail('')
     setForgotSent(false)
+    setMfaMode(false)
+    setMfaToken('')
+    setMfaCode('')
+    setMfaError('')
+  }
+
+  // ── MFA code entry mode ──
+  if (mfaMode) {
+    return (
+      <form onSubmit={handleMfaSubmit} className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4">
+            <ShieldCheck className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-1">Two-factor authentication</h2>
+          <p className="text-sm text-slate-500">
+            Enter the 6-digit code from your authenticator app, or use a backup code.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="mfa-code" className="block text-sm font-medium text-slate-700 mb-1">
+            Verification code
+          </label>
+          <input
+            ref={mfaInputRef}
+            id="mfa-code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9A-Za-z-]/g, ''))}
+            placeholder="000000"
+            className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+            required
+            autoFocus
+            maxLength={12}
+          />
+        </div>
+
+        {mfaError && (
+          <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {mfaError}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={mfaLoading || mfaCode.length < 6}
+          className="w-full rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {mfaLoading ? 'Verifying...' : 'Verify'}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleBackToSignIn}
+          className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+        >
+          Back to sign in
+        </button>
+      </form>
+    )
   }
 
   // ── Forgot password mode ──

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { signAuthToken } from '@/lib/auth'
+import { SignJWT } from 'jose'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { audit, getIp } from '@/lib/services/auditService'
 import { loginRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
           status: true,
           emailVerified: true,
           organizationId: true,
+          mfaEnabled: true,
           userRole: {
             select: {
               name: true,
@@ -80,6 +82,29 @@ export async function POST(req: NextRequest) {
 
       // Successful credential check — reset the rate limit counter for this IP
       await loginRateLimiter.reset(ip)
+
+      // ─── MFA check ──────────────────────────────────────────────────
+      if (user.mfaEnabled) {
+        // Issue a short-lived temporary token (5 minutes) for the MFA step
+        const secret = new TextEncoder().encode(process.env.AUTH_SECRET!)
+        const mfaToken = await new SignJWT({
+          userId: user.id,
+          organizationId,
+          email: user.email,
+          purpose: 'mfa',
+        })
+          .setProtectedHeader({ alg: 'HS256' })
+          .setIssuedAt()
+          .setExpirationTime('5m')
+          .sign(secret)
+
+        return NextResponse.json(
+          ok({
+            mfaRequired: true,
+            mfaToken,
+          })
+        )
+      }
 
       const token = await signAuthToken({
         userId: user.id,

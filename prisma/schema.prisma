@@ -51,6 +51,7 @@ model Organization {
   onboardingWidgetDismissedAt DateTime? // Dashboard widget dismissal — only allowed once essentials are complete
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
+  mfaRequired   Boolean           @default(false) // Require two-factor auth for all org members
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   users         User[]
@@ -213,6 +214,9 @@ model Organization {
   ticketAssignmentLogs        TicketAssignmentLog[]
   categoryFieldConfigs        CategoryFieldConfig[]
   escalationRules             EscalationRule[]
+  // Forms module relations
+  formDefinitions             FormDefinition[]
+  formQrCodes                 FormQrCode[]
 
   @@index([onboardingStatus])
 }
@@ -237,6 +241,11 @@ model User {
   authMethod     AuthMethod       @default(EMAIL)
   googleId       String?          @unique
   microsoftId    String?          @unique
+  // Two-factor authentication (TOTP)
+  mfaEnabled     Boolean          @default(false)
+  mfaSecret      String?          // Base32-encoded TOTP secret
+  mfaBackupCodes String?          // JSON array of hashed backup codes
+  mfaEnabledAt   DateTime?
   pauseAllNotifications Boolean   @default(false)
   // Onboarding checklist: items this user has explicitly dismissed. Only
   // applies to dismissable items (user-level tasks, not org-level essentials).
@@ -744,6 +753,7 @@ model Event {
   deletedAt      DateTime?
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy    User?         @relation("SubmittedEventUser", fields: [submittedById], references: [id], onDelete: SetNull)
+  formDefinition FormDefinition?
 
   @@index([organizationId, startsAt])
   @@index([organizationId, deletedAt])
@@ -5579,4 +5589,125 @@ model EscalationRule {
   targetUser   User?        @relation("EscalationTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, module, isActive])
+}
+
+// ─── Forms Module ──────────────────────────────────────────────────────────────
+
+enum PublicFormStyle {
+  MINIMAL
+  SPLIT
+  HERO
+}
+
+enum FormImageSide {
+  LEFT
+  RIGHT
+}
+
+enum FormFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  EMAIL
+  PHONE
+  DROPDOWN
+  MULTI_SELECT
+  CHECKBOX
+  FILE
+  SIGNATURE
+  ASSET_PICKER
+  USER_PICKER
+  LOCATION_PICKER
+  GRADE_SELECTOR
+}
+
+/// Shared form definition — one row per "form context" (ticket category or event).
+model FormDefinition {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Exactly one of these is non-null — identifies what owns this form
+  categoryKey    String?  // e.g. "hardware", "plumbing" — ticket category form
+  eventId        String?  @unique // event registration form
+  event          Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  sections       FormSection[]
+  fields         FormField[]
+
+  // Public form styling (only meaningful for event forms)
+  publicStyle    PublicFormStyle @default(MINIMAL)
+  publicCtaColor String?  // hex, e.g. "#4f46e5"
+  publicBgColor  String?  // hex — only used by MINIMAL
+  publicImageUrl String?
+  publicImageSide FormImageSide @default(RIGHT)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, categoryKey])
+  @@index([organizationId, eventId])
+}
+
+/// A named section within a form (e.g. "Student Information", "Health & Safety").
+model FormSection {
+  id           String  @id @default(cuid())
+  formId       String
+  form         FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  title        String
+  sortOrder    Int
+  fields       FormField[]
+
+  @@index([formId])
+}
+
+/// A single configurable field within a form.
+model FormField {
+  id             String        @id @default(cuid())
+  formId         String
+  form           FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  sectionId      String?
+  section        FormSection?  @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  key            String        // stable slug used in customFields JSON, e.g. "device_type"
+  label          String
+  type           FormFieldType
+  required       Boolean       @default(false)
+  placeholder    String?
+  helpText       String?
+  options        String[]      @default([]) // for DROPDOWN / MULTI_SELECT
+
+  // Checkbox-only: when this box is checked, escalate parent ticket to URGENT
+  autoEscalate   Boolean       @default(false)
+
+  // Conditional logic — show this field if [condFieldKey] equals [condEquals]
+  condFieldKey   String?
+  condEquals     String?
+
+  sortOrder      Int
+
+  @@index([formId])
+}
+
+/// QR code per printable location/scope — scanned to pre-fill ticket forms.
+model FormQrCode {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Scope — any subset may be set. Scanning applies these as pre-fills.
+  categoryKey    String?  // "hardware" etc — pins category
+  buildingId     String?
+  areaId         String?
+  roomId         String?
+
+  token          String   @unique // random slug in the URL: /f/qr/<token>
+  label          String           // admin-facing, e.g. "Room 204 — IT"
+  active         Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  lastUsedAt     DateTime?
+
+  @@index([organizationId])
 }

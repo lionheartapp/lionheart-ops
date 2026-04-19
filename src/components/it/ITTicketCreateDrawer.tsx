@@ -10,6 +10,8 @@ import { useToast } from '@/components/Toast'
 import DynamicCategoryField from '@/components/shared/DynamicCategoryField'
 import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
 import type { CategoryFieldType } from '@prisma/client'
+import FormRenderer from '@/components/forms/FormRenderer'
+import type { FormFieldData } from '@/components/forms/FormFieldRenderer'
 import {
   Loader2,
   Mic,
@@ -257,6 +259,22 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     enabled: !!issueType,
   })
 
+  // Fetch form definition fields (new forms system)
+  interface FormDefResponse {
+    id: string
+    fields: FormFieldData[]
+  }
+  const { data: formDef } = useQuery({
+    queryKey: ['form-definition', 'category', issueType?.toLowerCase()],
+    queryFn: () =>
+      fetchApi<FormDefResponse>(
+        `/api/forms/category/${issueType?.toLowerCase()}`
+      ),
+    enabled: !!issueType,
+  })
+  const formDefFields = formDef?.fields ?? []
+  const [formFieldResponses, setFormFieldResponses] = useState<Record<string, unknown>>({})
+
   const selectedBuilding = buildings.find((b) => b.id === buildingId)
   const areas = selectedBuilding?.areas ?? []
   const selectedArea = areas.find((a) => a.id === areaId)
@@ -276,7 +294,8 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       if (areaId) body.areaId = areaId
       if (roomId) body.roomId = roomId
       if (schoolId) body.schoolId = schoolId
-      if (Object.keys(customFields).length > 0) body.customFields = customFields
+      const mergedCustomFields = { ...customFields, ...formFieldResponses }
+      if (Object.keys(mergedCustomFields).length > 0) body.customFields = mergedCustomFields
 
       const res = await fetch('/api/it/tickets', {
         method: 'POST',
@@ -529,7 +548,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           </div>
         )}
 
-        {/* Dynamic category-scoped fields */}
+        {/* Dynamic category-scoped fields (legacy toggle system) */}
         {enabledFieldConfigs && enabledFieldConfigs.length > 0 && (
           <div className="space-y-4">
             {enabledFieldConfigs
@@ -550,6 +569,20 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                   />
                 )
               })}
+          </div>
+        )}
+
+        {/* Form definition fields (new configurable forms system) */}
+        {formDefFields.length > 0 && (
+          <div className="space-y-4">
+            <FormRenderer
+              fields={formDefFields}
+              responses={{ ...formFieldResponses, priority }}
+              setResponses={(next) => {
+                const { priority: _p, ...rest } = next
+                setFormFieldResponses(rest)
+              }}
+            />
           </div>
         )}
 

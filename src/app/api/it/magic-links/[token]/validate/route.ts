@@ -38,6 +38,7 @@ export async function GET(
 
     return NextResponse.json(ok({
       valid: true,
+      organizationId: magicLink.organizationId,
       campus: magicLink.campus,
       school: magicLink.school,
       expiresAt: magicLink.expiresAt.toISOString(),

@@ -254,6 +254,9 @@ export const PERMISSIONS = {
   INTEGRATIONS_MANAGE: 'integrations:manage',               // Manage org-level integrations (PCO, Twilio)
   INTEGRATIONS_GOOGLE_CALENDAR: 'integrations:google-calendar', // Per-user Google Calendar connect
 
+  // Forms
+  FORMS_MANAGE: 'forms:manage',
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -430,6 +433,8 @@ export const DEFAULT_ROLES = {
       // Registration permissions (Phase 20)
       PERMISSIONS.EVENTS_MEDICAL_READ,
       PERMISSIONS.EVENTS_REGISTRATION_MANAGE,
+      // Forms
+      PERMISSIONS.FORMS_MANAGE,
       // Phase 21: Documents, Groups, Communication, Day-of Tools
       PERMISSIONS.EVENTS_DOCUMENTS_MANAGE,
       PERMISSIONS.EVENTS_COMPLIANCE_MANAGE,
@@ -668,6 +673,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.CALENDARS_READ,
       PERMISSIONS.CALENDAR_EVENTS_READ,
       PERMISSIONS.ACADEMIC_READ,
+      // Forms
+      PERMISSIONS.FORMS_MANAGE,
     ],
     isSystem: true,
   },
@@ -762,6 +769,8 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_READ_OWN,
       // Knowledge Base
       PERMISSIONS.KB_READ,
+      // Forms
+      PERMISSIONS.FORMS_MANAGE,
     ],
     isSystem: true,
   },
