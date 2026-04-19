@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
@@ -19,11 +19,14 @@ import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import QrCodeManager from '@/components/forms/QrCodeManager'
-import { LayoutDashboard, Kanban, List, Link2, Route, QrCode } from 'lucide-react'
+import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
+import { useAiAvailability } from '@/lib/hooks/useAiAvailability'
+import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
+import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
-type HelpDeskTab = 'dashboard' | 'tickets' | 'magic-links' | 'routing' | 'qr-codes'
+type HelpDeskTab = 'dashboard' | 'tickets' | 'magic-links' | 'routing' | 'forms' | 'qr-codes'
 type TicketViewMode = 'board' | 'list'
 type TicketScope = 'mine' | 'all'
 
@@ -49,6 +52,7 @@ const TABS: { key: HelpDeskTab; label: string; icon: typeof LayoutDashboard; req
   { key: 'tickets', label: 'Tickets', icon: List },
   { key: 'magic-links', label: 'Magic Links', icon: Link2, requiresManage: true },
   { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
+  { key: 'forms', label: 'Forms', icon: FileText, requiresManage: true },
   { key: 'qr-codes', label: 'QR Codes', icon: QrCode, requiresManage: true },
 ]
 
@@ -68,7 +72,9 @@ function ITContent() {
     }
   }, [searchParams, router])
 
+  const queryClient = useQueryClient()
   const canSeeManageTabs = p.isOnITTeam || p.canManage
+  const { aiAvailable } = useAiAvailability()
 
   const getDefaultTab = (): HelpDeskTab => {
     const paramTab = searchParams?.get('tab')
@@ -318,6 +324,17 @@ function ITContent() {
         </div>
       )}
 
+      {/* Forms tab — managers/admins only */}
+      {canSeeManageTabs && activeTab === 'forms' && (
+        <div
+          id="tabpanel-forms"
+          aria-labelledby="tab-forms"
+          className="animate-[fadeIn_200ms_ease-out]"
+        >
+          <FormsTab aiAvailable={aiAvailable} />
+        </div>
+      )}
+
       {/* QR Codes tab — managers/admins only */}
       {canSeeManageTabs && activeTab === 'qr-codes' && (
         <div
@@ -338,12 +355,87 @@ function ITContent() {
         members={members as { id: string; firstName: string; lastName: string }[]}
       />
 
-      {/* Create drawer */}
-      <ITTicketCreateDrawer
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        canManage={p.canManage}
-      />
+      {/* Create drawer — AI chat when available, manual form when not */}
+      {aiAvailable ? (
+        <AiTicketIntakeDrawer
+          isOpen={showCreate}
+          onClose={() => setShowCreate(false)}
+          onTicketCreated={() => {
+            queryClient.invalidateQueries({ queryKey: ['it-tickets'] })
+          }}
+        />
+      ) : (
+        <ITTicketCreateDrawer
+          isOpen={showCreate}
+          onClose={() => setShowCreate(false)}
+          canManage={p.canManage}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Forms Tab ────────────────────────────────────────────────────────────────
+
+const IT_CATEGORY_KEYS = [
+  { key: 'HARDWARE', label: 'Hardware' },
+  { key: 'SOFTWARE', label: 'Software' },
+  { key: 'ACCOUNT_PASSWORD', label: 'Accounts & Passwords' },
+  { key: 'NETWORK', label: 'Network' },
+  { key: 'DISPLAY_AV', label: 'Displays & A/V' },
+  { key: 'OTHER', label: 'Other' },
+]
+
+function FormsTab({ aiAvailable }: { aiAvailable: boolean }) {
+  const [selectedCategory, setSelectedCategory] = useState('')
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900">Ticket Forms</h3>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {aiAvailable
+            ? 'These fields tell the AI what to ask about for each category. When AI is unavailable, they show as a manual form.'
+            : 'These fields are shown to submitters after they pick a category.'}
+        </p>
+      </div>
+
+      {aiAvailable && (
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm text-blue-800">
+          AI is enabled for your organization. The AI assistant uses these field definitions to know what information to gather during the conversation.
+        </div>
+      )}
+
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+            Category Fields
+          </h4>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
+          >
+            <option value="">Select a category...</option>
+            {IT_CATEGORY_KEYS.map((cat) => (
+              <option key={cat.key} value={cat.key}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedCategory ? (
+          <CategoryFormEditor
+            key={selectedCategory}
+            categoryKey={selectedCategory.toLowerCase()}
+            categoryLabel={IT_CATEGORY_KEYS.find((c) => c.key === selectedCategory)?.label ?? selectedCategory}
+            module="IT"
+          />
+        ) : (
+          <div className="text-sm text-slate-400 italic py-6 text-center">
+            Pick a category above to configure its extra fields.
+          </div>
+        )}
+      </div>
     </div>
   )
 }

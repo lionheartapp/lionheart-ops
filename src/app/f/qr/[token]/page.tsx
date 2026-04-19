@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import FormRenderer from '@/components/forms/FormRenderer'
 import type { FormFieldData } from '@/components/forms/FormFieldRenderer'
+import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ interface QrResolution {
   organizationId: string
   organization: { id: string; name: string; slug: string; logoUrl: string | null }
   categoryKey: string | null
+  aiAvailable: boolean
   location: {
     buildingId: string | null
     areaId: string | null
@@ -28,7 +30,7 @@ interface QrResolution {
   label: string
 }
 
-type PageState = 'loading' | 'error' | 'category-picker' | 'form' | 'submitted'
+type PageState = 'loading' | 'error' | 'category-picker' | 'form' | 'submitted' | 'ai-chat'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -80,7 +82,10 @@ export default function QrScanPage() {
       .then((data) => {
         if (data.ok) {
           setResolution(data.data)
-          if (data.data.categoryKey) {
+          if (data.data.aiAvailable) {
+            // AI available — use conversational intake
+            setState('ai-chat')
+          } else if (data.data.categoryKey) {
             setSelectedCategory(data.data.categoryKey)
             setState('form')
           } else {
@@ -367,6 +372,22 @@ export default function QrScanPage() {
               Submit another
             </button>
           </div>
+        )}
+
+        {/* AI Chat mode */}
+        {state === 'ai-chat' && resolution && (
+          <AiTicketIntakeDrawer
+            isOpen={true}
+            onClose={() => setState('loading')}
+            source="QR_CODE"
+            prefilledLocation={locationLabel}
+            prefilledCategory={resolution.categoryKey}
+            orgId={resolution.organizationId}
+            onTicketCreated={(num) => {
+              setTicketNumber(num)
+              setState('submitted')
+            }}
+          />
         )}
 
         {/* Footer */}

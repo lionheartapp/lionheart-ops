@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { resolveQrToken } from '@/lib/services/formQrService'
+import { checkAiAvailability } from '@/lib/services/ai/ai-availability'
 import { rawPrisma } from '@/lib/db'
 
 type RouteParams = { params: Promise<{ token: string }> }
@@ -47,11 +48,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         : null,
     ])
 
+    // Check AI availability for this org
+    const aiStatus = await checkAiAvailability(resolved.organizationId)
+
     return NextResponse.json(
       ok({
         organizationId: resolved.organizationId,
         organization: resolved.organization,
         categoryKey: resolved.categoryKey,
+        aiAvailable: aiStatus.available,
         location: {
           buildingId: resolved.buildingId,
           areaId: resolved.areaId,
