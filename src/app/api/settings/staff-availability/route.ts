@@ -13,7 +13,7 @@ const UpdateAvailabilitySchema = z.object({
   outUntil: z.string().datetime().nullable().optional(),
   maxActiveTickets: z.number().int().min(1).max(100).optional(),
   delegateUserId: z.string().nullable().optional(),
-  workingHours: z.record(z.string()).nullable().optional(),
+  workingHours: z.record(z.string(), z.string()).nullable().optional(),
   skillTags: z.array(z.string()).optional(),
 })
 
