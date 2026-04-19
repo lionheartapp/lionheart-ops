@@ -649,7 +649,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
   // ─── Render
 
   return (
-    <div className="ui-glass p-6 max-w-2xl mx-auto">
+    <div className="space-y-6">
       {/* Step indicator */}
       <div className="flex items-center justify-between mb-8">
         {STEPS.map((step, idx) => {

@@ -2,7 +2,8 @@
 
 import { useState, useRef, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, ShieldCheck, Fingerprint } from 'lucide-react'
+import { startAuthentication } from '@simplewebauthn/browser'
 
 interface LoginFormProps {
   organizationId: string
@@ -31,6 +32,9 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   const [mfaLoading, setMfaLoading] = useState(false)
   const [mfaError, setMfaError] = useState('')
   const mfaInputRef = useRef<HTMLInputElement>(null)
+  const [hasPasskeys, setHasPasskeys] = useState(false)
+  const [hasTotp, setHasTotp] = useState(false)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
 
   // ── Hydrate localStorage after successful login ──
   function hydrateSession(data: {
@@ -100,11 +104,15 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       // Check if MFA is required
       if (data.data?.mfaRequired) {
         setMfaToken(data.data.mfaToken)
+        setHasPasskeys(!!data.data.hasPasskeys)
+        setHasTotp(data.data.hasTotp !== false) // default true for backward compat
         setMfaMode(true)
         setMfaCode('')
         setMfaError('')
-        // Auto-focus the code input after render
-        setTimeout(() => mfaInputRef.current?.focus(), 100)
+        // Auto-focus the code input after render (only if TOTP is available)
+        if (!data.data.hasPasskeys) {
+          setTimeout(() => mfaInputRef.current?.focus(), 100)
+        }
         return
       }
 
@@ -152,6 +160,66 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     }
   }
 
+  // ── Passkey authentication ──
+  async function handlePasskeyAuth() {
+    setMfaError('')
+    setPasskeyLoading(true)
+
+    try {
+      // Step 1: Get authentication options from server
+      const optionsRes = await fetch('/api/auth/passkey/authenticate/options', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaToken }),
+      })
+      const optionsData = await optionsRes.json()
+
+      if (!optionsData.ok) {
+        if (optionsData.error?.code === 'INVALID_TOKEN') {
+          setMfaMode(false)
+          setMfaToken('')
+          setError('Your verification session expired. Please sign in again.')
+          return
+        }
+        setMfaError(optionsData.error?.message || 'Failed to start passkey verification')
+        return
+      }
+
+      // Step 2: Trigger browser passkey prompt
+      const assertion = await startAuthentication({ optionsJSON: optionsData.data.options })
+
+      // Step 3: Verify assertion with server
+      const verifyRes = await fetch('/api/auth/passkey/authenticate/verify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mfaToken,
+          credential: assertion,
+          challengeId: optionsData.data.challengeId,
+        }),
+      })
+      const verifyData = await verifyRes.json()
+
+      if (!verifyData.ok) {
+        setMfaError(verifyData.error?.message || 'Passkey verification failed')
+        return
+      }
+
+      hydrateSession(verifyData.data)
+    } catch (err) {
+      // User cancelled the browser prompt or error occurred
+      if (err instanceof Error && err.name === 'NotAllowedError') {
+        setMfaError('Passkey prompt was cancelled. Try again or use a code.')
+      } else {
+        setMfaError(err instanceof Error ? err.message : 'Passkey verification failed')
+      }
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
+
   // ── Forgot password handlers ──
   async function handleForgotSubmit(e: FormEvent) {
     e.preventDefault()
@@ -184,36 +252,79 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   // ── MFA code entry mode ──
   if (mfaMode) {
     return (
-      <form onSubmit={handleMfaSubmit} className="space-y-6">
+      <div className="space-y-6">
         <div className="text-center">
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-1">Two-factor authentication</h2>
           <p className="text-sm text-slate-500">
-            Enter the 6-digit code from your authenticator app, or use a backup code.
+            {hasPasskeys && hasTotp
+              ? 'Use your passkey or enter a code from your authenticator app.'
+              : hasPasskeys
+              ? 'Use your passkey to verify your identity.'
+              : 'Enter the 6-digit code from your authenticator app, or use a backup code.'}
           </p>
         </div>
 
-        <div>
-          <label htmlFor="mfa-code" className="block text-sm font-medium text-slate-700 mb-1">
-            Verification code
-          </label>
-          <input
-            ref={mfaInputRef}
-            id="mfa-code"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={mfaCode}
-            onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9A-Za-z-]/g, ''))}
-            placeholder="000000"
-            className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
-            required
-            autoFocus
-            maxLength={12}
-          />
-        </div>
+        {/* Passkey button */}
+        {hasPasskeys && (
+          <button
+            type="button"
+            onClick={handlePasskeyAuth}
+            disabled={passkeyLoading}
+            className="w-full flex items-center justify-center gap-2.5 rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            <Fingerprint className="w-5 h-5" />
+            {passkeyLoading ? 'Verifying...' : 'Use passkey'}
+          </button>
+        )}
+
+        {/* Divider when both methods available */}
+        {hasPasskeys && hasTotp && (
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-400 font-medium">or enter a code</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+        )}
+
+        {/* TOTP code input */}
+        {hasTotp && (
+          <form onSubmit={handleMfaSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="mfa-code" className="block text-sm font-medium text-slate-700 mb-1">
+                Verification code
+              </label>
+              <input
+                ref={mfaInputRef}
+                id="mfa-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9A-Za-z-]/g, ''))}
+                placeholder="000000"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+                required
+                autoFocus={!hasPasskeys}
+                maxLength={12}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={mfaLoading || mfaCode.length < 6}
+              className={`w-full rounded-full px-4 py-3.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                hasPasskeys
+                  ? 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
+              }`}
+            >
+              {mfaLoading ? 'Verifying...' : 'Verify code'}
+            </button>
+          </form>
+        )}
 
         {mfaError && (
           <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
@@ -222,21 +333,13 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         )}
 
         <button
-          type="submit"
-          disabled={mfaLoading || mfaCode.length < 6}
-          className="w-full rounded-full bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {mfaLoading ? 'Verifying...' : 'Verify'}
-        </button>
-
-        <button
           type="button"
           onClick={handleBackToSignIn}
           className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
         >
           Back to sign in
         </button>
-      </form>
+      </div>
     )
   }
 

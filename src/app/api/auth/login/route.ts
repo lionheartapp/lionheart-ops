@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
           emailVerified: true,
           organizationId: true,
           mfaEnabled: true,
+          mfaSecret: true,
+          _count: { select: { passkeys: true } },
           userRole: {
             select: {
               name: true,
@@ -102,6 +104,8 @@ export async function POST(req: NextRequest) {
           ok({
             mfaRequired: true,
             mfaToken,
+            hasPasskeys: (user._count?.passkeys ?? 0) > 0,
+            hasTotp: !!user.mfaSecret,
           })
         )
       }

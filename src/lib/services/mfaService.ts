@@ -108,9 +108,15 @@ export async function confirmMfaSetup(
 export async function disableMfa(userId: string): Promise<void> {
   const user = await rawPrisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, organizationId: true },
+    select: {
+      email: true,
+      organizationId: true,
+      _count: { select: { passkeys: true } },
+    },
   })
   if (!user) throw new Error('User not found')
+
+  const hasPasskeys = (user._count?.passkeys ?? 0) > 0
 
   await rawPrisma.user.update({
     where: {
@@ -120,10 +126,12 @@ export async function disableMfa(userId: string): Promise<void> {
       },
     },
     data: {
-      mfaEnabled: false,
+      // Only disable MFA entirely if the user has no passkeys
+      mfaEnabled: hasPasskeys,
       mfaSecret: null,
-      mfaBackupCodes: null,
-      mfaEnabledAt: null,
+      // Keep backup codes if user still has passkeys as MFA
+      mfaBackupCodes: hasPasskeys ? undefined : null,
+      mfaEnabledAt: hasPasskeys ? undefined : null,
     },
   })
 }

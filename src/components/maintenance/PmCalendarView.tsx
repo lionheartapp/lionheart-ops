@@ -172,11 +172,8 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
               aria-label="PM Calendar view"
             >
               <motion.div
-                className="absolute top-1 bottom-1 rounded-full bg-slate-900 shadow-sm pointer-events-none"
-                style={{
-                  left: viewIndicatorStyle.left,
-                  width: viewIndicatorStyle.width,
-                }}
+                className="absolute top-1 bottom-1 rounded-full pointer-events-none"
+                style={viewIndicatorStyle}
               />
               {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
                 <button
@@ -233,11 +230,8 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
           aria-label="PM Calendar view"
         >
           <motion.div
-            className="absolute top-1 bottom-1 rounded-full bg-slate-900 shadow-sm pointer-events-none"
-            style={{
-              left: mobileIndicatorStyle.left,
-              width: mobileIndicatorStyle.width,
-            }}
+            className="absolute top-1 bottom-1 rounded-full pointer-events-none"
+            style={mobileIndicatorStyle}
           />
           {(Object.keys(VIEW_LABELS) as CalendarViewType[]).map((v) => (
             <button

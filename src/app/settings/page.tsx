@@ -21,13 +21,23 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
 import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS } from './settings-types'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useQueryClient } from '@tanstack/react-query'
+import { useAppEvent, AppEventName } from '@/lib/events/app-bus'
+import { queryKeys } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
 
 export default function SettingsPage() {
   usePageTitle('Settings')
   const router = useRouter()
   const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
   const [isClient, setIsClient] = useState(false)
+
+  // When the user updates their avatar on the Profile tab, invalidate the
+  // members query so the Members tab shows the new photo without a page reload.
+  useAppEvent(AppEventName.AVATAR_UPDATED, () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
+  })
 
   const [activeTab, setActiveTab] = useState<Tab>(getInitialTab)
   const initialTab = activeTab

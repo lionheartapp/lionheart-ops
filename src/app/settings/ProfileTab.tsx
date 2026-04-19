@@ -13,9 +13,10 @@ import { cardEntrance, staggerContainer } from '@/lib/animations'
 import DetailDrawer from '@/components/DetailDrawer'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
-import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check } from 'lucide-react'
+import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check, Fingerprint, KeyRound, Trash2, Pencil } from 'lucide-react'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 import { getAuthHeaders } from '@/lib/api-client'
+import { startRegistration } from '@simplewebauthn/browser'
 
 interface ProfileTabProps {
   userName: string | null
@@ -54,6 +55,24 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
   const [mfaDisableError, setMfaDisableError] = useState('')
   const [backupCodesCopied, setBackupCodesCopied] = useState(false)
 
+  // Passkey state
+  interface PasskeyInfo {
+    id: string
+    name: string
+    deviceType: string | null
+    backedUp: boolean
+    createdAt: string
+    lastUsedAt: string | null
+  }
+  const [passkeys, setPasskeys] = useState<PasskeyInfo[]>([])
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
+  const [passkeyError, setPasskeyError] = useState('')
+  const [passkeyRegistering, setPasskeyRegistering] = useState(false)
+  const [passkeyBackupCodes, setPasskeyBackupCodes] = useState<string[]>([])
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   // Change password drawer
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -77,6 +96,9 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
         if (data.ok) setMfaEnabled(!!data.data?.mfaEnabled)
       })
       .catch(() => {})
+
+    // Fetch passkeys
+    fetchPasskeys()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Avatar helpers ─────────────────────────────────────────────────────────
@@ -322,6 +344,109 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
     if (passwordSaving) return
     setChangePasswordOpen(false)
     setPasswordError('')
+  }
+
+  // ── Passkey handlers ───────────────────────────────────────────────────────
+
+  async function fetchPasskeys() {
+    try {
+      const res = await fetch('/api/auth/passkey/list', { credentials: 'include' })
+      const data = await res.json()
+      if (data.ok) setPasskeys(data.data || [])
+    } catch {
+      // Non-critical — passkey section will show empty
+    }
+  }
+
+  async function handleRegisterPasskey() {
+    setPasskeyError('')
+    setPasskeyRegistering(true)
+    setPasskeyBackupCodes([])
+
+    try {
+      // Step 1: Get registration options
+      const optRes = await fetch('/api/auth/passkey/register/options', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      })
+      const optData = await optRes.json()
+      if (!optData.ok) throw new Error(optData.error?.message || 'Failed to start registration')
+
+      // Step 2: Trigger browser credential creation
+      const attestation = await startRegistration({ optionsJSON: optData.data.options })
+
+      // Step 3: Verify with server
+      const verRes = await fetch('/api/auth/passkey/register/verify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: attestation,
+          challengeId: optData.data.challengeId,
+        }),
+      })
+      const verData = await verRes.json()
+      if (!verData.ok) throw new Error(verData.error?.message || 'Registration failed')
+
+      // Show backup codes if this was the first MFA method
+      if (verData.data?.backupCodes) {
+        setPasskeyBackupCodes(verData.data.backupCodes)
+      }
+
+      setMfaEnabled(true)
+      await fetchPasskeys()
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NotAllowedError') {
+        setPasskeyError('Registration was cancelled.')
+      } else {
+        setPasskeyError(err instanceof Error ? err.message : 'Failed to register passkey')
+      }
+    } finally {
+      setPasskeyRegistering(false)
+    }
+  }
+
+  async function handleRenamePasskey(passkeyId: string) {
+    if (!renameValue.trim()) return
+    try {
+      const res = await fetch(`/api/auth/passkey/${passkeyId}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: renameValue.trim() }),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error?.message || 'Rename failed')
+      setRenamingId(null)
+      setRenameValue('')
+      await fetchPasskeys()
+    } catch (err) {
+      setPasskeyError(err instanceof Error ? err.message : 'Failed to rename passkey')
+    }
+  }
+
+  async function handleDeletePasskey(passkeyId: string) {
+    setPasskeyError('')
+    setDeletingId(passkeyId)
+    try {
+      const res = await fetch(`/api/auth/passkey/${passkeyId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: getAuthHeaders(),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error?.message || 'Delete failed')
+      setDeletingId(null)
+      await fetchPasskeys()
+      // Re-check MFA status
+      const meRes = await fetch('/api/auth/me', { credentials: 'include' })
+      const meData = await meRes.json()
+      if (meData.ok) setMfaEnabled(!!meData.data?.mfaEnabled)
+    } catch (err) {
+      setPasskeyError(err instanceof Error ? err.message : 'Failed to delete passkey')
+      setDeletingId(null)
+    }
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -782,6 +907,130 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             )}
           </div>
         )}
+      </motion.section>
+
+      {/* Passkeys */}
+      <motion.section variants={cardEntrance} className="ui-glass p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+            <Fingerprint className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Passkeys</h3>
+            <p className="text-sm text-slate-500">Use Face ID, Touch ID, or a security key to sign in</p>
+          </div>
+        </div>
+
+        {/* Backup codes from first passkey registration */}
+        {passkeyBackupCodes.length > 0 && (
+          <div className="space-y-4 mb-6">
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              <p className="font-medium">Save your backup codes</p>
+              <p className="mt-1">These codes can be used if you lose access to your passkeys. Each code can only be used once.</p>
+            </div>
+            <div className="bg-slate-50 rounded-lg p-4 font-mono text-sm grid grid-cols-2 gap-2">
+              {passkeyBackupCodes.map((code) => (
+                <span key={code} className="text-slate-800">{code}</span>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(passkeyBackupCodes.join('\n'))
+                setPasskeyBackupCodes([])
+              }}
+              className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
+            >
+              <Copy className="w-3.5 h-3.5 inline mr-1.5" />
+              Copy & dismiss
+            </button>
+          </div>
+        )}
+
+        {passkeyError && (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+            {passkeyError}
+          </div>
+        )}
+
+        {/* Passkey list */}
+        {passkeys.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {passkeys.map((pk) => (
+              <div key={pk.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3 min-w-0">
+                  <KeyRound className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    {renamingId === pk.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') handleRenamePasskey(pk.id); if (e.key === 'Escape') setRenamingId(null) }}
+                          className="text-sm border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                          autoFocus
+                          maxLength={100}
+                        />
+                        <button onClick={() => handleRenamePasskey(pk.id)} className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer">Save</button>
+                        <button onClick={() => setRenamingId(null)} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium text-slate-900 truncate block">{pk.name}</span>
+                        <span className="text-xs text-slate-500">
+                          Added {new Date(pk.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {pk.lastUsedAt && ` · Last used ${new Date(pk.lastUsedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                          {pk.backedUp && ' · Synced'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {renamingId !== pk.id && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => { setRenamingId(pk.id); setRenameValue(pk.name) }}
+                      className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+                      title="Rename"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-slate-500" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePasskey(pk.id)}
+                      disabled={deletingId === pk.id}
+                      className="p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                      title="Delete"
+                    >
+                      <Trash2 className={`w-3.5 h-3.5 ${deletingId === pk.id ? 'text-slate-400' : 'text-red-500'}`} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleRegisterPasskey}
+          disabled={passkeyRegistering}
+          className="ui-btn px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
+        >
+          {passkeyRegistering ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Registering...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Fingerprint className="w-4 h-4" />
+              Add a passkey
+            </span>
+          )}
+        </button>
       </motion.section>
 
       {/* Notification Preferences */}

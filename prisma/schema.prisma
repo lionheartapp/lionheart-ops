@@ -52,6 +52,11 @@ model Organization {
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
   mfaRequired   Boolean           @default(false) // Require two-factor auth for all org members
+  // AI features
+  aiEnabled         Boolean       @default(true)  // Master toggle — org can disable all AI features
+  aiMonthlyLimit    Int           @default(50)    // Max AI calls per billing cycle (plan-dependent)
+  aiCallsUsed       Int           @default(0)     // Current cycle usage counter
+  aiCycleResetAt    DateTime?                     // When the counter resets (start of next billing month)
   // Data Privacy Agreement (DPA) tracking
   dpaSignedAt        DateTime?    // When the DPA was signed
   dpaSignatoryName   String?      // Name of person who signed the DPA
@@ -223,6 +228,8 @@ model Organization {
   // Forms module relations
   formDefinitions             FormDefinition[]
   formQrCodes                 FormQrCode[]
+  // AI ticket intake sessions
+  aiTicketIntakes             AiTicketIntake[]
 
   @@index([onboardingStatus])
 }
@@ -368,6 +375,8 @@ model User {
   routingDelegations        StaffAvailability[]       @relation("RoutingDelegate")
   routingAssignments        TicketAssignmentLog[]     @relation("RoutingAssignment")
   escalationTargets         EscalationRule[]          @relation("EscalationTarget")
+  // Passkey (WebAuthn) credentials
+  passkeys                  UserPasskey[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -5728,4 +5737,74 @@ model FormQrCode {
   lastUsedAt     DateTime?
 
   @@index([organizationId])
+}
+
+// ─── AI Ticket Intake ──────────────────────────────────────────────────────────
+
+/// Tracks conversational AI ticket intake sessions — both submitted and self-resolved.
+model AiTicketIntake {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Outcome
+  outcome        AiIntakeOutcome
+  ticketId       String?  // If outcome = SUBMITTED, FK to the created IT ticket
+  ticketModule   String?  // "IT" or "MAINTENANCE"
+
+  // AI classification result
+  category       String?  // e.g. "HARDWARE", "PLUMBING"
+  confidence     String?  // "LOW", "MEDIUM", "HIGH"
+
+  // Conversation summary (stored for analytics, not the full chat log)
+  issueDescription String  // What the user originally described
+  resolutionNote   String? // How it was resolved (AI's summary, or null if submitted)
+
+  // Source context
+  source         String   @default("DASHBOARD") // DASHBOARD, QR_CODE, MAGIC_LINK
+  locationText   String?
+  userId         String?  // null for unauthenticated (QR/magic link)
+
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, outcome])
+  @@index([organizationId, createdAt])
+}
+
+enum AiIntakeOutcome {
+  SUBMITTED       // Ticket was created
+  SELF_RESOLVED   // User fixed it during troubleshooting
+  ABANDONED       // User closed without submitting or resolving
+}
+
+// ─── Passkey (WebAuthn) ───────────────────────────────────────────────────────
+
+model UserPasskey {
+  id            String    @id @default(cuid())
+  userId        String
+  credentialId  String    @unique          // base64url-encoded credential ID
+  publicKey     Bytes                      // CBOR-encoded public key
+  counter       BigInt    @default(0)      // Signature counter for clone detection
+  transports    String[]  @default([])     // e.g. ["internal", "usb", "ble", "nfc"]
+  name          String    @default("Passkey") // User-friendly name
+  aaguid        String?                    // Authenticator AAGUID
+  deviceType    String?                    // "singleDevice" | "multiDevice"
+  backedUp      Boolean   @default(false)  // Whether credential is synced (e.g. iCloud Keychain)
+  createdAt     DateTime  @default(now())
+  lastUsedAt    DateTime?
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasskeyChallenge {
+  id         String   @id @default(cuid())
+  userId     String?                       // Null during pre-auth flows
+  challenge  String   @unique              // base64url-encoded challenge
+  type       String                        // "registration" | "authentication"
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([expiresAt])
 }

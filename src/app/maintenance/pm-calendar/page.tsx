@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
-import { Plus, CalendarDays, LayoutList, X } from 'lucide-react'
+import { Plus, CalendarDays, LayoutList } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
+import DetailDrawer from '@/components/DetailDrawer'
 import PmCalendarView from '@/components/maintenance/PmCalendarView'
 import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
@@ -168,33 +169,18 @@ function PmCalendarContent() {
               </motion.div>
             )}
 
-            {/* Wizard (inline, shown above content) */}
-            <AnimatePresence>
-              {showWizard && (
-                <motion.div
-                  initial={{ opacity: 0, y: -12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="mb-6"
-                >
-                  {/* Wizard header with close */}
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h2 className="text-sm font-semibold text-slate-700">New PM Schedule</h2>
-                    <button
-                      onClick={() => setShowWizard(false)}
-                      className="p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                    >
-                      <X className="w-4 h-4 text-slate-500" />
-                    </button>
-                  </div>
-                  <PmScheduleWizard
-                    onComplete={handleWizardComplete}
-                    onCancel={() => setShowWizard(false)}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Create PM Schedule Drawer */}
+            <DetailDrawer
+              isOpen={showWizard}
+              onClose={() => setShowWizard(false)}
+              title="Create PM Schedule"
+              width="lg"
+            >
+              <PmScheduleWizard
+                onComplete={handleWizardComplete}
+                onCancel={() => setShowWizard(false)}
+              />
+            </DetailDrawer>
 
             {/* Calendar / List view with tab animation */}
             <AnimatePresence mode="wait">
