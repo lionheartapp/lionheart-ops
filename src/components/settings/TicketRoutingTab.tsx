@@ -125,7 +125,6 @@ interface TicketRoutingTabProps {
 export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: TicketRoutingTabProps) {
   const queryClient = useQueryClient()
   const [activeModule, setActiveModule] = useState<TicketModule>(defaultModule)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -190,27 +189,36 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
 
   // ─── Strategy update ───────────────────────────────────────────────────
 
-  const updateStrategy = async (strategy: RoutingStrategy, managerUserId?: string | null) => {
-    setSaving(true)
+  const updateStrategy = (strategy: RoutingStrategy, managerUserId?: string | null) => {
     setError(null)
-    try {
-      await fetchApi('/api/settings/ticket-routing', {
-        method: 'POST',
-        body: JSON.stringify({
-          module: activeModule,
-          campusId: null,
-          strategy,
-          managerUserId: managerUserId ?? null,
-        }),
-      })
-      invalidateAll()
-      setSuccess('Routing strategy updated')
-      setTimeout(() => setSuccess(null), 3000)
-    } catch {
+
+    // Optimistic update
+    const cacheKey = queryKeys.ticketRouting.all
+    queryClient.setQueryData(cacheKey, (old: RoutingConfig[] | undefined) => {
+      const existing = (old ?? []).find((c) => c.module === activeModule && c.campusId === null)
+      if (existing) {
+        return (old ?? []).map((c) =>
+          c.module === activeModule && c.campusId === null
+            ? { ...c, strategy, managerUserId: managerUserId ?? null }
+            : c
+        )
+      }
+      return [...(old ?? []), { id: 'temp', module: activeModule, campusId: null, strategy, managerUserId: managerUserId ?? null, manager: null }]
+    })
+
+    // Background API call
+    fetchApi('/api/settings/ticket-routing', {
+      method: 'POST',
+      body: JSON.stringify({
+        module: activeModule,
+        campusId: null,
+        strategy,
+        managerUserId: managerUserId ?? null,
+      }),
+    }).catch(() => {
       setError('Failed to update strategy')
-    } finally {
-      setSaving(false)
-    }
+      queryClient.invalidateQueries({ queryKey: cacheKey })
+    })
   }
 
   // ─── Category config update (optimistic) ────────────────────────────────
@@ -385,7 +393,6 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                       }
                       updateStrategy(opt.value, opt.value === 'MANAGER_TRIAGE' ? currentManagerId : null)
                     }}
-                    disabled={saving}
                     className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
                       isActive
                         ? 'border-blue-500 bg-blue-50/50'
