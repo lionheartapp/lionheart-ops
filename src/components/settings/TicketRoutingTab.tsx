@@ -308,8 +308,8 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
         </div>
       </div>
 
-      {/* Module toggle */}
-      <div className="flex gap-1 p-1 bg-slate-100 rounded-full w-fit">
+      {/* Module toggle — hidden when embedded in a module page */}
+      {!defaultModule && <div className="flex gap-1 p-1 bg-slate-100 rounded-full w-fit">
         <button
           onClick={() => setActiveModule('MAINTENANCE')}
           className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
@@ -332,7 +332,7 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
           <Monitor className="w-4 h-4" />
           IT Help Desk
         </button>
-      </div>
+      </div>}
 
       {/* Feedback */}
       {error && (
