@@ -15,15 +15,16 @@ import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { Camera, User, Shield, Lock, Mail, Bell } from 'lucide-react'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface ProfileTabProps {
   userName: string | null
   userEmail: string | null
   userAvatar: string | null
-  token: string | null
+  token?: string | null
 }
 
-export default function ProfileTab({ userName, userEmail, userAvatar, token }: ProfileTabProps) {
+export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Avatar state
@@ -55,21 +56,59 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
     setLastName(nameParts.slice(1).join(' ') || '')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Avatar helpers ─────────────────────────────────────────────────────────
+
+  const ACCEPTED_TYPES = new Set([
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
+  ])
+  const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15 MB raw input
+  const MAX_DIMENSION = 512 // avatar never needs to be larger
+  const TARGET_QUALITY = 0.85
+
+  /**
+   * Resize an image file to MAX_DIMENSION and compress to JPEG/WebP via canvas.
+   * Returns a data-URL string ready to send to the API.
+   */
+  const resizeImage = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        // Scale down to MAX_DIMENSION, preserving aspect ratio
+        let { width, height } = img
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height)
+          width = Math.round(width * ratio)
+          height = Math.round(height * ratio)
+        }
+
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('Canvas not supported')); return }
+        ctx.drawImage(img, 0, 0, width, height)
+
+        // Use WebP if the browser supports it, else JPEG
+        const mimeType = canvas.toDataURL('image/webp').startsWith('data:image/webp')
+          ? 'image/webp'
+          : 'image/jpeg'
+
+        resolve(canvas.toDataURL(mimeType, TARGET_QUALITY))
+      }
+      img.onerror = () => reject(new Error('Failed to load image for processing'))
+      img.src = URL.createObjectURL(file)
+    })
+
   // ── Avatar handlers ────────────────────────────────────────────────────────
 
   const handleAvatarUpload = async (file: File) => {
-    if (!token) {
-      setAvatarError('Authentication token not found. Please refresh the page.')
+    if (!ACCEPTED_TYPES.has(file.type)) {
+      setAvatarError('Please select a JPG, PNG, GIF, WebP, or AVIF image')
       return
     }
 
-    if (!file.type.startsWith('image/')) {
-      setAvatarError('Please select an image file')
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError('Image must be less than 5MB')
+    if (file.size > MAX_FILE_SIZE) {
+      setAvatarError('Image must be less than 15 MB')
       return
     }
 
@@ -77,77 +116,48 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
     setAvatarError('')
 
     try {
-      const reader = new FileReader()
+      const base64Data = await resizeImage(file)
 
-      reader.onload = async (e) => {
-        try {
-          const base64Data = e.target?.result as string
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 30000)
+      try {
+        const response = await fetch('/api/auth/profile/avatar', {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ avatar: base64Data }),
+          signal: controller.signal,
+        })
 
-          try {
-            const response = await fetch('/api/auth/profile/avatar', {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ avatar: base64Data }),
-              signal: controller.signal,
-            })
+        clearTimeout(timeoutId)
 
-            clearTimeout(timeoutId)
+        const data = await response.json()
 
-            const data = await response.json()
-
-            if (!response.ok || !data.ok) {
-              throw new Error(data?.error?.message || `Failed to update avatar (${response.status})`)
-            }
-
-            localStorage.setItem('user-avatar', data.data.user.avatar || '')
-            setDisplayAvatar(data.data.user.avatar)
-
-            if (typeof window !== 'undefined') {
-              emitAppEvent(AppEventName.AVATAR_UPDATED, { avatar: data.data.user.avatar })
-            }
-
-            setAvatarUpdating(false)
-          } catch (fetchErr) {
-            clearTimeout(timeoutId)
-            if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
-              throw new Error('Upload timed out. Please try a smaller image or check your connection.')
-            }
-            throw fetchErr
-          }
-        } catch (err) {
-          setAvatarError(err instanceof Error ? err.message : 'Failed to upload image')
-          setAvatarUpdating(false)
+        if (!response.ok || !data.ok) {
+          throw new Error(data?.error?.message || `Failed to update avatar (${response.status})`)
         }
-      }
 
-      reader.onerror = () => {
-        setAvatarError('Failed to read file')
-        setAvatarUpdating(false)
-      }
+        localStorage.setItem('user-avatar', data.data.user.avatar || '')
+        setDisplayAvatar(data.data.user.avatar)
 
-      reader.onabort = () => {
-        setAvatarError('File read was cancelled')
-        setAvatarUpdating(false)
+        if (typeof window !== 'undefined') {
+          emitAppEvent(AppEventName.AVATAR_UPDATED, { avatar: data.data.user.avatar })
+        }
+      } catch (fetchErr) {
+        clearTimeout(timeoutId)
+        if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+          throw new Error('Upload timed out. Please try again.')
+        }
+        throw fetchErr
       }
-
-      reader.readAsDataURL(file)
     } catch (err) {
-      setAvatarError(err instanceof Error ? err.message : 'Failed to process file')
+      setAvatarError(err instanceof Error ? err.message : 'Failed to upload image')
+    } finally {
       setAvatarUpdating(false)
     }
   }
 
   const handleRemoveAvatar = async () => {
-    if (!token) {
-      setAvatarError('Authentication token not found. Please refresh the page.')
-      return
-    }
 
     setAvatarUpdating(true)
     setAvatarError('')
@@ -159,10 +169,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
       try {
         const response = await fetch('/api/auth/profile/avatar', {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ avatar: null }),
           signal: controller.signal,
         })
@@ -214,7 +221,6 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!token) { setProfileError('Not authenticated. Please refresh.'); return }
     if (!firstName.trim()) { setProfileError('First name is required'); return }
 
     setProfileSaving(true)
@@ -224,7 +230,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
     try {
       const response = await fetch('/api/auth/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() || null }),
       })
       const data = await response.json()
@@ -248,7 +254,6 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!token) { setPasswordError('Not authenticated. Please refresh.'); return }
     if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match'); return }
     if (newPassword.length < 8) { setPasswordError('New password must be at least 8 characters'); return }
 
@@ -259,7 +264,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
     try {
       const response = await fetch('/api/auth/profile/password', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ currentPassword, newPassword }),
       })
       const data = await response.json()
@@ -340,12 +345,12 @@ export default function ProfileTab({ userName, userEmail, userAvatar, token }: P
           </div>
           <div>
             <p className="text-sm font-medium text-slate-700 mb-1">Profile Photo</p>
-            <p className="text-xs text-slate-400 mb-3">JPG, PNG or GIF. Max 5MB.</p>
+            <p className="text-xs text-slate-400 mb-3">JPG, PNG, GIF, WebP, or AVIF. Max 15 MB — we'll resize it automatically.</p>
             <div className="flex flex-wrap gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
                 onChange={handleFileChange}
                 className="hidden"
                 disabled={avatarUpdating}

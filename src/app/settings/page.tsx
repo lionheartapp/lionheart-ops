@@ -291,7 +291,6 @@ export default function SettingsPage() {
                   userName={userName}
                   userEmail={userEmail}
                   userAvatar={userAvatar}
-                  token={isReady ? 'cookie-auth' : null}
                 />
               )}
 

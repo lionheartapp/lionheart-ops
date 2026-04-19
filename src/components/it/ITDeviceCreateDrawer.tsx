@@ -195,7 +195,7 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
           e.preventDefault()
           createMutation.mutate()
         }}
-        className="px-6 py-4 space-y-4"
+        className="space-y-4"
       >
         {/* Device Type */}
         <div>

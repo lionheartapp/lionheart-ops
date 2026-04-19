@@ -130,7 +130,7 @@ export default function ITDeploymentCreateDrawer({ isOpen, onClose }: Props) {
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
         }}
-        className="px-6 py-4 space-y-5"
+        className="space-y-5"
       >
         {/* Batch Name */}
         <FloatingInput

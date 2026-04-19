@@ -1,7 +1,8 @@
 import { compare, hash } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
-import { verifyAuthToken } from '@/lib/auth'
+import { getUserContext } from '@/lib/request-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
@@ -13,19 +14,15 @@ const PasswordChangeSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Missing or invalid authorization header'), { status: 401 })
+    const orgId = getOrgIdFromRequest(request)
+    const ctx = await getUserContext(request)
+
+    if (!ctx?.userId || !orgId) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
 
-    const token = authHeader.slice(7)
-    const claims = await verifyAuthToken(token)
-
-    if (!claims?.userId || !claims?.organizationId) {
-      return NextResponse.json(fail('UNAUTHORIZED', 'Invalid token'), { status: 401 })
-    }
-
-    const { userId, organizationId } = claims
+    const userId = ctx.userId
+    const organizationId = orgId
 
     let body: unknown
     try {

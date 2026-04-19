@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
@@ -9,12 +10,18 @@ import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
 import ITAnalyticsTab from '@/components/it/ITAnalyticsTab'
 import ITReportsTab from '@/components/it/ITReportsTab'
-import ITERateTab from '@/components/it/ITERateTab'
+import ITERateUnifiedTab from '@/components/it/ITERateUnifiedTab'
 import ITSyncTab from '@/components/it/ITSyncTab'
 import { BarChart3, FileText, FileCheck, RefreshCw } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 type AdminTab = 'analytics' | 'reports' | 'erate' | 'sync'
+
+const VALID_TABS: readonly AdminTab[] = ['analytics', 'reports', 'erate', 'sync'] as const
+
+function isAdminTab(value: string | null): value is AdminTab {
+  return value !== null && (VALID_TABS as readonly string[]).includes(value)
+}
 
 const TABS: { key: AdminTab; label: string; icon: typeof BarChart3 }[] = [
   { key: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -23,9 +30,10 @@ const TABS: { key: AdminTab; label: string; icon: typeof BarChart3 }[] = [
   { key: 'sync', label: 'Sync', icon: RefreshCw },
 ]
 
-function AdminContent() {
+function AdminContent(): JSX.Element | null {
   usePageTitle('IT Admin')
   const p = useITPermissions()
+  const searchParams = useSearchParams()
   const visibleTabs = TABS.filter(({ key }) => {
     if (key === 'analytics') return p.canViewITAnalytics
     if (key === 'reports') return p.canViewITBoardReports
@@ -35,6 +43,18 @@ function AdminContent() {
   })
 
   const [activeTab, setActiveTab] = useState<AdminTab>((visibleTabs[0]?.key as AdminTab) || 'analytics')
+
+  // Honor ?tab=<key> deep-links (e.g. from the dashboard widget or the
+  // legacy /it/erate redirect). Runs once permissions and the requested tab
+  // are available; falls back silently if the tab is unknown or denied.
+  useEffect(() => {
+    if (!p.loaded) return
+    const requested = searchParams.get('tab')
+    if (!isAdminTab(requested)) return
+    const allowed = visibleTabs.some((t) => t.key === requested)
+    if (allowed) setActiveTab(requested)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.loaded, searchParams])
 
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.loaded])
 
@@ -109,7 +129,7 @@ function AdminContent() {
           className={activeTab === 'erate' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
           aria-hidden={activeTab !== 'erate'}
         >
-          <ITERateTab canManage={p.canManageERate} />
+          <ITERateUnifiedTab canManage={p.canManageERate} />
         </div>
       )}
 

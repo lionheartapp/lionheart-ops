@@ -154,7 +154,7 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
         }}
-        className="px-6 py-4 space-y-4"
+        className="space-y-4"
       >
         <div className="grid grid-cols-2 gap-3">
           <FloatingInput

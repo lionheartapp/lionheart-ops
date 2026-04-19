@@ -387,10 +387,6 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                   <button
                     key={opt.value}
                     onClick={() => {
-                      if (opt.value === 'MANAGER_TRIAGE' && !currentManagerId) {
-                        // Don't auto-select triage without a manager — let them pick first
-                        return
-                      }
                       updateStrategy(opt.value, opt.value === 'MANAGER_TRIAGE' ? currentManagerId : null)
                     }}
                     className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${

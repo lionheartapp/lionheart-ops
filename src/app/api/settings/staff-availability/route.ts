@@ -17,10 +17,10 @@ const UpdateAvailabilitySchema = z.object({
   skillTags: z.array(z.string()).optional(),
 })
 
-// Permission strings that indicate a user can handle tickets for each module
-const MODULE_PERMISSIONS: Record<string, string[]> = {
-  MAINTENANCE: ['maintenance:claim', 'maintenance:assign'],
-  IT: ['it:ticket:assign'],
+// Team slugs that map to each module
+const MODULE_TEAM_SLUGS: Record<string, string> = {
+  MAINTENANCE: 'maintenance',
+  IT: 'it-support',
 }
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
@@ -32,30 +32,16 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     )
   }
 
-  // Find all users with relevant permissions for this module
-  const permStrings = MODULE_PERMISSIONS[module] ?? []
-  const permConditions = permStrings.map((perm) => {
-    const [resource, action, scope] = perm.split(':')
-    return scope
-      ? { resource, action, scope }
-      : { resource, action, scope: 'global' }
-  })
-
+  // Find users who are on the relevant team for this module
+  const teamSlug = MODULE_TEAM_SLUGS[module]
   const eligibleUsers = await rawPrisma.user.findMany({
     where: {
       organizationId: orgId,
       deletedAt: null,
       status: 'ACTIVE',
-      userRole: {
-        permissions: {
-          some: {
-            permission: {
-              OR: [
-                { resource: '*', action: '*' }, // super-admin wildcard
-                ...permConditions,
-              ],
-            },
-          },
+      teams: {
+        some: {
+          team: { slug: teamSlug },
         },
       },
     },

@@ -5,11 +5,13 @@
  *
  * Surfaces the most recent funding year's commitment + disbursement totals,
  * an invoice-deadline countdown (urgent when ≤ 60 days), and a CTA to the
- * full /it/erate page. Falls back to an onboarding nudge when the org has
- * no primary BEN configured yet.
+ * unified Reports & Admin → E-Rate tab. Falls back to an onboarding nudge
+ * when the org has no primary BEN configured yet.
  *
  * Visibility: only mount this when the current user has IT_ERATE_VIEW.
  */
+
+const ERATE_TAB_HREF = '/it/admin?tab=erate'
 
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
@@ -176,7 +178,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
             <h3 className="text-sm font-semibold text-slate-800">E-Rate</h3>
           </div>
           <button
-            onClick={() => router.push('/it/erate')}
+            onClick={() => router.push(ERATE_TAB_HREF)}
             className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-0.5 cursor-pointer"
           >
             Set up
@@ -187,7 +189,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
           Connect your Billed Entity Number to pull funding commitments, FRNs, and disbursements directly from USAC Open Data.
         </p>
         <button
-          onClick={() => router.push('/it/erate')}
+          onClick={() => router.push(ERATE_TAB_HREF)}
           className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 active:scale-[0.97] transition-all duration-200 cursor-pointer"
         >
           <Database className="w-4 h-4" />
@@ -211,7 +213,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
             <h3 className="text-sm font-semibold text-slate-800">E-Rate</h3>
           </div>
           <button
-            onClick={() => router.push('/it/erate')}
+            onClick={() => router.push(ERATE_TAB_HREF)}
             className="text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-0.5 cursor-pointer"
           >
             Open
@@ -222,7 +224,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
           BEN <span className="font-mono text-slate-800">{primary.ben}</span> is connected, but no funding-year data has synced yet.
         </p>
         <button
-          onClick={() => router.push('/it/erate')}
+          onClick={() => router.push(ERATE_TAB_HREF)}
           className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
         >
           <Loader2 className="w-3.5 h-3.5" />
@@ -257,7 +259,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
           </div>
         </div>
         <button
-          onClick={() => router.push('/it/erate')}
+          onClick={() => router.push(ERATE_TAB_HREF)}
           className="text-xs text-blue-500 hover:text-blue-700 font-medium flex items-center gap-0.5 cursor-pointer"
         >
           Details

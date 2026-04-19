@@ -372,7 +372,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
         }}
-        className="px-6 py-4 space-y-4"
+        className="space-y-4"
       >
         {/* Quick Describe — AI Classify */}
         <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4">

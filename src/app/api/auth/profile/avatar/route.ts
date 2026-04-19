@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, rawPrisma } from '@/lib/db'
-import { verifyAuthToken } from '@/lib/auth'
+import { rawPrisma } from '@/lib/db'
+import { getUserContext } from '@/lib/request-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { z } from 'zod'
@@ -13,32 +14,20 @@ const AvatarUpdateSchema = z.object({
   ),
 })
 
-type AvatarUpdateInput = z.infer<typeof AvatarUpdateSchema>
-
 export async function PATCH(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      logger.error('Missing auth header')
+    const orgId = getOrgIdFromRequest(request)
+    const ctx = await getUserContext(request)
+
+    if (!ctx?.userId || !orgId) {
       return NextResponse.json(
-        fail('UNAUTHORIZED', 'Missing or invalid authorization header'),
+        fail('UNAUTHORIZED', 'Not authenticated'),
         { status: 401 }
       )
     }
 
-    const token = authHeader.slice(7)
-    const claims = await verifyAuthToken(token)
-
-    if (!claims?.userId || !claims?.organizationId) {
-      logger.error('Invalid token')
-      return NextResponse.json(
-        fail('UNAUTHORIZED', 'Invalid token'),
-        { status: 401 }
-      )
-    }
-
-    const userId = claims.userId
-    const organizationId = claims.organizationId
+    const userId = ctx.userId
+    const organizationId = orgId
 
     let body: unknown
     try {
@@ -53,10 +42,7 @@ export async function PATCH(request: NextRequest) {
 
     const input = AvatarUpdateSchema.parse(body)
 
-    // Update user avatar with organization context
     return await runWithOrgContext(organizationId, async () => {
-      // Use rawPrisma for the email lookup — org-scoped findUnique by id alone
-      // hits an AND-clause that Prisma rejects (needs a unique key, not AND).
       const existingUser = await rawPrisma.user.findUnique({
         where: { id: userId },
         select: { email: true },
@@ -69,10 +55,6 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      // Use rawPrisma here for the same reason as the findUnique above —
-      // the org-scoped client wraps the where in AND[], which Prisma rejects
-      // for compound unique keys on update(). We already have orgId from the
-      // verified JWT so org-scoping is not needed here.
       const user = await rawPrisma.user.update({
         where: {
           organizationId_email: {
