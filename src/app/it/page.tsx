@@ -80,7 +80,7 @@ function ITContent() {
     const paramTab = searchParams?.get('tab')
     // Handle old "board" param — redirect to tickets tab with board view
     if (paramTab === 'board') return 'tickets'
-    if (paramTab && ['dashboard', 'tickets', 'magic-links'].includes(paramTab)) {
+    if (paramTab && ['dashboard', 'tickets', 'magic-links', 'routing', 'forms', 'qr-codes'].includes(paramTab)) {
       return paramTab as HelpDeskTab
     }
     if (canSeeManageTabs) return 'dashboard'
@@ -142,12 +142,13 @@ function ITContent() {
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [canSeeManageTabs])
 
   // Fetch members for assignment dropdown
-  const { data: members = [] } = useQuery({
+  const { data: membersRaw = [] } = useQuery({
     queryKey: ['it-members'],
     queryFn: () => fetchApi<{ id: string; firstName: string; lastName: string }[]>('/api/settings/users'),
     staleTime: 5 * 60_000,
     enabled: p.canManage,
   })
+  const members = Array.isArray(membersRaw) ? membersRaw : []
 
   const handleTabChange = (tab: HelpDeskTab) => {
     setActiveTab(tab)
