@@ -4,6 +4,7 @@ import { fail, ok } from '@/lib/api-response'
 import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { passwordSchema } from '@/lib/validation/password'
+import { isPasswordBreached } from '@/lib/validation/password-breach-check'
 import { ZodError } from 'zod'
 import { getIp } from '@/lib/services/auditService'
 import { studentPasswordRateLimiter } from '@/lib/rate-limit'
@@ -36,10 +37,18 @@ export async function POST(req: NextRequest) {
       passwordSchema.parse(password)
     } catch (err) {
       if (err instanceof ZodError) {
-        const message = err.issues[0]?.message || 'Password does not meet complexity requirements'
+        const message = err.issues[0]?.message || 'Password does not meet requirements'
         return NextResponse.json(fail('BAD_REQUEST', message), { status: 400 })
       }
       throw err
+    }
+
+    // Check if password has appeared in known data breaches
+    if (await isPasswordBreached(password)) {
+      return NextResponse.json(
+        fail('BAD_REQUEST', 'This password has appeared in a data breach and is not safe to use. Please choose a different password.'),
+        { status: 400 }
+      )
     }
 
     const tokenHash = hashSetupToken(token)

@@ -24,16 +24,6 @@ interface DeleteParams extends Record<string, string> {
   ben: string
 }
 
-interface DeleteSummary {
-  ben: string
-  deletedFundingYears: number
-  deletedForm470s: number
-  deletedForm471s: number
-  deletedFrns: number
-  deletedDisbursements: number
-  deletedSyncRuns: number
-  promotedNewPrimary: string | null
-}
 
 const BEN_REGEX = /^\d{1,12}$/
 
@@ -71,18 +61,16 @@ export const DELETE = withAuth<unknown, DeleteParams>(
     // by FK (Form 470 / 471 .applicantEntityId) cascade to SetNull thanks to
     // the schema, but the rows themselves are keyed by `ben` string so we
     // need explicit deletes. Order matters: leaves first, then parents.
-    const [disbursementResult, frnResult, form471Result, form470Result, fundingYearResult, syncRunResult] =
-      await rawPrisma.$transaction([
-        disbursementDelegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        frnDelegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        form471Delegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        form470Delegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        fundingYearDelegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        syncRunDelegate.deleteMany({ where: { organizationId: orgId, ben } }),
-        entityDelegate.delete({
-          where: { organizationId_ben: { organizationId: orgId, ben } },
-        }),
-      ])
+    // Delete in dependency order: leaves first, then parents
+    await disbursementDelegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await frnDelegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await form471Delegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await form470Delegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await fundingYearDelegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await syncRunDelegate.deleteMany({ where: { organizationId: orgId, ben } })
+    await entityDelegate.delete({
+      where: { organizationId_ben: { organizationId: orgId, ben } },
+    })
 
     // If we just removed the primary BEN, promote another entity (if any).
     let promotedBen: string | null = null
@@ -101,14 +89,9 @@ export const DELETE = withAuth<unknown, DeleteParams>(
       }
     }
 
-    const summary: DeleteSummary = {
+    const summary = {
       ben,
-      deletedFundingYears: fundingYearResult.count ?? 0,
-      deletedForm470s: form470Result.count ?? 0,
-      deletedForm471s: form471Result.count ?? 0,
-      deletedFrns: frnResult.count ?? 0,
-      deletedDisbursements: disbursementResult.count ?? 0,
-      deletedSyncRuns: syncRunResult.count ?? 0,
+      deleted: true,
       promotedNewPrimary: promotedBen,
     }
 

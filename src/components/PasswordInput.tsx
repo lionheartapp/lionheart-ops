@@ -39,6 +39,12 @@ export default function PasswordInput({
   const hasContent = value.length > 0
   const showIndicators = showRules && (hasContent || touched)
 
+  // Only show rules that are relevant — hide max-length unless they're near it
+  const visibleResults = results.filter((r) => {
+    if (r.id === 'max-length') return value.length > 50
+    return true
+  })
+
   return (
     <div className="space-y-2">
       {label && (
@@ -74,7 +80,7 @@ export default function PasswordInput({
       {/* Rule indicators */}
       {showIndicators && (
         <ul className="space-y-1 pt-1">
-          {results.map((rule) => {
+          {visibleResults.map((rule) => {
             const showError = (touched || hasContent) && showErrorsAfterBlur
             const iconColor = rule.passed
               ? 'text-green-500'

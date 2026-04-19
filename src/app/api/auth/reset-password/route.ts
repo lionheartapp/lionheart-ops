@@ -8,6 +8,7 @@ import { signAuthToken } from '@/lib/auth'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { audit, getIp } from '@/lib/services/auditService'
 import { passwordSchema } from '@/lib/validation/password'
+import { isPasswordBreached } from '@/lib/validation/password-breach-check'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -28,6 +29,15 @@ export async function POST(req: NextRequest) {
     }
 
     const { token, password } = parsed.data
+
+    // Check if password has appeared in known data breaches
+    if (await isPasswordBreached(password)) {
+      return NextResponse.json(
+        fail('VALIDATION_ERROR', 'This password has appeared in a data breach and is not safe to use. Please choose a different password.'),
+        { status: 400 }
+      )
+    }
+
     const tokenHash = hashSetupToken(token)
 
     const setupToken = await rawPrisma.passwordSetupToken.findUnique({

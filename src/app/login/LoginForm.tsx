@@ -262,7 +262,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       </button>
 
       <p className="text-center text-xs text-slate-500">
-        By signing in, you&apos;ll stay logged in for 30 days
+        You&apos;ll stay logged in while you&apos;re active
       </p>
     </form>
   )

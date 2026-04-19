@@ -6,10 +6,12 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { passwordSchema } from '@/lib/validation/password'
+import { isPasswordBreached } from '@/lib/validation/password-breach-check'
 
 const PasswordChangeSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+  newPassword: passwordSchema,
 })
 
 export async function PATCH(request: NextRequest) {
@@ -58,6 +60,14 @@ export async function PATCH(request: NextRequest) {
     if (input.newPassword === input.currentPassword) {
       return NextResponse.json(
         fail('SAME_PASSWORD', 'New password must be different from your current password'),
+        { status: 400 },
+      )
+    }
+
+    // Check if new password has appeared in known data breaches
+    if (await isPasswordBreached(input.newPassword)) {
+      return NextResponse.json(
+        fail('BREACHED_PASSWORD', 'This password has appeared in a data breach and is not safe to use. Please choose a different password.'),
         { status: 400 },
       )
     }

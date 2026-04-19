@@ -35,7 +35,7 @@ export function authCookieOptions(options?: { maxAge?: number }): CookieOptions 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: options?.maxAge ?? 30 * 24 * 60 * 60, // 30 days
+    maxAge: options?.maxAge ?? 7 * 24 * 60 * 60, // 7 days — middleware auto-refreshes
     ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
   }
 }
@@ -50,7 +50,7 @@ export function csrfCookieOptions(options?: { maxAge?: number }): CookieOptions 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: options?.maxAge ?? 30 * 24 * 60 * 60,
+    maxAge: options?.maxAge ?? 7 * 24 * 60 * 60,
     ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
   }
 }

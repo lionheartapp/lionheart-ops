@@ -16,7 +16,7 @@ export async function signAuthToken(claims: AuthClaims): Promise<string> {
   return await new SignJWT(claims)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('30d') // 30 days for persistent "remember me" behavior
+    .setExpirationTime('7d') // 7-day sliding window — middleware auto-refreshes active sessions
     .sign(getAuthSecret())
 }
 

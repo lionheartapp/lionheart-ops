@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAuthToken } from '@/lib/auth'
+import { verifyAuthToken, signAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
+import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { publicApiRateLimiter, signupRateLimiter, eventRegistrationRateLimiter, aiChatRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
 const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings', '/verify-email'])
@@ -56,13 +57,6 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/auth/reset-password')) return true
   if (pathname.startsWith('/api/auth/verify-email')) return true
   if (pathname.startsWith('/api/auth/resend-verification')) return true
-  // Auth.js (NextAuth) OAuth callback URLs — must remain public
-  if (pathname.startsWith('/api/auth/callback/')) return true
-  if (pathname.startsWith('/api/auth/signin')) return true
-  if (pathname.startsWith('/api/auth/signout')) return true
-  if (pathname.startsWith('/api/auth/session')) return true
-  if (pathname.startsWith('/api/auth/csrf')) return true
-  if (pathname.startsWith('/api/auth/providers')) return true
   // NOTE: /api/auth/me and /api/auth/logout are NOT public — they require auth cookie
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
@@ -349,7 +343,43 @@ export async function middleware(req: NextRequest) {
   }
 
   requestHeaders.set('x-org-id', claims.organizationId)
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+  // ─── Sliding window: refresh token when past halfway (3.5 days) ──
+  // This keeps active users logged in without ever interrupting them,
+  // while inactive users get logged out after 7 days.
+  if (cookieToken) {
+    try {
+      const { jwtVerify } = await import('jose')
+      const secret = new TextEncoder().encode(process.env.AUTH_SECRET!)
+      const { payload } = await jwtVerify(cookieToken, secret)
+      const exp = (payload.exp ?? 0) as number
+      const iat = (payload.iat ?? 0) as number
+      const totalLife = exp - iat
+      const remaining = exp - Math.floor(Date.now() / 1000)
+      // Refresh when less than half the token lifetime remains
+      if (totalLife > 0 && remaining < totalLife / 2) {
+        const freshToken = await signAuthToken({
+          userId: claims.userId,
+          organizationId: claims.organizationId,
+          email: claims.email,
+        })
+        const opts = authCookieOptions()
+        response.cookies.set('auth-token', freshToken, {
+          httpOnly: opts.httpOnly,
+          secure: opts.secure,
+          sameSite: opts.sameSite,
+          path: opts.path,
+          maxAge: opts.maxAge,
+          ...(opts.domain ? { domain: opts.domain } : {}),
+        })
+      }
+    } catch {
+      // Token refresh is best-effort — don't block the request
+    }
+  }
+
+  return response
 }
 
 export const config = {

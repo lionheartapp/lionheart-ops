@@ -8,6 +8,7 @@
 import { z } from 'zod'
 import { rawPrisma } from '@/lib/db'
 import * as bcrypt from 'bcryptjs'
+import { isPasswordBreached } from '@/lib/validation/password-breach-check'
 import { DEFAULT_ROLES, DEFAULT_TEAMS } from '@/lib/permissions'
 import { timezoneFromAddress } from '@/lib/utils/timezone'
 import { logger } from '@/lib/logger'
@@ -76,7 +77,7 @@ export const CreateOrganizationSchema = z.object({
   staffCount: z.number().int().min(0).max(1000000).nullable().optional(),
   adminEmail: z.string().email('Invalid email address'),
   adminName: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  adminPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  adminPassword: z.string().min(8, 'Password must be at least 8 characters').max(64),
 })
 
 export type CreateOrganizationInput = z.infer<typeof CreateOrganizationSchema>
@@ -434,6 +435,11 @@ export async function createOrganization(input: CreateOrganizationInput) {
   const slugValid = await validateSlug(validated.slug)
   if (!slugValid.valid) {
     throw new Error(`Slug validation failed: ${slugValid.reason}`)
+  }
+
+  // Check if password has appeared in known data breaches
+  if (await isPasswordBreached(validated.adminPassword)) {
+    throw new Error('This password has appeared in a data breach and is not safe to use. Please choose a different password.')
   }
 
   // Hash password (outside transaction — CPU-bound, not a DB operation)

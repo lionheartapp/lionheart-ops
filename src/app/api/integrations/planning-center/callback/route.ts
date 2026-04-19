@@ -64,5 +64,5 @@ async function buildSettingsUrl(req: NextRequest, orgId: string | null): Promise
   }
 
   // Fallback: use the app URL
-  return `${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || ''}/settings`
+  return `${process.env.NEXT_PUBLIC_APP_URL || ''}/settings`
 }
