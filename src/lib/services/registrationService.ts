@@ -34,6 +34,12 @@ export type CreateRegistrationFormInput = {
     maxUses?: number
     usedCount?: number
   }>
+  // Public form styling (Phase E)
+  publicStyle?: 'MINIMAL' | 'SPLIT' | 'HERO'
+  publicCtaColor?: string | null
+  publicBgColor?: string | null
+  publicImageUrl?: string | null
+  publicImageSide?: 'LEFT' | 'RIGHT'
 }
 
 export type UpdateRegistrationFormInput = Partial<Omit<CreateRegistrationFormInput, 'organizationId' | 'eventProjectId'>>
@@ -208,6 +214,12 @@ export async function updateRegistrationForm(
       ...(data.discountCodes !== undefined && {
         discountCodes: data.discountCodes as Prisma.InputJsonValue,
       }),
+      // Public form styling
+      ...(data.publicStyle !== undefined && { publicStyle: data.publicStyle }),
+      ...(data.publicCtaColor !== undefined && { publicCtaColor: data.publicCtaColor }),
+      ...(data.publicBgColor !== undefined && { publicBgColor: data.publicBgColor }),
+      ...(data.publicImageUrl !== undefined && { publicImageUrl: data.publicImageUrl }),
+      ...(data.publicImageSide !== undefined && { publicImageSide: data.publicImageSide }),
     },
   })
 }

@@ -68,6 +68,8 @@ function isPublicPath(pathname: string) {
   if (pathname === '/offline') return true
   if (pathname.startsWith('/icons/')) return true
   if (pathname === '/it/sub') return true
+  if (pathname.startsWith('/f/qr/')) return true
+  if (pathname.startsWith('/r/')) return true
   if (pathname === '/it/password-reset') return true
   if (pathname.startsWith('/api/it/magic-links/') && pathname.includes('/validate')) return true
   if (pathname === '/api/it/tickets/sub') return true

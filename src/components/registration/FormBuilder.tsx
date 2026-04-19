@@ -12,6 +12,7 @@ import {
 } from '@/lib/hooks/useRegistrationForm'
 import { CommonFieldPicker, COMMON_FIELDS } from './CommonFieldPicker'
 import { SectionEditor } from './SectionEditor'
+import { PublicFormStylePanel, type PublicFormStyleConfig } from './PublicFormStylePanel'
 import { useToast } from '@/components/Toast'
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
@@ -308,6 +309,13 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
 
   const [sections, setSections] = useState<FormSection[]>([])
   const [formConfig, setFormConfig] = useState<Partial<FormConfig>>({})
+  const [publicStyleConfig, setPublicStyleConfig] = useState<PublicFormStyleConfig>({
+    publicStyle: 'MINIMAL',
+    publicCtaColor: '#4f46e5',
+    publicBgColor: '#f5f4f0',
+    publicImageUrl: null,
+    publicImageSide: 'RIGHT',
+  })
   const [initialized, setInitialized] = useState(false)
 
   // Initialize local state from server data
@@ -325,6 +333,15 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
           openAt: formData.form.openAt,
           closeAt: formData.form.closeAt,
           discountCodes: formData.form.discountCodes,
+        })
+        // Initialize public style from server data
+        const f = formData.form as unknown as Record<string, unknown>
+        setPublicStyleConfig({
+          publicStyle: (f.publicStyle as 'MINIMAL' | 'SPLIT' | 'HERO') ?? 'MINIMAL',
+          publicCtaColor: (f.publicCtaColor as string | null) ?? '#4f46e5',
+          publicBgColor: (f.publicBgColor as string | null) ?? '#f5f4f0',
+          publicImageUrl: (f.publicImageUrl as string | null) ?? null,
+          publicImageSide: (f.publicImageSide as 'LEFT' | 'RIGHT') ?? 'RIGHT',
         })
       }
       setInitialized(true)
@@ -410,7 +427,10 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
   async function handleSave() {
     try {
       await updateMutation.mutateAsync({
-        form: formConfig,
+        form: {
+          ...formConfig,
+          ...publicStyleConfig,
+        },
         sections: sections.map((s, si) => ({
           ...s,
           sortOrder: si,
@@ -510,6 +530,12 @@ export function FormBuilder({ eventProjectId }: FormBuilderProps) {
           <FormSettingsPanel
             config={fullConfig}
             onChange={(patch) => setFormConfig((prev) => ({ ...prev, ...patch }))}
+          />
+          <PublicFormStylePanel
+            config={publicStyleConfig}
+            onChange={(patch) =>
+              setPublicStyleConfig((prev) => ({ ...prev, ...patch }))
+            }
           />
         </div>
       </div>

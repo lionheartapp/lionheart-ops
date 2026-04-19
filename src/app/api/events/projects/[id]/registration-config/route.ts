@@ -44,6 +44,12 @@ const formDataSchema = z.object({
   closeAt: z.string().datetime().optional().nullable(),
   brandingOverride: z.record(z.string(), z.unknown()).optional().nullable(),
   discountCodes: z.array(discountCodeSchema).optional().nullable(),
+  // Public form styling (Phase E)
+  publicStyle: z.enum(['MINIMAL', 'SPLIT', 'HERO']).optional(),
+  publicCtaColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  publicBgColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  publicImageUrl: z.string().url().nullable().optional(),
+  publicImageSide: z.enum(['LEFT', 'RIGHT']).optional(),
 })
 
 const fieldSchema = z.object({
@@ -182,6 +188,11 @@ export const PUT = withAuth(async ({ req, params }) => {
       closeAt: formData.closeAt ? new Date(formData.closeAt) : undefined,
       brandingOverride: formData.brandingOverride ?? undefined,
       discountCodes: formData.discountCodes ?? undefined,
+      publicStyle: formData.publicStyle,
+      publicCtaColor: formData.publicCtaColor,
+      publicBgColor: formData.publicBgColor,
+      publicImageUrl: formData.publicImageUrl,
+      publicImageSide: formData.publicImageSide,
     })
   }
 

@@ -95,6 +95,16 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     }),
   ])
 
+  // Compliance: log bulk PII access
+  void audit({
+    organizationId: orgId,
+    userId: ctx.userId,
+    userEmail: ctx.email,
+    action: 'users.read',
+    resourceType: 'User',
+    changes: { count: users.length, page, search: search || undefined, filters: { roleId, teamSlug, status, schoolScope } },
+  })
+
   return NextResponse.json(ok(users, paginationMeta(total, { page, limit, skip })))
 }, { permission: PERMISSIONS.USERS_READ })
 

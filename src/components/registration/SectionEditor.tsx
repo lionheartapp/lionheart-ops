@@ -162,7 +162,7 @@ export function SectionEditor({
         {section.fields.length > 0 && (
           <SortableList
             items={section.fields}
-            keyFn={(f, i) => f.id ?? `new-${i}`}
+            keyFn={(f) => f.id ?? `field-${f.sortOrder}`}
             onReorder={(reordered) =>
               update({
                 fields: reordered.map((f, i) => ({ ...f, sortOrder: i })),

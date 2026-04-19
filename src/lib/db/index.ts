@@ -148,6 +148,9 @@ const orgScopedModels = new Set([
 	'TicketAssignmentLog',
 	'CategoryFieldConfig',
 	'EscalationRule',
+	// Forms module
+	'FormDefinition',
+	'FormQrCode',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

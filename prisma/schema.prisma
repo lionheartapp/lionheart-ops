@@ -52,6 +52,12 @@ model Organization {
   timezone      String            @default("America/Los_Angeles") // IANA timezone for compliance date arithmetic
   eventBufferMinutes Int           @default(60) // Buffer time (minutes) between events at same location
   mfaRequired   Boolean           @default(false) // Require two-factor auth for all org members
+  // Data Privacy Agreement (DPA) tracking
+  dpaSignedAt        DateTime?    // When the DPA was signed
+  dpaSignatoryName   String?      // Name of person who signed the DPA
+  dpaSignatoryEmail  String?      // Email of DPA signatory
+  dpaVersion         String?      // Version of the DPA that was signed (e.g., "2026-v1")
+  dpaReviewDueAt     DateTime?    // When the DPA should be reviewed/renewed
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   users         User[]
@@ -3205,6 +3211,12 @@ model Student {
   rosterSource   RosterSyncProvider @default(MANUAL)
   lastSyncedAt   DateTime?
   metadata       Json?             // Extra fields from roster provider
+  // COPPA compliance — parental consent for students under 13
+  isUnder13             Boolean?    // Flag for COPPA applicability
+  parentalConsentAt     DateTime?   // When parental consent was obtained
+  parentalConsentMethod String?     // How consent was obtained: "form", "email", "roster_provider", "school_agreement"
+  parentGuardianName    String?     // Parent/guardian name
+  parentGuardianEmail   String?     // Parent/guardian contact email
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   deletedAt      DateTime?
@@ -4612,6 +4624,12 @@ model RegistrationForm {
   shareSlug           String    @unique
   brandingOverride    Json?     // { logoUrl, primaryColor, ... }
   discountCodes       Json?     // array of { code, percentOff, amountOff, maxUses, usedCount }
+  // Public form styling (Phase E)
+  publicStyle         PublicFormStyle @default(MINIMAL)
+  publicCtaColor      String?   // hex, e.g. "#4f46e5"
+  publicBgColor       String?   // hex — only used by MINIMAL layout
+  publicImageUrl      String?
+  publicImageSide     FormImageSide @default(RIGHT)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
