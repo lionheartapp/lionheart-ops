@@ -143,6 +143,13 @@ model Organization {
   // E-Rate + Content Filter module relations
   itERateTasks            ITERateTask[]
   itERateDocuments        ITERateDocument[]
+  itERateEntities         ITERateEntity[]
+  itERateFundingYears     ITERateFundingYear[]
+  itERateForm470s         ITERateForm470[]
+  itERateForm471s         ITERateForm471[]
+  itERateFRNs             ITERateFRN[]
+  itERateDisbursements    ITERateDisbursement[]
+  itERateSyncRuns         ITERateSyncRun[]
   itContentFilterConfigs  ITContentFilterConfig[]
   itContentFilterEvents   ITContentFilterEvent[]
   // Security Incident module relations
@@ -199,6 +206,12 @@ model Organization {
   eventScheduleSections       EventScheduleSection[]
   // Planning Center integration links
   pcoServiceLinks             PCOServiceLink[]
+  // Ticket Routing module relations
+  moduleRoutingConfigs        ModuleRoutingConfig[]
+  routingCategoryConfigs      RoutingCategoryConfig[]
+  staffAvailabilities         StaffAvailability[]
+  ticketAssignmentLogs        TicketAssignmentLog[]
+  categoryFieldConfigs        CategoryFieldConfig[]
 
   @@index([onboardingStatus])
 }
@@ -331,6 +344,13 @@ model User {
   // Phase 22: External Integrations (per-user, e.g. Google Calendar)
   integrationCredentials    IntegrationCredential[]
   externalCalendarEvents    ExternalCalendarEvent[]
+  // Ticket Routing module relations
+  routingManagerConfigs     ModuleRoutingConfig[]     @relation("RoutingManager")
+  categorySpecialistConfigs RoutingCategoryConfig[]   @relation("CategorySpecialist")
+  categoryFallbackConfigs   RoutingCategoryConfig[]   @relation("CategoryFallback")
+  staffAvailability         StaffAvailability[]
+  routingDelegations        StaffAvailability[]       @relation("RoutingDelegate")
+  routingAssignments        TicketAssignmentLog[]     @relation("RoutingAssignment")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -620,6 +640,8 @@ model Campus {
   tenantModules  TenantModule[]
   itMagicLinks   ITMagicLink[]
   eventProjects  EventProject[]
+  // Ticket Routing module relations
+  routingConfigs ModuleRoutingConfig[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isActive])
@@ -2388,6 +2410,11 @@ model MaintenanceTicket {
   pmChecklistItems        String[]                @default([])  // Checklist item labels from the PM schedule
   pmChecklistDone         Boolean[]               @default([])  // Parallel array: true = item checked off
   assetId                 String?                               // Optional link to a MaintenanceAsset
+  customFields            Json?                                 // Category-scoped dynamic field values
+  // SLA tracking
+  firstResponseAt         DateTime?                             // When ticket was first assigned or commented on
+  slaResponseDue          DateTime?                             // Computed: createdAt + category SLA response target
+  slaResolveDue           DateTime?                             // Computed: createdAt + category SLA resolution target
   submittedById           String
   assignedToId            String?
   buildingId              String?
@@ -3057,6 +3084,11 @@ model ITTicket {
   filterPlatform     String?         // Which content filter created this ticket
   filterEventId      String?         // Reference to ITContentFilterEvent
   filterDisposition  String?         // PENDING/APPROVED/DENIED
+  customFields       Json?           // Category-scoped dynamic field values
+  // SLA tracking
+  firstResponseAt    DateTime?       // When ticket was first assigned or commented on
+  slaResponseDue     DateTime?       // Computed: createdAt + category SLA response target
+  slaResolveDue      DateTime?       // Computed: createdAt + category SLA resolution target
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   deletedAt          DateTime?
@@ -3639,6 +3671,231 @@ model ITERateDocument {
   @@index([organizationId, schoolYear])
   @@index([organizationId, retentionUntil])
   @@index([taskId])
+}
+
+// ─── E-Rate USAC Open Data Sync Models ────────────────────────────────────────
+// Populated by background sync jobs that pull from opendata.usac.org.
+// Distinct from ITERateTask/ITERateDocument, which track org-internal compliance
+// tasks and audit-side document retention. The models below are the cached,
+// authoritative reflection of public USAC data, keyed by BEN.
+
+model ITERateEntity {
+  id              String    @id @default(cuid())
+  organizationId  String
+  /// Billed Entity Number — primary USAC identifier
+  ben             String
+  entityName      String
+  entityType      String?
+  /// USAC entity-type code (e.g. school district, library, consortium)
+  entityTypeCode  String?
+  parentBen       String?
+  state           String?
+  city            String?
+  zipCode         String?
+  /// True if this is the BEN the org primarily files under
+  isPrimary       Boolean   @default(true)
+  /// Raw record from USAC for fields we don't yet model
+  rawRecord       Json?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  form470s     ITERateForm470[]
+  form471s     ITERateForm471[]
+
+  @@unique([organizationId, ben])
+  @@index([organizationId])
+  @@index([ben])
+}
+
+model ITERateFundingYear {
+  id                  String   @id @default(cuid())
+  organizationId      String
+  ben                 String
+  /// USAC funding year (e.g. 2026 = FY2026 = July 2026 – June 2027)
+  fundingYear         Int
+
+  totalRequested      Decimal? @db.Decimal(14, 2)
+  totalCommitted      Decimal? @db.Decimal(14, 2)
+  totalDisbursed      Decimal? @db.Decimal(14, 2)
+  category1Committed  Decimal? @db.Decimal(14, 2)
+  category2Committed  Decimal? @db.Decimal(14, 2)
+
+  applicationStatus   String?
+  /// The earliest invoice deadline among the year's FRNs
+  invoiceDeadline     DateTime?
+
+  lastSyncedAt        DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, ben, fundingYear])
+  @@index([organizationId, fundingYear])
+}
+
+model ITERateForm470 {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  /// USAC application number (e.g. "200001234")
+  applicationNumber     String
+  ben                   String
+  fundingYear           Int
+  applicantEntityId     String?
+
+  nickname              String?
+  certifiedDate         DateTime?
+  /// Allowable Contract Date = certifiedDate + 28 days
+  allowableContractDate DateTime?
+  contractAwardDate     DateTime?
+
+  category              String?
+  servicesRequested     Json?
+  rawRecord             Json?
+
+  lastSyncedAt          DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applicantEntity ITERateEntity?   @relation(fields: [applicantEntityId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, applicationNumber])
+  @@index([organizationId, fundingYear])
+  @@index([organizationId, ben])
+}
+
+model ITERateForm471 {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  applicationNumber     String
+  ben                   String
+  fundingYear           Int
+  applicantEntityId     String?
+
+  nickname              String?
+  status                String?
+  certifiedDate         DateTime?
+
+  totalPreDiscount      Decimal?  @db.Decimal(14, 2)
+  totalDiscount         Decimal?  @db.Decimal(14, 2)
+  discountPercent       Int?
+
+  rawRecord             Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applicantEntity ITERateEntity?   @relation(fields: [applicantEntityId], references: [id], onDelete: SetNull)
+  frns            ITERateFRN[]
+
+  @@unique([organizationId, applicationNumber])
+  @@index([organizationId, fundingYear])
+  @@index([organizationId, ben])
+}
+
+model ITERateFRN {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  /// 10-digit Funding Request Number
+  frnNumber             String
+  form471Id             String?
+  /// Form 471 application number this FRN belongs to (denormalized)
+  applicationNumber     String
+  ben                   String
+  fundingYear           Int
+
+  serviceType           String?
+  /// "Category 1" | "Category 2"
+  serviceCategory       String?
+  /// Service Provider Identification Number
+  spin                  String?
+  serviceProviderName   String?
+  contractNumber        String?
+
+  preDiscountAmount     Decimal?  @db.Decimal(14, 2)
+  discountAmount        Decimal?  @db.Decimal(14, 2)
+  committedAmount       Decimal?  @db.Decimal(14, 2)
+  disbursedAmount       Decimal?  @db.Decimal(14, 2)
+
+  status                String?
+  /// Funding Commitment Decision Letter date
+  fcdlDate              DateTime?
+  invoiceDeadline       DateTime?
+
+  rawRecord             Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization  Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  form471       ITERateForm471?      @relation(fields: [form471Id], references: [id], onDelete: SetNull)
+  disbursements ITERateDisbursement[]
+
+  @@unique([organizationId, frnNumber])
+  @@index([organizationId, fundingYear])
+  @@index([organizationId, ben])
+  @@index([form471Id])
+}
+
+model ITERateDisbursement {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  frnId                 String?
+  frnNumber             String
+  ben                   String
+  fundingYear           Int
+
+  /// "BEAR" (Form 472) or "SPI" (Form 474)
+  invoiceType           String?
+  invoiceNumber         String?
+  invoiceDate           DateTime?
+  authorizedAmount      Decimal?  @db.Decimal(14, 2)
+  disbursedAmount       Decimal?  @db.Decimal(14, 2)
+  paymentDate           DateTime?
+
+  spin                  String?
+  serviceProviderName   String?
+
+  rawRecord             Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  frn          ITERateFRN?  @relation(fields: [frnId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, frnNumber])
+  @@index([organizationId, fundingYear])
+}
+
+model ITERateSyncRun {
+  id              String    @id @default(cuid())
+  organizationId  String
+  ben             String?
+  /// Socrata 4x4 dataset id (e.g. "9s6i-myen")
+  datasetId       String
+  datasetLabel    String
+
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
+  /// "running" | "success" | "error"
+  status          String    @default("running")
+
+  rowsFetched     Int       @default(0)
+  rowsUpserted    Int       @default(0)
+  errorMessage    String?
+
+  /// Optional cursor used for delta sync (e.g. last_change_date watermark)
+  cursor          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, startedAt])
+  @@index([organizationId, datasetId])
 }
 
 // ─── Content Filter Integration ───────────────────────────────────────────────
@@ -5149,4 +5406,147 @@ model IntegrationSyncLog {
 
   @@index([organizationId, provider])
   @@index([credentialId])
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// TICKET ROUTING MODULE
+// ═══════════════════════════════════════════════════════════════════════
+
+enum TicketModule {
+  MAINTENANCE
+  IT
+}
+
+enum RoutingStrategy {
+  UNASSIGNED
+  ROUND_ROBIN
+  LOAD_BALANCED
+  MANAGER_TRIAGE
+}
+
+enum RoutingDecisionSource {
+  CATEGORY_SPECIALIST
+  CATEGORY_FALLBACK
+  CAMPUS_DEFAULT
+  UNASSIGNED_QUEUE
+}
+
+enum StaffAvailabilityStatus {
+  AVAILABLE
+  OUT_OF_OFFICE
+}
+
+/// Per-module, per-campus routing configuration. Sets the default assignment strategy.
+model ModuleRoutingConfig {
+  id              String          @id @default(cuid())
+  organizationId  String
+  module          TicketModule
+  campusId        String?         // null = org-wide default
+  strategy        RoutingStrategy @default(UNASSIGNED)
+  managerUserId   String?         // Required when strategy = MANAGER_TRIAGE
+  roundRobinIndex Int             @default(0) // Tracks rotation position for ROUND_ROBIN
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  manager      User?        @relation("RoutingManager", fields: [managerUserId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, module, campusId])
+  @@index([organizationId])
+}
+
+/// Per-category routing overrides. categoryKey stores the enum value as a string
+/// (e.g. "ELECTRICAL" for MaintenanceCategory, "HARDWARE" for ITIssueType).
+model RoutingCategoryConfig {
+  id               String       @id @default(cuid())
+  organizationId   String
+  module           TicketModule
+  categoryKey      String       // MaintenanceCategory or ITIssueType enum value as string
+  specialistUserId String?      // Step 1: specialist override
+  fallbackUserId   String?      // Step 2: fallback if specialist unavailable
+  slaResponseMins  Int?         // Target: first response time in minutes
+  slaResolveMins   Int?         // Target: resolution time in minutes
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  specialist   User?        @relation("CategorySpecialist", fields: [specialistUserId], references: [id], onDelete: SetNull)
+  fallback     User?        @relation("CategoryFallback", fields: [fallbackUserId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, module, categoryKey])
+  @@index([organizationId])
+}
+
+/// Staff availability for ticket routing. Coexists with TechnicianProfile
+/// (which tracks maintenance-specific data like specialties and hourly rates).
+model StaffAvailability {
+  id               String                  @id @default(cuid())
+  organizationId   String
+  userId           String
+  module           TicketModule
+  status           StaffAvailabilityStatus @default(AVAILABLE)
+  outUntil         DateTime?               // When OUT_OF_OFFICE, auto-restore after this
+  maxActiveTickets Int                     @default(10)
+  delegateUserId   String?                 // "Route my tickets to this person while I'm out"
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delegate     User?        @relation("RoutingDelegate", fields: [delegateUserId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, userId, module])
+  @@index([organizationId, module, status])
+}
+
+/// Immutable audit trail for every ticket routing decision.
+model TicketAssignmentLog {
+  id                   String                @id @default(cuid())
+  organizationId       String
+  module               TicketModule
+  ticketId             String                // ID from MaintenanceTicket or ITTicket
+  assignedToId         String?               // null if landed in unassigned queue
+  strategy             RoutingStrategy
+  source               RoutingDecisionSource
+  reason               String                // Human-readable explanation
+  candidatesConsidered Int                   @default(0)
+  metadata             Json?                 // Debug data: candidates list, capacity info, etc.
+  createdAt            DateTime              @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo   User?        @relation("RoutingAssignment", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, module, createdAt])
+  @@index([ticketId])
+  @@index([assignedToId])
+}
+
+enum CategoryFieldType {
+  ASSET_PICKER
+  AFFECTED_USER
+  URGENCY_JUSTIFICATION
+  SAFETY_HAZARD
+  DEVICE_TYPE
+  PEOPLE_AFFECTED
+}
+
+/// Stores which predefined fields are enabled per category.
+/// Admins toggle fields on/off from a fixed library — not a full form builder.
+model CategoryFieldConfig {
+  id             String            @id @default(cuid())
+  organizationId String
+  module         TicketModule
+  categoryKey    String
+  fieldType      CategoryFieldType
+  required       Boolean           @default(false)
+  sortOrder      Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, module, categoryKey, fieldType])
+  @@index([organizationId, module, categoryKey])
 }

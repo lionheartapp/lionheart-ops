@@ -46,6 +46,7 @@ interface WizardFormData {
   availabilityNote: string
   scheduledDate: string
   aiSuggestedCategory: string | null
+  customFields: Record<string, unknown>
 }
 
 interface SuccessData {
@@ -102,6 +103,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
     availabilityNote: '',
     scheduledDate: '',
     aiSuggestedCategory: null,
+    customFields: {},
   })
 
   // Read query params for pre-fill from asset detail "Report Issue"
@@ -203,6 +205,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
         availabilityNote: formData.availabilityNote || undefined,
         scheduledDate: formData.scheduledDate || undefined,
         assetId: formData.assetId || undefined,
+        customFields: Object.keys(formData.customFields).length > 0 ? formData.customFields : undefined,
       }
 
       // Offline path: queue the mutation and store a local-only ticket
@@ -315,6 +318,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       availabilityNote: '',
       scheduledDate: '',
       aiSuggestedCategory: pending?.category || null,
+      customFields: {},
     }))
     setCurrentStep(3) // Go to Details step (step 3 with asset step added)
     void ticketNumber
@@ -414,6 +418,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
               availabilityNote: '',
               scheduledDate: '',
               aiSuggestedCategory: null,
+              customFields: {},
             })
             setCurrentStep(0)
           }}
@@ -523,6 +528,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
                 onPriorityChange={(v) => update({ priority: v })}
                 onAvailabilityNoteChange={(v) => update({ availabilityNote: v })}
                 onScheduledDateChange={(v) => update({ scheduledDate: v })}
+                customFields={formData.customFields}
+                onCustomFieldsChange={(fields) => update({ customFields: fields })}
               />
             )}
             {currentStep === 4 && (

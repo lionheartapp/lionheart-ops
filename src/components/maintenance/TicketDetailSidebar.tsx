@@ -23,6 +23,8 @@ import AIDiagnosticPanel from './AIDiagnosticPanel'
 import LaborCostPanel from './LaborCostPanel'
 import PPESafetyPanel from './PPESafetyPanel'
 import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
+import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
+import type { CategoryFieldType } from '@prisma/client'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -61,6 +63,13 @@ interface SidebarTicket {
     userId: string
     user: { id: string; firstName: string; lastName: string; email: string }
   }[]
+  assignmentLog?: {
+    reason: string
+    strategy: string
+    source: string
+    createdAt: string
+  } | null
+  customFields?: Record<string, unknown> | null
 }
 
 interface TicketDetailSidebarProps {
@@ -190,6 +199,12 @@ export default function TicketDetailSidebar({
           currentAssignee={ticket.assignedTo ?? null}
           canAssign={canAssign}
         />
+        {ticket.assignmentLog && (
+          <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+            <span className="font-medium text-slate-500">Auto-routed:</span>{' '}
+            {ticket.assignmentLog.reason}
+          </p>
+        )}
       </div>
 
       {/* Priority & Category */}
@@ -367,6 +382,32 @@ export default function TicketDetailSidebar({
         >
           <PPESafetyPanel category={ticket.category} />
         </CollapsibleSection>
+      )}
+
+      {/* Custom Fields */}
+      {ticket.customFields && Object.keys(ticket.customFields).length > 0 && (
+        <div className="border-t border-slate-100 pt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Tag className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              Additional Details
+            </span>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(ticket.customFields as Record<string, unknown>).map(([key, value]) => {
+              const fieldDef = FIELD_LIBRARY[key as CategoryFieldType]
+              if (!fieldDef || value === null || value === undefined) return null
+              return (
+                <div key={key} className="text-sm">
+                  <span className="text-slate-500 text-xs">{fieldDef.label}</span>
+                  <div className="text-slate-900 mt-0.5">
+                    {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       )}
 
       {/* AI Diagnostics */}

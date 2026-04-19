@@ -111,6 +111,20 @@ export const queryKeys = {
       ['athletics-roster', { teamId: teamId ?? '' }] as const,
   },
 
+  // Ticket Routing
+  ticketRouting: {
+    all: ['ticket-routing'] as const,
+    byModule: (module: string) => ['ticket-routing', module] as const,
+  },
+  routingCategories: {
+    all: ['routing-categories'] as const,
+    byModule: (module: string) => ['routing-categories', module] as const,
+  },
+  staffAvailability: {
+    all: ['staff-availability'] as const,
+    byModule: (module: string) => ['staff-availability', module] as const,
+  },
+
   // IT Help Desk
   itTickets: {
     all: ['it-tickets'] as const,

@@ -115,6 +115,7 @@ export const CreateITTicketSchema = z.object({
   areaId: z.string().optional(),
   roomId: z.string().optional(),
   schoolId: z.string().optional(),
+  customFields: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const SubTicketSchema = z.object({
@@ -163,6 +164,7 @@ export async function createITTicket(
       roomId: input.roomId,
       schoolId: input.schoolId,
       submittedById: userId,
+      customFields: input.customFields ?? undefined,
       status: 'BACKLOG',
       statusToken: statusTokenHash,
     },
@@ -183,6 +185,38 @@ export async function createITTicket(
       content: 'Ticket submitted',
     },
   })
+
+  // Compute and set SLA due dates (fire-and-forget)
+  import('@/lib/services/slaService').then(({ computeSLADueDates }) => {
+    computeSLADueDates(orgId, 'IT', input.issueType, ticket.createdAt)
+      .then(async ({ slaResponseDue, slaResolveDue }) => {
+        if (slaResponseDue || slaResolveDue) {
+          await rawPrisma.iTTicket.update({
+            where: { id: ticket.id },
+            data: { slaResponseDue, slaResolveDue },
+          })
+        }
+      })
+      .catch(() => {})
+  }).catch(() => {})
+
+  // Attempt auto-routing (fire-and-forget — failures don't block ticket creation)
+  import('@/lib/services/ticketRoutingService').then(({ routeTicket }) => {
+    routeTicket({
+      module: 'IT',
+      ticketId: ticket.id,
+      categoryKey: input.issueType,
+      buildingId: input.buildingId ?? null,
+      orgId,
+    }).then(async (routingResult) => {
+      if (routingResult.assignedToId) {
+        await (prisma.iTTicket.update as Function)({
+          where: { id: ticket.id },
+          data: { assignedToId: routingResult.assignedToId },
+        })
+      }
+    }).catch(() => {})
+  }).catch(() => {})
 
   // Attach raw status token (unhashed) for inclusion in confirmation emails
   return { ...ticket, rawStatusToken }
@@ -221,6 +255,24 @@ export async function createSubTicket(
       content: `Submitted via magic link — Room ${input.roomText}`,
     },
   })
+
+  // Attempt auto-routing for sub tickets too
+  import('@/lib/services/ticketRoutingService').then(({ routeTicket }) => {
+    routeTicket({
+      module: 'IT',
+      ticketId: ticket.id,
+      categoryKey: input.issueType,
+      buildingId: null,
+      orgId,
+    }).then(async (routingResult) => {
+      if (routingResult.assignedToId) {
+        await (prisma.iTTicket.update as Function)({
+          where: { id: ticket.id },
+          data: { assignedToId: routingResult.assignedToId },
+        })
+      }
+    }).catch(() => {})
+  }).catch(() => {})
 
   return ticket
 }
@@ -320,6 +372,10 @@ export async function assignITTicket(
   const updateData: Record<string, unknown> = { assignedToId: assigneeId }
   if (ticket.status === 'BACKLOG') {
     updateData.status = 'TODO'
+  }
+  // Set firstResponseAt on first assignment (SLA response tracking)
+  if (!ticket.firstResponseAt) {
+    updateData.firstResponseAt = new Date()
   }
 
   const updated = await prisma.iTTicket.update({

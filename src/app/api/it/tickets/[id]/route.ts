@@ -10,6 +10,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getITTicketDetail } from '@/lib/services/itTicketService'
 import { prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 
 const UpdateTicketSchema = z.object({
   title: z.string().min(1).max(500).optional(),
@@ -31,7 +32,14 @@ export const GET = withAuth(async ({ params }) => {
     return NextResponse.json(fail('NOT_FOUND', 'Ticket not found'), { status: 404 })
   }
 
-  return NextResponse.json(ok(ticket))
+  // Fetch latest routing assignment log
+  const assignmentLog = await rawPrisma.ticketAssignmentLog.findFirst({
+    where: { ticketId: params.id, module: 'IT' },
+    orderBy: { createdAt: 'desc' },
+    select: { reason: true, strategy: true, source: true, createdAt: true },
+  })
+
+  return NextResponse.json(ok({ ...ticket, assignmentLog }))
 }, { permission: PERMISSIONS.IT_TICKET_READ_OWN })
 
 export const PATCH = withAuth(async ({ body, params }) => {

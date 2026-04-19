@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import SLABadge from '@/components/shared/SLABadge'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,9 @@ export interface WorkOrderTicket {
   matchesSpecialty?: boolean
   photos?: string[]
   aiAnalysis?: unknown
+  firstResponseAt?: string | null
+  slaResponseDue?: string | null
+  slaResolveDue?: string | null
 }
 
 interface WorkOrdersTableProps {
@@ -525,11 +529,14 @@ export default function WorkOrdersTable({
                       </span>
                     </td>
                     <td className="px-3 py-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${PRIORITY_COLORS[ticket.priority] ?? 'bg-slate-100 text-slate-500'}`}
-                      >
-                        {ticket.priority}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${PRIORITY_COLORS[ticket.priority] ?? 'bg-slate-100 text-slate-500'}`}
+                        >
+                          {ticket.priority}
+                        </span>
+                        <SLABadge ticket={ticket} />
+                      </div>
                     </td>
                     <td className="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">
                       {formatCategory(ticket.category)}

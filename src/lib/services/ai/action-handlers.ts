@@ -482,6 +482,43 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
       return { message: `Email sent to ${payload.recipientName}.` }
     },
   },
+
+  // ── AI Ticket Intake ──────────────────────────────────────────────────
+  create_ticket_from_intake: {
+    requiredPermission: PERMISSIONS.MAINTENANCE_SUBMIT,
+    execute: async (payload, ctx) => {
+      const module = String(payload.module || 'MAINTENANCE')
+      const title = String(payload.title || 'Untitled')
+      const category = String(payload.category || 'OTHER')
+      const priority = String(payload.priority || 'MEDIUM')
+      const description = String(payload.description || '')
+
+      if (module === 'IT') {
+        const { createITTicket } = await import('@/lib/services/it/ticketService')
+        const ticket = await createITTicket(
+          {
+            title,
+            issueType: category as ITIssueType,
+            priority: priority as ITPriority,
+            description,
+            photos: [],
+          },
+          ctx.userId,
+          ctx.organizationId
+        )
+        return { message: `IT ticket **${ticket.ticketNumber}** created: "${title}"` }
+      }
+
+      // Default: MAINTENANCE
+      const { createMaintenanceTicket } = await import('@/lib/services/maintenanceTicketService')
+      const ticket = await createMaintenanceTicket(
+        { title, category, priority, description },
+        ctx.userId,
+        ctx.organizationId
+      )
+      return { message: `Maintenance ticket **${(ticket as { ticketNumber: string }).ticketNumber}** created: "${title}"` }
+    },
+  },
 }
 
 /**

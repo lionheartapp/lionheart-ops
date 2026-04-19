@@ -12,6 +12,8 @@ import {
   CheckCircle2, XCircle, PauseCircle, PlayCircle, Loader2,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
+import type { CategoryFieldType } from '@prisma/client'
 import { formatDateTimeWithTz } from '@/lib/utils/date-format'
 
 interface ITTicketDetailProps {
@@ -45,6 +47,13 @@ interface TicketDetail {
   area?: { id: string; name: string } | null
   room?: { id: string; roomNumber?: string; displayName?: string | null } | null
   school?: { id: string; name: string } | null
+  assignmentLog?: {
+    reason: string
+    strategy: string
+    source: string
+    createdAt: string
+  } | null
+  customFields?: Record<string, unknown> | null
 }
 
 const NEXT_STATUS_ACTIONS: Record<string, { label: string; status: string; icon: typeof PlayCircle; color: string }[]> = {
@@ -236,6 +245,12 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                 </button>
               )}
             </div>
+            {ticket.assignmentLog && (
+              <p className="text-xs text-slate-400 ml-6 mt-0.5">
+                <span className="font-medium text-slate-500">Auto-routed:</span>{' '}
+                {ticket.assignmentLog.reason}
+              </p>
+            )}
 
             {/* Assign dropdown */}
             {showAssign && canManage && (
@@ -347,6 +362,27 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Custom fields */}
+          {ticket.customFields && Object.keys(ticket.customFields).length > 0 && (
+            <div className="px-6 py-3 border-b border-slate-200/50">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Additional Details</h3>
+              <div className="space-y-2">
+                {Object.entries(ticket.customFields as Record<string, unknown>).map(([key, value]) => {
+                  const fieldDef = FIELD_LIBRARY[key as CategoryFieldType]
+                  if (!fieldDef || value === null || value === undefined) return null
+                  return (
+                    <div key={key} className="flex items-baseline gap-2 text-sm">
+                      <span className="text-slate-500 text-xs flex-shrink-0">{fieldDef.label}:</span>
+                      <span className="text-slate-900">
+                        {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 

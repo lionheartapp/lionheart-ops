@@ -506,6 +506,58 @@ const tools: Record<string, ToolRegistryEntry> = {
       })
     },
   },
+
+  // ── ORANGE: AI Ticket Intake ───────────────────────────────────────────────
+  classify_and_draft_ticket: {
+    definition: {
+      name: 'classify_and_draft_ticket',
+      description:
+        'Classify a user\'s plain-language issue description and draft a ticket with suggested category, priority, and title. Use when someone describes a maintenance or IT problem in their own words and wants to submit a ticket.',
+      parameters: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'The user\'s plain-language description of the issue' },
+          module: { type: 'string', enum: ['MAINTENANCE', 'IT'], description: 'Which module (default: auto-detect from description)' },
+        },
+        required: ['description'],
+      },
+    },
+    requiredPermission: PERMISSIONS.MAINTENANCE_SUBMIT,
+    riskTier: 'ORANGE',
+    execute: async (args: Record<string, unknown>) => {
+      const { classifyTicketIntake } = await import('@/lib/services/ai/ticket-intake.service')
+      const classification = await classifyTicketIntake(
+        args.description as string,
+        args.module as 'MAINTENANCE' | 'IT' | undefined
+      )
+
+      if (!classification) {
+        return JSON.stringify({
+          error: 'AI classification unavailable. Please ask the user to select the category manually.',
+        })
+      }
+
+      const confidenceEmoji = classification.confidence === 'HIGH' ? '🟢' : classification.confidence === 'MEDIUM' ? '🟡' : '🔴'
+      const locationNote = classification.extractedLocation ? ` in ${classification.extractedLocation}` : ''
+
+      const draft = {
+        action: 'create_ticket_from_intake',
+        payload: {
+          title: classification.suggestedTitle,
+          category: classification.category,
+          priority: classification.suggestedPriority,
+          description: args.description,
+          module: classification.module,
+        },
+      }
+
+      return JSON.stringify({
+        confirmationRequired: true,
+        message: `${confidenceEmoji} I've classified this as a **${classification.category.replace(/_/g, ' ')}** issue (${classification.module})${locationNote}.\n\n**Title:** ${classification.suggestedTitle}\n**Priority:** ${classification.suggestedPriority}\n**Confidence:** ${classification.confidence}\n\n${classification.reasoning}`,
+        draft,
+      })
+    },
+  },
 }
 
 registerTools(tools)

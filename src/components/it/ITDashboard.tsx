@@ -7,6 +7,8 @@ import { queryOptions } from '@/lib/queries'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { DashboardSkeleton } from './ITSkeleton'
+import ITERateWidget from './ITERateWidget'
+import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import {
   Monitor,
   AlertTriangle,
@@ -115,6 +117,7 @@ function timeAgo(dateStr: string): string {
 
 export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboardProps) {
   const router = useRouter()
+  const itPerms = useITPermissions()
   const { data: stats, isLoading, isError, refetch } = useQuery(queryOptions.itDashboard())
 
   if (isError) {
@@ -286,6 +289,9 @@ export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboar
           </button>
         </div>
       </motion.div>
+
+      {/* E-Rate snapshot — only for users who can view E-Rate */}
+      {itPerms.canViewERate && <ITERateWidget enabled />}
 
       {/* Two-column: Needs Attention + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

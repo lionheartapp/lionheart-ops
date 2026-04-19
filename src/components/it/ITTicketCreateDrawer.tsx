@@ -3,11 +3,27 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
-import { getAuthHeaders } from '@/lib/api-client'
+import { getAuthHeaders, fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
 import { useToast } from '@/components/Toast'
-import { Loader2, Mic } from 'lucide-react'
+import DynamicCategoryField from '@/components/shared/DynamicCategoryField'
+import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
+import type { CategoryFieldType } from '@prisma/client'
+import {
+  Loader2,
+  Mic,
+  Wand2,
+  CheckCircle2,
+  AlertTriangle,
+  Laptop,
+  Code,
+  KeyRound,
+  Wifi,
+  Projector,
+  HelpCircle,
+  type LucideIcon,
+} from 'lucide-react'
 
 // ─── Speech Recognition types (non-standard browser API) ─────────────────────
 
@@ -81,13 +97,13 @@ interface School {
   name: string
 }
 
-const ISSUE_TYPES = [
-  { value: 'HARDWARE', label: 'Hardware' },
-  { value: 'SOFTWARE', label: 'Software' },
-  { value: 'ACCOUNT_PASSWORD', label: 'Account / Password' },
-  { value: 'NETWORK', label: 'Network' },
-  { value: 'DISPLAY_AV', label: 'Display / A/V' },
-  { value: 'OTHER', label: 'Other' },
+const ISSUE_TYPES: Array<{ value: string; label: string; icon: LucideIcon; color: string; selectedColor: string }> = [
+  { value: 'HARDWARE', label: 'Hardware', icon: Laptop, color: 'text-slate-500 bg-slate-50', selectedColor: 'text-slate-700 bg-slate-100 border-slate-400 ring-2 ring-slate-200' },
+  { value: 'SOFTWARE', label: 'Software', icon: Code, color: 'text-blue-500 bg-blue-50', selectedColor: 'text-blue-700 bg-blue-100 border-blue-400 ring-2 ring-blue-200' },
+  { value: 'ACCOUNT_PASSWORD', label: 'Account / Password', icon: KeyRound, color: 'text-amber-500 bg-amber-50', selectedColor: 'text-amber-700 bg-amber-100 border-amber-400 ring-2 ring-amber-200' },
+  { value: 'NETWORK', label: 'Network', icon: Wifi, color: 'text-green-500 bg-green-50', selectedColor: 'text-green-700 bg-green-100 border-green-400 ring-2 ring-green-200' },
+  { value: 'DISPLAY_AV', label: 'Display / A/V', icon: Projector, color: 'text-purple-500 bg-purple-50', selectedColor: 'text-purple-700 bg-purple-100 border-purple-400 ring-2 ring-purple-200' },
+  { value: 'OTHER', label: 'Other', icon: HelpCircle, color: 'text-slate-400 bg-slate-50', selectedColor: 'text-slate-700 bg-slate-100 border-slate-400 ring-2 ring-slate-200' },
 ]
 
 const PRIORITIES = [
@@ -147,6 +163,10 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const [areaId, setAreaId] = useState('')
   const [roomId, setRoomId] = useState('')
   const [schoolId, setSchoolId] = useState('')
+  const [customFields, setCustomFields] = useState<Record<string, unknown>>({})
+  const [quickDescribe, setQuickDescribe] = useState('')
+  const [classifying, setClassifying] = useState(false)
+  const [classifyResult, setClassifyResult] = useState<{ confidence: string; reasoning: string } | null>(null)
   const [error, setError] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
@@ -222,6 +242,21 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     staleTime: 5 * 60_000,
   })
 
+  // Fetch dynamic fields for selected issue type
+  interface FieldConfigRecord {
+    fieldType: CategoryFieldType
+    required: boolean
+    sortOrder: number
+  }
+  const { data: enabledFieldConfigs } = useQuery({
+    queryKey: ['category-fields', 'IT', issueType],
+    queryFn: () =>
+      fetchApi<FieldConfigRecord[]>(
+        `/api/settings/ticket-routing/fields?module=IT&categoryKey=${issueType}`
+      ),
+    enabled: !!issueType,
+  })
+
   const selectedBuilding = buildings.find((b) => b.id === buildingId)
   const areas = selectedBuilding?.areas ?? []
   const selectedArea = areas.find((a) => a.id === areaId)
@@ -241,6 +276,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       if (areaId) body.areaId = areaId
       if (roomId) body.roomId = roomId
       if (schoolId) body.schoolId = schoolId
+      if (Object.keys(customFields).length > 0) body.customFields = customFields
 
       const res = await fetch('/api/it/tickets', {
         method: 'POST',
@@ -338,6 +374,72 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         }}
         className="px-6 py-4 space-y-4"
       >
+        {/* Quick Describe — AI Classify */}
+        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Wand2 className="w-4 h-4 text-indigo-500" />
+            <span className="text-sm font-medium text-indigo-900">Quick Describe</span>
+            <span className="text-xs text-indigo-500">AI-powered</span>
+          </div>
+          <textarea
+            value={quickDescribe}
+            onChange={(e) => setQuickDescribe(e.target.value)}
+            placeholder="Describe the issue in your own words... e.g. 'Wi-Fi is down in the library, 30 students can't connect'"
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-indigo-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent transition-shadow resize-none"
+          />
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              type="button"
+              onClick={async () => {
+                if (quickDescribe.trim().length < 5) return
+                setClassifying(true)
+                setClassifyResult(null)
+                try {
+                  const res = await fetchApi<{
+                    category: string
+                    suggestedTitle: string
+                    suggestedPriority: string
+                    confidence: string
+                    reasoning: string
+                  }>('/api/ai/ticket-intake/classify', {
+                    method: 'POST',
+                    body: JSON.stringify({ description: quickDescribe, module: 'IT' }),
+                  })
+                  if (res) {
+                    setTitle(res.suggestedTitle)
+                    setIssueType(res.category)
+                    setPriority(res.suggestedPriority)
+                    setDescription(quickDescribe)
+                    setClassifyResult({ confidence: res.confidence, reasoning: res.reasoning })
+                  }
+                } catch { /* user can fill manually */ }
+                finally { setClassifying(false) }
+              }}
+              disabled={classifying || quickDescribe.trim().length < 5}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
+            >
+              {classifying ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Classifying...</>
+              ) : (
+                <><Wand2 className="w-3.5 h-3.5" /> Let AI Classify</>
+              )}
+            </button>
+            {classifyResult && (
+              <div className="flex items-center gap-1.5 text-xs">
+                {classifyResult.confidence === 'HIGH' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                )}
+                <span className={classifyResult.confidence === 'HIGH' ? 'text-green-700' : 'text-amber-700'}>
+                  {classifyResult.confidence} confidence
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         <FloatingInput
           label="Title *"
           value={title}
@@ -364,22 +466,33 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Issue Type *</label>
-          <select
-            value={issueType}
-            onChange={(e) => {
-              setIssueType(e.target.value)
-              setPasswordSubType('')
-              setAvSubType('')
-            }}
-            required
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            <option value="">Select type...</option>
-            {ISSUE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Issue Type *</label>
+          <div className="grid grid-cols-3 gap-2">
+            {ISSUE_TYPES.map((t) => {
+              const Icon = t.icon
+              const isSelected = issueType === t.value
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => {
+                    setIssueType(t.value)
+                    setPasswordSubType('')
+                    setAvSubType('')
+                  }}
+                  className={`
+                    flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border transition-all cursor-pointer
+                    ${isSelected ? t.selectedColor : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}
+                  `}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? '' : t.color}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className={`text-xs font-medium text-center leading-tight ${isSelected ? '' : 'text-slate-700'}`}>{t.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Password sub-type */}
@@ -413,6 +526,30 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Dynamic category-scoped fields */}
+        {enabledFieldConfigs && enabledFieldConfigs.length > 0 && (
+          <div className="space-y-4">
+            {enabledFieldConfigs
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((fc) => {
+                const fieldDef = FIELD_LIBRARY[fc.fieldType]
+                if (!fieldDef) return null
+                return (
+                  <DynamicCategoryField
+                    key={fc.fieldType}
+                    field={{ ...fieldDef, required: fc.required }}
+                    value={customFields[fc.fieldType] ?? null}
+                    onChange={(val) =>
+                      setCustomFields((prev) => ({ ...prev, [fc.fieldType]: val }))
+                    }
+                    formValues={{ priority, issueType, ...customFields }}
+                    module="IT"
+                  />
+                )
+              })}
           </div>
         )}
 

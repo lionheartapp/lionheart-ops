@@ -1,18 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Calendar, Clock } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { fetchApi } from '@/lib/api-client'
+import DynamicCategoryField from '@/components/shared/DynamicCategoryField'
+import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
+import type { CategoryFieldType } from '@prisma/client'
+import {
+  Sparkles,
+  Calendar,
+  Clock,
+  Wand2,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle as AlertTriangleIcon,
+  Zap,
+  Droplets,
+  Wind,
+  Hammer,
+  SprayCan,
+  Monitor,
+  Trees,
+  HelpCircle,
+  type LucideIcon,
+} from 'lucide-react'
 
-const CATEGORIES = [
-  { value: 'ELECTRICAL', label: 'Electrical' },
-  { value: 'PLUMBING', label: 'Plumbing' },
-  { value: 'HVAC', label: 'HVAC' },
-  { value: 'STRUCTURAL', label: 'Structural' },
-  { value: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard' },
-  { value: 'IT_AV', label: 'IT / A/V' },
-  { value: 'GROUNDS', label: 'Grounds' },
-  { value: 'OTHER', label: 'Other' },
+const CATEGORIES: Array<{ value: string; label: string; icon: LucideIcon; color: string; selectedColor: string }> = [
+  { value: 'ELECTRICAL', label: 'Electrical', icon: Zap, color: 'text-amber-500 bg-amber-50', selectedColor: 'text-amber-700 bg-amber-100 border-amber-400 ring-2 ring-amber-200' },
+  { value: 'PLUMBING', label: 'Plumbing', icon: Droplets, color: 'text-blue-500 bg-blue-50', selectedColor: 'text-blue-700 bg-blue-100 border-blue-400 ring-2 ring-blue-200' },
+  { value: 'HVAC', label: 'HVAC', icon: Wind, color: 'text-teal-500 bg-teal-50', selectedColor: 'text-teal-700 bg-teal-100 border-teal-400 ring-2 ring-teal-200' },
+  { value: 'STRUCTURAL', label: 'Structural', icon: Hammer, color: 'text-orange-500 bg-orange-50', selectedColor: 'text-orange-700 bg-orange-100 border-orange-400 ring-2 ring-orange-200' },
+  { value: 'CUSTODIAL_BIOHAZARD', label: 'Custodial', icon: SprayCan, color: 'text-purple-500 bg-purple-50', selectedColor: 'text-purple-700 bg-purple-100 border-purple-400 ring-2 ring-purple-200' },
+  { value: 'IT_AV', label: 'IT / A/V', icon: Monitor, color: 'text-indigo-500 bg-indigo-50', selectedColor: 'text-indigo-700 bg-indigo-100 border-indigo-400 ring-2 ring-indigo-200' },
+  { value: 'GROUNDS', label: 'Grounds', icon: Trees, color: 'text-green-500 bg-green-50', selectedColor: 'text-green-700 bg-green-100 border-green-400 ring-2 ring-green-200' },
+  { value: 'OTHER', label: 'Other', icon: HelpCircle, color: 'text-slate-500 bg-slate-50', selectedColor: 'text-slate-700 bg-slate-100 border-slate-400 ring-2 ring-slate-200' },
 ]
 
 const PRIORITIES = [
@@ -60,6 +82,8 @@ interface StepDetailsProps {
   onPriorityChange: (v: string) => void
   onAvailabilityNoteChange: (v: string) => void
   onScheduledDateChange: (v: string) => void
+  customFields: Record<string, unknown>
+  onCustomFieldsChange: (fields: Record<string, unknown>) => void
 }
 
 export default function StepDetails({
@@ -76,7 +100,68 @@ export default function StepDetails({
   onPriorityChange,
   onAvailabilityNoteChange,
   onScheduledDateChange,
+  customFields,
+  onCustomFieldsChange,
 }: StepDetailsProps) {
+  // Fetch dynamic fields for the selected category
+  interface FieldConfigRecord {
+    fieldType: CategoryFieldType
+    required: boolean
+    sortOrder: number
+  }
+  const { data: enabledFieldConfigs } = useQuery({
+    queryKey: ['category-fields', 'MAINTENANCE', category],
+    queryFn: () =>
+      fetchApi<FieldConfigRecord[]>(
+        `/api/settings/ticket-routing/fields?module=MAINTENANCE&categoryKey=${category}`
+      ),
+    enabled: !!category,
+  })
+
+  // Auto-escalate priority when safety hazard is checked
+  useEffect(() => {
+    if (customFields.SAFETY_HAZARD === true && priority !== 'URGENT') {
+      onPriorityChange('URGENT')
+    }
+  }, [customFields.SAFETY_HAZARD, priority, onPriorityChange])
+
+  const [quickDescribe, setQuickDescribe] = useState('')
+  const [classifying, setClassifying] = useState(false)
+  const [classifyResult, setClassifyResult] = useState<{
+    confidence: string
+    reasoning: string
+  } | null>(null)
+
+  const handleClassify = async () => {
+    if (quickDescribe.trim().length < 5) return
+    setClassifying(true)
+    setClassifyResult(null)
+    try {
+      const res = await fetchApi<{
+        category: string
+        suggestedTitle: string
+        suggestedPriority: string
+        confidence: string
+        reasoning: string
+        extractedLocation: string | null
+      }>('/api/ai/ticket-intake/classify', {
+        method: 'POST',
+        body: JSON.stringify({ description: quickDescribe, module: 'MAINTENANCE' }),
+      })
+      if (res) {
+        onTitleChange(res.suggestedTitle)
+        onCategoryChange(res.category)
+        onPriorityChange(res.suggestedPriority)
+        onDescriptionChange(quickDescribe)
+        setClassifyResult({ confidence: res.confidence, reasoning: res.reasoning })
+      }
+    } catch {
+      // Silently fail — user can still fill manually
+    } finally {
+      setClassifying(false)
+    }
+  }
+
   const [scheduleEnabled, setScheduleEnabled] = useState(!!scheduledDate)
   const titleRemaining = 200 - title.length
   const descRemaining = 2000 - description.length
@@ -96,6 +181,60 @@ export default function StepDetails({
       <div>
         <h3 className="text-base font-semibold text-slate-900 mb-1">Describe the Issue</h3>
         <p className="text-sm text-slate-500">Tell the maintenance team what needs attention</p>
+      </div>
+
+      {/* Quick Describe — AI Classify */}
+      <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Wand2 className="w-4 h-4 text-indigo-500" />
+          <span className="text-sm font-medium text-indigo-900">Quick Describe</span>
+          <span className="text-xs text-indigo-500">AI-powered</span>
+        </div>
+        <textarea
+          value={quickDescribe}
+          onChange={(e) => setQuickDescribe(e.target.value)}
+          placeholder="Describe the issue in your own words... e.g. 'The projector in Room 203 won't turn on, I have a class in 20 minutes'"
+          rows={2}
+          className="w-full px-3 py-2 rounded-lg border border-indigo-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent transition-shadow resize-none"
+        />
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            type="button"
+            onClick={handleClassify}
+            disabled={classifying || quickDescribe.trim().length < 5}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
+          >
+            {classifying ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Classifying...
+              </>
+            ) : (
+              <>
+                <Wand2 className="w-3.5 h-3.5" />
+                Let AI Classify
+              </>
+            )}
+          </button>
+          {classifyResult && (
+            <div className="flex items-center gap-1.5 text-xs">
+              {classifyResult.confidence === 'HIGH' ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+              ) : classifyResult.confidence === 'MEDIUM' ? (
+                <AlertTriangleIcon className="w-3.5 h-3.5 text-amber-500" />
+              ) : (
+                <AlertTriangleIcon className="w-3.5 h-3.5 text-red-500" />
+              )}
+              <span className={
+                classifyResult.confidence === 'HIGH' ? 'text-green-700' :
+                classifyResult.confidence === 'MEDIUM' ? 'text-amber-700' : 'text-red-700'
+              }>
+                {classifyResult.confidence} confidence
+              </span>
+              <span className="text-slate-400">— {classifyResult.reasoning}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Title */}
@@ -130,22 +269,39 @@ export default function StepDetails({
             </span>
           )}
         </div>
-        <select
-          value={category}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer appearance-none"
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
-        >
-          <option value="">Select a category...</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>{cat.label}</option>
-          ))}
-        </select>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon
+            const isSelected = category === cat.value
+            const isAiSuggested = aiSuggestedCategory === cat.value && isSelected
+            return (
+              <button
+                key={cat.value}
+                type="button"
+                onClick={() => onCategoryChange(cat.value)}
+                className={`
+                  relative flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border transition-all cursor-pointer
+                  ${isSelected ? cat.selectedColor : `border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50`}
+                `}
+              >
+                {isAiSuggested && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </span>
+                )}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? '' : cat.color}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className={`text-xs font-medium ${isSelected ? '' : 'text-slate-700'}`}>{cat.label}</span>
+              </button>
+            )
+          })}
+        </div>
         {aiSuggestedCategory && aiSuggestedCategory !== category && (
           <button
             type="button"
             onClick={() => onCategoryChange(aiSuggestedCategory)}
-            className="mt-1.5 flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-800 transition-colors cursor-pointer"
+            className="mt-2 flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-800 transition-colors cursor-pointer"
           >
             <Sparkles className="w-3 h-3" />
             AI suggests: {CATEGORIES.find(c => c.value === aiSuggestedCategory)?.label || aiSuggestedCategory} — Apply
@@ -173,6 +329,30 @@ export default function StepDetails({
           ))}
         </div>
       </div>
+
+      {/* Dynamic category-scoped fields */}
+      {enabledFieldConfigs && enabledFieldConfigs.length > 0 && (
+        <div className="space-y-4 pt-1">
+          {enabledFieldConfigs
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((fc) => {
+              const fieldDef = FIELD_LIBRARY[fc.fieldType]
+              if (!fieldDef) return null
+              return (
+                <DynamicCategoryField
+                  key={fc.fieldType}
+                  field={{ ...fieldDef, required: fc.required }}
+                  value={customFields[fc.fieldType] ?? null}
+                  onChange={(val) =>
+                    onCustomFieldsChange({ ...customFields, [fc.fieldType]: val })
+                  }
+                  formValues={{ priority, category, ...customFields }}
+                  module="MAINTENANCE"
+                />
+              )
+            })}
+        </div>
+      )}
 
       {/* Description */}
       <div>

@@ -160,6 +160,7 @@ const CreateTicketSchema = z.object({
   scheduledDate: z.string().datetime().optional(),
   availabilityNote: z.string().optional(),
   assetId: z.string().optional(),  // Optional link to a MaintenanceAsset
+  customFields: z.record(z.string(), z.unknown()).optional(),  // Category-scoped dynamic field values
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
@@ -227,6 +228,7 @@ export async function createMaintenanceTicket(
       scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
       availabilityNote: data.availabilityNote,
       assetId: data.assetId ?? null,
+      customFields: data.customFields ?? undefined,
       status: initialStatus,
       submittedById: userId,
     },
@@ -245,6 +247,20 @@ export async function createMaintenanceTicket(
     },
   })
 
+  // Compute and set SLA due dates
+  import('@/lib/services/slaService').then(({ computeSLADueDates }) => {
+    computeSLADueDates(orgId, 'MAINTENANCE', data.category, ticket.createdAt)
+      .then(async ({ slaResponseDue, slaResolveDue }) => {
+        if (slaResponseDue || slaResolveDue) {
+          await rawPrisma.maintenanceTicket.update({
+            where: { id: ticket.id },
+            data: { slaResponseDue, slaResolveDue },
+          })
+        }
+      })
+      .catch((err: unknown) => log.error({ err: String(err) }, 'SLA computation failed'))
+  }).catch(() => {})
+
   // Auto-add submitter as watcher
   await rawPrisma.maintenanceTicketWatcher.create({
     data: {
@@ -253,6 +269,29 @@ export async function createMaintenanceTicket(
       userId,
     },
   }).catch(() => {}) // Ignore if already exists
+
+  // Attempt auto-routing (fire-and-forget — failures don't block ticket creation)
+  import('@/lib/services/ticketRoutingService').then(({ routeTicket }) => {
+    routeTicket({
+      module: 'MAINTENANCE',
+      ticketId: ticket.id,
+      categoryKey: data.category,
+      buildingId: data.buildingId ?? null,
+      orgId,
+    }).then(async (routingResult) => {
+      if (routingResult.assignedToId) {
+        await prisma.maintenanceTicket.update({
+          where: { id: ticket.id },
+          data: { assignedToId: routingResult.assignedToId },
+        })
+        log.info({ ticketId: ticket.id, assignedTo: routingResult.assignedToId, reason: routingResult.reason }, 'Auto-routed maintenance ticket')
+      }
+    }).catch((err: unknown) =>
+      log.error({ err: String(err), ticketId: ticket.id }, 'Auto-routing failed')
+    )
+  }).catch((err: unknown) =>
+    log.error({ err: String(err) }, 'ticketRoutingService import failed')
+  )
 
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketSubmitted, notifyUrgentTicket }) => {
@@ -521,13 +560,19 @@ export async function assignTicket(
     ticket.status === 'BACKLOG' ? 'TODO' : ticket.status as MaintenanceTicketStatus
   const isReassignment = !!ticket.assignedToId && ticket.assignedToId !== assigneeId
 
+  const updateData: Record<string, unknown> = {
+    assignedToId: assigneeId,
+    status: newStatus,
+    version: { increment: 1 },
+  }
+  // Set firstResponseAt on first assignment (SLA response tracking)
+  if (!ticket.firstResponseAt) {
+    updateData.firstResponseAt = new Date()
+  }
+
   const updated = await prisma.maintenanceTicket.update({
     where: { id: ticketId },
-    data: {
-      assignedToId: assigneeId,
-      status: newStatus,
-      version: { increment: 1 },
-    },
+    data: updateData,
     include: TICKET_INCLUDES,
   })
 

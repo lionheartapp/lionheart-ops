@@ -82,6 +82,14 @@ const orgScopedModels = new Set([
 	// E-Rate + Content Filter module
 	'ITERateTask',
 	'ITERateDocument',
+	// E-Rate USAC sync module (mirror of opendata.usac.org, keyed by BEN)
+	'ITERateEntity',
+	'ITERateFundingYear',
+	'ITERateForm470',
+	'ITERateForm471',
+	'ITERateFRN',
+	'ITERateDisbursement',
+	'ITERateSyncRun',
 	'ITContentFilterConfig',
 	'ITContentFilterEvent',
 	// Security Incident module
@@ -133,6 +141,12 @@ const orgScopedModels = new Set([
 	'IntegrationSyncLog',
 	// Planning Center Services integration
 	'PCOServiceLink',
+	// Ticket Routing module
+	'ModuleRoutingConfig',
+	'RoutingCategoryConfig',
+	'StaffAvailability',
+	'TicketAssignmentLog',
+	'CategoryFieldConfig',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

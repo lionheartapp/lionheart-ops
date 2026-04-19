@@ -28,7 +28,14 @@ export const GET = withAuth(async ({ orgId, ctx, params, permissions }) => {
     return NextResponse.json(fail('FORBIDDEN', 'Access denied'), { status: 403 })
   }
 
-  return NextResponse.json(ok(ticket))
+  // Fetch latest routing assignment log for this ticket
+  const assignmentLog = await rawPrisma.ticketAssignmentLog.findFirst({
+    where: { ticketId: params.id, module: 'MAINTENANCE' },
+    orderBy: { createdAt: 'desc' },
+    select: { reason: true, strategy: true, source: true, createdAt: true },
+  })
+
+  return NextResponse.json(ok({ ...ticket, assignmentLog }))
 }, { permission: PERMISSIONS.MAINTENANCE_READ_OWN })
 
 export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {

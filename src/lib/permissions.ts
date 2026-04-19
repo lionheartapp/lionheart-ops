@@ -207,6 +207,7 @@ export const PERMISSIONS = {
   // E-Rate Compliance
   IT_ERATE_MANAGE: 'it:erate:manage',                          // Manage E-Rate calendar, tasks, docs
   IT_ERATE_VIEW: 'it:erate:view',                              // View E-Rate calendar and status
+  IT_ERATE_SYNC: 'it:erate:sync',                              // Trigger / manage USAC Open Data sync for the org's BEN
 
   // CIPA / Content Filter
   IT_CIPA_AUDIT_VIEW: 'it:cipa:audit:view',                    // View CIPA audit trail
@@ -409,6 +410,7 @@ export const DEFAULT_ROLES = {
       // E-Rate + Content Filter
       PERMISSIONS.IT_ERATE_MANAGE,
       PERMISSIONS.IT_ERATE_VIEW,
+      PERMISSIONS.IT_ERATE_SYNC,
       PERMISSIONS.IT_CIPA_AUDIT_VIEW,
       PERMISSIONS.IT_CIPA_AUDIT_MANAGE,
       PERMISSIONS.IT_FILTERS_CONFIGURE,
@@ -742,6 +744,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_ANALYTICS_READ,
       // E-Rate + Content Filter (view + manage filters)
       PERMISSIONS.IT_ERATE_VIEW,
+      PERMISSIONS.IT_ERATE_SYNC,
       PERMISSIONS.IT_CIPA_AUDIT_VIEW,
       PERMISSIONS.IT_FILTERS_MANAGE,
       // Security Incidents
