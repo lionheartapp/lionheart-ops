@@ -28,6 +28,7 @@ export interface RoutingInput {
   ticketId: string
   categoryKey: string
   buildingId?: string | null
+  submittedById?: string | null
   orgId: string
 }
 
@@ -42,6 +43,7 @@ interface EligibleStaff {
   userId: string
   openTicketCount: number
   maxActiveTickets: number
+  hasSkillMatch: boolean
 }
 
 // ─── Main Routing Function ───────────────────────────────────────────────────
@@ -52,6 +54,27 @@ export async function routeTicket(input: RoutingInput): Promise<RoutingResult> {
   try {
     // Step 0: Resolve campus from building
     const campusId = buildingId ? await resolveCampusId(buildingId) : null
+
+    // Step 0.5: Same-agent routing (if enabled)
+    if (input.submittedById) {
+      const routingConfig = await findRoutingConfig(orgId, module, campusId)
+      if (routingConfig?.enableSameAgentRouting) {
+        const previousAssignee = await findPreviousAssignee(input.submittedById, module, orgId)
+        if (previousAssignee) {
+          const eligible = await isStaffEligible(previousAssignee, module, campusId, orgId)
+          if (eligible) {
+            const result: RoutingResult = {
+              assignedToId: previousAssignee,
+              reason: 'Same-agent routing (previously handled this requester)',
+              strategy: routingConfig.strategy as RoutingStrategy,
+              source: 'CAMPUS_DEFAULT',
+            }
+            await logAssignment(input, result, 1)
+            return result
+          }
+        }
+      }
+    }
 
     // Step 1: Check category specialist override
     const categoryConfig = await rawPrisma.routingCategoryConfig.findUnique({
@@ -170,7 +193,7 @@ export async function routeTicket(input: RoutingInput): Promise<RoutingResult> {
     }
 
     // ROUND_ROBIN or LOAD_BALANCED — need eligible staff list
-    const eligible = await getEligibleStaff(campusId, module, orgId)
+    const eligible = await getEligibleStaff(campusId, module, orgId, categoryKey)
 
     if (eligible.length === 0) {
       const result: RoutingResult = {
@@ -288,6 +311,11 @@ async function isStaffEligible(
       // outUntil has passed — they're effectively available
     }
 
+    // Check working hours
+    if (availability.workingHours && !isWithinWorkingHours(availability.workingHours as Record<string, string>)) {
+      return false
+    }
+
     // Check capacity
     const openCount = await getOpenTicketCount(userId, module, orgId)
     const maxTickets = await getMaxTickets(userId, module, availability.maxActiveTickets)
@@ -370,7 +398,8 @@ async function getOpenTicketCount(
 async function getEligibleStaff(
   campusId: string | null,
   module: TicketModule,
-  orgId: string
+  orgId: string,
+  categoryKey?: string
 ): Promise<EligibleStaff[]> {
   // Get staff with availability records for this module who are available
   const availabilities = await rawPrisma.staffAvailability.findMany({
@@ -421,8 +450,16 @@ async function getEligibleStaff(
     const availRecord = [...availabilities, ...expiredOOO].find((a) => a.userId === userId)
     const maxTickets = await getMaxTickets(userId, module, availRecord?.maxActiveTickets ?? 10)
 
+    // Filter by working hours
+    if (availRecord?.workingHours && !isWithinWorkingHours(availRecord.workingHours as Record<string, string>)) {
+      continue
+    }
+
     if (openCount < maxTickets) {
-      eligible.push({ userId, openTicketCount: openCount, maxActiveTickets: maxTickets })
+      // Check skill match
+      const skillTags = (availRecord?.skillTags ?? []) as string[]
+      const hasSkillMatch = categoryKey ? skillTags.includes(categoryKey) : false
+      eligible.push({ userId, openTicketCount: openCount, maxActiveTickets: maxTickets, hasSkillMatch })
     }
   }
 
@@ -439,9 +476,69 @@ function executeRoundRobin(
 }
 
 function executeLoadBalanced(eligible: EligibleStaff[]): EligibleStaff {
-  // Sort by open ticket count ascending, pick first
-  const sorted = [...eligible].sort((a, b) => a.openTicketCount - b.openTicketCount)
+  // Sort by skill match (matched first), then by open ticket count ascending
+  const sorted = [...eligible].sort((a, b) => {
+    if (a.hasSkillMatch !== b.hasSkillMatch) return a.hasSkillMatch ? -1 : 1
+    return a.openTicketCount - b.openTicketCount
+  })
   return sorted[0]
+}
+
+function isWithinWorkingHours(workingHours: Record<string, string>): boolean {
+  const now = new Date()
+  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+  const today = days[now.getDay()]
+  const schedule = workingHours[today]
+  if (!schedule) return false // No schedule for today = not working
+
+  const [start, end] = schedule.split('-')
+  if (!start || !end) return false
+
+  const [startH, startM] = start.split(':').map(Number)
+  const [endH, endM] = end.split(':').map(Number)
+  const nowMins = now.getHours() * 60 + now.getMinutes()
+  const startMins = startH * 60 + startM
+  const endMins = endH * 60 + endM
+
+  return nowMins >= startMins && nowMins < endMins
+}
+
+async function findPreviousAssignee(
+  submittedById: string,
+  module: TicketModule,
+  orgId: string
+): Promise<string | null> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  if (module === 'MAINTENANCE') {
+    const previous = await rawPrisma.maintenanceTicket.findFirst({
+      where: {
+        organizationId: orgId,
+        submittedById,
+        assignedToId: { not: null },
+        status: 'DONE',
+        updatedAt: { gte: thirtyDaysAgo },
+        deletedAt: null,
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: { assignedToId: true },
+    })
+    return previous?.assignedToId ?? null
+  }
+
+  const previous = await rawPrisma.iTTicket.findFirst({
+    where: {
+      organizationId: orgId,
+      submittedById,
+      assignedToId: { not: null },
+      status: 'DONE',
+      updatedAt: { gte: thirtyDaysAgo },
+      deletedAt: null,
+    },
+    orderBy: { updatedAt: 'desc' },
+    select: { assignedToId: true },
+  })
+  return previous?.assignedToId ?? null
 }
 
 async function findRoutingConfig(

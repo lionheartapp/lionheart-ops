@@ -212,6 +212,7 @@ model Organization {
   staffAvailabilities         StaffAvailability[]
   ticketAssignmentLogs        TicketAssignmentLog[]
   categoryFieldConfigs        CategoryFieldConfig[]
+  escalationRules             EscalationRule[]
 
   @@index([onboardingStatus])
 }
@@ -351,6 +352,7 @@ model User {
   staffAvailability         StaffAvailability[]
   routingDelegations        StaffAvailability[]       @relation("RoutingDelegate")
   routingAssignments        TicketAssignmentLog[]     @relation("RoutingAssignment")
+  escalationTargets         EscalationRule[]          @relation("EscalationTarget")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -5445,6 +5447,7 @@ model ModuleRoutingConfig {
   strategy        RoutingStrategy @default(UNASSIGNED)
   managerUserId   String?         // Required when strategy = MANAGER_TRIAGE
   roundRobinIndex Int             @default(0) // Tracks rotation position for ROUND_ROBIN
+  enableSameAgentRouting Boolean  @default(false) // Route to same assignee for repeat requesters
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -5490,6 +5493,8 @@ model StaffAvailability {
   outUntil         DateTime?               // When OUT_OF_OFFICE, auto-restore after this
   maxActiveTickets Int                     @default(10)
   delegateUserId   String?                 // "Route my tickets to this person while I'm out"
+  workingHours     Json?                   // { mon: "08:00-16:00", tue: "08:00-16:00", ... }
+  skillTags        String[]                @default([]) // Free-form skill tags for granular routing
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
 
@@ -5549,4 +5554,29 @@ model CategoryFieldConfig {
 
   @@unique([organizationId, module, categoryKey, fieldType])
   @@index([organizationId, module, categoryKey])
+}
+
+enum EscalationAction {
+  BUMP_PRIORITY
+  REASSIGN
+  NOTIFY_ADMIN
+}
+
+/// Auto-escalation rules for unresponded tickets.
+model EscalationRule {
+  id             String           @id @default(cuid())
+  organizationId String
+  module         TicketModule
+  triggerMins    Int              // Minutes after creation with no response
+  action         EscalationAction
+  targetPriority String?          // For BUMP_PRIORITY: new priority level
+  targetUserId   String?          // For REASSIGN: who to reassign to
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  targetUser   User?        @relation("EscalationTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, module, isActive])
 }

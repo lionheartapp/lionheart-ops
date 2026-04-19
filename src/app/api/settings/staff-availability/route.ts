@@ -13,6 +13,8 @@ const UpdateAvailabilitySchema = z.object({
   outUntil: z.string().datetime().nullable().optional(),
   maxActiveTickets: z.number().int().min(1).max(100).optional(),
   delegateUserId: z.string().nullable().optional(),
+  workingHours: z.record(z.string()).nullable().optional(),
+  skillTags: z.array(z.string()).optional(),
 })
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
@@ -65,7 +67,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({ orgId, body }) => {
-  const { userId, module, status, outUntil, maxActiveTickets, delegateUserId } = body
+  const { userId, module, status, outUntil, maxActiveTickets, delegateUserId, workingHours, skillTags } = body
 
   // Upsert — create if doesn't exist
   const existing = await rawPrisma.staffAvailability.findUnique({
@@ -83,6 +85,8 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
   if (outUntil !== undefined) updateData.outUntil = outUntil ? new Date(outUntil) : null
   if (maxActiveTickets !== undefined) updateData.maxActiveTickets = maxActiveTickets
   if (delegateUserId !== undefined) updateData.delegateUserId = delegateUserId
+  if (workingHours !== undefined) updateData.workingHours = workingHours
+  if (skillTags !== undefined) updateData.skillTags = skillTags
 
   const result = existing
     ? await rawPrisma.staffAvailability.update({

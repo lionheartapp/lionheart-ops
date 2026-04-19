@@ -12,6 +12,8 @@ import {
   UserCheck,
   UserX,
   RefreshCw,
+  Square,
+  CheckSquare,
 } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -416,6 +418,54 @@ export default function WorkOrdersTable({
   claimingId,
 }: WorkOrdersTableProps) {
   const router = useRouter()
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkAssigning, setBulkAssigning] = useState(false)
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === tickets.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(tickets.map((t) => t.id)))
+    }
+  }
+
+  const handleBulkAssign = async (techId: string) => {
+    setBulkAssigning(true)
+    try {
+      const res = await fetch('/api/maintenance/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'assign', ticketIds: [...selectedIds], assignedToId: techId }),
+        credentials: 'include',
+      })
+      if (res.ok) {
+        setSelectedIds(new Set())
+        // Parent will refetch via query invalidation
+      }
+    } catch { /* ignore */ }
+    finally { setBulkAssigning(false) }
+  }
+
+  const handleBulkPriority = async (newPriority: string) => {
+    try {
+      await fetch('/api/maintenance/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-priority', ticketIds: [...selectedIds], priority: newPriority }),
+        credentials: 'include',
+      })
+      setSelectedIds(new Set())
+    } catch { /* ignore */ }
+  }
 
   const sortedTickets = useCallback(() => {
     const priorityVal = (p: string) => PRIORITY_ORDER[p] ?? 0
@@ -462,11 +512,61 @@ export default function WorkOrdersTable({
 
   return (
     <>
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && canAssign && (
+        <div className="flex items-center gap-3 px-4 py-2.5 mb-2 bg-blue-50 border border-blue-200 rounded-xl">
+          <span className="text-sm font-medium text-blue-900">{selectedIds.size} selected</span>
+          <select
+            onChange={(e) => {
+              if (e.target.value) handleBulkAssign(e.target.value)
+              e.target.value = ''
+            }}
+            disabled={bulkAssigning}
+            className="px-3 py-1.5 rounded-full border border-blue-200 bg-white text-sm text-slate-700 cursor-pointer"
+          >
+            <option value="">Assign to...</option>
+            {technicians.map((t) => (
+              <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
+            ))}
+          </select>
+          <select
+            onChange={(e) => {
+              if (e.target.value) handleBulkPriority(e.target.value)
+              e.target.value = ''
+            }}
+            className="px-3 py-1.5 rounded-full border border-blue-200 bg-white text-sm text-slate-700 cursor-pointer"
+          >
+            <option value="">Set priority...</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="ml-auto text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Desktop table */}
       <div className="ui-glass-table hidden md:block">
         <table className="w-full text-sm">
           <thead className="border-b border-slate-100">
             <tr className="text-left">
+              {canAssign && (
+                <th className="px-2 py-2 w-8">
+                  <button onClick={toggleSelectAll} className="cursor-pointer text-slate-400 hover:text-slate-600">
+                    {selectedIds.size === tickets.length && tickets.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                </th>
+              )}
               {renderThSort('Ticket #', 'ticketNumber')}
               <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Title</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Status</th>
@@ -515,6 +615,20 @@ export default function WorkOrdersTable({
                     className={`border-b border-slate-50 hover:bg-slate-50/50 cursor-pointer transition-colors ${rowOpacity}`}
                     onClick={() => router.push(`/maintenance/tickets/${ticket.id}`)}
                   >
+                    {canAssign && (
+                      <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => toggleSelect(ticket.id)}
+                          className="cursor-pointer text-slate-400 hover:text-slate-600"
+                        >
+                          {selectedIds.has(ticket.id) ? (
+                            <CheckSquare className="w-4 h-4 text-blue-600" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
+                    )}
                     <td className="px-3 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
                       {ticket.ticketNumber}
                     </td>

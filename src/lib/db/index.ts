@@ -147,6 +147,7 @@ const orgScopedModels = new Set([
 	'StaffAvailability',
 	'TicketAssignmentLog',
 	'CategoryFieldConfig',
+	'EscalationRule',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete

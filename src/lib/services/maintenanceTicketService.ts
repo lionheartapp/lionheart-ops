@@ -277,6 +277,7 @@ export async function createMaintenanceTicket(
       ticketId: ticket.id,
       categoryKey: data.category,
       buildingId: data.buildingId ?? null,
+      submittedById: userId,
       orgId,
     }).then(async (routingResult) => {
       if (routingResult.assignedToId) {

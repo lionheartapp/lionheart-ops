@@ -193,8 +193,55 @@ export async function GET(req: NextRequest) {
       logger.error({ error: String(repairErr) }, 'Repair detection task failed')
     }
 
-    logger.info({ releasedCount, alertedCount, pmCreatedCount, repairDetectedCount }, 'Maintenance tasks completed')
-    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount, repairDetected: repairDetectedCount }))
+    // ── Task 4: Escalation rules ────────────────────────────────────────────
+    let escalatedCount = 0
+    try {
+      const escalationRules = await rawPrisma.escalationRule.findMany({
+        where: { isActive: true, module: 'MAINTENANCE' },
+      })
+
+      for (const rule of escalationRules) {
+        const cutoff = new Date(now.getTime() - rule.triggerMins * 60_000)
+        const unrespondedTickets = await rawPrisma.maintenanceTicket.findMany({
+          where: {
+            organizationId: rule.organizationId,
+            firstResponseAt: null,
+            createdAt: { lte: cutoff },
+            status: { notIn: ['DONE', 'CANCELLED'] },
+            deletedAt: null,
+          },
+          select: { id: true, priority: true },
+          take: 50,
+        })
+
+        for (const ticket of unrespondedTickets) {
+          try {
+            if (rule.action === 'BUMP_PRIORITY' && rule.targetPriority) {
+              await rawPrisma.maintenanceTicket.update({
+                where: { id: ticket.id },
+                data: { priority: rule.targetPriority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' },
+              })
+              escalatedCount++
+            } else if (rule.action === 'REASSIGN' && rule.targetUserId) {
+              await rawPrisma.maintenanceTicket.update({
+                where: { id: ticket.id },
+                data: { assignedToId: rule.targetUserId, firstResponseAt: now },
+              })
+              escalatedCount++
+            }
+            // NOTIFY_ADMIN handled by existing stale alert mechanism
+          } catch (ticketErr) {
+            logger.error({ error: String(ticketErr), ticketId: ticket.id }, 'Escalation failed for ticket')
+          }
+        }
+      }
+      if (escalatedCount > 0) logger.info({ escalatedCount }, 'Escalation rules applied')
+    } catch (escErr) {
+      logger.error({ error: String(escErr) }, 'Escalation task failed')
+    }
+
+    logger.info({ releasedCount, alertedCount, pmCreatedCount, repairDetectedCount, escalatedCount }, 'Maintenance tasks completed')
+    return NextResponse.json(ok({ released: releasedCount, alerted: alertedCount, pmCreated: pmCreatedCount, repairDetected: repairDetectedCount, escalated: escalatedCount }))
   } catch (error) {
     logger.error({ error: String(error) }, 'Fatal error')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Cron job failed'), { status: 500 })
