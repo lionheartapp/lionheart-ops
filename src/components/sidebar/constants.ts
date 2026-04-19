@@ -46,7 +46,6 @@ export const WORKSPACE_TABS: SettingsTabDef[] = [
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'add-ons', label: 'Add-ons', icon: Puzzle },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
-  { id: 'ticket-routing', label: 'Ticket Routing', icon: Route },
   { id: 'activity-log', label: 'Activity Log', icon: ScrollText },
 ]
 

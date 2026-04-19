@@ -15,7 +15,6 @@ export type Tab =
   | 'integrations'
   | 'activity-log'
   | 'billing'
-  | 'ticket-routing'
 
 export const VALID_TABS: Tab[] = [
   'profile',
@@ -30,7 +29,6 @@ export const VALID_TABS: Tab[] = [
   'integrations',
   'activity-log',
   'billing',
-  'ticket-routing',
 ]
 
 export type WorkspaceTab = Exclude<Tab, 'profile'>

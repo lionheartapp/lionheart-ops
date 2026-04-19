@@ -13,7 +13,8 @@ import MyRequestsView from '@/components/maintenance/MyRequestsView'
 import PmCalendarView from '@/components/maintenance/PmCalendarView'
 import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
-import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X } from 'lucide-react'
+import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
+import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
@@ -29,9 +30,11 @@ const SUB_TABS: {
   key: MaintenanceTab
   label: string
   icon: typeof LayoutDashboard
+  requiresManage?: boolean
 }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'pm-calendar', label: 'PM Calendar', icon: CalendarClock },
+  { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
 ]
 
 /**
@@ -197,7 +200,7 @@ function MaintenanceContent() {
             {showDashboardTabs ? (
               <>
                 <div ref={tabContainerRef} role="tablist" aria-label="Maintenance tabs" className="relative flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-                  {SUB_TABS.map(({ key, label, icon: Icon }) => (
+                  {SUB_TABS.filter((t) => !t.requiresManage || canManageMaintenance).map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
                       ref={(el) => setTabRef(key, el)}
@@ -344,6 +347,18 @@ function MaintenanceContent() {
                         </AnimatePresence>
                       </section>
                     </div>
+
+                    {/* Routing tab — managers only */}
+                    {canManageMaintenance && activeTab === 'routing' && (
+                      <div
+                        role="tabpanel"
+                        id="tabpanel-routing"
+                        aria-labelledby="tab-routing"
+                        className="animate-[fadeIn_200ms_ease-out]"
+                      >
+                        <TicketRoutingTab defaultModule="MAINTENANCE" />
+                      </div>
+                    )}
                 </>
               </>
             ) : (

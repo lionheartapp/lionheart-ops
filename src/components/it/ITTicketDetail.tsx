@@ -263,7 +263,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                     className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors flex items-center gap-2"
                   >
                     <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
-                      {m.firstName[0]}{m.lastName[0]}
+                      {m.firstName?.[0] ?? ''}{m.lastName?.[0] ?? ''}
                     </div>
                     {m.firstName} {m.lastName}
                   </button>

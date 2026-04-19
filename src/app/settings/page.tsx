@@ -16,7 +16,6 @@ import AddOnsTab from '@/components/settings/AddOnsTab'
 import AuditLogTab from '@/components/settings/AuditLogTab'
 import BillingTab from '@/components/settings/BillingTab'
 import IntegrationsTab from '@/components/settings/IntegrationsTab'
-import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
 import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS } from './settings-types'
@@ -354,11 +353,6 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {canManageWorkspace && visitedTabs.has('ticket-routing') && (
-                <div className={activeTab === 'ticket-routing' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'ticket-routing'}>
-                  <TicketRoutingTab />
-                </div>
-              )}
 
               {canManageWorkspace && visitedTabs.has('activity-log') && (
                 <div className={activeTab === 'activity-log' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'activity-log'}>

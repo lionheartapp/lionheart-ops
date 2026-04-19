@@ -20,7 +20,6 @@ import {
   Wind,
   Hammer,
   SprayCan,
-  Monitor,
   Trees,
   HelpCircle,
   type LucideIcon,
@@ -32,7 +31,6 @@ const CATEGORIES: Array<{ value: string; label: string; icon: LucideIcon; color:
   { value: 'HVAC', label: 'HVAC', icon: Wind, color: 'text-teal-500 bg-teal-50', selectedColor: 'text-teal-700 bg-teal-100 border-teal-400 ring-2 ring-teal-200' },
   { value: 'STRUCTURAL', label: 'Structural', icon: Hammer, color: 'text-orange-500 bg-orange-50', selectedColor: 'text-orange-700 bg-orange-100 border-orange-400 ring-2 ring-orange-200' },
   { value: 'CUSTODIAL_BIOHAZARD', label: 'Custodial', icon: SprayCan, color: 'text-purple-500 bg-purple-50', selectedColor: 'text-purple-700 bg-purple-100 border-purple-400 ring-2 ring-purple-200' },
-  { value: 'IT_AV', label: 'IT / A/V', icon: Monitor, color: 'text-indigo-500 bg-indigo-50', selectedColor: 'text-indigo-700 bg-indigo-100 border-indigo-400 ring-2 ring-indigo-200' },
   { value: 'GROUNDS', label: 'Grounds', icon: Trees, color: 'text-green-500 bg-green-50', selectedColor: 'text-green-700 bg-green-100 border-green-400 ring-2 ring-green-200' },
   { value: 'OTHER', label: 'Other', icon: HelpCircle, color: 'text-slate-500 bg-slate-50', selectedColor: 'text-slate-700 bg-slate-100 border-slate-400 ring-2 ring-slate-200' },
 ]

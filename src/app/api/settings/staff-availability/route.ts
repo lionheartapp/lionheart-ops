@@ -17,6 +17,12 @@ const UpdateAvailabilitySchema = z.object({
   skillTags: z.array(z.string()).optional(),
 })
 
+// Permission strings that indicate a user can handle tickets for each module
+const MODULE_PERMISSIONS: Record<string, string[]> = {
+  MAINTENANCE: ['maintenance:claim', 'maintenance:assign'],
+  IT: ['it:ticket:assign'],
+}
+
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const module = searchParams.get('module')
   if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
@@ -26,7 +32,59 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     )
   }
 
-  const availabilities = await prisma.staffAvailability.findMany({
+  // Find all users with relevant permissions for this module
+  const permStrings = MODULE_PERMISSIONS[module] ?? []
+  const permConditions = permStrings.map((perm) => {
+    const [resource, action, scope] = perm.split(':')
+    return scope
+      ? { resource, action, scope }
+      : { resource, action, scope: 'global' }
+  })
+
+  const eligibleUsers = await rawPrisma.user.findMany({
+    where: {
+      organizationId: orgId,
+      deletedAt: null,
+      status: 'ACTIVE',
+      userRole: {
+        permissions: {
+          some: {
+            permission: {
+              OR: [
+                { resource: '*', action: '*' }, // super-admin wildcard
+                ...permConditions,
+              ],
+            },
+          },
+        },
+      },
+    },
+    select: { id: true, firstName: true, lastName: true, email: true, avatar: true },
+  })
+
+  // Auto-create StaffAvailability records for users who don't have one yet
+  const existingRecords = await rawPrisma.staffAvailability.findMany({
+    where: { organizationId: orgId, module: module as 'MAINTENANCE' | 'IT' },
+    select: { userId: true },
+  })
+  const existingUserIds = new Set(existingRecords.map((r) => r.userId))
+
+  const newUsers = eligibleUsers.filter((u) => !existingUserIds.has(u.id))
+  if (newUsers.length > 0) {
+    await rawPrisma.staffAvailability.createMany({
+      data: newUsers.map((u) => ({
+        organizationId: orgId,
+        userId: u.id,
+        module: module as 'MAINTENANCE' | 'IT',
+        status: 'AVAILABLE' as const,
+        maxActiveTickets: 10,
+      })),
+      skipDuplicates: true,
+    })
+  }
+
+  // Fetch all records (including newly created)
+  const availabilities = await rawPrisma.staffAvailability.findMany({
     where: {
       organizationId: orgId,
       module: module as 'MAINTENANCE' | 'IT',
@@ -112,3 +170,22 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
 
   return NextResponse.json(ok(result))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateAvailabilitySchema })
+
+const DeleteAvailabilitySchema = z.object({
+  userId: z.string().min(1),
+  module: z.enum(['MAINTENANCE', 'IT']),
+})
+
+export const DELETE = withAuth<z.infer<typeof DeleteAvailabilitySchema>>(async ({ orgId, body }) => {
+  const { userId, module } = body
+
+  await rawPrisma.staffAvailability.deleteMany({
+    where: {
+      organizationId: orgId,
+      userId,
+      module,
+    },
+  })
+
+  return NextResponse.json(ok({ deleted: true }))
+}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: DeleteAvailabilitySchema })

@@ -17,11 +17,12 @@ import ITKanbanBoard from '@/components/it/ITKanbanBoard'
 import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
 import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
-import { LayoutDashboard, Kanban, List, Link2 } from 'lucide-react'
+import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
+import { LayoutDashboard, Kanban, List, Link2, Route } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
-type HelpDeskTab = 'dashboard' | 'tickets' | 'magic-links'
+type HelpDeskTab = 'dashboard' | 'tickets' | 'magic-links' | 'routing'
 type TicketViewMode = 'board' | 'list'
 type TicketScope = 'mine' | 'all'
 
@@ -46,6 +47,7 @@ const TABS: { key: HelpDeskTab; label: string; icon: typeof LayoutDashboard; req
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresManage: true },
   { key: 'tickets', label: 'Tickets', icon: List },
   { key: 'magic-links', label: 'Magic Links', icon: Link2, requiresManage: true },
+  { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
 ]
 
 function ITContent() {
@@ -300,6 +302,17 @@ function ITContent() {
           aria-hidden={activeTab !== 'magic-links'}
         >
           <ITMagicLinksTab />
+        </div>
+      )}
+
+      {/* Routing tab — managers/admins only */}
+      {canSeeManageTabs && activeTab === 'routing' && (
+        <div
+          id="tabpanel-routing"
+          aria-labelledby="tab-routing"
+          className="animate-[fadeIn_200ms_ease-out]"
+        >
+          <TicketRoutingTab defaultModule="IT" />
         </div>
       )}
 

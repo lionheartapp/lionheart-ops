@@ -603,7 +603,6 @@ const MAINTENANCE_CATEGORIES = [
   'HVAC',
   'STRUCTURAL',
   'CUSTODIAL_BIOHAZARD',
-  'IT_AV',
   'GROUNDS',
   'OTHER',
 ] as const

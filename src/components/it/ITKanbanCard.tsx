@@ -106,7 +106,7 @@ export default function ITKanbanCard({ ticket, onClick }: ITKanbanCardProps) {
         <TypeBadge type={ticket.issueType} />
         {ticket.assignedTo ? (
           <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-medium text-blue-700" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}>
-            {ticket.assignedTo.firstName[0]}{ticket.assignedTo.lastName[0]}
+            {ticket.assignedTo.firstName?.[0] ?? ''}{ticket.assignedTo.lastName?.[0] ?? ''}
           </div>
         ) : (
           <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">

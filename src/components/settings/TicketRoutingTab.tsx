@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Route,
@@ -16,8 +16,6 @@ import {
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { queryKeys, queryOptions } from '@/lib/queries'
-import { FIELD_LIBRARY, type FieldDefinition } from '@/lib/services/categoryFieldLibrary'
-import type { CategoryFieldType } from '@prisma/client'
 import RoutingDashboard from './RoutingDashboard'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -67,15 +65,6 @@ interface StaffAvailabilityRecord {
   openTickets: number
 }
 
-interface FieldConfig {
-  id: string
-  module: TicketModule
-  categoryKey: string
-  fieldType: CategoryFieldType
-  required: boolean
-  sortOrder: number
-}
-
 // ─── Strategy metadata ───────────────────────────────────────────────────────
 
 const STRATEGY_OPTIONS: Array<{
@@ -117,7 +106,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   HVAC: 'HVAC',
   STRUCTURAL: 'Structural',
   CUSTODIAL_BIOHAZARD: 'Custodial / Biohazard',
-  IT_AV: 'IT & A/V',
   GROUNDS: 'Grounds & Landscaping',
   // IT
   HARDWARE: 'Hardware',
@@ -130,9 +118,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function TicketRoutingTab() {
+interface TicketRoutingTabProps {
+  defaultModule?: TicketModule
+}
+
+export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: TicketRoutingTabProps) {
   const queryClient = useQueryClient()
-  const [activeModule, setActiveModule] = useState<TicketModule>('MAINTENANCE')
+  const [activeModule, setActiveModule] = useState<TicketModule>(defaultModule)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -161,15 +153,6 @@ export default function TicketRoutingTab() {
       ),
   })
 
-  // Fetch field configs for all categories in this module
-  const { data: fieldConfigs } = useQuery({
-    queryKey: ['category-field-configs', activeModule],
-    queryFn: () =>
-      fetchApi<FieldConfig[]>(
-        `/api/settings/ticket-routing/fields?module=${activeModule}`
-      ),
-  })
-
   // Fetch org members for user pickers
   const { data: membersData } = useQuery(queryOptions.members())
   const members = (membersData ?? []) as Array<{
@@ -192,24 +175,18 @@ export default function TicketRoutingTab() {
     queryClient.invalidateQueries({ queryKey: queryKeys.staffAvailability.byModule(activeModule) })
   }, [queryClient, activeModule])
 
-  // ─── Seed defaults if no config exists ─────────────────────────────────
+  // ─── Auto-seed defaults on first visit ───────────────────────────────
 
-  const seedDefaults = async () => {
-    setSaving(true)
-    setError(null)
-    try {
-      await fetchApi('/api/settings/ticket-routing/seed', {
-        method: 'POST',
-      })
-      invalidateAll()
-      setSuccess('Routing defaults initialized')
-      setTimeout(() => setSuccess(null), 3000)
-    } catch {
-      setError('Failed to initialize routing defaults')
-    } finally {
-      setSaving(false)
+  const seededRef = useRef(false)
+  useEffect(() => {
+    if (loadingConfigs || seededRef.current) return
+    if (!routingConfigs || routingConfigs.length === 0) {
+      seededRef.current = true
+      fetchApi('/api/settings/ticket-routing/seed', { method: 'POST' })
+        .then(() => invalidateAll())
+        .catch(() => {})
     }
-  }
+  }, [loadingConfigs, routingConfigs, invalidateAll])
 
   // ─── Strategy update ───────────────────────────────────────────────────
 
@@ -236,48 +213,77 @@ export default function TicketRoutingTab() {
     }
   }
 
-  // ─── Category config update ────────────────────────────────────────────
+  // ─── Category config update (optimistic) ────────────────────────────────
 
   const updateCategory = async (
     categoryKey: string,
-    field: 'specialistUserId' | 'fallbackUserId',
-    userId: string | null
+    field: string,
+    value: string | number | null
   ) => {
     setError(null)
-    try {
-      await fetchApi('/api/settings/ticket-routing/categories', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          module: activeModule,
-          categoryKey,
-          [field]: userId,
-        }),
-      })
-      queryClient.invalidateQueries({ queryKey: queryKeys.routingCategories.byModule(activeModule) })
-    } catch {
+    const cacheKey = queryKeys.routingCategories.byModule(activeModule)
+
+    // Optimistic update — mutate cache immediately
+    queryClient.setQueryData(cacheKey, (old: CategoryConfig[] | undefined) =>
+      (old ?? []).map((cat) =>
+        cat.categoryKey === categoryKey ? { ...cat, [field]: value } : cat
+      )
+    )
+
+    // Fire API in background
+    fetchApi('/api/settings/ticket-routing/categories', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        module: activeModule,
+        categoryKey,
+        [field]: value,
+      }),
+    }).catch(() => {
       setError('Failed to update category routing')
-    }
+      queryClient.invalidateQueries({ queryKey: cacheKey })
+    })
   }
 
-  // ─── Staff availability update ─────────────────────────────────────────
+  // ─── Staff availability update (optimistic) ────────────────────────────
 
   const updateStaffAvailability = async (
     userId: string,
     updates: { status?: 'AVAILABLE' | 'OUT_OF_OFFICE'; maxActiveTickets?: number; delegateUserId?: string | null }
   ) => {
     setError(null)
+    const cacheKey = queryKeys.staffAvailability.byModule(activeModule)
+
+    // Optimistic update
+    queryClient.setQueryData(cacheKey, (old: StaffAvailabilityRecord[] | undefined) =>
+      (old ?? []).map((s) =>
+        s.userId === userId ? { ...s, ...updates } : s
+      )
+    )
+
+    // Fire API in background
+    fetchApi('/api/settings/staff-availability', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        userId,
+        module: activeModule,
+        ...updates,
+      }),
+    }).catch(() => {
+      setError('Failed to update staff availability')
+      queryClient.invalidateQueries({ queryKey: cacheKey })
+    })
+  }
+
+  const removeStaffMember = async (userId: string) => {
+    setError(null)
     try {
       await fetchApi('/api/settings/staff-availability', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          userId,
-          module: activeModule,
-          ...updates,
-        }),
+        method: 'DELETE',
+        body: JSON.stringify({ userId, module: activeModule }),
       })
       queryClient.invalidateQueries({ queryKey: queryKeys.staffAvailability.byModule(activeModule) })
     } catch {
-      setError('Failed to update staff availability')
+      setError('Failed to remove staff member')
     }
   }
 
@@ -285,9 +291,7 @@ export default function TicketRoutingTab() {
 
   const isLoading = loadingConfigs || loadingCategories || loadingStaff
 
-  // ─── No config — show seed prompt ──────────────────────────────────────
-
-  const hasNoConfig = !loadingConfigs && (!routingConfigs || routingConfigs.length === 0)
+  const isSeeding = !loadingConfigs && (!routingConfigs || routingConfigs.length === 0)
 
   return (
     <div className="space-y-8 pb-12">
@@ -343,28 +347,8 @@ export default function TicketRoutingTab() {
         </div>
       )}
 
-      {/* Seed prompt */}
-      {hasNoConfig && (
-        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
-          <Route className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <h4 className="text-base font-semibold text-slate-900 mb-1">
-            No routing configuration yet
-          </h4>
-          <p className="text-sm text-slate-500 mb-4">
-            Initialize default routing settings for both Maintenance and IT modules.
-          </p>
-          <button
-            onClick={seedDefaults}
-            disabled={saving}
-            className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
-          >
-            {saving ? 'Initializing...' : 'Initialize Routing Defaults'}
-          </button>
-        </div>
-      )}
-
       {/* Loading skeleton */}
-      {isLoading && !hasNoConfig && (
+      {(isLoading || isSeeding) && (
         <div className="space-y-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white border border-slate-200 rounded-xl p-6">
@@ -376,10 +360,10 @@ export default function TicketRoutingTab() {
       )}
 
       {/* Dashboard widgets */}
-      {!isLoading && !hasNoConfig && <RoutingDashboard module={activeModule} />}
+      {!isLoading && !isSeeding && <RoutingDashboard module={activeModule} />}
 
-      {/* Main content — only show when config exists */}
-      {!isLoading && !hasNoConfig && (
+      {/* Main content */}
+      {!isLoading && !isSeeding && (
         <>
           {/* Section 1: Default Strategy */}
           <div className="bg-white border border-slate-200 rounded-xl p-6">
@@ -480,7 +464,7 @@ export default function TicketRoutingTab() {
               Category Routing
             </h4>
             <p className="text-sm text-slate-500 mb-4">
-              Override the default strategy for specific categories by assigning a specialist or fallback.
+              Override the default strategy for specific categories. Set time targets for first response and resolution &mdash; tickets that miss these targets are flagged.
             </p>
 
             {(!categoryConfigs || categoryConfigs.length === 0) ? (
@@ -501,11 +485,11 @@ export default function TicketRoutingTab() {
                       <th className="text-left py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                         Fallback
                       </th>
-                      <th className="text-center py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        Response SLA
+                      <th className="text-center py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Max time before first response">
+                        First Response
                       </th>
-                      <th className="text-center py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        Resolve SLA
+                      <th className="text-center py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide" title="Max time to fully resolve">
+                        Resolution
                       </th>
                     </tr>
                   </thead>
@@ -569,15 +553,7 @@ export default function TicketRoutingTab() {
             )}
           </div>
 
-          {/* Section 3: Category Fields */}
-          <CategoryFieldsSection
-            module={activeModule}
-            categoryConfigs={categoryConfigs ?? []}
-            fieldConfigs={fieldConfigs ?? []}
-            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['category-field-configs', activeModule] })}
-          />
-
-          {/* Section 4: Staff Availability */}
+          {/* Section 3: Staff Availability */}
           <div className="bg-white border border-slate-200 rounded-xl p-6">
             <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-1">
               Staff Availability
@@ -589,15 +565,10 @@ export default function TicketRoutingTab() {
             {(!staffList || staffList.length === 0) ? (
               <div className="text-center py-6">
                 <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500 mb-3">
-                  No staff availability records yet. Add staff members to enable routing.
+                <p className="text-sm text-slate-500">
+                  No staff with {activeModule === 'MAINTENANCE' ? 'maintenance' : 'IT'} permissions found.
+                  Assign roles with ticket permissions to see staff here automatically.
                 </p>
-                <AddStaffButton
-                  members={members}
-                  existingUserIds={(staffList ?? []).map((s: StaffAvailabilityRecord) => s.userId)}
-                  module={activeModule}
-                  onAdd={(userId) => updateStaffAvailability(userId, { status: 'AVAILABLE' })}
-                />
               </div>
             ) : (
               <>
@@ -620,6 +591,7 @@ export default function TicketRoutingTab() {
                         <th className="text-left py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                           Delegate
                         </th>
+                        <th className="w-10" />
                       </tr>
                     </thead>
                     <tbody>
@@ -704,19 +676,15 @@ export default function TicketRoutingTab() {
                               <span className="text-xs text-slate-300">—</span>
                             )}
                           </td>
+                          <td className="py-3 px-2" />
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4">
-                  <AddStaffButton
-                    members={members}
-                    existingUserIds={staffList.map((s: StaffAvailabilityRecord) => s.userId)}
-                    module={activeModule}
-                    onAdd={(userId) => updateStaffAvailability(userId, { status: 'AVAILABLE' })}
-                  />
-                </div>
+                <p className="mt-3 text-xs text-slate-400">
+                  Staff with {activeModule === 'MAINTENANCE' ? 'maintenance' : 'IT'} permissions are shown automatically.
+                </p>
               </>
             )}
           </div>
@@ -755,208 +723,44 @@ function UserPicker({
   )
 }
 
-// ─── CategoryFieldsSection ───────────────────────────────────────────────────
+// ─── SLAInput ────────────────────────────────────────────────────────────────
 
-function CategoryFieldsSection({
-  module,
-  categoryConfigs,
-  fieldConfigs,
-  onUpdate,
-}: {
-  module: TicketModule
-  categoryConfigs: CategoryConfig[]
-  fieldConfigs: FieldConfig[]
-  onUpdate: () => void
-}) {
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
+// ─── SLAInput (preset duration dropdown) ─────────────────────────────────────
 
-  // Get available field types for this module
-  const availableFields = Object.values(FIELD_LIBRARY).filter((f) =>
-    f.modules.includes(module)
-  )
-
-  const toggleField = async (
-    categoryKey: string,
-    fieldType: CategoryFieldType,
-    enabled: boolean,
-    required: boolean = false
-  ) => {
-    setSaving(true)
-    try {
-      const currentFields = fieldConfigs
-        .filter((f) => f.categoryKey === categoryKey)
-        .map((f) => ({ fieldType: f.fieldType, required: f.required, sortOrder: f.sortOrder }))
-
-      const newFields = enabled
-        ? [...currentFields, { fieldType, required, sortOrder: currentFields.length }]
-        : currentFields.filter((f) => f.fieldType !== fieldType)
-
-      await fetchApi('/api/settings/ticket-routing/fields', {
-        method: 'PUT',
-        body: JSON.stringify({ module, categoryKey, fields: newFields }),
-      })
-      onUpdate()
-    } catch {
-      // silently fail — user can retry
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const toggleRequired = async (categoryKey: string, fieldType: CategoryFieldType, required: boolean) => {
-    setSaving(true)
-    try {
-      const currentFields = fieldConfigs
-        .filter((f) => f.categoryKey === categoryKey)
-        .map((f) => ({
-          fieldType: f.fieldType,
-          required: f.fieldType === fieldType ? required : f.required,
-          sortOrder: f.sortOrder,
-        }))
-
-      await fetchApi('/api/settings/ticket-routing/fields', {
-        method: 'PUT',
-        body: JSON.stringify({ module, categoryKey, fields: currentFields }),
-      })
-      onUpdate()
-    } catch {
-      // silently fail
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  if (categoryConfigs.length === 0) return null
-
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6">
-      <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-1">
-        Category Fields
-      </h4>
-      <p className="text-sm text-slate-500 mb-4">
-        Toggle additional fields that appear when submitting tickets for each category.
-      </p>
-
-      <div className="space-y-1">
-        {categoryConfigs.map((cat) => {
-          const isExpanded = expandedCategory === cat.categoryKey
-          const enabledCount = fieldConfigs.filter((f) => f.categoryKey === cat.categoryKey).length
-
-          return (
-            <div key={cat.categoryKey} className="border border-slate-100 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setExpandedCategory(isExpanded ? null : cat.categoryKey)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-medium text-slate-900">
-                    {CATEGORY_LABELS[cat.categoryKey] ?? cat.categoryKey}
-                  </span>
-                  {enabledCount > 0 && (
-                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
-                      {enabledCount} field{enabledCount > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isExpanded && (
-                <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
-                  {availableFields.map((fieldDef) => {
-                    const config = fieldConfigs.find(
-                      (f) => f.categoryKey === cat.categoryKey && f.fieldType === fieldDef.type
-                    )
-                    const isEnabled = !!config
-
-                    return (
-                      <div
-                        key={fieldDef.type}
-                        className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-                          isEnabled ? 'bg-blue-50/50' : 'bg-slate-50/50'
-                        }`}
-                      >
-                        <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isEnabled}
-                            onChange={(e) => toggleField(cat.categoryKey, fieldDef.type, e.target.checked)}
-                            disabled={saving}
-                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                          />
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-slate-900">{fieldDef.label}</div>
-                            <div className="text-xs text-slate-500">{fieldDef.description}</div>
-                          </div>
-                        </label>
-                        {isEnabled && (
-                          <button
-                            onClick={() => toggleRequired(cat.categoryKey, fieldDef.type, !config!.required)}
-                            disabled={saving}
-                            className={`ml-3 px-2 py-0.5 rounded-full text-xs font-medium transition-colors cursor-pointer flex-shrink-0 ${
-                              config!.required
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                            }`}
-                          >
-                            {config!.required ? 'Required' : 'Optional'}
-                          </button>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ─── AddStaffButton (dropdown to add a new staff member) ─────────────────────
-
-// ─── SLAInput (inline minutes input with display helper) ─────────────────────
+const SLA_PRESETS = [
+  { label: 'None', value: '' },
+  { label: '15 min', value: '15' },
+  { label: '30 min', value: '30' },
+  { label: '1 hour', value: '60' },
+  { label: '2 hours', value: '120' },
+  { label: '4 hours', value: '240' },
+  { label: '8 hours', value: '480' },
+  { label: '24 hours', value: '1440' },
+  { label: '48 hours', value: '2880' },
+  { label: '72 hours', value: '4320' },
+]
 
 function SLAInput({
   value,
-  onChange,
   onUpdate,
 }: {
   value: number | null
   onChange: (mins: number | null) => void
   onUpdate: (mins: number | null) => void
 }) {
-  const formatDisplay = (mins: number | null): string => {
-    if (!mins) return ''
-    if (mins < 60) return `${mins}m`
-    if (mins % 60 === 0) return `${mins / 60}h`
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`
-  }
-
   return (
-    <div className="flex items-center gap-1">
-      <input
-        type="number"
-        min={1}
-        value={value ?? ''}
-        onChange={(e) => {
-          const v = e.target.value ? parseInt(e.target.value, 10) : null
-          onChange(v)
-        }}
-        onBlur={(e) => {
-          const v = e.target.value ? parseInt(e.target.value, 10) : null
-          onUpdate(v)
-        }}
-        placeholder="—"
-        className="w-16 px-2 py-1 rounded-lg border border-slate-200 text-sm text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-      />
-      {value && (
-        <span className="text-xs text-slate-400">{formatDisplay(value)}</span>
-      )}
-    </div>
+    <select
+      value={value?.toString() ?? ''}
+      onChange={(e) => {
+        const v = e.target.value ? parseInt(e.target.value, 10) : null
+        onUpdate(v)
+      }}
+      className="w-full max-w-[120px] px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
+    >
+      {SLA_PRESETS.map((p) => (
+        <option key={p.value} value={p.value}>{p.label}</option>
+      ))}
+    </select>
   )
 }
 

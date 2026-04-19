@@ -365,7 +365,7 @@ export async function assignITTicket(
   assigneeId: string,
   ctx: { userId: string; orgId: string }
 ) {
-  const ticket = await prisma.iTTicket.findUnique({ where: { id: ticketId } })
+  const ticket = await (prisma.iTTicket.findUnique as Function)({ where: { id: ticketId } })
   if (!ticket) throw new Error('TICKET_NOT_FOUND')
 
   // Move to TODO if in BACKLOG
@@ -378,7 +378,7 @@ export async function assignITTicket(
     updateData.firstResponseAt = new Date()
   }
 
-  const updated = await prisma.iTTicket.update({
+  const updated = await (prisma.iTTicket.update as Function)({
     where: { id: ticketId },
     data: updateData,
     include: {

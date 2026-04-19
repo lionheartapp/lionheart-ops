@@ -157,7 +157,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
                         {t.assignedTo ? (
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
-                              {t.assignedTo.firstName[0]}{t.assignedTo.lastName[0]}
+                              {t.assignedTo.firstName?.[0] ?? ''}{t.assignedTo.lastName?.[0] ?? ''}
                             </div>
                             <span className="text-xs text-slate-600">
                               {t.assignedTo.firstName} {t.assignedTo.lastName}
