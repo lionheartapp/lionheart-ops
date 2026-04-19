@@ -26,20 +26,32 @@ const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost'
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3004'
 const CHALLENGE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
-function getExpectedOrigins(): string | ((origin: string) => boolean) {
-  // In production with subdomains (*.lionheartapp.com), accept any origin
-  // matching the RP ID domain rather than listing every tenant subdomain.
-  if (RP_ID !== 'localhost') {
-    return (origin: string) => {
-      try {
-        const url = new URL(origin)
-        return url.protocol === 'https:' && (url.hostname === RP_ID || url.hostname.endsWith(`.${RP_ID}`))
-      } catch {
-        return false
+/**
+ * Build the expected origins list. For multi-tenant deployments with subdomains
+ * (*.lionheartapp.com), we extract the origin from the credential's clientDataJSON
+ * and validate it matches the RP ID domain.
+ */
+function getExpectedOrigins(credentialResponse: { response: { clientDataJSON: string } }): string[] {
+  const origins = ORIGIN.split(',').map((o) => o.trim())
+
+  // Extract origin from the credential's clientDataJSON (base64url-encoded)
+  try {
+    const decoded = Buffer.from(credentialResponse.response.clientDataJSON, 'base64url').toString('utf-8')
+    const clientData = JSON.parse(decoded) as { origin?: string }
+    if (clientData.origin) {
+      const url = new URL(clientData.origin)
+      const validSubdomain = url.protocol === 'https:' &&
+        (url.hostname === RP_ID || url.hostname.endsWith(`.${RP_ID}`))
+      const validLocalhost = url.hostname === 'localhost'
+      if ((validSubdomain || validLocalhost) && !origins.includes(clientData.origin)) {
+        origins.push(clientData.origin)
       }
     }
+  } catch {
+    // Failed to parse — fall back to configured origins
   }
-  return ORIGIN
+
+  return origins
 }
 
 // ─── Registration ────────────────────────────────────────────────────────────
@@ -126,7 +138,7 @@ export async function verifyAndSaveRegistration(
   const verification = await verifyRegistrationResponse({
     response: credential,
     expectedChallenge: challengeRecord.challenge,
-    expectedOrigin: getExpectedOrigins(),
+    expectedOrigin: getExpectedOrigins(credential),
     expectedRPID: RP_ID,
     requireUserVerification: false,
   })
@@ -271,7 +283,7 @@ export async function verifyAuthentication(
   const verification = await verifyAuthenticationResponse({
     response: credential,
     expectedChallenge: challengeRecord.challenge,
-    expectedOrigin: getExpectedOrigins(),
+    expectedOrigin: getExpectedOrigins(credential),
     expectedRPID: RP_ID,
     credential: {
       id: passkey.credentialId,
