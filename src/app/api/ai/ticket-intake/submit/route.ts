@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
               title: data.title!,
               description: data.description!,
               issueType: (data.category ?? 'OTHER') as import('@prisma/client').ITIssueType,
-              priority: (data.priority ?? 'NORMAL') as import('@prisma/client').ITTicketPriority,
+              priority: (data.priority ?? 'NORMAL') as import('@prisma/client').ITPriority,
               status: 'OPEN',
               source: 'AI_INTAKE',
               locationText: data.locationText ?? null,
