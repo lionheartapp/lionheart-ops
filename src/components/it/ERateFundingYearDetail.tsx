@@ -406,7 +406,7 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
             >
               <option value="">No specific FRN</option>
               {frns.map((frn) => (
-                <option key={frn.id} value={frn.frnNumber}>
+                <option key={frn.frnNumber} value={frn.frnNumber}>
                   {frn.frnNumber} — {frn.serviceType}
                 </option>
               ))}
