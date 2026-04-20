@@ -21,7 +21,7 @@ export async function syncEntityForBen(
 ): Promise<EntitySyncResult> {
   const dataset = ERATE_DATASETS.entitySupplemental
   const { rows } = await fetchUsacDataset<Raw>(dataset, {
-    where: whereBen(ben),
+    where: whereBen(ben, 'entity_number'),
     maxRows: 1_000,
   })
 

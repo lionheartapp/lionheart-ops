@@ -30,7 +30,7 @@ export async function syncDisbursementsForBen(
 ): Promise<DisbursementSyncResult> {
   const dataset = ERATE_DATASETS.invoicesAndDisbursements
   const { rows } = await fetchUsacDataset<Raw>(dataset, {
-    where: whereBen(ben),
+    where: whereBen(ben, 'billed_entity_number'),
     maxRows: 50_000,
   })
 
@@ -45,16 +45,16 @@ export async function syncDisbursementsForBen(
 
   let upserted = 0
   for (const record of rows) {
-    const frnNumber = pickString(record, 'frn', 'frn_number', 'funding_request_number')
+    const frnNumber = pickString(record, 'funding_request_number', 'frn', 'frn_number')
     if (!frnNumber) continue
 
     const recordBen = pickBen(record) ?? ben
     const fundingYear = pickFundingYear(record)
     if (!fundingYear) continue
 
-    const invoiceNumber = pickString(record, 'invoice_number', 'invoice_id')
-    const invoiceDate = pickDate(record, 'invoice_date', 'invoice_received_date')
-    const disbursedAmount = pickDecimal(record, 'disbursed_amount', 'amount_paid')
+    const invoiceNumber = pickString(record, 'invoice_id', 'invoice_number')
+    const invoiceDate = pickDate(record, 'inv_received_date', 'invoice_date', 'invoice_received_date')
+    const disbursedAmount = pickDecimal(record, 'approved_inv_line_amt', 'disbursed_amount', 'amount_paid')
 
     const baseData = {
       organizationId,
@@ -65,11 +65,11 @@ export async function syncDisbursementsForBen(
       invoiceType: pickString(record, 'invoice_type', 'form_type'),
       invoiceNumber,
       invoiceDate,
-      authorizedAmount: pickDecimal(record, 'authorized_amount', 'approved_amount'),
+      authorizedAmount: pickDecimal(record, 'requested_inv_line_amt', 'authorized_amount', 'approved_amount'),
       disbursedAmount,
-      paymentDate: pickDate(record, 'payment_date', 'paid_date'),
-      spin: pickString(record, 'spin', 'service_provider_id'),
-      serviceProviderName: pickString(record, 'service_provider_name', 'spin_name'),
+      paymentDate: pickDate(record, 'customer_billed_dt', 'payment_date', 'paid_date'),
+      spin: pickString(record, 'inv_service_provider_id_number_spin', 'spin', 'service_provider_id'),
+      serviceProviderName: pickString(record, 'inv_service_provider_name', 'service_provider_name', 'spin_name'),
       rawRecord: record as object,
       lastSyncedAt: new Date(),
     }

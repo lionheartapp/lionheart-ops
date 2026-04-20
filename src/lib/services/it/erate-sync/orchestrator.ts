@@ -50,7 +50,7 @@ const SYNC_IMPLEMENTATIONS: Partial<Record<ErateDatasetKey, SyncFn>> = {
   entitySupplemental: syncEntityForBen,
   form470Basic: syncForm470ForBen,
   form471Basic: syncForm471ForBen,
-  frnStatusFy2016Plus: syncFrnsForBen,
+  form471FrnStatus: syncFrnsForBen,
   invoicesAndDisbursements: syncDisbursementsForBen,
 }
 

@@ -26,7 +26,7 @@ export async function syncFrnsForBen(
   organizationId: string,
   ben: string
 ): Promise<FrnSyncResult> {
-  const dataset = ERATE_DATASETS.frnStatusFy2016Plus
+  const dataset = ERATE_DATASETS.form471FrnStatus
   const { rows } = await fetchUsacDataset<Raw>(dataset, {
     where: whereBen(ben),
     maxRows: 20_000,
@@ -64,23 +64,23 @@ export async function syncFrnsForBen(
       applicationNumber,
       ben: recordBen,
       fundingYear,
-      serviceType: pickString(record, 'service_type', 'service_type_name'),
-      serviceCategory: pickString(record, 'service_category', 'category_of_service'),
+      serviceType: pickString(record, 'form_471_service_type_name', 'service_type', 'service_type_name'),
+      serviceCategory: pickString(record, 'chosen_category_of_service', 'service_category', 'category_of_service'),
       spin: pickString(record, 'spin', 'service_provider_id', 'spin_number'),
       serviceProviderName: pickString(
         record,
-        'service_provider_name',
         'spin_name',
+        'service_provider_name',
         'provider_name'
       ),
       contractNumber: pickString(record, 'contract_number', 'master_contract_number'),
-      preDiscountAmount: pickDecimal(record, 'pre_discount_amount', 'pre_discount'),
-      discountAmount: pickDecimal(record, 'discount_amount'),
-      committedAmount: pickDecimal(record, 'committed_amount', 'commitment_amount'),
-      disbursedAmount: pickDecimal(record, 'disbursed_amount', 'total_disbursement'),
-      status: pickString(record, 'frn_status', 'status', 'application_status'),
-      fcdlDate: pickDate(record, 'fcdl_date', 'commitment_letter_date'),
-      invoiceDeadline: pickDate(record, 'invoice_deadline_date', 'invoice_deadline'),
+      preDiscountAmount: pickDecimal(record, 'total_pre_discount_costs', 'pre_discount_amount', 'pre_discount'),
+      discountAmount: pickDecimal(record, 'dis_pct', 'discount_amount'),
+      committedAmount: pickDecimal(record, 'funding_commitment_request', 'committed_amount', 'commitment_amount'),
+      disbursedAmount: pickDecimal(record, 'total_authorized_disbursement', 'disbursed_amount', 'total_disbursement'),
+      status: pickString(record, 'form_471_frn_status_name', 'frn_status', 'status', 'application_status'),
+      fcdlDate: pickDate(record, 'fcdl_letter_date', 'fcdl_date', 'commitment_letter_date'),
+      invoiceDeadline: pickDate(record, 'last_date_to_invoice', 'invoice_deadline_date', 'invoice_deadline'),
       rawRecord: record as object,
       lastSyncedAt: new Date(),
     }

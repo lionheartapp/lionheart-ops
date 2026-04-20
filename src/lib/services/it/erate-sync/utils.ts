@@ -57,7 +57,7 @@ export function pickFundingYear(record: Raw): number | null {
  * Always store as a trimmed string in our DB to keep keys stable.
  */
 export function pickBen(record: Raw): string | null {
-  return pickString(record, 'ben', 'billed_entity_number', 'recipient_ben')
+  return pickString(record, 'ben', 'billed_entity_number', 'entity_number', 'epc_organization_id', 'recipient_ben')
 }
 
 /** Compute Allowable Contract Date = certified date + 28 days (E-Rate rule). */

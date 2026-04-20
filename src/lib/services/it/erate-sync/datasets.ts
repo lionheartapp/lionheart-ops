@@ -205,10 +205,9 @@ export const ERATE_DATASETS: Record<ErateDatasetKey, UsacDataset> = {
  */
 export const ONBOARDING_DATASETS: ErateDatasetKey[] = [
   'entitySupplemental',
+  'form470Basic',
   'form471Basic',
   'form471FrnStatus',
-  'form470Basic',
-  'frnStatusFy2016Plus',
   'invoicesAndDisbursements',
 ]
 

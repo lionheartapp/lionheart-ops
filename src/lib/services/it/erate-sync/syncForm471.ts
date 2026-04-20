@@ -29,7 +29,7 @@ export async function syncForm471ForBen(
 ): Promise<Form471SyncResult> {
   const dataset = ERATE_DATASETS.form471Basic
   const { rows } = await fetchUsacDataset<Raw>(dataset, {
-    where: whereBen(ben),
+    where: whereBen(ben, 'epc_organization_id'),
     maxRows: 5_000,
   })
 
@@ -62,15 +62,16 @@ export async function syncForm471ForBen(
       fundingYear,
       applicantEntityId: entityIdByBen.get(recordBen) ?? null,
       nickname: pickString(record, 'nickname', 'application_nickname'),
-      status: pickString(record, 'application_status', 'status'),
-      certifiedDate: pickDate(record, 'certified_date_time', 'certified_date'),
+      status: pickString(record, 'form_471_status_name', 'application_status', 'status'),
+      certifiedDate: pickDate(record, 'certified_datetime', 'certified_date_time', 'certified_date'),
       totalPreDiscount: pickDecimal(
         record,
+        'pre_discount_eligible_amount',
         'total_pre_discount_amount',
         'pre_discount_amount'
       ),
-      totalDiscount: pickDecimal(record, 'total_discount_amount', 'discount_amount'),
-      discountPercent: pickInt(record, 'discount_percent', 'discount_pct'),
+      totalDiscount: pickDecimal(record, 'funding_request_amount', 'total_discount_amount', 'discount_amount'),
+      discountPercent: pickInt(record, 'c1_discount', 'discount_percent', 'discount_pct'),
       rawRecord: record as object,
       lastSyncedAt: new Date(),
     }

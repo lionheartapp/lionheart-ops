@@ -57,7 +57,7 @@ export async function syncForm470ForBen(
     const fundingYear = pickFundingYear(record)
     if (!fundingYear) continue
 
-    const certifiedDate = pickDate(record, 'certified_date_time', 'certified_date')
+    const certifiedDate = pickDate(record, 'certified_datetime', 'certified_date_time', 'certified_date')
     const allowableContractDate =
       pickDate(record, 'allowable_contract_date') ?? addDays(certifiedDate, ALLOWABLE_CONTRACT_DAYS)
 

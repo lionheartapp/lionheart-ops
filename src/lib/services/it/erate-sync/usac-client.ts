@@ -189,7 +189,7 @@ export async function fetchUsacDataset<T = Record<string, unknown>>(
  * column name `ben` (most datasets) or `billed_entity_number` (some legacy
  * datasets) and let the caller pick.
  */
-export function whereBen(ben: string, column: 'ben' | 'billed_entity_number' = 'ben'): string {
+export function whereBen(ben: string, column: string = 'ben'): string {
   const safe = String(ben).replace(/'/g, "''")
   return `${column}='${safe}'`
 }
