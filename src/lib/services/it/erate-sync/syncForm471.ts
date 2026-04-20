@@ -41,65 +41,73 @@ export async function syncForm471ForBen(
     entities.map((e: { id: string; ben: string }) => [e.ben, e.id])
   )
 
-  let upserted = 0
-  for (const record of rows) {
-    const applicationNumber = pickString(
-      record,
-      'application_number',
-      'form_471_application_number',
-      'app_number'
-    )
-    if (!applicationNumber) continue
+  // Wrap in a transaction with extended timeout to avoid Supabase pooler
+  // statement_timeout killing individual upserts on slow connections.
+  const upserted = await rawPrisma.$transaction(
+    async (tx: typeof rawPrisma) => {
+      let count = 0
+      for (const record of rows) {
+        const applicationNumber = pickString(
+          record,
+          'application_number',
+          'form_471_application_number',
+          'app_number'
+        )
+        if (!applicationNumber) continue
 
-    const recordBen = pickBen(record) ?? ben
-    const fundingYear = pickFundingYear(record)
-    if (!fundingYear) continue
+        const recordBen = pickBen(record) ?? ben
+        const fundingYear = pickFundingYear(record)
+        if (!fundingYear) continue
 
-    const data = {
-      organizationId,
-      applicationNumber,
-      ben: recordBen,
-      fundingYear,
-      applicantEntityId: entityIdByBen.get(recordBen) ?? null,
-      nickname: pickString(record, 'nickname', 'application_nickname'),
-      status: pickString(record, 'form_471_status_name', 'application_status', 'status'),
-      certifiedDate: pickDate(record, 'certified_datetime', 'certified_date_time', 'certified_date'),
-      totalPreDiscount: pickDecimal(
-        record,
-        'pre_discount_eligible_amount',
-        'total_pre_discount_amount',
-        'pre_discount_amount'
-      ),
-      totalDiscount: pickDecimal(record, 'funding_request_amount', 'total_discount_amount', 'discount_amount'),
-      discountPercent: pickInt(record, 'c1_discount', 'discount_percent', 'discount_pct'),
-      rawRecord: record as object,
-      lastSyncedAt: new Date(),
-    }
-
-    await (rawPrisma.iTERateForm471 as unknown as PrismaDelegate).upsert({
-      where: {
-        organizationId_applicationNumber: {
+        const data = {
           organizationId,
           applicationNumber,
-        },
-      },
-      update: {
-        ben: data.ben,
-        fundingYear: data.fundingYear,
-        applicantEntityId: data.applicantEntityId,
-        nickname: data.nickname,
-        status: data.status,
-        certifiedDate: data.certifiedDate,
-        totalPreDiscount: data.totalPreDiscount,
-        totalDiscount: data.totalDiscount,
-        discountPercent: data.discountPercent,
-        rawRecord: data.rawRecord,
-        lastSyncedAt: data.lastSyncedAt,
-      },
-      create: data,
-    })
-    upserted++
-  }
+          ben: recordBen,
+          fundingYear,
+          applicantEntityId: entityIdByBen.get(recordBen) ?? null,
+          nickname: pickString(record, 'nickname', 'application_nickname'),
+          status: pickString(record, 'form_471_status_name', 'application_status', 'status'),
+          certifiedDate: pickDate(record, 'certified_datetime', 'certified_date_time', 'certified_date'),
+          totalPreDiscount: pickDecimal(
+            record,
+            'pre_discount_eligible_amount',
+            'total_pre_discount_amount',
+            'pre_discount_amount'
+          ),
+          totalDiscount: pickDecimal(record, 'funding_request_amount', 'total_discount_amount', 'discount_amount'),
+          discountPercent: pickInt(record, 'c1_discount', 'discount_percent', 'discount_pct'),
+          rawRecord: record as object,
+          lastSyncedAt: new Date(),
+        }
+
+        await (tx.iTERateForm471 as unknown as PrismaDelegate).upsert({
+          where: {
+            organizationId_applicationNumber: {
+              organizationId,
+              applicationNumber,
+            },
+          },
+          update: {
+            ben: data.ben,
+            fundingYear: data.fundingYear,
+            applicantEntityId: data.applicantEntityId,
+            nickname: data.nickname,
+            status: data.status,
+            certifiedDate: data.certifiedDate,
+            totalPreDiscount: data.totalPreDiscount,
+            totalDiscount: data.totalDiscount,
+            discountPercent: data.discountPercent,
+            rawRecord: data.rawRecord,
+            lastSyncedAt: data.lastSyncedAt,
+          },
+          create: data,
+        })
+        count++
+      }
+      return count
+    },
+    { timeout: 120_000 }
+  )
 
   return { rowsFetched: rows.length, rowsUpserted: upserted }
 }

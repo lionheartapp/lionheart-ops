@@ -43,70 +43,75 @@ export async function syncDisbursementsForBen(
     frns.map((f: { id: string; frnNumber: string }) => [f.frnNumber, f.id])
   )
 
-  let upserted = 0
-  for (const record of rows) {
-    const frnNumber = pickString(record, 'funding_request_number', 'frn', 'frn_number')
-    if (!frnNumber) continue
+  const upserted = await rawPrisma.$transaction(
+    async (tx: typeof rawPrisma) => {
+      let count = 0
+      for (const record of rows) {
+        const frnNumber = pickString(record, 'funding_request_number', 'frn', 'frn_number')
+        if (!frnNumber) continue
 
-    const recordBen = pickBen(record) ?? ben
-    const fundingYear = pickFundingYear(record)
-    if (!fundingYear) continue
+        const recordBen = pickBen(record) ?? ben
+        const fundingYear = pickFundingYear(record)
+        if (!fundingYear) continue
 
-    const invoiceNumber = pickString(record, 'invoice_id', 'invoice_number')
-    const invoiceDate = pickDate(record, 'inv_received_date', 'invoice_date', 'invoice_received_date')
-    const disbursedAmount = pickDecimal(record, 'approved_inv_line_amt', 'disbursed_amount', 'amount_paid')
+        const invoiceNumber = pickString(record, 'invoice_id', 'invoice_number')
+        const invoiceDate = pickDate(record, 'inv_received_date', 'invoice_date', 'invoice_received_date')
+        const disbursedAmount = pickDecimal(record, 'approved_inv_line_amt', 'disbursed_amount', 'amount_paid')
 
-    const baseData = {
-      organizationId,
-      frnId: frnIdByNumber.get(frnNumber) ?? null,
-      frnNumber,
-      ben: recordBen,
-      fundingYear,
-      invoiceType: pickString(record, 'invoice_type', 'form_type'),
-      invoiceNumber,
-      invoiceDate,
-      authorizedAmount: pickDecimal(record, 'requested_inv_line_amt', 'authorized_amount', 'approved_amount'),
-      disbursedAmount,
-      paymentDate: pickDate(record, 'customer_billed_dt', 'payment_date', 'paid_date'),
-      spin: pickString(record, 'inv_service_provider_id_number_spin', 'spin', 'service_provider_id'),
-      serviceProviderName: pickString(record, 'inv_service_provider_name', 'service_provider_name', 'spin_name'),
-      rawRecord: record as object,
-      lastSyncedAt: new Date(),
-    }
+        const baseData = {
+          organizationId,
+          frnId: frnIdByNumber.get(frnNumber) ?? null,
+          frnNumber,
+          ben: recordBen,
+          fundingYear,
+          invoiceType: pickString(record, 'invoice_type', 'form_type'),
+          invoiceNumber,
+          invoiceDate,
+          authorizedAmount: pickDecimal(record, 'requested_inv_line_amt', 'authorized_amount', 'approved_amount'),
+          disbursedAmount,
+          paymentDate: pickDate(record, 'customer_billed_dt', 'payment_date', 'paid_date'),
+          spin: pickString(record, 'inv_service_provider_id_number_spin', 'spin', 'service_provider_id'),
+          serviceProviderName: pickString(record, 'inv_service_provider_name', 'service_provider_name', 'spin_name'),
+          rawRecord: record as object,
+          lastSyncedAt: new Date(),
+        }
 
-    // Find an existing row matching the natural key.
-    const existing = await (rawPrisma.iTERateDisbursement as unknown as PrismaDelegate).findFirst({
-      where: {
-        organizationId,
-        frnNumber,
-        invoiceNumber: invoiceNumber ?? null,
-        invoiceDate: invoiceDate ?? null,
-        disbursedAmount: disbursedAmount ?? null,
-      },
-      select: { id: true },
-    })
+        const existing = await (tx.iTERateDisbursement as unknown as PrismaDelegate).findFirst({
+          where: {
+            organizationId,
+            frnNumber,
+            invoiceNumber: invoiceNumber ?? null,
+            invoiceDate: invoiceDate ?? null,
+            disbursedAmount: disbursedAmount ?? null,
+          },
+          select: { id: true },
+        })
 
-    if (existing) {
-      await (rawPrisma.iTERateDisbursement as unknown as PrismaDelegate).update({
-        where: { id: existing.id },
-        data: {
-          frnId: baseData.frnId,
-          authorizedAmount: baseData.authorizedAmount,
-          paymentDate: baseData.paymentDate,
-          spin: baseData.spin,
-          serviceProviderName: baseData.serviceProviderName,
-          invoiceType: baseData.invoiceType,
-          rawRecord: baseData.rawRecord,
-          lastSyncedAt: baseData.lastSyncedAt,
-        },
-      })
-    } else {
-      await (rawPrisma.iTERateDisbursement as unknown as PrismaDelegate).create({
-        data: baseData,
-      })
-    }
-    upserted++
-  }
+        if (existing) {
+          await (tx.iTERateDisbursement as unknown as PrismaDelegate).update({
+            where: { id: existing.id },
+            data: {
+              frnId: baseData.frnId,
+              authorizedAmount: baseData.authorizedAmount,
+              paymentDate: baseData.paymentDate,
+              spin: baseData.spin,
+              serviceProviderName: baseData.serviceProviderName,
+              invoiceType: baseData.invoiceType,
+              rawRecord: baseData.rawRecord,
+              lastSyncedAt: baseData.lastSyncedAt,
+            },
+          })
+        } else {
+          await (tx.iTERateDisbursement as unknown as PrismaDelegate).create({
+            data: baseData,
+          })
+        }
+        count++
+      }
+      return count
+    },
+    { timeout: 120_000 }
+  )
 
   return { rowsFetched: rows.length, rowsUpserted: upserted }
 }
