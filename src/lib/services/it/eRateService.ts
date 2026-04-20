@@ -276,18 +276,17 @@ export async function completeERateTask(
  */
 export async function getERateDocuments(
   orgId: string,
-  filters: { schoolYear?: string; taskId?: string }
+  filters: { schoolYear?: string; taskId?: string; ben?: string; fundingYear?: number; frnNumber?: string }
 ): Promise<Array<Record<string, unknown>>> {
   const where: Record<string, unknown> = {
     organizationId: orgId,
   }
 
-  if (filters.schoolYear) {
-    where.schoolYear = filters.schoolYear
-  }
-  if (filters.taskId) {
-    where.taskId = filters.taskId
-  }
+  if (filters.schoolYear) where.schoolYear = filters.schoolYear
+  if (filters.taskId) where.taskId = filters.taskId
+  if (filters.ben) where.ben = filters.ben
+  if (filters.fundingYear) where.fundingYear = filters.fundingYear
+  if (filters.frnNumber) where.frnNumber = filters.frnNumber
 
   const documents = await (rawPrisma.iTERateDocument as unknown as PrismaDelegate).findMany({
     where,
@@ -315,11 +314,19 @@ export async function uploadERateDocument(
     title: string
     fileUrl: string
     fileType?: string
-    schoolYear: string
+    schoolYear?: string
     taskId?: string
     uploadedById?: string
     tags?: string[]
     retentionYears?: number
+    ben?: string
+    fundingYear?: number
+    frnNumber?: string
+    category?: string
+    fileName?: string
+    fileSize?: number
+    mimeType?: string
+    notes?: string
   }
 ): Promise<Record<string, unknown>> {
   const retentionYears = data.retentionYears ?? 10
@@ -332,12 +339,20 @@ export async function uploadERateDocument(
       organizationId: orgId,
       title: data.title,
       fileUrl: data.fileUrl,
-      fileType: data.fileType ?? null,
-      schoolYear: data.schoolYear,
+      fileType: data.fileType ?? data.mimeType ?? null,
+      schoolYear: data.schoolYear ?? null,
       taskId: data.taskId ?? null,
       uploadedById: data.uploadedById ?? null,
       tags: data.tags ?? [],
       retentionUntil,
+      ben: data.ben ?? null,
+      fundingYear: data.fundingYear ?? null,
+      frnNumber: data.frnNumber ?? null,
+      category: data.category ?? null,
+      fileName: data.fileName ?? null,
+      fileSize: data.fileSize ?? null,
+      mimeType: data.mimeType ?? null,
+      notes: data.notes ?? null,
     },
     include: {
       uploadedBy: {

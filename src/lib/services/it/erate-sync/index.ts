@@ -81,11 +81,14 @@ export interface FrnRow {
   applicationNumber: string
   ben: string
   fundingYear: number
+  serviceType: string | null
   serviceCategory: string | null
   serviceProviderName: string | null
+  contractNumber: string | null
   spin: string | null
   status: string | null
   preDiscountAmount: number
+  discountAmount: number
   committedAmount: number
   disbursedAmount: number
   invoiceDeadline: Date | null
@@ -108,11 +111,14 @@ export async function listFrns(
     applicationNumber: string
     ben: string
     fundingYear: number
+    serviceType: string | null
     serviceCategory: string | null
     serviceProviderName: string | null
+    contractNumber: string | null
     spin: string | null
     status: string | null
     preDiscountAmount: { toNumber(): number } | null
+    discountAmount: { toNumber(): number } | null
     committedAmount: { toNumber(): number } | null
     disbursedAmount: { toNumber(): number } | null
     invoiceDeadline: Date | null
@@ -124,11 +130,14 @@ export async function listFrns(
     applicationNumber: r.applicationNumber,
     ben: r.ben,
     fundingYear: r.fundingYear,
+    serviceType: r.serviceType,
     serviceCategory: r.serviceCategory,
     serviceProviderName: r.serviceProviderName,
+    contractNumber: r.contractNumber,
     spin: r.spin,
     status: r.status,
     preDiscountAmount: decimalToNumber(r.preDiscountAmount),
+    discountAmount: decimalToNumber(r.discountAmount),
     committedAmount: decimalToNumber(r.committedAmount),
     disbursedAmount: decimalToNumber(r.disbursedAmount),
     invoiceDeadline: r.invoiceDeadline,
@@ -177,6 +186,65 @@ export async function listDisbursements(
     serviceProviderName: r.serviceProviderName,
     spin: r.spin,
   }))
+}
+
+export interface EntityRow {
+  id: string
+  ben: string
+  entityName: string
+  entityType: string | null
+  schoolId: string | null
+  schoolName: string | null
+  isPrimary: boolean
+  state: string | null
+  city: string | null
+  lastSyncedAt: Date | null
+}
+
+export async function listEntities(organizationId: string): Promise<EntityRow[]> {
+  const rows = (await (rawPrisma.iTERateEntity as unknown as PrismaDelegate).findMany({
+    where: { organizationId },
+    include: {
+      school: { select: { id: true, name: true } },
+    },
+    orderBy: [{ isPrimary: 'desc' }, { entityName: 'asc' }],
+  })) as Array<{
+    id: string
+    ben: string
+    entityName: string
+    entityType: string | null
+    schoolId: string | null
+    isPrimary: boolean
+    state: string | null
+    city: string | null
+    lastSyncedAt: Date | null
+    school: { id: string; name: string } | null
+  }>
+
+  return rows.map((r) => ({
+    id: r.id,
+    ben: r.ben,
+    entityName: r.entityName,
+    entityType: r.entityType,
+    schoolId: r.schoolId,
+    schoolName: r.school?.name ?? null,
+    isPrimary: r.isPrimary,
+    state: r.state,
+    city: r.city,
+    lastSyncedAt: r.lastSyncedAt,
+  }))
+}
+
+/** Link an ITERateEntity to a School record. */
+export async function linkEntityToSchool(
+  organizationId: string,
+  entityId: string,
+  schoolId: string | null
+): Promise<void> {
+  await (rawPrisma.iTERateEntity as unknown as PrismaDelegate).update({
+    where: { id: entityId },
+    data: { schoolId },
+  })
 }
 
 /**

@@ -743,6 +743,8 @@ model School {
   securityIncidents SecurityIncident[]
   // Event Project module relations
   eventProjects     EventProject[]
+  // E-Rate module relations
+  erateEntities     ITERateEntity[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -3691,17 +3693,34 @@ model ITERateDocument {
   title          String
   fileUrl        String
   fileType       String?
-  retentionUntil DateTime
+  retentionUntil DateTime?
   uploadedById   String?
-  schoolYear     String
+  schoolYear     String?
   tags           String[]  @default([])
   createdAt      DateTime  @default(now())
+
+  /// E-Rate funding context — populated when uploading from FY detail view
+  ben            String?
+  fundingYear    Int?
+  frnNumber      String?
+  /// Document category: competitive-bidding, vendor-contract, board-approval, etc.
+  category       String?
+  /// Original file name
+  fileName       String?
+  /// File size in bytes
+  fileSize       Int?
+  /// MIME type (e.g. application/pdf)
+  mimeType       String?
+  /// Optional user notes
+  notes          String?
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   task         ITERateTask?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
   uploadedBy   User?          @relation("ERateDocUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
 
   @@index([organizationId, schoolYear])
+  @@index([organizationId, ben, fundingYear])
+  @@index([organizationId, frnNumber])
   @@index([organizationId, retentionUntil])
   @@index([taskId])
 }
@@ -3715,6 +3734,8 @@ model ITERateDocument {
 model ITERateEntity {
   id              String    @id @default(cuid())
   organizationId  String
+  /// Optional link to a School record for multi-campus E-Rate
+  schoolId        String?
   /// Billed Entity Number — primary USAC identifier
   ben             String
   entityName      String
@@ -3734,12 +3755,14 @@ model ITERateEntity {
   updatedAt       DateTime  @updatedAt
 
   organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school       School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   form470s     ITERateForm470[]
   form471s     ITERateForm471[]
 
   @@unique([organizationId, ben])
   @@index([organizationId])
   @@index([ben])
+  @@index([schoolId])
 }
 
 model ITERateFundingYear {

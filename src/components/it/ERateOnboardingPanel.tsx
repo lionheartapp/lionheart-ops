@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { fetchApi } from '@/lib/api-client'
+import ERateFundingYearDetail from './ERateFundingYearDetail'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -82,6 +83,8 @@ interface EntityRow {
   entityName: string
   isPrimary: boolean
   state: string | null
+  schoolId: string | null
+  school: { id: string; name: string } | null
 }
 
 // ─── API helpers ────────────────────────────────────────────────────────
@@ -152,6 +155,8 @@ export default function ERateOnboardingPanel({
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleteNotice, setDeleteNotice] = useState<string | null>(null)
+  const [selectedFY, setSelectedFY] = useState<{ fundingYear: number; ben: string } | null>(null)
+  const [filterBen, setFilterBen] = useState<string | null>(null) // null = all campuses
 
   const refreshAll = useCallback(async () => {
     const [ents, ys] = await Promise.all([
@@ -250,6 +255,11 @@ export default function ERateOnboardingPanel({
     }
   }
 
+  const filteredYears = useMemo(() => {
+    if (!filterBen) return years
+    return years.filter((y) => y.ben === filterBen)
+  }, [years, filterBen])
+
   const headerSubtitle = useMemo(() => {
     if (loadingInitial) return 'Loading…'
     if (!primaryBen) return 'Connect your Billed Entity Number to pull funding data from USAC Open Data.'
@@ -288,7 +298,7 @@ export default function ERateOnboardingPanel({
         />
       )}
 
-      {primaryBen && (
+      {primaryBen && !selectedFY && (
         <div className="mb-6 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary-50 p-2 text-primary-700">
@@ -366,7 +376,30 @@ export default function ERateOnboardingPanel({
 
       {syncResult && <SyncSummary result={syncResult} />}
 
-      {primaryBen && <FundingYearGrid years={years} loading={loadingInitial} />}
+      {primaryBen && !selectedFY && entities.length > 1 && (
+        <CampusBenSelector
+          entities={entities}
+          years={years}
+          selectedBen={filterBen}
+          onSelect={setFilterBen}
+        />
+      )}
+
+      {primaryBen && !selectedFY && (
+        <FundingYearGrid
+          years={filteredYears}
+          loading={loadingInitial}
+          onSelect={(fy, ben) => setSelectedFY({ fundingYear: fy, ben })}
+        />
+      )}
+
+      {selectedFY && (
+        <ERateFundingYearDetail
+          fundingYear={selectedFY.fundingYear}
+          ben={selectedFY.ben}
+          onBack={() => setSelectedFY(null)}
+        />
+      )}
 
       {showFooter && <RetentionFooter />}
 
@@ -512,9 +545,10 @@ function SyncSummary({ result }: SyncSummaryProps): JSX.Element {
 interface FundingYearGridProps {
   years: FundingYearCard[]
   loading: boolean
+  onSelect: (fundingYear: number, ben: string) => void
 }
 
-function FundingYearGrid({ years, loading }: FundingYearGridProps): JSX.Element {
+function FundingYearGrid({ years, loading, onSelect }: FundingYearGridProps): JSX.Element {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -540,7 +574,11 @@ function FundingYearGrid({ years, loading }: FundingYearGridProps): JSX.Element 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {years.map((y) => (
-        <FundingYearCardView key={`${y.ben}-${y.fundingYear}`} year={y} />
+        <FundingYearCardView
+          key={`${y.ben}-${y.fundingYear}`}
+          year={y}
+          onSelect={() => onSelect(y.fundingYear, y.ben)}
+        />
       ))}
     </div>
   )
@@ -548,9 +586,10 @@ function FundingYearGrid({ years, loading }: FundingYearGridProps): JSX.Element 
 
 interface FundingYearCardViewProps {
   year: FundingYearCard
+  onSelect: () => void
 }
 
-function FundingYearCardView({ year }: FundingYearCardViewProps): JSX.Element {
+function FundingYearCardView({ year, onSelect }: FundingYearCardViewProps): JSX.Element {
   const status = year.applicationStatus ?? 'Unknown'
   const tone =
     status === 'Funded'
@@ -564,7 +603,12 @@ function FundingYearCardView({ year }: FundingYearCardViewProps): JSX.Element {
       : 0
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-200 hover:border-slate-300">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }}
+      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-primary-300 hover:shadow-md cursor-pointer">
       <div className="flex items-baseline justify-between">
         <div className="text-lg font-semibold text-slate-900">FY{year.fundingYear}</div>
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tone}`}>{status}</span>
@@ -617,6 +661,68 @@ export function RetentionFooter(): JSX.Element {
         you remain responsible for retaining audit-side documents (board approvals, bid responses,
         contracts, vendor invoices) for 10 years from the last day of the relevant funding year.
         Upload those under <span className="font-medium text-slate-900">E-Rate → Documents</span>.
+      </div>
+    </div>
+  )
+}
+
+// ─── Campus BEN Selector ────────────────────────────────────────────────
+
+interface CampusBenSelectorProps {
+  entities: EntityRow[]
+  years: FundingYearCard[]
+  selectedBen: string | null
+  onSelect: (ben: string | null) => void
+}
+
+function CampusBenSelector({ entities, years, selectedBen, onSelect }: CampusBenSelectorProps): JSX.Element {
+  const totalCommitted = years.reduce((sum, y) => sum + y.totalCommitted, 0)
+
+  const commitmentByBen = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const y of years) {
+      map.set(y.ben, (map.get(y.ben) ?? 0) + y.totalCommitted)
+    }
+    return map
+  }, [years])
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        {/* All Campuses */}
+        <button
+          onClick={() => onSelect(null)}
+          className={`flex-shrink-0 rounded-xl border px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+            selectedBen === null
+              ? 'border-primary-300 bg-primary-50 shadow-sm ring-1 ring-primary-200'
+              : 'border-slate-200 bg-white hover:border-slate-300'
+          }`}
+        >
+          <div className="text-sm font-semibold text-slate-900">All Campuses</div>
+          <div className="text-xs text-slate-500 mt-0.5">
+            {entities.length} BEN{entities.length !== 1 ? 's' : ''} · {formatMoney(totalCommitted)} committed
+          </div>
+        </button>
+
+        {/* Per-campus */}
+        {entities.map((entity) => (
+          <button
+            key={entity.ben}
+            onClick={() => onSelect(entity.ben)}
+            className={`flex-shrink-0 rounded-xl border px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+              selectedBen === entity.ben
+                ? 'border-primary-300 bg-primary-50 shadow-sm ring-1 ring-primary-200'
+                : 'border-slate-200 bg-white hover:border-slate-300'
+            }`}
+          >
+            <div className="text-sm font-semibold text-slate-900">
+              {entity.school?.name ?? entity.entityName}
+            </div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              BEN {entity.ben} · {formatMoney(commitmentByBen.get(entity.ben) ?? 0)} committed
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   )
