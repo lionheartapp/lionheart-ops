@@ -44,7 +44,7 @@ export async function syncDisbursementsForBen(
   )
 
   const upserted = await rawPrisma.$transaction(
-    async (tx: typeof rawPrisma) => {
+    async (tx) => {
       let count = 0
       for (const record of rows) {
         const frnNumber = pickString(record, 'funding_request_number', 'frn', 'frn_number')

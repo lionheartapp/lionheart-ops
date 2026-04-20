@@ -44,7 +44,7 @@ export async function syncForm471ForBen(
   // Wrap in a transaction with extended timeout to avoid Supabase pooler
   // statement_timeout killing individual upserts on slow connections.
   const upserted = await rawPrisma.$transaction(
-    async (tx: typeof rawPrisma) => {
+    async (tx) => {
       let count = 0
       for (const record of rows) {
         const applicationNumber = pickString(
