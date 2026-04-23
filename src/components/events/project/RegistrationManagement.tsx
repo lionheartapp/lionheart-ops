@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/Toast'
 import {
@@ -452,8 +453,9 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
 
   // ─── Cancel mutation ─────────────────────────────────────────────────────────
 
-  const cancelMutation = useMutation({
-    mutationFn: async (registrationId: string) => {
+  const cancelMutation = useOptimisticMutation<unknown, string, unknown>({
+    queryKey: ['registrations', eventProjectId],
+    mutationFn: async (registrationId) => {
       const res = await fetch(`/api/events/projects/${eventProjectId}/registrations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -466,19 +468,19 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['registrations', eventProjectId] })
       toast('Registration cancelled', 'success')
       setCancelTarget(null)
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       toast(err.message || 'Failed to cancel registration', 'error')
     },
   })
 
   // ─── Balance intent mutation ──────────────────────────────────────────────────
 
-  const balanceMutation = useMutation({
-    mutationFn: async (registrationId: string) => {
+  const balanceMutation = useOptimisticMutation<unknown, string, unknown>({
+    queryKey: ['registrations', eventProjectId],
+    mutationFn: async (registrationId) => {
       const res = await fetch(`/api/registration/${registrationId}/balance-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -491,12 +493,11 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['registrations', eventProjectId] })
       const email = balanceTarget?.email ?? ''
       toast(`Balance payment request sent to ${email}`, 'success')
       setBalanceTarget(null)
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       toast(err.message || 'Failed to send balance request', 'error')
     },
   })

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { useQueryClient, useQuery } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -47,7 +48,8 @@ export default function ITDeploymentCreateDrawer({ isOpen, onClose }: Props) {
     staleTime: 5 * 60_000,
   })
 
-  const createMutation = useMutation({
+  const createMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: queryKeys.itDeploymentBatches.all,
     mutationFn: async () => {
       const body: Record<string, unknown> = {
         name: name.trim(),
@@ -70,12 +72,11 @@ export default function ITDeploymentCreateDrawer({ isOpen, onClose }: Props) {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatches.all })
       toast('Batch created successfully', 'success')
       resetForm()
       onClose()
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       setError(err.message)
     },
   })

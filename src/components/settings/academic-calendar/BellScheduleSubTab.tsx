@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { useToast } from '@/components/Toast'
 import { IllustrationCalendar } from '@/components/illustrations'
 import type { SchoolOption, DeleteTarget, BellSchedule, BellSchedulePeriod } from './academic-calendar-types'
@@ -36,17 +37,19 @@ export function BellScheduleSubTab({ schools, activeSchoolId, isMultiSchool, onR
 
   // ── Mutations ──
 
-  const createScheduleMut = useMutation({
-    mutationFn: (data: typeof scheduleForm) => apiFetch('/api/academic/bell-schedules', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['bell-schedules'] }); resetScheduleForm() },
-    onError: (err: Error) => { toast(err.message || 'Failed to create schedule', 'error') },
+  const createScheduleMut = useOptimisticMutation<unknown, typeof scheduleForm, unknown>({
+    queryKey: ['bell-schedules'],
+    mutationFn: (data) => apiFetch('/api/academic/bell-schedules', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => resetScheduleForm(),
+    onError: (err) => { toast(err.message || 'Failed to create schedule', 'error') },
   })
 
-  const updateScheduleMut = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: typeof scheduleForm }) =>
+  const updateScheduleMut = useOptimisticMutation<unknown, { id: string; data: typeof scheduleForm }, unknown>({
+    queryKey: ['bell-schedules'],
+    mutationFn: ({ id, data }) =>
       apiFetch(`/api/academic/bell-schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['bell-schedules'] }); resetScheduleForm() },
-    onError: (err: Error) => { toast(err.message || 'Failed to update schedule', 'error') },
+    onSuccess: () => resetScheduleForm(),
+    onError: (err) => { toast(err.message || 'Failed to update schedule', 'error') },
   })
 
   const resetScheduleForm = useCallback(() => {

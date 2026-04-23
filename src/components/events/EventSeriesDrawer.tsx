@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -26,17 +26,14 @@ interface EventSeries {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 function useCreateEventSeries() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (data: CreateEventSeriesInput) =>
+  return useOptimisticMutation<EventSeries, CreateEventSeriesInput, unknown>({
+    queryKey: ['event-series'],
+    mutationFn: (data) =>
       fetchApi<EventSeries>('/api/events/series', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event-series'] })
-      queryClient.invalidateQueries({ queryKey: ['event-projects'] })
-    },
+    invalidateKeys: [['event-projects']],
   })
 }
 
