@@ -68,7 +68,8 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
     staleTime: 5 * 60_000,
   })
 
-  const createMutation = useMutation({
+  const createMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: queryKeys.itStudents.all,
     mutationFn: async () => {
       const body: Record<string, unknown> = {
         firstName: firstName.trim(),
@@ -94,12 +95,11 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itStudents.all })
       toast('Student added successfully', 'success')
       resetForm()
       onClose()
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       setError(err.message)
     },
   })

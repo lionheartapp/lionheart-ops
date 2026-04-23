@@ -225,7 +225,8 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
     }
   }, [activities.length])
 
-  const commentMutation = useMutation({
+  const commentMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: ['maintenance-ticket-activities', ticketId],
     mutationFn: async () => {
       return fetchApi<Activity>(`/api/maintenance/tickets/${ticketId}/activities`, {
         method: 'POST',
@@ -236,7 +237,6 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
     onSuccess: () => {
       setComment('')
       setIsInternal(false)
-      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
     },
   })
 

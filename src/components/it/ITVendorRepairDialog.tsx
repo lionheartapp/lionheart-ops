@@ -57,7 +57,8 @@ export default function ITVendorRepairDialog({
   }, [isOpen])
 
   // ── Mutation ─────────────────────────────────────────────────────────
-  const saveMutation = useMutation({
+  const saveMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: queryKeys.itRepairQueue.all,
     mutationFn: async () => {
       if (!repairId) throw new Error('No repair selected')
 
@@ -83,11 +84,10 @@ export default function ITVendorRepairDialog({
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itRepairQueue.all })
       toast('Vendor log saved', 'success')
       onClose()
     },
-    onError: (err: Error) => toast(err.message, 'error'),
+    onError: (err) => toast(err.message, 'error'),
   })
 
   const handleChange = (field: keyof VendorLogForm, value: string) => {

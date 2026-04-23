@@ -281,7 +281,8 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const selectedArea = areas.find((a) => a.id === areaId)
   const rooms = selectedArea?.rooms ?? selectedBuilding?.rooms ?? []
 
-  const createMutation = useMutation({
+  const createMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: queryKeys.itTickets.all,
     mutationFn: async () => {
       const body: Record<string, unknown> = {
         title: title.trim(),
@@ -309,15 +310,13 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       }
       return res.json()
     },
+    invalidateKeys: [queryKeys.itBoard.all, queryKeys.itDashboard.all],
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDashboard.all })
       toast('IT ticket submitted successfully', 'success')
       resetForm()
       onClose()
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       const msg = err.message.includes('Insufficient permissions')
         ? "You don't have permission to submit IT tickets. Ask your administrator to update your role in Settings > Members."
         : err.message

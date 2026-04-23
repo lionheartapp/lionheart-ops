@@ -131,13 +131,14 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
 
   // ─── Save window mutation ───────────────────────────────────────────────────
 
-  const saveMutation = useMutation({
-    mutationFn: async (payload: {
+  const saveMutation = useOptimisticMutation<unknown, {
       openAt?: string | null
       closeAt?: string | null
       maxCapacity?: number | null
       waitlistEnabled?: boolean
-    }) => {
+    }, unknown>({
+    queryKey: ['share-config', eventProjectId],
+    mutationFn: async (payload) => {
       const res = await fetch(`/api/events/projects/${eventProjectId}/share`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -150,10 +151,9 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['share-config', eventProjectId] })
       toast('Registration settings saved', 'success')
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       toast(err.message || 'Failed to save settings', 'error')
     },
   })

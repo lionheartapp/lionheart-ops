@@ -50,8 +50,9 @@ export default function CategoryFormEditor({
   })
 
   // Save mutation (debounced via full field replacement)
-  const saveMutation = useMutation({
-    mutationFn: async (fields: FormFieldData[]) => {
+  const saveMutation = useOptimisticMutation<unknown, FormFieldData[], unknown>({
+    queryKey: ['form-definition', 'category', categoryKey],
+    mutationFn: async (fields) => {
       if (!formDef?.id) return
       const body = {
         fields: fields.map((f, i) => ({
@@ -81,15 +82,8 @@ export default function CategoryFormEditor({
       if (!res.ok) throw new Error('Failed to save')
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['form-definition', 'category', categoryKey],
-      })
-      addToast('Form saved', 'success')
-    },
-    onError: () => {
-      addToast('Failed to save form', 'error')
-    },
+    onSuccess: () => addToast('Form saved', 'success'),
+    onError: () => addToast('Failed to save form', 'error'),
   })
 
   // Debounced auto-save

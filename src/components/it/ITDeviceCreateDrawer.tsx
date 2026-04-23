@@ -105,7 +105,8 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
   const selectedArea = areas.find((a) => a.id === areaId)
   const rooms = selectedArea?.rooms ?? selectedBuilding?.rooms ?? []
 
-  const createMutation = useMutation({
+  const createMutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: queryKeys.itDevices.all,
     mutationFn: async () => {
       const body: Record<string, unknown> = { deviceType, status }
       if (serialNumber.trim()) body.serialNumber = serialNumber.trim()
@@ -131,12 +132,11 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
       toast('Device added successfully', 'success')
       resetForm()
       onClose()
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       setError(err.message)
     },
   })

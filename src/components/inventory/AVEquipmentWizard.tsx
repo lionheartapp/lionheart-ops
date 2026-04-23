@@ -139,7 +139,8 @@ export default function AVEquipmentWizard({
 
   // ── Mutation ──
 
-  const mutation = useMutation({
+  const mutation = useOptimisticMutation<unknown, void, unknown>({
+    queryKey: ['inventory'],
     mutationFn: async () => {
       const payload = {
         isAVEquipment: true,
@@ -168,11 +169,8 @@ export default function AVEquipmentWizard({
         body: JSON.stringify(payload),
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory'] })
-      onSuccess()
-    },
-    onError: (err: Error) => {
+    onSuccess: () => onSuccess(),
+    onError: (err) => {
       const msg = err.message || 'Something went wrong'
       if (msg.toLowerCase().includes('name')) {
         setCurrentStep(0)

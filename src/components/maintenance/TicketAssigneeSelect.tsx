@@ -48,19 +48,19 @@ export default function TicketAssigneeSelect({
     enabled: open,
   })
 
-  const assignMutation = useMutation({
-    mutationFn: (assignedToId: string) =>
+  const assignMutation = useOptimisticMutation<unknown, string, unknown>({
+    queryKey: ['maintenance-ticket', ticketId],
+    mutationFn: (assignedToId) =>
       fetchApi(`/api/maintenance/tickets/${ticketId}/assign`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ assignedToId }),
       }),
-    onSuccess: () => {
-      setOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
-    },
+    invalidateKeys: [
+      ['maintenance-ticket-activities', ticketId],
+      ['maintenance-tickets'],
+    ],
+    onSuccess: () => setOpen(false),
   })
 
   const initials = currentAssignee
