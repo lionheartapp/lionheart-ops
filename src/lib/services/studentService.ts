@@ -13,7 +13,7 @@ export const CreateStudentSchema = z.object({
   externalId: z.string().optional(),
   grade: z.string().optional(),
   gradeNumeric: z.number().int().min(0).max(12).optional(),
-  schoolId: z.string().optional(),
+  campusId: z.string().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'TRANSFERRED', 'GRADUATED']).default('ACTIVE'),
   rosterSource: z.enum(['CLEVER', 'CLASSLINK', 'MANUAL']).default('MANUAL'),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -32,7 +32,7 @@ export interface StudentListContext {
 }
 
 export interface StudentListFilters {
-  schoolId?: string
+  campusId?: string
   grade?: string
   status?: 'ACTIVE' | 'INACTIVE' | 'TRANSFERRED' | 'GRADUATED'
   search?: string
@@ -58,14 +58,14 @@ export async function createStudent(input: CreateStudentInput) {
       externalId: validated.externalId ?? null,
       grade: validated.grade ?? null,
       gradeNumeric: validated.gradeNumeric ?? null,
-      schoolId: validated.schoolId ?? null,
+      campusId: validated.campusId ?? null,
       status: validated.status,
       rosterSource: validated.rosterSource,
       metadata: validated.metadata ?? undefined,
     },
     include: {
-      school: {
-        select: { id: true, name: true, gradeLevel: true, color: true },
+      campus: {
+        select: { id: true, name: true },
       },
     },
   })
@@ -87,7 +87,7 @@ export async function updateStudent(id: string, input: UpdateStudentInput) {
   if (validated.externalId !== undefined) updateData.externalId = validated.externalId ?? null
   if (validated.grade !== undefined) updateData.grade = validated.grade ?? null
   if (validated.gradeNumeric !== undefined) updateData.gradeNumeric = validated.gradeNumeric ?? null
-  if (validated.schoolId !== undefined) updateData.schoolId = validated.schoolId ?? null
+  if (validated.campusId !== undefined) updateData.campusId = validated.campusId ?? null
   if (validated.status !== undefined) updateData.status = validated.status
   if (validated.rosterSource !== undefined) updateData.rosterSource = validated.rosterSource
   if (validated.metadata !== undefined) updateData.metadata = validated.metadata ?? undefined
@@ -96,8 +96,8 @@ export async function updateStudent(id: string, input: UpdateStudentInput) {
     where: { id },
     data: updateData,
     include: {
-      school: {
-        select: { id: true, name: true, gradeLevel: true, color: true },
+      campus: {
+        select: { id: true, name: true },
       },
     },
   })
@@ -116,15 +116,15 @@ export async function deleteStudent(id: string) {
 }
 
 /**
- * Resolve the caller's schoolId from the User record.
+ * Resolve the caller's campusId from the User record.
  * Used for FERPA own-school scoping.
  */
-async function getCallerSchoolId(userId: string): Promise<string | null> {
+async function getCallerCampusId(userId: string): Promise<string | null> {
   const user = await (prisma.user.findUnique as Function)({
     where: { id: userId },
-    select: { schoolId: true },
+    select: { campusId: true },
   })
-  return user?.schoolId ?? null
+  return user?.campusId ?? null
 }
 
 /**
@@ -156,24 +156,24 @@ export async function listStudents(
 
   // School scoping
   if (!canReadAll && canReadOwnSchool) {
-    const callerSchoolId = await getCallerSchoolId(userId)
-    if (!callerSchoolId) {
+    const callerCampusId = await getCallerCampusId(userId)
+    if (!callerCampusId) {
       // User has own-school permission but no school assigned — return empty
       return { students: [], total: 0 }
     }
-    where.schoolId = callerSchoolId
+    where.campusId = callerCampusId
   }
 
   // Explicit filters (applied on top of FERPA scoping)
-  if (filters.schoolId) {
+  if (filters.campusId) {
     // If user only has own-school access, ensure they can't override the scope
     if (!canReadAll && canReadOwnSchool) {
-      const callerSchoolId = await getCallerSchoolId(userId)
-      if (filters.schoolId !== callerSchoolId) {
+      const callerCampusId = await getCallerCampusId(userId)
+      if (filters.campusId !== callerCampusId) {
         return { students: [], total: 0 }
       }
     }
-    where.schoolId = filters.schoolId
+    where.campusId = filters.campusId
   }
 
   if (filters.grade) {
@@ -203,8 +203,8 @@ export async function listStudents(
       take: limit,
       skip: offset,
       include: {
-        school: {
-          select: { id: true, name: true, gradeLevel: true, color: true },
+        campus: {
+          select: { id: true, name: true },
         },
         _count: {
           select: {
@@ -242,8 +242,8 @@ export async function getStudentDetail(
   const student = await (prisma.student.findUnique as Function)({
     where: { id },
     include: {
-      school: {
-        select: { id: true, name: true, gradeLevel: true, color: true },
+      campus: {
+        select: { id: true, name: true },
       },
       deviceAssignments: {
         include: {
@@ -268,8 +268,8 @@ export async function getStudentDetail(
 
   // If user only has own-school access, verify the student belongs to their school
   if (!canReadAll && canReadOwnSchool) {
-    const callerSchoolId = await getCallerSchoolId(userId)
-    if (!callerSchoolId || student.schoolId !== callerSchoolId) {
+    const callerCampusId = await getCallerCampusId(userId)
+    if (!callerCampusId || student.campusId !== callerCampusId) {
       return null
     }
   }
@@ -318,9 +318,9 @@ export async function searchStudents(
 
   // Own-school scoping
   if (!canReadAll && canReadOwnSchool) {
-    const callerSchoolId = await getCallerSchoolId(userId)
-    if (!callerSchoolId) return []
-    where.schoolId = callerSchoolId
+    const callerCampusId = await getCallerCampusId(userId)
+    if (!callerCampusId) return []
+    where.campusId = callerCampusId
   }
 
   const students = await (prisma.student.findMany as Function)({
@@ -334,7 +334,7 @@ export async function searchStudents(
       studentId: true,
       grade: true,
       status: true,
-      school: {
+      campus: {
         select: { id: true, name: true },
       },
     },
