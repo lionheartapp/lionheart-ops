@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'

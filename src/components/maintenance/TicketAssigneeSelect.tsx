@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { ChevronDown, Loader2, UserX, Check } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 

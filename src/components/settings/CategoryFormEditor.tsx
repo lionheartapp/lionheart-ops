@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { FileText, Lock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { SortableList, FieldEditor, AddFieldButton } from '@/components/forms'

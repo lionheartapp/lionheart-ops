@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/Toast'
 import {

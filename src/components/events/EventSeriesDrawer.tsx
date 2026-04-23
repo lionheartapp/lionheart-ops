@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { useToast } from '@/components/Toast'
