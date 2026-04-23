@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, BookOpen, Tag } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -70,7 +70,7 @@ function getInitialForm(article?: KBArticleSummary | null) {
     assetId: article?.assetId ?? '',
     calculatorType: article?.calculatorType ?? '',
     isPublished: article?.isPublished ?? true,
-  }
+ }
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -92,12 +92,12 @@ export default function KnowledgeBaseArticleEditor({
     if (isOpen) {
       setForm(getInitialForm(editArticle))
       setError('')
-    }
-  }, [editArticle, isOpen])
+   }
+ }, [editArticle, isOpen])
 
   function updateField<K extends keyof typeof form>(field: K, value: typeof form[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
-  }
+ }
 
   // Parse tags from comma-separated input
   function parseTags(input: string): string[] {
@@ -105,7 +105,7 @@ export default function KnowledgeBaseArticleEditor({
       .split(',')
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean)
-  }
+ }
 
   const mutation = useMutation<KBArticleSummary, Error, ArticlePayload>({
     mutationFn: (payload) => {
@@ -114,23 +114,23 @@ export default function KnowledgeBaseArticleEditor({
           method: 'PATCH',
           headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-        })
-      }
+       })
+     }
       return fetchApi<KBArticleSummary>('/api/maintenance/knowledge-base', {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      })
-    },
+     })
+   },
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['knowledge-base'] })
       onSaved?.(saved)
       onClose()
-    },
+   },
     onError: (err) => {
       setError(err.message || 'Failed to save article')
-    },
-  })
+   },
+ })
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -139,15 +139,15 @@ export default function KnowledgeBaseArticleEditor({
     if (!form.title.trim()) {
       setError('Title is required')
       return
-    }
+   }
     if (!form.type) {
       setError('Article type is required')
       return
-    }
+   }
     if (!form.content.trim()) {
       setError('Content is required')
       return
-    }
+   }
 
     mutation.mutate({
       title: form.title.trim(),
@@ -157,8 +157,8 @@ export default function KnowledgeBaseArticleEditor({
       assetId: form.assetId || null,
       calculatorType: form.type === 'CALCULATION_TOOL' ? form.calculatorType || null : null,
       isPublished: form.isPublished,
-    })
-  }
+   })
+ }
 
   return (
     <AnimatePresence>
@@ -338,12 +338,12 @@ export default function KnowledgeBaseArticleEditor({
                   onClick={() => updateField('isPublished', !form.isPublished)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
                     form.isPublished ? 'bg-slate-900' : 'bg-slate-200'
-                  }`}
+                 }`}
                 >
                   <span
                     className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
                       form.isPublished ? 'translate-x-6' : 'translate-x-1'
-                    }`}
+                   }`}
                   />
                 </button>
               </div>

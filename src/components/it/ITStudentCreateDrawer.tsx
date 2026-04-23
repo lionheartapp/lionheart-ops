@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
@@ -64,9 +64,9 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
       if (!res.ok) return []
       const data = await res.json()
       return data.ok ? data.data : []
-    },
+   },
     staleTime: 5 * 60_000,
-  })
+ })
 
   const createMutation = useOptimisticMutation<unknown, void, unknown>({
     queryKey: queryKeys.itStudents.all,
@@ -75,7 +75,7 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         status,
-      }
+     }
       if (email.trim()) body.email = email.trim()
       if (studentId.trim()) body.studentId = studentId.trim()
       if (grade) body.grade = grade
@@ -87,22 +87,22 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body),
-      })
+     })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         throw new Error(data?.error?.message || 'Failed to create student')
-      }
+     }
       return res.json()
-    },
+   },
     onSuccess: () => {
       toast('Student added successfully', 'success')
       resetForm()
       onClose()
-    },
+   },
     onError: (err) => {
       setError(err.message)
-    },
-  })
+   },
+ })
 
   const resetForm = () => {
     setFirstName('')
@@ -113,12 +113,12 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
     setSchoolId('')
     setStatus('ACTIVE')
     setError('')
-  }
+ }
 
   const handleClose = () => {
     resetForm()
     onClose()
-  }
+ }
 
   const canSubmit = firstName.trim().length > 0 && lastName.trim().length > 0
 
@@ -147,14 +147,14 @@ export default function ITStudentCreateDrawer({ isOpen, onClose }: ITStudentCrea
             Cancel
           </button>
         </div>
-      }
+     }
     >
       <form
         id="it-student-create-form"
         onSubmit={(e) => {
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
-        }}
+       }}
         className="space-y-4"
       >
         <div className="grid grid-cols-2 gap-3">

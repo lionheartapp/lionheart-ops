@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LayoutList, CalendarDays } from 'lucide-react'
 import { IllustrationCompliance } from '@/components/illustrations'
 import { fetchApi } from '@/lib/api-client'
@@ -42,7 +42,7 @@ function StatusBadge({ status }: { status: ComplianceStatus }) {
     OVERDUE: { label: 'Overdue', className: 'bg-red-100 text-red-700' },
     NOT_APPLICABLE: { label: 'N/A', className: 'bg-slate-100 text-slate-500' },
     PENDING: { label: 'Pending', className: 'bg-blue-100 text-blue-700' },
-  }
+ }
   const { label, className } = config[status]
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
@@ -57,7 +57,7 @@ function OutcomeBadge({ outcome }: { outcome: ComplianceOutcome }) {
     FAILED: { label: 'Failed', className: 'bg-red-100 text-red-700' },
     CONDITIONAL_PASS: { label: 'Conditional', className: 'bg-amber-100 text-amber-700' },
     PENDING: { label: 'Pending', className: 'bg-slate-100 text-slate-500' },
-  }
+ }
   const { label, className } = config[outcome]
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
@@ -108,7 +108,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
   const { data: recordsData, isLoading } = useQuery<{ data: ComplianceRecord[] }>({
     queryKey: ['compliance-records', fromStr, toStr, filterDomain, filterStatus],
     queryFn: () => fetchApi<{ data: ComplianceRecord[] }>(`/api/maintenance/compliance/records?${params.toString()}`),
-  })
+ })
 
   const records: ComplianceRecord[] = recordsData?.data ?? []
 
@@ -125,7 +125,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           </p>
         </div>
       )
-    }
+   }
 
     return (
       <div className="ui-glass-table rounded-xl overflow-hidden">
@@ -174,7 +174,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                       onClick={(e) => {
                         e.stopPropagation()
                         onEditRecord?.(record)
-                      }}
+                     }}
                       className="text-xs text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
                     >
                       Edit
@@ -182,12 +182,12 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                   </td>
                 </tr>
               )
-            })}
+           })}
           </tbody>
         </table>
       </div>
     )
-  }
+ }
 
   // ─── Timeline View ────────────────────────────────────────────────────────
 
@@ -199,7 +199,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       const key = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       if (!byMonth[key]) byMonth[key] = []
       byMonth[key].push(record)
-    }
+   }
 
     if (Object.keys(byMonth).length === 0) {
       return (
@@ -209,7 +209,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
           <p className="text-xs text-slate-400 max-w-xs">Configure domains and populate the calendar to see deadlines here.</p>
         </div>
       )
-    }
+   }
 
     const STATUS_COLORS: Record<ComplianceStatus, string> = {
       CURRENT: 'bg-green-500',
@@ -217,7 +217,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
       OVERDUE: 'bg-red-500',
       NOT_APPLICABLE: 'bg-slate-300',
       PENDING: 'bg-blue-500',
-    }
+   }
 
     return (
       <div className="space-y-4">
@@ -244,13 +244,13 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
                     <StatusBadge status={record.status} />
                   </div>
                 )
-              })}
+             })}
             </div>
           </div>
         ))}
       </div>
     )
-  }
+ }
 
   return (
     <div>
@@ -265,7 +265,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
             ...COMPLIANCE_DOMAINS.map((d) => ({
               value: d,
               label: COMPLIANCE_DOMAIN_DEFAULTS[d].label,
-            })),
+           })),
           ]}
           className="min-w-[160px]"
         />
@@ -289,7 +289,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
             onClick={() => setViewMode('list')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-            }`}
+           }`}
             title="List view"
           >
             <LayoutList className="w-4 h-4" />
@@ -298,7 +298,7 @@ export function ComplianceCalendar({ onEditRecord }: ComplianceCalendarProps) {
             onClick={() => setViewMode('timeline')}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               viewMode === 'timeline' ? 'bg-primary-50 text-primary-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-            }`}
+           }`}
             title="Timeline view"
           >
             <CalendarDays className="w-4 h-4" />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { getAuthHeaders } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
@@ -53,8 +53,8 @@ export default function ITVendorRepairDialog({
   useEffect(() => {
     if (isOpen) {
       setForm(INITIAL_FORM)
-    }
-  }, [isOpen])
+   }
+ }, [isOpen])
 
   // ── Mutation ─────────────────────────────────────────────────────────
   const saveMutation = useOptimisticMutation<unknown, void, unknown>({
@@ -76,23 +76,23 @@ export default function ITVendorRepairDialog({
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body),
-      })
+     })
       if (!res.ok) {
         const json = await res.json().catch(() => null)
         throw new Error(json?.error?.message || 'Failed to save vendor log')
-      }
+     }
       return res.json()
-    },
+   },
     onSuccess: () => {
       toast('Vendor log saved', 'success')
       onClose()
-    },
+   },
     onError: (err) => toast(err.message, 'error'),
-  })
+ })
 
   const handleChange = (field: keyof VendorLogForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
-  }
+ }
 
   if (!isOpen) return null
 

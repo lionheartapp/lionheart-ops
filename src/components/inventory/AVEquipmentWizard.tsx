@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Settings, Save, ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { fetchApi } from '@/lib/api-client'
 import StepEssentials, { type LocationEntry } from './StepEssentials'
@@ -58,12 +58,12 @@ const slideVariants = {
   enter: (dir: 'forward' | 'backward') => ({
     x: dir === 'forward' ? 40 : -40,
     opacity: 0,
-  }),
+ }),
   center: { x: 0, opacity: 1 },
   exit: (dir: 'forward' | 'backward') => ({
     x: dir === 'forward' ? -40 : 40,
     opacity: 0,
-  }),
+ }),
 }
 
 const transition = { duration: 0.25, ease: EASE }
@@ -84,7 +84,7 @@ function getInitialData(item?: InventoryItemData | null): AVEquipmentFormData {
     imageUrl: item?.imageUrl ?? null,
     documentationLinks: item?.documentationLinks ?? [],
     tags: item?.tags ?? [],
-  }
+ }
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -119,23 +119,23 @@ export default function AVEquipmentWizard({
     if (currentStep === 0 && !formData.name.trim()) {
       setNameError('Name is required')
       return
-    }
+   }
     setNameError('')
     if (!canAdvance) return
     setDirection('forward')
     setCurrentStep((s) => Math.min(s + 1, lastStep))
-  }
+ }
 
   const goBack = () => {
     setDirection('backward')
     setCurrentStep((s) => Math.max(s - 1, 0))
-  }
+ }
 
   // ── Form data updater ──
 
   const update = (patch: Partial<AVEquipmentFormData>) => {
     setFormData((prev) => ({ ...prev, ...patch }))
-  }
+ }
 
   // ── Mutation ──
 
@@ -156,42 +156,42 @@ export default function AVEquipmentWizard({
         imageUrl: formData.imageUrl,
         documentationLinks: formData.documentationLinks,
         tags: formData.tags,
-      }
+     }
 
       if (isEditing) {
         return fetchApi(`/api/inventory/${item!.id}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
-        })
-      }
+       })
+     }
       return fetchApi('/api/inventory', {
         method: 'POST',
         body: JSON.stringify(payload),
-      })
-    },
+     })
+   },
     onSuccess: () => onSuccess(),
     onError: (err) => {
       const msg = err.message || 'Something went wrong'
       if (msg.toLowerCase().includes('name')) {
         setCurrentStep(0)
         setNameError(msg)
-      }
-    },
-  })
+     }
+   },
+ })
 
   // Expose pending state to parent
   useEffect(() => {
     onPendingChange?.(mutation.isPending)
-  }, [mutation.isPending, onPendingChange])
+ }, [mutation.isPending, onPendingChange])
 
   const handleSubmit = () => {
     if (!formData.name.trim()) {
       setCurrentStep(0)
       setNameError('Name is required')
       return
-    }
+   }
     mutation.mutate()
-  }
+ }
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
@@ -212,12 +212,12 @@ export default function AVEquipmentWizard({
                     if (i < currentStep) {
                       setDirection('backward')
                       setCurrentStep(i)
-                    }
-                  }}
+                   }
+                 }}
                   disabled={i > currentStep}
                   className={`flex items-center gap-2.5 cursor-pointer disabled:cursor-default transition-all ${
                     isActive || isComplete ? '' : 'opacity-50'
-                  }`}
+                 }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
@@ -226,7 +226,7 @@ export default function AVEquipmentWizard({
                         : isComplete
                         ? 'bg-indigo-100 text-indigo-700'
                         : 'bg-slate-200 text-slate-500'
-                    }`}
+                   }`}
                   >
                     {isComplete ? '✓' : i + 1}
                   </div>
@@ -234,7 +234,7 @@ export default function AVEquipmentWizard({
                     <p
                       className={`text-xs font-semibold ${
                         isActive ? 'text-slate-900' : 'text-slate-500'
-                      }`}
+                     }`}
                     >
                       {step.label}
                     </p>
@@ -245,12 +245,12 @@ export default function AVEquipmentWizard({
                   <div
                     className={`flex-1 h-0.5 mx-3 rounded-full transition-colors ${
                       isComplete ? 'bg-indigo-400' : 'bg-slate-200'
-                    }`}
+                   }`}
                   />
                 )}
               </div>
             )
-          })}
+         })}
         </div>
       </div>
 
@@ -284,7 +284,7 @@ export default function AVEquipmentWizard({
                 onNameChange={(v) => {
                   update({ name: v })
                   if (nameError) setNameError('')
-                }}
+               }}
                 onDescriptionChange={(v) => update({ description: v })}
                 onOwnerChange={(v) => update({ ownerId: v })}
                 onLocationsChange={(v) => update({ locations: v })}

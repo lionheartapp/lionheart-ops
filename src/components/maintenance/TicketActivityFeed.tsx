@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { motion } from 'framer-motion'
 import {
@@ -102,7 +102,7 @@ function getActivityIcon(type: ActivityType, isInternal: boolean) {
     case 'ASSIGNMENT': return <UserCheck className="w-3.5 h-3.5 text-white" />
     case 'PHOTO_ADDED': return <MessageSquare className="w-3.5 h-3.5 text-white" />
     default: return <MessageSquare className="w-3.5 h-3.5 text-white" />
-  }
+ }
 }
 
 function getActivityDotColor(type: ActivityType, isInternal: boolean): string {
@@ -113,7 +113,7 @@ function getActivityDotColor(type: ActivityType, isInternal: boolean): string {
     case 'ASSIGNMENT': return 'bg-orange-500'
     case 'PHOTO_ADDED': return 'bg-teal-500'
     default: return 'bg-slate-400'
-  }
+ }
 }
 
 function actorName(actor: Actor | null): string {
@@ -216,14 +216,14 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
     queryKey: ['maintenance-ticket-activities', ticketId],
     queryFn: () => fetchApi<Activity[]>(`/api/maintenance/tickets/${ticketId}/activities`),
     staleTime: 30 * 1000,
-  })
+ })
 
   // Auto-scroll on new activity
   useEffect(() => {
     if (feedRef.current && activities.length > 0) {
       feedRef.current.scrollTop = feedRef.current.scrollHeight
-    }
-  }, [activities.length])
+   }
+ }, [activities.length])
 
   const commentMutation = useOptimisticMutation<unknown, void, unknown>({
     queryKey: ['maintenance-ticket-activities', ticketId],
@@ -232,13 +232,13 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ content: comment.trim(), isInternal }),
-      })
-    },
+     })
+   },
     onSuccess: () => {
       setComment('')
       setIsInternal(false)
-    },
-  })
+   },
+ })
 
   if (isLoading) {
     return (
@@ -254,7 +254,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
         ))}
       </div>
     )
-  }
+ }
 
   return (
     <div className="space-y-0">

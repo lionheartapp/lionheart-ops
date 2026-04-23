@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders, fetchApi } from '@/lib/api-client'
@@ -140,7 +140,7 @@ const TITLE_SUGGESTIONS: Record<string, string[] | Record<string, string[]>> = {
     LOCKED: ["Account locked out"],
     NEW_ACCOUNT: ["New account request"],
     PERMISSION_CHANGE: ["Permission/access change needed"],
-  },
+ },
   NETWORK: ["No internet connection", "Wi-Fi not working", "Network drive not accessible", "Slow internet"],
   DISPLAY_AV: {
     '': ["Projector not working", "Sound system issue", "Classroom display not working", "Apple TV not connecting", "A/V equipment issue"],
@@ -149,7 +149,7 @@ const TITLE_SUGGESTIONS: Record<string, string[] | Record<string, string[]>> = {
     DISPLAY: ["Classroom display not working"],
     APPLE_TV: ["Apple TV not connecting"],
     OTHER_AV: ["A/V equipment issue"],
-  },
+ },
   OTHER: ["General IT help needed"],
 }
 
@@ -178,7 +178,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     const win = getWindowWithSpeech()
     const SR = win?.SpeechRecognition || win?.webkitSpeechRecognition
     setSpeechSupported(!!SR)
-  }, [])
+ }, [])
 
   const toggleVoiceInput = () => {
     const win = getWindowWithSpeech()
@@ -189,10 +189,10 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       if (win.__speechRecognition) {
         win.__speechRecognition.stop()
         win.__speechRecognition = null
-      }
+     }
       setIsRecording(false)
       return
-    }
+   }
 
     const recognition = new SR()
     recognition.continuous = true
@@ -204,12 +204,12 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           transcript += event.results[i][0].transcript
-        }
-      }
+       }
+     }
       if (transcript) {
         setDescription((prev) => prev ? `${prev} ${transcript}` : transcript)
-      }
-    }
+     }
+   }
 
     recognition.onerror = () => setIsRecording(false)
     recognition.onend = () => setIsRecording(false)
@@ -219,7 +219,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
 
     // Store reference to stop later
     win.__speechRecognition = recognition
-  }
+ }
 
   // Fetch buildings for location picker
   const { data: buildings = [] } = useQuery<Building[]>({
@@ -229,9 +229,9 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       if (!res.ok) return []
       const data = await res.json()
       return data.ok ? data.data : []
-    },
+   },
     staleTime: 5 * 60_000,
-  })
+ })
 
   // Fetch schools
   const { data: schools = [] } = useQuery<School[]>({
@@ -241,16 +241,16 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
       if (!res.ok) return []
       const data = await res.json()
       return data.ok ? data.data : []
-    },
+   },
     staleTime: 5 * 60_000,
-  })
+ })
 
   // Fetch dynamic fields for selected issue type
   interface FieldConfigRecord {
     fieldType: CategoryFieldType
     required: boolean
     sortOrder: number
-  }
+ }
   const { data: enabledFieldConfigs } = useQuery({
     queryKey: ['category-fields', 'IT', issueType],
     queryFn: () =>
@@ -258,13 +258,13 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         `/api/settings/ticket-routing/fields?module=IT&categoryKey=${issueType}`
       ),
     enabled: !!issueType,
-  })
+ })
 
   // Fetch form definition fields (new forms system)
   interface FormDefResponse {
     id: string
     fields: FormFieldData[]
-  }
+ }
   const { data: formDef } = useQuery({
     queryKey: ['form-definition', 'category', issueType?.toLowerCase()],
     queryFn: () =>
@@ -272,7 +272,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         `/api/forms/category/${issueType?.toLowerCase()}`
       ),
     enabled: !!issueType,
-  })
+ })
   const formDefFields = formDef?.fields ?? []
   const [formFieldResponses, setFormFieldResponses] = useState<Record<string, unknown>>({})
 
@@ -288,7 +288,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         title: title.trim(),
         issueType,
         priority,
-      }
+     }
       if (description.trim()) body.description = description.trim()
       if (passwordSubType) body.passwordSubType = passwordSubType
       if (avSubType) body.avSubType = avSubType
@@ -303,26 +303,26 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body),
-      })
+     })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         throw new Error(data?.error?.message || 'Failed to create ticket')
-      }
+     }
       return res.json()
-    },
+   },
     invalidateKeys: [queryKeys.itBoard.all, queryKeys.itDashboard.all],
     onSuccess: () => {
       toast('IT ticket submitted successfully', 'success')
       resetForm()
       onClose()
-    },
+   },
     onError: (err) => {
       const msg = err.message.includes('Insufficient permissions')
         ? "You don't have permission to submit IT tickets. Ask your administrator to update your role in Settings > Members."
         : err.message
       setError(msg)
-    },
-  })
+   },
+ })
 
   const resetForm = () => {
     setTitle('')
@@ -336,12 +336,12 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     setRoomId('')
     setSchoolId('')
     setError('')
-  }
+ }
 
   const handleClose = () => {
     resetForm()
     onClose()
-  }
+ }
 
   // Compute title suggestions based on issue type + sub-type
   const titleSuggestions = useMemo<string[]>(() => {
@@ -352,7 +352,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     // It's a sub-type map
     const subType = issueType === 'ACCOUNT_PASSWORD' ? passwordSubType : avSubType
     return map[subType || ''] ?? []
-  }, [issueType, passwordSubType, avSubType])
+ }, [issueType, passwordSubType, avSubType])
 
   const showSuggestions = issueType && titleSuggestions.length > 0 && title.trim().length < 10
 
@@ -383,14 +383,14 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
             Cancel
           </button>
         </div>
-      }
+     }
     >
       <form
         id="it-ticket-create-form"
         onSubmit={(e) => {
           e.preventDefault()
           if (canSubmit) createMutation.mutate()
-        }}
+       }}
         className="space-y-4"
       >
         {/* Quick Describe — AI Classify */}
@@ -421,20 +421,20 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                     suggestedPriority: string
                     confidence: string
                     reasoning: string
-                  }>('/api/ai/ticket-intake/classify', {
+                 }>('/api/ai/ticket-intake/classify', {
                     method: 'POST',
                     body: JSON.stringify({ description: quickDescribe, module: 'IT' }),
-                  })
+                 })
                   if (res) {
                     setTitle(res.suggestedTitle)
                     setIssueType(res.category)
                     setPriority(res.suggestedPriority)
                     setDescription(quickDescribe)
                     setClassifyResult({ confidence: res.confidence, reasoning: res.reasoning })
-                  }
-                } catch { /* user can fill manually */ }
+                 }
+               } catch { /* user can fill manually */ }
                 finally { setClassifying(false) }
-              }}
+             }}
               disabled={classifying || quickDescribe.trim().length < 5}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
             >
@@ -498,7 +498,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                     setIssueType(t.value)
                     setPasswordSubType('')
                     setAvSubType('')
-                  }}
+                 }}
                   className={`
                     flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border transition-all cursor-pointer
                     ${isSelected ? t.selectedColor : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}
@@ -510,7 +510,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                   <span className={`text-xs font-medium text-center leading-tight ${isSelected ? '' : 'text-slate-700'}`}>{t.label}</span>
                 </button>
               )
-            })}
+           })}
           </div>
         </div>
 
@@ -563,12 +563,12 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                     value={customFields[fc.fieldType] ?? null}
                     onChange={(val) =>
                       setCustomFields((prev) => ({ ...prev, [fc.fieldType]: val }))
-                    }
+                   }
                     formValues={{ priority, issueType, ...customFields }}
                     module="IT"
                   />
                 )
-              })}
+             })}
           </div>
         )}
 
@@ -581,7 +581,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
               setResponses={(next) => {
                 const { priority: _p, ...rest } = next
                 setFormFieldResponses(rest)
-              }}
+             }}
             />
           </div>
         )}
@@ -601,7 +601,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                 isRecording
                   ? 'bg-red-100 text-red-600 hover:bg-red-200'
                   : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-              }`}
+             }`}
               title={isRecording ? 'Stop recording' : 'Voice input'}
             >
               {isRecording ? (
@@ -641,7 +641,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
               setBuildingId(e.target.value)
               setAreaId('')
               setRoomId('')
-            }}
+           }}
             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
           >
             <option value="">Select building...</option>

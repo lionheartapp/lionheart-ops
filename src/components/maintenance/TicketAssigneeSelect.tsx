@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { ChevronDown, Loader2, UserX, Check } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -32,10 +32,10 @@ export default function TicketAssigneeSelect({
     if (!open) return
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
+   }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [open])
+ }, [open])
 
   // Fetch maintenance team members
   const { data: technicians = [] } = useQuery({
@@ -46,7 +46,7 @@ export default function TicketAssigneeSelect({
       ),
     staleTime: 5 * 60 * 1000,
     enabled: open,
-  })
+ })
 
   const assignMutation = useOptimisticMutation<unknown, string, unknown>({
     queryKey: ['maintenance-ticket', ticketId],
@@ -55,13 +55,13 @@ export default function TicketAssigneeSelect({
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ assignedToId }),
-      }),
+     }),
     invalidateKeys: [
       ['maintenance-ticket-activities', ticketId],
       ['maintenance-tickets'],
     ],
     onSuccess: () => setOpen(false),
-  })
+ })
 
   const initials = currentAssignee
     ? `${currentAssignee.firstName[0]}${currentAssignee.lastName[0]}`.toUpperCase()
@@ -76,7 +76,7 @@ export default function TicketAssigneeSelect({
           canAssign
             ? 'hover:bg-slate-50 border-slate-200 cursor-pointer'
             : 'border-transparent cursor-default'
-        } ${open ? 'bg-slate-50 border-slate-300' : ''}`}
+       } ${open ? 'bg-slate-50 border-slate-300' : ''}`}
       >
         {currentAssignee ? (
           <>
@@ -119,7 +119,7 @@ export default function TicketAssigneeSelect({
                   disabled={assignMutation.isPending}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors cursor-pointer ${
                     selected ? 'bg-primary-50' : 'hover:bg-slate-50'
-                  }`}
+                 }`}
                 >
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-semibold text-blue-700 flex-shrink-0">
                     {tech.firstName[0]}{tech.lastName[0]}
@@ -130,7 +130,7 @@ export default function TicketAssigneeSelect({
                   {selected && <Check className="w-3.5 h-3.5 text-primary-600 flex-shrink-0" />}
                 </button>
               )
-            })
+           })
           )}
         </div>
       )}

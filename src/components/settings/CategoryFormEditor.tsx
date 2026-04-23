@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { FileText, Lock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -47,7 +47,7 @@ export default function CategoryFormEditor({
       fetchApi<FormDefinitionResponse>(
         `/api/forms/category/${categoryKey}`
       ),
-  })
+ })
 
   // Save mutation (debounced via full field replacement)
   const saveMutation = useOptimisticMutation<unknown, FormFieldData[], unknown>({
@@ -69,22 +69,22 @@ export default function CategoryFormEditor({
           condEquals: f.condEquals ?? null,
           sortOrder: i,
           sectionId: null,
-        })),
-      }
+       })),
+     }
       const res = await fetch(`/api/forms/category/${categoryKey}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders(),
-        },
+       },
         body: JSON.stringify(body),
-      })
+     })
       if (!res.ok) throw new Error('Failed to save')
       return res.json()
-    },
+   },
     onSuccess: () => addToast('Form saved', 'success'),
     onError: () => addToast('Failed to save form', 'error'),
-  })
+ })
 
   // Debounced auto-save
   const debouncedSave = useCallback(
@@ -92,8 +92,8 @@ export default function CategoryFormEditor({
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
       saveTimeoutRef.current = setTimeout(() => {
         saveMutation.mutate(fields)
-      }, 800)
-    },
+     }, 800)
+   },
     [saveMutation]
   )
 
@@ -104,21 +104,21 @@ export default function CategoryFormEditor({
   function updateFields(next: FormFieldData[]) {
     setLocalFields(next)
     debouncedSave(next)
-  }
+ }
 
   function handleFieldChange(index: number, updated: FormFieldData) {
     const next = fields.map((f, i) => (i === index ? updated : f))
     updateFields(next)
-  }
+ }
 
   function handleFieldRemove(index: number) {
     const next = fields.filter((_, i) => i !== index)
     updateFields(next)
-  }
+ }
 
   function handleReorder(reordered: FormFieldData[]) {
     updateFields(reordered)
-  }
+ }
 
   function handleAddField(type: FormFieldType) {
     const meta = getFieldTypeMeta(type)
@@ -135,9 +135,9 @@ export default function CategoryFormEditor({
       autoEscalate: false,
       condFieldKey: null,
       condEquals: null,
-    }
+   }
     updateFields([...fields, newField])
-  }
+ }
 
   // Build condition candidates (standard fields + dropdown custom fields)
   const conditionCandidates = [
@@ -165,7 +165,7 @@ export default function CategoryFormEditor({
         </div>
       </div>
     )
-  }
+ }
 
   return (
     <div className="mt-6">
