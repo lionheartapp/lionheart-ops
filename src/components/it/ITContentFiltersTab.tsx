@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
 import { motion } from 'framer-motion'
@@ -235,30 +236,27 @@ export default function ITContentFiltersTab({
   const totalPages = Math.ceil(totalEvents / PAGE_SIZE)
 
   // ── Mutations ──────────────────────────────────────────────────────
-  const configMutation = useMutation({
+  const configMutation = useOptimisticMutation({
+    queryKey: queryKeys.itFilterConfigs.all,
     mutationFn: async ({ provider, body }: { provider: Platform; body: { webhookSecret: string; isEnabled: boolean } }) => {
       return fetchApi(`/api/it/content-filters/config/${provider}`, {
         method: 'PUT',
         body: JSON.stringify(body),
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itFilterConfigs.all })
-      setConfiguringProvider(null)
+    onSuccess: () => {setConfiguringProvider(null)
     },
   })
 
-  const dispositionMutation = useMutation({
+  const dispositionMutation = useOptimisticMutation({
+    queryKey: queryKeys.itFilterEvents.all,
     mutationFn: async ({ id, disposition }: { id: string; disposition: Disposition }) => {
       return fetchApi(`/api/it/content-filters/events/${id}/disposition`, {
         method: 'PUT',
         body: JSON.stringify({ disposition }),
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itFilterEvents.all })
-    },
-  })
+    })
 
   // ── Handlers ───────────────────────────────────────────────────────
   const handleCopyWebhook = useCallback((provider: string) => {

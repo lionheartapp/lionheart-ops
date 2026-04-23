@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -78,7 +79,9 @@ export default function ITDeploymentBatchDetail({
 
   // ─── Mutations ────────────────────────────────────────────────────────
 
-  const statusMutation = useMutation({
+  const statusMutation = useOptimisticMutation({
+    queryKey: queryKeys.itDeploymentBatchDetail.one(batchId),
+    invalidateKeys: [queryKeys.itDeploymentBatches.all, queryKeys.itDeploymentBatchProgress.one(batchId)],
     mutationFn: async (newStatus: string) => {
       const res = await fetch(`/api/it/deployment/batches/${batchId}`, {
         method: 'PATCH',
@@ -91,11 +94,7 @@ export default function ITDeploymentBatchDetail({
       }
       return res.json()
     },
-    onSuccess: (_, newStatus) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchDetail.one(batchId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatches.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchProgress.one(batchId) })
-      const statusLabels: Record<string, string> = {
+    onSuccess: (_, newStatus) => {const statusLabels: Record<string, string> = {
         IN_PROGRESS: 'started',
         COMPLETED: 'completed',
         CANCELLED: 'cancelled',
@@ -107,7 +106,9 @@ export default function ITDeploymentBatchDetail({
     },
   })
 
-  const processItemMutation = useMutation({
+  const processItemMutation = useOptimisticMutation({
+    queryKey: queryKeys.itDeploymentBatchDetail.one(batchId),
+    invalidateKeys: [queryKeys.itDeploymentBatchProgress.one(batchId)],
     mutationFn: async ({ itemId, body }: { itemId: string; body: Record<string, unknown> }) => {
       const res = await fetch(`/api/it/deployment/batches/${batchId}/items/${itemId}/process`, {
         method: 'POST',
@@ -120,17 +121,15 @@ export default function ITDeploymentBatchDetail({
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchDetail.one(batchId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchProgress.one(batchId) })
-      toast('Item processed', 'success')
+    onSuccess: () => {toast('Item processed', 'success')
     },
     onError: (err: Error) => {
       toast(err.message, 'error')
     },
   })
 
-  const assignStudentMutation = useMutation({
+  const assignStudentMutation = useOptimisticMutation({
+    queryKey: queryKeys.itDeploymentBatchDetail.one(batchId),
     mutationFn: async ({ itemId, studentId }: { itemId: string; studentId: string }) => {
       const res = await fetch(`/api/it/deployment/batches/${batchId}/items/${itemId}`, {
         method: 'PATCH',
@@ -146,7 +145,6 @@ export default function ITDeploymentBatchDetail({
     onSuccess: () => {
       setAssigningItemId(null)
       setAssignSearch('')
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchDetail.one(batchId) })
       toast('Student assigned', 'success')
     },
     onError: (err: Error) => {
@@ -154,7 +152,9 @@ export default function ITDeploymentBatchDetail({
     },
   })
 
-  const autoPopulateMutation = useMutation({
+  const autoPopulateMutation = useOptimisticMutation({
+    queryKey: queryKeys.itDeploymentBatchDetail.one(batchId),
+    invalidateKeys: [queryKeys.itDeploymentBatchProgress.one(batchId)],
     mutationFn: async () => {
       const res = await fetch(`/api/it/deployment/batches/${batchId}/auto-populate`, {
         method: 'POST',
@@ -166,10 +166,7 @@ export default function ITDeploymentBatchDetail({
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchDetail.one(batchId) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDeploymentBatchProgress.one(batchId) })
-      toast('Batch auto-populated', 'success')
+    onSuccess: () => {toast('Batch auto-populated', 'success')
     },
     onError: (err: Error) => {
       toast(err.message, 'error')
@@ -310,7 +307,7 @@ export default function ITDeploymentBatchDetail({
                 Start Batch
               </button>
               <button
-                onClick={() => autoPopulateMutation.mutate()}
+                onClick={() => autoPopulateMutation.mutate(undefined)}
                 disabled={autoPopulateMutation.isPending}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >

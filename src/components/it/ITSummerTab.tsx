@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -179,7 +180,8 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
   const staging = stagingRaw as StagingCounts | undefined
 
   // ── Mutations ────────────────────────────────────────────────────────
-  const toggleModeMutation = useMutation({
+  const toggleModeMutation = useOptimisticMutation({
+    queryKey: queryKeys.itSummerMode.all,
     mutationFn: async (activate: boolean) => {
       const body: Record<string, unknown> = { active: activate }
       if (activate && startDate) body.startDate = startDate
@@ -195,14 +197,13 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerMode.all })
-      toast('Summer mode updated', 'success')
+    onSuccess: () => {toast('Summer mode updated', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
   })
 
-  const createBatchMutation = useMutation({
+  const createBatchMutation = useOptimisticMutation({
+    queryKey: queryKeys.itSummerBatches.all,
     mutationFn: async () => {
       const name = `Reimaging Batch — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       const res = await fetch('/api/it/summer/batches', {
@@ -216,14 +217,13 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatches.all })
-      toast('Reimaging batch created', 'success')
+    onSuccess: () => {toast('Reimaging batch created', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
   })
 
-  const updateRepairStatusMutation = useMutation({
+  const updateRepairStatusMutation = useOptimisticMutation({
+    queryKey: queryKeys.itRepairQueue.all,
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await fetch(`/api/it/summer/repair-queue/${id}`, {
         method: 'PATCH',
@@ -236,9 +236,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
       }
       return res.json()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itRepairQueue.all })
-      setStatusDropdownId(null)
+    onSuccess: () => {setStatusDropdownId(null)
       toast('Repair status updated', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
@@ -373,7 +371,7 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
           </div>
           {canManage && (
             <button
-              onClick={() => createBatchMutation.mutate()}
+              onClick={() => createBatchMutation.mutate(undefined)}
               disabled={createBatchMutation.isPending}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
