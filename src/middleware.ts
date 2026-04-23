@@ -60,6 +60,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/auth/mfa/verify')) return true // MFA verification during login (uses temp token, not auth cookie)
   if (pathname.startsWith('/api/auth/passkey/authenticate')) return true // Passkey assertion during login (uses temp token)
   // NOTE: /api/auth/me and /api/auth/logout are NOT public — they require auth cookie
+  if (pathname === '/api/health') return true // Uptime monitoring — no auth
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
