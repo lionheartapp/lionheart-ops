@@ -16,7 +16,7 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
       email: true,
       firstName: true,
       lastName: true,
-      schoolScope: true,
+      campusScope: true,
       avatar: true,
       jobTitle: true,
       employmentType: true,
@@ -40,7 +40,9 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
     return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
   }
 
-  return NextResponse.json(ok(user))
+  // Backward-compat: emit `schoolScope` alias alongside the new `campusScope`
+  const userWithCompat = { ...user, schoolScope: user.campusScope }
+  return NextResponse.json(ok(userWithCompat))
 }, { permission: PERMISSIONS.USERS_READ })
 
 export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx, params, permissions }) => {
@@ -87,10 +89,16 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
   const email = body.email ? String(body.email).trim().toLowerCase() : undefined
   const firstName = body.firstName !== undefined ? String(body.firstName).trim() : undefined
   const lastName = body.lastName !== undefined ? String(body.lastName).trim() : undefined
-  const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
-  const schoolScope = allowedSchoolScopes.includes(body.schoolScope)
-    ? body.schoolScope
-    : undefined
+  // Accept both `campusScope` (preferred) and legacy `schoolScope`.
+  // `null` is now the org-wide default (replaces the old 'GLOBAL' enum value).
+  const rawCampusScope = body.campusScope ?? body.schoolScope
+  const allowedCampusScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL'] as const
+  const campusScope: (typeof allowedCampusScopes)[number] | null | undefined =
+    rawCampusScope === null
+      ? null
+      : allowedCampusScopes.includes(rawCampusScope as (typeof allowedCampusScopes)[number])
+        ? (rawCampusScope as (typeof allowedCampusScopes)[number])
+        : undefined
 
   // Get current email for compound constraint update
   const currentUser = await prisma.user.findUnique({
@@ -131,7 +139,7 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
         : {}),
       ...(body.phone !== undefined ? { phone: body.phone ? String(body.phone).trim() : null } : {}),
       ...(body.jobTitle !== undefined ? { jobTitle: body.jobTitle ? String(body.jobTitle).trim() : null } : {}),
-      ...(schoolScope !== undefined ? { schoolScope } : {}),
+      ...(campusScope !== undefined ? { campusScope } : {}),
       ...(body.employmentType !== undefined ? { employmentType: body.employmentType || null } : {}),
       ...(body.roleId !== undefined ? { roleId: body.roleId || null } : {}),
       ...(body.status !== undefined ? { status: body.status } : {}),
@@ -141,7 +149,7 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
       email: true,
       firstName: true,
       lastName: true,
-      schoolScope: true,
+      campusScope: true,
       avatar: true,
       jobTitle: true,
       employmentType: true,
@@ -161,6 +169,9 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
     },
   })
 
+  // Backward-compat: emit `schoolScope` alias alongside the new `campusScope`
+  const updatedWithCompat = { ...updated, schoolScope: updated.campusScope }
+
   await audit({
     organizationId: orgId,
     userId:         ctx.userId,
@@ -173,7 +184,7 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
     ipAddress:      getIp(req),
   })
 
-  return NextResponse.json(ok(updated))
+  return NextResponse.json(ok(updatedWithCompat))
 }, { permission: PERMISSIONS.USERS_UPDATE })
 
 export const DELETE = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx, params }) => {

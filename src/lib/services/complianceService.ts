@@ -40,7 +40,7 @@ const CreateDomainConfigSchema = z.object({
   isEnabled: z.boolean().default(true),
   customDeadlineMonth: z.number().int().min(1).max(12).optional().nullable(),
   customDeadlineDay: z.number().int().min(1).max(31).optional().nullable(),
-  schoolId: z.string().optional().nullable(),
+  campusId: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 })
 
@@ -71,11 +71,11 @@ export async function createComplianceDomainConfig(
 ) {
   const data = CreateDomainConfigSchema.parse(input)
 
-  // Handle nullable schoolId in composite unique — find existing first, then upsert by id
+  // Handle nullable campusId in composite unique — find existing first, then upsert by id
   const existing = await rawPrisma.complianceDomainConfig.findFirst({
     where: {
       organizationId: orgId,
-      schoolId: data.schoolId ?? null,
+      campusId: data.campusId ?? null,
       domain: data.domain,
     },
   })
@@ -95,7 +95,7 @@ export async function createComplianceDomainConfig(
   return rawPrisma.complianceDomainConfig.create({
     data: {
       organizationId: orgId,
-      schoolId: data.schoolId ?? null,
+      campusId: data.campusId ?? null,
       domain: data.domain,
       isEnabled: data.isEnabled,
       customDeadlineMonth: data.customDeadlineMonth ?? null,
@@ -110,11 +110,11 @@ export async function createComplianceDomainConfig(
  * Returns all 10 domains regardless of whether a config row exists.
  * Domains without a config row default to isEnabled=true.
  */
-export async function getComplianceDomainConfigs(orgId: string, schoolId?: string | null) {
+export async function getComplianceDomainConfigs(orgId: string, campusId?: string | null) {
   const existing = await rawPrisma.complianceDomainConfig.findMany({
     where: {
       organizationId: orgId,
-      schoolId: schoolId ?? null,
+      campusId: campusId ?? null,
     },
     include: {
       records: {
@@ -141,7 +141,7 @@ export async function getComplianceDomainConfigs(orgId: string, schoolId?: strin
     return {
       id: config?.id ?? null,
       organizationId: orgId,
-      schoolId: schoolId ?? null,
+      campusId: campusId ?? null,
       domain,
       isEnabled: config?.isEnabled ?? true,
       customDeadlineMonth: config?.customDeadlineMonth ?? null,
@@ -220,9 +220,9 @@ export async function populateComplianceCalendar(
   schoolYearStart: Date,
   schoolYearEnd: Date
 ): Promise<number> {
-  // 1) Load existing configs for the org (default scope = schoolId: null)
+  // 1) Load existing configs for the org (default scope = campusId: null)
   const initialConfigs = await rawPrisma.complianceDomainConfig.findMany({
-    where: { organizationId: orgId, schoolId: null },
+    where: { organizationId: orgId, campusId: null },
   })
 
   const configByDomain = new Map(initialConfigs.map((c) => [c.domain, c]))
@@ -234,7 +234,7 @@ export async function populateComplianceCalendar(
     await rawPrisma.complianceDomainConfig.createMany({
       data: missingDomains.map((domain) => ({
         organizationId: orgId,
-        schoolId: null,
+        campusId: null,
         domain,
         isEnabled: true,
       })),
@@ -243,7 +243,7 @@ export async function populateComplianceCalendar(
 
     // 3) Reload to get IDs for the newly created configs
     const refreshed = await rawPrisma.complianceDomainConfig.findMany({
-      where: { organizationId: orgId, schoolId: null },
+      where: { organizationId: orgId, campusId: null },
     })
     refreshed.forEach((c) => configByDomain.set(c.domain, c))
   }
@@ -292,7 +292,7 @@ export async function populateComplianceCalendar(
   type NewRecord = {
     organizationId: string
     domainConfigId: string
-    schoolId: string | null
+    campusId: string | null
     domain: (typeof COMPLIANCE_DOMAINS)[number]
     title: string
     dueDate: Date
@@ -325,7 +325,7 @@ export async function populateComplianceCalendar(
       toCreate.push({
         organizationId: orgId,
         domainConfigId: config.id,
-        schoolId: config.schoolId ?? null,
+        campusId: config.campusId ?? null,
         domain,
         title: `${meta.label} ${dueDate.getFullYear()}`,
         dueDate,
@@ -393,7 +393,7 @@ function computeStatusFromDueDate(dueDate: Date): ComplianceStatus {
 export interface ComplianceRecordFilters {
   domain?: ComplianceDomain
   status?: ComplianceStatus
-  schoolId?: string
+  campusId?: string
   from?: Date
   to?: Date
 }
@@ -408,7 +408,7 @@ export async function getComplianceRecords(orgId: string, filters?: ComplianceRe
       deletedAt: null,
       ...(filters?.domain && { domain: filters.domain }),
       ...(filters?.status && { status: filters.status }),
-      ...(filters?.schoolId && { schoolId: filters.schoolId }),
+      ...(filters?.campusId && { campusId: filters.campusId }),
       ...(filters?.from || filters?.to
         ? {
             dueDate: {
@@ -420,7 +420,7 @@ export async function getComplianceRecords(orgId: string, filters?: ComplianceRe
     },
     include: {
       domainConfig: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
     },
     orderBy: { dueDate: 'asc' },
   })
@@ -434,7 +434,7 @@ export async function getComplianceRecordById(orgId: string, id: string) {
     where: { id, organizationId: orgId, deletedAt: null },
     include: {
       domainConfig: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
     },
   })
@@ -511,7 +511,7 @@ export async function generateComplianceTicket(
       specialty,
       priority,
       submittedById: submittedByUserId,
-      schoolId: record.schoolId,
+      campusId: record.campusId,
       version: 1,
     },
   })
@@ -521,7 +521,7 @@ export async function generateComplianceTicket(
     data: { generatedTicketId: ticket.id },
     include: {
       domainConfig: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
     },
   })
@@ -567,7 +567,7 @@ export async function generateRemediationTicket(
       specialty,
       priority: 'URGENT',
       submittedById: submittedByUserId,
-      schoolId: record.schoolId,
+      campusId: record.campusId,
       version: 1,
     },
   })
@@ -577,7 +577,7 @@ export async function generateRemediationTicket(
     data: { remediationTicketId: ticket.id },
     include: {
       domainConfig: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
       remediationTicket: { select: { id: true, ticketNumber: true, status: true } },
     },
@@ -595,7 +595,7 @@ export async function getComplianceRecordsForExport(
   filters: {
     from: Date
     to: Date
-    schoolId?: string
+    campusId?: string
     domain?: ComplianceDomain
   }
 ) {
@@ -607,12 +607,12 @@ export async function getComplianceRecordsForExport(
         gte: filters.from,
         lte: filters.to,
       },
-      ...(filters.schoolId ? { schoolId: filters.schoolId } : {}),
+      ...(filters.campusId ? { campusId: filters.campusId } : {}),
       ...(filters.domain ? { domain: filters.domain } : {}),
     },
     include: {
       domainConfig: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       generatedTicket: { select: { id: true, ticketNumber: true, status: true } },
       remediationTicket: { select: { id: true, ticketNumber: true, status: true } },
     },

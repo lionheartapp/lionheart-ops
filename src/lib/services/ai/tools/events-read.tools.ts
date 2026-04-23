@@ -81,7 +81,7 @@ const tools: Record<string, ToolRegistryEntry> = {
           attendees: { select: { user: { select: { name: true, email: true } }, responseStatus: true } },
           resourceRequests: { select: { resourceType: true, requestStatus: true, details: true, responseNote: true } },
           building: { select: { name: true } },
-          area: { select: { name: true } },
+          space: { select: { name: true } },
           category: { select: { name: true } },
         },
       }).catch(() => null)
@@ -101,7 +101,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         isAllDay: event.isAllDay,
         location: event.locationText || undefined,
         building: (event as DynRecord).building?.name || undefined,
-        area: (event as DynRecord).area?.name || undefined,
+        space: (event as DynRecord).space?.name || undefined,
         status: event.calendarStatus,
         calendar: (event as DynRecord).calendar?.name,
         calendarType: (event as DynRecord).calendar?.calendarType,
@@ -184,14 +184,14 @@ const tools: Record<string, ToolRegistryEntry> = {
       // Filter out cancelled events
       allEvents = allEvents.filter((e: DynRecord) => e.calendarStatus !== 'CANCELLED')
 
-      // Apply location filter if provided (match locationText, building name, area name)
+      // Apply location filter if provided (match locationText, building name, space name)
       const locationQuery = input.location ? String(input.location).trim() : ''
       if (locationQuery) {
         const locNeedle = locationQuery.toLowerCase()
         allEvents = allEvents.filter((e: DynRecord) =>
           (e.locationText || '').toLowerCase().includes(locNeedle) ||
           (e.building?.name || '').toLowerCase().includes(locNeedle) ||
-          (e.area?.name || '').toLowerCase().includes(locNeedle)
+          (e.space?.name || '').toLowerCase().includes(locNeedle)
         )
       }
 
@@ -494,7 +494,7 @@ const tools: Record<string, ToolRegistryEntry> = {
         allEvents = allEvents.filter((e: DynRecord) =>
           (e.locationText || '').toLowerCase().includes(locNeedle) ||
           (e.building?.name || '').toLowerCase().includes(locNeedle) ||
-          (e.area?.name || '').toLowerCase().includes(locNeedle)
+          (e.space?.name || '').toLowerCase().includes(locNeedle)
         )
       }
 

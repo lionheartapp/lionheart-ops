@@ -15,7 +15,6 @@ const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 
 const UpdateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
-  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   principalName: z.string().trim().max(100).nullable().optional(),
   principalEmail: z.string().email().nullable().optional(),
@@ -55,13 +54,11 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
     return NextResponse.json(fail('NOT_FOUND', 'School not found'), { status: 404 })
   }
 
-  // If name is being updated, check for duplicates on the same campus
+  // If name is being updated, check for duplicates in the same org
   if (input.name && input.name !== school.name) {
-    const campusId = school.campusId
     const existing = await prisma.school.findFirst({
       where: {
         organizationId: orgId,
-        campusId: campusId,
         name: input.name,
         id: { not: id },
       },
@@ -69,7 +66,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
 
     if (existing) {
       return NextResponse.json(
-        fail('CONFLICT', 'A school with this name already exists on this campus'),
+        fail('CONFLICT', 'A school with this name already exists'),
         { status: 409 }
       )
     }
@@ -79,7 +76,6 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
     where: { id },
     data: {
       ...(input.name !== undefined && { name: input.name }),
-      ...(input.gradeLevel !== undefined && { gradeLevel: input.gradeLevel }),
       ...(input.color !== undefined && { color: input.color }),
       ...(input.principalName !== undefined && { principalName: input.principalName }),
       ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
@@ -89,12 +85,12 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
     select: {
       id: true,
       name: true,
-      gradeLevel: true,
       color: true,
       principalName: true,
       principalEmail: true,
       principalPhone: true,
       principalPhoneExt: true,
+      campuses: { select: { id: true, name: true, gradeLevel: true } },
       createdAt: true,
       updatedAt: true,
     },

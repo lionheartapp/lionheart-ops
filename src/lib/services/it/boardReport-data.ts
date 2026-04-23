@@ -31,21 +31,21 @@ export async function getAnnualTechReport(
     organizationId: orgId,
     deletedAt: null,
   }
-  if (schoolId) deviceWhere.schoolId = schoolId
+  if (schoolId) deviceWhere.campusId = schoolId
 
   const ticketWhere: Record<string, unknown> = {
     organizationId: orgId,
     createdAt: { gte: from, lte: to },
     deletedAt: null,
   }
-  if (schoolId) ticketWhere.schoolId = schoolId
+  if (schoolId) ticketWhere.campusId = schoolId
 
   const yoyTicketWhere: Record<string, unknown> = {
     organizationId: orgId,
     createdAt: { gte: yoyFrom, lte: yoyTo },
     deletedAt: null,
   }
-  if (schoolId) yoyTicketWhere.schoolId = schoolId
+  if (schoolId) yoyTicketWhere.campusId = schoolId
 
   const [
     allDevices,
@@ -74,7 +74,7 @@ export async function getAnnualTechReport(
       where: {
         organizationId: orgId,
         repairDate: { gte: from, lte: to },
-        ...(schoolId ? { device: { schoolId } } : {}),
+        ...(schoolId ? { device: { campusId: schoolId } } : {}),
       },
       select: {
         id: true,
@@ -104,7 +104,7 @@ export async function getAnnualTechReport(
         organizationId: orgId,
         deletedAt: null,
         createdAt: { lte: yoyTo },
-        ...(schoolId ? { schoolId } : {}),
+        ...(schoolId ? { campusId: schoolId } : {}),
       },
       select: { id: true },
     }),
@@ -114,7 +114,7 @@ export async function getAnnualTechReport(
       where: {
         organizationId: orgId,
         repairDate: { gte: yoyFrom, lte: yoyTo },
-        ...(schoolId ? { device: { schoolId } } : {}),
+        ...(schoolId ? { device: { campusId: schoolId } } : {}),
       },
       select: { repairCost: true },
     }),
@@ -441,7 +441,7 @@ export async function getDamageFeeCollection(
     damageFee: { not: null, gt: 0 },
   }
   if (schoolId) {
-    batchItemWhere.batch = { schoolId }
+    batchItemWhere.batch = { campusId: schoolId }
   }
 
   const items = await rawPrisma.iTDeploymentBatchItem.findMany({
@@ -456,8 +456,8 @@ export async function getDamageFeeCollection(
       createdAt: true,
       batch: {
         select: {
-          schoolId: true,
-          school: {
+          campusId: true,
+          campus: {
             select: {
               id: true,
               name: true,
@@ -526,8 +526,8 @@ export async function getDamageFeeCollection(
     }
 
     // By school
-    const sid = item.batch?.schoolId ?? 'unassigned'
-    const sname = item.batch?.school?.name ?? 'Unassigned'
+    const sid = item.batch?.campusId ?? 'unassigned'
+    const sname = item.batch?.campus?.name ?? 'Unassigned'
     if (!schoolMap[sid]) {
       schoolMap[sid] = { schoolName: sname, assessed: 0, paid: 0, outstanding: 0 }
     }

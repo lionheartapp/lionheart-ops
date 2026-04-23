@@ -36,7 +36,7 @@ export async function lookupStudent(orgId: string, query: { studentId?: string; 
       email: true,
       studentId: true,
       grade: true,
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
     },
   })
 

@@ -40,8 +40,21 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   function hydrateSession(data: {
     token?: string
     organizationId?: string
-    organization?: { name?: string; logoUrl?: string; gradeLevel?: string; onboardingStatus?: string }
-    user?: { name?: string; email?: string; avatar?: string; team?: string; teamSlugs?: string[]; schoolScope?: string; role?: string }
+    // `gradeLevel` and `schoolType` are emitted as `null` by the login endpoint
+    // post-Phase-1c — they're kept here for localStorage-bridge backward compat.
+    organization?: { name?: string; logoUrl?: string; gradeLevel?: string | null; schoolType?: string | null; onboardingStatus?: string }
+    user?: {
+      name?: string
+      email?: string
+      avatar?: string
+      team?: string
+      teamSlugs?: string[]
+      /** Grade-level division the user is pinned to. Null/empty = org-wide. */
+      campusScope?: string
+      /** @deprecated Use campusScope — kept for backward-compat during Phase 1c migration. */
+      schoolScope?: string
+      role?: string
+    }
   }) {
     localStorage.setItem('auth-token', data.token || 'cookie-auth')
     localStorage.setItem('org-id', data.organizationId || '')
@@ -50,10 +63,17 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     localStorage.setItem('user-avatar', data.user?.avatar || '')
     localStorage.setItem('user-team', data.user?.team || '')
     localStorage.setItem('user-team-slugs', JSON.stringify(data.user?.teamSlugs || []))
-    localStorage.setItem('user-school-scope', data.user?.schoolScope || '')
+    const campusScopeValue = data.user?.campusScope ?? data.user?.schoolScope ?? ''
+    localStorage.setItem('user-campus-scope', campusScopeValue)
+    // Keep legacy key in sync during the migration window
+    localStorage.setItem('user-school-scope', campusScopeValue)
     localStorage.setItem('user-role', data.user?.role || '')
     localStorage.setItem('org-name', data.organization?.name || '')
-    localStorage.setItem('org-school-type', data.organization?.gradeLevel || '')
+    // `gradeLevel` and `schoolType` were removed from Organization in Phase 1c
+    // (grade level is now per-Campus, institution type per-School). The login
+    // endpoint emits both as `null` for backward compat, so this write is
+    // effectively empty until consumers migrate to per-school reads.
+    localStorage.setItem('org-school-type', data.organization?.schoolType || '')
     localStorage.setItem('org-logo-url', data.organization?.logoUrl || '')
 
     // Prefetch modules so add-ons render instantly on first page load

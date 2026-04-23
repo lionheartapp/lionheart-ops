@@ -108,21 +108,21 @@ async function main() {
   log('👥', 'Creating users...')
 
   const usersToCreate = [
-    { firstName: 'Sarah', lastName: 'Mitchell', email: 'smitchell@linfield.com', role: 'admin', teams: ['Administration'], schoolScope: 'GLOBAL', jobTitle: 'Assistant Principal' },
-    { firstName: 'James', lastName: 'Rivera', email: 'jrivera@linfield.com', role: 'member', teams: ['IT Support'], schoolScope: 'GLOBAL', jobTitle: 'IT Specialist' },
-    { firstName: 'Emily', lastName: 'Chen', email: 'echen@linfield.com', role: 'viewer', teams: [], schoolScope: 'GLOBAL', jobTitle: 'Office Assistant' },
-    { firstName: 'David', lastName: 'Park', email: 'dpark@linfield.com', role: 'admin', teams: ['Administration'], schoolScope: 'GLOBAL', jobTitle: 'Athletic Director' },
-    { firstName: 'Lisa', lastName: 'Thompson', email: 'lthompson@linfield.com', role: 'member', teams: ['Teachers'], schoolScope: 'HIGH_SCHOOL', jobTitle: 'Varsity Basketball Coach' },
-    { firstName: 'Robert', lastName: 'Garcia', email: 'rgarcia@linfield.com', role: 'member', teams: ['Facility Maintenance'], schoolScope: 'GLOBAL', jobTitle: 'Maintenance Supervisor' },
-    { firstName: 'Maria', lastName: 'Santos', email: 'msantos@linfield.com', role: 'member', teams: ['Facility Maintenance'], schoolScope: 'GLOBAL', jobTitle: 'Maintenance Technician' },
-    { firstName: 'Kevin', lastName: 'Williams', email: 'kwilliams@linfield.com', role: 'member', teams: ['IT Support'], schoolScope: 'GLOBAL', jobTitle: 'IT Coordinator' },
-    { firstName: 'Tyler', lastName: 'Johnson', email: 'tjohnson@linfield.com', role: 'viewer', teams: ['IT Support'], schoolScope: 'HIGH_SCHOOL', jobTitle: 'Student Tech Assistant' },
-    { firstName: 'Patricia', lastName: 'Davis', email: 'pdavis@linfield.com', role: 'member', teams: ['Administration'], schoolScope: 'MIDDLE_SCHOOL', jobTitle: 'Secretary' },
-    { firstName: 'William', lastName: 'Brown', email: 'wbrown@linfield.com', role: 'viewer', teams: [], schoolScope: 'GLOBAL', jobTitle: 'Board Member' },
-    { firstName: 'Jennifer', lastName: 'Lee', email: 'jlee@linfield.com', role: 'viewer', teams: [], schoolScope: 'ELEMENTARY', jobTitle: 'Parent Volunteer' },
-    { firstName: 'Mark', lastName: 'Anderson', email: 'manderson@linfield.com', role: 'member', teams: ['Teachers'], schoolScope: 'MIDDLE_SCHOOL', jobTitle: 'PE Teacher & Coach' },
-    { firstName: 'Rachel', lastName: 'Kim', email: 'rkim@linfield.com', role: 'member', teams: ['A/V Production'], schoolScope: 'GLOBAL', jobTitle: 'A/V Specialist' },
-    { firstName: 'Carlos', lastName: 'Mendez', email: 'cmendez@linfield.com', role: 'member', teams: ['Facility Maintenance'], schoolScope: 'GLOBAL', jobTitle: 'Security & Grounds' },
+    { firstName: 'Sarah', lastName: 'Mitchell', email: 'smitchell@linfield.com', role: 'admin', teams: ['Administration'], campusScope: null, jobTitle: 'Assistant Principal' },
+    { firstName: 'James', lastName: 'Rivera', email: 'jrivera@linfield.com', role: 'member', teams: ['IT Support'], campusScope: null, jobTitle: 'IT Specialist' },
+    { firstName: 'Emily', lastName: 'Chen', email: 'echen@linfield.com', role: 'viewer', teams: [], campusScope: null, jobTitle: 'Office Assistant' },
+    { firstName: 'David', lastName: 'Park', email: 'dpark@linfield.com', role: 'admin', teams: ['Administration'], campusScope: null, jobTitle: 'Athletic Director' },
+    { firstName: 'Lisa', lastName: 'Thompson', email: 'lthompson@linfield.com', role: 'member', teams: ['Teachers'], campusScope: 'HIGH_SCHOOL', jobTitle: 'Varsity Basketball Coach' },
+    { firstName: 'Robert', lastName: 'Garcia', email: 'rgarcia@linfield.com', role: 'member', teams: ['Facility Maintenance'], campusScope: null, jobTitle: 'Maintenance Supervisor' },
+    { firstName: 'Maria', lastName: 'Santos', email: 'msantos@linfield.com', role: 'member', teams: ['Facility Maintenance'], campusScope: null, jobTitle: 'Maintenance Technician' },
+    { firstName: 'Kevin', lastName: 'Williams', email: 'kwilliams@linfield.com', role: 'member', teams: ['IT Support'], campusScope: null, jobTitle: 'IT Coordinator' },
+    { firstName: 'Tyler', lastName: 'Johnson', email: 'tjohnson@linfield.com', role: 'viewer', teams: ['IT Support'], campusScope: 'HIGH_SCHOOL', jobTitle: 'Student Tech Assistant' },
+    { firstName: 'Patricia', lastName: 'Davis', email: 'pdavis@linfield.com', role: 'member', teams: ['Administration'], campusScope: 'MIDDLE_SCHOOL', jobTitle: 'Secretary' },
+    { firstName: 'William', lastName: 'Brown', email: 'wbrown@linfield.com', role: 'viewer', teams: [], campusScope: null, jobTitle: 'Board Member' },
+    { firstName: 'Jennifer', lastName: 'Lee', email: 'jlee@linfield.com', role: 'viewer', teams: [], campusScope: 'ELEMENTARY', jobTitle: 'Parent Volunteer' },
+    { firstName: 'Mark', lastName: 'Anderson', email: 'manderson@linfield.com', role: 'member', teams: ['Teachers'], campusScope: 'MIDDLE_SCHOOL', jobTitle: 'PE Teacher & Coach' },
+    { firstName: 'Rachel', lastName: 'Kim', email: 'rkim@linfield.com', role: 'member', teams: ['A/V Production'], campusScope: null, jobTitle: 'A/V Specialist' },
+    { firstName: 'Carlos', lastName: 'Mendez', email: 'cmendez@linfield.com', role: 'member', teams: ['Facility Maintenance'], campusScope: null, jobTitle: 'Security & Grounds' },
   ]
 
   const createdUsers = {}
@@ -142,7 +142,7 @@ async function main() {
       email: u.email,
       roleId,
       teamIds,
-      schoolScope: u.schoolScope,
+      campusScope: u.campusScope,
       jobTitle: u.jobTitle,
       provisioningMode: 'ADMIN_CREATE',
     })

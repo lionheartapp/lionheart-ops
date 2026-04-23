@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const db = prisma as unknown as Record<string, PrismaDelegate>
 
-      const [buildings, unassignedAreas] = await Promise.all([
+      const [buildings, unassignedSpaces] = await Promise.all([
         db.building.findMany({
           where: { organizationId: orgId, isActive: true },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -21,13 +21,13 @@ export async function GET(req: NextRequest) {
             name: true,
             code: true,
             schoolDivision: true,
-            areas: {
+            spaces: {
               where: { isActive: true },
               orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
               select: {
                 id: true,
                 name: true,
-                areaType: true,
+                spaceType: true,
                 rooms: {
                   where: { isActive: true },
                   orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
@@ -41,25 +41,25 @@ export async function GET(req: NextRequest) {
               },
             },
             rooms: {
-              where: { isActive: true, areaId: null },
+              where: { isActive: true, spaceId: null },
               orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
               select: {
                 id: true,
                 roomNumber: true,
                 displayName: true,
                 floor: true,
-                areaId: true,
+                spaceId: true,
               },
             },
           },
         }),
-        db.area.findMany({
+        db.space.findMany({
           where: { organizationId: orgId, isActive: true, buildingId: null },
           orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
           select: {
             id: true,
             name: true,
-            areaType: true,
+            spaceType: true,
             rooms: {
               where: { isActive: true },
               orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
@@ -74,9 +74,17 @@ export async function GET(req: NextRequest) {
         }),
       ])
 
+      // Backward-compat: emit `areas`/`unassignedAreas` aliases alongside the new names
+      const buildingsWithCompat = buildings.map((b: Record<string, unknown>) => ({
+        ...b,
+        areas: b.spaces,
+      }))
+
       return NextResponse.json(ok({
-        buildings,
-        unassignedAreas,
+        buildings: buildingsWithCompat,
+        unassignedSpaces,
+        // Backward-compat alias
+        unassignedAreas: unassignedSpaces,
       }))
     })
   } catch (error) {

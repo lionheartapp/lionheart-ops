@@ -1,8 +1,19 @@
 /**
  * Organization Registration Service
  *
- * Handles school signup/onboarding, including slug validation and uniqueness checks.
- * This is the entry point for new schools joining the platform.
+ * Handles org signup/onboarding: slug validation, uniqueness checks, and the
+ * full first-run bootstrap (org → primary school → default campus → roles,
+ * teams, calendars, first admin user).
+ *
+ * NEW ONTOLOGY (Phase 1b):
+ *   - Organization no longer carries institutionType / gradeLevel / principal*
+ *     / physicalAddress / district / gradeRange. Those fields moved to the
+ *     School model (institution) or District.
+ *   - UserCampusAssignment was dropped in favor of User.campusId (direct FK).
+ *   - Campus.campusType was renamed to Campus.campusKind.
+ *
+ *   The signup schema still accepts the legacy field names on input; we route
+ *   them to the appropriate new model during creation.
  */
 
 import { z } from 'zod'
@@ -45,11 +56,17 @@ const NullableText = (max: number) =>
 
 /**
  * Organization signup request schema
+ *
+ * Note: `institutionType`, `gradeLevel`, `principal*`, `physicalAddress`,
+ * `district`, and `gradeRange` live on downstream models (School / District)
+ * in the new ontology. We still accept them on input and route them to the
+ * primary School record we create for the org.
  */
 export const CreateOrganizationSchema = z.object({
   name: z.string().min(2, 'School name must be at least 2 characters').max(100),
-  institutionType: z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID']).default('PUBLIC'),
-  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).default('GLOBAL'),
+  institutionType: z
+    .enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID', 'FAITH_BASED'])
+    .default('PRIVATE'),
   slug: SlugSchema,
   physicalAddress: NullableText(400),
   district: NullableText(160),
@@ -85,7 +102,7 @@ export type CreateOrganizationInput = z.infer<typeof CreateOrganizationSchema>
 /**
  * Check if a slug is available (not already taken)
  * Used during signup to validate slug uniqueness in real-time
- * 
+ *
  * @param slug - The proposed slug
  * @returns true if available, false if already taken
  */
@@ -105,7 +122,7 @@ export async function isSlugAvailable(slug: string): Promise<boolean> {
 /**
  * Validate slug format and availability
  * Called during signup before creating organization
- * 
+ *
  * @param slug - The proposed slug
  * @returns { valid: true } if ok, or { valid: false, reason: string } if not
  */
@@ -149,14 +166,28 @@ function parsePermissionString(perm: string): { resource: string; action: string
 }
 
 /**
- * Seed default roles, permissions, and teams for a newly created organization.
+ * Seed default roles, permissions, teams, campus, and campus master calendar
+ * for a newly-created organization.
  *
- * - Permissions are global (no org ID) and upserted so they're safe to call many times.
+ * - Permissions are global (no org ID) and upserted so they're safe to call
+ *   repeatedly.
  * - Roles and Teams are org-scoped and created fresh for each new org.
+ * - The default campus is a HEADQUARTERS `Campus` row linked to the primary
+ *   `School` (if provided) with coordinates copied through.
  *
- * @returns The ID of the newly created super-admin role (to assign to the first admin user)
+ * @returns The super-admin role ID (assigned to the first admin) and the
+ *          default campus ID (assigned to the first admin's campusId).
  */
-export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId: string; defaultCampusId: string }> {
+export async function seedOrgDefaults(
+  orgId: string,
+  opts: {
+    primarySchoolId?: string | null
+    campusAddress?: string | null
+    campusLatitude?: number | null
+    campusLongitude?: number | null
+    campusName?: string | null
+  } = {}
+): Promise<{ superAdminRoleId: string; defaultCampusId: string }> {
   // ── Step 1: Collect every unique permission string used across all default roles ──
   const allPermStrings = new Set<string>()
   for (const roleDef of Object.values(DEFAULT_ROLES)) {
@@ -293,27 +324,26 @@ export async function seedOrgDefaults(orgId: string): Promise<{ superAdminRoleId
   })
 
   // ── Step 5: Create default headquarters campus ──
-  const org = await rawPrisma.organization.findUnique({
-    where: { id: orgId },
-    select: { name: true, physicalAddress: true, latitude: true, longitude: true },
-  })
-
+  //
+  // The campus lives under the primary School (if one was provided) and
+  // inherits address/coords from the signup payload.
   const defaultCampus = await rawPrisma.campus.create({
     data: {
       organizationId: orgId,
-      name: 'Main Campus',
-      address: org?.physicalAddress ?? null,
-      latitude: org?.latitude ?? null,
-      longitude: org?.longitude ?? null,
-      campusType: 'HEADQUARTERS',
+      schoolId: opts.primarySchoolId ?? null,
+      name: opts.campusName ?? 'Main Campus',
+      address: opts.campusAddress ?? null,
+      latitude: opts.campusLatitude ?? null,
+      longitude: opts.campusLongitude ?? null,
+      campusKind: 'HEADQUARTERS',
       isActive: true,
       sortOrder: 0,
     },
-    select: { id: true },
+    select: { id: true, name: true },
   })
 
   // ── Step 6: Create campus master calendar ──
-  const campusCalendarName = `${org?.name ?? 'Main Campus'} Master`
+  const campusCalendarName = `${defaultCampus.name} Master`
   const campusCalendarSlug = `master-${defaultCampus.id.slice(-8)}`
   await rawPrisma.calendar.create({
     data: {
@@ -420,12 +450,22 @@ export async function syncRolePermissions(orgId: string): Promise<void> {
 
 /**
  * Create a new organization (used in signup/onboarding).
- * Validates all inputs including slug uniqueness before creating.
- * After creation, seeds default roles/permissions/teams and assigns
- * the super-admin role to the first admin user.
  *
- * @param input - Organization and admin user data
- * @returns Created organization with the admin user (role assigned)
+ * Flow:
+ *   1. Validate input + slug uniqueness + password strength.
+ *   2. Create the Organization shell + first admin user (no roleId yet).
+ *   3. If the signup provided institution-level fields (principal, address,
+ *      institutionType), create a primary `School` to hold them.
+ *   4. If a district name was provided, create a `District` and link the
+ *      school to it.
+ *   5. Seed roles, permissions, teams, default HEADQUARTERS campus, and the
+ *      campus master calendar via `seedOrgDefaults` — which links the campus
+ *      to the primary school when present.
+ *   6. Assign the super-admin role to the admin user, create their personal
+ *      calendar, and set their `campusId` to the default campus.
+ *
+ * On any failure after step 2, the Organization row is hard-deleted so cascade
+ * relations clean up everything that was created.
  */
 export async function createOrganization(input: CreateOrganizationInput) {
   // Validate schema
@@ -445,22 +485,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
   // Hash password (outside transaction — CPU-bound, not a DB operation)
   const passwordHash = await bcrypt.hash(validated.adminPassword, 10)
 
-  // NOTE: This flow no longer uses an interactive $transaction.
-  //
-  // Supabase's PgBouncer (DATABASE_URL, port 6543) runs in transaction pool
-  // mode, which does NOT support Prisma's interactive transactions — they
-  // hang waiting for a sticky connection that the pooler can't provide,
-  // eventually timing out with PrismaClientKnownRequestError (transaction
-  // invalid / timeout). The old 15s→60s bump just delayed the inevitable.
-  //
-  // Atomicity was already broken anyway: `seedOrgDefaults` used `rawPrisma`
-  // (not `tx`), so half the writes were never part of the transaction.
-  //
-  // Instead, if any step fails after the org is created, we hard-delete
-  // the org via rawPrisma — the schema's `onDelete: Cascade` relations
-  // clean up users, roles, teams, campus, calendars, and everything else.
-
-  // Step 1: Create the organization and its first admin user
+  // Derive a timezone from the supplied address (if any) for compliance maths.
   const detectedTimezone = timezoneFromAddress(validated.physicalAddress)
 
   // Start the 30-day no-card free trial clock at org creation. No Stripe
@@ -468,21 +493,18 @@ export async function createOrganization(input: CreateOrganizationInput) {
   const trialStartedAt = new Date()
   const trialEndsAt = computeTrialEndDate(trialStartedAt)
 
+  // Step 1: Create the organization and its first admin user.
+  //
+  // Only org-level fields live here now. Institution-level fields
+  // (institutionType, principal*, address, grade range) move to the primary
+  // School we create in step 2.
   const org = await rawPrisma.organization.create({
     data: {
       name:            validated.name,
-      institutionType: validated.institutionType,
-      gradeLevel:      validated.gradeLevel,
       slug:            validated.slug.toLowerCase(),
-      physicalAddress: validated.physicalAddress ?? null,
       ...(detectedTimezone ? { timezone: detectedTimezone } : {}),
-      district:        validated.district ?? null,
       website:         validated.website ?? null,
       phone:           validated.phone ?? null,
-      principalName:   validated.principalName ?? validated.adminName,
-      principalEmail:  validated.principalEmail ?? validated.adminEmail,
-      principalPhone:  validated.principalPhone ?? null,
-      gradeRange:      validated.gradeRange ?? null,
       studentCount:    validated.studentCount ?? null,
       staffCount:      validated.staffCount ?? null,
       trialStartedAt,
@@ -507,13 +529,58 @@ export async function createOrganization(input: CreateOrganizationInput) {
   }
 
   try {
-    // Step 2: Seed default roles, permissions, teams, campus, calendar
-    const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id)
+    // Step 2: (Optional) Create a District to hold the org's district name.
+    let districtId: string | null = null
+    if (validated.district) {
+      const district = await rawPrisma.district.create({
+        data: {
+          organizationId: org.id,
+          name: validated.district,
+          isDefault: true,
+        },
+        select: { id: true },
+      })
+      districtId = district.id
+    }
 
-    // Step 3: Assign the super-admin role to the first admin user
+    // Step 3: Create the primary School that holds institution-level fields.
+    //
+    // We always create one — even if the signup didn't supply principal info
+    // — so there's a canonical "school" row the app can point to for
+    // single-school orgs.
+    const primarySchool = await rawPrisma.school.create({
+      data: {
+        organizationId: org.id,
+        districtId,
+        name: validated.name,
+        institutionType: validated.institutionType,
+        address: validated.physicalAddress ?? null,
+        principalName: validated.principalName ?? validated.adminName,
+        principalEmail: validated.principalEmail ?? validated.adminEmail,
+        principalPhone: validated.principalPhone ?? null,
+      },
+      select: { id: true },
+    })
+
+    // Step 4: Seed default roles/permissions/teams + default HEADQUARTERS
+    // campus linked to the primary school.
+    const { superAdminRoleId, defaultCampusId } = await seedOrgDefaults(org.id, {
+      primarySchoolId: primarySchool.id,
+      campusAddress: validated.physicalAddress ?? null,
+      campusName: 'Main Campus',
+    })
+
+    // Step 5: Assign the super-admin role AND campus to the admin user.
+    //
+    // NEW ONTOLOGY: campusId is a direct FK on User — no junction table.
     const updatedUser = await rawPrisma.user.update({
       where: { id: adminUser.id },
-      data:  { roleId: superAdminRoleId },
+      data: {
+        roleId: superAdminRoleId,
+        campusId: defaultCampusId,
+        schoolId: primarySchool.id,
+        districtId,
+      },
       select: {
         id:     true,
         email:  true,
@@ -524,7 +591,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
       },
     })
 
-    // Step 4: Create admin's personal calendar
+    // Step 6: Create the admin's personal calendar.
     await rawPrisma.calendar.create({
       data: {
         organizationId: org.id,
@@ -534,17 +601,6 @@ export async function createOrganization(input: CreateOrganizationInput) {
         calendarType: 'PERSONAL',
         visibility: 'CAMPUS',
         color: '#6366f1',
-      },
-    })
-
-    // Step 5: Create admin's campus assignment
-    await rawPrisma.userCampusAssignment.create({
-      data: {
-        organizationId: org.id,
-        userId: adminUser.id,
-        campusId: defaultCampusId,
-        isPrimary: true,
-        isActive: true,
       },
     })
 

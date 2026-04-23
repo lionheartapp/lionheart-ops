@@ -25,6 +25,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
+        // Pull the primary school so we can flatten principal + institutionType
+        // fields onto the org response for platform admin UI backward-compat.
+        // Those fields moved off Organization in Phase 1c ontology inversion.
+        schools: {
+          where: { deletedAt: null },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+          take: 1,
+          select: {
+            institutionType: true,
+            principalName: true,
+            principalEmail: true,
+            principalPhone: true,
+          },
+        },
         _count: {
           select: {
             users: { where: { deletedAt: null } },
@@ -40,7 +54,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
     }
 
-    return NextResponse.json(ok(org))
+    const primarySchool = org.schools?.[0]
+    const orgWithCompat = {
+      ...org,
+      institutionType: primarySchool?.institutionType ?? null,
+      gradeLevel: null,
+      principalName: primarySchool?.principalName ?? null,
+      principalEmail: primarySchool?.principalEmail ?? null,
+      principalPhone: primarySchool?.principalPhone ?? null,
+    }
+
+    return NextResponse.json(ok(orgWithCompat))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })

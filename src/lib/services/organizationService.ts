@@ -7,17 +7,24 @@
  * Note: Uses raw PrismaClient to bypass org-scoping for public lookups.
  */
 
-import { ImagePosition, SchoolType, InstitutionType } from '@prisma/client';
+import { ImagePosition } from '@prisma/client';
 import { rawPrisma } from '@/lib/db';
 import { logger } from '@/lib/logger'
 
 
 const log = logger.child({ service: 'organizationService' })
+
+/**
+ * Public-facing branding info used on the login page before authentication.
+ *
+ * NEW ONTOLOGY (Phase 1b): Organizations no longer carry `institutionType` or
+ * `gradeLevel` directly — those fields moved to the `School` model. For the
+ * pre-auth branding endpoint we fall back to the org's primary school when we
+ * need to surface those fields (see getOrganizationBranding below).
+ */
 export interface OrganizationBranding {
   id: string;
   name: string;
-  institutionType: InstitutionType;
-  gradeLevel: SchoolType;
   slug: string;
   logoUrl: string | null;
   heroImageUrl: string | null;
@@ -37,8 +44,6 @@ export async function getOrganizationBranding(
   const select = {
     id: true,
     name: true,
-    institutionType: true,
-    gradeLevel: true,
     slug: true,
     logoUrl: true,
     heroImageUrl: true,

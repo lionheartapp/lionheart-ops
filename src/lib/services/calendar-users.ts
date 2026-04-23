@@ -82,7 +82,7 @@ export async function getEventsForUser(userId: string, start: Date, end: Date) {
       calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } } } },
       category: true,
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true } },
       attendees: {
         include: { user: { select: { id: true, name: true, firstName: true, lastName: true, avatar: true } } },

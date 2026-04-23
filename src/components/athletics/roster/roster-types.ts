@@ -7,21 +7,38 @@ export interface Team {
   season: { id: string; name: string }
 }
 
-export interface RosterPlayer {
+export interface RosterEntry {
   id: string
+  athleteId: string
   athleticTeamId: string
-  firstName: string
-  lastName: string
   jerseyNumber: string | null
   position: string | null
+  isActive: boolean
+  athleticTeam: {
+    id: string
+    name: string
+    level: string
+    sport: { id: string; name: string; color: string }
+  }
+}
+
+export interface Athlete {
+  id: string
+  firstName: string
+  lastName: string
   grade: string | null
   height: string | null
   weight: string | null
+  photoUrl: string | null
+  bio: string | null
   userId: string | null
   isActive: boolean
+  rosters: RosterEntry[]
   user: { id: string; firstName: string | null; lastName: string | null; email: string } | null
-  athleticTeam: { id: string; name: string; sport: { name: string; color: string } }
 }
+
+// Backwards-compat alias
+export type RosterPlayer = Athlete
 
 export interface OrgUser {
   id: string

@@ -54,8 +54,11 @@ function MaintenanceContent() {
   const userAvatar = user.avatar
   const userRole = user.role
   const orgName = org.name
+  // Retained as display fallback; Organization.schoolType was removed in
+  // Phase 1c, the API now emits `null` for backward compat.
   const orgSchoolType = org.schoolType
-  const userSchoolScope = user.schoolScope
+  // Prefer campusScope; schoolScope is kept as a deprecated alias during Phase 1c migration.
+  const userSchoolScope = user.campusScope ?? user.schoolScope
   const userTeam = user.team
   const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
   const isClient = isReady

@@ -30,6 +30,7 @@ import { useEventProjects, type EventProject } from '@/lib/hooks/useEventProject
 import { useEventDashboard, useResolveAction } from '@/lib/hooks/useEventDashboard'
 import type { ScoredActionItem, ActionItemType, ResolveAction } from '@/lib/services/eventDashboardService'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { useToast } from '@/components/Toast'
@@ -806,11 +807,13 @@ interface MyEventsPanelProps {
 
 function MyEventsPanel({ isAdmin, onOpenCreate }: MyEventsPanelProps) {
   const router = useRouter()
+  const { activeSchoolId } = useActiveSchool()
   const [statusFilter, setStatusFilter] = useState('')
 
   const filters = {
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(!isAdmin ? { createdBy: 'me' } : {}),
+    ...(activeSchoolId ? { schoolId: activeSchoolId } : {}),
   }
 
   const { data: projects, isLoading } = useEventProjects(
@@ -1011,6 +1014,7 @@ export default function EventsPage() {
   useTrackModuleVisit('events')
   const router = useRouter()
   const { isAdmin, isReady, user } = useAuth()
+  const { activeSchoolId } = useActiveSchool()
   const isDesktop = useIsDesktop()
 
   // Lifted create-flow state so the CTA can live in the page header
@@ -1043,8 +1047,10 @@ export default function EventsPage() {
 
   // For the board, fetch ALL admin-visible events in one query (no status
   // filter, no createdBy filter). The board groups them into columns itself.
+  // School scope: when an active school is selected the service returns events
+  // for that school plus district-wide events (schoolId IS NULL).
   const { data: allProjects = [] } = useEventProjects(
-    useBoard ? undefined : undefined,
+    activeSchoolId ? { schoolId: activeSchoolId } : undefined,
   )
   const archiveCount = allProjects.filter(
     (p) => p.status === 'COMPLETED' || p.status === 'CANCELLED',

@@ -8,7 +8,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 
 const UpsertRoutingConfigSchema = z.object({
   module: z.enum(['MAINTENANCE', 'IT']),
-  campusId: z.string().nullable().optional(),
+  schoolId: z.string().nullable().optional(),
   strategy: z.enum(['UNASSIGNED', 'ROUND_ROBIN', 'LOAD_BALANCED', 'MANAGER_TRIAGE']),
   managerUserId: z.string().nullable().optional(),
 })
@@ -17,17 +17,17 @@ export const GET = withAuth(async ({ orgId }) => {
   const configs = await prisma.moduleRoutingConfig.findMany({
     where: { organizationId: orgId },
     include: {
-      campus: { select: { id: true, name: true } },
+      school: { select: { id: true, name: true } },
       manager: { select: { id: true, firstName: true, lastName: true, email: true } },
     },
-    orderBy: [{ module: 'asc' }, { campusId: 'asc' }],
+    orderBy: [{ module: 'asc' }, { schoolId: 'asc' }],
   })
 
   return NextResponse.json(ok(configs))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({ orgId, body }) => {
-  const { module, campusId, strategy, managerUserId } = body
+  const { module, schoolId, strategy, managerUserId } = body
 
   if (strategy === 'MANAGER_TRIAGE' && !managerUserId) {
     return NextResponse.json(
@@ -36,10 +36,10 @@ export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({
     )
   }
 
-  // Upsert — campusId can be null (org-wide default)
+  // Upsert — schoolId can be null (org-wide default)
   // Can't use prisma upsert with nullable unique, so use findFirst + create/update
   const existing = await rawPrisma.moduleRoutingConfig.findFirst({
-    where: { organizationId: orgId, module, campusId: campusId ?? null },
+    where: { organizationId: orgId, module, schoolId: schoolId ?? null },
   })
 
   const data = {
@@ -52,7 +52,7 @@ export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({
         where: { id: existing.id },
         data,
         include: {
-          campus: { select: { id: true, name: true } },
+          school: { select: { id: true, name: true } },
           manager: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       })
@@ -60,11 +60,11 @@ export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({
         data: {
           organizationId: orgId,
           module,
-          campusId: campusId ?? null,
+          schoolId: schoolId ?? null,
           ...data,
         },
         include: {
-          campus: { select: { id: true, name: true } },
+          school: { select: { id: true, name: true } },
           manager: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       })

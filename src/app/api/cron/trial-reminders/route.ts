@@ -154,6 +154,11 @@ export async function GET(req: NextRequest) {
     // Pull every org still inside a trial window without a paid subscription.
     // We do the window math in JS so we can include both the 9-day and 2-day
     // milestones in a single query.
+    // Principal contact info moved off Organization and onto School in Phase 1c
+    // ontology inversion. For trial reminders we need a real human email, so we
+    // look up either:
+    //   1. The principal on the org's first (default) School, or
+    //   2. The first super-admin / admin user as a fallback.
     const candidates = await rawPrisma.organization.findMany({
       where: {
         trialEndsAt: { gt: now },
@@ -169,15 +174,33 @@ export async function GET(req: NextRequest) {
         trialEndsAt: true,
         trialReminder21SentAt: true,
         trialReminder28SentAt: true,
-        principalName: true,
-        principalEmail: true,
+        schools: {
+          where: { deletedAt: null },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+          take: 1,
+          select: { principalName: true, principalEmail: true },
+        },
+        users: {
+          where: {
+            deletedAt: null,
+            status: 'ACTIVE',
+            userRole: { slug: { in: ['super-admin', 'admin'] } },
+          },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          select: { name: true, email: true },
+        },
       },
     })
 
     const targets: ReminderTarget[] = []
 
     for (const org of candidates) {
-      if (!org.trialEndsAt || !org.principalEmail) continue
+      const primarySchool = org.schools[0]
+      const primaryAdmin = org.users[0]
+      const contactEmail = primarySchool?.principalEmail ?? primaryAdmin?.email ?? null
+
+      if (!org.trialEndsAt || !contactEmail) continue
       const daysLeft = daysBetween(now, org.trialEndsAt)
 
       // 2-day reminder has priority if both windows match (close to expiry).
@@ -186,7 +209,7 @@ export async function GET(req: NextRequest) {
           id: org.id,
           name: org.name,
           slug: org.slug,
-          email: org.principalEmail,
+          email: contactEmail,
           daysLeft,
           milestone: '2-day',
         })
@@ -195,7 +218,7 @@ export async function GET(req: NextRequest) {
           id: org.id,
           name: org.name,
           slug: org.slug,
-          email: org.principalEmail,
+          email: contactEmail,
           daysLeft,
           milestone: '9-day',
         })

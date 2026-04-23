@@ -1,7 +1,16 @@
 /**
  * Campus Service
  *
- * Handles CRUD for Campus records and UserCampusAssignment junction table.
+ * Handles CRUD for Campus records (physical sub-locations under a School).
+ *
+ * NEW ONTOLOGY (post Phase 1 restructure):
+ *   District → School → Campus → Building → Space → Room
+ *
+ *   - Campus is a PHYSICAL sub-location under a School (the institution).
+ *   - A Campus may be pinned to a Site (shared physical address among campuses).
+ *   - User ↔ Campus is now a direct one-to-many relation (User.campusId) —
+ *     the old UserCampusAssignment junction has been dropped.
+ *
  * Used by API routes inside runWithOrgContext — uses org-scoped `prisma`.
  */
 
@@ -40,36 +49,29 @@ async function pickNextCalendarColor(): Promise<string> {
 
 export const CreateCampusSchema = z.object({
   name: z.string().trim().min(1, 'Campus name is required').max(120),
+  schoolId: z.string().min(1).optional().nullable(),
+  siteId: z.string().min(1).optional().nullable(),
   address: z.string().trim().max(400).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
-  campusType: z.enum(['HEADQUARTERS', 'CAMPUS', 'SATELLITE']).default('CAMPUS'),
+  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional().nullable(),
+  campusKind: z.enum(['HEADQUARTERS', 'CAMPUS', 'SATELLITE']).default('CAMPUS'),
+  color: z.string().trim().optional(),
   sortOrder: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
 })
 
 export const UpdateCampusSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
+  schoolId: z.string().min(1).optional().nullable(),
+  siteId: z.string().min(1).optional().nullable(),
   address: z.string().trim().max(400).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
-  campusType: z.enum(['HEADQUARTERS', 'CAMPUS', 'SATELLITE']).optional(),
+  gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional().nullable(),
+  campusKind: z.enum(['HEADQUARTERS', 'CAMPUS', 'SATELLITE']).optional(),
+  color: z.string().trim().optional(),
   sortOrder: z.number().int().min(0).optional(),
-  isActive: z.boolean().optional(),
-})
-
-export const CreateCampusAssignmentSchema = z.object({
-  userId: z.string().min(1, 'User ID is required'),
-  campusId: z.string().min(1, 'Campus ID is required'),
-  isPrimary: z.boolean().default(false),
-  startsAt: z.string().datetime().optional().nullable(),
-  endsAt: z.string().datetime().optional().nullable(),
-})
-
-export const UpdateCampusAssignmentSchema = z.object({
-  isPrimary: z.boolean().optional(),
-  startsAt: z.string().datetime().optional().nullable(),
-  endsAt: z.string().datetime().optional().nullable(),
   isActive: z.boolean().optional(),
 })
 
@@ -80,13 +82,15 @@ export type UpdateCampusInput = z.infer<typeof UpdateCampusSchema>
 
 /**
  * List all campuses for the current org (auto-scoped via prisma extension).
- * Includes counts of schools and buildings per campus.
+ * Includes counts of buildings, spaces, and pinned users per campus.
  */
 export async function listCampuses() {
   return prisma.campus.findMany({
     include: {
+      school: { select: { id: true, name: true } },
+      site: { select: { id: true, label: true, address: true } },
       _count: {
-        select: { schools: true, buildings: true, areas: true },
+        select: { buildings: true, spaces: true, users: true },
       },
     },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -100,8 +104,10 @@ export async function getCampusById(campusId: string) {
   return prisma.campus.findUnique({
     where: { id: campusId },
     include: {
+      school: { select: { id: true, name: true } },
+      site: { select: { id: true, label: true, address: true } },
       _count: {
-        select: { schools: true, buildings: true, areas: true, userAssignments: true },
+        select: { buildings: true, spaces: true, users: true },
       },
     },
   })
@@ -113,7 +119,7 @@ export async function getCampusById(campusId: string) {
  */
 export async function getDefaultCampus() {
   const hq = await prisma.campus.findFirst({
-    where: { campusType: 'HEADQUARTERS', isActive: true },
+    where: { campusKind: 'HEADQUARTERS', isActive: true },
     select: { id: true, name: true },
   })
   if (hq) return hq
@@ -146,16 +152,22 @@ export async function createCampus(input: CreateCampusInput) {
     data: {
       organizationId,
       name: input.name,
+      schoolId: input.schoolId ?? null,
+      siteId: input.siteId ?? null,
       address: input.address ?? null,
       latitude: lat,
       longitude: lng,
-      campusType: input.campusType,
+      gradeLevel: input.gradeLevel ?? null,
+      campusKind: input.campusKind,
+      color: input.color ?? '#3b82f6',
       sortOrder: input.sortOrder,
       isActive: input.isActive,
     },
     include: {
+      school: { select: { id: true, name: true } },
+      site: { select: { id: true, label: true, address: true } },
       _count: {
-        select: { schools: true, buildings: true, areas: true },
+        select: { buildings: true, spaces: true, users: true },
       },
     },
   })
@@ -196,8 +208,10 @@ export async function updateCampus(campusId: string, input: UpdateCampusInput) {
     where: { id: campusId },
     data,
     include: {
+      school: { select: { id: true, name: true } },
+      site: { select: { id: true, label: true, address: true } },
       _count: {
-        select: { schools: true, buildings: true, areas: true },
+        select: { buildings: true, spaces: true, users: true },
       },
     },
   })
@@ -205,27 +219,20 @@ export async function updateCampus(campusId: string, input: UpdateCampusInput) {
 
 /**
  * Delete a campus (soft-delete via extension).
- * Blocks deletion if the campus has schools or buildings.
+ * Blocks deletion if the campus has buildings, spaces, or pinned users.
  */
 export async function deleteCampus(campusId: string): Promise<{ success: boolean; reason?: string }> {
   const counts = await prisma.campus.findUnique({
     where: { id: campusId },
     include: {
       _count: {
-        select: { schools: true, buildings: true },
+        select: { buildings: true, spaces: true, users: true },
       },
     },
   })
 
   if (!counts) {
     return { success: false, reason: 'Campus not found' }
-  }
-
-  if (counts._count.schools > 0) {
-    return {
-      success: false,
-      reason: `Cannot delete campus with ${counts._count.schools} school(s). Reassign or delete them first.`,
-    }
   }
 
   if (counts._count.buildings > 0) {
@@ -235,127 +242,83 @@ export async function deleteCampus(campusId: string): Promise<{ success: boolean
     }
   }
 
+  if (counts._count.spaces > 0) {
+    return {
+      success: false,
+      reason: `Cannot delete campus with ${counts._count.spaces} space(s). Reassign or delete them first.`,
+    }
+  }
+
+  if (counts._count.users > 0) {
+    return {
+      success: false,
+      reason: `Cannot delete campus with ${counts._count.users} pinned user(s). Reassign them first.`,
+    }
+  }
+
   await prisma.campus.delete({ where: { id: campusId } })
   return { success: true }
 }
 
-// ============= Campus Hierarchy Validation =============
+// ============= Campus ↔ School Validation =============
 
 /**
- * Validate that a school belongs to the specified campus.
- * Used when assigning a building to both a campus and a school.
+ * Validate that a campus belongs to the specified school.
+ *
+ * NEW ONTOLOGY: Campus has schoolId (Campus is under School), not the reverse.
+ * Used e.g. when placing a Building under both a Campus and a School to ensure
+ * the parent chain is coherent.
  */
-export async function validateSchoolInCampus(
+export async function validateCampusInSchool(
   campusId: string,
   schoolId: string
 ): Promise<boolean> {
-  const school = await prisma.school.findUnique({
-    where: { id: schoolId },
+  const campus = await prisma.campus.findUnique({
+    where: { id: campusId },
+    select: { schoolId: true },
+  })
+  return campus?.schoolId === schoolId
+}
+
+// ============= User ↔ Campus Helpers =============
+//
+// User ↔ Campus is now a direct one-to-many relation (User.campusId). The old
+// UserCampusAssignment junction table has been dropped in Phase 1b. Callers
+// that previously used listCampusAssignments / assignUserToCampus / etc. should
+// now update User.campusId directly (see userService).
+
+/**
+ * List users pinned to a given campus (replacement for listCampusAssignments).
+ */
+export async function listUsersOnCampus(campusId: string) {
+  return prisma.user.findMany({
+    where: { campusId, deletedAt: null },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatar: true,
+      campusId: true,
+    },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+  })
+}
+
+/**
+ * Get the campus a user is pinned to (or null). Replacement for getUserCampuses —
+ * in the new model users belong to a single primary campus.
+ */
+export async function getUserCampus(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
     select: { campusId: true },
   })
-  return school?.campusId === campusId
-}
-
-// ============= User Campus Assignments =============
-
-/**
- * List campus assignments, filterable by userId or campusId.
- */
-export async function listCampusAssignments(filters: {
-  userId?: string
-  campusId?: string
-}) {
-  const where: Record<string, unknown> = { isActive: true }
-  if (filters.userId) where.userId = filters.userId
-  if (filters.campusId) where.campusId = filters.campusId
-
-  return prisma.userCampusAssignment.findMany({
-    where,
+  if (!user?.campusId) return null
+  return prisma.campus.findUnique({
+    where: { id: user.campusId },
     include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
-      campus: { select: { id: true, name: true, campusType: true } },
-    },
-    orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
-  })
-}
-
-/**
- * Assign a user to a campus.
- */
-export async function assignUserToCampus(input: {
-  userId: string
-  campusId: string
-  isPrimary?: boolean
-  startsAt?: string | null
-  endsAt?: string | null
-}) {
-  const organizationId = getOrgContextId()
-  return prisma.userCampusAssignment.create({
-    data: {
-      organizationId,
-      userId: input.userId,
-      campusId: input.campusId,
-      isPrimary: input.isPrimary ?? false,
-      startsAt: input.startsAt ? new Date(input.startsAt) : null,
-      endsAt: input.endsAt ? new Date(input.endsAt) : null,
-      isActive: true,
-    },
-    include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      campus: { select: { id: true, name: true } },
+      school: { select: { id: true, name: true } },
     },
   })
-}
-
-/**
- * Update a campus assignment.
- */
-export async function updateCampusAssignment(
-  assignmentId: string,
-  input: z.infer<typeof UpdateCampusAssignmentSchema>
-) {
-  const data: Record<string, unknown> = {}
-  if (input.isPrimary !== undefined) data.isPrimary = input.isPrimary
-  if (input.isActive !== undefined) data.isActive = input.isActive
-  if (input.startsAt !== undefined) data.startsAt = input.startsAt ? new Date(input.startsAt) : null
-  if (input.endsAt !== undefined) data.endsAt = input.endsAt ? new Date(input.endsAt) : null
-
-  return prisma.userCampusAssignment.update({
-    where: { id: assignmentId },
-    data,
-    include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      campus: { select: { id: true, name: true } },
-    },
-  })
-}
-
-/**
- * Remove a campus assignment (hard delete — no soft-delete on junction table).
- */
-export async function removeCampusAssignment(assignmentId: string) {
-  // UserCampusAssignment is not in softDeleteModels, so this is a real delete
-  // But the extension will try to soft-delete... we need rawPrisma for hard delete
-  // Actually, UserCampusAssignment is NOT in softDeleteModels, so prisma.delete works as hard-delete
-  return prisma.userCampusAssignment.delete({
-    where: { id: assignmentId },
-  })
-}
-
-/**
- * Get all campuses a user is assigned to.
- */
-export async function getUserCampuses(userId: string) {
-  const assignments = await prisma.userCampusAssignment.findMany({
-    where: { userId, isActive: true },
-    include: {
-      campus: true,
-    },
-    orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
-  })
-  return assignments.map((a) => ({
-    ...a.campus,
-    isPrimary: a.isPrimary,
-    assignmentId: a.id,
-  }))
 }

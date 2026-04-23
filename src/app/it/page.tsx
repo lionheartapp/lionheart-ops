@@ -9,6 +9,7 @@ import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import TabIndicator from '@/components/ui/TabIndicator'
 import ITPageShell from '@/components/it/ITPageShell'
 import ITDashboard from '@/components/it/ITDashboard'
@@ -63,6 +64,7 @@ function ITContent() {
   const searchParams = useSearchParams()
   const p = useITPermissions()
   const { user } = useAuth()
+  const { activeSchoolId, activeSchool, isMultiSchool } = useActiveSchool()
 
   // Redirect old tab URLs to new routes
   useEffect(() => {
@@ -174,6 +176,11 @@ function ITContent() {
         <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
           {p.canManage ? 'Manage IT support tickets and assignments' : 'Submit and track your IT requests'}
         </motion.p>
+        {isMultiSchool && (
+          <motion.p variants={fadeInUp} className="text-xs font-medium text-slate-500 mt-1">
+            Viewing: <span className="text-slate-900">{activeSchool?.name ?? 'All Schools'}</span>
+          </motion.p>
+        )}
       </motion.div>
 
       {/* Sub-navigation tabs */}
@@ -274,6 +281,7 @@ function ITContent() {
           <ITDashboard
             onViewTicket={setDetailTicketId}
             onCreateTicket={() => setShowCreate(true)}
+            activeSchoolId={activeSchoolId}
           />
         </div>
       )}
@@ -290,6 +298,7 @@ function ITContent() {
             onTicketClick={setDetailTicketId}
             scope={scope}
             currentUserId={user.id || undefined}
+            activeSchoolId={activeSchoolId}
           />
         ) : (
           <ITTicketsList
@@ -298,6 +307,7 @@ function ITContent() {
             canManage={p.canManage}
             scope={scope}
             currentUserId={user.id || undefined}
+            activeSchoolId={activeSchoolId}
           />
         )}
       </div>

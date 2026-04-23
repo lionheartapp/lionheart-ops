@@ -52,7 +52,7 @@ export const POST = withAuth(async ({ req, orgId }) => {
 
   // Fetch metrics and org name in parallel
   const [metrics, org] = await Promise.all([
-    getBoardReportMetrics(orgId, { from: fromDate, to: toDate, schoolId }),
+    getBoardReportMetrics(orgId, { from: fromDate, to: toDate, campusId: schoolId }),
     rawPrisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },

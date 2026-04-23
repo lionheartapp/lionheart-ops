@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             avatar: true,
             status: true,
             organizationId: true,
-            schoolScope: true,
+            campusScope: true,
             userRole: {
               select: { name: true },
             },
@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
               select: {
                 name: true,
                 logoUrl: true,
-                gradeLevel: true,
               },
             },
           },
@@ -142,13 +141,18 @@ export async function POST(req: NextRequest) {
       ok({
         token: authToken,
         organizationId: user.organizationId,
-        organization: user.organization,
+        // `gradeLevel`/`schoolType` moved off Organization in Phase 1c ontology inversion.
+        // Emit null for backward-compat; clients should migrate to reading these from
+        // School/Campus endpoints.
+        organization: { ...user.organization, gradeLevel: null, schoolType: null },
         user: {
           id: user.id,
           email: user.email,
           name: user.name,
           avatar: user.avatar,
-          schoolScope: user.schoolScope,
+          campusScope: user.campusScope,
+          // Backward-compat alias — remove once clients are migrated
+          schoolScope: user.campusScope,
           role: user.userRole?.name || null,
           team: teamName,
         },

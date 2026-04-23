@@ -104,7 +104,6 @@ describe('withAuth classification — validation errors', () => {
       {
         code: 'invalid_type',
         expected: 'string',
-        received: 'number',
         path: ['name'],
         message: 'Expected string',
       },

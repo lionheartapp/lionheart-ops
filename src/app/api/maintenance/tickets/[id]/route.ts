@@ -90,9 +90,9 @@ export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {
       submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
       assignedTo: { select: { id: true, firstName: true, lastName: true } },
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
     },
   })
 

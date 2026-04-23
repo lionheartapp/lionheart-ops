@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import ModuleGate from '@/components/ModuleGate'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
@@ -120,8 +121,16 @@ export default function AthleticsPage() {
 
   const enabledCampuses = campuses.filter((c) => enabledCampusIds.includes(c.id))
 
-  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
-  const activeCampusId = selectedCampusId ?? enabledCampuses[0]?.id ?? null
+  // Viewpoint is owned by the global useActiveSchool hook — the sidebar's
+  // SchoolSelector is the canonical picker. `null` means "All Schools"
+  // (org-wide view); a concrete id scopes the athletics page to one school
+  // and triggers the dual-school opponent-side flip in ScheduleSection.
+  //
+  // The legacy `athletics-campus-change` sidebar event (still fired by the
+  // athletics-specific campus pills) is bridged below into this hook so both
+  // UIs stay in sync without a second source of truth.
+  const { activeSchoolId, setActiveSchoolId } = useActiveSchool()
+  const activeCampusId = activeSchoolId
 
   const [activeTab, setActiveTab] = useState<AthleticsTab>('overview')
   const [manageSection, setManageSection] = useState<ManageSection>('sports')
@@ -185,9 +194,8 @@ export default function AthleticsPage() {
 
   // Dispatch sidebar data whenever campuses/modules load or change
   const dispatchSidebarData = useCallback(() => {
-    if (enabledCampuses.length === 0) return
     const colorKeys = enabledCampuses.map((c) => campusColorMap.get(c.id) ?? '').join(',')
-    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + colorKeys + '|' + activeCampusId
+    const key = enabledCampuses.map((c) => c.id).join(',') + '|' + colorKeys + '|' + activeCampusId + '|' + hasSports
     if (key === lastDispatchRef.current) return
     lastDispatchRef.current = key
     window.dispatchEvent(
@@ -199,26 +207,30 @@ export default function AthleticsPage() {
             color: campusColorMap.get(c.id) ?? DEFAULT_CAMPUS_COLORS[i % DEFAULT_CAMPUS_COLORS.length],
           })),
           activeCampusId,
+          hasSports,
         },
       })
     )
-  }, [enabledCampuses, activeCampusId, campusColorMap]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabledCampuses, activeCampusId, campusColorMap, hasSports]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     dispatchSidebarData()
   }, [dispatchSidebarData])
 
-  // Listen for sidebar-driven campus changes
+  // Bridge legacy athletics-specific sidebar pills into the global viewpoint.
+  // The pills dispatch `athletics-campus-change`; we forward that through
+  // `setActiveSchoolId` so the global SchoolSelector, Dashboard, IT, etc. all
+  // see the same selection. One source of truth — the hook.
   useEffect(() => {
     const handleCampusChange = (e: Event) => {
       const event = e as CustomEvent<{ campusId: string }>
-      if (event.detail?.campusId) setSelectedCampusId(event.detail.campusId)
+      if (event.detail?.campusId) setActiveSchoolId(event.detail.campusId)
     }
     window.addEventListener('athletics-campus-change', handleCampusChange)
     return () => {
       window.removeEventListener('athletics-campus-change', handleCampusChange)
     }
-  }, [])
+  }, [setActiveSchoolId])
 
   // Re-dispatch sidebar data when the Sidebar requests it (handles race condition)
   useEffect(() => {

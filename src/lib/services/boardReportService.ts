@@ -122,16 +122,16 @@ export async function calculateFCI(orgId: string): Promise<BoardReportMetrics['f
 
 export async function getBoardReportMetrics(
   orgId: string,
-  filters: { from: Date; to: Date; schoolId?: string }
+  filters: { from: Date; to: Date; campusId?: string }
 ): Promise<BoardReportMetrics> {
-  const { from, to, schoolId } = filters
+  const { from, to, campusId } = filters
 
   const ticketWhere: Record<string, unknown> = {
     organizationId: orgId,
     createdAt: { gte: from, lte: to },
     deletedAt: null,
   }
-  if (schoolId) ticketWhere.schoolId = schoolId
+  if (campusId) ticketWhere.campusId = campusId
 
   const now = new Date()
   const in1Year = new Date(now)
@@ -165,7 +165,7 @@ export async function getBoardReportMetrics(
         pmScheduleId: true,
         estimatedRepairCostUSD: true,
         category: true,
-        schoolId: true,
+        campusId: true,
         createdAt: true,
         updatedAt: true,
         costEntries: { select: { amount: true } },
@@ -188,7 +188,7 @@ export async function getBoardReportMetrics(
       select: {
         id: true,
         category: true,
-        schoolId: true,
+        campusId: true,
         createdAt: true,
         updatedAt: true,
         activities: {
@@ -257,7 +257,7 @@ export async function getBoardReportMetrics(
         organizationId: orgId,
         createdAt: { gte: yoyFrom, lte: yoyTo },
         deletedAt: null,
-        ...(schoolId ? { schoolId } : {}),
+        ...(campusId ? { campusId } : {}),
       },
       select: {
         id: true,
@@ -304,7 +304,7 @@ export async function getBoardReportMetrics(
 
   for (const t of doneTickets) {
     const cat = t.category ?? 'OTHER'
-    const campus = t.schoolId ?? 'all'
+    const campus = t.campusId ?? 'all'
 
     // Response time: createdAt → first IN_PROGRESS activity
     if (t.activities.length > 0) {

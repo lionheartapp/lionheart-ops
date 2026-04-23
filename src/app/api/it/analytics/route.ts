@@ -19,7 +19,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     return NextResponse.json(ok(cache.data))
   }
 
-  const data = await getAllITAnalytics(orgId, { schoolId, months })
+  const data = await getAllITAnalytics(orgId, { campusId: schoolId, months })
   cache = { key: cacheKey, data, ts: Date.now() }
   return NextResponse.json(ok(data))
 }, { permission: PERMISSIONS.IT_ANALYTICS_READ })

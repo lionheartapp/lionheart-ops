@@ -12,25 +12,10 @@ model Organization {
   id            String            @id @default(cuid())
   name          String
   slug          String            @unique
-  institutionType InstitutionType  @default(PUBLIC)
-  gradeLevel    SchoolType        @default(GLOBAL) // ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL, or MULTI_SCHOOL_CAMPUS
-  physicalAddress String?
-  district      String?
   website       String?
   phone         String?
-  // Single-school contact info
-  principalName String?
-  principalEmail String?
-  principalPhone String?
-  // Multi-school contact info (used when gradeLevel = MULTI_SCHOOL_CAMPUS)
-  headOfSchoolsName String?
-  headOfSchoolsEmail String?
-  headOfSchoolsPhone String?
-  gradeRange    String?
   studentCount  Int?
   staffCount    Int?
-  latitude      Float?
-  longitude     Float?
   logoUrl       String?
   heroImageUrl  String?
   theme         String?           // JSON or string for tenant theme config
@@ -74,12 +59,13 @@ model Organization {
   roles         Role[]
   teams         Team[]
   buildings     Building[]
-  areas         Area[]
+  spaces        Space[]
   rooms         Room[]
   roomAssignments UserRoomAssignment[]
   campuses      Campus[]
-  campusAssignments UserCampusAssignment[]
   schools       School[]
+  districts     District[]
+  sites         Site[]
   auditLogs     AuditLog[]
   // Platform admin relations
   subscriptions       Subscription[]
@@ -112,6 +98,7 @@ model Organization {
   games               Game[]
   practices           Practice[]
   tournaments         Tournament[]
+  athletes            Athlete[]
   athleticRosters     AthleticRoster[]
   playerGameStats     PlayerGameStat[]
   sportStatConfigs    SportStatConfig[]
@@ -237,12 +224,14 @@ model Organization {
 model User {
   id             String           @id @default(cuid())
   organizationId String
-  schoolId       String?          // For users in multi-school campus organizations
+  districtId     String?
+  schoolId       String?          // Institution the user belongs to
+  campusId       String?          // Physical sub-location (grade-division campus)
   email          String
   name           String?          // Legacy: Use firstName + lastName
   firstName      String?
   lastName       String?
-  schoolScope    SchoolType       @default(GLOBAL)
+  campusScope    CampusGradeLevel?
   phone          String?
   avatar         String?          // Profile image URL
   jobTitle       String?          // Job title separate from role
@@ -267,7 +256,9 @@ model User {
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  district       District?        @relation(fields: [districtId], references: [id], onDelete: SetNull)
   school         School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus         Campus?          @relation(fields: [campusId], references: [id], onDelete: SetNull)
   userRole       Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
   teams          UserTeam[]
   accounts       Account[]
@@ -278,7 +269,6 @@ model User {
   schedules      TeacherSchedule[]
   passwordSetupTokens PasswordSetupToken[]
   roomAssignments UserRoomAssignment[]
-  campusAssignments UserCampusAssignment[]
   userPermissions UserPermission[]
   // Calendar module relations
   calendarSubscriptions CalendarSubscription[]
@@ -291,7 +281,7 @@ model User {
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
   ownedCalendars        Calendar[]           @relation("CalendarOwner")
   notifications         Notification[]
-  athleticRosters       AthleticRoster[]
+  athletes              Athlete[]
   // Maintenance module relations
   technicianProfile     TechnicianProfile?
   maintenanceTicketsSubmitted MaintenanceTicket[] @relation("SubmittedBy")
@@ -380,7 +370,9 @@ model User {
 
   @@unique([organizationId, email])
   @@index([organizationId])
+  @@index([districtId])
   @@index([schoolId])
+  @@index([campusId])
   @@index([roleId])
   @@index([status])
   @@index([organizationId, deletedAt])
@@ -405,8 +397,8 @@ model PasswordSetupToken {
 model Ticket {
   id             String         @id @default(cuid())
   organizationId String
-  campusId       String?        // FK to Campus — scopes ticket to a physical location
-  schoolId       String?        // FK to School — scopes ticket to an academic unit
+  schoolId       String?        // FK to School — institution this ticket belongs to
+  campusId       String?        // FK to Campus — physical sub-location (grade-division campus)
   title          String
   description    String?
   category       TicketCategory @default(MAINTENANCE)
@@ -476,32 +468,237 @@ model TicketAttachment {
   @@index([uploadedById])
 }
 
-model Building {
-  id             String         @id @default(cuid())
+model District {
+  id             String       @id @default(cuid())
   organizationId String
-  campusId       String?        // FK to Campus — optional during migration, will become required
-  schoolId       String?        // FK to School — set for school-specific buildings
   name           String
-  code           String?
+  slug           String?
+  isDefault      Boolean      @default(false)
+  // Contact / address (all optional)
   address        String?
-  latitude             Float?
-  longitude            Float?
-  polygonCoordinates   Json?              // Array of {lat, lng} points defining building outline
-  schoolDivision SchoolDivision @default(GLOBAL)
-  buildingType   BuildingType   @default(GENERAL)
-  images         Json?          // Array of image URLs, max 4
-  isActive       Boolean        @default(true)
-  sortOrder      Int            @default(0)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  city           String?
+  state          String?
+  zip            String?
+  latitude       Float?
+  longitude      Float?
+  phone          String?
+  phoneExt       String?
+  email          String?
+  contactName    String?
+  contactTitle   String?
+  logoUrl        String?
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus         Campus?        @relation(fields: [campusId], references: [id], onDelete: Restrict)
-  school         School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  areas          Area[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  schools        School[]
+  buildings      Building[]
+  spaces         Space[]
+  users          User[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isDefault])
+  @@index([organizationId, deletedAt])
+}
+
+model Site {
+  id             String       @id @default(cuid())
+  organizationId String
+  label          String?
+  address        String
+  city           String?
+  state          String?
+  zip            String?
+  latitude       Float?
+  longitude      Float?
+  placeId        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campuses       Campus[]
+  buildings      Building[]
+
+  @@index([organizationId])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, placeId])
+}
+
+model School {
+  id                String          @id @default(cuid())
+  organizationId    String
+  districtId        String?
+  name              String
+  slug              String?
+  institutionType   InstitutionType @default(PRIVATE)
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  principalName     String?
+  principalEmail    String?
+  principalPhone    String?
+  principalPhoneExt String?
+  logoUrl           String?
+  color             String          @default("#3b82f6")
+  sortOrder         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime?
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  district          District?       @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  campuses          Campus[]
+  buildings         Building[]
+  spaces            Space[]
+  users             User[]
+  // Back-relations for consumer models with `schoolId` pointing to this new School (institution)
+  tickets                Ticket[]
+  calendars              Calendar[]
+  specialDays            SpecialDay[]
+  planningSeasons        PlanningSeason[]
+  approvalRules          ApprovalRule[]          @relation("ApprovalRuleSchool")
+  approvalChannelConfigs ApprovalChannelConfig[]
+  approvalFlowEntries    ApprovalFlowEntry[]     @relation("ApprovalFlowSchool")
+  itMagicLinks           ITMagicLink[]
+  eventProjects          EventProject[]
+  eventSeries            EventSeries[]
+  dayScheduleAssignments DayScheduleAssignment[]
+  routingConfigs         ModuleRoutingConfig[]
+  tenantModules          TenantModule[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([districtId])
+  @@index([organizationId, deletedAt])
+}
+
+model Campus {
+  id             String             @id @default(cuid())
+  organizationId String
+  schoolId       String?
+  siteId         String?
+  name           String
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  gradeLevel     CampusGradeLevel?
+  campusKind     CampusKind         @default(CAMPUS)
+  color          String             @default("#3b82f6")
+  sortOrder      Int                @default(0)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school         School?            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  site           Site?              @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  buildings      Building[]
+  spaces         Space[]
+  users          User[]
+  // Back-relations for consumer models with `campusId` pointing to this new Campus (physical sub-location)
+  tickets                 Ticket[]
+  calendars               Calendar[]
+  calendarEvents          CalendarEvent[]
+  academicYears           AcademicYear[]
+  bellSchedules           BellSchedule[]
+  specialDays             SpecialDay[]
+  planningSeasons         PlanningSeason[]
+  approvalRules           ApprovalRule[]          @relation("ApprovalRuleCampus")
+  athleticTeams           AthleticTeam[]
+  maintenanceTickets      MaintenanceTicket[]
+  maintenanceAssets       MaintenanceAsset[]
+  pmSchedules             PmSchedule[]
+  complianceDomainConfigs ComplianceDomainConfig[]
+  complianceRecords       ComplianceRecord[]
+  students                Student[]
+  itDevices               ITDevice[]
+  itTickets               ITTicket[]
+  itMagicLinks            ITMagicLink[]
+  deploymentBatches       ITDeploymentBatch[]
+  erateEntities           ITERateEntity[]
+  securityIncidents       SecurityIncident[]
+  eventProjects           EventProject[]
+
+  @@unique([organizationId, schoolId, name])
+  @@index([organizationId, isActive])
+  @@index([schoolId])
+  @@index([siteId])
+  @@index([organizationId, deletedAt])
+}
+
+model Space {
+  id             String       @id @default(cuid())
+  organizationId String
+  buildingId     String?
+  campusId       String?
+  schoolId       String?
+  districtId     String?
+  name           String
+  spaceType      SpaceType    @default(OTHER)
+  latitude       Float?
+  longitude      Float?
+  polygonCoordinates Json?
+  images         Json?
+  isActive       Boolean      @default(true)
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  campus         Campus?      @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  school         School?      @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  district       District?    @relation(fields: [districtId], references: [id], onDelete: Restrict)
   rooms          Room[]
-  schoolLinks    BuildingSchool[]  // M:N — scopes building to specific schools; empty = shared with all
-  calendarEvents CalendarEvent[]
+  // Back-relations preserved from old Area model
+  calendarEvents     CalendarEvent[]
+  maintenanceTickets MaintenanceTicket[]
+  maintenanceAssets  MaintenanceAsset[]
+  pmSchedules        PmSchedule[]
+  itTickets          ITTicket[]
+  eventProjects      EventProject[]
+  formQrCodes        FormQrCode[]
+
+  @@unique([organizationId, buildingId, name])
+  @@index([organizationId, isActive])
+  @@index([campusId])
+  @@index([schoolId])
+  @@index([districtId])
+  @@index([buildingId])
+  @@index([organizationId, deletedAt])
+}
+
+model Building {
+  id                 String         @id @default(cuid())
+  organizationId     String
+  // Polymorphic parent — exactly one of (districtId, schoolId, campusId) must be set.
+  // Prisma cannot express the CHECK constraint natively; it is added via SQL in a post-push script.
+  districtId         String?
+  schoolId           String?
+  campusId           String?
+  siteId             String?
+  name               String
+  code               String?
+  address            String?
+  latitude           Float?
+  longitude          Float?
+  polygonCoordinates Json?
+  buildingType       BuildingType   @default(GENERAL)
+  images             Json?
+  isActive           Boolean        @default(true)
+  sortOrder          Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  deletedAt          DateTime?
+  organization       Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  district           District?      @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  school             School?        @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  campus             Campus?        @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  site               Site?          @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  rooms              Room[]
+  spaces             Space[]
+  // Preserved back-relations from old Building
+  calendarEvents     CalendarEvent[]
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
@@ -509,60 +706,24 @@ model Building {
   itDevices          ITDevice[]
   eventProjects      EventProject[]
 
-  @@unique([organizationId, campusId, schoolDivision, name])
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
-  @@index([organizationId, deletedAt])
-  @@index([campusId])
+  @@index([districtId])
   @@index([schoolId])
-  @@index([organizationId, campusId, isActive, deletedAt, sortOrder])  // campus page query
-}
-
-model Area {
-  id             String       @id @default(cuid())
-  organizationId String
-  campusId       String?      // FK to Campus — optional during migration, will become required
-  buildingId     String?
-  name           String
-  areaType       AreaType     @default(OTHER)
-  latitude       Float?
-  longitude      Float?
-  polygonCoordinates Json?     // Array of {lat, lng} for outdoor space outline
-  images         Json?        // Array of image URLs, max 4
-  isActive       Boolean      @default(true)
-  sortOrder      Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus         Campus?      @relation(fields: [campusId], references: [id], onDelete: Restrict)
-  building       Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  rooms          Room[]
-  schoolLinks    AreaSchool[]  // M:N — scopes area to specific schools; empty = shared with all
-  calendarEvents CalendarEvent[]
-  maintenanceTickets MaintenanceTicket[]
-  maintenanceAssets  MaintenanceAsset[]
-  pmSchedules        PmSchedule[]
-  itTickets          ITTicket[]
-  eventProjects      EventProject[]
-
-  @@unique([organizationId, buildingId, name])
-  @@index([organizationId, isActive])
   @@index([campusId])
-  @@index([buildingId])
+  @@index([siteId])
   @@index([organizationId, deletedAt])
-  @@index([organizationId, campusId, isActive, deletedAt, sortOrder])  // campus page query
 }
 
 model Room {
   id             String       @id @default(cuid())
   organizationId String
   buildingId     String
-  areaId         String?
+  spaceId        String?   // renamed from areaId
   roomNumber     String
   displayName    String?
   floor          String?
-  images         Json?        // Array of image URLs, max 4
+  images         Json?
   isActive       Boolean      @default(true)
   sortOrder      Int          @default(0)
   createdAt      DateTime     @default(now())
@@ -570,8 +731,9 @@ model Room {
   deletedAt      DateTime?
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   building       Building     @relation(fields: [buildingId], references: [id], onDelete: Restrict)
-  area           Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space          Space?       @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   assignments    UserRoomAssignment[]
+  // Preserved back-relations from old Room
   maintenanceTickets MaintenanceTicket[]
   maintenanceAssets  MaintenanceAsset[]
   pmSchedules        PmSchedule[]
@@ -582,38 +744,8 @@ model Room {
   @@unique([organizationId, buildingId, roomNumber])
   @@index([organizationId, isActive])
   @@index([buildingId])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([organizationId, deletedAt])
-  @@index([organizationId, isActive, deletedAt, buildingId, sortOrder])  // campus page query
-}
-
-/// Scopes a Building to a specific School. When a building has zero rows in this
-/// junction, it is treated as "shared with all schools" (available everywhere).
-/// When it has one or more rows, it is only available to those specific schools.
-model BuildingSchool {
-  buildingId String
-  schoolId   String
-  createdAt  DateTime @default(now())
-  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  @@id([buildingId, schoolId])
-  @@index([schoolId])
-  @@index([buildingId])
-}
-
-/// Scopes an Area (outdoor space) to a specific School. Same semantics as
-/// BuildingSchool — empty junction = shared with all schools.
-model AreaSchool {
-  areaId    String
-  schoolId  String
-  createdAt DateTime @default(now())
-  area      Area   @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  school    School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  @@id([areaId, schoolId])
-  @@index([schoolId])
-  @@index([areaId])
 }
 
 model UserRoomAssignment {
@@ -634,122 +766,6 @@ model UserRoomAssignment {
   @@index([organizationId, userId])
   @@index([organizationId, roomId])
   @@index([isActive])
-}
-
-model Campus {
-  id             String       @id @default(cuid())
-  organizationId String
-  name           String
-  address        String?
-  latitude       Float?
-  longitude      Float?
-  campusType     CampusType   @default(CAMPUS)
-  isActive       Boolean      @default(true)
-  sortOrder      Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  schools        School[]
-  buildings      Building[]
-  areas          Area[]
-  tickets        Ticket[]
-  userAssignments UserCampusAssignment[]
-  // Calendar module relations
-  calendars      Calendar[]
-  dayScheduleAssignments DayScheduleAssignment[]
-  specialDays    SpecialDay[]
-  planningSeasons PlanningSeason[]
-  approvalChannelConfigs ApprovalChannelConfig[]
-  approvalRules          ApprovalRule[]          @relation("ApprovalRuleCampus")
-  approvalFlowEntries    ApprovalFlowEntry[]     @relation("ApprovalFlowCampus")
-  tenantModules  TenantModule[]
-  itMagicLinks   ITMagicLink[]
-  eventProjects  EventProject[]
-  // Ticket Routing module relations
-  routingConfigs ModuleRoutingConfig[]
-
-  @@unique([organizationId, name])
-  @@index([organizationId, isActive])
-  @@index([organizationId, deletedAt])
-}
-
-model UserCampusAssignment {
-  id             String       @id @default(cuid())
-  organizationId String
-  userId         String
-  campusId       String
-  isPrimary      Boolean      @default(false)
-  startsAt       DateTime?
-  endsAt         DateTime?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  campus         Campus       @relation(fields: [campusId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId, userId])
-  @@index([organizationId, campusId])
-  @@index([isActive])
-}
-
-model School {
-  id               String        @id @default(cuid())
-  organizationId   String
-  campusId         String?       // FK to Campus — optional during migration, will become required
-  name             String        // e.g., "Elementary Campus", "High School", "Middle School"
-  gradeLevel       SchoolType    @default(ELEMENTARY) // ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL
-  color            String        @default("#3b82f6")
-  principalName    String?
-  principalEmail   String?
-  principalPhone   String?
-  principalPhoneExt String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus         Campus?       @relation(fields: [campusId], references: [id], onDelete: Restrict)
-  users          User[]
-  buildings      Building[]
-  buildingLinks  BuildingSchool[]  // M:N — buildings scoped to this school via junction
-  areaLinks      AreaSchool[]      // M:N — areas (outdoor spaces) scoped to this school via junction
-  tickets        Ticket[]
-  // Maintenance module relations
-  maintenanceTickets MaintenanceTicket[]
-  maintenanceAssets  MaintenanceAsset[]
-  pmSchedules        PmSchedule[]
-  // Compliance module relations
-  complianceDomainConfigs ComplianceDomainConfig[]
-  complianceRecords       ComplianceRecord[]
-  // Approval rules scoped to this school
-  approvalRules           ApprovalRule[]           @relation("ApprovalRuleSchool")
-  // Calendar module relations
-  calendars      Calendar[]
-  calendarEvents CalendarEvent[]
-  academicYears  AcademicYear[]
-  bellSchedules  BellSchedule[]
-  specialDays    SpecialDay[]
-  planningSeasons PlanningSeason[]
-  // IT Help Desk module relations
-  itTickets      ITTicket[]
-  itMagicLinks   ITMagicLink[]
-  // MDM + Roster module relations
-  students       Student[]
-  itDevices      ITDevice[]
-  // Device Lifecycle module relations
-  deploymentBatches ITDeploymentBatch[]
-  // Security Incident module relations
-  securityIncidents SecurityIncident[]
-  // Event Project module relations
-  eventProjects     EventProject[]
-  // E-Rate module relations
-  erateEntities     ITERateEntity[]
-
-  @@unique([organizationId, name])
-  @@index([organizationId])
-  @@index([campusId])
-  @@index([organizationId, deletedAt])
 }
 
 model Event {
@@ -1014,16 +1030,9 @@ enum TicketPriority {
 
 enum LocationRefType {
   ROOM
-  AREA
+  SPACE
   BUILDING
   FREE_TEXT
-}
-
-enum SchoolDivision {
-  ELEMENTARY
-  MIDDLE_SCHOOL
-  HIGH_SCHOOL
-  GLOBAL
 }
 
 enum BuildingType {
@@ -1034,12 +1043,15 @@ enum BuildingType {
   SUPPORT_SERVICES
 }
 
-enum AreaType {
+enum SpaceType {
   FIELD
   COURT
   GYM
   COMMON
   PARKING
+  PLAYGROUND
+  POOL
+  GARDEN
   OTHER
 }
 
@@ -1065,12 +1077,10 @@ enum ImagePosition {
   RIGHT
 }
 
-enum SchoolType {
+enum CampusGradeLevel {
   ELEMENTARY
   MIDDLE_SCHOOL
   HIGH_SCHOOL
-  GLOBAL
-  MULTI_SCHOOL_CAMPUS
 }
 
 enum InstitutionType {
@@ -1156,7 +1166,7 @@ enum AuthMethod {
   MICROSOFT
 }
 
-enum CampusType {
+enum CampusKind {
   HEADQUARTERS
   CAMPUS
   SATELLITE
@@ -1396,7 +1406,7 @@ model CalendarEvent {
   id              String              @id @default(cuid())
   calendarId      String
   organizationId  String
-  schoolId        String?
+  campusId        String?
   title           String
   description     String?
   startTime       DateTime
@@ -1410,7 +1420,7 @@ model CalendarEvent {
   categoryId      String?
   locationText    String?
   buildingId      String?
-  areaId          String?
+  spaceId         String?
   sourceModule    String?             // 'athletics', 'timetable', etc.
   sourceId        String?             // ID in source module
   createdById     String?
@@ -1422,12 +1432,12 @@ model CalendarEvent {
 
   calendar    Calendar          @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school      School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus      Campus?           @relation(fields: [campusId], references: [id], onDelete: SetNull)
   parentEvent CalendarEvent?    @relation("RecurringExceptions", fields: [parentEventId], references: [id], onDelete: SetNull)
   exceptions  CalendarEvent[]   @relation("RecurringExceptions")
   category    CalendarCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   building    Building?         @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area        Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space       Space?            @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   createdBy   User?             @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
   approvedBy  User?             @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   embedding        Unsupported("vector(768)")?
@@ -1442,9 +1452,9 @@ model CalendarEvent {
   @@index([organizationId, deletedAt])
   @@index([createdById])
   @@index([calendarStatus])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([buildingId])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([approvedById])
 }
 
@@ -1558,7 +1568,7 @@ model EventSyncMapping {
 model AcademicYear {
   id             String   @id @default(cuid())
   organizationId String
-  schoolId       String?
+  campusId       String?
   name           String   // "2025-2026"
   startDate      DateTime
   endDate        DateTime
@@ -1567,12 +1577,12 @@ model AcademicYear {
   updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
   terms        Term[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isCurrent])
-  @@index([schoolId])
+  @@index([campusId])
 }
 
 model Term {
@@ -1615,7 +1625,7 @@ model MarkingPeriod {
 model BellSchedule {
   id             String   @id @default(cuid())
   organizationId String
-  schoolId       String?
+  campusId       String?
   name           String   // "Regular", "Early Release", "2-Hour Delay"
   isDefault      Boolean  @default(false)
   daysOfWeek     String[] @default([]) // e.g. ["MON","TUE","WED","THU","FRI"]
@@ -1623,13 +1633,13 @@ model BellSchedule {
   updatedAt      DateTime @updatedAt
 
   organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?              @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?              @relation(fields: [campusId], references: [id], onDelete: SetNull)
   periods      BellSchedulePeriod[]
   dayAssignments DayScheduleAssignment[]
 
-  @@unique([organizationId, schoolId, name])
+  @@unique([organizationId, campusId, name])
   @@index([organizationId])
-  @@index([schoolId])
+  @@index([campusId])
 }
 
 model BellSchedulePeriod {
@@ -1649,25 +1659,25 @@ model BellSchedulePeriod {
 model DayScheduleAssignment {
   id             String   @id @default(cuid())
   organizationId String
-  campusId       String?
+  schoolId       String?
   bellScheduleId String
   date           DateTime @db.Date
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   bellSchedule BellSchedule @relation(fields: [bellScheduleId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, campusId, date])
+  @@unique([organizationId, schoolId, date])
   @@index([organizationId, date])
-  @@index([campusId])
+  @@index([schoolId])
 }
 
 model SpecialDay {
   id             String         @id @default(cuid())
   organizationId String
-  schoolId       String?
-  campusId       String?
+  schoolId       String?        // institution
+  campusId       String?        // sub-location (grade-division campus)
   date           DateTime       @db.Date
   endDate        DateTime?      @db.Date  // null = single day, set = date range
   name           String
@@ -1811,7 +1821,7 @@ model PlanningConflict {
 model ApprovalChannelConfig {
   id               String             @id @default(cuid())
   organizationId   String
-  campusId         String?
+  schoolId         String?
   channelType      ApprovalChannel
   mode             ApprovalMode       @default(REQUIRED)
   assignedTeamId   String?            // Team responsible for this channel
@@ -1821,11 +1831,11 @@ model ApprovalChannelConfig {
   updatedAt        DateTime           @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
 
-  @@unique([organizationId, campusId, channelType])
+  @@unique([organizationId, schoolId, channelType])
   @@index([organizationId])
-  @@index([campusId])
+  @@index([schoolId])
   @@index([assignedTeamId])
 }
 
@@ -1873,7 +1883,7 @@ model ApprovalFlowEntry {
   autoSkipIfNotNeeded Boolean  @default(true)
   sortOrder           Int      @default(0)           // lower = clears first; highest = final approver
   assignedUserId      String?  // optional: specific person override instead of whole team
-  campusId            String?  // deprecated: use ApprovalRule.campusId instead
+  schoolId            String?  // deprecated: use ApprovalRule.schoolId instead
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -1881,9 +1891,9 @@ model ApprovalFlowEntry {
   rule         ApprovalRule? @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   team         Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   assignedUser User?         @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
-  campus       Campus?       @relation("ApprovalFlowCampus", fields: [campusId], references: [id], onDelete: SetNull)
+  school       School?       @relation("ApprovalFlowSchool", fields: [schoolId], references: [id], onDelete: SetNull)
 
-  @@unique([organizationId, teamId, assignedUserId, campusId, ruleId])
+  @@unique([organizationId, teamId, assignedUserId, schoolId, ruleId])
   @@index([organizationId])
   @@index([ruleId])
 }
@@ -1915,15 +1925,15 @@ model EventResourceRequest {
 model TenantModule {
   id             String   @id @default(cuid())
   organizationId String
-  campusId       String?
+  schoolId       String?   // renamed from campusId (old physical-Campus FK → new School/institution FK)
   moduleId       String   // 'athletics', 'planning-season', etc.
   enabledAt      DateTime @default(now())
   planTier       String?  // Which subscription tier enabled this
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, moduleId, campusId])
+  @@unique([organizationId, moduleId, schoolId])
   @@index([organizationId])
 }
 
@@ -2137,10 +2147,10 @@ model AthleticTeam {
   seasonId       String
   name           String   // "Varsity Football", "JV Basketball"
   level          TeamLevel @default(VARSITY)
-  gradeLevel     SchoolType?  // ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL — null means org-wide / unspecified
+  gradeLevel     CampusGradeLevel?  // ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL — null means org-wide / unspecified
   coachUserId    String?
   coachName      String?   // Free-form coach name (alternative to coachUserId)
-  schoolId       String?
+  campusId       String?
   calendarId     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -2148,7 +2158,9 @@ model AthleticTeam {
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sport        Sport           @relation(fields: [sportId], references: [id], onDelete: Cascade)
   season       AthleticSeason  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  games        Game[]
+  campus       Campus?         @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  games         Game[] @relation("GameOwningTeam")
+  opponentGames Game[] @relation("GameOpponentTeam")
   practices    Practice[]
   homeBrackets TournamentBracket[] @relation("BracketTeam1")
   awayBrackets TournamentBracket[] @relation("BracketTeam2")
@@ -2159,33 +2171,39 @@ model AthleticTeam {
   @@index([sportId])
   @@index([seasonId])
   @@index([coachUserId])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([calendarId])
 }
 
 model Game {
-  id               String   @id @default(cuid())
-  organizationId   String
-  athleticTeamId   String
-  opponentName     String
-  homeAway         HomeAway @default(HOME)
-  startTime        DateTime
-  endTime          DateTime
-  venue            String?
-  calendarEventId  String?  // Linked CalendarEvent
-  homeScore        Int?
-  awayScore        Int?
-  isFinal          Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  organizationId         String
+  athleticTeamId         String
+  // Optional FK to in-org opponent team (for cross-school games within one org,
+  // e.g. Renaissance vs Da Vinci at a multi-school campus). Null when the
+  // opponent is external — in that case opponentName is the only opponent info.
+  opponentAthleticTeamId String?
+  opponentName           String
+  homeAway               HomeAway @default(HOME)
+  startTime              DateTime
+  endTime                DateTime
+  venue                  String?
+  calendarEventId        String?  // Linked CalendarEvent
+  homeScore              Int?
+  awayScore              Int?
+  isFinal                Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  athleticTeam  AthleticTeam  @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
-  bracketEntry  TournamentBracket? @relation("BracketGame")
-  playerStats   PlayerGameStat[]
+  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam         AthleticTeam       @relation("GameOwningTeam",   fields: [athleticTeamId],         references: [id], onDelete: Cascade)
+  opponentAthleticTeam AthleticTeam?      @relation("GameOpponentTeam", fields: [opponentAthleticTeamId], references: [id], onDelete: SetNull)
+  bracketEntry         TournamentBracket? @relation("BracketGame")
+  playerStats          PlayerGameStat[]
 
   @@index([organizationId])
   @@index([athleticTeamId])
+  @@index([opponentAthleticTeamId])
   @@index([organizationId, startTime])
   @@index([athleticTeamId, startTime])
   @@index([calendarEventId])
@@ -2253,36 +2271,60 @@ model TournamentBracket {
   @@index([tournamentId, round])
 }
 
-model AthleticRoster {
+// Athlete — the person. One record per player in the org.
+// Personal info, photo, bio live here. Team-specific data lives on AthleticRoster.
+model Athlete {
   id             String   @id @default(cuid())
   organizationId String
-  athleticTeamId String
   firstName      String
   lastName       String
-  jerseyNumber   String?
-  position       String?
   grade          String?
   height         String?
   weight         String?
+  photoUrl       String?
+  bio            String?
   userId         String?
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  athleticTeam AthleticTeam @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
-  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rosters      AthleticRoster[]
+  gameStats    PlayerGameStat[]
+
+  @@index([organizationId])
+  @@index([userId])
+}
+
+// AthleticRoster — links an Athlete to a Team with team-specific info.
+model AthleticRoster {
+  id             String   @id @default(cuid())
+  organizationId String
+  athleteId      String
+  athleticTeamId String
+  jerseyNumber   String?
+  position       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athlete      Athlete         @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleticTeam AthleticTeam    @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
   gameStats    PlayerGameStat[]
 
   @@unique([athleticTeamId, jerseyNumber])
+  @@unique([athleteId, athleticTeamId])
   @@index([organizationId])
+  @@index([athleteId])
   @@index([athleticTeamId])
-  @@index([userId])
 }
 
 model PlayerGameStat {
   id             String   @id @default(cuid())
   organizationId String
+  athleteId      String
   rosterId       String
   gameId         String
   statKey        String
@@ -2291,11 +2333,13 @@ model PlayerGameStat {
   updatedAt      DateTime @updatedAt
 
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athlete      Athlete        @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   roster       AthleticRoster @relation(fields: [rosterId], references: [id], onDelete: Cascade)
   game         Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   @@unique([rosterId, gameId, statKey])
   @@index([organizationId])
+  @@index([athleteId])
   @@index([rosterId])
   @@index([gameId])
 }
@@ -2447,9 +2491,9 @@ model MaintenanceTicket {
   submittedById           String
   assignedToId            String?
   buildingId              String?
-  areaId                  String?
+  spaceId                 String?
   roomId                  String?
-  schoolId                String?
+  campusId                String?
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
   deletedAt               DateTime?
@@ -2458,9 +2502,9 @@ model MaintenanceTicket {
   submittedBy   User                      @relation("SubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
   assignedTo    User?                     @relation("AssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   building      Building?                 @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area          Area?                     @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space         Space?                    @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room          Room?                     @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  school        School?                   @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus        Campus?                   @relation(fields: [campusId], references: [id], onDelete: SetNull)
   asset         MaintenanceAsset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
   activities    MaintenanceTicketActivity[]
   laborEntries  MaintenanceLaborEntry[]
@@ -2475,16 +2519,16 @@ model MaintenanceTicket {
   @@index([organizationId, assignedToId])
   @@index([organizationId, submittedById])
   @@index([organizationId, category])
-  @@index([organizationId, schoolId])
+  @@index([organizationId, campusId])
   @@index([organizationId, deletedAt])
   @@index([pmScheduleId])
   @@index([assetId])
   // Dashboard/analytics composite indexes
   @@index([organizationId, deletedAt, status])
   @@index([organizationId, deletedAt, status, assignedToId])
-  @@index([organizationId, deletedAt, status, schoolId])
+  @@index([organizationId, deletedAt, status, campusId])
   @@index([organizationId, deletedAt, createdAt])
-  @@index([organizationId, deletedAt, buildingId, areaId, roomId])
+  @@index([organizationId, deletedAt, buildingId, spaceId, roomId])
   @@index([organizationId, priority])
 }
 
@@ -2616,9 +2660,9 @@ model MaintenanceAsset {
   notes                 String?
   status                String    @default("ACTIVE")
   buildingId            String?
-  areaId                String?
+  spaceId               String?
   roomId                String?
-  schoolId              String?
+  campusId              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   deletedAt             DateTime?
@@ -2632,9 +2676,9 @@ model MaintenanceAsset {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   building     Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space        Space?       @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
   pmSchedules       PmSchedule[]
   tickets           MaintenanceTicket[]
   knowledgeArticles KnowledgeArticle[]
@@ -2643,9 +2687,9 @@ model MaintenanceAsset {
   @@index([organizationId])
   @@index([organizationId, buildingId])
   @@index([organizationId, deletedAt])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([roomId])
-  @@index([schoolId])
+  @@index([campusId])
 }
 
 model PmSchedule {
@@ -2666,9 +2710,9 @@ model PmSchedule {
   defaultTechnicianId String?
   assetId             String?
   buildingId          String?
-  areaId              String?
+  spaceId             String?
   roomId              String?
-  schoolId            String?
+  campusId            String?
   knowledgeArticleId  String?   // KB-05: Optional link to a knowledge base article (e.g. SOP)
   isActive            Boolean   @default(true)
   createdAt           DateTime  @default(now())
@@ -2678,18 +2722,18 @@ model PmSchedule {
   defaultTechnician User?              @relation(fields: [defaultTechnicianId], references: [id], onDelete: SetNull)
   asset             MaintenanceAsset?  @relation(fields: [assetId], references: [id], onDelete: SetNull)
   building          Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area              Area?              @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space             Space?             @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room              Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  school            School?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus            Campus?            @relation(fields: [campusId], references: [id], onDelete: SetNull)
   knowledgeArticle  KnowledgeArticle?  @relation(fields: [knowledgeArticleId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([organizationId, nextDueDate])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([isActive])
   @@index([assetId])
   @@index([buildingId])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([roomId])
   @@index([defaultTechnicianId])
   @@index([knowledgeArticleId])
@@ -2738,7 +2782,7 @@ enum ComplianceOutcome {
 model ComplianceDomainConfig {
   id             String          @id @default(cuid())
   organizationId String
-  schoolId       String?         // null = org-wide config
+  campusId       String?         // null = org-wide config
   domain         ComplianceDomain
   isEnabled      Boolean         @default(true)
   customDeadlineMonth Int?       // Override: 1-12, null uses domain default
@@ -2748,19 +2792,19 @@ model ComplianceDomainConfig {
   updatedAt      DateTime        @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
   records      ComplianceRecord[]
 
-  @@unique([organizationId, schoolId, domain])
+  @@unique([organizationId, campusId, domain])
   @@index([organizationId])
-  @@index([schoolId])
+  @@index([campusId])
 }
 
 model ComplianceRecord {
   id                    String           @id @default(cuid())
   organizationId        String
   domainConfigId        String
-  schoolId              String?
+  campusId              String?
   domain                ComplianceDomain
   title                 String           // e.g. "Annual Fire Safety Inspection 2026"
   dueDate               DateTime
@@ -2780,7 +2824,7 @@ model ComplianceRecord {
 
   organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domainConfig    ComplianceDomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
-  school          School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus          Campus?               @relation(fields: [campusId], references: [id], onDelete: SetNull)
   generatedTicket     MaintenanceTicket?    @relation("ComplianceTicket", fields: [generatedTicketId], references: [id], onDelete: SetNull)
   remediationTicket   MaintenanceTicket?    @relation("RemediationTicket", fields: [remediationTicketId], references: [id], onDelete: SetNull)
   knowledgeArticleId  String?
@@ -2791,7 +2835,7 @@ model ComplianceRecord {
   @@index([organizationId, status])
   @@index([domainConfigId])
   @@index([organizationId, deletedAt])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([knowledgeArticleId])
 }
 
@@ -3098,9 +3142,9 @@ model ITTicket {
   subDate            DateTime?       // Date of sub submission
   // Location hierarchy
   buildingId         String?
-  areaId             String?
+  spaceId            String?
   roomId             String?
-  schoolId           String?
+  campusId           String?
   // People
   submittedById      String?         // Nullable for magic link / sub submissions
   assignedToId       String?
@@ -3126,9 +3170,9 @@ model ITTicket {
   submittedBy  User?        @relation("ITTicketSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
   assignedTo   User?        @relation("ITTicketAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
   building     Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area         Area?        @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space        Space?       @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room         Room?        @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
   device       ITDevice?    @relation(fields: [deviceId], references: [id], onDelete: SetNull)
   activities   ITTicketActivity[]
   filterEvents ITContentFilterEvent[]
@@ -3138,15 +3182,15 @@ model ITTicket {
   @@index([organizationId, assignedToId])
   @@index([organizationId, submittedById])
   @@index([organizationId, issueType])
-  @@index([organizationId, schoolId])
+  @@index([organizationId, campusId])
   @@index([organizationId, deletedAt])
   @@index([organizationId, deletedAt, status])
   @@index([organizationId, deletedAt, status, assignedToId])
-  @@index([organizationId, deletedAt, status, schoolId])
+  @@index([organizationId, deletedAt, status, campusId])
   @@index([organizationId, deletedAt, createdAt])
   @@index([organizationId, priority])
   @@index([buildingId])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([roomId])
   @@index([deviceId])
 }
@@ -3217,7 +3261,7 @@ model Student {
   externalId     String?           // ID from roster sync provider (Clever/ClassLink)
   grade          String?           // e.g., "6th", "9th", "K"
   gradeNumeric   Int?              // Numeric grade level (0=K, 1-12)
-  schoolId       String?
+  campusId       String?
   status         StudentStatus     @default(ACTIVE)
   rosterSource   RosterSyncProvider @default(MANUAL)
   lastSyncedAt   DateTime?
@@ -3233,7 +3277,7 @@ model Student {
   deletedAt      DateTime?
 
   organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school             School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus             Campus?             @relation(fields: [campusId], references: [id], onDelete: SetNull)
   deviceAssignments  ITDeviceAssignment[] @relation("StudentDeviceAssignment")
   loanerCheckouts    ITLoanerCheckout[]   @relation("StudentLoanerCheckout")
   deploymentBatchItems ITDeploymentBatchItem[] @relation("DeploymentItemStudent")
@@ -3242,7 +3286,7 @@ model Student {
   @@unique([organizationId, externalId])
   @@unique([organizationId, studentId])
   @@index([organizationId, status])
-  @@index([organizationId, schoolId])
+  @@index([organizationId, campusId])
   @@index([organizationId, deletedAt])
   @@index([organizationId, lastName, firstName])
 }
@@ -3263,7 +3307,7 @@ model ITDevice {
   purchaseDate     DateTime?
   purchasePrice    Float?
   warrantyExpiry   DateTime?
-  schoolId         String?
+  campusId         String?
   buildingId       String?
   roomId           String?
   notes            String?
@@ -3280,7 +3324,7 @@ model ITDevice {
   deletedAt        DateTime?
 
   organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school           School?            @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus           Campus?            @relation(fields: [campusId], references: [id], onDelete: SetNull)
   building         Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   room             Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
   assignments      ITDeviceAssignment[]
@@ -3294,7 +3338,7 @@ model ITDevice {
   @@unique([organizationId, serialNumber])
   @@index([organizationId, status])
   @@index([organizationId, deviceType])
-  @@index([organizationId, schoolId])
+  @@index([organizationId, campusId])
   @@index([organizationId, isLemon])
   @@index([organizationId, deletedAt])
   @@index([organizationId, deletedAt, status])
@@ -3455,7 +3499,7 @@ model ITDeploymentBatch {
   name           String
   batchType      ITDeploymentBatchType
   status         ITBatchStatus       @default(DRAFT)
-  schoolId       String?
+  campusId       String?
   grade          String?
   schoolYear     String?
   notes          String?
@@ -3467,13 +3511,13 @@ model ITDeploymentBatch {
   deletedAt      DateTime?
 
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school         School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus         Campus?             @relation(fields: [campusId], references: [id], onDelete: SetNull)
   items          ITDeploymentBatchItem[]
 
   @@index([organizationId, status])
   @@index([organizationId, batchType])
   @@index([organizationId, deletedAt])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([createdById])
 }
 
@@ -3734,8 +3778,8 @@ model ITERateDocument {
 model ITERateEntity {
   id              String    @id @default(cuid())
   organizationId  String
-  /// Optional link to a School record for multi-campus E-Rate
-  schoolId        String?
+  /// Optional link to a Campus record for multi-campus E-Rate
+  campusId        String?
   /// Billed Entity Number — primary USAC identifier
   ben             String
   entityName      String
@@ -3755,14 +3799,14 @@ model ITERateEntity {
   updatedAt       DateTime  @updatedAt
 
   organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?          @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?          @relation(fields: [campusId], references: [id], onDelete: SetNull)
   form470s     ITERateForm470[]
   form471s     ITERateForm471[]
 
   @@unique([organizationId, ben])
   @@index([organizationId])
   @@index([ben])
-  @@index([schoolId])
+  @@index([campusId])
 }
 
 model ITERateFundingYear {
@@ -4014,7 +4058,7 @@ model SecurityIncident {
   id                    String                @id @default(cuid())
   incidentNumber        String                @unique
   organizationId        String
-  schoolId              String?
+  campusId              String?
   type                  SecurityIncidentType
   severity              IncidentSeverity
   status                IncidentStatus        @default(OPEN)
@@ -4036,14 +4080,14 @@ model SecurityIncident {
   retainUntil           DateTime
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: SetNull)
   reportedBy   User         @relation("IncidentReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
   activities   SecurityIncidentActivity[]
 
   @@index([organizationId, status])
   @@index([organizationId, severity])
   @@index([organizationId, createdAt])
-  @@index([schoolId])
+  @@index([campusId])
   @@index([reportedById])
 }
 
@@ -4267,7 +4311,7 @@ model EventProject {
   venueAddress       String?             // Off-campus formatted address from Google Places
   venuePlaceId       String?             // Google Places ID for future lookups
   buildingId         String?
-  areaId             String?
+  spaceId            String?
   roomId             String?
   status             EventProjectStatus  @default(DRAFT)
   source             EventProjectSource  @default(DIRECT_REQUEST)
@@ -4294,7 +4338,7 @@ model EventProject {
   campus         Campus?             @relation(fields: [campusId], references: [id], onDelete: SetNull)
   school         School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   building       Building?           @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  area           Area?               @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  space          Space?              @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room           Room?               @relation(fields: [roomId], references: [id], onDelete: SetNull)
   series         EventSeries?        @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   createdBy      User                @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
@@ -4336,7 +4380,7 @@ model EventProject {
   @@index([campusId])
   @@index([schoolId])
   @@index([buildingId])
-  @@index([areaId])
+  @@index([spaceId])
   @@index([roomId])
   @@index([approvedById])
 }
@@ -4376,7 +4420,7 @@ model EventTeamMember {
 model EventSeries {
   id                  String    @id @default(cuid())
   organizationId      String
-  campusId            String?
+  schoolId            String?
   title               String
   description         String?
   rrule               String?             // RFC 5545 recurrence rule
@@ -4397,11 +4441,12 @@ model EventSeries {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy    User         @relation("EventSeriesCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   projects     EventProject[]
 
   @@index([organizationId, isActive])
   @@index([createdById])
-  @@index([campusId])
+  @@index([schoolId])
 }
 
 // Phase 22: Event Template — serialized structure for reusable event scaffolding
@@ -5498,12 +5543,12 @@ enum StaffAvailabilityStatus {
   OUT_OF_OFFICE
 }
 
-/// Per-module, per-campus routing configuration. Sets the default assignment strategy.
+/// Per-module, per-school routing configuration. Sets the default assignment strategy.
 model ModuleRoutingConfig {
   id              String          @id @default(cuid())
   organizationId  String
   module          TicketModule
-  campusId        String?         // null = org-wide default
+  schoolId        String?         // null = org-wide default
   strategy        RoutingStrategy @default(UNASSIGNED)
   managerUserId   String?         // Required when strategy = MANAGER_TRIAGE
   roundRobinIndex Int             @default(0) // Tracks rotation position for ROUND_ROBIN
@@ -5512,10 +5557,10 @@ model ModuleRoutingConfig {
   updatedAt       DateTime        @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  school       School?      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   manager      User?        @relation("RoutingManager", fields: [managerUserId], references: [id], onDelete: SetNull)
 
-  @@unique([organizationId, module, campusId])
+  @@unique([organizationId, module, schoolId])
   @@index([organizationId])
 }
 
@@ -5749,8 +5794,9 @@ model FormQrCode {
   // Scope — any subset may be set. Scanning applies these as pre-fills.
   categoryKey    String?  // "hardware" etc — pins category
   buildingId     String?
-  areaId         String?
+  spaceId        String?
   roomId         String?
+  space          Space?   @relation(fields: [spaceId], references: [id], onDelete: SetNull)
 
   token          String   @unique // random slug in the URL: /f/qr/<token>
   label          String           // admin-facing, e.g. "Room 204 — IT"
@@ -5760,6 +5806,7 @@ model FormQrCode {
   lastUsedAt     DateTime?
 
   @@index([organizationId])
+  @@index([spaceId])
 }
 
 // ─── AI Ticket Intake ──────────────────────────────────────────────────────────

@@ -20,6 +20,8 @@ const UpdateTicketSchema = z.object({
   avSubType: z.enum(['PROJECTOR', 'SOUNDBOARD', 'DISPLAY', 'APPLE_TV', 'OTHER_AV']).nullish(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   buildingId: z.string().uuid().nullish(),
+  spaceId: z.string().uuid().nullish(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().uuid().nullish(),
   roomId: z.string().uuid().nullish(),
   schoolId: z.string().uuid().nullish(),

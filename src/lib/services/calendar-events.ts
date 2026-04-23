@@ -27,7 +27,7 @@ interface CreateEventInput {
   categoryId?: string
   locationText?: string
   buildingId?: string | null
-  areaId?: string | null
+  spaceId?: string | null
   metadata?: Record<string, unknown>
 }
 
@@ -42,7 +42,7 @@ interface UpdateEventInput {
   categoryId?: string | null
   locationText?: string
   buildingId?: string | null
-  areaId?: string | null
+  spaceId?: string | null
   metadata?: Record<string, unknown>
 }
 
@@ -69,7 +69,7 @@ export async function createEvent(
       startTime: input.startTime,
       endTime: input.endTime,
       buildingId: input.buildingId,
-      areaId: input.areaId,
+      spaceId: input.spaceId,
       locationText: input.locationText,
     })
     if (conflict.hasConflict) {
@@ -113,7 +113,7 @@ export async function createEvent(
       categoryId: input.categoryId,
       locationText: input.locationText,
       buildingId: input.buildingId,
-      areaId: input.areaId,
+      spaceId: input.spaceId,
       metadata: input.metadata as Prisma.InputJsonValue,
       createdById: userId,
     },
@@ -121,7 +121,7 @@ export async function createEvent(
       calendar: { select: { id: true, name: true, color: true, calendarType: true } },
       category: true,
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true } },
     },
   })
@@ -211,7 +211,7 @@ export async function getEventsInRange(
       calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } } } },
       category: true,
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true } },
       attendees: {
         include: { user: { select: { id: true, name: true, firstName: true, lastName: true, avatar: true } } },
@@ -271,14 +271,14 @@ export async function updateEvent(
     const checkStart = data.startTime || event.startTime
     const checkEnd = data.endTime || event.endTime
     const checkBuildingId = data.buildingId === undefined ? event.buildingId : data.buildingId
-    const checkAreaId = data.areaId === undefined ? event.areaId : data.areaId
+    const checkSpaceId = data.spaceId === undefined ? event.spaceId : data.spaceId
     const checkLocationText = data.locationText === undefined ? event.locationText : data.locationText
 
     const conflict = await checkLocationConflict({
       startTime: checkStart,
       endTime: checkEnd,
       buildingId: checkBuildingId,
-      areaId: checkAreaId,
+      spaceId: checkSpaceId,
       locationText: checkLocationText || undefined,
       excludeEventId: eventId,
     })
@@ -327,7 +327,7 @@ export async function updateEvent(
         categoryId: data.categoryId === undefined ? event.categoryId : data.categoryId,
         locationText: data.locationText === undefined ? event.locationText : data.locationText,
         buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
-        areaId: data.areaId === undefined ? event.areaId : data.areaId,
+        spaceId: data.spaceId === undefined ? event.spaceId : data.spaceId,
         metadata: (data.metadata ?? event.metadata) as Prisma.InputJsonValue,
         parentEventId: event.parentEventId || event.id,
         originalStart: exceptionOriginalStart,
@@ -377,7 +377,7 @@ export async function updateEvent(
       categoryId: data.categoryId === undefined ? event.categoryId : data.categoryId,
       locationText: data.locationText === undefined ? event.locationText : data.locationText,
       buildingId: data.buildingId === undefined ? event.buildingId : data.buildingId,
-      areaId: data.areaId === undefined ? event.areaId : data.areaId,
+      spaceId: data.spaceId === undefined ? event.spaceId : data.spaceId,
       metadata: (data.metadata ?? event.metadata) as Prisma.InputJsonValue,
       createdById: userId,
     },
@@ -455,7 +455,7 @@ export async function deleteEvent(
         categoryId: event.categoryId,
         locationText: event.locationText,
         buildingId: event.buildingId,
-        areaId: event.areaId,
+        spaceId: event.spaceId,
         metadata: event.metadata as Prisma.InputJsonValue,
         parentEventId: event.parentEventId || event.id,
         originalStart: exceptionOriginalStart,
@@ -506,7 +506,7 @@ export async function getEventById(eventId: string) {
       calendar: { select: { id: true, name: true, color: true, calendarType: true, visibility: true } },
       category: true,
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true, avatar: true } },
       approvedBy: { select: { id: true, name: true, firstName: true, lastName: true } },
       attendees: {

@@ -151,7 +151,7 @@ export async function createEventProject(
       expectedAttendance: data.expectedAttendance ?? null,
       locationText: data.locationText ?? null,
       buildingId: data.buildingId ?? null,
-      areaId: data.areaId ?? null,
+      spaceId: (data as { spaceId?: string; areaId?: string }).spaceId ?? data.areaId ?? null,
       roomId: data.roomId ?? null,
       campusId: data.campusId ?? null,
       schoolId: data.schoolId ?? null,
@@ -273,7 +273,7 @@ export async function getEventProject(id: string): Promise<Record<string, unknow
       campus: { select: { id: true, name: true } },
       school: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       room: { select: { id: true, displayName: true, roomNumber: true } },
     },
   })
@@ -281,6 +281,12 @@ export async function getEventProject(id: string): Promise<Record<string, unknow
 
 /**
  * Lists EventProjects with optional status filtering, ordered by start date.
+ *
+ * School filter semantics: when schoolId is provided, returns events whose
+ * schoolId matches OR is null (null = district-wide, shown in every school's
+ * view). Callers that want a strict per-school match should use a Prisma-level
+ * query directly; this helper powers the Events Hub which must surface
+ * all-schools events alongside the active school.
  */
 export async function listEventProjects(filters?: {
   status?: string
@@ -292,7 +298,9 @@ export async function listEventProjects(filters?: {
     where: {
       ...(filters?.status ? { status: filters.status } : {}),
       ...(filters?.campusId ? { campusId: filters.campusId } : {}),
-      ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}),
+      ...(filters?.schoolId
+        ? { OR: [{ schoolId: filters.schoolId }, { schoolId: null }] }
+        : {}),
       ...(filters?.createdById ? { createdById: filters.createdById } : {}),
     },
     include: {
@@ -870,7 +878,7 @@ export async function confirmEventProject(
         calendarStatus: 'CONFIRMED',
         locationText: project.locationText ?? null,
         buildingId: project.buildingId ?? null,
-        areaId: project.areaId ?? null,
+        spaceId: project.spaceId ?? null,
         metadata: { eventProjectId: project.id },
       },
     })
@@ -889,7 +897,7 @@ export async function confirmEventProject(
         createdById: actorId,
         locationText: project.locationText ?? null,
         buildingId: project.buildingId ?? null,
-        areaId: project.areaId ?? null,
+        spaceId: project.spaceId ?? null,
         metadata: { eventProjectId: project.id },
       },
     })

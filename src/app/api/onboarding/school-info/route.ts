@@ -5,6 +5,19 @@
  * PATCH /api/onboarding/school-info — Update org school info during onboarding
  *
  * Requires authentication.
+ *
+ * Phase 1c ontology inversion notes:
+ *   • `physicalAddress`, `latitude`, `longitude`, `principalName`,
+ *     `principalEmail`, `institutionType` moved off Organization onto School
+ *     (per-institution). We read/write those on the primary (first-sorted)
+ *     School for backward compat with the existing onboarding UI contract.
+ *   • `district` is the name of the District record; when it changes we
+ *     upsert the org's default District.
+ *   • `gradeRange` was a free-text field on Organization. It has no stable
+ *     home post-inversion (grade level is now per-Campus and enum-typed),
+ *     so we accept it in the payload for contract stability but no longer
+ *     persist it. This is intentional — the onboarding UI should be
+ *     updated in a later pass to drop the field.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -30,27 +43,82 @@ const UpdateSchoolInfoSchema = z.object({
   staffCount: z.number().int().min(0).max(1000000).nullable().optional(),
 })
 
+/**
+ * Fetch the primary (first-sorted, non-deleted) School for an org.
+ * Returns `null` if the org has no School yet (pre-onboarding).
+ */
+async function getPrimarySchool(orgId: string) {
+  return rawPrisma.school.findFirst({
+    where: { organizationId: orgId, deletedAt: null },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: {
+      id: true,
+      address: true,
+      latitude: true,
+      longitude: true,
+      principalName: true,
+      principalEmail: true,
+      institutionType: true,
+    },
+  })
+}
+
+/**
+ * Fetch the default (or first-sorted) District for an org, if any.
+ */
+async function getPrimaryDistrict(orgId: string) {
+  return rawPrisma.district.findFirst({
+    where: { organizationId: orgId, deletedAt: null },
+    orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true, name: true },
+  })
+}
+
 export async function GET(req: NextRequest) {
   try {
     await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
 
-    // Use raw query to include new lat/lng fields
-    const rows = await rawPrisma.$queryRaw<Array<Record<string, unknown>>>`
-      SELECT id, name, slug, website, phone, "physicalAddress", district,
-             "gradeRange", "principalName", "principalEmail", "institutionType",
-             "studentCount", "staffCount", "logoUrl", latitude, longitude
-      FROM "Organization"
-      WHERE id = ${orgId}
-      LIMIT 1
-    `
+    const org = await rawPrisma.organization.findUnique({
+      where: { id: orgId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        website: true,
+        phone: true,
+        studentCount: true,
+        staffCount: true,
+        logoUrl: true,
+      },
+    })
 
-    const org = rows[0]
     if (!org) {
       return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
     }
 
-    return NextResponse.json(ok(org))
+    const [primarySchool, primaryDistrict] = await Promise.all([
+      getPrimarySchool(orgId),
+      getPrimaryDistrict(orgId),
+    ])
+
+    // Flatten per-school + per-district fields back onto the response so the
+    // onboarding UI contract (`physicalAddress`, `principalName`, etc.) keeps
+    // working unchanged.
+    return NextResponse.json(
+      ok({
+        ...org,
+        physicalAddress: primarySchool?.address ?? null,
+        latitude: primarySchool?.latitude ?? null,
+        longitude: primarySchool?.longitude ?? null,
+        principalName: primarySchool?.principalName ?? null,
+        principalEmail: primarySchool?.principalEmail ?? null,
+        institutionType: primarySchool?.institutionType ?? null,
+        district: primaryDistrict?.name ?? null,
+        // Legacy — no longer persisted. See file header.
+        gradeRange: null,
+      })
+    )
   } catch (error) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
@@ -78,7 +146,8 @@ export async function PATCH(req: NextRequest) {
 
     const data = validation.data
 
-    // Auto-geocode the address if it changed
+    // Auto-geocode the address if it changed. The result is persisted on the
+    // primary School (post-inversion) rather than Organization.
     let geoData: { latitude: number; longitude: number } | null = null
     if (data.physicalAddress) {
       const geo = await geocodeAddress(data.physicalAddress)
@@ -87,35 +156,98 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Update standard fields via Prisma
-    const updatedOrg = await rawPrisma.organization.update({
-      where: { id: orgId },
-      data: {
-        ...(data.phone !== undefined && { phone: data.phone }),
-        ...(data.physicalAddress !== undefined && { physicalAddress: data.physicalAddress }),
-        ...(data.district !== undefined && { district: data.district }),
-        ...(data.gradeRange !== undefined && { gradeRange: data.gradeRange }),
-        ...(data.principalName !== undefined && { principalName: data.principalName }),
-        ...(data.principalEmail !== undefined && { principalEmail: data.principalEmail }),
-        ...(data.institutionType !== undefined && { institutionType: data.institutionType }),
-        ...(data.studentCount !== undefined && { studentCount: data.studentCount }),
-        ...(data.staffCount !== undefined && { staffCount: data.staffCount }),
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-      },
-    })
+    // Bucket 1 — Organization-level fields that survived the inversion.
+    const orgData: Record<string, unknown> = {}
+    if (data.phone !== undefined) orgData.phone = data.phone
+    if (data.studentCount !== undefined) orgData.studentCount = data.studentCount
+    if (data.staffCount !== undefined) orgData.staffCount = data.staffCount
 
-    // Update lat/lng via raw SQL (new fields not yet in Prisma types)
+    // Bucket 2 — primary School fields (address, geo, principal, institutionType).
+    const schoolData: Record<string, unknown> = {}
+    if (data.physicalAddress !== undefined) schoolData.address = data.physicalAddress
+    if (data.principalName !== undefined) schoolData.principalName = data.principalName
+    if (data.principalEmail !== undefined) schoolData.principalEmail = data.principalEmail
+    if (data.institutionType !== undefined) schoolData.institutionType = data.institutionType
     if (geoData) {
-      await rawPrisma.$executeRaw`
-        UPDATE "Organization"
-        SET latitude = ${geoData.latitude}, longitude = ${geoData.longitude}
-        WHERE id = ${orgId}
-      `
+      schoolData.latitude = geoData.latitude
+      schoolData.longitude = geoData.longitude
     }
+
+    // Perform updates. Each bucket is only touched if it has changes.
+    if (Object.keys(orgData).length > 0) {
+      await rawPrisma.organization.update({
+        where: { id: orgId },
+        data: orgData,
+      })
+    }
+
+    if (Object.keys(schoolData).length > 0) {
+      const primarySchool = await rawPrisma.school.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true },
+      })
+
+      if (primarySchool) {
+        await rawPrisma.school.update({
+          where: { id: primarySchool.id },
+          data: schoolData,
+        })
+      } else {
+        // No School yet — create one so onboarding progress isn't lost.
+        // Name defaults to the Organization name; the user can rename in the
+        // Schools settings tab later.
+        const org = await rawPrisma.organization.findUnique({
+          where: { id: orgId },
+          select: { name: true },
+        })
+        await rawPrisma.school.create({
+          data: {
+            organizationId: orgId,
+            name: org?.name ?? 'Main School',
+            sortOrder: 0,
+            ...schoolData,
+          },
+        })
+      }
+    }
+
+    // Bucket 3 — District name (upsert the default District).
+    if (data.district !== undefined) {
+      const existingDefault = await rawPrisma.district.findFirst({
+        where: { organizationId: orgId, isDefault: true, deletedAt: null },
+        select: { id: true },
+      })
+
+      if (data.district === null || data.district === '') {
+        // Clear the default district's name? We don't delete — just leave
+        // the existing record alone. If there's no existing default we
+        // simply do nothing. This preserves downstream references.
+      } else if (existingDefault) {
+        await rawPrisma.district.update({
+          where: { id: existingDefault.id },
+          data: { name: data.district },
+        })
+      } else {
+        await rawPrisma.district.create({
+          data: {
+            organizationId: orgId,
+            name: data.district,
+            isDefault: true,
+            sortOrder: 0,
+          },
+        })
+      }
+    }
+
+    // `gradeRange` is accepted but no longer persisted — see file header.
+
+    // Re-fetch the flattened org snapshot for the response so callers get
+    // the canonical shape back.
+    const updatedOrg = await rawPrisma.organization.findUnique({
+      where: { id: orgId },
+      select: { id: true, name: true, slug: true },
+    })
 
     return NextResponse.json(ok(updatedOrg))
   } catch (error) {

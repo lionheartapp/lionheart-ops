@@ -141,10 +141,10 @@ import { rawPrisma } from '@/lib/db'  // unscoped — only for auth/registration
 ### Auto-Injected Behaviors (db/index.ts extension)
 
 **Org-scoped models** (auto-inject `organizationId` on create, filter on reads):
-`User, Ticket, Event, DraftEvent, InventoryItem, TeacherSchedule, Building, Area, Room, UserRoomAssignment`
+`User, Ticket, Event, DraftEvent, InventoryItem, TeacherSchedule, District, Site, Building, Space, Room, UserRoomAssignment, Campus, School`
 
 **Soft-delete models** (`.delete()` → stamps `deletedAt`, reads auto-filter `deletedAt: null`):
-`User, Ticket, Event, DraftEvent, InventoryItem, Building, Area, Room, School`
+`User, Ticket, Event, DraftEvent, InventoryItem, District, Site, Building, Space, Room, School, Campus`
 
 `UserTeam`, `Role`, `Permission`, `Team` are **not** org-scoped by the extension — their security comes from being associated with org-scoped parents.
 

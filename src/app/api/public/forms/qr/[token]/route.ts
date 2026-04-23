@@ -26,17 +26,20 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Fetch location names for display
-    const [building, area, room] = await Promise.all([
+    // Fetch location names for display.
+    // NEW ONTOLOGY (Phase 1b): `Area` → `Space`. The response still surfaces
+    // `areaId` / `area` as aliases alongside `spaceId` / `space` so the public
+    // intake form doesn't break during the rollout window.
+    const [building, space, room] = await Promise.all([
       resolved.buildingId
         ? rawPrisma.building.findUnique({
             where: { id: resolved.buildingId },
             select: { id: true, name: true },
           })
         : null,
-      resolved.areaId
-        ? rawPrisma.area.findUnique({
-            where: { id: resolved.areaId },
+      resolved.spaceId
+        ? rawPrisma.space.findUnique({
+            where: { id: resolved.spaceId },
             select: { id: true, name: true },
           })
         : null,
@@ -59,10 +62,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         aiAvailable: aiStatus.available,
         location: {
           buildingId: resolved.buildingId,
-          areaId: resolved.areaId,
+          spaceId: resolved.spaceId,
+          /** @deprecated Phase 1b — use spaceId. Kept as an alias for legacy callers. */
+          areaId: resolved.spaceId,
           roomId: resolved.roomId,
           building,
-          area,
+          space,
+          /** @deprecated Phase 1b — use space. Kept as an alias for legacy callers. */
+          area: space,
           room,
         },
         label: resolved.label,

@@ -41,7 +41,10 @@ export const GET = withAuth(async ({ searchParams }) => {
   const campusTeamIds = new Set(teams.map((t: AthleticTeam) => t.id))
 
   const games = campusId
-    ? allGames.filter((g: AthleticGame) => campusTeamIds.has(g.athleticTeamId))
+    ? allGames.filter((g: AthleticGame) =>
+        campusTeamIds.has(g.athleticTeamId) ||
+        (g.opponentAthleticTeamId && campusTeamIds.has(g.opponentAthleticTeamId))
+      )
     : allGames
 
   const practices = campusId

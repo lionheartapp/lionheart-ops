@@ -334,16 +334,17 @@ async function isStaffEligible(
     }
   }
 
-  // Check campus assignment (if campus is known)
+  // Check campus assignment (if campus is known).
+  // NEW ONTOLOGY (Phase 1b): Users are pinned to a single campus via
+  // User.campusId. A user is "assigned" to the given campus iff their
+  // pinned campus matches — users with no pinned campus are considered
+  // org-wide and are eligible for any campus.
   if (campusId) {
-    const campusAssignment = await rawPrisma.userCampusAssignment.findFirst({
-      where: {
-        userId,
-        campusId,
-        isActive: true,
-      },
+    const user = await rawPrisma.user.findUnique({
+      where: { id: userId },
+      select: { campusId: true },
     })
-    if (!campusAssignment) {
+    if (user?.campusId && user.campusId !== campusId) {
       return false
     }
   }
@@ -427,18 +428,20 @@ async function getEligibleStaff(
 
   if (candidateUserIds.length === 0) return []
 
-  // Filter by campus assignment if applicable
+  // Filter by campus assignment if applicable.
+  // NEW ONTOLOGY (Phase 1b): UserCampusAssignment was dropped; pinned campus
+  // lives on User.campusId. Users with no pinned campus are treated as
+  // org-wide and remain eligible regardless of the ticket's campus.
   let filteredUserIds = candidateUserIds
   if (campusId) {
-    const campusAssignments = await rawPrisma.userCampusAssignment.findMany({
+    const users = await rawPrisma.user.findMany({
       where: {
-        campusId,
-        isActive: true,
-        userId: { in: candidateUserIds },
+        id: { in: candidateUserIds },
+        OR: [{ campusId }, { campusId: null }],
       },
-      select: { userId: true },
+      select: { id: true },
     })
-    filteredUserIds = campusAssignments.map((a) => a.userId)
+    filteredUserIds = users.map((u) => u.id)
   }
 
   if (filteredUserIds.length === 0) return []
@@ -550,10 +553,10 @@ async function findRoutingConfig(
   if (campusId) {
     const campusConfig = await rawPrisma.moduleRoutingConfig.findUnique({
       where: {
-        organizationId_module_campusId: {
+        organizationId_module_schoolId: {
           organizationId: orgId,
           module,
-          campusId,
+          schoolId: campusId,
         },
       },
     })
@@ -566,7 +569,7 @@ async function findRoutingConfig(
     where: {
       organizationId: orgId,
       module,
-      campusId: null,
+      schoolId: null,
     },
   })
   return orgDefault
@@ -632,7 +635,7 @@ export async function seedRoutingDefaults(orgId: string): Promise<void> {
     // Upsert org-wide routing config (campusId = null)
     // findFirst + create/update since we can't upsert on a nullable unique
     const existing = await rawPrisma.moduleRoutingConfig.findFirst({
-      where: { organizationId: orgId, module, campusId: null },
+      where: { organizationId: orgId, module, schoolId: null },
     })
     if (!existing) {
       await rawPrisma.moduleRoutingConfig.create({

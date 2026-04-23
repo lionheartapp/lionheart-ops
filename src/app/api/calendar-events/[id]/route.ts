@@ -24,6 +24,8 @@ const updateEventSchema = z.object({
   categoryId: z.string().nullable().optional(),
   locationText: z.string().optional(),
   buildingId: z.string().nullable().optional(),
+  spaceId: z.string().nullable().optional(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   editMode: z.enum(['this', 'thisAndFollowing', 'all']).optional(),

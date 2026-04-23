@@ -47,7 +47,12 @@ const tools: Record<string, ToolRegistryEntry> = {
           })
         }
         case 'schools': {
-          const schools = await prisma.school.findMany({ select: { id: true, name: true, gradeLevel: true }, orderBy: { name: 'asc' } })
+          // `gradeLevel` moved off School onto Campus in the Phase 1c ontology
+          // inversion. Return institutionType as the closest analogue instead.
+          const schools = await prisma.school.findMany({
+            select: { id: true, name: true, institutionType: true },
+            orderBy: { name: 'asc' },
+          })
           return JSON.stringify({ schools, count: schools.length })
         }
         default:

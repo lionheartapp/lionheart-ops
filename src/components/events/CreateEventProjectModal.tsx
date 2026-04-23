@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import {
   Loader2, CalendarDays, Users, Calendar, Clock, Monitor, Wrench,
   Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert, Trophy,
+  School as SchoolIcon,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { useCreateEventProject } from '@/lib/hooks/useEventProject'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useToast } from '@/components/Toast'
 import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
 import { PeoplePicker } from '@/components/events/PeoplePicker'
@@ -51,6 +53,7 @@ interface CreateEventProjectModalProps {
 interface FormData {
   title: string
   description: string
+  schoolId: string | null
   startsAt: string
   startsAtTime: string
   endsAt: string
@@ -70,6 +73,7 @@ interface FormData {
 const defaultForm: FormData = {
   title: '',
   description: '',
+  schoolId: null,
   startsAt: '',
   startsAtTime: '',
   endsAt: '',
@@ -85,6 +89,8 @@ const defaultForm: FormData = {
   requiresSecurity: false,
   requiresAthleticDirector: false,
 }
+
+const ALL_SCHOOLS_VALUE = '__ALL_SCHOOLS__'
 
 const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string }> = {
   single: { title: 'New Single Event', placeholder: 'e.g. Spring Retreat 2026' },
@@ -163,6 +169,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
   const router = useRouter()
   const createProject = useCreateEventProject()
   const { toast } = useToast()
+  const { activeSchoolId, schools, isMultiSchool } = useActiveSchool()
   const [form, setForm] = useState<FormData>(defaultForm)
   const [location, setLocation] = useState<LocationData>(defaultLocationData())
   const [requestedAttendees, setRequestedAttendees] = useState<string[]>([])
@@ -174,8 +181,12 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     if (isOpen) {
       setMode(initialMode)
       setStep(1)
+      // Default the school to whichever school the user currently has selected
+      // in the global SchoolSelector. They can change it (or pick "All Schools"
+      // for district-wide events) on Step 1 if they have access to multiple.
+      setForm((prev) => ({ ...prev, schoolId: activeSchoolId }))
     }
-  }, [isOpen, initialMode])
+  }, [isOpen, initialMode, activeSchoolId])
 
   const config = MODE_CONFIG[mode]
   const isMultiDay = mode === 'multiday'
@@ -274,6 +285,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     const payload: CreateEventProjectInput = {
       title: form.title.trim(),
       description: form.description.trim() || undefined,
+      schoolId: form.schoolId ?? undefined,
       startsAt: new Date(startDateTime),
       endsAt: new Date(endDateTime),
       isMultiDay,
@@ -402,6 +414,36 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
               />
             </div>
+
+            {/* School — only shown when the org has more than one school. Single-school
+                orgs skip this entirely; the event simply lives at the org level. */}
+            {isMultiSchool && schools.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <SchoolIcon className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
+                  School
+                </label>
+                <select
+                  value={form.schoolId ?? ALL_SCHOOLS_VALUE}
+                  onChange={(e) =>
+                    update('schoolId', e.target.value === ALL_SCHOOLS_VALUE ? null : e.target.value)
+                  }
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 bg-white"
+                >
+                  <option value={ALL_SCHOOLS_VALUE}>All Schools (district-wide)</option>
+                  {schools.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  {form.schoolId
+                    ? 'Visible only when this school is selected.'
+                    : 'Visible from every school view.'}
+                </p>
+              </div>
+            )}
 
             {/* Single-day: Date + Start/End times */}
             {!isMultiDay && (

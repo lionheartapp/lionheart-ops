@@ -23,7 +23,7 @@ import { subMonths, startOfDay, format } from 'date-fns'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ITAnalyticsOptions {
-  schoolId?: string
+  campusId?: string
   months?: number
 }
 
@@ -48,8 +48,8 @@ export interface PasswordResetVolumeResult {
 
 // IT-ANALYTICS-04
 export interface DeviceHealthResult {
-  schoolId: string
-  schoolName: string
+  campusId: string
+  campusName: string
   good: number
   fair: number
   poor: number
@@ -139,7 +139,7 @@ export async function getTicketVolumeByType(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<TicketVolumeByType[]> {
-  const { months = 6, schoolId } = opts
+  const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
   const grouped = await rawPrisma.iTTicket.groupBy({
@@ -148,7 +148,7 @@ export async function getTicketVolumeByType(
       organizationId: orgId,
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })
@@ -167,7 +167,7 @@ export async function getAvgResolutionTime(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<AvgResolutionTimeResult[]> {
-  const { months = 6, schoolId } = opts
+  const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
   const tickets = await rawPrisma.iTTicket.findMany({
@@ -176,11 +176,11 @@ export async function getAvgResolutionTime(
       status: 'DONE',
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: {
       issueType: true,
-      schoolId: true,
+      campusId: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -188,23 +188,23 @@ export async function getAvgResolutionTime(
 
   if (tickets.length === 0) return []
 
-  // Look up school names
-  const schoolIds = [...new Set(tickets.map((t) => t.schoolId).filter(Boolean) as string[])]
-  const schools = schoolIds.length > 0
-    ? await rawPrisma.school.findMany({
-        where: { id: { in: schoolIds }, deletedAt: null },
+  // Look up campus names
+  const campusIds = [...new Set(tickets.map((t) => t.campusId).filter(Boolean) as string[])]
+  const campuses = campusIds.length > 0
+    ? await rawPrisma.campus.findMany({
+        where: { id: { in: campusIds } },
         select: { id: true, name: true },
       })
     : []
-  const schoolMap = new Map(schools.map((s) => [s.id, s.name]))
+  const campusMap = new Map(campuses.map((c) => [c.id, c.name]))
 
-  // Group by schoolId + issueType, compute average hours
+  // Group by campusId + issueType, compute average hours
   const groupMap: Map<string, { totalHours: number; count: number }> = new Map()
 
   for (const t of tickets) {
     const hours = (t.updatedAt.getTime() - t.createdAt.getTime()) / 3_600_000
     if (hours < 0) continue
-    const campusName = t.schoolId ? (schoolMap.get(t.schoolId) ?? 'Unknown Campus') : 'No Campus'
+    const campusName = t.campusId ? (campusMap.get(t.campusId) ?? 'Unknown Campus') : 'No Campus'
     const key = `${campusName}|||${t.issueType}`
     const existing = groupMap.get(key)
     if (existing) {
@@ -233,7 +233,7 @@ export async function getPasswordResetVolume(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<PasswordResetVolumeResult[]> {
-  const { months = 12, schoolId } = opts
+  const { months = 12, campusId } = opts
   const cutoff = getCutoff(months)
 
   const tickets = await rawPrisma.iTTicket.findMany({
@@ -242,7 +242,7 @@ export async function getPasswordResetVolume(
       issueType: 'ACCOUNT_PASSWORD',
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: { createdAt: true },
   })
@@ -265,29 +265,29 @@ export async function getDeviceHealthByCampus(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<DeviceHealthResult[]> {
-  const { schoolId } = opts
+  const { campusId } = opts
 
   const grouped = await rawPrisma.iTDevice.groupBy({
-    by: ['schoolId', 'status'],
+    by: ['campusId', 'status'],
     where: {
       organizationId: orgId,
       deletedAt: null,
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })
 
   if (grouped.length === 0) return []
 
-  // Look up school names
-  const schoolIds = [...new Set(grouped.map((g) => g.schoolId).filter(Boolean) as string[])]
-  const schools = schoolIds.length > 0
-    ? await rawPrisma.school.findMany({
-        where: { id: { in: schoolIds }, deletedAt: null },
+  // Look up campus names
+  const campusIds = [...new Set(grouped.map((g) => g.campusId).filter(Boolean) as string[])]
+  const campuses = campusIds.length > 0
+    ? await rawPrisma.campus.findMany({
+        where: { id: { in: campusIds } },
         select: { id: true, name: true },
       })
     : []
-  const schoolMap = new Map(schools.map((s) => [s.id, s.name]))
+  const campusNameMap = new Map(campuses.map((c) => [c.id, c.name]))
 
   // Map device statuses to health buckets
   // ACTIVE = good, NEEDS_REPAIR/IN_REPAIR = fair, DAMAGED/SURPLUS = poor, RETIRED/DECOMMISSIONED = retired
@@ -310,31 +310,31 @@ export async function getDeviceHealthByCampus(
     }
   }
 
-  // Accumulate by school
-  const accum: Map<string, { schoolName: string; good: number; fair: number; poor: number; retired: number }> = new Map()
+  // Accumulate by campus
+  const accum: Map<string, { campusName: string; good: number; fair: number; poor: number; retired: number }> = new Map()
 
   for (const row of grouped) {
-    const sid = row.schoolId ?? '__none__'
-    const schoolName = row.schoolId ? (schoolMap.get(row.schoolId) ?? 'Unknown Campus') : 'Unassigned'
+    const cid = row.campusId ?? '__none__'
+    const name = row.campusId ? (campusNameMap.get(row.campusId) ?? 'Unknown Campus') : 'Unassigned'
 
-    if (!accum.has(sid)) {
-      accum.set(sid, { schoolName, good: 0, fair: 0, poor: 0, retired: 0 })
+    if (!accum.has(cid)) {
+      accum.set(cid, { campusName: name, good: 0, fair: 0, poor: 0, retired: 0 })
     }
-    const entry = accum.get(sid)!
+    const entry = accum.get(cid)!
     const bucket = healthBucket(row.status)
     entry[bucket] += row._count.id
   }
 
   return [...accum.entries()]
-    .map(([sid, data]) => ({
-      schoolId: sid,
-      schoolName: data.schoolName,
+    .map(([cid, data]) => ({
+      campusId: cid,
+      campusName: data.campusName,
       good: data.good,
       fair: data.fair,
       poor: data.poor,
       retired: data.retired,
     }))
-    .sort((a, b) => a.schoolName.localeCompare(b.schoolName))
+    .sort((a, b) => a.campusName.localeCompare(b.campusName))
 }
 
 // ─── IT-ANALYTICS-05: Lemon Device Report ────────────────────────────────────
@@ -343,14 +343,14 @@ export async function getLemonDeviceReport(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<LemonDeviceResult[]> {
-  const { schoolId } = opts
+  const { campusId } = opts
 
   const devices = await rawPrisma.iTDevice.findMany({
     where: {
       organizationId: orgId,
       isLemon: true,
       deletedAt: null,
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: {
       id: true,
@@ -383,12 +383,12 @@ export async function getRepairCostByModel(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<RepairCostByModelResult[]> {
-  const { schoolId } = opts
+  const { campusId } = opts
 
   const repairs = await rawPrisma.iTDeviceRepair.findMany({
     where: {
       organizationId: orgId,
-      ...(schoolId ? { device: { schoolId, deletedAt: null } } : {}),
+      ...(campusId ? { device: { campusId, deletedAt: null } } : {}),
     },
     select: {
       repairCost: true,
@@ -428,7 +428,7 @@ export async function getTechnicianWorkload(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<ITTechWorkloadResult[]> {
-  const { schoolId } = opts
+  const { campusId } = opts
 
   const ticketGroups = await rawPrisma.iTTicket.groupBy({
     by: ['assignedToId'],
@@ -437,7 +437,7 @@ export async function getTechnicianWorkload(
       deletedAt: null,
       status: { notIn: ['DONE', 'CANCELLED'] },
       assignedToId: { not: null },
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })
@@ -471,7 +471,7 @@ export async function getSLACompliance(
   orgId: string,
   opts: ITAnalyticsOptions = {}
 ): Promise<SLAComplianceResult[]> {
-  const { months = 6, schoolId } = opts
+  const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
   const tickets = await rawPrisma.iTTicket.findMany({
@@ -480,10 +480,10 @@ export async function getSLACompliance(
       status: 'DONE',
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolId ? { schoolId } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: {
-      schoolId: true,
+      campusId: true,
       priority: true,
       createdAt: true,
       updatedAt: true,
@@ -492,22 +492,22 @@ export async function getSLACompliance(
 
   if (tickets.length === 0) return []
 
-  // Look up school names
-  const schoolIds = [...new Set(tickets.map((t) => t.schoolId).filter(Boolean) as string[])]
-  const schools = schoolIds.length > 0
-    ? await rawPrisma.school.findMany({
-        where: { id: { in: schoolIds }, deletedAt: null },
+  // Look up campus names
+  const campusIds = [...new Set(tickets.map((t) => t.campusId).filter(Boolean) as string[])]
+  const campuses = campusIds.length > 0
+    ? await rawPrisma.campus.findMany({
+        where: { id: { in: campusIds } },
         select: { id: true, name: true },
       })
     : []
-  const schoolMap = new Map(schools.map((s) => [s.id, s.name]))
+  const campusNameMap = new Map(campuses.map((c) => [c.id, c.name]))
 
   // Group by campus, check SLA compliance
   const campusAccum: Map<string, { campusName: string; total: number; met: number; breached: number }> = new Map()
 
   for (const t of tickets) {
-    const campusKey = t.schoolId ?? '__none__'
-    const campusName = t.schoolId ? (schoolMap.get(t.schoolId) ?? 'Unknown Campus') : 'No Campus'
+    const campusKey = t.campusId ?? '__none__'
+    const campusName = t.campusId ? (campusNameMap.get(t.campusId) ?? 'Unknown Campus') : 'No Campus'
 
     if (!campusAccum.has(campusKey)) {
       campusAccum.set(campusKey, { campusName, total: 0, met: 0, breached: 0 })

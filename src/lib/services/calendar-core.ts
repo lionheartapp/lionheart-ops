@@ -48,12 +48,13 @@ export async function getCalendars(filters?: {
         { createdById: filters.userId, calendarType: 'PERSONAL' },
       ]
     } else {
-      // Non-admins: filter by campus assignments + own personal calendar
-      const campusAssignments = await prisma.userCampusAssignment.findMany({
-        where: { userId: filters.userId, isActive: true },
+      // Non-admins: filter by the user's pinned campus (NEW ONTOLOGY — Phase 1b:
+      // UserCampusAssignment was dropped in favor of User.campusId).
+      const pinnedUser = await prisma.user.findUnique({
+        where: { id: filters.userId },
         select: { campusId: true },
       })
-      const userCampusIds = campusAssignments.map((a) => a.campusId)
+      const userCampusIds = pinnedUser?.campusId ? [pinnedUser.campusId] : []
 
       where.OR = [
         // Campus master calendars the user belongs to
@@ -177,14 +178,18 @@ export async function checkLocationConflict(opts: {
   startTime: Date
   endTime: Date
   buildingId?: string | null
+  /** @deprecated Phase 1b — use spaceId */
   areaId?: string | null
+  spaceId?: string | null
   locationText?: string
   excludeEventId?: string
 }): Promise<{ hasConflict: false } | { hasConflict: true; conflictingEvent: { id: string; title: string; startTime: Date; endTime: Date; location: string } ; bufferMinutes: number }> {
-  const { startTime, endTime, buildingId, areaId, locationText, excludeEventId } = opts
+  const { startTime, endTime, buildingId, locationText, excludeEventId } = opts
+  // Accept both new (spaceId) and legacy (areaId) param names for backward compat.
+  const spaceId = opts.spaceId ?? opts.areaId ?? null
 
   // No location data → skip check
-  if (!buildingId && !areaId && !locationText) {
+  if (!buildingId && !spaceId && !locationText) {
     return { hasConflict: false }
   }
 
@@ -204,12 +209,12 @@ export async function checkLocationConflict(opts: {
   const windowEnd = new Date(endTime.getTime() + bufferMs)
 
   // Build location match clause (tiered)
-  const locationWhere: Prisma.CalendarEventWhereInput = buildingId && areaId
-    ? { buildingId, areaId }
+  const locationWhere: Prisma.CalendarEventWhereInput = buildingId && spaceId
+    ? { buildingId, spaceId }
     : buildingId
-      ? { buildingId, areaId: null }
-      : areaId
-        ? { areaId, buildingId: null }
+      ? { buildingId, spaceId: null }
+      : spaceId
+        ? { spaceId, buildingId: null }
         : { locationText: { equals: locationText!, mode: 'insensitive' } }
 
   const where: Prisma.CalendarEventWhereInput = {
@@ -232,14 +237,14 @@ export async function checkLocationConflict(opts: {
       endTime: true,
       locationText: true,
       building: { select: { name: true } },
-      area: { select: { name: true } },
+      space: { select: { name: true } },
     },
     orderBy: { startTime: 'asc' },
   })
 
   if (!conflict) return { hasConflict: false }
 
-  const location = [conflict.building?.name, conflict.area?.name].filter(Boolean).join(' — ')
+  const location = [conflict.building?.name, conflict.space?.name].filter(Boolean).join(' — ')
     || conflict.locationText
     || 'Same location'
 

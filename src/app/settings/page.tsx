@@ -76,9 +76,14 @@ export default function SettingsPage() {
   const userEmail = user.email
   const userAvatar = user.avatar
   const userTeam = user.team
-  const userSchoolScope = user.schoolScope
+  // Prefer campusScope; schoolScope is kept as a deprecated alias during Phase 1c migration.
+  const userSchoolScope = user.campusScope ?? user.schoolScope
   const userRole = user.role
   const orgName = org.name
+  // `org.schoolType` was removed in the Phase 1c ontology inversion — the API
+  // now emits `schoolType: null` for backward compat. This is retained only as
+  // a display fallback label until the surrounding UI is refactored to read
+  // institutionType from the active school instead.
   const orgSchoolType = org.schoolType
   const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
 

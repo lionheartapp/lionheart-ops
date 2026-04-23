@@ -87,12 +87,15 @@ export async function getOrgChecklist(orgId: string): Promise<ChecklistResponse>
     athleticTeamCount,
     academicYearCount,
   ] = await Promise.all([
+    // `gradeRange` and `physicalAddress` moved off Organization in the Phase 1c
+    // ontology inversion — address lives on School, and gradeRange is no longer
+    // a persisted field at all. We still pull `logoUrl`, `studentCount`, and
+    // the dismissal state from Organization; profile completeness is derived
+    // below from the primary School's fields plus a separate fetch.
     rawPrisma.organization.findUnique({
       where: { id: orgId },
       select: {
-        gradeRange: true,
         studentCount: true,
-        physicalAddress: true,
         logoUrl: true,
         onboardingDismissedItems: true,
         onboardingWidgetDismissedAt: true,
@@ -126,11 +129,20 @@ export async function getOrgChecklist(orgId: string): Promise<ChecklistResponse>
   const dismissed = new Set(org?.onboardingDismissedItems ?? [])
   const widgetDismissed = org?.onboardingWidgetDismissedAt !== null && org?.onboardingWidgetDismissedAt !== undefined
 
-  // Profile completeness: all four fields populated.
+  // Pull the primary School's address to drive the profile completeness check —
+  // address moved off Organization onto School in the Phase 1c ontology inversion.
+  const primarySchool = await rawPrisma.school.findFirst({
+    where: { organizationId: orgId, deletedAt: null },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: { address: true },
+  })
+
+  // Profile completeness: student count, address (on primary school), and logo.
+  // `gradeRange` was dropped in Phase 1c — grade level is now per-Campus and
+  // typed as an enum, so it no longer fits a generic "profile complete" check.
   const profileComplete = Boolean(
-    org?.gradeRange &&
     org?.studentCount &&
-    org?.physicalAddress &&
+    primarySchool?.address &&
     org?.logoUrl
   )
 
@@ -139,7 +151,7 @@ export async function getOrgChecklist(orgId: string): Promise<ChecklistResponse>
     {
       id: 'school-profile',
       title: 'Complete your school profile',
-      description: 'Grade range, student count, address, and logo.',
+      description: 'Student count, address, and logo.',
       required: true,
       category: 'workspace',
       href: '/settings?tab=school-info',

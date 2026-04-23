@@ -112,6 +112,8 @@ export const CreateITTicketSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   photos: z.array(z.string()).max(3).default([]),
   buildingId: z.string().optional(),
+  spaceId: z.string().optional(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().optional(),
   roomId: z.string().optional(),
   schoolId: z.string().optional(),
@@ -160,9 +162,9 @@ export async function createITTicket(
       photos: input.photos,
       source: 'AUTHENTICATED',
       buildingId: input.buildingId,
-      areaId: input.areaId,
+      spaceId: input.spaceId ?? input.areaId,
       roomId: input.roomId,
-      schoolId: input.schoolId,
+      campusId: input.schoolId,
       submittedById: userId,
       customFields: input.customFields ?? undefined,
       status: 'BACKLOG',
@@ -227,7 +229,7 @@ export async function createITTicket(
 export async function createSubTicket(
   input: z.infer<typeof SubTicketSchema>,
   orgId: string,
-  schoolId?: string
+  campusId?: string
 ) {
   const ticketNumber = await generateITTicketNumber(orgId)
 
@@ -241,7 +243,7 @@ export async function createSubTicket(
       source: 'SUB_SUBMITTED',
       subRoomText: input.roomText,
       subDate: new Date(),
-      schoolId: schoolId || undefined,
+      campusId: campusId || undefined,
       status: 'BACKLOG',
     },
   })
@@ -411,7 +413,7 @@ interface ListITTicketsInput {
   issueType?: ITIssueType
   priority?: ITPriority
   assignedToId?: string
-  schoolId?: string
+  campusId?: string
   search?: string
   unassigned?: boolean
   excludeStatus?: ITTicketStatus[]
@@ -437,7 +439,7 @@ export async function listITTickets(
   if (filters.issueType) where.issueType = filters.issueType
   if (filters.priority) where.priority = filters.priority
   if (filters.assignedToId) where.assignedToId = filters.assignedToId
-  if (filters.schoolId) where.schoolId = filters.schoolId
+  if (filters.campusId) where.campusId = filters.campusId
   if (filters.unassigned) where.assignedToId = null
   if (filters.excludeStatus?.length) {
     where.status = { notIn: filters.excludeStatus }
@@ -457,9 +459,9 @@ export async function listITTickets(
         submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
         assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
         building: { select: { id: true, name: true } },
-        area: { select: { id: true, name: true } },
+        space: { select: { id: true, name: true } },
         room: { select: { id: true, roomNumber: true, displayName: true } },
-        school: { select: { id: true, name: true } },
+        campus: { select: { id: true, name: true } },
       },
       orderBy: [
         { priority: 'desc' },
@@ -483,9 +485,9 @@ export async function getITTicketDetail(ticketId: string) {
       submittedBy: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
       assignedTo: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
       building: { select: { id: true, name: true } },
-      area: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       activities: {
         include: {
           actor: { select: { id: true, firstName: true, lastName: true } },
@@ -501,7 +503,7 @@ export async function getITTicketDetail(ticketId: string) {
 
 // ─── Get Board Data ──────────────────────────────────────────────────────────
 
-export async function getITBoardData(ctx: { userId: string; orgId: string }, schoolId?: string) {
+export async function getITBoardData(ctx: { userId: string; orgId: string }, campusId?: string) {
   const canReadAll = await canAny(ctx.userId, [PERMISSIONS.IT_TICKET_READ_ALL])
 
   const where: Record<string, unknown> = {}
@@ -511,7 +513,7 @@ export async function getITBoardData(ctx: { userId: string; orgId: string }, sch
       { assignedToId: ctx.userId },
     ]
   }
-  if (schoolId) where.schoolId = schoolId
+  if (campusId) where.campusId = campusId
 
   // Exclude terminal states from board
   where.status = { notIn: ['DONE', 'CANCELLED'] as ITTicketStatus[] }
@@ -523,7 +525,7 @@ export async function getITBoardData(ctx: { userId: string; orgId: string }, sch
       assignedTo: { select: { id: true, firstName: true, lastName: true, email: true } },
       building: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
     },
     orderBy: [
       { priority: 'desc' },
@@ -550,9 +552,9 @@ export async function getITBoardData(ctx: { userId: string; orgId: string }, sch
 
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
 
-export async function getITDashboardStats(ctx: { userId: string; orgId: string }, schoolId?: string) {
+export async function getITDashboardStats(ctx: { userId: string; orgId: string }, campusId?: string) {
   const where: Record<string, unknown> = {}
-  if (schoolId) where.schoolId = schoolId
+  if (campusId) where.campusId = campusId
 
   const activeWhere = { ...where, status: { notIn: ['DONE', 'CANCELLED'] as ITTicketStatus[] } }
 
@@ -585,7 +587,7 @@ export async function getITDashboardStats(ctx: { userId: string; orgId: string }
     prisma.iTTicket.groupBy({ by: ['holdReason'], _count: true, where: { ...where, status: 'ON_HOLD' } }),
     // Recent activity (last 8)
     prisma.iTTicketActivity.findMany({
-      where: schoolId ? { ticket: { schoolId } } : {},
+      where: campusId ? { ticket: { campusId } } : {},
       include: {
         actor: { select: { firstName: true, lastName: true } },
         ticket: { select: { ticketNumber: true, title: true } },

@@ -1,15 +1,191 @@
 /**
- * Athletics Service — Roster & Stats
+ * Athletics Service — Athletes, Roster & Stats
  *
- * Player roster CRUD, game stats management, and sport stat configuration.
+ * Athlete CRUD, team roster management, game stats, and sport stat configuration.
+ *
+ * Schema split:
+ *   Athlete        — person info (firstName, lastName, grade, etc.)
+ *   AthleticRoster — team assignment (athleteId + athleticTeamId + jersey/position)
+ *   PlayerGameStat — has both athleteId and rosterId
  */
 
 import { prisma, type OrgPrismaClient } from '@/lib/db'
 
 const db = prisma as unknown as OrgPrismaClient
 
-// ── Roster ────────────────────────────────────────────────────────────────
+// ── Shared Includes ──────────────────────────────────────────────────────
 
+const athleteWithRosters = {
+  rosters: {
+    where: { isActive: true },
+    include: {
+      athleticTeam: {
+        select: {
+          id: true,
+          name: true,
+          level: true,
+          sport: { select: { id: true, name: true, color: true } },
+        },
+      },
+    },
+  },
+  user: { select: { id: true, firstName: true, lastName: true, email: true } },
+} as const
+
+const rosterWithAthleteAndTeam = {
+  athlete: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      grade: true,
+      height: true,
+      weight: true,
+      photoUrl: true,
+      bio: true,
+      userId: true,
+    },
+  },
+  athleticTeam: {
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      sport: { select: { id: true, name: true, color: true } },
+    },
+  },
+} as const
+
+// ── Athlete CRUD ─────────────────────────────────────────────────────────
+
+export async function getAthletes(filters?: { isActive?: boolean; grade?: string }) {
+  return db.athlete.findMany({
+    where: {
+      ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
+      ...(filters?.grade ? { grade: filters.grade } : {}),
+    },
+    include: athleteWithRosters,
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+  })
+}
+
+export async function getAthlete(id: string) {
+  return db.athlete.findUnique({
+    where: { id },
+    include: {
+      ...athleteWithRosters,
+      gameStats: {
+        include: {
+          game: { select: { id: true, opponentName: true, startTime: true, isFinal: true } },
+          roster: {
+            select: {
+              id: true,
+              jerseyNumber: true,
+              position: true,
+              athleticTeam: { select: { id: true, name: true } },
+            },
+          },
+        },
+        orderBy: { game: { startTime: 'desc' } },
+      },
+    },
+  })
+}
+
+export async function createAthlete(data: {
+  firstName: string
+  lastName: string
+  grade?: string | null
+  height?: string | null
+  weight?: string | null
+  photoUrl?: string | null
+  bio?: string | null
+  userId?: string | null
+}) {
+  return db.athlete.create({
+    data: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      grade: data.grade || null,
+      height: data.height || null,
+      weight: data.weight || null,
+      photoUrl: data.photoUrl || null,
+      bio: data.bio || null,
+      userId: data.userId || null,
+    },
+    include: athleteWithRosters,
+  })
+}
+
+export async function updateAthlete(
+  id: string,
+  data: {
+    firstName?: string
+    lastName?: string
+    grade?: string | null
+    height?: string | null
+    weight?: string | null
+    photoUrl?: string | null
+    bio?: string | null
+    userId?: string | null
+    isActive?: boolean
+  },
+) {
+  return db.athlete.update({
+    where: { id },
+    data,
+    include: athleteWithRosters,
+  })
+}
+
+export async function deleteAthlete(id: string) {
+  return db.athlete.delete({ where: { id } })
+}
+
+// ── Roster (Team Assignment) CRUD ────────────────────────────────────────
+
+export async function addAthleteToTeam(data: {
+  athleteId: string
+  athleticTeamId: string
+  jerseyNumber?: string | null
+  position?: string | null
+}) {
+  return db.athleticRoster.create({
+    data: {
+      athleteId: data.athleteId,
+      athleticTeamId: data.athleticTeamId,
+      jerseyNumber: data.jerseyNumber || null,
+      position: data.position || null,
+    },
+    include: rosterWithAthleteAndTeam,
+  })
+}
+
+export async function updateRosterEntry(
+  id: string,
+  data: {
+    jerseyNumber?: string | null
+    position?: string | null
+    isActive?: boolean
+  },
+) {
+  return db.athleticRoster.update({
+    where: { id },
+    data,
+    include: rosterWithAthleteAndTeam,
+  })
+}
+
+export async function removeAthleteFromTeam(id: string) {
+  return db.athleticRoster.delete({ where: { id } })
+}
+
+// ── Backwards-Compatible Roster Queries ──────────────────────────────────
+
+/**
+ * @deprecated Use getAthletes() or query roster entries directly.
+ * Kept for backwards compatibility — returns roster entries with athlete info.
+ */
 export async function getRoster(filters?: { teamId?: string; isActive?: boolean }) {
   return db.athleticRoster.findMany({
     where: {
@@ -17,19 +193,49 @@ export async function getRoster(filters?: { teamId?: string; isActive?: boolean 
       ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}),
     },
     include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true, color: true } } } },
+      ...rosterWithAthleteAndTeam,
+      athlete: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          grade: true,
+          height: true,
+          weight: true,
+          photoUrl: true,
+          bio: true,
+          userId: true,
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
     },
-    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+    orderBy: { athlete: { lastName: 'asc' } },
   })
 }
 
+/**
+ * @deprecated Use getAthlete() for full athlete details.
+ * Kept for backwards compatibility — returns a single roster entry with athlete + stats.
+ */
 export async function getRosterPlayer(id: string) {
   return db.athleticRoster.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true, color: true } } } },
+      ...rosterWithAthleteAndTeam,
+      athlete: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          grade: true,
+          height: true,
+          weight: true,
+          photoUrl: true,
+          bio: true,
+          userId: true,
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
       gameStats: {
         include: { game: { select: { id: true, opponentName: true, startTime: true, isFinal: true } } },
         orderBy: { game: { startTime: 'desc' } },
@@ -38,71 +244,29 @@ export async function getRosterPlayer(id: string) {
   })
 }
 
-export async function createRosterPlayer(data: {
-  athleticTeamId: string
-  firstName: string
-  lastName: string
-  jerseyNumber?: string
-  position?: string
-  grade?: string
-  height?: string
-  weight?: string
-  userId?: string
-}) {
-  return db.athleticRoster.create({
-    data: {
-      athleticTeamId: data.athleticTeamId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      jerseyNumber: data.jerseyNumber || null,
-      position: data.position || null,
-      grade: data.grade || null,
-      height: data.height || null,
-      weight: data.weight || null,
-      userId: data.userId || null,
-    },
-    include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      athleticTeam: { select: { id: true, name: true } },
-    },
-  })
-}
-
-export async function updateRosterPlayer(id: string, data: {
-  firstName?: string
-  lastName?: string
-  jerseyNumber?: string | null
-  position?: string | null
-  grade?: string | null
-  height?: string | null
-  weight?: string | null
-  userId?: string | null
-  isActive?: boolean
-}) {
-  return db.athleticRoster.update({
-    where: { id },
-    data,
-    include: {
-      user: { select: { id: true, firstName: true, lastName: true, email: true } },
-      athleticTeam: { select: { id: true, name: true } },
-    },
-  })
-}
-
-export async function deleteRosterPlayer(id: string) {
-  return db.athleticRoster.delete({ where: { id } })
-}
-
 // ── Player Game Stats ─────────────────────────────────────────────────────
 
-export async function getPlayerGameStats(filters: { gameId?: string; rosterId?: string }) {
+export async function getPlayerGameStats(filters: {
+  gameId?: string
+  rosterId?: string
+  athleteId?: string
+}) {
   return db.playerGameStat.findMany({
     where: {
       ...(filters.gameId ? { gameId: filters.gameId } : {}),
       ...(filters.rosterId ? { rosterId: filters.rosterId } : {}),
+      ...(filters.athleteId ? { athleteId: filters.athleteId } : {}),
     },
     include: {
-      roster: { select: { id: true, firstName: true, lastName: true, jerseyNumber: true } },
+      athlete: { select: { id: true, firstName: true, lastName: true } },
+      roster: {
+        select: {
+          id: true,
+          jerseyNumber: true,
+          position: true,
+          athleticTeam: { select: { id: true, name: true } },
+        },
+      },
       game: { select: { id: true, opponentName: true, startTime: true } },
     },
     orderBy: { statKey: 'asc' },
@@ -110,6 +274,7 @@ export async function getPlayerGameStats(filters: { gameId?: string; rosterId?: 
 }
 
 export async function upsertPlayerGameStat(data: {
+  athleteId: string
   rosterId: string
   gameId: string
   statKey: string
@@ -124,6 +289,7 @@ export async function upsertPlayerGameStat(data: {
       },
     },
     create: {
+      athleteId: data.athleteId,
       rosterId: data.rosterId,
       gameId: data.gameId,
       statKey: data.statKey,
@@ -136,7 +302,7 @@ export async function upsertPlayerGameStat(data: {
 }
 
 export async function bulkUpsertPlayerGameStats(
-  stats: Array<{ rosterId: string; gameId: string; statKey: string; statValue: number }>
+  stats: Array<{ athleteId: string; rosterId: string; gameId: string; statKey: string; statValue: number }>,
 ) {
   const results = []
   for (const stat of stats) {
@@ -212,7 +378,7 @@ export interface BulkPlayerRow {
 
 export async function bulkImportRosterPlayers(
   athleticTeamId: string,
-  players: BulkPlayerRow[]
+  players: BulkPlayerRow[],
 ): Promise<{ created: number; errors: string[] }> {
   let created = 0
   const errors: string[] = []
@@ -225,18 +391,28 @@ export async function bulkImportRosterPlayers(
         errors.push(`${rowLabel}: First name and last name are required`)
         continue
       }
-      await db.athleticRoster.create({
+
+      // Step 1: Create the Athlete record (person info)
+      const athlete = await db.athlete.create({
         data: {
-          athleticTeamId,
           firstName: row.firstName.trim(),
           lastName: row.lastName.trim(),
-          jerseyNumber: row.jerseyNumber?.trim() || null,
-          position: row.position?.trim() || null,
           grade: row.grade?.trim() || null,
           height: row.height?.trim() || null,
           weight: row.weight?.trim() || null,
         },
       })
+
+      // Step 2: Create the AthleticRoster entry (team assignment)
+      await db.athleticRoster.create({
+        data: {
+          athleteId: athlete.id,
+          athleticTeamId,
+          jerseyNumber: row.jerseyNumber?.trim() || null,
+          position: row.position?.trim() || null,
+        },
+      })
+
       created++
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'

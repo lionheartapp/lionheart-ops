@@ -7,6 +7,7 @@
 
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { RRule } from 'rrule'
+import { tallyForTeam, type ScorableGame } from './scoring'
 
 const db = prisma as unknown as OrgPrismaClient
 
@@ -21,22 +22,24 @@ export async function getTeamStandings(filters?: { sportId?: string; seasonId?: 
     include: {
       sport: { select: { id: true, name: true, color: true } },
       season: { select: { id: true, name: true } },
+      // Owning-team side.
       games: { where: { isFinal: true } },
+      // In-org opponent side — dual-school games where this team was named as
+      // `opponentAthleticTeamId`. Same row, flipped perspective.
+      opponentGames: { where: { isFinal: true } },
       _count: { select: { roster: true } },
     },
   })
 
   const standings = teams.map((team: any) => {
-    let wins = 0, losses = 0, ties = 0
-    for (const g of team.games) {
-      if (g.homeScore == null || g.awayScore == null) continue
-      if (g.homeScore === g.awayScore) { ties++; continue }
-      const isHome = g.homeAway === 'HOME'
-      const homeWon = g.homeScore > g.awayScore
-      if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
-      else losses++
-    }
+    const ownerTally = tallyForTeam(team.games as ScorableGame[], true)
+    const opponentTally = tallyForTeam(team.opponentGames as ScorableGame[], false)
+
+    const wins = ownerTally.wins + opponentTally.wins
+    const losses = ownerTally.losses + opponentTally.losses
+    const ties = ownerTally.ties + opponentTally.ties
     const gp = wins + losses + ties
+
     return {
       teamId: team.id,
       teamName: team.name,
@@ -77,11 +80,16 @@ export async function getPlayerStatLeaders(filters: {
       },
     },
     include: {
-      roster: {
+      athlete: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
+        },
+      },
+      roster: {
+        select: {
+          id: true,
           jerseyNumber: true,
           athleticTeam: { select: { id: true, name: true, sport: { select: { name: true } } } },
         },
@@ -89,16 +97,16 @@ export async function getPlayerStatLeaders(filters: {
     },
   })
 
-  // Aggregate by player
-  const playerMap = new Map<string, { roster: any; total: number; games: number }>()
+  // Aggregate by athlete (across all roster entries)
+  const playerMap = new Map<string, { athlete: any; roster: any; total: number; games: number }>()
   for (const stat of stats) {
-    const key = stat.rosterId
+    const key = stat.athleteId
     const existing = playerMap.get(key)
     if (existing) {
       existing.total += stat.statValue
       existing.games++
     } else {
-      playerMap.set(key, { roster: stat.roster, total: stat.statValue, games: 1 })
+      playerMap.set(key, { athlete: stat.athlete, roster: stat.roster, total: stat.statValue, games: 1 })
     }
   }
 
@@ -111,8 +119,9 @@ export async function getPlayerStatLeaders(filters: {
     .slice(0, limit)
     .map((p, i) => ({
       rank: i + 1,
+      athleteId: p.athlete.id,
       rosterId: p.roster.id,
-      playerName: `${p.roster.firstName} ${p.roster.lastName}`,
+      playerName: `${p.athlete.firstName} ${p.athlete.lastName}`,
       jerseyNumber: p.roster.jerseyNumber,
       team: p.roster.athleticTeam,
       total: p.total,
@@ -168,6 +177,8 @@ export interface AthleticsCalendarEvent {
   }
   category: null
   building: null
+  space: null
+  /** @deprecated Phase 1b — use space */
   area: null
   createdBy: null
   attendees: []
@@ -300,6 +311,7 @@ export async function getAthleticsCalendarEvents(
       },
       category: null,
       building: null,
+      space: null,
       area: null,
       createdBy: null,
       attendees: [],
@@ -382,6 +394,7 @@ function buildPracticeEvent(
     },
     category: null,
     building: null,
+    space: null,
     area: null,
     createdBy: null,
     attendees: [],
@@ -432,8 +445,17 @@ export async function getPublicScheduleData(orgSlug: string) {
 
   const teamIds = teams.map((t) => t.id)
 
+  // Fetch any game where either side is one of our seasonal teams — this
+  // captures dual-school games where the in-org opponent is also a current
+  // team. The per-team standings logic below filters each viewpoint cleanly.
   const games = await rawPrisma.game.findMany({
-    where: { organizationId: org.id, athleticTeamId: { in: teamIds } },
+    where: {
+      organizationId: org.id,
+      OR: [
+        { athleticTeamId: { in: teamIds } },
+        { opponentAthleticTeamId: { in: teamIds } },
+      ],
+    },
     select: {
       id: true,
       opponentName: true,
@@ -445,6 +467,7 @@ export async function getPublicScheduleData(orgSlug: string) {
       awayScore: true,
       isFinal: true,
       athleticTeamId: true,
+      opponentAthleticTeamId: true,
       athleticTeam: { select: { name: true, level: true, sport: { select: { name: true, color: true } } } },
     },
     orderBy: { startTime: 'asc' },
@@ -457,20 +480,27 @@ export async function getPublicScheduleData(orgSlug: string) {
   const standingsBySport: Record<string, any[]> = {}
   for (const sport of sports) {
     const sportTeams = teams.filter((t) => t.sportId === sport.id)
-    const sportGames = games.filter((g) => sportTeams.some((t) => t.id === g.athleticTeamId))
+    const sportTeamIds = new Set(sportTeams.map((t) => t.id))
+    // Any final game touching one of this sport's teams on either side.
+    const sportGames = games.filter(
+      (g) =>
+        g.isFinal &&
+        (sportTeamIds.has(g.athleticTeamId) ||
+          (g.opponentAthleticTeamId != null && sportTeamIds.has(g.opponentAthleticTeamId))),
+    )
 
     const teamStandings = sportTeams.map((team) => {
-      const tGames = sportGames.filter((g) => g.athleticTeamId === team.id && g.isFinal)
-      let wins = 0, losses = 0, ties = 0
-      for (const g of tGames) {
-        if (g.homeScore == null || g.awayScore == null) continue
-        if (g.homeScore === g.awayScore) { ties++; continue }
-        const isHome = g.homeAway === 'HOME'
-        const homeWon = g.homeScore > g.awayScore
-        if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
-        else losses++
+      const asOwner = sportGames.filter((g) => g.athleticTeamId === team.id)
+      const asOpponent = sportGames.filter((g) => g.opponentAthleticTeamId === team.id)
+      const ownerTally = tallyForTeam(asOwner as ScorableGame[], true)
+      const opponentTally = tallyForTeam(asOpponent as ScorableGame[], false)
+      return {
+        teamName: team.name,
+        level: team.level,
+        wins: ownerTally.wins + opponentTally.wins,
+        losses: ownerTally.losses + opponentTally.losses,
+        ties: ownerTally.ties + opponentTally.ties,
       }
-      return { teamName: team.name, level: team.level, wins, losses, ties }
     })
 
     teamStandings.sort((a, b) => {
@@ -501,4 +531,77 @@ export async function getPublicScheduleData(orgSlug: string) {
     standingsBySport,
     calendarTeams,
   }
+}
+
+// ── Public Player Profile ────────────────────────────────────────────────
+
+export async function getPublicPlayerProfile(playerId: string) {
+  const athlete = await rawPrisma.athlete.findUnique({
+    where: { id: playerId },
+    include: {
+      user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      rosters: {
+        where: { isActive: true },
+        include: {
+          athleticTeam: {
+            select: {
+              id: true,
+              name: true,
+              level: true,
+              sport: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                  abbreviation: true,
+                  statConfigs: {
+                    where: { isActive: true },
+                    orderBy: { sortOrder: 'asc' },
+                    select: { statKey: true, label: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      gameStats: {
+        include: {
+          roster: {
+            select: {
+              id: true,
+              jerseyNumber: true,
+              position: true,
+              athleticTeam: { select: { id: true, name: true } },
+            },
+          },
+          game: {
+            select: {
+              id: true,
+              opponentName: true,
+              startTime: true,
+              homeAway: true,
+              homeScore: true,
+              awayScore: true,
+              isFinal: true,
+              venue: true,
+            },
+          },
+        },
+        orderBy: { game: { startTime: 'desc' } },
+      },
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+        },
+      },
+    },
+  })
+
+  if (!athlete || !athlete.isActive) return null
+
+  return athlete
 }

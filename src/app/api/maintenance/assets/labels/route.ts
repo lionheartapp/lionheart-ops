@@ -32,7 +32,7 @@ export const POST = withAuth(async ({ req, orgId, body }) => {
       assetNumber: true,
       name: true,
       building: { select: { name: true } },
-      area: { select: { name: true } },
+      space: { select: { name: true } },
       room: { select: { displayName: true, roomNumber: true } },
     },
   })
@@ -49,7 +49,7 @@ export const POST = withAuth(async ({ req, orgId, body }) => {
 
       const locationParts: string[] = []
       if (asset.building?.name) locationParts.push(asset.building.name)
-      if (asset.area?.name) locationParts.push(asset.area.name)
+      if (asset.space?.name) locationParts.push(asset.space.name)
       if (asset.room?.displayName || asset.room?.roomNumber) {
         locationParts.push(asset.room.displayName || asset.room.roomNumber)
       }

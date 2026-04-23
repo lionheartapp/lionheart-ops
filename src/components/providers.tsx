@@ -127,9 +127,19 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user-avatar', user.avatar || '')
         localStorage.setItem('user-team', user.team || '')
         localStorage.setItem('user-team-slugs', JSON.stringify(user.teamSlugs || []))
-        localStorage.setItem('user-school-scope', user.schoolScope || '')
+        // Prefer the new `campusScope` field; fall back to the legacy `schoolScope`
+        // alias so sessions started before the rename keep working.
+        const campusScopeValue = user.campusScope ?? user.schoolScope ?? ''
+        localStorage.setItem('user-campus-scope', campusScopeValue)
+        // Keep legacy key in sync during the migration window
+        localStorage.setItem('user-school-scope', campusScopeValue)
         localStorage.setItem('user-role', user.role || '')
         localStorage.setItem('org-name', org.name || '')
+        // `org-school-type` was sourced from Organization.schoolType, which was
+        // removed in the Phase 1c ontology inversion (institution type now lives
+        // on School.institutionType). The me endpoint still emits `schoolType: null`
+        // for backward compat, so this write produces an empty string — consumers
+        // should migrate to the institution type on the active school.
         localStorage.setItem('org-school-type', org.schoolType || '')
         localStorage.setItem('org-logo-url', org.logoUrl || '')
         localStorage.setItem('dashboard-mode', user.dashboardMode || 'default')

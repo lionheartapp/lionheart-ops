@@ -19,6 +19,8 @@ interface ITTicketsListProps {
   scope?: 'mine' | 'all'
   /** Current user's ID — used for "mine" scope filtering */
   currentUserId?: string
+  /** School-scoped viewpoint. null = "All Schools". */
+  activeSchoolId?: string | null
 }
 
 interface Ticket {
@@ -63,7 +65,7 @@ const TYPE_OPTIONS = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage, scope = 'mine', currentUserId }: ITTicketsListProps) {
+export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage, scope = 'mine', currentUserId, activeSchoolId }: ITTicketsListProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
@@ -75,8 +77,9 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
     if (statusFilter) f.status = statusFilter
     if (priorityFilter) f.priority = priorityFilter
     if (typeFilter) f.issueType = typeFilter
+    if (activeSchoolId) f.schoolId = activeSchoolId
     return f
-  }, [search, statusFilter, priorityFilter, typeFilter])
+  }, [search, statusFilter, priorityFilter, typeFilter, activeSchoolId])
 
   const { data, isLoading } = useQuery(queryOptions.itTickets(filters))
 

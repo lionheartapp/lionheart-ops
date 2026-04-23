@@ -14,7 +14,7 @@ export const GET = withAuth(async ({ req, orgId, searchParams }) => {
   const filters: AssetFilters = {
     category: searchParams.get('category') || undefined,
     buildingId: searchParams.get('buildingId') || undefined,
-    areaId: searchParams.get('areaId') || undefined,
+    spaceId: searchParams.get('spaceId') || searchParams.get('areaId') || undefined,
     roomId: searchParams.get('roomId') || undefined,
     status: searchParams.get('status') || undefined,
     warrantyStatus: (searchParams.get('warrantyStatus') || undefined) as AssetFilters['warrantyStatus'],

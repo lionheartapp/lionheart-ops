@@ -22,7 +22,7 @@ export async function getApprovalRules() {
     where: { organizationId: orgId },
     orderBy: { sortOrder: 'asc' },
     include: {
-      school: { select: { id: true, name: true, gradeLevel: true, color: true } },
+      school: { select: { id: true, name: true, color: true } },
       campus: { select: { id: true, name: true } },
       steps: {
         orderBy: { sortOrder: 'asc' },
@@ -39,7 +39,7 @@ export async function getApprovalRuleById(id: string) {
   return rawPrisma.approvalRule.findUnique({
     where: { id },
     include: {
-      school: { select: { id: true, name: true, gradeLevel: true, color: true } },
+      school: { select: { id: true, name: true, color: true } },
       campus: { select: { id: true, name: true } },
       steps: {
         orderBy: { sortOrder: 'asc' },

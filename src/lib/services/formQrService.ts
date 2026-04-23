@@ -3,6 +3,11 @@
  *
  * Manages QR codes that link to pre-filled ticket submission forms.
  * Each QR encodes a token that resolves to a category + location scope.
+ *
+ * NEW ONTOLOGY (Phase 1b): The `Area` model was renamed to `Space`, and the
+ * foreign key on FormQrCode was renamed from `areaId` to `spaceId`. Public
+ * contracts continue to accept the legacy `areaId` name on input where
+ * possible, but the canonical field is `spaceId`.
  */
 
 import { prisma } from '@/lib/db'
@@ -16,7 +21,7 @@ export interface QrCodeWithLocation {
   organizationId: string
   categoryKey: string | null
   buildingId: string | null
-  areaId: string | null
+  spaceId: string | null
   roomId: string | null
   token: string
   label: string
@@ -24,7 +29,7 @@ export interface QrCodeWithLocation {
   createdAt: Date
   lastUsedAt: Date | null
   building?: { id: string; name: string } | null
-  area?: { id: string; name: string } | null
+  space?: { id: string; name: string } | null
   room?: { id: string; roomNumber: string; displayName: string | null } | null
 }
 
@@ -46,15 +51,15 @@ export async function listQrCodes(): Promise<QrCodeWithLocation[]> {
 
   // Fetch location names for each code
   const buildingIds = [...new Set(codes.map((c) => c.buildingId).filter(Boolean))] as string[]
-  const areaIds = [...new Set(codes.map((c) => c.areaId).filter(Boolean))] as string[]
+  const spaceIds = [...new Set(codes.map((c) => c.spaceId).filter(Boolean))] as string[]
   const roomIds = [...new Set(codes.map((c) => c.roomId).filter(Boolean))] as string[]
 
-  const [buildings, areas, rooms] = await Promise.all([
+  const [buildings, spaces, rooms] = await Promise.all([
     buildingIds.length > 0
       ? prisma.building.findMany({ where: { id: { in: buildingIds } }, select: { id: true, name: true } })
       : [],
-    areaIds.length > 0
-      ? prisma.area.findMany({ where: { id: { in: areaIds } }, select: { id: true, name: true } })
+    spaceIds.length > 0
+      ? prisma.space.findMany({ where: { id: { in: spaceIds } }, select: { id: true, name: true } })
       : [],
     roomIds.length > 0
       ? prisma.room.findMany({ where: { id: { in: roomIds } }, select: { id: true, roomNumber: true, displayName: true } })
@@ -62,13 +67,13 @@ export async function listQrCodes(): Promise<QrCodeWithLocation[]> {
   ])
 
   const buildingMap = new Map(buildings.map((b) => [b.id, b]))
-  const areaMap = new Map(areas.map((a) => [a.id, a]))
+  const spaceMap = new Map(spaces.map((s) => [s.id, s]))
   const roomMap = new Map(rooms.map((r) => [r.id, r]))
 
   return codes.map((c) => ({
     ...c,
     building: c.buildingId ? buildingMap.get(c.buildingId) ?? null : null,
-    area: c.areaId ? areaMap.get(c.areaId) ?? null : null,
+    space: c.spaceId ? spaceMap.get(c.spaceId) ?? null : null,
     room: c.roomId ? roomMap.get(c.roomId) ?? null : null,
   }))
 }
@@ -76,17 +81,20 @@ export async function listQrCodes(): Promise<QrCodeWithLocation[]> {
 export async function createQrCode(data: {
   categoryKey?: string | null
   buildingId?: string | null
+  spaceId?: string | null
+  /** @deprecated Phase 1b — use spaceId */
   areaId?: string | null
   roomId?: string | null
   label: string
 }) {
   const token = generateToken()
+  const spaceId = data.spaceId ?? data.areaId ?? null
 
   return (prisma.formQrCode.create as Function)({
     data: {
       categoryKey: data.categoryKey ?? null,
       buildingId: data.buildingId ?? null,
-      areaId: data.areaId ?? null,
+      spaceId,
       roomId: data.roomId ?? null,
       token,
       label: data.label,
@@ -142,7 +150,7 @@ export async function resolveQrToken(token: string) {
     organization: qr.organization,
     categoryKey: qr.categoryKey,
     buildingId: qr.buildingId,
-    areaId: qr.areaId,
+    spaceId: qr.spaceId,
     roomId: qr.roomId,
     label: qr.label,
   }

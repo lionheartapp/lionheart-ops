@@ -44,11 +44,15 @@ export function useCampusFilter(): UseCampusFilterReturn {
   const getRoleBasedDefault = useCallback((): string => {
     if (typeof window === 'undefined') return ''
     const role = localStorage.getItem('user-role')
-    const schoolScope = localStorage.getItem('user-school-scope')
-    // Members/viewers with a school scope default to that campus
-    if ((role === 'member' || role === 'viewer') && schoolScope) {
-      // Validate that this school scope matches an enabled campus
-      const match = enabledCampuses.find((c) => c.name === schoolScope || c.id === schoolScope)
+    // Prefer the new `user-campus-scope` key but fall back to the legacy
+    // `user-school-scope` so sessions started before the rename keep working.
+    const campusScope =
+      localStorage.getItem('user-campus-scope') ||
+      localStorage.getItem('user-school-scope')
+    // Members/viewers with a campus scope default to that campus
+    if ((role === 'member' || role === 'viewer') && campusScope) {
+      // Validate that this campus scope matches an enabled campus
+      const match = enabledCampuses.find((c) => c.name === campusScope || c.id === campusScope)
       if (match) return match.id
     }
     return '' // Default: all campuses

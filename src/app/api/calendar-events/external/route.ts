@@ -100,6 +100,8 @@ export async function GET(req: NextRequest) {
         },
         category: null,
         building: null,
+        space: null,
+        // Backward-compat alias
         area: null,
         createdBy: null,
         attendees: [],

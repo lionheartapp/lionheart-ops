@@ -44,7 +44,7 @@ const tools: Record<string, ToolRegistryEntry> = {
     execute: async (input, ctx) => {
       const statType = input.stat_type as string
       const opts: ITAnalyticsOptions = {
-        schoolId: input.school_id as string | undefined,
+        campusId: input.school_id as string | undefined,
         months: (input.months as number) || 6,
       }
       switch (statType) {

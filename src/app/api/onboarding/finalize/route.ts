@@ -54,19 +54,29 @@ export async function POST(req: NextRequest) {
     const { theme, logoUrl } = validation.data
 
     return await runWithOrgContext(orgId, async () => {
-      // Get current organization
+      // Get current organization. Note: `physicalAddress` moved off Organization
+      // and onto School in the Phase 1c ontology inversion — we look it up on
+      // the primary School below rather than selecting it here.
       const org = await rawPrisma.organization.findUnique({
         where: { id: orgId },
         select: {
           id: true,
           name: true,
-          physicalAddress: true,
         },
       })
 
       if (!org) {
         return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
       }
+
+      // Primary School provides the address used to decide whether to seed a
+      // default Building during finalization.
+      const primarySchool = await rawPrisma.school.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { address: true },
+      })
+      const physicalAddress = primarySchool?.address ?? null
 
       try {
         // Build update data
@@ -90,13 +100,12 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             name: true,
-            physicalAddress: true,
             logoUrl: true,
           },
         })
 
-        // Create default Building if address exists
-        if (org.physicalAddress) {
+        // Create default Building if we have an address on the primary school
+        if (physicalAddress) {
           try {
             await prisma.building.create({
               data: {

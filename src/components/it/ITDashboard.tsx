@@ -33,6 +33,8 @@ import {
 interface ITDashboardProps {
   onViewTicket: (ticketId: string) => void
   onCreateTicket: () => void
+  /** School-scoped viewpoint. null = "All Schools". */
+  activeSchoolId?: string | null
 }
 
 interface RecentTicket {
@@ -115,10 +117,10 @@ function timeAgo(dateStr: string): string {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
-export default function ITDashboard({ onViewTicket, onCreateTicket }: ITDashboardProps) {
+export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchoolId }: ITDashboardProps) {
   const router = useRouter()
   const itPerms = useITPermissions()
-  const { data: stats, isLoading, isError, refetch } = useQuery(queryOptions.itDashboard())
+  const { data: stats, isLoading, isError, refetch } = useQuery(queryOptions.itDashboard(activeSchoolId ?? undefined))
 
   if (isError) {
     return (

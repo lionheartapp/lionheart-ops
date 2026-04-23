@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         name: true,
         avatar: true,
         organizationId: true,
-        schoolScope: true,
+        campusScope: true,
         userRole: { select: { name: true } },
         teams: {
           select: { team: { select: { name: true } } },
@@ -113,7 +113,9 @@ export async function POST(req: NextRequest) {
         avatar: target.avatar ?? null,
         role: target.userRole?.name ?? null,
         team: teamNames[0] ?? null,
-        schoolScope: target.schoolScope ?? null,
+        campusScope: target.campusScope ?? null,
+        // Backward-compat alias — remove once clients are migrated
+        schoolScope: target.campusScope ?? null,
       },
     }))
 
@@ -153,7 +155,7 @@ export async function DELETE(req: NextRequest) {
         email: true,
         name: true,
         avatar: true,
-        schoolScope: true,
+        campusScope: true,
         organizationId: true,
         userRole: { select: { name: true } },
       },
@@ -194,7 +196,9 @@ export async function DELETE(req: NextRequest) {
         avatar: admin.avatar ?? null,
         role: admin.userRole?.name ?? null,
         team: firstMembership?.team?.name ?? null,
-        schoolScope: admin.schoolScope ?? null,
+        campusScope: admin.campusScope ?? null,
+        // Backward-compat alias — remove once clients are migrated
+        schoolScope: admin.campusScope ?? null,
       },
     }))
 

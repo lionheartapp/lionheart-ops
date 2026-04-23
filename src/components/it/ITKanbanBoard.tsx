@@ -31,6 +31,8 @@ interface ITKanbanBoardProps {
   scope?: 'mine' | 'all'
   /** Current user's ID — used for "mine" scope filtering */
   currentUserId?: string
+  /** School-scoped viewpoint. null = "All Schools". */
+  activeSchoolId?: string | null
 }
 
 const BOARD_COLUMNS = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD'] as const
@@ -53,7 +55,7 @@ const PRIORITY_OPTIONS = [
   { value: 'URGENT', label: 'Urgent' },
 ]
 
-export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUserId }: ITKanbanBoardProps) {
+export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUserId, activeSchoolId }: ITKanbanBoardProps) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [activeTicket, setActiveTicket] = useState<KanbanTicket | null>(null)
@@ -64,7 +66,7 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
   const [filterPriority, setFilterPriority] = useState('')
   const [filterUnassigned, setFilterUnassigned] = useState(false)
 
-  const { data: boardData, isLoading, isError, refetch } = useQuery(queryOptions.itBoard())
+  const { data: boardData, isLoading, isError, refetch } = useQuery(queryOptions.itBoard(activeSchoolId ?? undefined))
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -111,11 +113,12 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
         return r.json()
       }),
     onMutate: async ({ ticketId, status }) => {
-      // Optimistic update
+      // Optimistic update — scope cache mutations to the current school viewpoint
+      const boardKey = queryKeys.itBoard.filtered(activeSchoolId ?? undefined)
       await queryClient.cancelQueries({ queryKey: queryKeys.itBoard.all })
-      const prev = queryClient.getQueryData(queryKeys.itBoard.filtered())
+      const prev = queryClient.getQueryData(boardKey)
 
-      queryClient.setQueryData(queryKeys.itBoard.filtered(), (old: Record<string, KanbanTicket[]> | undefined) => {
+      queryClient.setQueryData(boardKey, (old: Record<string, KanbanTicket[]> | undefined) => {
         if (!old) return old
         const updated: Record<string, KanbanTicket[]> = {}
         for (const [col, tickets] of Object.entries(old)) {
@@ -128,11 +131,11 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
         return updated
       })
 
-      return { prev }
+      return { prev, boardKey }
     },
     onError: (err, _vars, context) => {
-      if (context?.prev) {
-        queryClient.setQueryData(queryKeys.itBoard.filtered(), context.prev)
+      if (context?.prev && context?.boardKey) {
+        queryClient.setQueryData(context.boardKey, context.prev)
       }
       const msg = err instanceof Error && err.message.includes('permission')
         ? "You don't have permission to change ticket status."

@@ -1,130 +1,24 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
-import { prisma } from '@/lib/db'
-import { Prisma } from '@prisma/client'
-import { withAuth } from '@/lib/api/with-auth'
-import { PERMISSIONS } from '@/lib/permissions'
-import { invalidateOrgCache } from '@/lib/cache/settings-cache'
+import { fail } from '@/lib/api-response'
 
-const CreateAreaSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  campusId: z.string().min(1, 'Campus is required'),
-  areaType: z.enum(['FIELD', 'COURT', 'GYM', 'COMMON', 'PARKING', 'OTHER']).optional(),
-  buildingId: z.string().optional().nullable(),
-  /** M:N school scoping. Empty array = shared with all schools. */
-  schoolIds: z.array(z.string()).optional(),
-  latitude: z.number().min(-90).max(90).optional().nullable(),
-  longitude: z.number().min(-180).max(180).optional().nullable(),
-  polygonCoordinates: z.array(z.object({
-    lat: z.number().min(-90).max(90),
-    lng: z.number().min(-180).max(180),
-  })).min(3).optional().nullable(),
-  sortOrder: z.number().int().optional(),
-  isActive: z.boolean().optional(),
-})
+/**
+ * DEPRECATED (Phase 1b): The `Area` model has been renamed to `Space`.
+ * Use `/api/settings/campus/spaces` instead.
+ */
+function gone() {
+  return NextResponse.json(
+    fail(
+      'GONE',
+      'The areas endpoint has been renamed. Use /api/settings/campus/spaces instead.',
+    ),
+    { status: 410 },
+  )
+}
 
-export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const includeInactive = searchParams.get('includeInactive') === 'true'
-  const buildingId = searchParams.get('buildingId') || undefined
-  const campusId = searchParams.get('campusId') || undefined
+export function GET() {
+  return gone()
+}
 
-
-  const areas = await prisma.area.findMany({
-    where: {
-      organizationId: orgId,
-      ...(includeInactive ? {} : { isActive: true }),
-      ...(buildingId ? { buildingId } : {}),
-      ...(campusId ? { campusId } : {}),
-    },
-    include: {
-      building: {
-        select: { id: true, name: true, code: true },
-      },
-      campus: { select: { id: true, name: true, campusType: true } },
-      schoolLinks: {
-        select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
-      },
-    },
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  })
-
-  const result = areas.map((a) => {
-    const { schoolLinks, ...rest } = a
-    return { ...rest, schools: schoolLinks.map((l) => l.school) }
-  })
-
-  return NextResponse.json(ok(result))
-}, { permission: PERMISSIONS.SETTINGS_READ })
-
-export const POST = withAuth<z.infer<typeof CreateAreaSchema>>(async ({ orgId, body: input }) => {
-
-
-  if (input.buildingId) {
-    const building = await prisma.building.findFirst({
-      where: { id: input.buildingId, organizationId: orgId },
-      select: { id: true },
-    })
-    if (!building) {
-      return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
-    }
-  }
-
-  // Validate campus exists
-  const campus = await prisma.campus.findFirst({
-    where: { id: input.campusId, organizationId: orgId, deletedAt: null },
-    select: { id: true },
-  })
-  if (!campus) {
-    return NextResponse.json(fail('NOT_FOUND', 'Campus not found'), { status: 404 })
-  }
-
-  // Validate schoolIds belong to this campus
-  const schoolIds = Array.isArray(input.schoolIds) ? input.schoolIds : []
-  if (schoolIds.length > 0) {
-    const valid = await prisma.school.findMany({
-      where: { id: { in: schoolIds }, organizationId: orgId, campusId: input.campusId, deletedAt: null },
-      select: { id: true },
-    })
-    if (valid.length !== schoolIds.length) {
-      return NextResponse.json(
-        fail('VALIDATION_ERROR', 'One or more schools do not belong to this campus'),
-        { status: 400 }
-      )
-    }
-  }
-
-  const area = await prisma.area.create({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zod-validated input; polygonCoordinates Json type needs cast
-    data: {
-      organizationId: orgId,
-      campusId: input.campusId,
-      name: input.name,
-      areaType: input.areaType || 'OTHER',
-      buildingId: input.buildingId || null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
-      polygonCoordinates: input.polygonCoordinates != null ? (input.polygonCoordinates as Prisma.InputJsonValue) : Prisma.JsonNull,
-      sortOrder: input.sortOrder ?? 0,
-      isActive: input.isActive ?? true,
-      ...(schoolIds.length > 0 ? {
-        schoolLinks: { create: schoolIds.map((id: string) => ({ schoolId: id })) },
-      } : {}),
-    },
-    include: {
-      building: {
-        select: { id: true, name: true, code: true },
-      },
-      schoolLinks: {
-        select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
-      },
-    },
-  })
-
-  invalidateOrgCache(orgId)
-
-  const { schoolLinks, ...rest } = area
-  const result = { ...rest, schools: schoolLinks.map((l) => l.school) }
-
-  return NextResponse.json(ok(result), { status: 201 })
-}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateAreaSchema })
+export function POST() {
+  return gone()
+}

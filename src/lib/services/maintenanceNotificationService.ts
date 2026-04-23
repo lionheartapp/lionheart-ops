@@ -43,7 +43,7 @@ export type TicketSnapshot = {
   submittedById: string
   assignedToId?: string | null
   building?: { name: string } | null
-  area?: { name: string } | null
+  space?: { name: string } | null
   room?: { roomNumber: string; displayName?: string | null } | null
   submittedBy?: { email: string; firstName: string; lastName: string } | null
   assignedTo?: { id: string; email?: string; firstName: string; lastName: string } | null
@@ -62,7 +62,7 @@ function ticketLink(ticketId: string): string {
 function locationString(ticket: TicketSnapshot): string {
   const parts = [
     ticket.building?.name,
-    ticket.area?.name,
+    ticket.space?.name,
     ticket.room ? (ticket.room.displayName || ticket.room.roomNumber) : null,
   ].filter(Boolean)
   return parts.join(' > ') || 'Location not specified'

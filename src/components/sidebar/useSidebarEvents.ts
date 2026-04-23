@@ -27,6 +27,7 @@ export interface SidebarEventConsumerOptions {
   setCalendarDataReceived: Dispatch<SetStateAction<boolean>>
   setAthleticsCampuses: Dispatch<SetStateAction<AthleticsCampus[]>>
   setAthleticsCampusId: Dispatch<SetStateAction<string | null>>
+  setAthleticsHasSports: Dispatch<SetStateAction<boolean>>
 }
 
 export function useSidebarEvents(options: SidebarEventConsumerOptions): void {
@@ -37,6 +38,7 @@ export function useSidebarEvents(options: SidebarEventConsumerOptions): void {
     setCalendarDataReceived,
     setAthleticsCampuses,
     setAthleticsCampusId,
+    setAthleticsHasSports,
   } = options
 
   // Settings tab sync
@@ -78,10 +80,11 @@ export function useSidebarEvents(options: SidebarEventConsumerOptions): void {
   // Athletics sidebar data + mount-time pull
   useEffect(() => {
     function handleAthleticsData(e: Event) {
-      const event = e as CustomEvent<{ campuses: AthleticsCampus[]; activeCampusId: string | null }>
+      const event = e as CustomEvent<{ campuses: AthleticsCampus[]; activeCampusId: string | null; hasSports?: boolean }>
       if (event.detail) {
         setAthleticsCampuses(event.detail.campuses)
         if (event.detail.activeCampusId) setAthleticsCampusId(event.detail.activeCampusId)
+        if (typeof event.detail.hasSports === 'boolean') setAthleticsHasSports(event.detail.hasSports)
       }
     }
     window.addEventListener('athletics-sidebar-data', handleAthleticsData)
@@ -89,5 +92,5 @@ export function useSidebarEvents(options: SidebarEventConsumerOptions): void {
     return () => {
       window.removeEventListener('athletics-sidebar-data', handleAthleticsData)
     }
-  }, [setAthleticsCampuses, setAthleticsCampusId])
+  }, [setAthleticsCampuses, setAthleticsCampusId, setAthleticsHasSports])
 }

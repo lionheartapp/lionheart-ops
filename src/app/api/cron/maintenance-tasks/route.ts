@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
         submittedBy: { select: { id: true, email: true, firstName: true, lastName: true } },
         assignedTo: { select: { id: true, email: true, firstName: true, lastName: true } },
         building: { select: { name: true } },
-        area: { select: { name: true } },
+        space: { select: { name: true } },
         room: { select: { roomNumber: true, displayName: true } },
       },
     })
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
             holdReason: ticket.holdReason ?? undefined,
             assignedToId: ticket.assignedToId ?? undefined,
             building: ticket.building ?? undefined,
-            area: ticket.area ?? undefined,
+            space: ticket.space ?? undefined,
             room: ticket.room ?? undefined,
             submittedBy: ticket.submittedBy
               ? {
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
       include: {
         submittedBy: { select: { id: true, email: true, firstName: true, lastName: true } },
         building: { select: { name: true } },
-        area: { select: { name: true } },
+        space: { select: { name: true } },
         room: { select: { roomNumber: true, displayName: true } },
       },
     })
@@ -152,7 +152,7 @@ export async function GET(req: NextRequest) {
             holdReason: ticket.holdReason ?? undefined,
             assignedToId: ticket.assignedToId ?? undefined,
             building: ticket.building ?? undefined,
-            area: ticket.area ?? undefined,
+            space: ticket.space ?? undefined,
             room: ticket.room ?? undefined,
             submittedBy: ticket.submittedBy
               ? {

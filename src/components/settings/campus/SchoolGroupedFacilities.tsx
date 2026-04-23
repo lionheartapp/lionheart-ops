@@ -258,10 +258,21 @@ function FacilitiesCard({
       className="bg-white border border-slate-200 rounded-xl overflow-hidden"
       style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
-      {/* Card header */}
-      <button
+      {/* Card header — div-with-role to avoid nesting the action buttons
+          inside a <button>, which is invalid HTML and causes a React
+          hydration error. Keyboard-accessible via Enter/Space. */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={!collapsed}
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors cursor-pointer text-left"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onToggle()
+          }
+        }}
+        className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-0"
       >
         <div
           className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
@@ -278,6 +289,7 @@ function FacilitiesCard({
         <div className="flex items-center gap-2">
           {onEditSchool && (
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onEditSchool()
@@ -290,6 +302,7 @@ function FacilitiesCard({
           )}
           {onDeleteSchool && (
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onDeleteSchool()
@@ -302,6 +315,7 @@ function FacilitiesCard({
           )}
           {onEditSchool && <div className="w-px h-5 bg-slate-200 mx-1" />}
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               onAddBuilding()
@@ -312,6 +326,7 @@ function FacilitiesCard({
             Building
           </button>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               onAddOutdoor()
@@ -327,7 +342,7 @@ function FacilitiesCard({
             <ChevronDown className="w-5 h-5 text-slate-400" />
           )}
         </div>
-      </button>
+      </div>
 
       {/* Card body */}
       {!collapsed && (

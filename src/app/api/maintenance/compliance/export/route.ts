@@ -68,7 +68,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const records = await getComplianceRecordsForExport(orgId, {
     from: fromDate,
     to: toDate,
-    schoolId,
+    campusId: schoolId,
     domain: domain as ComplianceDomain | undefined,
   })
 

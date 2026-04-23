@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server'
-import { ok } from '@/lib/api-response'
-import { withAuth } from '@/lib/api/with-auth'
-import { PERMISSIONS } from '@/lib/permissions'
-import {
-  listCampusAssignments,
-  assignUserToCampus,
-  CreateCampusAssignmentSchema,
-} from '@/lib/services/campusService'
+import { fail } from '@/lib/api-response'
 
-export const GET = withAuth(async ({ searchParams }) => {
-  const userId = searchParams.get('userId') || undefined
-  const campusId = searchParams.get('campusId') || undefined
+/**
+ * DEPRECATED (Phase 1b): UserCampusAssignment junction table has been dropped.
+ * Users are now pinned to a single campus via User.campusId.
+ *
+ * Use PATCH /api/settings/users/:id to update a user's campusId instead.
+ */
+export function GET() {
+  return NextResponse.json(
+    fail(
+      'GONE',
+      'Campus assignments endpoint has been retired. Update users.campusId directly via /api/settings/users.',
+    ),
+    { status: 410 },
+  )
+}
 
-  const assignments = await listCampusAssignments({ userId, campusId })
-  return NextResponse.json(ok(assignments))
-}, { permission: PERMISSIONS.SETTINGS_READ })
-
-export const POST = withAuth(async ({ body }) => {
-  const assignment = await assignUserToCampus(body)
-  return NextResponse.json(ok(assignment), { status: 201 })
-}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateCampusAssignmentSchema })
+export function POST() {
+  return NextResponse.json(
+    fail(
+      'GONE',
+      'Campus assignments endpoint has been retired. Update users.campusId directly via /api/settings/users.',
+    ),
+    { status: 410 },
+  )
+}

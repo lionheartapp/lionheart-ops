@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import SupportSection from './SupportSection'
 import UserMenu from './UserMenu'
+import SchoolSelector from './SchoolSelector'
 
 interface MainNavContentProps {
   pathname: string
@@ -146,6 +147,9 @@ export default function MainNavContent({
           )}
         </div>
       </div>
+
+      {/* Global school selector — hidden when org has <= 1 school */}
+      <SchoolSelector />
 
       {/* Search Trigger */}
       <div className="px-4 pb-8">

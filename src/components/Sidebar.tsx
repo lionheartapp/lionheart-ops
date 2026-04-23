@@ -110,6 +110,7 @@ export default function Sidebar({
     setCalendarDataReceived: selection.setCalendarDataReceived,
     setAthleticsCampuses: selection.setAthleticsCampuses,
     setAthleticsCampusId: selection.setAthleticsCampusId,
+    setAthleticsHasSports: selection.setAthleticsHasSports,
   })
 
   // ── Module + campus data for athletics ──
@@ -194,7 +195,7 @@ export default function Sidebar({
   }, [settingsOpen, router])
 
   // ── Determine secondary panel ──
-  const athleticsSecondaryNeeded = athleticsOpen
+  const athleticsSecondaryNeeded = athleticsOpen && selection.athleticsHasSports
   const secondaryOpen = settingsOpen || calendarOpen || athleticsSecondaryNeeded || eventsOpen
   const secondaryLabel = eventsOpen
     ? 'Events navigation'

@@ -272,7 +272,7 @@ async function seedModules(organizationId: string) {
     // campusId is null for org-wide modules. Prisma can't upsert on nullable unique fields,
     // so check for existence first.
     const existing = await prisma.tenantModule.findFirst({
-      where: { organizationId, moduleId, campusId: null },
+      where: { organizationId, moduleId, schoolId: null },
     })
     if (!existing) {
       await prisma.tenantModule.create({
@@ -325,7 +325,9 @@ async function main() {
     update: {
       roleId: roleMap['super-admin'].id,
       status: 'ACTIVE',
-      schoolScope: 'GLOBAL',
+      // Phase 1c: org-wide admins no longer need a grade-level scope — `null`
+      // replaces the old 'GLOBAL' enum value, which was removed from CampusGradeLevel.
+      campusScope: null,
       firstName: 'Admin',
       lastName: 'User',
       emailVerified: true,
@@ -339,7 +341,7 @@ async function main() {
       passwordHash,
       roleId: roleMap['super-admin'].id,
       status: 'ACTIVE',
-      schoolScope: 'GLOBAL',
+      campusScope: null,
       employmentType: 'FULL_TIME',
       jobTitle: 'Administrator',
       emailVerified: true,
@@ -351,7 +353,7 @@ async function main() {
     update: {
       roleId: roleMap['member'].id,
       status: 'ACTIVE',
-      schoolScope: 'HIGH_SCHOOL',
+      campusScope: 'HIGH_SCHOOL',
       firstName: 'Test',
       lastName: 'Teacher',
       emailVerified: true,
@@ -365,7 +367,7 @@ async function main() {
       passwordHash,
       roleId: roleMap['member'].id,
       status: 'ACTIVE',
-      schoolScope: 'HIGH_SCHOOL',
+      campusScope: 'HIGH_SCHOOL',
       employmentType: 'FULL_TIME',
       jobTitle: 'Teacher',
       emailVerified: true,

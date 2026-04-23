@@ -84,10 +84,17 @@ function ResetPasswordContent() {
       localStorage.setItem('user-avatar', userData?.avatar || '')
       localStorage.setItem('user-team', userData?.team || '')
       localStorage.setItem('user-team-slugs', JSON.stringify(userData?.teamSlugs || []))
-      localStorage.setItem('user-school-scope', userData?.schoolScope || '')
+      const campusScopeValue = userData?.campusScope ?? userData?.schoolScope ?? ''
+      localStorage.setItem('user-campus-scope', campusScopeValue)
+      // Keep legacy key in sync during the migration window
+      localStorage.setItem('user-school-scope', campusScopeValue)
       localStorage.setItem('user-role', userData?.role || '')
       localStorage.setItem('org-name', orgData?.name || '')
-      localStorage.setItem('org-school-type', orgData?.gradeLevel || '')
+      // `org.gradeLevel` and `org.schoolType` were removed in the Phase 1c
+      // ontology inversion (grade level is per-Campus now, institution type
+      // per-School). The API still emits these as `null` for backward compat,
+      // so this write produces an empty string.
+      localStorage.setItem('org-school-type', orgData?.schoolType || '')
       localStorage.setItem('org-logo-url', orgData?.logoUrl || '')
 
       setSuccess(true)

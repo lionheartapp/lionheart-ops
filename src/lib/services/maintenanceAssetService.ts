@@ -3,7 +3,7 @@
  *
  * Core business logic for the asset register:
  * - Asset creation with auto-generated AST-XXXX numbers
- * - Filterable asset queries with building/area/room relations
+ * - Filterable asset queries with building/space/room relations
  * - Soft-delete CRUD
  */
 
@@ -56,6 +56,8 @@ export const CreateAssetSchema = z.object({
   notes: z.string().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DECOMMISSIONED', 'PENDING_DISPOSAL']).default('ACTIVE'),
   buildingId: z.string().optional().nullable(),
+  spaceId: z.string().optional().nullable(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().optional().nullable(),
   roomId: z.string().optional().nullable(),
   schoolId: z.string().optional().nullable(),
@@ -70,9 +72,9 @@ export type UpdateAssetInput = z.infer<typeof UpdateAssetSchema>
 
 const ASSET_INCLUDES = {
   building: { select: { id: true, name: true } },
-  area: { select: { id: true, name: true } },
+  space: { select: { id: true, name: true } },
   room: { select: { id: true, roomNumber: true, displayName: true } },
-  school: { select: { id: true, name: true } },
+  campus: { select: { id: true, name: true } },
 } as const
 
 // ─── Generate Asset Number ────────────────────────────────────────────────────
@@ -116,9 +118,9 @@ export async function createAsset(
       notes: data.notes ?? null,
       status: data.status,
       buildingId: data.buildingId ?? null,
-      areaId: data.areaId ?? null,
+      spaceId: data.spaceId ?? data.areaId ?? null,
       roomId: data.roomId ?? null,
-      schoolId: data.schoolId ?? null,
+      campusId: data.schoolId ?? null,
     },
     include: ASSET_INCLUDES,
   })
@@ -131,6 +133,8 @@ export async function createAsset(
 export interface AssetFilters {
   category?: string
   buildingId?: string
+  spaceId?: string
+  /** @deprecated Phase 1b — use spaceId */
   areaId?: string
   roomId?: string
   status?: string
@@ -146,6 +150,7 @@ export async function getAssets(orgId: string, filters: AssetFilters = {}) {
   const {
     category,
     buildingId,
+    spaceId,
     areaId,
     roomId,
     status,
@@ -162,7 +167,8 @@ export async function getAssets(orgId: string, filters: AssetFilters = {}) {
 
   if (category) where.category = category
   if (buildingId) where.buildingId = buildingId
-  if (areaId) where.areaId = areaId
+  const effectiveSpaceId = spaceId ?? areaId
+  if (effectiveSpaceId) where.spaceId = effectiveSpaceId
   if (roomId) where.roomId = roomId
   if (status) where.status = status
 
@@ -271,9 +277,10 @@ export async function updateAsset(orgId: string, id: string, input: unknown) {
   if (data.notes !== undefined) updateData.notes = data.notes
   if (data.status !== undefined) updateData.status = data.status
   if (data.buildingId !== undefined) updateData.buildingId = data.buildingId
-  if (data.areaId !== undefined) updateData.areaId = data.areaId
+  if (data.spaceId !== undefined) updateData.spaceId = data.spaceId
+  else if (data.areaId !== undefined) updateData.spaceId = data.areaId
   if (data.roomId !== undefined) updateData.roomId = data.roomId
-  if (data.schoolId !== undefined) updateData.schoolId = data.schoolId
+  if (data.schoolId !== undefined) updateData.campusId = data.schoolId
 
   const asset = await prisma.maintenanceAsset.update({
     where: { id },

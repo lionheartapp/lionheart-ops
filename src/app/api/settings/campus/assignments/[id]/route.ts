@@ -1,19 +1,28 @@
 import { NextResponse } from 'next/server'
-import { ok } from '@/lib/api-response'
-import { withAuth } from '@/lib/api/with-auth'
-import { PERMISSIONS } from '@/lib/permissions'
-import {
-  updateCampusAssignment,
-  removeCampusAssignment,
-  UpdateCampusAssignmentSchema,
-} from '@/lib/services/campusService'
+import { fail } from '@/lib/api-response'
 
-export const PATCH = withAuth(async ({ params, body }) => {
-  const assignment = await updateCampusAssignment(params.id, body)
-  return NextResponse.json(ok(assignment))
-}, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateCampusAssignmentSchema })
+/**
+ * DEPRECATED (Phase 1b): UserCampusAssignment junction table has been dropped.
+ * Users are now pinned to a single campus via User.campusId.
+ *
+ * Use PATCH /api/settings/users/:id to update a user's campusId instead.
+ */
+export function PATCH() {
+  return NextResponse.json(
+    fail(
+      'GONE',
+      'Campus assignments endpoint has been retired. Update users.campusId directly via /api/settings/users.',
+    ),
+    { status: 410 },
+  )
+}
 
-export const DELETE = withAuth<unknown, { id: string }>(async ({ params }) => {
-  await removeCampusAssignment(params.id)
-  return NextResponse.json(ok({ deleted: true }))
-}, { permission: PERMISSIONS.SETTINGS_UPDATE })
+export function DELETE() {
+  return NextResponse.json(
+    fail(
+      'GONE',
+      'Campus assignments endpoint has been retired. Update users.campusId directly via /api/settings/users.',
+    ),
+    { status: 410 },
+  )
+}

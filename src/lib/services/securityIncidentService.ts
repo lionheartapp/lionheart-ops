@@ -22,7 +22,7 @@ export interface CreateIncidentInput {
   severity: IncidentSeverity
   title: string
   description: string
-  schoolId?: string
+  campusId?: string
   affectedSystems?: string[]
   affectedDeviceIds?: string[]
   affectedUserIds?: string[]
@@ -33,7 +33,7 @@ export interface IncidentFilters {
   type?: SecurityIncidentType
   severity?: IncidentSeverity
   status?: IncidentStatus
-  schoolId?: string
+  campusId?: string
   search?: string
   from?: string
   to?: string
@@ -82,7 +82,7 @@ export async function createIncident(
       status: 'OPEN',
       title: data.title,
       description: data.description,
-      schoolId: data.schoolId,
+      campusId: data.campusId,
       affectedSystems: data.affectedSystems ?? [],
       affectedDeviceIds: data.affectedDeviceIds ?? [],
       affectedUserIds: data.affectedUserIds ?? [],
@@ -121,7 +121,7 @@ export async function getIncidents(orgId: string, filters: IncidentFilters) {
   if (filters.type) where.type = filters.type
   if (filters.severity) where.severity = filters.severity
   if (filters.status) where.status = filters.status
-  if (filters.schoolId) where.schoolId = filters.schoolId
+  if (filters.campusId) where.campusId = filters.campusId
   if (filters.search) {
     where.OR = [
       { title: { contains: filters.search, mode: 'insensitive' } },
@@ -143,7 +143,7 @@ export async function getIncidents(orgId: string, filters: IncidentFilters) {
       take: limit,
       include: {
         reportedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-        school: { select: { id: true, name: true } },
+        campus: { select: { id: true, name: true } },
         _count: { select: { activities: true } },
       },
     }),
@@ -158,7 +158,7 @@ export async function getIncidentById(orgId: string, incidentId: string) {
     where: { id: incidentId },
     include: {
       reportedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       activities: {
         orderBy: { createdAt: 'desc' },
         include: {

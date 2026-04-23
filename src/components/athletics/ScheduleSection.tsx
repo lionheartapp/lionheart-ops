@@ -30,9 +30,20 @@ interface Team {
   _count: { games: number; practices: number }
 }
 
+interface TeamSummary {
+  id: string
+  name: string
+  level?: string
+  schoolId?: string | null
+  sport: { name: string; color: string }
+}
+
 interface Game {
   id: string
   athleticTeamId: string
+  // Optional FK to an in-org opponent team (cross-school games within one org).
+  // When null/undefined, opponentName is the only opponent info (external team).
+  opponentAthleticTeamId?: string | null
   opponentName: string
   homeAway: string
   startTime: string
@@ -42,7 +53,8 @@ interface Game {
   awayScore: number | null
   isFinal: boolean
   calendarEventId?: string | null
-  athleticTeam?: { id: string; name: string; level: string; sport: { name: string; color: string } }
+  athleticTeam?: TeamSummary
+  opponentAthleticTeam?: TeamSummary | null
 }
 
 interface Practice {
@@ -149,22 +161,111 @@ function getRruleText(rruleStr: string): string {
   }
 }
 
-function getScoreDisplay(game: Game): string | null {
-  if (game.homeScore == null || game.awayScore == null) return null
-  const won = game.homeAway === 'HOME'
-    ? game.homeScore > game.awayScore
-    : game.awayScore > game.homeScore
-  const tied = game.homeScore === game.awayScore
-  const prefix = tied ? 'T' : won ? 'W' : 'L'
-  return `${prefix} ${game.homeScore}-${game.awayScore}`
+type GameSide = 'owning' | 'opponent'
+type HomeAwayLiteral = 'HOME' | 'AWAY' | 'NEUTRAL'
+
+function flipHomeAway(ha: string): HomeAwayLiteral {
+  if (ha === 'HOME') return 'AWAY'
+  if (ha === 'AWAY') return 'HOME'
+  return 'NEUTRAL'
 }
 
-function calcRecord(games: Game[]): { wins: number; losses: number; ties: number } {
+/**
+ * Score/win calculation needs to know which side the viewer is on. The DB
+ * stores `homeScore` / `awayScore` absolutely; whether the viewer's team was
+ * home depends on (a) which side they were on in the game record, and
+ * (b) the stored `homeAway` flag (which is always relative to the owning team).
+ *
+ * Rules:
+ *   - owning side + HOME   → owning was home
+ *   - owning side + AWAY   → owning was away
+ *   - opponent side + HOME → opponent was away (away of an away? no — opponent
+ *     is the *other* side, so if the owning team was HOME, the opponent was AWAY)
+ *   - opponent side + AWAY → opponent was home
+ *   - NEUTRAL stays neutral on both sides (no home advantage)
+ */
+function sideWasHome(game: Game, side: GameSide): boolean {
+  if (game.homeAway === 'NEUTRAL') return false
+  const owningWasHome = game.homeAway === 'HOME'
+  return side === 'owning' ? owningWasHome : !owningWasHome
+}
+
+function getScoreDisplayFromSide(game: Game, side: GameSide): string | null {
+  if (game.homeScore == null || game.awayScore == null) return null
+  const isHome = sideWasHome(game, side)
+  const mine = isHome ? game.homeScore : game.awayScore
+  const theirs = isHome ? game.awayScore : game.homeScore
+  const tied = mine === theirs
+  const won = mine > theirs
+  const prefix = tied ? 'T' : won ? 'W' : 'L'
+  return `${prefix} ${mine}-${theirs}`
+}
+
+/**
+ * Viewpoint describes how to render a game row from a chosen team's perspective.
+ * For most games the viewpoint is the owning team (no flip). For cross-school
+ * games where we're viewing the opponent school's schedule, the viewpoint flips
+ * to the opponent team — home/away inverts, scores swap, and the labels swap.
+ */
+interface GameViewpoint {
+  side: GameSide
+  team: TeamSummary | undefined
+  /** Name of the opponent from the viewpoint. */
+  opponentLabel: string
+  /** Home/away/neutral relative to the viewpoint team. */
+  homeAway: HomeAwayLiteral
+  scoreDisplay: string | null
+}
+
+function resolveGameViewpoint(
+  game: Game,
+  preferredTeamId: string | null,
+  candidateTeamIds: ReadonlySet<string>,
+): GameViewpoint {
+  // Default to the owning side — it's the canonical record holder.
+  let side: GameSide = 'owning'
+
+  if (preferredTeamId) {
+    // Explicit preference wins when it matches a side.
+    if (game.opponentAthleticTeamId === preferredTeamId) side = 'opponent'
+    else side = 'owning'
+  } else if (game.opponentAthleticTeamId) {
+    // No explicit team — fall back to whichever side is in view.
+    const owningInView = candidateTeamIds.has(game.athleticTeamId)
+    const opponentInView = candidateTeamIds.has(game.opponentAthleticTeamId)
+    if (!owningInView && opponentInView) side = 'opponent'
+  }
+
+  if (side === 'owning') {
+    return {
+      side,
+      team: game.athleticTeam,
+      opponentLabel: game.opponentAthleticTeam?.name ?? game.opponentName,
+      homeAway: (game.homeAway as HomeAwayLiteral) ?? 'HOME',
+      scoreDisplay: getScoreDisplayFromSide(game, 'owning'),
+    }
+  }
+
+  // Flipped — render from opponent side.
+  return {
+    side,
+    team: game.opponentAthleticTeam ?? undefined,
+    opponentLabel: game.athleticTeam?.name ?? game.opponentName,
+    homeAway: flipHomeAway(game.homeAway),
+    scoreDisplay: getScoreDisplayFromSide(game, 'opponent'),
+  }
+}
+
+function calcRecord(games: Game[], viewpointTeamId: string | null): { wins: number; losses: number; ties: number } {
   let wins = 0, losses = 0, ties = 0
   for (const g of games) {
     if (g.homeScore == null || g.awayScore == null || !g.isFinal) continue
     if (g.homeScore === g.awayScore) { ties++; continue }
-    const isHome = g.homeAway === 'HOME'
+    // When viewpointTeamId is null or matches owning side, count from owning
+    // perspective; when it matches the opponent side, count from opponent.
+    const side: GameSide =
+      viewpointTeamId && viewpointTeamId === g.opponentAthleticTeamId ? 'opponent' : 'owning'
+    const isHome = sideWasHome(g, side)
     const homeWon = g.homeScore > g.awayScore
     if ((isHome && homeWon) || (!isHome && !homeWon)) wins++
     else losses++
@@ -261,15 +362,23 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     }
   }, [displayTeams, selectedTeamId])
 
+  // Lookup set built once per render — used by viewpoint resolution and filters.
+  const displayTeamIds = useMemo(() => new Set(displayTeams.map((t) => t.id)), [displayTeams])
+
   // ─── Campus-filtered games/practices when viewing all teams ──────
 
   const displayGames = useMemo(() => {
     if (selectedTeamId || !activeCampusId) return games
+    // A game shows if EITHER side is an in-view team. This keeps cross-school
+    // games visible from both schools' perspectives (the owning-team side and
+    // the opponent-team side), rather than hiding the game from the opponent's
+    // schedule just because the authoritative record is owned by the other team.
     return games.filter((g) => {
-      const team = displayTeams.find((t) => t.id === g.athleticTeamId)
-      return !!team
+      if (displayTeamIds.has(g.athleticTeamId)) return true
+      if (g.opponentAthleticTeamId && displayTeamIds.has(g.opponentAthleticTeamId)) return true
+      return false
     })
-  }, [games, selectedTeamId, activeCampusId, displayTeams])
+  }, [games, selectedTeamId, activeCampusId, displayTeamIds])
 
   const displayPractices = useMemo(() => {
     if (selectedTeamId || !activeCampusId) return practices
@@ -307,8 +416,9 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     return items
   }, [displayGames, displayPractices, filter])
 
-  // Season record (from final games)
-  const record = useMemo(() => calcRecord(games), [games])
+  // Season record (from final games). When a specific team is selected the
+  // record flips correctly regardless of which side of each game they were on.
+  const record = useMemo(() => calcRecord(games, selectedTeamId || null), [games, selectedTeamId])
   const selectedTeam = displayTeams.find((t) => t.id === selectedTeamId)
 
   // Group by date
@@ -525,19 +635,29 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                   }`}>
                     {group.items.map((item, idx) => (
                       item.type === 'game' ? (
-                        <GameRow
-                          key={`game-${item.data.id}-${idx}`}
-                          game={item.data}
-                          showTeamName={showingAllTeams}
-                          onEdit={() => openGameEdit(item.data)}
-                          onScore={() => setScoreGame(item.data)}
-                          onPlayerStats={() => setPlayerStatsGame(item.data)}
-                          onDelete={() => setDeleteTarget({
-                            type: 'game',
-                            id: item.data.id,
-                            name: `vs ${item.data.opponentName}`,
-                          })}
-                        />
+                        (() => {
+                          const viewpoint = resolveGameViewpoint(
+                            item.data,
+                            selectedTeamId || null,
+                            displayTeamIds,
+                          )
+                          return (
+                            <GameRow
+                              key={`game-${item.data.id}-${idx}`}
+                              game={item.data}
+                              viewpoint={viewpoint}
+                              showTeamName={showingAllTeams}
+                              onEdit={() => openGameEdit(item.data)}
+                              onScore={() => setScoreGame(item.data)}
+                              onPlayerStats={() => setPlayerStatsGame(item.data)}
+                              onDelete={() => setDeleteTarget({
+                                type: 'game',
+                                id: item.data.id,
+                                name: `vs ${viewpoint.opponentLabel}`,
+                              })}
+                            />
+                          )
+                        })()
                       ) : (
                         <PracticeRow
                           key={`practice-${item.data.id}-${idx}`}
@@ -611,39 +731,45 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
-function GameRow({
-  game,
-  showTeamName,
-  onEdit,
-  onScore,
-  onPlayerStats,
-  onDelete,
-}: {
+interface GameRowProps {
   game: Game
+  viewpoint: GameViewpoint
   showTeamName?: boolean
   onEdit: () => void
   onScore: () => void
   onPlayerStats: () => void
   onDelete: () => void
-}) {
-  const sportColor = game.athleticTeam?.sport?.color || '#6a6864'
-  const prefix = game.homeAway === 'AWAY' ? '@' : 'vs'
-  const score = getScoreDisplay(game)
-  const homeAwayLabel = game.homeAway === 'HOME' ? 'Home' : game.homeAway === 'AWAY' ? 'Away' : 'Neutral'
+}
+
+function GameRow({
+  game,
+  viewpoint,
+  showTeamName,
+  onEdit,
+  onScore,
+  onPlayerStats,
+  onDelete,
+}: GameRowProps) {
+  const sportColor = viewpoint.team?.sport?.color || '#6a6864'
+  const sportName = viewpoint.team?.sport?.name || ''
+  const prefix = viewpoint.homeAway === 'AWAY' ? '@' : 'vs'
+  const score = viewpoint.scoreDisplay
+  const homeAwayLabel =
+    viewpoint.homeAway === 'HOME' ? 'Home' : viewpoint.homeAway === 'AWAY' ? 'Away' : 'Neutral'
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50 transition-colors">
-      <SportIcon sport={game.athleticTeam?.sport?.name || ''} size={16} style={{ color: sportColor }} className="flex-shrink-0" />
+      <SportIcon sport={sportName} size={16} style={{ color: sportColor }} className="flex-shrink-0" />
       <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-600 bg-stone-100 rounded">
         Game
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          {showTeamName && game.athleticTeam && (
-            <span className="text-xs font-medium text-stone-500">{game.athleticTeam.name}</span>
+          {showTeamName && viewpoint.team && (
+            <span className="text-xs font-medium text-stone-500">{viewpoint.team.name}</span>
           )}
           <span className="font-medium text-slate-900 text-sm">
-            {prefix} {game.opponentName}
+            {prefix} {viewpoint.opponentLabel}
           </span>
           <span className="text-[11px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 font-medium">
             {homeAwayLabel}

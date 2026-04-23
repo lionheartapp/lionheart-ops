@@ -105,7 +105,7 @@ async function createSmokeUser(organizationId, kind, createdPermissionIds) {
       status: 'ACTIVE',
       roleId: role.id,
       role: kind === 'manager' ? 'ADMIN' : 'VIEWER',
-      schoolScope: 'GLOBAL',
+      campusScope: null,
       teamIds: [],
     },
   })

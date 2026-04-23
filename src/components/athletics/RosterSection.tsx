@@ -54,6 +54,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<RosterPlayer | null>(null)
+  const [drawerTeamId, setDrawerTeamId] = useState('')
 
   // Form state
   const [firstName, setFirstName] = useState('')
@@ -63,6 +64,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   const [grade, setGrade] = useState('')
   const [height, setHeight] = useState('')
   const [weight, setWeight] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [bio, setBio] = useState('')
   const [linkedUserId, setLinkedUserId] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -111,12 +114,23 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     }
   }, [displayTeams, selectedTeamId])
 
-  // ─── Campus-filtered roster (for all-teams view) ─────────────────
+  // ─── Filter athletes by team / campus ─────────────────────────────
 
   const displayRoster = useMemo(() => {
-    if (selectedTeamId || !activeCampusId) return roster
-    const teamIds = new Set(displayTeams.map((t) => t.id))
-    return roster.filter((p) => teamIds.has(p.athleticTeamId))
+    let filtered = roster
+    // Filter by selected team
+    if (selectedTeamId) {
+      filtered = filtered.filter((a) =>
+        a.rosters?.some((r) => r.athleticTeamId === selectedTeamId)
+      )
+    } else if (activeCampusId) {
+      // Filter to athletes on campus teams
+      const teamIds = new Set(displayTeams.map((t) => t.id))
+      filtered = filtered.filter((a) =>
+        a.rosters?.some((r) => teamIds.has(r.athleticTeamId))
+      )
+    }
+    return filtered
   }, [roster, selectedTeamId, activeCampusId, displayTeams])
 
   // ─── Team directory (grouped roster for all-teams view) ─────────
@@ -124,24 +138,28 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   const teamDirectory = useMemo(() => {
     if (selectedTeamId) return []
     const counts = new Map<string, number>()
-    for (const p of displayRoster) {
-      counts.set(p.athleticTeamId, (counts.get(p.athleticTeamId) || 0) + 1)
+    for (const athlete of roster) {
+      for (const r of athlete.rosters ?? []) {
+        counts.set(r.athleticTeamId, (counts.get(r.athleticTeamId) || 0) + 1)
+      }
     }
     return displayTeams.map((t) => ({
       ...t,
       playerCount: counts.get(t.id) || 0,
     }))
-  }, [selectedTeamId, displayRoster, displayTeams])
+  }, [selectedTeamId, roster, displayTeams])
 
   // ─── Filtered roster ───────────────────────────────────────────────
 
   const filteredRoster = useMemo(() => {
     if (!search.trim()) return displayRoster
     const q = search.toLowerCase()
-    return displayRoster.filter((p) =>
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) ||
-      p.jerseyNumber?.includes(q) ||
-      p.position?.toLowerCase().includes(q)
+    return displayRoster.filter((a) =>
+      `${a.firstName} ${a.lastName}`.toLowerCase().includes(q) ||
+      a.rosters?.some((r) =>
+        r.jerseyNumber?.includes(q) ||
+        r.position?.toLowerCase().includes(q)
+      )
     )
   }, [displayRoster, search])
 
@@ -157,6 +175,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   const openCreate = useCallback(() => {
     setEditing(null)
     setDrawerMode('single')
+    setDrawerTeamId(selectedTeamId)
     setFirstName('')
     setLastName('')
     setJerseyNumber('')
@@ -164,25 +183,33 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
     setGrade('')
     setHeight('')
     setWeight('')
+    setPhotoUrl('')
+    setBio('')
     setLinkedUserId('')
     setError('')
     resetUploadState()
     setDrawerOpen(true)
-  }, [resetUploadState])
+  }, [resetUploadState, selectedTeamId])
 
   const openEdit = useCallback((player: RosterPlayer) => {
     setEditing(player)
     setFirstName(player.firstName)
     setLastName(player.lastName)
-    setJerseyNumber(player.jerseyNumber || '')
-    setPosition(player.position || '')
+    // For jersey/position, pick from the first roster entry (or selected team)
+    const rosterEntry = selectedTeamId
+      ? player.rosters?.find((r) => r.athleticTeamId === selectedTeamId)
+      : player.rosters?.[0]
+    setJerseyNumber(rosterEntry?.jerseyNumber || '')
+    setPosition(rosterEntry?.position || '')
     setGrade(player.grade || '')
     setHeight(player.height || '')
     setWeight(player.weight || '')
+    setPhotoUrl(player.photoUrl || '')
+    setBio(player.bio || '')
     setLinkedUserId(player.userId || '')
     setError('')
     setDrawerOpen(true)
-  }, [])
+  }, [selectedTeamId])
 
   const handleSave = async () => {
     if (!firstName.trim() || !lastName.trim()) {
@@ -190,34 +217,50 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       return
     }
 
+    const targetTeamId = editing ? undefined : (drawerTeamId || selectedTeamId)
+    if (!editing && !targetTeamId) {
+      setError('Please select a team')
+      return
+    }
+
     setSaving(true)
     setError('')
 
     try {
-      const body: Record<string, unknown> = {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        jerseyNumber: jerseyNumber.trim() || null,
-        position: position.trim() || null,
-        grade: grade.trim() || null,
-        height: height.trim() || null,
-        weight: weight.trim() || null,
-        userId: linkedUserId || null,
-      }
-
       let res: Response
       if (editing) {
+        // Update athlete info
+        const athleteBody = {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          grade: grade.trim() || null,
+          height: height.trim() || null,
+          weight: weight.trim() || null,
+          bio: bio.trim() || null,
+          userId: linkedUserId || null,
+        }
         res = await fetch(`/api/athletics/roster/${editing.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
+          body: JSON.stringify(athleteBody),
         })
       } else {
-        body.athleticTeamId = selectedTeamId
+        const createBody = {
+          athleticTeamId: targetTeamId,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          jerseyNumber: jerseyNumber.trim() || null,
+          position: position.trim() || null,
+          grade: grade.trim() || null,
+          height: height.trim() || null,
+          weight: weight.trim() || null,
+          bio: bio.trim() || null,
+          userId: linkedUserId || null,
+        }
         res = await fetch('/api/athletics/roster', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
+          body: JSON.stringify(createBody),
         })
       }
 
@@ -256,7 +299,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   }
 
   const handleBulkUpload = async () => {
-    if (!selectedTeamId || uploadParsed.length === 0) return
+    const bulkTeamId = drawerTeamId || selectedTeamId
+    if (!bulkTeamId || uploadParsed.length === 0) return
     setUploading(true)
     setUploadError('')
     setUploadResult(null)
@@ -265,7 +309,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       const res = await fetch('/api/athletics/roster/bulk-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ athleticTeamId: selectedTeamId, players: uploadParsed }),
+        body: JSON.stringify({ athleticTeamId: bulkTeamId, players: uploadParsed }),
       })
       if (handleAuthResponse(res)) return
       const data = await res.json()
@@ -332,9 +376,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
           <button
             type="button"
             onClick={openCreate}
-            disabled={!selectedTeamId}
-            title={!selectedTeamId ? 'Select a team first' : undefined}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition sm:ml-auto disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition sm:ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add Player
@@ -393,30 +435,29 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
               <table className="min-w-full divide-y divide-stone-100">
                 <thead>
                   <tr className="bg-stone-50/50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider w-12">#</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Team</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Position</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider">Teams</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider hidden sm:table-cell">Grade</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-50">
-                  {filteredRoster.map((player) => (
-                    <tr key={player.id} className="hover:bg-stone-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-900">
-                        {player.jerseyNumber || '\u2014'}
-                      </td>
+                  {filteredRoster.map((athlete) => (
+                    <tr key={athlete.id} className="hover:bg-stone-50/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                        {player.firstName} {player.lastName}
+                        {athlete.firstName} {athlete.lastName}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <SportIcon sport={player.athleticTeam?.sport?.name || ''} size={14} style={{ color: player.athleticTeam?.sport?.color || '#6a6864' }} className="flex-shrink-0" />
-                          <span className="text-sm text-stone-600">{player.athleticTeam?.name}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {athlete.rosters?.map((r) => (
+                            <span key={r.id} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: r.athleticTeam?.sport?.color || '#999' }} />
+                              {r.athleticTeam?.name}
+                              {r.jerseyNumber && <span className="text-stone-400">#{r.jerseyNumber}</span>}
+                            </span>
+                          ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-stone-600">{player.position || '\u2014'}</td>
-                      <td className="px-4 py-3 text-sm text-stone-600 hidden sm:table-cell">{player.grade || '\u2014'}</td>
+                      <td className="px-4 py-3 text-sm text-stone-600 hidden sm:table-cell">{athlete.grade || '\u2014'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -453,8 +494,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
         </div>
       ) : (
         <div className="ui-glass-table">
-          <RosterCards players={filteredRoster} onEdit={openEdit} onDelete={handleDeletePlayer} />
-          <RosterTable players={filteredRoster} onEdit={openEdit} onDelete={handleDeletePlayer} />
+          <RosterCards players={filteredRoster} selectedTeamId={selectedTeamId} onEdit={openEdit} onDelete={handleDeletePlayer} />
+          <RosterTable players={filteredRoster} selectedTeamId={selectedTeamId} onEdit={openEdit} onDelete={handleDeletePlayer} />
           <div className="border-t border-stone-100 px-4 py-2.5 text-xs text-stone-500">
             {filteredRoster.length} player{filteredRoster.length !== 1 ? 's' : ''}
           </div>
@@ -548,9 +589,17 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             grade={grade}
             height={height}
             weight={weight}
+            photoUrl={photoUrl}
+            bio={bio}
             linkedUserId={linkedUserId}
             userOptions={userOptions}
             error={error}
+            playerId={editing?.id}
+            existingRosters={editing?.rosters}
+            teamOptions={teamOptions}
+            drawerTeamId={drawerTeamId}
+            selectedTeamId={selectedTeamId}
+            onDrawerTeamIdChange={setDrawerTeamId}
             onFirstNameChange={setFirstName}
             onLastNameChange={setLastName}
             onJerseyNumberChange={setJerseyNumber}
@@ -558,6 +607,8 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             onGradeChange={setGrade}
             onHeightChange={setHeight}
             onWeightChange={setWeight}
+            onPhotoUrlChange={setPhotoUrl}
+            onBioChange={setBio}
             onLinkedUserIdChange={setLinkedUserId}
           />
         )}

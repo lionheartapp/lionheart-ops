@@ -140,7 +140,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
           where: { deletedAt: null },
           select: {
             name: true,
-            areas: {
+            spaces: {
               where: { deletedAt: null },
               select: {
                 name: true,
@@ -157,7 +157,7 @@ async function executeEventPlanningTool(name: string): Promise<string> {
         })
         return JSON.stringify({ buildings: buildings.map((b) => ({
           name: b.name,
-          areas: b.areas?.map((a) => ({
+          areas: b.spaces?.map((a) => ({
             name: a.name,
             rooms: a.rooms?.map((r) => r.displayName || r.roomNumber),
           })),

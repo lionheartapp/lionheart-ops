@@ -91,7 +91,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           source: 'QR_CODE',
           locationText,
           buildingId: resolved.buildingId,
-          areaId: resolved.areaId,
+          spaceId: resolved.spaceId,
           roomId: resolved.roomId,
           customFields: data.customFields ?? undefined,
           submitterName: data.submitterName ?? 'QR Submission',

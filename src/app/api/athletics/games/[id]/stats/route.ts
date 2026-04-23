@@ -7,6 +7,7 @@ import { getPlayerGameStats, bulkUpsertPlayerGameStats } from '@/lib/services/at
 
 const BulkStatsSchema = z.object({
   stats: z.array(z.object({
+    athleteId: z.string().min(1),
     rosterId: z.string().min(1),
     statKey: z.string().min(1),
     statValue: z.number(),

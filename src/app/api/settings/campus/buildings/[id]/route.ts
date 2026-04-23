@@ -7,26 +7,66 @@ import type { Prisma } from '@prisma/client'
 import { PERMISSIONS } from '@/lib/permissions'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
-const UpdateBuildingSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
-  code: z.string().trim().min(1).max(30).optional().nullable(),
-  schoolId: z.string().optional().nullable(),
-  /** M:N school scoping. Empty array = shared with all schools. Undefined = leave unchanged. */
-  schoolIds: z.array(z.string()).optional(),
-  schoolDivision: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL']).optional(),
-  buildingType: z.enum(['GENERAL', 'ARTS_CULTURE', 'ATHLETICS', 'ADMINISTRATION', 'SUPPORT_SERVICES']).optional(),
-  sortOrder: z.number().int().optional(),
-  isActive: z.boolean().optional(),
-  latitude: z.number().min(-90).max(90).optional().nullable(),
-  longitude: z.number().min(-180).max(180).optional().nullable(),
-  polygonCoordinates: z.array(z.object({
-    lat: z.number().min(-90).max(90),
-    lng: z.number().min(-180).max(180),
-  })).min(3).optional().nullable(),
-})
+/**
+ * PATCH /api/settings/campus/buildings/:id
+ *
+ * Buildings are polymorphic — the parent can be re-pointed between
+ * (districtId, schoolId, campusId) but exactly one must always be set.
+ * The old BuildingSchool M:N junction and per-building schoolDivision
+ * field were dropped in Phase 1b.
+ */
+const UpdateBuildingSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    code: z.string().trim().min(1).max(30).optional().nullable(),
+    districtId: z.string().min(1).optional().nullable(),
+    schoolId: z.string().min(1).optional().nullable(),
+    campusId: z.string().min(1).optional().nullable(),
+    siteId: z.string().min(1).optional().nullable(),
+    address: z.string().trim().max(400).optional().nullable(),
+    buildingType: z
+      .enum(['GENERAL', 'ARTS_CULTURE', 'ATHLETICS', 'ADMINISTRATION', 'SUPPORT_SERVICES'])
+      .optional(),
+    sortOrder: z.number().int().optional(),
+    isActive: z.boolean().optional(),
+    latitude: z.number().min(-90).max(90).optional().nullable(),
+    longitude: z.number().min(-180).max(180).optional().nullable(),
+    polygonCoordinates: z
+      .array(
+        z.object({
+          lat: z.number().min(-90).max(90),
+          lng: z.number().min(-180).max(180),
+        }),
+      )
+      .min(3)
+      .optional()
+      .nullable(),
+  })
+  .refine(
+    (input) => {
+      // Only validate when caller is touching parent fields at all
+      const touched = [input.districtId, input.schoolId, input.campusId].some(
+        (v) => v !== undefined,
+      )
+      if (!touched) return true
+      const set = [input.districtId, input.schoolId, input.campusId].filter(Boolean).length
+      return set === 1
+    },
+    {
+      message: 'When changing the parent, exactly one of districtId, schoolId, or campusId must be set.',
+    },
+  )
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-  const building = await prisma.building.findFirst({ where: { id: params.id, organizationId: orgId } })
+  const building = await prisma.building.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    include: {
+      school: { select: { id: true, name: true, color: true } },
+      district: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true, campusKind: true } },
+      site: { select: { id: true, label: true, address: true } },
+    },
+  })
 
   if (!building) {
     return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
@@ -39,76 +79,73 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, para
   const body = await req.json()
   const input = UpdateBuildingSchema.parse(body)
 
-  const existing = await prisma.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true, campusId: true } })
+  const existing = await prisma.building.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    select: { id: true, districtId: true, schoolId: true, campusId: true },
+  })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
 
-  // Extract schoolIds from input — handled separately via junction table
-  const { schoolIds, ...fieldInput } = input
+  // If caller is touching parent fields, null out the untouched ones so we
+  // preserve the "exactly one parent" invariant.
+  const touchingParent = [input.districtId, input.schoolId, input.campusId].some(
+    (v) => v !== undefined,
+  )
 
-  // If schoolIds provided, validate and replace junction rows
-  if (schoolIds !== undefined) {
-    if (schoolIds.length > 0) {
-      const valid = await prisma.school.findMany({
-        where: { id: { in: schoolIds }, organizationId: orgId, campusId: existing.campusId, deletedAt: null },
-        select: { id: true },
-      })
-      if (valid.length !== schoolIds.length) {
-        return NextResponse.json(
-          fail('VALIDATION_ERROR', 'One or more schools do not belong to this campus'),
-          { status: 400 }
-        )
-      }
-    }
-
-    // Replace junction: delete existing, insert new
-    await prisma.buildingSchool.deleteMany({ where: { buildingId: params.id } })
-    if (schoolIds.length > 0) {
-      await prisma.buildingSchool.createMany({
-        data: schoolIds.map((schoolId) => ({ buildingId: params.id, schoolId })),
-        skipDuplicates: true,
-      })
-    }
+  const patch: Record<string, unknown> = { ...input }
+  if (touchingParent) {
+    patch.districtId = input.districtId ?? null
+    patch.schoolId = input.schoolId ?? null
+    patch.campusId = input.campusId ?? null
   }
 
   const building = await prisma.building.update({
     where: { id: params.id },
-    data: Object.fromEntries(Object.entries(fieldInput).filter(([, v]) => v !== undefined)) as Prisma.BuildingUpdateInput,
+    data: Object.fromEntries(
+      Object.entries(patch).filter(([, v]) => v !== undefined),
+    ) as Prisma.BuildingUpdateInput,
     include: {
-      school: { select: { id: true, name: true, gradeLevel: true, color: true } },
-      schoolLinks: {
-        select: { school: { select: { id: true, name: true, gradeLevel: true, color: true } } },
-      },
+      school: { select: { id: true, name: true, color: true } },
+      district: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true, campusKind: true } },
+      site: { select: { id: true, label: true, address: true } },
     },
   })
 
   invalidateOrgCache(orgId)
 
-  const { schoolLinks, ...rest } = building
-  const result = { ...rest, schools: schoolLinks.map((l) => l.school) }
-
-  return NextResponse.json(ok(result))
+  return NextResponse.json(ok(building))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE })
 
 export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params, searchParams }) => {
   const permanent = searchParams.get('permanent') === 'true'
 
-  const existing = await prisma.building.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  const existing = await prisma.building.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    select: { id: true },
+  })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
   }
 
   if (permanent) {
-    // Hard delete: use rawPrisma to bypass soft-delete extension
+    // Hard delete: use rawPrisma to bypass soft-delete extension.
+    // Spaces under this building become orphaned (buildingId → null) rather
+    // than being deleted, matching the pre-Phase-1b semantics.
     await rawPrisma.room.deleteMany({ where: { buildingId: params.id, organizationId: orgId } })
-    await rawPrisma.area.updateMany({ where: { buildingId: params.id, organizationId: orgId }, data: { buildingId: null } })
+    await rawPrisma.space.updateMany({
+      where: { buildingId: params.id, organizationId: orgId },
+      data: { buildingId: null },
+    })
     await rawPrisma.building.delete({ where: { id: params.id } })
     invalidateOrgCache(orgId)
     return NextResponse.json(ok({ id: params.id, deleted: true }))
   } else {
-    // Soft deactivate
-    const building = await prisma.building.update({ where: { id: params.id }, data: { isActive: false } })
+    const building = await prisma.building.update({
+      where: { id: params.id },
+      data: { isActive: false },
+    })
     invalidateOrgCache(orgId)
     return NextResponse.json(ok(building))
   }

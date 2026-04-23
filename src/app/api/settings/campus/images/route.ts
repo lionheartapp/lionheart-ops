@@ -10,21 +10,28 @@ import { logger } from '@/lib/logger'
 
 const MAX_IMAGES = 4
 
+// Accept both "space" (preferred) and legacy "area" for backward compat
 const UploadSchema = z.object({
-  entityType: z.enum(['building', 'area', 'room']),
+  entityType: z.enum(['building', 'space', 'area', 'room']),
   entityId: z.string().min(1),
   fileBase64: z.string().min(1), // base64-encoded image data (without data: prefix)
   contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
 })
 
 const DeleteSchema = z.object({
-  entityType: z.enum(['building', 'area', 'room']),
+  entityType: z.enum(['building', 'space', 'area', 'room']),
   entityId: z.string().min(1),
   imageUrl: z.string().url(),
 })
 
+function resolveEntityModel(entityType: string): 'building' | 'space' | 'room' {
+  if (entityType === 'building') return 'building'
+  if (entityType === 'space' || entityType === 'area') return 'space'
+  return 'room'
+}
+
 async function getEntity(entityType: string, entityId: string, orgId: string) {
-  const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
+  const model = resolveEntityModel(entityType)
   return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).findFirst({
     where: { id: entityId, organizationId: orgId, deletedAt: null },
     select: { id: true, images: true },
@@ -32,7 +39,7 @@ async function getEntity(entityType: string, entityId: string, orgId: string) {
 }
 
 async function updateEntityImages(entityType: string, entityId: string, images: string[]) {
-  const model = entityType === 'building' ? 'building' : entityType === 'area' ? 'area' : 'room'
+  const model = resolveEntityModel(entityType)
   return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).update({
     where: { id: entityId },
     data: { images },
@@ -40,7 +47,7 @@ async function updateEntityImages(entityType: string, entityId: string, images: 
 }
 
 /**
- * POST /api/settings/campus/images -- Upload an image for a building, area, or room
+ * POST /api/settings/campus/images -- Upload an image for a building, space (area), or room
  */
 export const POST = withAuth<z.infer<typeof UploadSchema>>(async ({ orgId, body }) => {
   // Decode base64 and validate MIME type + size using shared utility
@@ -82,7 +89,7 @@ export const POST = withAuth<z.infer<typeof UploadSchema>>(async ({ orgId, body 
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UploadSchema })
 
 /**
- * DELETE /api/settings/campus/images -- Remove an image from a building, area, or room
+ * DELETE /api/settings/campus/images -- Remove an image from a building, space (area), or room
  */
 export const DELETE = withAuth<z.infer<typeof DeleteSchema>>(async ({ orgId, body }) => {
   // Verify entity exists and belongs to org

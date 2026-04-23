@@ -45,20 +45,31 @@ export {
   clearMatchResult,
 } from './tournaments'
 
-// ── Roster & Stats ────────────────────────────────────────────────────────
+// ── Athletes, Roster & Stats ─────────────────────────────────────────────
 export {
+  // Athlete CRUD
+  getAthletes,
+  getAthlete,
+  createAthlete,
+  updateAthlete,
+  deleteAthlete,
+  // Roster (team assignments)
+  addAthleteToTeam,
+  updateRosterEntry,
+  removeAthleteFromTeam,
+  // Backwards-compat (deprecated)
   getRoster,
   getRosterPlayer,
-  createRosterPlayer,
-  updateRosterPlayer,
-  deleteRosterPlayer,
+  // Game stats
   getPlayerGameStats,
   upsertPlayerGameStat,
   bulkUpsertPlayerGameStats,
   deletePlayerGameStats,
+  // Stat configs
   getSportStatConfigs,
   upsertSportStatConfig,
   deleteSportStatConfig,
+  // Bulk import
   bulkImportRosterPlayers,
 } from './roster'
 
@@ -68,6 +79,7 @@ export {
   getPlayerStatLeaders,
   getAthleticsCalendarEvents,
   getPublicScheduleData,
+  getPublicPlayerProfile,
 } from './analytics'
 
 export type { AthleticsCalendarEvent } from './analytics'

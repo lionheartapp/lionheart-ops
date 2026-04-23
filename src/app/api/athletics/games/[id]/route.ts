@@ -6,6 +6,9 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { updateGame, deleteGame } from '@/lib/services/athleticsService'
 
 const UpdateGameSchema = z.object({
+  // `null` explicitly clears the FK (switches an in-org opponent back to an
+  // external one). `undefined` leaves it untouched.
+  opponentAthleticTeamId: z.string().min(1).nullable().optional(),
   opponentName: z.string().trim().min(1).max(200).optional(),
   homeAway: z.enum(['HOME', 'AWAY', 'NEUTRAL']).optional(),
   startTime: z.string().transform((s) => new Date(s)).optional(),

@@ -61,7 +61,7 @@ interface NormalizedStudent {
   grade: string | null
   gradeNumeric: number | null
   externalId: string
-  schoolId: string | null
+  campusId: string | null
 }
 
 interface SyncSummary {
@@ -111,10 +111,10 @@ export function normalizeToStudent(
   schoolMappings: Record<string, string>
 ): NormalizedStudent {
   // Map the first org to an internal school ID via the mapping
-  let schoolId: string | null = null
+  let campusId: string | null = null
   if (student.orgs && student.orgs.length > 0) {
     const primaryOrg = student.orgs[0]
-    schoolId = schoolMappings[primaryOrg.sourcedId] || null
+    campusId = schoolMappings[primaryOrg.sourcedId] || null
   }
 
   return {
@@ -124,7 +124,7 @@ export function normalizeToStudent(
     grade: normalizeGradeLabel(student.grade),
     gradeNumeric: parseGradeNumeric(student.grade),
     externalId: student.sourcedId,
-    schoolId,
+    campusId,
   }
 }
 
@@ -178,7 +178,7 @@ async function upsertStudent(
       existing.email !== normalized.email ||
       existing.grade !== normalized.grade ||
       existing.gradeNumeric !== normalized.gradeNumeric ||
-      existing.schoolId !== normalized.schoolId
+      existing.campusId !== normalized.campusId
 
     if (!hasChanges) {
       // Touch lastSyncedAt even if no data changed
@@ -197,7 +197,7 @@ async function upsertStudent(
         email: normalized.email,
         grade: normalized.grade,
         gradeNumeric: normalized.gradeNumeric,
-        schoolId: normalized.schoolId,
+        campusId: normalized.campusId,
         status: 'ACTIVE',
         rosterSource,
         lastSyncedAt: new Date(),
@@ -216,7 +216,7 @@ async function upsertStudent(
       externalId: normalized.externalId,
       grade: normalized.grade,
       gradeNumeric: normalized.gradeNumeric,
-      schoolId: normalized.schoolId,
+      campusId: normalized.campusId,
       status: 'ACTIVE',
       rosterSource,
       lastSyncedAt: new Date(),

@@ -47,6 +47,8 @@ export interface SidebarSelectionState {
   setAthleticsActiveTab: React.Dispatch<React.SetStateAction<string>>
   athleticsVisibleCampusIds: Set<string>
   setAthleticsVisibleCampusIds: React.Dispatch<React.SetStateAction<Set<string>>>
+  athleticsHasSports: boolean
+  setAthleticsHasSports: React.Dispatch<React.SetStateAction<boolean>>
 
   // Meet-with
   meetWithPeople: MeetWithPerson[]
@@ -86,6 +88,7 @@ export function useSidebarSelectionState(
   const [athleticsCampusId, setAthleticsCampusId] = useState<string | null>(null)
   const [athleticsActiveTab, setAthleticsActiveTab] = useState<string>('overview')
   const [athleticsVisibleCampusIds, setAthleticsVisibleCampusIds] = useState<Set<string>>(new Set())
+  const [athleticsHasSports, setAthleticsHasSports] = useState(false)
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -184,6 +187,8 @@ export function useSidebarSelectionState(
     setAthleticsActiveTab,
     athleticsVisibleCampusIds,
     setAthleticsVisibleCampusIds,
+    athleticsHasSports,
+    setAthleticsHasSports,
     meetWithPeople,
     setMeetWithPeople,
     activeSettingsTab,

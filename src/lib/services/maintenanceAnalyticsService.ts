@@ -22,7 +22,6 @@ import { startOfDay, subMonths, startOfWeek, startOfMonth, format } from 'date-f
 
 export interface AnalyticsOptions {
   campusId?: string
-  schoolId?: string
   months?: number
 }
 
@@ -102,14 +101,6 @@ function getCutoff(months: number): Date {
   return subMonths(startOfDay(new Date()), months)
 }
 
-async function getSchoolIdsForCampus(campusId: string): Promise<string[]> {
-  const schools = await rawPrisma.school.findMany({
-    where: { campusId, deletedAt: null },
-    select: { id: true },
-  })
-  return schools.map((s) => s.id)
-}
-
 // ─── ANALYTICS-01: Tickets by Status per Campus ───────────────────────────────
 
 export async function getTicketsByStatus(
@@ -118,48 +109,37 @@ export async function getTicketsByStatus(
 ): Promise<TicketsByStatusResult> {
   const { campusId } = opts
 
-  // Resolve school IDs for campus filter
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) {
-      return { statuses: [...ALL_STATUSES], campuses: [] }
-    }
-  }
-
-  // Group tickets by status + schoolId
+  // Group tickets by status + campusId
   const grouped = await rawPrisma.maintenanceTicket.groupBy({
-    by: ['status', 'schoolId'],
+    by: ['status', 'campusId'],
     where: {
       organizationId: orgId,
       deletedAt: null,
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })
 
-  // Get school names
-  const schoolIds = [...new Set(grouped.map((g) => g.schoolId).filter(Boolean) as string[])]
-  const schools = schoolIds.length > 0
-    ? await rawPrisma.school.findMany({
-        where: { id: { in: schoolIds }, deletedAt: null },
-        select: { id: true, name: true, campusId: true },
+  // Get campus names
+  const campusIds = [...new Set(grouped.map((g) => g.campusId).filter(Boolean) as string[])]
+  const campuses = campusIds.length > 0
+    ? await rawPrisma.campus.findMany({
+        where: { id: { in: campusIds } },
+        select: { id: true, name: true },
       })
     : []
 
-  // Build campus -> school map; group unknown tickets as "All Campuses"
-  const schoolMap = new Map(schools.map((s) => [s.id, s]))
+  const campusNameMap = new Map(campuses.map((c) => [c.id, c.name]))
 
   const campusAccum: Map<string, { campusName: string; counts: Record<string, number> }> = new Map()
 
-  // Always include "No Campus" bucket for tickets without schoolId
+  // Always include "All Campuses" bucket for tickets without campusId
   const allEntry = { campusName: 'All Campuses', counts: {} as Record<string, number> }
   campusAccum.set('__all__', allEntry)
 
   for (const row of grouped) {
-    const school = row.schoolId ? schoolMap.get(row.schoolId) : null
-    const campusKey = school?.campusId ?? '__all__'
-    const campusName = school ? school.name : 'All Campuses'
+    const campusKey = row.campusId ?? '__all__'
+    const campusName = row.campusId ? (campusNameMap.get(row.campusId) ?? 'Unknown Campus') : 'All Campuses'
 
     if (!campusAccum.has(campusKey)) {
       campusAccum.set(campusKey, { campusName, counts: {} })
@@ -168,11 +148,11 @@ export async function getTicketsByStatus(
     entry.counts[row.status] = (entry.counts[row.status] ?? 0) + row._count.id
   }
 
-  const campuses = [...campusAccum.entries()]
+  const campusList = [...campusAccum.entries()]
     .filter(([, v]) => Object.keys(v.counts).length > 0)
-    .map(([campusId, v]) => ({ campusId, campusName: v.campusName, counts: v.counts }))
+    .map(([cid, v]) => ({ campusId: cid, campusName: v.campusName, counts: v.counts }))
 
-  return { statuses: [...ALL_STATUSES], campuses }
+  return { statuses: [...ALL_STATUSES], campuses: campusList }
 }
 
 // ─── ANALYTICS-02: Resolution Time by Category ────────────────────────────────
@@ -184,19 +164,13 @@ export async function getResolutionTimeByCategory(
   const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
   const tickets = await rawPrisma.maintenanceTicket.findMany({
     where: {
       organizationId: orgId,
       status: 'DONE',
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: { category: true, createdAt: true, updatedAt: true },
   })
@@ -234,12 +208,6 @@ export async function getTechnicianWorkload(
   const weekStart = startOfWeek(now, { weekStartsOn: 1 })
   const monthStart = startOfMonth(now)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
   // Active ticket counts per assignee
   const ticketGroups = await rawPrisma.maintenanceTicket.groupBy({
     by: ['assignedToId'],
@@ -248,7 +216,7 @@ export async function getTechnicianWorkload(
       deletedAt: null,
       status: { notIn: ['DONE', 'CANCELLED'] },
       assignedToId: { not: null },
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })
@@ -317,21 +285,13 @@ export async function getPmComplianceRate(
   const { campusId } = opts
   const now = new Date()
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) {
-      return { completedOnTime: 0, overdue: 0, pending: 0, complianceRate: 0 }
-    }
-  }
-
   const pmTickets = await rawPrisma.maintenanceTicket.findMany({
     where: {
       organizationId: orgId,
       pmScheduleId: { not: null },
       pmScheduledDueDate: { lte: now },
       deletedAt: null,
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     select: { status: true, pmScheduledDueDate: true, updatedAt: true },
   })
@@ -375,17 +335,11 @@ export async function getLaborHoursByMonth(
   const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
   const entries = await rawPrisma.maintenanceLaborEntry.findMany({
     where: {
       organizationId: orgId,
       startTime: { gte: cutoff },
-      ...(schoolIdFilter ? { ticket: { schoolId: { in: schoolIdFilter } } } : {}),
+      ...(campusId ? { ticket: { campusId } } : {}),
     },
     include: {
       ticket: {
@@ -436,24 +390,12 @@ export async function getCostByBuilding(
   const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
-  const ticketFilter = {
-    organizationId: orgId,
-    deletedAt: null,
-    ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
-  }
-
   // Fetch labor entries with technician rate and building
   const laborEntries = await rawPrisma.maintenanceLaborEntry.findMany({
     where: {
       organizationId: orgId,
       startTime: { gte: cutoff },
-      ticket: schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : undefined,
+      ...(campusId ? { ticket: { campusId } } : {}),
     },
     include: {
       ticket: {
@@ -477,8 +419,8 @@ export async function getCostByBuilding(
     where: {
       organizationId: orgId,
       createdAt: { gte: cutoff },
-      ticket: schoolIdFilter
-        ? { ...ticketFilter, deletedAt: null, schoolId: { in: schoolIdFilter } }
+      ticket: campusId
+        ? { organizationId: orgId, deletedAt: null, campusId }
         : { organizationId: orgId, deletedAt: null },
     },
     include: {
@@ -542,19 +484,13 @@ export async function getTopTicketLocations(
   const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
   const grouped = await rawPrisma.maintenanceTicket.groupBy({
-    by: ['buildingId', 'areaId', 'roomId'],
+    by: ['buildingId', 'spaceId', 'roomId'],
     where: {
       organizationId: orgId,
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } },
@@ -565,15 +501,15 @@ export async function getTopTicketLocations(
 
   // Batch load names
   const buildingIds = [...new Set(grouped.map((g) => g.buildingId).filter(Boolean) as string[])]
-  const areaIds = [...new Set(grouped.map((g) => g.areaId).filter(Boolean) as string[])]
+  const spaceIds = [...new Set(grouped.map((g) => g.spaceId).filter(Boolean) as string[])]
   const roomIds = [...new Set(grouped.map((g) => g.roomId).filter(Boolean) as string[])]
 
-  const [buildings, areas, rooms] = await Promise.all([
+  const [buildings, spaces, rooms] = await Promise.all([
     buildingIds.length > 0
       ? rawPrisma.building.findMany({ where: { id: { in: buildingIds } }, select: { id: true, name: true } })
       : [],
-    areaIds.length > 0
-      ? rawPrisma.area.findMany({ where: { id: { in: areaIds } }, select: { id: true, name: true } })
+    spaceIds.length > 0
+      ? rawPrisma.space.findMany({ where: { id: { in: spaceIds } }, select: { id: true, name: true } })
       : [],
     roomIds.length > 0
       ? rawPrisma.room.findMany({ where: { id: { in: roomIds } }, select: { id: true, roomNumber: true, displayName: true } })
@@ -581,13 +517,13 @@ export async function getTopTicketLocations(
   ])
 
   const buildingMap = new Map(buildings.map((b) => [b.id, b.name]))
-  const areaMap = new Map(areas.map((a) => [a.id, a.name]))
+  const spaceMap = new Map(spaces.map((s) => [s.id, s.name]))
   const roomMap = new Map(rooms.map((r) => [r.id, r.displayName || r.roomNumber]))
 
   return grouped.map((g, i) => {
     const parts = [
       g.buildingId ? buildingMap.get(g.buildingId) : null,
-      g.areaId ? areaMap.get(g.areaId) : null,
+      g.spaceId ? spaceMap.get(g.spaceId) : null,
       g.roomId ? roomMap.get(g.roomId) : null,
     ].filter(Boolean)
 
@@ -608,19 +544,13 @@ export async function getCategoryBreakdown(
   const { months = 6, campusId } = opts
   const cutoff = getCutoff(months)
 
-  let schoolIdFilter: string[] | undefined
-  if (campusId) {
-    schoolIdFilter = await getSchoolIdsForCampus(campusId)
-    if (schoolIdFilter.length === 0) return []
-  }
-
   const grouped = await rawPrisma.maintenanceTicket.groupBy({
     by: ['category'],
     where: {
       organizationId: orgId,
       deletedAt: null,
       createdAt: { gte: cutoff },
-      ...(schoolIdFilter ? { schoolId: { in: schoolIdFilter } } : {}),
+      ...(campusId ? { campusId } : {}),
     },
     _count: { id: true },
   })

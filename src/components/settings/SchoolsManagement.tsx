@@ -21,7 +21,7 @@ import {
 } from '@/lib/school-utils'
 import type { SchoolFormData, SuccessModalData, PrincipalEditorData } from '@/lib/school-utils'
 
-type SchoolData = Pick<School, 'id' | 'name' | 'gradeLevel' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
+type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
 export type SchoolsManagementHandle = {
   openNew: () => void
@@ -210,7 +210,6 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
               ? {
                   ...s,
                   name: form.name,
-                  gradeLevel: form.gradeLevel,
                   color: form.color,
                   principalName: form.principalName || null,
                   principalEmail: form.principalEmail || null,
@@ -291,7 +290,7 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
     setEditingId(school.id)
     setForm({
       name: school.name,
-      gradeLevel: school.gradeLevel as SchoolFormData['gradeLevel'],
+      gradeLevel: 'ELEMENTARY',
       color: school.color || '#3b82f6',
       principalName: school.principalName || '',
       principalEmail: school.principalEmail || '',
@@ -397,7 +396,6 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
             <thead>
               <tr className="text-slate-500 border-b bg-slate-50">
                 <th className="py-3 px-4 text-left font-medium">Name</th>
-                <th className="py-3 px-4 text-left font-medium">Grade Level</th>
                 <th className="py-3 px-4 text-left font-medium">Principal</th>
                 <th className="py-3 pl-4 pr-10 text-right font-medium">Actions</th>
               </tr>
@@ -410,9 +408,6 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: school.color }} />
                       {school.name}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {school.gradeLevel.replace(/_/g, ' ')}
                   </td>
                   <td className="px-4 py-3 text-slate-600">
                     {school.principalName || '\u2014'}

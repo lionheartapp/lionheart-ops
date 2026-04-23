@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
             status: true,
             emailVerified: true,
             organizationId: true,
-            schoolScope: true,
+            campusScope: true,
             userRole: {
               select: { name: true },
             },
@@ -40,7 +40,6 @@ export async function GET(req: NextRequest) {
               select: {
                 name: true,
                 logoUrl: true,
-                gradeLevel: true,
               },
             },
           },

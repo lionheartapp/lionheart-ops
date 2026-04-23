@@ -28,21 +28,32 @@ const tools: Record<string, ToolRegistryEntry> = {
         return JSON.stringify({ error: 'Please provide a date in YYYY-MM-DD format.' })
       }
 
-      const org = await rawPrisma.organization.findUnique({
-        where: { id: ctx.organizationId },
-        select: { latitude: true, longitude: true, name: true },
-      })
-      if (!org?.latitude || !org?.longitude) {
+      // `latitude`/`longitude` moved off Organization onto School in the Phase 1c
+      // ontology inversion. Pull coords from the primary School and use the
+      // Organization only for the display name.
+      const [org, primarySchool] = await Promise.all([
+        rawPrisma.organization.findUnique({
+          where: { id: ctx.organizationId },
+          select: { name: true },
+        }),
+        rawPrisma.school.findFirst({
+          where: { organizationId: ctx.organizationId, deletedAt: null },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+          select: { latitude: true, longitude: true },
+        }),
+      ])
+
+      if (!primarySchool?.latitude || !primarySchool?.longitude) {
         return JSON.stringify({ error: `Location data is not configured for ${org?.name || 'your organization'}.` })
       }
 
-      const forecast = await fetchWeatherForecast(org.latitude, org.longitude, targetDate)
+      const forecast = await fetchWeatherForecast(primarySchool.latitude, primarySchool.longitude, targetDate)
       if (!forecast) {
         return JSON.stringify({ error: `Could not fetch weather data for ${targetDate}.` })
       }
 
       return JSON.stringify({
-        date: forecast.date, location: org.name,
+        date: forecast.date, location: org?.name ?? 'your organization',
         high: `${forecast.tempMax}F`, low: `${forecast.tempMin}F`,
         condition: forecast.condition, precipitationChance: `${forecast.precipitationChance}%`,
         message: `${forecast.condition} on ${forecast.date} -- High ${forecast.tempMax}F, Low ${forecast.tempMin}F, ${forecast.precipitationChance}% chance of precipitation.`,

@@ -93,7 +93,7 @@ async function ensureSmokeUser(organizationId) {
       status: 'ACTIVE',
       roleId: role.id,
       role: 'ADMIN',
-      schoolScope: 'GLOBAL',
+      campusScope: null,
       teamIds: [],
     },
   })

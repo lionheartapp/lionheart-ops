@@ -18,12 +18,12 @@ import { getCached, settingsCacheKey } from '@/lib/cache/settings-cache'
 const DASHBOARD_CACHE_TTL = 60 * 1000
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const schoolId = searchParams.get('schoolId') || undefined
+  const campusId = searchParams.get('campusId') || undefined
 
-  const cacheKey = settingsCacheKey(orgId, `maint-dashboard:${schoolId || 'all'}`)
+  const cacheKey = settingsCacheKey(orgId, `maint-dashboard:${campusId || 'all'}`)
   const stats = await getCached(cacheKey, async () => {
     const baseWhere: Prisma.MaintenanceTicketWhereInput = {}
-    if (schoolId) baseWhere.schoolId = schoolId
+    if (campusId) baseWhere.campusId = campusId
     const activeWhere: Prisma.MaintenanceTicketWhereInput = { ...baseWhere, status: { notIn: ['DONE', 'CANCELLED'] } }
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
@@ -92,34 +92,34 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         : null
 
     // Campus comparison — only when viewing all campuses
-    let byCampus: { schoolId: string; schoolName: string; count: number }[] = []
-    if (!schoolId) {
+    let byCampus: { campusId: string; campusName: string; count: number }[] = []
+    if (!campusId) {
       const campusCounts = await prisma.maintenanceTicket.groupBy({
-        by: ['schoolId'],
+        by: ['campusId'],
         where: {
           status: { notIn: ['DONE', 'CANCELLED'] },
-          schoolId: { not: null },
+          campusId: { not: null },
         },
         _count: { id: true },
       })
 
       if (campusCounts.length > 0) {
-        const schoolIds = campusCounts
-          .map((c) => c.schoolId)
+        const campusIds = campusCounts
+          .map((c) => c.campusId)
           .filter((id): id is string => id !== null)
 
-        const schools = await prisma.school.findMany({
-          where: { id: { in: schoolIds } },
+        const campuses = await prisma.campus.findMany({
+          where: { id: { in: campusIds } },
           select: { id: true, name: true },
         })
 
-        const schoolMap = new Map(schools.map((s) => [s.id, s.name]))
+        const campusMap = new Map(campuses.map((c) => [c.id, c.name]))
 
         byCampus = campusCounts
-          .filter((c) => c.schoolId !== null)
+          .filter((c) => c.campusId !== null)
           .map((c) => ({
-            schoolId: c.schoolId as string,
-            schoolName: schoolMap.get(c.schoolId as string) ?? 'Unknown',
+            campusId: c.campusId as string,
+            campusName: campusMap.get(c.campusId as string) ?? 'Unknown',
             count: c._count.id,
           }))
           .sort((a, b) => b.count - a.count)

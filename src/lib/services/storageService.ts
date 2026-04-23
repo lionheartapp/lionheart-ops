@@ -113,10 +113,10 @@ export async function uploadFromUrl(orgId: string, imageUrl: string): Promise<st
 }
 
 /**
- * Upload a campus image (building, area, or room) to Supabase Storage
+ * Upload a campus image (building, space, or room) to Supabase Storage
  *
  * @param orgId - Organization ID
- * @param entityType - 'building' | 'area' | 'room'
+ * @param entityType - 'building' | 'space' | 'area' (legacy) | 'room'
  * @param entityId - ID of the entity
  * @param fileBuffer - File buffer to upload
  * @param contentType - MIME type (e.g., 'image/jpeg')
@@ -124,7 +124,7 @@ export async function uploadFromUrl(orgId: string, imageUrl: string): Promise<st
  */
 export async function uploadCampusImage(
   orgId: string,
-  entityType: 'building' | 'area' | 'room',
+  entityType: 'building' | 'space' | 'area' | 'room',
   entityId: string,
   fileBuffer: Buffer,
   contentType: string
@@ -311,6 +311,64 @@ export async function uploadRegistrationPhoto(
     return path
   } catch (error) {
     log.error({ err: error instanceof Error ? error.message : String(error) }, 'Student photo upload error')
+    throw error
+  }
+}
+
+/**
+ * Upload a player profile photo to Supabase Storage (public bucket).
+ *
+ * @param orgId - Organization ID
+ * @param playerId - Roster player ID
+ * @param fileBuffer - File buffer to upload
+ * @param contentType - MIME type (e.g., 'image/jpeg')
+ * @returns Public URL of the uploaded file
+ */
+export async function uploadPlayerPhoto(
+  orgId: string,
+  playerId: string,
+  fileBuffer: Buffer,
+  contentType: string,
+): Promise<string> {
+  try {
+    const config = getStorageConfig()
+    if (!config) throw new Error('Supabase storage not configured')
+
+    const client = getSupabaseClient()
+    const ext = contentType.split('/')[1] || 'jpg'
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const path = `${orgId}/players/${playerId}/${fileName}`
+
+    const { error } = await client.storage.from('logos').upload(path, fileBuffer, {
+      contentType,
+      upsert: false,
+    })
+
+    if (error) throw new Error(`Upload failed: ${error.message}`)
+
+    return `${config.url}/storage/v1/object/public/logos/${path}`
+  } catch (error) {
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Player photo upload error')
+    throw error
+  }
+}
+
+/**
+ * Delete a player photo from Supabase Storage
+ */
+export async function deletePlayerPhoto(imageUrl: string): Promise<void> {
+  try {
+    const client = getSupabaseClient()
+
+    const marker = '/storage/v1/object/public/logos/'
+    const idx = imageUrl.indexOf(marker)
+    if (idx === -1) throw new Error('Invalid player photo URL')
+    const path = decodeURIComponent(imageUrl.slice(idx + marker.length))
+
+    const { error } = await client.storage.from('logos').remove([path])
+    if (error) throw new Error(`Delete failed: ${error.message}`)
+  } catch (error) {
+    log.error({ err: error instanceof Error ? error.message : String(error) }, 'Player photo delete error')
     throw error
   }
 }

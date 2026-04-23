@@ -17,7 +17,9 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const roleId = searchParams.get('roleId') || ''
   const teamSlug = searchParams.get('teamSlug') || ''
   const status = searchParams.get('status') || ''
-  const schoolScope = searchParams.get('schoolScope') || ''
+  // Accept both `campusScope` (preferred) and legacy `schoolScope` query params
+  const campusScope =
+    searchParams.get('campusScope') || searchParams.get('schoolScope') || ''
 
   const where: Record<string, unknown> = {
     organizationId: orgId,
@@ -49,9 +51,9 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     where.status = status
   }
 
-  // Filter by school scope
-  if (schoolScope) {
-    where.schoolScope = schoolScope
+  // Filter by campus scope (grade-level division)
+  if (campusScope) {
+    where.campusScope = campusScope
   }
 
   const userSelect = {
@@ -61,7 +63,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     lastName: true,
     avatar: true,
     jobTitle: true,
-    schoolScope: true,
+    campusScope: true,
     employmentType: true,
     phone: true,
     status: true,
@@ -102,10 +104,16 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     userEmail: ctx.email,
     action: 'users.read',
     resourceType: 'User',
-    changes: { count: users.length, page, search: search || undefined, filters: { roleId, teamSlug, status, schoolScope } },
+    changes: { count: users.length, page, search: search || undefined, filters: { roleId, teamSlug, status, campusScope } },
   })
 
-  return NextResponse.json(ok(users, paginationMeta(total, { page, limit, skip })))
+  // Backward-compat: emit `schoolScope` alias alongside the new `campusScope`
+  const usersWithCompat = users.map((u: Record<string, unknown>) => ({
+    ...u,
+    schoolScope: u.campusScope,
+  }))
+
+  return NextResponse.json(ok(usersWithCompat, paginationMeta(total, { page, limit, skip })))
 }, { permission: PERMISSIONS.USERS_READ })
 
 export const POST = withAuth(async ({ req, orgId, ctx }) => {
@@ -125,11 +133,15 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
   const employmentType = allowedEmploymentTypes.includes(rawEmploymentType as (typeof allowedEmploymentTypes)[number])
     ? (rawEmploymentType as (typeof allowedEmploymentTypes)[number])
     : null
-  const rawSchoolScope = body.schoolScope ? String(body.schoolScope) : null
-  const allowedSchoolScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'GLOBAL'] as const
-  const schoolScope = allowedSchoolScopes.includes(rawSchoolScope as (typeof allowedSchoolScopes)[number])
-    ? (rawSchoolScope as (typeof allowedSchoolScopes)[number])
-    : 'GLOBAL'
+  // Accept both `campusScope` (preferred) and legacy `schoolScope` for backward compat.
+  // `null` is now the org-wide default (replaces the old 'GLOBAL' enum value).
+  const rawCampusScope = (body.campusScope ?? body.schoolScope)
+    ? String(body.campusScope ?? body.schoolScope)
+    : null
+  const allowedCampusScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL'] as const
+  const campusScope = allowedCampusScopes.includes(rawCampusScope as (typeof allowedCampusScopes)[number])
+    ? (rawCampusScope as (typeof allowedCampusScopes)[number])
+    : null
   const provisioningMode = body.provisioningMode === 'INVITE_ONLY' ? 'INVITE_ONLY' : 'ADMIN_CREATE'
 
   if (!email || !firstName || !lastName || !roleId) {
@@ -188,7 +200,7 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
       name: `${firstName} ${lastName}`.trim(),
       phone,
       jobTitle,
-      schoolScope,
+      campusScope,
       employmentType,
       passwordHash,
       roleId,

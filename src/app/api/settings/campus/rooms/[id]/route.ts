@@ -8,7 +8,7 @@ import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
 const UpdateRoomSchema = z.object({
   buildingId: z.string().min(1).optional(),
-  areaId: z.string().optional().nullable(),
+  spaceId: z.string().optional().nullable(),
   roomNumber: z.string().trim().min(1).max(60).optional(),
   displayName: z.string().trim().min(1).max(120).optional().nullable(),
   floor: z.string().trim().min(1).max(40).optional().nullable(),
@@ -17,12 +17,11 @@ const UpdateRoomSchema = z.object({
 })
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-
   const room = await prisma.room.findFirst({
     where: { id: params.id, organizationId: orgId },
     include: {
       building: { select: { id: true, name: true, code: true } },
-      area: { select: { id: true, name: true, areaType: true } },
+      space: { select: { id: true, name: true, spaceType: true } },
     },
   })
 
@@ -34,9 +33,10 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(async ({ orgId, params, body }) => {
-
-
-  const existing = await prisma.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  const existing = await prisma.room.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    select: { id: true },
+  })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Room not found'), { status: 404 })
   }
@@ -51,13 +51,13 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
     }
   }
 
-  if (body.areaId) {
-    const area = await prisma.area.findFirst({
-      where: { id: body.areaId, organizationId: orgId },
+  if (body.spaceId) {
+    const space = await prisma.space.findFirst({
+      where: { id: body.spaceId, organizationId: orgId },
       select: { id: true },
     })
-    if (!area) {
-      return NextResponse.json(fail('BAD_REQUEST', 'Invalid areaId for this organization'), { status: 400 })
+    if (!space) {
+      return NextResponse.json(fail('BAD_REQUEST', 'Invalid spaceId for this organization'), { status: 400 })
     }
   }
 
@@ -65,7 +65,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
     where: { id: params.id },
     data: {
       ...(body.buildingId !== undefined ? { buildingId: body.buildingId } : {}),
-      ...(body.areaId !== undefined ? { areaId: body.areaId || null } : {}),
+      ...(body.spaceId !== undefined ? { spaceId: body.spaceId || null } : {}),
       ...(body.roomNumber !== undefined ? { roomNumber: body.roomNumber } : {}),
       ...(body.displayName !== undefined ? { displayName: body.displayName || null } : {}),
       ...(body.floor !== undefined ? { floor: body.floor || null } : {}),
@@ -74,7 +74,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
     },
     include: {
       building: { select: { id: true, name: true, code: true } },
-      area: { select: { id: true, name: true, areaType: true } },
+      space: { select: { id: true, name: true, spaceType: true } },
     },
   })
 
@@ -84,8 +84,10 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoomSchema>, { id: string }>(
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: UpdateRoomSchema })
 
 export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
-
-  const existing = await prisma.room.findFirst({ where: { id: params.id, organizationId: orgId }, select: { id: true } })
+  const existing = await prisma.room.findFirst({
+    where: { id: params.id, organizationId: orgId },
+    select: { id: true },
+  })
   if (!existing) {
     return NextResponse.json(fail('NOT_FOUND', 'Room not found'), { status: 404 })
   }

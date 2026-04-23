@@ -22,29 +22,26 @@ export async function GET(req: NextRequest) {
     let lat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : null
     let lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : null
 
-    // Fall back to org coordinates if not provided
+    // Fall back to the primary School's coordinates if not provided. In the
+    // Phase 1c ontology inversion, `latitude`/`longitude` moved from Organization
+    // to School (per-institution), so we pull them from the first-sorted,
+    // non-deleted School record for the org.
     if (lat === null || lng === null || isNaN(lat) || isNaN(lng)) {
-      // Use raw query for new lat/lng fields until Prisma client is regenerated
-      const rows = await rawPrisma.$queryRaw<Array<{
-        latitude: number | null
-        longitude: number | null
-      }>>`
-        SELECT latitude, longitude
-        FROM "Organization"
-        WHERE id = ${orgId}
-        LIMIT 1
-      `
+      const primarySchool = await rawPrisma.school.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { latitude: true, longitude: true },
+      })
 
-      const org = rows[0]
-      if (!org?.latitude || !org?.longitude) {
+      if (!primarySchool?.latitude || !primarySchool?.longitude) {
         return NextResponse.json(
           fail('NO_LOCATION', 'No location data available. Add a school address to see weather.'),
           { status: 404 }
         )
       }
 
-      lat = org.latitude
-      lng = org.longitude
+      lat = primarySchool.latitude
+      lng = primarySchool.longitude
     }
 
     const weather = await fetchWeather(lat, lng)

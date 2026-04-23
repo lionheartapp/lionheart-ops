@@ -108,7 +108,7 @@ async function ensureSmokeUser(organizationId) {
       status: 'ACTIVE',
       emailVerified: true,
       roleId: role.id,
-      schoolScope: 'GLOBAL',
+      campusScope: null,
     },
   })
 

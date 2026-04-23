@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Facilities Restructure — Lionheart Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            50:  '#fff7ed',
+            100: '#ffedd5',
+            200: '#fed7aa',
+            300: '#fdba74',
+            400: '#fb923c',
+            500: '#f97316',
+            600: '#ea580c',
+            700: '#c2410c',
+            800: '#9a3412',
+            900: '#7c2d12',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        },
+      },
+    },
+  }
+</script>
+<link rel="preconnect" href="https://rsms.me/" />
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+<style>
+  html { font-family: 'Inter', system-ui, sans-serif; }
+  .mock-map {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #fef3c7 100%);
+    background-image:
+      linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 40%),
+      radial-gradient(circle at 30% 40%, #a7f3d0 0%, transparent 25%),
+      radial-gradient(circle at 70% 60%, #bfdbfe 0%, transparent 30%),
+      linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #fef3c7 100%);
+    position: relative;
+  }
+  .mock-map::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -100%);
+    background: #ef4444;
+    border-radius: 50% 50% 50% 0;
+    transform: translate(-50%, -100%) rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .mock-map-multi::after {
+    content: '3';
+    color: white;
+    font-weight: 700;
+    font-size: 10px;
+    text-align: center;
+    padding-top: 3px;
+    transform: translate(-50%, -100%) rotate(0);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+  }
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .source-badge.google  { background: #dbeafe; color: #1d4ed8; }
+  .source-badge.nces    { background: #ede9fe; color: #6d28d9; }
+  .source-badge.brand   { background: #fce7f3; color: #be185d; }
+  .source-badge.cache   { background: #fef3c7; color: #92400e; }
+  .source-badge.verified { background: #dcfce7; color: #15803d; }
+  input:focus, button:focus { outline: none; }
+  .autocomplete-item:hover { background: #f8fafc; }
+  .autocomplete-item.selected { background: #fff7ed; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<!-- Page switcher (mockup-only, not part of real app) -->
+<div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white rounded-full shadow-xl px-2 py-2 flex gap-1 text-xs">
+  <button class="page-btn px-3 py-2 rounded-full hover:bg-slate-700 bg-primary-600 cursor-pointer" data-page="schools">Schools</button>
+  <button class="page-btn px-3 py-2 rounded-full hover:bg-slate-700 cursor-pointer" data-page="campuses">Linfield Campuses</button>
+  <button class="page-btn px-3 py-2 rounded-full hover:bg-slate-700 cursor-pointer" data-page="add-school">Add School</button>
+  <button class="page-btn px-3 py-2 rounded-full hover:bg-slate-700 cursor-pointer" data-page="buildings">Buildings</button>
+  <button class="page-btn px-3 py-2 rounded-full hover:bg-slate-700 cursor-pointer" data-page="district">District (Springs)</button>
+</div>
+
+<!-- Mock app shell -->
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-60 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col">
+    <div class="p-5 border-b border-slate-200">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold">L</div>
+        <div class="font-semibold text-slate-900">Lionheart</div>
+      </div>
+    </div>
+    <div class="p-3">
+      <div class="text-xs text-slate-400 uppercase tracking-wider px-2 mb-2">Settings</div>
+      <nav class="space-y-1 text-sm">
+        <a class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer">Members</a>
+        <a class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer">Roles</a>
+        <a class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer">Teams</a>
+        <a class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer">Schools</a>
+        <a class="block px-3 py-2 rounded-lg bg-primary-50 text-primary-700 font-semibold cursor-pointer">Facilities</a>
+        <a class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 cursor-pointer">Integrations</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 min-w-0">
+
+    <!-- ================================================================ -->
+    <!-- PAGE 1: Schools list (Facilities landing)                        -->
+    <!-- ================================================================ -->
+    <section id="page-schools" class="page">
+      <header class="border-b border-slate-200 bg-white px-8 py-5 flex items-center justify-between">
+        <div>
+          <div class="text-xs text-slate-500">Settings</div>
+          <h1 class="text-2xl font-semibold text-slate-900 mt-0.5">Facilities</h1>
+        </div>
+        <button onclick="switchPage('add-school')" class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors cursor-pointer">+ Add School</button>
+      </header>
+
+      <div class="max-w-5xl mx-auto p-8 space-y-4">
+        <!-- Schools list -->
+        <div class="space-y-3">
+          <!-- School row card: Linfield -->
+          <button onclick="switchPage('campuses')" class="w-full text-left bg-white border border-slate-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer">
+            <div class="flex items-center gap-5">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-100 to-primary-200 border border-primary-200 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0">LC</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <div class="font-semibold text-slate-900">Linfield Christian School</div>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">Private · K-12</span>
+                </div>
+                <div class="text-sm text-slate-500 mt-0.5">31950 Pauba Rd, Temecula, CA 92592</div>
+                <div class="text-xs text-slate-400 mt-1">3 campuses · 12 buildings · 184 rooms · 14 spaces</div>
+              </div>
+              <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </button>
+        </div>
+
+        <!-- Secondary: District Facilities -->
+        <div class="mt-10">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-700">District Facilities</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Buildings and spaces that belong to the district, not tied to a specific school.</p>
+            </div>
+            <button class="text-xs text-primary-600 font-semibold hover:text-primary-700 cursor-pointer">+ Add</button>
+          </div>
+          <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 text-center">
+            <div class="text-sm text-slate-400">No district-level facilities yet.</div>
+            <div class="text-xs text-slate-400 mt-1">e.g. a district office, warehouse, or bus depot</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- PAGE 2: Campuses for Linfield (grouped by Site)                  -->
+    <!-- ================================================================ -->
+    <section id="page-campuses" class="page hidden">
+      <header class="border-b border-slate-200 bg-white px-8 py-5">
+        <nav class="text-xs text-slate-500 flex items-center gap-2">
+          <button onclick="switchPage('schools')" class="hover:text-slate-700 cursor-pointer">Facilities</button>
+          <span>›</span>
+          <span class="text-slate-700">Linfield Christian School</span>
+        </nav>
+        <div class="flex items-center justify-between mt-1">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 border border-primary-200 flex items-center justify-center text-primary-700 font-bold">LC</div>
+            <h1 class="text-2xl font-semibold text-slate-900">Linfield Christian School</h1>
+          </div>
+          <div class="flex gap-2">
+            <button class="px-3 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer">Edit school</button>
+            <button class="px-3 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-sm cursor-pointer">+ Add Campus</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-5xl mx-auto p-8 space-y-8">
+
+        <!-- Site group card: shared address -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <!-- Site header: map thumbnail on left + address + edit on right -->
+          <div class="flex items-stretch border-b border-slate-100">
+            <div class="w-48 mock-map mock-map-multi flex-shrink-0"></div>
+            <div class="flex-1 flex items-center justify-between px-6 py-5 bg-gradient-to-r from-slate-50 to-white">
+              <div>
+                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Shared location
+                </div>
+                <div class="mt-2 font-semibold text-slate-900 text-lg leading-tight">31950 Pauba Rd</div>
+                <div class="text-sm text-slate-500">Temecula, CA 92592</div>
+                <div class="text-xs text-slate-400 mt-1">Shared by 3 campuses</div>
+              </div>
+              <button class="text-xs font-semibold text-primary-600 hover:text-primary-700 cursor-pointer px-3 py-2 rounded-md hover:bg-primary-50 transition-colors">Edit address</button>
+            </div>
+          </div>
+
+          <!-- Campus rows (div role=button to avoid nested-button HTML bug) -->
+          <div class="divide-y divide-slate-100">
+            <!-- Elementary -->
+            <div role="button" tabindex="0"
+              onclick="switchPage('buildings')"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchPage('buildings');}"
+              class="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400">
+              <div class="w-11 h-11 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-emerald-700 font-bold text-xs">K-5</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-900">Elementary Campus</div>
+                <div class="text-xs text-slate-500 mt-0.5">4 buildings · 62 rooms · 8 spaces</div>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" onclick="event.stopPropagation()" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer">Edit</button>
+                <button type="button" onclick="event.stopPropagation()" class="w-7 h-7 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer flex items-center justify-center">⋯</button>
+                <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <!-- Middle -->
+            <div role="button" tabindex="0"
+              onclick="switchPage('buildings')"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchPage('buildings');}"
+              class="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400">
+              <div class="w-11 h-11 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-amber-700 font-bold text-xs">6-8</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-900">Middle School Campus</div>
+                <div class="text-xs text-slate-500 mt-0.5">3 buildings · 41 rooms · 3 spaces</div>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" onclick="event.stopPropagation()" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer">Edit</button>
+                <button type="button" onclick="event.stopPropagation()" class="w-7 h-7 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer flex items-center justify-center">⋯</button>
+                <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <!-- High -->
+            <div role="button" tabindex="0"
+              onclick="switchPage('buildings')"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchPage('buildings');}"
+              class="px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400">
+              <div class="w-11 h-11 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-sky-700 font-bold text-xs">9-12</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-900">High School Campus</div>
+                <div class="text-xs text-slate-500 mt-0.5">5 buildings · 81 rooms · 3 spaces</div>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" onclick="event.stopPropagation()" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer">Edit</button>
+                <button type="button" onclick="event.stopPropagation()" class="w-7 h-7 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer flex items-center justify-center">⋯</button>
+                <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer add action -->
+          <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/60">
+            <button class="text-xs font-semibold text-primary-600 hover:text-primary-700 cursor-pointer">+ Add another campus at this site</button>
+          </div>
+        </div>
+
+        <!-- Shared across campuses -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-700">Shared across campuses</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Buildings and spaces that belong to the school as a whole, not one campus.</p>
+            </div>
+            <button class="text-xs text-primary-600 font-semibold hover:text-primary-700 cursor-pointer">+ Add</button>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 hover:border-slate-300 transition-colors cursor-pointer">
+            <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="flex-1">
+              <div class="font-medium text-slate-900 text-sm">Central Administration</div>
+              <div class="text-xs text-slate-500">Shares the site at 31950 Pauba Rd · 6 rooms · serves all 3 campuses</div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- PAGE 3: Add School — search-first UX                             -->
+    <!-- ================================================================ -->
+    <section id="page-add-school" class="page hidden">
+      <header class="border-b border-slate-200 bg-white px-8 py-5 flex items-center justify-between">
+        <nav class="text-xs text-slate-500 flex items-center gap-2">
+          <button onclick="switchPage('schools')" class="hover:text-slate-700 cursor-pointer">Facilities</button>
+          <span>›</span>
+          <span class="text-slate-700">Add a school</span>
+        </nav>
+        <button onclick="switchPage('schools')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+      </header>
+
+      <div class="max-w-2xl mx-auto p-8">
+        <h1 class="text-2xl font-semibold text-slate-900 mb-1">Add a school</h1>
+        <p class="text-sm text-slate-500 mb-6">Search for your school and we'll pull in everything we can find. You'll only need to check and confirm.</p>
+
+        <!-- Search input -->
+        <div class="relative">
+          <div class="relative">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input id="school-search" type="text" value="Linfield" oninput="updateAutocomplete(this.value)" placeholder="Start typing your school name..." class="w-full h-14 pl-12 pr-4 bg-white border-2 border-primary-300 rounded-xl text-slate-900 font-medium placeholder-slate-400 focus:border-primary-500 transition-colors" />
+          </div>
+
+          <!-- Autocomplete results -->
+          <div id="autocomplete-panel" class="mt-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+            <div class="px-4 py-2 text-xs text-slate-500 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <span>2 schools match</span>
+              <span class="text-[10px] text-slate-400">via Google Places + NCES</span>
+            </div>
+            <button onclick="selectSchool()" class="autocomplete-item selected w-full text-left px-4 py-3 flex items-center gap-3 border-b border-slate-100 cursor-pointer">
+              <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 border border-primary-200 flex items-center justify-center font-bold text-primary-700 flex-shrink-0">LC</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-900">Linfield Christian School</div>
+                <div class="text-xs text-slate-500 mt-0.5">31950 Pauba Rd, Temecula, CA</div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Private</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">K-12</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Religious-affiliated</span>
+                </div>
+              </div>
+              <div class="w-20 h-16 rounded mock-map flex-shrink-0"></div>
+            </button>
+            <button class="autocomplete-item w-full text-left px-4 py-3 flex items-center gap-3 border-b border-slate-100 cursor-pointer">
+              <div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-slate-500 flex-shrink-0">LU</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-slate-900">Linfield University</div>
+                <div class="text-xs text-slate-500 mt-0.5">900 SE Baker St, McMinnville, OR</div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Private</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">College</span>
+                </div>
+              </div>
+              <div class="w-20 h-16 rounded mock-map flex-shrink-0"></div>
+            </button>
+            <button class="w-full text-left px-4 py-2.5 text-sm text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer">
+              Can't find it? <span class="text-primary-600 font-semibold">Enter manually →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pre-filled form (shows after selecting) -->
+        <div id="prefilled-form" class="mt-6 hidden">
+          <div class="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-xl p-5 mb-5 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <div class="flex-1">
+              <div class="font-semibold text-slate-900 text-sm">Found it — data auto-filled</div>
+              <div class="text-xs text-slate-600 mt-0.5">Review each field below and correct anything that's off. Nothing is saved until you click Create.</div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+            <!-- Name -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</div>
+              <div class="flex-1 font-medium text-slate-900">Linfield Christian School</div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge verified">✓ Verified</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- Address -->
+            <div class="px-5 py-4 flex items-start justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-1">Address</div>
+              <div class="flex-1">
+                <div class="font-medium text-slate-900">31950 Pauba Rd</div>
+                <div class="text-sm text-slate-500">Temecula, CA 92592</div>
+              </div>
+              <div class="flex items-center gap-2 pt-0.5">
+                <span class="source-badge google">◆ Google</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- Phone -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone</div>
+              <div class="flex-1 font-medium text-slate-900">(951) 676-8111</div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge google">◆ Google</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- Website -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Website</div>
+              <div class="flex-1 font-medium text-primary-600">linfield.com</div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge google">◆ Google</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- Logo -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Logo</div>
+              <div class="flex-1 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 border border-primary-200 flex items-center justify-center font-bold text-primary-700">LC</div>
+                <div class="text-sm text-slate-500">Linfield Christian School logo</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge brand">◆ Brandfetch</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Replace</button>
+              </div>
+            </div>
+            <!-- Grade range -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Grade range</div>
+              <div class="flex-1 font-medium text-slate-900">K–12</div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge nces">◆ NCES</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- School type -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">School type</div>
+              <div class="flex-1 font-medium text-slate-900">Private · Religious-affiliated</div>
+              <div class="flex items-center gap-2">
+                <span class="source-badge nces">◆ NCES</span>
+                <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+              </div>
+            </div>
+            <!-- Principal -->
+            <div class="px-5 py-4 flex items-center justify-between gap-4">
+              <div class="w-28 flex-shrink-0 text-xs font-semibold text-slate-500 uppercase tracking-wider">Principal</div>
+              <div class="flex-1 text-slate-400 italic">Not found in public sources</div>
+              <div class="flex items-center gap-2">
+                <button class="text-xs text-primary-600 font-semibold cursor-pointer">+ Add</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next step preview -->
+          <div class="mt-5 bg-primary-50 border border-primary-200 rounded-xl p-4">
+            <div class="text-sm font-semibold text-primary-900 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Next up
+            </div>
+            <div class="text-xs text-primary-800 mt-1">After you create the school, we'll ask if you want to add any additional campuses (Elementary, Middle, High) under it — or start with just one "Main Campus" and split it later.</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mt-5 flex items-center gap-2 justify-end">
+            <button onclick="resetForm()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>
+            <button onclick="switchPage('campuses')" class="px-5 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors cursor-pointer">Create School</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- PAGE 4: Buildings (Elementary Campus drill-down)                 -->
+    <!-- ================================================================ -->
+    <section id="page-buildings" class="page hidden">
+      <header class="border-b border-slate-200 bg-white px-8 py-5">
+        <nav class="text-xs text-slate-500 flex items-center gap-2">
+          <button onclick="switchPage('schools')" class="hover:text-slate-700 cursor-pointer">Facilities</button>
+          <span>›</span>
+          <button onclick="switchPage('campuses')" class="hover:text-slate-700 cursor-pointer">Linfield Christian School</button>
+          <span>›</span>
+          <span class="text-slate-700">Elementary Campus</span>
+        </nav>
+        <div class="flex items-center justify-between mt-1">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">K-5</div>
+            <div>
+              <h1 class="text-2xl font-semibold text-slate-900">Elementary Campus</h1>
+              <div class="text-sm text-slate-500">31950 Pauba Rd, Temecula, CA · shared site</div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="px-3 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 cursor-pointer">Edit campus</button>
+            <button class="px-3 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-sm cursor-pointer">+ Add Building</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-5xl mx-auto p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer">
+            <div class="h-24 bg-gradient-to-r from-emerald-100 to-emerald-50 flex items-center justify-center">
+              <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-slate-900">Elementary Main Building</div>
+              <div class="text-xs text-slate-500 mt-0.5">18 rooms · 2 spaces</div>
+            </div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer">
+            <div class="h-24 bg-gradient-to-r from-sky-100 to-sky-50 flex items-center justify-center">
+              <svg class="w-10 h-10 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-slate-900">Elementary Gym</div>
+              <div class="text-xs text-slate-500 mt-0.5">2 rooms · 1 space</div>
+            </div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer">
+            <div class="h-24 bg-gradient-to-r from-amber-100 to-amber-50 flex items-center justify-center">
+              <svg class="w-10 h-10 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-slate-900">Library & Media Center</div>
+              <div class="text-xs text-slate-500 mt-0.5">4 rooms · 0 spaces</div>
+            </div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer">
+            <div class="h-24 bg-gradient-to-r from-violet-100 to-violet-50 flex items-center justify-center">
+              <svg class="w-10 h-10 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </div>
+            <div class="p-4">
+              <div class="font-semibold text-slate-900">Art & Music Building</div>
+              <div class="text-xs text-slate-500 mt-0.5">8 rooms · 0 spaces</div>
+            </div>
+          </div>
+          <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 flex items-center justify-center text-slate-400 hover:border-primary-400 hover:text-primary-600 transition-colors cursor-pointer">
+            <div class="text-center">
+              <div class="text-2xl mb-1">+</div>
+              <div class="text-sm font-medium">Add Building</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outdoor spaces attached to this campus -->
+        <div class="mt-8">
+          <h2 class="text-sm font-semibold text-slate-700 mb-3">Outdoor spaces</h2>
+          <div class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
+            <div class="px-4 py-3 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-700">🌳</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-slate-900">Elementary Playground</div>
+                <div class="text-xs text-slate-500">Outdoor · capacity 120</div>
+              </div>
+              <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+            </div>
+            <div class="px-4 py-3 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-700">🏃</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium text-slate-900">Elementary Field</div>
+                <div class="text-xs text-slate-500">Outdoor · 0.4 acres</div>
+              </div>
+              <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Edit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- PAGE 5: District Facilities (Springs stress test)                -->
+    <!-- ================================================================ -->
+    <section id="page-district" class="page hidden">
+      <header class="border-b border-slate-200 bg-white px-8 py-5">
+        <nav class="text-xs text-slate-500 flex items-center gap-2">
+          <button onclick="switchPage('schools')" class="hover:text-slate-700 cursor-pointer">Facilities</button>
+          <span>›</span>
+          <span class="text-slate-700">District Facilities</span>
+        </nav>
+        <div class="flex items-center justify-between mt-1">
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-900">District Facilities</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Buildings and spaces owned by the district — each at its own address.</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="flex bg-slate-100 rounded-lg p-0.5 text-xs font-medium">
+              <button class="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm cursor-pointer">List</button>
+              <button class="px-3 py-1.5 text-slate-500 hover:text-slate-700 cursor-pointer">Map view</button>
+            </div>
+            <button class="px-3 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-sm cursor-pointer">+ Add Building</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="max-w-5xl mx-auto p-8 space-y-4">
+        <!-- District Office -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden flex hover:shadow-md transition-all cursor-pointer">
+          <div class="w-48 h-auto mock-map flex-shrink-0"></div>
+          <div class="flex-1 p-5 flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-slate-900">Springs District Office</div>
+              <div class="text-sm text-slate-500 mt-0.5">43620 Ridge Park Dr, Temecula, CA 92590</div>
+              <div class="text-xs text-slate-400 mt-1">Administrative · 12 rooms · 2 spaces</div>
+            </div>
+            <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer ml-4">⋯</button>
+          </div>
+        </div>
+
+        <!-- Bus Depot -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden flex hover:shadow-md transition-all cursor-pointer">
+          <div class="w-48 h-auto mock-map flex-shrink-0"></div>
+          <div class="flex-1 p-5 flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-slate-900">Springs Bus Depot</div>
+              <div class="text-sm text-slate-500 mt-0.5">28455 Old Town Front St, Temecula, CA 92590</div>
+              <div class="text-xs text-slate-400 mt-1">Transportation · 3 rooms · 2 spaces</div>
+            </div>
+            <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer ml-4">⋯</button>
+          </div>
+        </div>
+
+        <!-- Warehouse -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden flex hover:shadow-md transition-all cursor-pointer">
+          <div class="w-48 h-auto mock-map flex-shrink-0"></div>
+          <div class="flex-1 p-5 flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-slate-900">Central Warehouse</div>
+              <div class="text-sm text-slate-500 mt-0.5">41740 Enterprise Cir N, Temecula, CA 92590</div>
+              <div class="text-xs text-slate-400 mt-1">Storage · 4 rooms · 1 space</div>
+            </div>
+            <button class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer ml-4">⋯</button>
+          </div>
+        </div>
+
+        <!-- Empty state / add -->
+        <button class="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 flex items-center justify-center text-slate-400 hover:border-primary-400 hover:text-primary-600 transition-colors cursor-pointer">
+          <div class="text-center">
+            <div class="text-2xl mb-1">+</div>
+            <div class="text-sm font-medium">Add another district-level building or space</div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  function switchPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('page-' + id).classList.remove('hidden');
+    document.querySelectorAll('.page-btn').forEach(b => {
+      if (b.dataset.page === id) {
+        b.classList.add('bg-primary-600');
+      } else {
+        b.classList.remove('bg-primary-600');
+      }
+    });
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.page-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchPage(btn.dataset.page));
+  });
+
+  function selectSchool() {
+    document.getElementById('autocomplete-panel').classList.add('hidden');
+    document.getElementById('prefilled-form').classList.remove('hidden');
+    document.getElementById('prefilled-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    document.getElementById('autocomplete-panel').classList.remove('hidden');
+    document.getElementById('prefilled-form').classList.add('hidden');
+  }
+
+  function updateAutocomplete(val) {
+    // mockup-only — real version would call Places Autocomplete here
+    const panel = document.getElementById('autocomplete-panel');
+    if (val.length === 0) {
+      panel.classList.add('hidden');
+    } else {
+      panel.classList.remove('hidden');
+    }
+  }
+</script>
+
+</body>
+</html>

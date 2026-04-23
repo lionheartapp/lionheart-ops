@@ -4,16 +4,15 @@ import { validatePassword, passwordSchema, PASSWORD_RULES } from '@/lib/validati
 // ── PASSWORD_RULES ───────────────────────────────────────────────────────────
 
 describe('PASSWORD_RULES', () => {
-  it('has 4 rules', () => {
-    expect(PASSWORD_RULES).toHaveLength(4)
+  it('has 3 rules (NIST 800-63B compliant)', () => {
+    expect(PASSWORD_RULES).toHaveLength(3)
   })
 
-  it('includes length, uppercase, number, and special character rules', () => {
+  it('includes length, max-length, and not-common rules', () => {
     const ids = PASSWORD_RULES.map((r) => r.id)
     expect(ids).toContain('length')
-    expect(ids).toContain('uppercase')
-    expect(ids).toContain('number')
-    expect(ids).toContain('special')
+    expect(ids).toContain('max-length')
+    expect(ids).toContain('not-common')
   })
 
   describe('individual rule tests', () => {
@@ -24,21 +23,15 @@ describe('PASSWORD_RULES', () => {
       expect(getRule('length').test('12345678')).toBe(true)
     })
 
-    it('uppercase: requires at least one uppercase letter', () => {
-      expect(getRule('uppercase').test('alllower')).toBe(false)
-      expect(getRule('uppercase').test('hasUpper')).toBe(true)
+    it('max-length: rejects > 64 characters', () => {
+      expect(getRule('max-length').test('a'.repeat(64))).toBe(true)
+      expect(getRule('max-length').test('a'.repeat(65))).toBe(false)
     })
 
-    it('number: requires at least one digit', () => {
-      expect(getRule('number').test('NoDigits')).toBe(false)
-      expect(getRule('number').test('Has1Digit')).toBe(true)
-    })
-
-    it('special: requires at least one special character', () => {
-      expect(getRule('special').test('NoSpecial1')).toBe(false)
-      expect(getRule('special').test('Special!')).toBe(true)
-      expect(getRule('special').test('At@sign')).toBe(true)
-      expect(getRule('special').test('Under_score')).toBe(true)
+    it('not-common: rejects commonly used passwords', () => {
+      expect(getRule('not-common').test('password')).toBe(false)
+      expect(getRule('not-common').test('12345678')).toBe(false)
+      expect(getRule('not-common').test('uniquephrase')).toBe(true)
     })
   })
 })
@@ -46,8 +39,8 @@ describe('PASSWORD_RULES', () => {
 // ── validatePassword ─────────────────────────────────────────────────────────
 
 describe('validatePassword', () => {
-  it('returns valid: true for a strong password', () => {
-    const { valid, results } = validatePassword('Str0ng!Pass')
+  it('returns valid: true for a good password', () => {
+    const { valid, results } = validatePassword('myUniquePassphrase')
     expect(valid).toBe(true)
     expect(results.every((r) => r.passed)).toBe(true)
   })
@@ -57,34 +50,28 @@ describe('validatePassword', () => {
     expect(valid).toBe(false)
   })
 
-  it('returns valid: false for short password with all other rules met', () => {
-    const { valid, results } = validatePassword('Ab1!')
+  it('returns valid: false for short password', () => {
+    const { valid, results } = validatePassword('short')
     expect(valid).toBe(false)
     const lengthResult = results.find((r) => r.id === 'length')
     expect(lengthResult?.passed).toBe(false)
   })
 
-  it('returns valid: false for password without uppercase', () => {
-    const { valid, results } = validatePassword('lowercase1!')
+  it('returns valid: false for common password', () => {
+    const { valid, results } = validatePassword('password')
     expect(valid).toBe(false)
-    expect(results.find((r) => r.id === 'uppercase')?.passed).toBe(false)
+    expect(results.find((r) => r.id === 'not-common')?.passed).toBe(false)
   })
 
-  it('returns valid: false for password without number', () => {
-    const { valid, results } = validatePassword('NoNumber!!')
+  it('returns valid: false for overly long password', () => {
+    const { valid, results } = validatePassword('a'.repeat(65))
     expect(valid).toBe(false)
-    expect(results.find((r) => r.id === 'number')?.passed).toBe(false)
-  })
-
-  it('returns valid: false for password without special char', () => {
-    const { valid, results } = validatePassword('NoSpecial1')
-    expect(valid).toBe(false)
-    expect(results.find((r) => r.id === 'special')?.passed).toBe(false)
+    expect(results.find((r) => r.id === 'max-length')?.passed).toBe(false)
   })
 
   it('returns per-rule results with id, label, and passed', () => {
     const { results } = validatePassword('test')
-    expect(results).toHaveLength(4)
+    expect(results).toHaveLength(3)
     for (const r of results) {
       expect(r).toHaveProperty('id')
       expect(r).toHaveProperty('label')
@@ -96,8 +83,8 @@ describe('validatePassword', () => {
 // ── passwordSchema (Zod) ─────────────────────────────────────────────────────
 
 describe('passwordSchema', () => {
-  it('parses a strong password', () => {
-    expect(() => passwordSchema.parse('Str0ng!Pass')).not.toThrow()
+  it('parses a good password', () => {
+    expect(() => passwordSchema.parse('myUniquePassphrase')).not.toThrow()
   })
 
   it('rejects a weak password', () => {

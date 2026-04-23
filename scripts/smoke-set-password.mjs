@@ -56,7 +56,7 @@ async function main() {
         passwordHash: initialPasswordHash,
         status: 'ACTIVE',
         role: 'VIEWER',
-        schoolScope: 'GLOBAL',
+        campusScope: null,
         teamIds: [],
       },
       select: { id: true },

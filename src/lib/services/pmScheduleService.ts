@@ -98,6 +98,8 @@ const PmScheduleBaseSchema = z.object({
   checklistItems: z.array(z.string()).default([]),
   assetId: z.string().optional().nullable(),
   buildingId: z.string().optional().nullable(),
+  spaceId: z.string().optional().nullable(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().optional().nullable(),
   roomId: z.string().optional().nullable(),
   schoolId: z.string().optional().nullable(),
@@ -181,9 +183,9 @@ export function computeNextDueDate(
 const PM_INCLUDES = {
   asset: { select: { id: true, assetNumber: true, name: true } },
   building: { select: { id: true, name: true } },
-  area: { select: { id: true, name: true } },
+  space: { select: { id: true, name: true } },
   room: { select: { id: true, roomNumber: true, displayName: true } },
-  school: { select: { id: true, name: true } },
+  campus: { select: { id: true, name: true } },
   defaultTechnician: { select: { id: true, name: true, email: true } },
 } as const
 
@@ -224,9 +226,9 @@ export async function createPmSchedule(orgId: string, input: unknown) {
       checklistItems: data.checklistItems,
       assetId: data.assetId ?? null,
       buildingId: data.buildingId ?? null,
-      areaId: data.areaId ?? null,
+      spaceId: data.spaceId ?? data.areaId ?? null,
       roomId: data.roomId ?? null,
-      schoolId: data.schoolId ?? null,
+      campusId: data.schoolId ?? null,
       defaultTechnicianId: data.defaultTechnicianId ?? null,
       avoidSchoolYear: data.avoidSchoolYear,
       nextDueDate,
@@ -260,7 +262,7 @@ export async function getPmSchedules(orgId: string, filters: PmScheduleFilters =
 
   if (assetId) where.assetId = assetId
   if (buildingId) where.buildingId = buildingId
-  if (schoolId) where.schoolId = schoolId
+  if (schoolId) where.campusId = schoolId
 
   // Status filter: active = isActive true, paused = isActive false
   if (status === 'active') {
@@ -322,7 +324,7 @@ export async function getPmCalendarEvents(
 
     const locationParts = [
       s.building?.name,
-      s.area?.name,
+      s.space?.name,
       s.room ? (s.room.displayName || s.room.roomNumber) : null,
     ].filter(Boolean)
     const locationName = locationParts.length > 0 ? locationParts.join(' > ') : null
@@ -376,9 +378,10 @@ export async function updatePmSchedule(orgId: string, id: string, input: unknown
   if (data.checklistItems !== undefined) updateData.checklistItems = data.checklistItems
   if (data.assetId !== undefined) updateData.assetId = data.assetId
   if (data.buildingId !== undefined) updateData.buildingId = data.buildingId
-  if (data.areaId !== undefined) updateData.areaId = data.areaId
+  if (data.spaceId !== undefined) updateData.spaceId = data.spaceId
+  else if (data.areaId !== undefined) updateData.spaceId = data.areaId
   if (data.roomId !== undefined) updateData.roomId = data.roomId
-  if (data.schoolId !== undefined) updateData.schoolId = data.schoolId
+  if (data.schoolId !== undefined) updateData.campusId = data.schoolId
   if (data.defaultTechnicianId !== undefined) updateData.defaultTechnicianId = data.defaultTechnicianId
   if (data.avoidSchoolYear !== undefined) updateData.avoidSchoolYear = data.avoidSchoolYear
   if (data.isActive !== undefined) updateData.isActive = data.isActive
@@ -515,9 +518,9 @@ export async function generatePmTickets(): Promise<number> {
           // Location from schedule
           assetId: schedule.assetId ?? null,
           buildingId: schedule.buildingId ?? null,
-          areaId: schedule.areaId ?? null,
+          spaceId: schedule.spaceId ?? null,
           roomId: schedule.roomId ?? null,
-          schoolId: schedule.schoolId ?? null,
+          campusId: schedule.campusId ?? null,
           // Default technician from schedule
           assignedToId: schedule.defaultTechnicianId ?? null,
           // System-generated: submittedById needs a system user; use any org user or skip

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         model: true,
         status: true,
         serialNumber: true,
-        school: { select: { name: true } },
+        campus: { select: { name: true } },
         building: { select: { name: true } },
         room: { select: { roomNumber: true, displayName: true } },
       },
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       status: device.status,
       serialNumber: device.serialNumber,
       location: [
-        device.school?.name,
+        device.campus?.name,
         device.building?.name,
         device.room?.displayName || device.room?.roomNumber,
       ].filter(Boolean).join(' > ') || null,

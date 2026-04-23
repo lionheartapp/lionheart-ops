@@ -6,9 +6,14 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { withAuth } from '@/lib/api/with-auth'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
 
+/**
+ * Rooms are always children of a Building. They may optionally reference a
+ * Space (field / court / common area) for logical grouping. The old `areaId`
+ * foreign key was renamed to `spaceId` in Phase 1b.
+ */
 const CreateRoomSchema = z.object({
   buildingId: z.string().min(1),
-  areaId: z.string().optional().nullable(),
+  spaceId: z.string().optional().nullable(),
   roomNumber: z.string().trim().min(1).max(60),
   displayName: z.string().trim().min(1).max(120).optional().nullable(),
   floor: z.string().trim().min(1).max(40).optional().nullable(),
@@ -19,19 +24,19 @@ const CreateRoomSchema = z.object({
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const includeInactive = searchParams.get('includeInactive') === 'true'
   const buildingId = searchParams.get('buildingId') || undefined
-  const areaId = searchParams.get('areaId') || undefined
-
+  // Accept both `spaceId` (preferred) and legacy `areaId` for backward compat
+  const spaceId = searchParams.get('spaceId') || searchParams.get('areaId') || undefined
 
   const rooms = await prisma.room.findMany({
     where: {
       organizationId: orgId,
       ...(includeInactive ? {} : { isActive: true }),
       ...(buildingId ? { buildingId } : {}),
-      ...(areaId ? { areaId } : {}),
+      ...(spaceId ? { spaceId } : {}),
     },
     include: {
       building: { select: { id: true, name: true, code: true } },
-      area: { select: { id: true, name: true, areaType: true } },
+      space: { select: { id: true, name: true, spaceType: true } },
     },
     orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
   })
@@ -40,8 +45,6 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, body }) => {
-
-
   const building = await prisma.building.findFirst({
     where: { id: body.buildingId, organizationId: orgId },
     select: { id: true },
@@ -50,13 +53,13 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
     return NextResponse.json(fail('BAD_REQUEST', 'Invalid buildingId for this organization'), { status: 400 })
   }
 
-  if (body.areaId) {
-    const area = await prisma.area.findFirst({
-      where: { id: body.areaId, organizationId: orgId },
+  if (body.spaceId) {
+    const space = await prisma.space.findFirst({
+      where: { id: body.spaceId, organizationId: orgId },
       select: { id: true },
     })
-    if (!area) {
-      return NextResponse.json(fail('BAD_REQUEST', 'Invalid areaId for this organization'), { status: 400 })
+    if (!space) {
+      return NextResponse.json(fail('BAD_REQUEST', 'Invalid spaceId for this organization'), { status: 400 })
     }
   }
 
@@ -64,7 +67,7 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
     data: {
       organizationId: orgId,
       buildingId: body.buildingId,
-      areaId: body.areaId || null,
+      spaceId: body.spaceId || null,
       roomNumber: body.roomNumber,
       displayName: body.displayName || null,
       floor: body.floor || null,
@@ -73,7 +76,7 @@ export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, b
     },
     include: {
       building: { select: { id: true, name: true, code: true } },
-      area: { select: { id: true, name: true, areaType: true } },
+      space: { select: { id: true, name: true, spaceType: true } },
     },
   })
 

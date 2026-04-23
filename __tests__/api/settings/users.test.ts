@@ -82,7 +82,7 @@ function makeUser(id: string, email: string, first: string, last: string) {
     lastName: last,
     avatar: null,
     jobTitle: null,
-    schoolScope: 'GLOBAL',
+    campusScope: null,
     employmentType: null,
     phone: null,
     status: 'ACTIVE',

@@ -92,14 +92,14 @@ export async function createDevice(
       purchaseDate: input.purchaseDate ? new Date(input.purchaseDate) : null,
       purchasePrice: input.purchasePrice ?? null,
       warrantyExpiry: input.warrantyExpiry ? new Date(input.warrantyExpiry) : null,
-      schoolId: input.schoolId || null,
+      campusId: input.schoolId || null,
       buildingId: input.buildingId || null,
       roomId: input.roomId || null,
       notes: input.notes || null,
       photos: input.photos,
     },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
     },
@@ -126,7 +126,7 @@ export async function updateDevice(
   if (input.purchaseDate !== undefined) data.purchaseDate = input.purchaseDate ? new Date(input.purchaseDate) : null
   if (input.purchasePrice !== undefined) data.purchasePrice = input.purchasePrice ?? null
   if (input.warrantyExpiry !== undefined) data.warrantyExpiry = input.warrantyExpiry ? new Date(input.warrantyExpiry) : null
-  if (input.schoolId !== undefined) data.schoolId = input.schoolId || null
+  if (input.schoolId !== undefined) data.campusId = input.schoolId || null
   if (input.buildingId !== undefined) data.buildingId = input.buildingId || null
   if (input.roomId !== undefined) data.roomId = input.roomId || null
   if (input.notes !== undefined) data.notes = input.notes || null
@@ -136,7 +136,7 @@ export async function updateDevice(
     where: { id },
     data,
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
     },
@@ -171,7 +171,7 @@ export async function listDevices(
 
   if (filters.deviceType) where.deviceType = filters.deviceType
   if (filters.status) where.status = filters.status
-  if (filters.schoolId) where.schoolId = filters.schoolId
+  if (filters.schoolId) where.campusId = filters.schoolId
   if (filters.isLemon !== undefined) where.isLemon = filters.isLemon
   if (filters.search) {
     where.OR = [
@@ -186,7 +186,7 @@ export async function listDevices(
     prisma.iTDevice.findMany({
       where,
       include: {
-        school: { select: { id: true, name: true } },
+        campus: { select: { id: true, name: true } },
         building: { select: { id: true, name: true } },
         room: { select: { id: true, roomNumber: true, displayName: true } },
         assignments: {
@@ -226,7 +226,7 @@ export async function getDeviceDetail(id: string) {
   const device = await prisma.iTDevice.findUnique({
     where: { id },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },
       assignments: {

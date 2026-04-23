@@ -15,6 +15,7 @@ import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Us
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { getAuthHeaders } from '@/lib/api-client'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
@@ -68,6 +69,19 @@ export default function DashboardPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, isAdmin, logout } = useAuth()
+
+  // ── Global "active school" viewpoint ─────────────────────────────────
+  // Reference consumer: reads the Sidebar SchoolSelector's current pick and
+  // threads `schoolId` into any data fetch that supports it. When the user
+  // changes school, localStorage updates + the `active-school-changed` event
+  // fires, which re-hydrates this hook and triggers the dependent fetches
+  // below. For single-school orgs `isMultiSchool` is false and the selector
+  // is hidden — so the dashboard reads identically to the legacy behavior.
+  const {
+    activeSchoolId,
+    activeSchool,
+    isMultiSchool,
+  } = useActiveSchool()
 
   // Calendar hooks — power the Schedule Meeting form (EventCreatePanel)
   const { data: calendarList = [] } = useCalendars()
@@ -248,7 +262,9 @@ export default function DashboardPage() {
     return () => window.removeEventListener('leo-item-click', handleLeoItemClick)
   }, [])
 
-  // Fetch tickets — filtered by category based on dashboardMode
+  // Fetch tickets — filtered by category based on dashboardMode, and by the
+  // global school viewpoint when a specific school is selected. `schoolId` is
+  // only appended when non-null so "All Schools" keeps legacy behavior.
   const fetchTickets = useCallback(async (mode?: string) => {
     setTicketsLoading(true)
     setTicketsError(null)
@@ -257,6 +273,7 @@ export default function DashboardPage() {
       let url = '/api/tickets?limit=10'
       if (dashMode === 'maintenance') url += '&category=MAINTENANCE'
       else if (dashMode === 'it') url += '&category=IT'
+      if (activeSchoolId) url += `&schoolId=${encodeURIComponent(activeSchoolId)}`
       const res = await fetch(url, { credentials: 'include' })
       if (!res.ok) {
         setTicketsError(httpErrorMessage(res.status, 'load requests').message)
@@ -276,7 +293,7 @@ export default function DashboardPage() {
     } finally {
       setTicketsLoading(false)
     }
-  }, [user.dashboardMode])
+  }, [user.dashboardMode, activeSchoolId])
 
   // Fetch events — for admin (upcoming this week) and AV (requires AV support)
   const fetchEvents = useCallback(async (mode?: string) => {
@@ -322,7 +339,9 @@ export default function DashboardPage() {
       // AV mode: formal Events with requiresAV flag (not in CalendarEvents)
       fetchEvents(mode)
     } else if (mode !== 'admin') {
-      // admin mode uses useCalendarEvents (reactive hook, no manual fetch)
+      // admin mode uses useCalendarEvents (reactive hook, no manual fetch).
+      // `fetchTickets`/`fetchEvents` include `activeSchoolId` in their closure
+      // via useCallback deps, so this effect re-runs when the school changes.
       fetchTickets(mode)
     }
   }, [isReady, org.id, user.dashboardMode, fetchTickets, fetchEvents])
@@ -516,7 +535,7 @@ export default function DashboardPage() {
       userAvatar={user.avatar || undefined}
       organizationName={org.name || 'School'}
       organizationLogoUrl={org.logoUrl || undefined}
-      schoolLabel={user.schoolScope || org.schoolType || org.name || 'School'}
+      schoolLabel={user.campusScope || user.schoolScope || org.schoolType || org.name || 'School'}
       teamLabel={user.team || user.role || 'Team'}
       onLogout={logout}
     >
@@ -534,6 +553,11 @@ export default function DashboardPage() {
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
+          {isMultiSchool && (
+            <p className="text-xs font-medium text-slate-500 mt-1">
+              Viewing: <span className="text-slate-900">{activeSchool?.name ?? 'All Schools'}</span>
+            </p>
+          )}
         </motion.div>
         <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-end overflow-visible">
           {/* Notification Bell — aurora glow + bell ring on hover */}

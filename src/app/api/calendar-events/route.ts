@@ -28,6 +28,8 @@ const createEventSchema = z.object({
   categoryId: z.string().optional(),
   locationText: z.string().optional(),
   buildingId: z.string().optional().nullable(),
+  spaceId: z.string().optional().nullable(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().optional().nullable(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   attendeeIds: z.array(z.string()).optional(),
@@ -100,13 +102,13 @@ export async function GET(req: NextRequest) {
           status: true,
           locationText: true,
           buildingId: true,
-          areaId: true,
+          spaceId: true,
           createdById: true,
           createdBy: {
             select: { id: true, firstName: true, lastName: true, email: true, avatar: true },
           },
           building: { select: { id: true, name: true } },
-          area: { select: { id: true, name: true } },
+          space: { select: { id: true, name: true } },
         },
         orderBy: { startsAt: 'asc' },
       })
@@ -143,7 +145,9 @@ export async function GET(req: NextRequest) {
           calendar: HUB_CALENDAR,
           category: null,
           building: p.building,
-          area: p.area,
+          space: p.space,
+          // Backward-compat alias
+          area: p.space,
           createdBy: p.createdBy
             ? {
                 id: p.createdBy.id,

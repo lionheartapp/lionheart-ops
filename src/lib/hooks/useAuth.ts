@@ -24,6 +24,9 @@ export interface AuthUser {
   email: string
   avatar: string | null
   team: string | null
+  /** Grade-level division the user is pinned to (ELEMENTARY | MIDDLE_SCHOOL | HIGH_SCHOOL). Null = org-wide. */
+  campusScope: string | null
+  /** @deprecated Phase 1c — use campusScope. Kept as an alias during migration. */
   schoolScope: string | null
   role: string | null
   /** Controls which panel the dashboard renders: 'admin'|'maintenance'|'it'|'av'|'default' */
@@ -56,7 +59,8 @@ const LEGACY_KEYS = [
   'user-email',
   'user-avatar',
   'user-team',
-  'user-school-scope',
+  'user-school-scope', // legacy key — kept for cleanup on logout
+  'user-campus-scope',
   'user-role',
   'org-name',
   'org-school-type',
@@ -69,6 +73,7 @@ const DEFAULT_USER: AuthUser = {
   email: '',
   avatar: null,
   team: null,
+  campusScope: null,
   schoolScope: null,
   role: null,
   dashboardMode: 'default',
@@ -89,13 +94,21 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
     if (typeof window === 'undefined') return DEFAULT_USER
     const name = localStorage.getItem('user-name')
     if (!name) return DEFAULT_USER
+    // Prefer the new `user-campus-scope` key but fall back to the legacy
+    // `user-school-scope` so sessions started before the rename keep working.
+    const campusScope =
+      localStorage.getItem('user-campus-scope') ||
+      localStorage.getItem('user-school-scope') ||
+      null
     return {
       id: localStorage.getItem('user-id') || null,
       name,
       email: localStorage.getItem('user-email') || '',
       avatar: localStorage.getItem('user-avatar') || null,
       team: localStorage.getItem('user-team') || null,
-      schoolScope: localStorage.getItem('user-school-scope') || null,
+      campusScope,
+      // Deprecated alias — kept in sync with campusScope during the migration
+      schoolScope: campusScope,
       role: localStorage.getItem('user-role') || null,
       dashboardMode: localStorage.getItem('dashboard-mode') || 'default',
     }

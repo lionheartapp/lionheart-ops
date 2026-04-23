@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -8,6 +8,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 interface Team {
   id: string
   name: string
+  schoolId?: string | null
   sport: { id: string; name: string; color: string }
   season: { id: string; name: string }
 }
@@ -21,6 +22,7 @@ interface Calendar {
 interface Game {
   id: string
   athleticTeamId: string
+  opponentAthleticTeamId?: string | null
   opponentName: string
   homeAway: string
   startTime: string
@@ -39,6 +41,20 @@ interface GameDrawerProps {
   preselectedTeamId?: string
 }
 
+type OpponentType = 'in_org' | 'external'
+
+interface FormState {
+  athleticTeamId: string
+  opponentType: OpponentType
+  opponentAthleticTeamId: string
+  opponentName: string
+  homeAway: string
+  startTime: string
+  endTime: string
+  venue: string
+  calendarId: string
+}
+
 function toLocalDatetime(isoStr: string): string {
   const d = new Date(isoStr)
   const offset = d.getTimezoneOffset()
@@ -55,8 +71,10 @@ export default function GameDrawer({
   calendars,
   preselectedTeamId,
 }: GameDrawerProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     athleticTeamId: '',
+    opponentType: 'external',
+    opponentAthleticTeamId: '',
     opponentName: '',
     homeAway: 'HOME',
     startTime: '',
@@ -70,8 +88,11 @@ export default function GameDrawer({
   useEffect(() => {
     if (!isOpen) return
     if (editingGame) {
+      const isInOrg = Boolean(editingGame.opponentAthleticTeamId)
       setForm({
         athleticTeamId: editingGame.athleticTeamId,
+        opponentType: isInOrg ? 'in_org' : 'external',
+        opponentAthleticTeamId: editingGame.opponentAthleticTeamId ?? '',
         opponentName: editingGame.opponentName,
         homeAway: editingGame.homeAway,
         startTime: toLocalDatetime(editingGame.startTime),
@@ -82,6 +103,8 @@ export default function GameDrawer({
     } else {
       setForm({
         athleticTeamId: preselectedTeamId || '',
+        opponentType: 'external',
+        opponentAthleticTeamId: '',
         opponentName: '',
         homeAway: 'HOME',
         startTime: '',
@@ -99,15 +122,54 @@ export default function GameDrawer({
     color: t.sport.color,
   }))
 
+  // In-org opponent candidates exclude the chosen "our team" (a team can't play
+  // itself). All other org teams are eligible — cross-sport is unlikely but
+  // not prohibited at this layer.
+  const opponentTeamOptions: DropdownOption[] = useMemo(() => {
+    return teams
+      .filter((t) => t.id !== form.athleticTeamId)
+      .map((t) => ({
+        value: t.id,
+        label: `${t.name} (${t.sport.name})`,
+        color: t.sport.color,
+      }))
+  }, [teams, form.athleticTeamId])
+
   const athleticsCalendars = calendars.filter((c) => c.calendarType === 'ATHLETICS')
   const calendarOptions: DropdownOption[] = [
     { value: '', label: 'None' },
     ...athleticsCalendars.map((c) => ({ value: c.id, label: c.name })),
   ]
 
+  const handleOpponentTypeChange = (next: OpponentType): void => {
+    setForm((prev) => ({
+      ...prev,
+      opponentType: next,
+      // Clear the other channel so we don't submit stale data.
+      opponentAthleticTeamId: next === 'in_org' ? prev.opponentAthleticTeamId : '',
+      opponentName: next === 'external' ? prev.opponentName : '',
+    }))
+  }
+
+  const handleOpponentTeamPick = (teamId: string): void => {
+    // Pre-fill opponentName with the opponent team's display name so the API
+    // (which still requires opponentName) has a sensible value, and so
+    // external consumers that key off opponentName keep working.
+    const pickedTeam = teams.find((t) => t.id === teamId)
+    setForm((prev) => ({
+      ...prev,
+      opponentAthleticTeamId: teamId,
+      opponentName: pickedTeam?.name ?? prev.opponentName,
+    }))
+  }
+
   const handleSave = async () => {
     if (!form.athleticTeamId) { setError('Team is required'); return }
-    if (!form.opponentName.trim()) { setError('Opponent name is required'); return }
+    if (form.opponentType === 'in_org') {
+      if (!form.opponentAthleticTeamId) { setError('Opponent team is required'); return }
+    } else {
+      if (!form.opponentName.trim()) { setError('Opponent name is required'); return }
+    }
     if (!form.startTime) { setError('Start time is required'); return }
     if (!form.endTime) { setError('End time is required'); return }
 
@@ -116,12 +178,27 @@ export default function GameDrawer({
 
     try {
       const token = localStorage.getItem('auth-token')
-      const payload: Record<string, any> = {
-        opponentName: form.opponentName.trim(),
+      // Always send opponentName: either the free-text the user typed (external
+      // opponent) or the opponent team's display name (in-org opponent). This
+      // keeps the API contract and existing rendering code happy.
+      const resolvedOpponentName =
+        form.opponentType === 'in_org'
+          ? teams.find((t) => t.id === form.opponentAthleticTeamId)?.name ?? form.opponentName.trim()
+          : form.opponentName.trim()
+
+      const payload: Record<string, unknown> = {
+        opponentName: resolvedOpponentName,
         homeAway: form.homeAway,
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
         venue: form.venue.trim() || undefined,
+      }
+
+      if (form.opponentType === 'in_org') {
+        payload.opponentAthleticTeamId = form.opponentAthleticTeamId
+      } else if (editingGame) {
+        // Clearing back to external — explicitly null so Prisma sets the FK to null.
+        payload.opponentAthleticTeamId = null
       }
 
       let res: Response
@@ -154,6 +231,8 @@ export default function GameDrawer({
     }
   }
 
+  const hasInOrgCandidates = opponentTeamOptions.length > 0
+
   return (
     <DetailDrawer
       isOpen={isOpen}
@@ -182,13 +261,52 @@ export default function GameDrawer({
           disabled={!!editingGame}
         />
 
-        <FloatingInput
-          id="game-opponent"
-          label="Opponent Name"
-          value={form.opponentName}
-          onChange={(e) => setForm({ ...form, opponentName: e.target.value })}
-          required
-        />
+        {/* Opponent picker — toggle between an in-org team and an external opponent. */}
+        {hasInOrgCandidates && (
+          <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => handleOpponentTypeChange('in_org')}
+              className={`flex-1 px-4 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                form.opponentType === 'in_org'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Another team in our org
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOpponentTypeChange('external')}
+              className={`flex-1 px-4 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                form.opponentType === 'external'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              External opponent
+            </button>
+          </div>
+        )}
+
+        {form.opponentType === 'in_org' && hasInOrgCandidates ? (
+          <FloatingDropdown
+            id="game-opponent-team"
+            label="Opponent Team"
+            value={form.opponentAthleticTeamId}
+            onChange={handleOpponentTeamPick}
+            options={opponentTeamOptions}
+            required
+          />
+        ) : (
+          <FloatingInput
+            id="game-opponent"
+            label="Opponent Name"
+            value={form.opponentName}
+            onChange={(e) => setForm({ ...form, opponentName: e.target.value })}
+            required
+          />
+        )}
 
         <FloatingDropdown
           id="game-homeaway"

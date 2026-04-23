@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ orgId }) => {
   // Get per-campus analytics for comparison
   const perCampus = await Promise.all(
     schools.map(async (school) => {
-      const analytics = await getAllITAnalytics(orgId, { schoolId: school.id, months: 12 })
+      const analytics = await getAllITAnalytics(orgId, { campusId: school.id, months: 12 })
       return {
         schoolId: school.id,
         schoolName: school.name,

@@ -44,6 +44,8 @@ interface DashboardData {
 
 interface Game {
   id: string
+  athleticTeamId: string
+  opponentAthleticTeamId?: string | null
   opponentName: string
   homeAway: string
   startTime: string
@@ -56,8 +58,16 @@ interface Game {
     id: string
     name: string
     level: string
+    schoolId: string | null
     sport: { name: string; color: string }
   }
+  opponentAthleticTeam?: {
+    id: string
+    name: string
+    level: string
+    schoolId: string | null
+    sport: { name: string; color: string }
+  } | null
 }
 
 interface Practice {
@@ -104,9 +114,63 @@ function formatRelativeDate(iso: string) {
   return `${diffDays} days ago`
 }
 
-function getResultBadge(game: Game) {
+// ── Viewpoint resolution ──────────────────────────��───────────────────────────
+// For cross-school games, the dashboard viewer may be on the opponent side.
+// We flip home/away and scores accordingly so stats aren't double-counted or
+// shown from the wrong perspective.
+
+type GameSide = 'owning' | 'opponent'
+
+interface GameViewpoint {
+  side: GameSide
+  teamName: string
+  sportName: string
+  sportColor: string
+  opponentLabel: string
+  homeAway: string
+}
+
+/**
+ * Determines whether the viewer is on the owning or opponent side.
+ * Uses `activeCampusId` to check schoolId on each side — if the owning team
+ * doesn't belong to the active campus but the opponent does, flip the viewpoint.
+ */
+function resolveGameViewpoint(game: Game, activeCampusId: string | null): GameViewpoint {
+  let side: GameSide = 'owning'
+
+  if (activeCampusId && game.opponentAthleticTeamId) {
+    const owningBelongs = game.athleticTeam.schoolId === activeCampusId || !game.athleticTeam.schoolId
+    const opponentBelongs = game.opponentAthleticTeam?.schoolId === activeCampusId
+    if (!owningBelongs && opponentBelongs) side = 'opponent'
+  }
+
+  if (side === 'owning') {
+    return {
+      side,
+      teamName: game.athleticTeam.name,
+      sportName: game.athleticTeam.sport.name,
+      sportColor: game.athleticTeam.sport.color,
+      opponentLabel: game.opponentAthleticTeam?.name ?? game.opponentName,
+      homeAway: game.homeAway,
+    }
+  }
+
+  // Flipped — render from opponent's perspective.
+  const flippedHA = game.homeAway === 'HOME' ? 'AWAY' : game.homeAway === 'AWAY' ? 'HOME' : 'NEUTRAL'
+  return {
+    side,
+    teamName: game.opponentAthleticTeam?.name ?? game.opponentName,
+    sportName: game.opponentAthleticTeam?.sport?.name ?? game.athleticTeam.sport.name,
+    sportColor: game.opponentAthleticTeam?.sport?.color ?? game.athleticTeam.sport.color,
+    opponentLabel: game.athleticTeam.name,
+    homeAway: flippedHA,
+  }
+}
+
+function getResultBadge(game: Game, side: GameSide = 'owning') {
   if (game.homeScore == null || game.awayScore == null) return null
-  const isHome = game.homeAway === 'HOME'
+  const owningWasHome = game.homeAway === 'HOME'
+  const isHome = side === 'owning' ? owningWasHome : !owningWasHome
   const homeWon = game.homeScore > game.awayScore
   const tied = game.homeScore === game.awayScore
 
@@ -115,9 +179,10 @@ function getResultBadge(game: Game) {
   return { label: 'L', className: 'bg-red-100 text-red-700' }
 }
 
-function getScoreDisplay(game: Game) {
+function getScoreDisplay(game: Game, side: GameSide = 'owning') {
   if (game.homeScore == null || game.awayScore == null) return null
-  const isHome = game.homeAway === 'HOME'
+  const owningWasHome = game.homeAway === 'HOME'
+  const isHome = side === 'owning' ? owningWasHome : !owningWasHome
   const ourScore = isHome ? game.homeScore : game.awayScore
   const theirScore = isHome ? game.awayScore : game.homeScore
   return `${ourScore}-${theirScore}`
@@ -204,38 +269,41 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                 </div>
               ) : (
                 <div className="px-4 pb-3">
-                  {upcomingGames.map((game) => (
-                    <motion.div
-                      key={game.id}
-                      variants={listItem}
-                      className="group flex items-center gap-3 py-3 px-2 rounded-xl hover:bg-white/60 transition-colors duration-150"
-                    >
-                      <GlassSportTile
-                        sport={game.athleticTeam.sport.name}
-                        color={game.athleticTeam.sport.color}
-                        size="md"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-900 truncate">
-                          {game.athleticTeam.name} {game.homeAway === 'AWAY' ? '@ ' : 'vs '}{game.opponentName}
+                  {upcomingGames.map((game) => {
+                    const vp = resolveGameViewpoint(game, activeCampusId)
+                    return (
+                      <motion.div
+                        key={game.id}
+                        variants={listItem}
+                        className="group flex items-center gap-3 py-3 px-2 rounded-xl hover:bg-white/60 transition-colors duration-150"
+                      >
+                        <GlassSportTile
+                          sport={vp.sportName}
+                          color={vp.sportColor}
+                          size="md"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-900 truncate">
+                            {vp.teamName} {vp.homeAway === 'AWAY' ? '@ ' : 'vs '}{vp.opponentLabel}
+                          </div>
+                          <div className="flex items-center gap-2.5 mt-0.5 text-xs text-stone-500">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(game.startTime)} &middot; {formatTime(game.startTime)}
+                            </span>
+                            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
+                              vp.homeAway === 'HOME'
+                                ? 'bg-green-50 text-green-600'
+                                : 'bg-stone-100/80 text-stone-500'
+                            }`}>
+                              <MapPin className="w-2.5 h-2.5" />
+                              {vp.homeAway === 'HOME' ? 'Home' : 'Away'}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2.5 mt-0.5 text-xs text-stone-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDate(game.startTime)} &middot; {formatTime(game.startTime)}
-                          </span>
-                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
-                            game.homeAway === 'HOME'
-                              ? 'bg-green-50 text-green-600'
-                              : 'bg-stone-100/80 text-stone-500'
-                          }`}>
-                            <MapPin className="w-2.5 h-2.5" />
-                            {game.homeAway === 'HOME' ? 'Home' : 'Away'}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    )
+                  })}
                 </div>
               )}
             </motion.div>
@@ -255,18 +323,19 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
               ) : (
                 <div className="px-4 pb-3">
                   {recentResults.map((game) => {
-                    const badge = getResultBadge(game)
-                    const score = getScoreDisplay(game)
+                    const vp = resolveGameViewpoint(game, activeCampusId)
+                    const badge = getResultBadge(game, vp.side)
+                    const score = getScoreDisplay(game, vp.side)
                     return (
                       <div key={game.id} className="group flex items-center gap-3 py-3 px-2 rounded-xl hover:bg-white/60 transition-colors duration-150">
                         <GlassSportTile
-                          sport={game.athleticTeam.sport.name}
-                          color={game.athleticTeam.sport.color}
+                          sport={vp.sportName}
+                          color={vp.sportColor}
                           size="md"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-slate-900 truncate">
-                            {game.athleticTeam.name} {game.homeAway === 'AWAY' ? '@ ' : 'vs '}{game.opponentName}
+                            {vp.teamName} {vp.homeAway === 'AWAY' ? '@ ' : 'vs '}{vp.opponentLabel}
                           </div>
                           <div className="text-xs text-stone-500 mt-0.5">
                             {formatRelativeDate(game.startTime)}
@@ -365,18 +434,21 @@ export default function AthleticsDashboard({ activeCampusId, canWrite, onTabChan
                       </span>
                       <div className="flex-1 min-w-0 space-y-0.5">
                         {!hasEvents && <span className="text-xs text-stone-300">&mdash;</span>}
-                        {dayGames.map((g) => (
-                          <div key={g.id} className="flex items-center gap-1.5">
-                            <span
-                              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: g.athleticTeam?.sport?.color || '#6a6864' }}
-                            />
-                            <span className="text-xs text-stone-700 truncate">
-                              <span className="font-semibold">{formatTime(g.startTime)}</span>
-                              {' '}{g.homeAway === 'AWAY' ? '@ ' : 'vs '}{g.opponentName}
-                            </span>
-                          </div>
-                        ))}
+                        {dayGames.map((g) => {
+                          const gvp = resolveGameViewpoint(g, activeCampusId)
+                          return (
+                            <div key={g.id} className="flex items-center gap-1.5">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: gvp.sportColor || '#6a6864' }}
+                              />
+                              <span className="text-xs text-stone-700 truncate">
+                                <span className="font-semibold">{formatTime(g.startTime)}</span>
+                                {' '}{gvp.homeAway === 'AWAY' ? '@ ' : 'vs '}{gvp.opponentLabel}
+                              </span>
+                            </div>
+                          )
+                        })}
                         {dayPractices.map((p) => (
                           <div key={p.id} className="flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-stone-300" />

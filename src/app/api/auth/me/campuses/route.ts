@@ -6,48 +6,58 @@ import { rawPrisma } from '@/lib/db'
 /**
  * GET /api/auth/me/campuses
  *
- * Returns the campuses the current user is assigned to (via UserCampusAssignment).
- * Falls back to ALL active campuses if the user has no assignments (e.g., super-admin).
+ * Returns the campus(es) the current user can see.
+ *
+ * NEW ONTOLOGY (Phase 1b): Users are pinned to a single campus via
+ * `User.campusId` (the old UserCampusAssignment junction has been dropped).
+ *
+ * - If the user has a campusId, we return an array containing just that campus
+ *   (marked isPrimary: true) so clients that expected a list still work.
+ * - Otherwise we fall back to all active campuses in the org so admins and
+ *   super-admins continue to see everything.
  */
 export async function GET(req: NextRequest) {
   try {
     const ctx = await getUserContext(req)
 
-    // Get user's campus assignments
-    const assignments = await rawPrisma.userCampusAssignment.findMany({
-      where: {
-        userId: ctx.userId,
-        isActive: true,
-      },
-      include: {
-        campus: {
-          select: { id: true, name: true, isActive: true },
-        },
-      },
-      orderBy: [{ isPrimary: 'desc' }, { campus: { name: 'asc' } }],
+    const user = await rawPrisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { campusId: true },
     })
 
-    const assignedCampuses = assignments
-      .filter((a: any) => a.campus?.isActive)
-      .map((a: any) => ({
-        id: a.campus.id,
-        name: a.campus.name,
-        isPrimary: a.isPrimary,
-      }))
-
-    // If user has no campus assignments, fall back to all active campuses
-    // (super-admins and admins should see everything)
-    if (assignedCampuses.length === 0) {
-      const allCampuses = await rawPrisma.campus.findMany({
-        where: { organizationId: ctx.organizationId, isActive: true },
-        select: { id: true, name: true },
-        orderBy: { name: 'asc' },
+    if (user?.campusId) {
+      const campus = await rawPrisma.campus.findFirst({
+        where: {
+          id: user.campusId,
+          organizationId: ctx.organizationId,
+          isActive: true,
+          deletedAt: null,
+        },
+        select: { id: true, name: true, isActive: true },
       })
-      return NextResponse.json(ok(allCampuses.map((c: any) => ({ ...c, isPrimary: false }))))
+
+      if (campus) {
+        return NextResponse.json(
+          ok([{ id: campus.id, name: campus.name, isPrimary: true }]),
+        )
+      }
     }
 
-    return NextResponse.json(ok(assignedCampuses))
-  } catch (error) {
+    // Fall back to all active campuses for admins / users without a pinned campus
+    const allCampuses = await rawPrisma.campus.findMany({
+      where: {
+        organizationId: ctx.organizationId,
+        isActive: true,
+        deletedAt: null,
+      },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    })
+
+    return NextResponse.json(
+      ok(allCampuses.map((c) => ({ ...c, isPrimary: false }))),
+    )
+  } catch {
     return NextResponse.json(
       fail('INTERNAL_ERROR', 'Something went wrong'),
       { status: 500 },

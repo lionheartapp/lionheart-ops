@@ -46,7 +46,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const metrics = await getBoardReportMetrics(orgId, {
     from: fromDate,
     to: toDate,
-    schoolId,
+    campusId: schoolId,
   })
   return NextResponse.json(ok(metrics))
 }, { permission: PERMISSIONS.MAINTENANCE_VIEW_ANALYTICS })

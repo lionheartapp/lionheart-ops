@@ -154,6 +154,8 @@ const CreateTicketSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   photos: z.array(z.string().url()).max(5).default([]),
   buildingId: z.string().optional(),
+  spaceId: z.string().optional(),
+  /** @deprecated Phase 1b — use spaceId */
   areaId: z.string().optional(),
   roomId: z.string().optional(),
   schoolId: z.string().optional(),
@@ -173,9 +175,9 @@ const TICKET_INCLUDES = {
   },
   assignedTo: { select: { id: true, firstName: true, lastName: true } },
   building: { select: { id: true, name: true } },
-  area: { select: { id: true, name: true } },
+  space: { select: { id: true, name: true } },
   room: { select: { id: true, roomNumber: true, displayName: true } },
-  school: { select: { id: true, name: true } },
+  campus: { select: { id: true, name: true } },
   asset: {
     select: {
       repeatAlertSentAt: true,
@@ -222,9 +224,9 @@ export async function createMaintenanceTicket(
       priority: data.priority as MaintenancePriority,
       photos: data.photos,
       buildingId: data.buildingId,
-      areaId: data.areaId,
+      spaceId: data.spaceId ?? data.areaId,
       roomId: data.roomId,
-      schoolId: data.schoolId,
+      campusId: data.schoolId,
       scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
       availabilityNote: data.availabilityNote,
       assetId: data.assetId ?? null,
@@ -683,7 +685,7 @@ export async function listTickets(filters: ListFilters, ctx: UserContext) {
   if (filters.status) where.status = filters.status
   if (filters.priority) where.priority = filters.priority
   if (filters.category) where.category = filters.category
-  if (filters.schoolId) where.schoolId = filters.schoolId
+  if (filters.schoolId) where.campusId = filters.schoolId
   if (filters.assignedToId !== undefined) where.assignedToId = filters.assignedToId
   if (filters.unassigned) where.assignedToId = null
   if (filters.excludeStatus) {

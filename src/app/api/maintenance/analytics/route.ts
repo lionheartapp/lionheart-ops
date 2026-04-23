@@ -28,7 +28,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const effectiveMonths = isNaN(months) ? 6 : months
   const cacheKey = settingsCacheKey(orgId, `maint-analytics:${campusId || ''}:${schoolId || ''}:${effectiveMonths}`)
   const data = await getCached(cacheKey, () =>
-    getAllAnalytics(orgId, { campusId, schoolId, months: effectiveMonths }),
+    getAllAnalytics(orgId, { campusId: campusId || schoolId, months: effectiveMonths }),
     ANALYTICS_CACHE_TTL
   )
 

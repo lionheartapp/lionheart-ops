@@ -25,6 +25,10 @@ export async function GET(req: NextRequest) {
     }
     if (status) where.onboardingStatus = status
 
+    // `institutionType`, `gradeLevel`, `principalName`, `principalEmail` moved
+    // off Organization in Phase 1c ontology inversion — they're now on School.
+    // We flatten the primary (first-sorted) School's values back onto the
+    // response for platform admin UI backward-compat.
     const [organizations, total] = await Promise.all([
       rawPrisma.organization.findMany({
         where,
@@ -32,14 +36,20 @@ export async function GET(req: NextRequest) {
           id: true,
           name: true,
           slug: true,
-          institutionType: true,
-          gradeLevel: true,
           onboardingStatus: true,
           stripeCustomerId: true,
-          principalName: true,
-          principalEmail: true,
           phone: true,
           createdAt: true,
+          schools: {
+            where: { deletedAt: null },
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+            take: 1,
+            select: {
+              institutionType: true,
+              principalName: true,
+              principalEmail: true,
+            },
+          },
           _count: {
             select: {
               users: { where: { deletedAt: null } },
@@ -60,7 +70,20 @@ export async function GET(req: NextRequest) {
       rawPrisma.organization.count({ where }),
     ])
 
-    return NextResponse.json(ok({ organizations, total, page, perPage }))
+    // Flatten primary-school principal + institutionType onto each org so the
+    // existing admin UI contract (`org.principalName`, etc.) keeps working.
+    const organizationsWithCompat = organizations.map((org) => {
+      const primarySchool = org.schools[0]
+      return {
+        ...org,
+        institutionType: primarySchool?.institutionType ?? null,
+        gradeLevel: null,
+        principalName: primarySchool?.principalName ?? null,
+        principalEmail: primarySchool?.principalEmail ?? null,
+      }
+    })
+
+    return NextResponse.json(ok({ organizations: organizationsWithCompat, total, page, perPage }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient platform permissions')) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })

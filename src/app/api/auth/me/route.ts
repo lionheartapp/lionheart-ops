@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         email: true,
         name: true,
         avatar: true,
-        schoolScope: true,
+        campusScope: true,
         organizationId: true,
         mfaEnabled: true,
         userRole: {
@@ -49,7 +49,6 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             name: true,
-            gradeLevel: true,
             logoUrl: true,
           },
         },
@@ -108,7 +107,9 @@ export async function GET(req: NextRequest) {
           email: user.email,
           name: user.name || 'User',
           avatar: user.avatar ?? null,
-          schoolScope: user.schoolScope ?? null,
+          campusScope: user.campusScope ?? null,
+          // Backward-compat alias — remove once clients are migrated
+          schoolScope: user.campusScope ?? null,
           role: user.userRole?.name ?? null,
           team: teamName,
           teamSlugs,
@@ -118,7 +119,10 @@ export async function GET(req: NextRequest) {
         org: {
           id: user.organization?.id ?? user.organizationId,
           name: user.organization?.name ?? 'School',
-          schoolType: user.organization?.gradeLevel ?? null,
+          // `schoolType`/`gradeLevel` moved off Organization in Phase 1c ontology
+          // inversion. Emit null for backward-compat; clients should migrate to
+          // reading these from School/Campus endpoints.
+          schoolType: null,
           logoUrl: user.organization?.logoUrl ?? null,
         },
         isImpersonating,

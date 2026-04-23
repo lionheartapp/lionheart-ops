@@ -51,13 +51,13 @@ export async function listBatches(filters?: { batchType?: string; status?: strin
   const where: Record<string, unknown> = {}
   if (filters?.batchType) where.batchType = filters.batchType
   if (filters?.status) where.status = filters.status
-  if (filters?.schoolId) where.schoolId = filters.schoolId
+  if (filters?.schoolId) where.campusId = filters.schoolId
 
   const batches = await prisma.iTDeploymentBatch.findMany({
     where,
     orderBy: { createdAt: 'desc' },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       _count: { select: { items: true } },
     },
   })
@@ -86,7 +86,7 @@ export async function getBatchDetail(batchId: string) {
   const batch = await prisma.iTDeploymentBatch.findUnique({
     where: { id: batchId },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       items: {
         include: {
           device: {
@@ -131,7 +131,7 @@ export async function autoPopulateBatch(batchId: string, filters: { schoolId?: s
   if (batch.status !== 'DRAFT') throw new Error('Can only auto-populate DRAFT batches')
 
   const deviceWhere: Record<string, unknown> = { status: 'ACTIVE', deletedAt: null }
-  if (filters.schoolId) deviceWhere.schoolId = filters.schoolId
+  if (filters.schoolId) deviceWhere.campusId = filters.schoolId
   if (filters.deviceType) deviceWhere.deviceType = filters.deviceType
 
   const devices = await prisma.iTDevice.findMany({

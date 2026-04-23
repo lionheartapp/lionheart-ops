@@ -5,6 +5,12 @@
  * Returns campus center + building coordinates for the campus map embed.
  * Accepts optional ?campusId= to scope to a specific campus.
  * If not provided, defaults to the HQ/first campus.
+ *
+ * Phase 1c note: the old fallback path queried `Organization.physicalAddress`,
+ * `Organization.latitude`, and `Organization.longitude`. Those fields moved to
+ * the School model in the ontology inversion. The fallback now pulls from the
+ * primary (first-sorted, non-deleted) School record instead. Persisted writes
+ * target that School rather than Organization.
  */
 
 import { NextResponse } from 'next/server'
@@ -14,12 +20,28 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { rawPrisma } from '@/lib/db'
 import { geocodeAddress } from '@/lib/services/geocodingService'
 
+type MapCenter = {
+  lat: number | null
+  lng: number | null
+  name: string
+  address: string | null
+}
+
+/** Fetch the primary (first-sorted, non-deleted) School for an org, if any. */
+async function getPrimarySchool(orgId: string) {
+  return rawPrisma.school.findFirst({
+    where: { organizationId: orgId, deletedAt: null },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true, address: true, latitude: true, longitude: true },
+  })
+}
+
 export const GET = withAuth(async ({ orgId, searchParams }) => {
   const campusId = searchParams.get('campusId')
 
   // If campusId specified, use campus coords for map center
-  // Otherwise fall back to HQ campus, then org coords
-  let mapCenter: { lat: number | null; lng: number | null; name: string; address: string | null } | null = null
+  // Otherwise fall back to HQ campus, then the primary School.
+  let mapCenter: MapCenter | null = null
   let selectedCampusId = campusId
 
   if (selectedCampusId) {
@@ -56,47 +78,46 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     }
   }
 
-  // Fallback to org coords if no campus found
+  // Fallback to primary School if no campus found. School.address /
+  // School.latitude / School.longitude replaced the old Organization
+  // equivalents in the Phase 1c ontology inversion.
   if (!mapCenter) {
-    const orgRows = await rawPrisma.$queryRaw<Array<{
-      latitude: number | null; longitude: number | null; name: string; physicalAddress: string | null
-    }>>`
-      SELECT latitude, longitude, name, "physicalAddress"
-      FROM "Organization"
-      WHERE id = ${orgId}
-      LIMIT 1
-    `
-    const org = orgRows[0]
+    const org = await rawPrisma.organization.findUnique({
+      where: { id: orgId },
+      select: { name: true },
+    })
+    const primarySchool = await getPrimarySchool(orgId)
     if (org) {
-      mapCenter = { lat: org.latitude, lng: org.longitude, name: org.name, address: org.physicalAddress }
+      mapCenter = {
+        lat: primarySchool?.latitude ?? null,
+        lng: primarySchool?.longitude ?? null,
+        name: org.name,
+        address: primarySchool?.address ?? null,
+      }
     }
   }
 
-  // If campus has no address, inherit from org's physicalAddress and persist it
+  // If campus has no address, inherit from the primary School and persist it
   if (mapCenter && !mapCenter.address) {
-    const orgAddrRows = await rawPrisma.$queryRaw<Array<{ physicalAddress: string | null }>>`
-      SELECT "physicalAddress" FROM "Organization" WHERE id = ${orgId} LIMIT 1
-    `
-    if (orgAddrRows[0]?.physicalAddress) {
-      mapCenter.address = orgAddrRows[0].physicalAddress
+    const primarySchool = await getPrimarySchool(orgId)
+    if (primarySchool?.address) {
+      mapCenter.address = primarySchool.address
       // Persist to the campus so future loads are instant
       if (selectedCampusId) {
         await rawPrisma.$executeRaw`
-          UPDATE "Campus" SET address = ${orgAddrRows[0].physicalAddress}, "updatedAt" = NOW()
+          UPDATE "Campus" SET address = ${primarySchool.address}, "updatedAt" = NOW()
           WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId} AND address IS NULL
         `.catch(() => {})
       }
     }
   }
 
-  // If campus has no coordinates, try to inherit from org
+  // If campus has no coordinates, try to inherit from the primary School
   if (mapCenter && !mapCenter.lat && !mapCenter.lng) {
-    const orgCoordsRows = await rawPrisma.$queryRaw<Array<{ latitude: number | null; longitude: number | null }>>`
-      SELECT latitude, longitude FROM "Organization" WHERE id = ${orgId} LIMIT 1
-    `
-    if (orgCoordsRows[0]?.latitude && orgCoordsRows[0]?.longitude) {
-      mapCenter.lat = orgCoordsRows[0].latitude
-      mapCenter.lng = orgCoordsRows[0].longitude
+    const primarySchool = await getPrimarySchool(orgId)
+    if (primarySchool?.latitude && primarySchool?.longitude) {
+      mapCenter.lat = primarySchool.latitude
+      mapCenter.lng = primarySchool.longitude
       // Persist to campus
       if (selectedCampusId) {
         await rawPrisma.$executeRaw`
@@ -107,34 +128,39 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     }
   }
 
-  // Auto-geocode if we have an address but no coordinates
+  // Auto-geocode if we have an address but no coordinates. Persisted writes go
+  // to the campus (preferred) or the primary School (fallback).
   if (mapCenter && !mapCenter.lat && !mapCenter.lng && mapCenter.address) {
     const geo = await geocodeAddress(mapCenter.address)
     if (geo) {
       mapCenter.lat = geo.lat
       mapCenter.lng = geo.lng
-      // Persist the geocoded coordinates so we don't re-geocode next time
       if (selectedCampusId) {
         await rawPrisma.$executeRaw`
           UPDATE "Campus" SET latitude = ${geo.lat}, longitude = ${geo.lng}, "updatedAt" = NOW()
           WHERE id = ${selectedCampusId} AND "organizationId" = ${orgId}
         `.catch(() => {})
       } else {
-        await rawPrisma.$executeRaw`
-          UPDATE "Organization" SET latitude = ${geo.lat}, longitude = ${geo.lng}, "updatedAt" = NOW()
-          WHERE id = ${orgId}
-        `.catch(() => {})
+        const primarySchool = await getPrimarySchool(orgId)
+        if (primarySchool) {
+          await rawPrisma.$executeRaw`
+            UPDATE "School" SET latitude = ${geo.lat}, longitude = ${geo.lng}, "updatedAt" = NOW()
+            WHERE id = ${primarySchool.id}
+          `.catch(() => {})
+        }
       }
     }
   }
 
-  // Scope buildings and areas by campus if available
+  // Scope buildings and outdoor spaces by campus if available. Space replaced
+  // the old Area table (Phase 1c Pass 4); column renamed from areaType to
+  // spaceType at the same time.
   let buildingRows: Array<{
     id: string; name: string; code: string | null
     latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
   }>
   let outdoorRows: Array<{
-    id: string; name: string; areaType: string
+    id: string; name: string; spaceType: string
     latitude: number | null; longitude: number | null; polygonCoordinates: unknown | null
   }>
 
@@ -149,8 +175,8 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       ORDER BY "sortOrder" ASC, name ASC
     `
     outdoorRows = await rawPrisma.$queryRaw`
-      SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
-      FROM "Area"
+      SELECT id, name, "spaceType", latitude, longitude, "polygonCoordinates"
+      FROM "Space"
       WHERE "organizationId" = ${orgId}
         AND "buildingId" IS NULL
         AND "isActive" = true
@@ -168,8 +194,8 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       ORDER BY "sortOrder" ASC, name ASC
     `
     outdoorRows = await rawPrisma.$queryRaw`
-      SELECT id, name, "areaType", latitude, longitude, "polygonCoordinates"
-      FROM "Area"
+      SELECT id, name, "spaceType", latitude, longitude, "polygonCoordinates"
+      FROM "Space"
       WHERE "organizationId" = ${orgId}
         AND "buildingId" IS NULL
         AND "isActive" = true
@@ -191,13 +217,16 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
         lng: b.longitude,
         polygonCoordinates: b.polygonCoordinates || null,
       })),
-    outdoorSpaces: outdoorRows.map(a => ({
-      id: a.id,
-      name: a.name,
-      areaType: a.areaType,
-      lat: a.latitude,
-      lng: a.longitude,
-      polygonCoordinates: a.polygonCoordinates || null,
+    outdoorSpaces: outdoorRows.map(s => ({
+      id: s.id,
+      name: s.name,
+      // Client still expects `areaType` for backward compat; alias spaceType
+      // onto that shape until the consumer component migrates.
+      areaType: s.spaceType,
+      spaceType: s.spaceType,
+      lat: s.latitude,
+      lng: s.longitude,
+      polygonCoordinates: s.polygonCoordinates || null,
     })),
   }))
 }, { permission: PERMISSIONS.SETTINGS_READ })
@@ -218,12 +247,21 @@ export const PATCH = withAuth(async ({ req, orgId }) => {
       WHERE id = ${campusId} AND "organizationId" = ${orgId}
     `
   } else {
-    // Fallback: update org coords (backward compat)
-    await rawPrisma.$executeRaw`
-      UPDATE "Organization"
-      SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
-      WHERE id = ${orgId}
-    `
+    // Fallback: persist onto the primary School. Previously this wrote to
+    // Organization.latitude/longitude — those columns were removed in the
+    // Phase 1c ontology inversion.
+    const primarySchool = await rawPrisma.school.findFirst({
+      where: { organizationId: orgId, deletedAt: null },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    })
+    if (primarySchool) {
+      await rawPrisma.$executeRaw`
+        UPDATE "School"
+        SET latitude = ${latitude}, longitude = ${longitude}, "updatedAt" = NOW()
+        WHERE id = ${primarySchool.id}
+      `
+    }
   }
 
   return NextResponse.json(ok({ latitude, longitude, campusId }))

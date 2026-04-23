@@ -179,54 +179,155 @@ export async function deleteTeam(id: string) {
 
 // ── Games ──────────────────────────────────────────────────────────────
 
-export async function getGames(filters?: { teamId?: string; startDate?: Date; endDate?: Date }) {
+// Shared include — both sides of a game come back so the UI can render from
+// either team's perspective (our-team home/away, opponent-team rename, etc.).
+const GAME_INCLUDE = {
+  athleticTeam: {
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      schoolId: true,
+      sport: { select: { name: true, color: true } },
+    },
+  },
+  opponentAthleticTeam: {
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      schoolId: true,
+      sport: { select: { name: true, color: true } },
+    },
+  },
+} as const
+
+interface GameEventTitleArgs {
+  sportName: string
+  teamName: string
+  homeAway: string
+  opponentLabel: string
+}
+
+/**
+ * Build the owning-team-viewpoint calendar title for a game row.
+ *
+ * Kept in one place so `createGame` and `updateGame` can't drift. The title is
+ * always from the owning team's perspective (`athleticTeam`); dual-school
+ * opponents that want their own title read `opponentAthleticTeam` and flip
+ * `homeAway` at render time.
+ */
+function buildGameEventTitle({
+  sportName,
+  teamName,
+  homeAway,
+  opponentLabel,
+}: GameEventTitleArgs): string {
+  const prefix = homeAway === 'AWAY' ? '@ ' : 'vs '
+  return `${sportName}: ${teamName} ${prefix}${opponentLabel}`
+}
+
+export async function getGames(filters?: {
+  teamId?: string
+  /**
+   * When provided, returns games where the team is on *either* side
+   * (owning team OR opponent team). Useful for per-team schedule pages where
+   * a cross-school game should show up even if the team is listed as
+   * the opponent on the authoritative record.
+   */
+  includeGamesAsOpponent?: boolean
+  /**
+   * When provided, returns games where at least one participating team
+   * belongs to this school (owning OR opponent). Skipped when undefined.
+   */
+  schoolId?: string
+  startDate?: Date
+  endDate?: Date
+}) {
+  const dateFilter =
+    filters?.startDate && filters?.endDate
+      ? { startTime: { gte: filters.startDate, lte: filters.endDate } }
+      : {}
+
+  // Build a list of AND clauses, each potentially containing ORs.
+  const clauses: Record<string, unknown>[] = []
+
+  if (filters?.teamId) {
+    if (filters.includeGamesAsOpponent) {
+      clauses.push({
+        OR: [
+          { athleticTeamId: filters.teamId },
+          { opponentAthleticTeamId: filters.teamId },
+        ],
+      })
+    } else {
+      clauses.push({ athleticTeamId: filters.teamId })
+    }
+  }
+
+  if (filters?.schoolId) {
+    clauses.push({
+      OR: [
+        { athleticTeam: { schoolId: filters.schoolId } },
+        { opponentAthleticTeam: { schoolId: filters.schoolId } },
+      ],
+    })
+  }
+
+  const where = {
+    ...dateFilter,
+    ...(clauses.length > 0 ? { AND: clauses } : {}),
+  }
+
   return db.game.findMany({
-    where: {
-      ...(filters?.teamId ? { athleticTeamId: filters.teamId } : {}),
-      ...(filters?.startDate && filters?.endDate
-        ? { startTime: { gte: filters.startDate, lte: filters.endDate } }
-        : {}),
-    },
-    include: {
-      athleticTeam: {
-        select: { id: true, name: true, level: true, sport: { select: { name: true, color: true } } },
-      },
-    },
+    where,
+    include: GAME_INCLUDE,
     orderBy: { startTime: 'asc' },
   })
 }
 
-export async function createGame(data: {
-  athleticTeamId: string
-  opponentName: string
-  homeAway?: string
-  startTime: Date
-  endTime: Date
-  venue?: string
-}, autoCreateEvent?: { calendarId: string }) {
+export async function createGame(
+  data: {
+    athleticTeamId: string
+    // For in-org (cross-school) opponents, pass the opponent team's id.
+    // For external opponents, leave undefined and rely on opponentName.
+    opponentAthleticTeamId?: string | null
+    opponentName: string
+    homeAway?: string
+    startTime: Date
+    endTime: Date
+    venue?: string
+  },
+  autoCreateEvent?: { calendarId: string },
+) {
   const game = await db.game.create({
     data: {
       athleticTeamId: data.athleticTeamId,
+      opponentAthleticTeamId: data.opponentAthleticTeamId ?? null,
       opponentName: data.opponentName,
       homeAway: data.homeAway || 'HOME',
       startTime: data.startTime,
       endTime: data.endTime,
       venue: data.venue || null,
     },
-    include: {
-      athleticTeam: {
-        select: { id: true, name: true, sport: { select: { name: true, color: true } } },
-      },
-    },
+    include: GAME_INCLUDE,
   })
 
   // Auto-create linked calendar event
   if (autoCreateEvent?.calendarId) {
-    const prefix = data.homeAway === 'AWAY' ? '@ ' : 'vs '
+    // Prefer the in-org opponent's team name for the calendar title when we
+    // have one; fall back to the free-text opponentName (external opponent).
+    const opponentLabel = game.opponentAthleticTeam?.name ?? data.opponentName
+    const title = buildGameEventTitle({
+      sportName: game.athleticTeam.sport.name,
+      teamName: game.athleticTeam.name,
+      homeAway: game.homeAway,
+      opponentLabel,
+    })
     const event = await db.calendarEvent.create({
       data: {
         calendarId: autoCreateEvent.calendarId,
-        title: `${game.athleticTeam.sport.name}: ${game.athleticTeam.name} ${prefix}${data.opponentName}`,
+        title,
         startTime: data.startTime,
         endTime: data.endTime,
         locationText: data.venue || null,
@@ -245,17 +346,44 @@ export async function createGame(data: {
 }
 
 export async function updateGame(id: string, data: {
+  opponentAthleticTeamId?: string | null
   opponentName?: string
   homeAway?: string
   startTime?: Date
   endTime?: Date
   venue?: string
 }) {
-  return db.game.update({
+  const updated = await db.game.update({
     where: { id },
     data,
-    include: { athleticTeam: { select: { id: true, name: true } } },
+    include: GAME_INCLUDE,
   })
+
+  // Keep the linked calendar event in sync. Title, time, and location can all
+  // drift if the game row changes (new opponent, flipped home/away, rescheduled
+  // kickoff, relocated venue), so regenerate from the authoritative post-update
+  // state. Running this unconditionally avoids the trap of a title-affecting
+  // field (like opponent team name) changing without us noticing.
+  if (updated.calendarEventId) {
+    const opponentLabel = updated.opponentAthleticTeam?.name ?? updated.opponentName
+    const title = buildGameEventTitle({
+      sportName: updated.athleticTeam.sport.name,
+      teamName: updated.athleticTeam.name,
+      homeAway: updated.homeAway,
+      opponentLabel,
+    })
+    await db.calendarEvent.update({
+      where: { id: updated.calendarEventId },
+      data: {
+        title,
+        startTime: updated.startTime,
+        endTime: updated.endTime,
+        locationText: updated.venue ?? null,
+      },
+    })
+  }
+
+  return updated
 }
 
 export async function deleteGame(id: string) {

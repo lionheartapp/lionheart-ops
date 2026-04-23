@@ -20,11 +20,15 @@ export async function GET(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_READ)
 
     return await runWithOrgContext(orgId, async () => {
-      // Org info — needed to conditionally show faith-based integrations
-      const org = await rawPrisma.organization.findUnique({
-        where: { id: orgId },
+      // Org info — needed to conditionally show faith-based integrations.
+      // `institutionType` moved off Organization onto School in Phase 1c
+      // ontology inversion; pull from the primary (first-sorted) School.
+      const primarySchool = await rawPrisma.school.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         select: { institutionType: true },
       })
+      const org = { institutionType: primarySchool?.institutionType ?? null }
 
       // Planning Center — org-level
       const pcoCred = await rawPrisma.integrationCredential.findFirst({
@@ -59,7 +63,7 @@ export async function GET(req: NextRequest) {
       const twilioConfig = twilioCred?.config as Record<string, string> | null
 
       return NextResponse.json(ok({
-        institutionType: org?.institutionType || 'PUBLIC',
+        institutionType: org.institutionType || 'PUBLIC',
         planningCenter: {
           provider: 'planning_center',
           isAvailable: planningCenterService.isAvailable(),
