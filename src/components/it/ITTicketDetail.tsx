@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import DetailDrawer from '@/components/DetailDrawer'
 import ITActivityFeed from './ITActivityFeed'
 import { StatusBadge, PriorityBadge, TypeBadge } from './ITStatusBadge'
@@ -89,8 +90,9 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
 
   const ticket = data as TicketDetail | undefined
 
-  const statusMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) =>
+  const statusMutation = useOptimisticMutation<unknown, Record<string, unknown>, TicketDetail | undefined>({
+    queryKey: queryKeys.itTicketDetail.byId(ticketId ?? ''),
+    mutationFn: (body) =>
       fetch(`/api/it/tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
@@ -99,20 +101,24 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
         if (!r.ok) throw new Error('Status transition failed')
         return r.json()
       }),
+    optimisticUpdate: (old, vars) =>
+      old ? { ...old, status: vars.status as string } : old,
+    invalidateKeys: [
+      queryKeys.itTicketComments.byTicket(ticketId ?? ''),
+      queryKeys.itTickets.all,
+      queryKeys.itBoard.all,
+      queryKeys.itDashboard.all,
+    ],
     onSuccess: () => {
       setPendingStatus(null)
       setTransitionNote('')
       setHoldReason('')
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTicketDetail.byId(ticketId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTicketComments.byTicket(ticketId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itDashboard.all })
     },
   })
 
-  const assignMutation = useMutation({
-    mutationFn: (assignedToId: string) =>
+  const assignMutation = useOptimisticMutation<unknown, string, TicketDetail | undefined>({
+    queryKey: queryKeys.itTicketDetail.byId(ticketId ?? ''),
+    mutationFn: (assignedToId) =>
       fetch(`/api/it/tickets/${ticketId}/assign`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
@@ -121,11 +127,12 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
         if (!r.ok) throw new Error('Assignment failed')
         return r.json()
       }),
+    invalidateKeys: [
+      queryKeys.itTickets.all,
+      queryKeys.itBoard.all,
+    ],
     onSuccess: () => {
       setShowAssign(false)
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTicketDetail.byId(ticketId!) })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
     },
   })
 
