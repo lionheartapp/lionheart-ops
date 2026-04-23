@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -203,18 +204,20 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   })
 
   // Status transition mutation
-  const statusMutation = useMutation({
-    mutationFn: (newStatus: MaintenanceStatus) =>
+  const statusMutation = useOptimisticMutation<unknown, MaintenanceStatus, MaintenanceTicket | undefined>({
+    queryKey: ['maintenance-ticket', ticketId],
+    mutationFn: (newStatus) =>
       fetchApi(`/api/maintenance/tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus }),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
-    },
+    optimisticUpdate: (old, newStatus) =>
+      old ? { ...old, status: newStatus } : old,
+    invalidateKeys: [
+      ['maintenance-ticket-activities', ticketId],
+      ['maintenance-tickets'],
+    ],
   })
 
   async function handleCancelTicket() {
