@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getBellSchedules, createBellSchedule } from '@/lib/services/academicCalendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 const PeriodSchema = z.object({
@@ -33,8 +34,13 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const schoolId = searchParams.get('schoolId') || undefined
-      const schedules = await getBellSchedules({ schoolId })
+      const campusId = searchParams.get('campusId') || searchParams.get('schoolId') || undefined
+      const schedules = await cacheOrgWide(
+        orgId,
+        `academic:bell-schedules:campus=${campusId ?? 'all'}`,
+        () => getBellSchedules({ campusId }),
+        { ttlMs: 300000 }
+      )
       return NextResponse.json(ok(schedules))
     })
   } catch (error) {
@@ -55,6 +61,7 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const input = CreateBellScheduleSchema.parse(body)
       const schedule = await createBellSchedule(input)
+      invalidateOrgCache(orgId, 'academic:bell-schedules')
       return NextResponse.json(ok(schedule), { status: 201 })
     })
   } catch (error) {

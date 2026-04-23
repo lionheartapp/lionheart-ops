@@ -1,30 +1,46 @@
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 
 const db = prisma as unknown as OrgPrismaClient
 
+/**
+ * Academic calendar tables (academic years, terms, marking periods, bell
+ * schedules, day schedule assignments, special days) cross-reference each
+ * other in every list query. Every mutation in this file nukes the single
+ * 'academic' bucket so no join goes stale.
+ */
+function invalidateAcademicCache(): void {
+  invalidateOrgCache(getOrgContextId(), 'academic')
+}
+
 // ── Academic Years ─────────────────────────────────────────────────────
 
-export async function getAcademicYears(filters?: { schoolId?: string }) {
-  return db.academicYear.findMany({
-    where: { ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}) },
-    include: {
-      school: { select: { id: true, name: true } },
-      terms: {
-        orderBy: { sortOrder: 'asc' },
-        include: {
-          markingPeriods: { orderBy: { sortOrder: 'asc' } },
+export async function getAcademicYears(filters?: { campusId?: string }) {
+  const orgId = getOrgContextId()
+  const bucket = `academic:years:school=${filters?.campusId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.academicYear.findMany({
+      where: { ...(filters?.campusId ? { campusId: filters.campusId } : {}) },
+      include: {
+        campus: { select: { id: true, name: true } },
+        terms: {
+          orderBy: { sortOrder: 'asc' },
+          include: {
+            markingPeriods: { orderBy: { sortOrder: 'asc' } },
+          },
         },
       },
-    },
-    orderBy: { startDate: 'desc' },
-  })
+      orderBy: { startDate: 'desc' },
+    })
+  )
 }
 
 export async function getAcademicYearById(id: string) {
   return db.academicYear.findUnique({
     where: { id },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       terms: {
         orderBy: { sortOrder: 'asc' },
         include: {
@@ -39,7 +55,7 @@ export async function createAcademicYear(data: {
   name: string
   startDate: Date
   endDate: Date
-  schoolId?: string
+  campusId?: string
   isCurrent?: boolean
 }) {
   if (data.isCurrent) {
@@ -48,26 +64,28 @@ export async function createAcademicYear(data: {
       data: { isCurrent: false },
     })
   }
-  return db.academicYear.create({
+  const result = await db.academicYear.create({
     data: {
       name: data.name,
       startDate: data.startDate,
       endDate: data.endDate,
-      schoolId: data.schoolId || null,
+      campusId: data.campusId || null,
       isCurrent: data.isCurrent ?? false,
     },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       terms: true,
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function updateAcademicYear(id: string, data: {
   name?: string
   startDate?: Date
   endDate?: Date
-  schoolId?: string | null
+  campusId?: string | null
   isCurrent?: boolean
 }) {
   if (data.isCurrent) {
@@ -76,34 +94,42 @@ export async function updateAcademicYear(id: string, data: {
       data: { isCurrent: false },
     })
   }
-  return db.academicYear.update({
+  const result = await db.academicYear.update({
     where: { id },
     data,
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       terms: {
         orderBy: { sortOrder: 'asc' },
         include: { markingPeriods: { orderBy: { sortOrder: 'asc' } } },
       },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function deleteAcademicYear(id: string) {
-  return db.academicYear.delete({ where: { id } })
+  const result = await db.academicYear.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Terms ──────────────────────────────────────────────────────────────
 
 export async function getTerms(academicYearId?: string) {
-  return db.term.findMany({
-    where: { ...(academicYearId ? { academicYearId } : {}) },
-    include: {
-      academicYear: { select: { id: true, name: true } },
-      markingPeriods: { orderBy: { sortOrder: 'asc' } },
-    },
-    orderBy: { sortOrder: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `academic:terms:year=${academicYearId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.term.findMany({
+      where: { ...(academicYearId ? { academicYearId } : {}) },
+      include: {
+        academicYear: { select: { id: true, name: true } },
+        markingPeriods: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    })
+  )
 }
 
 export async function createTerm(data: {
@@ -113,7 +139,7 @@ export async function createTerm(data: {
   endDate: Date
   sortOrder?: number
 }) {
-  return db.term.create({
+  const result = await db.term.create({
     data: {
       academicYearId: data.academicYearId,
       name: data.name,
@@ -126,6 +152,8 @@ export async function createTerm(data: {
       markingPeriods: true,
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function updateTerm(id: string, data: {
@@ -134,7 +162,7 @@ export async function updateTerm(id: string, data: {
   endDate?: Date
   sortOrder?: number
 }) {
-  return db.term.update({
+  const result = await db.term.update({
     where: { id },
     data,
     include: {
@@ -142,10 +170,14 @@ export async function updateTerm(id: string, data: {
       markingPeriods: { orderBy: { sortOrder: 'asc' } },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function deleteTerm(id: string) {
-  return db.term.delete({ where: { id } })
+  const result = await db.term.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Marking Periods ────────────────────────────────────────────────────
@@ -157,7 +189,7 @@ export async function createMarkingPeriod(data: {
   endDate: Date
   sortOrder?: number
 }) {
-  return db.markingPeriod.create({
+  const result = await db.markingPeriod.create({
     data: {
       termId: data.termId,
       name: data.name,
@@ -166,6 +198,8 @@ export async function createMarkingPeriod(data: {
       sortOrder: data.sortOrder ?? 0,
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function updateMarkingPeriod(id: string, data: {
@@ -174,31 +208,39 @@ export async function updateMarkingPeriod(id: string, data: {
   endDate?: Date
   sortOrder?: number
 }) {
-  return db.markingPeriod.update({ where: { id }, data })
+  const result = await db.markingPeriod.update({ where: { id }, data })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function deleteMarkingPeriod(id: string) {
-  return db.markingPeriod.delete({ where: { id } })
+  const result = await db.markingPeriod.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Bell Schedules ─────────────────────────────────────────────────────
 
-export async function getBellSchedules(filters?: { schoolId?: string }) {
-  return db.bellSchedule.findMany({
-    where: { ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}) },
-    include: {
-      school: { select: { id: true, name: true } },
-      periods: { orderBy: { sortOrder: 'asc' } },
-    },
-    orderBy: { name: 'asc' },
-  })
+export async function getBellSchedules(filters?: { campusId?: string }) {
+  const orgId = getOrgContextId()
+  const bucket = `academic:bell-schedules:school=${filters?.campusId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.bellSchedule.findMany({
+      where: { ...(filters?.campusId ? { campusId: filters.campusId } : {}) },
+      include: {
+        campus: { select: { id: true, name: true } },
+        periods: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { name: 'asc' },
+    })
+  )
 }
 
 export async function getBellScheduleById(id: string) {
   return db.bellSchedule.findUnique({
     where: { id },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       periods: { orderBy: { sortOrder: 'asc' } },
     },
   })
@@ -206,21 +248,21 @@ export async function getBellScheduleById(id: string) {
 
 export async function createBellSchedule(data: {
   name: string
-  schoolId?: string
+  campusId?: string
   isDefault?: boolean
   daysOfWeek?: string[]
   periods?: Array<{ name: string; startTime: string; endTime: string; sortOrder?: number }>
 }) {
   if (data.isDefault) {
     await db.bellSchedule.updateMany({
-      where: { isDefault: true, ...(data.schoolId ? { schoolId: data.schoolId } : {}) },
+      where: { isDefault: true, ...(data.campusId ? { campusId: data.campusId } : {}) },
       data: { isDefault: false },
     })
   }
-  return db.bellSchedule.create({
+  const result = await db.bellSchedule.create({
     data: {
       name: data.name,
-      schoolId: data.schoolId || null,
+      campusId: data.campusId || null,
       isDefault: data.isDefault ?? false,
       daysOfWeek: data.daysOfWeek ?? [],
       periods: data.periods?.length
@@ -228,23 +270,25 @@ export async function createBellSchedule(data: {
         : undefined,
     },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       periods: { orderBy: { sortOrder: 'asc' } },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function updateBellSchedule(id: string, data: {
   name?: string
-  schoolId?: string | null
+  campusId?: string | null
   isDefault?: boolean
   daysOfWeek?: string[]
   periods?: Array<{ id?: string; name: string; startTime: string; endTime: string; sortOrder?: number }>
 }) {
   if (data.isDefault) {
-    const current = await db.bellSchedule.findUnique({ where: { id }, select: { schoolId: true } })
+    const current = await db.bellSchedule.findUnique({ where: { id }, select: { campusId: true } })
     await db.bellSchedule.updateMany({
-      where: { isDefault: true, id: { not: id }, ...(current?.schoolId ? { schoolId: current.schoolId } : {}) },
+      where: { isDefault: true, id: { not: id }, ...(current?.campusId ? { campusId: current.campusId } : {}) },
       data: { isDefault: false },
     })
   }
@@ -264,18 +308,22 @@ export async function updateBellSchedule(id: string, data: {
   }
 
   const { periods: _periods, ...updateData } = data
-  return db.bellSchedule.update({
+  const result = await db.bellSchedule.update({
     where: { id },
     data: updateData,
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       periods: { orderBy: { sortOrder: 'asc' } },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function deleteBellSchedule(id: string) {
-  return db.bellSchedule.delete({ where: { id } })
+  const result = await db.bellSchedule.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Day Schedule Assignments ───────────────────────────────────────────
@@ -285,19 +333,25 @@ export async function getDayScheduleAssignments(filters: {
   endDate: Date
   campusId?: string
 }) {
-  return db.dayScheduleAssignment.findMany({
-    where: {
-      date: { gte: filters.startDate, lte: filters.endDate },
-      ...(filters.campusId ? { campusId: filters.campusId } : {}),
-    },
-    include: {
-      bellSchedule: {
-        include: { periods: { orderBy: { sortOrder: 'asc' } } },
+  const orgId = getOrgContextId()
+  const startKey = filters.startDate.toISOString().slice(0, 10)
+  const endKey = filters.endDate.toISOString().slice(0, 10)
+  const bucket = `academic:day-schedules:start=${startKey}:end=${endKey}:campus=${filters.campusId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.dayScheduleAssignment.findMany({
+      where: {
+        date: { gte: filters.startDate, lte: filters.endDate },
+        ...(filters.campusId ? { campusId: filters.campusId } : {}),
       },
-      campus: { select: { id: true, name: true } },
-    },
-    orderBy: { date: 'asc' },
-  })
+      include: {
+        bellSchedule: {
+          include: { periods: { orderBy: { sortOrder: 'asc' } } },
+        },
+        campus: { select: { id: true, name: true } },
+      },
+      orderBy: { date: 'asc' },
+    })
+  )
 }
 
 export async function assignDaySchedule(data: {
@@ -306,7 +360,7 @@ export async function assignDaySchedule(data: {
   campusId?: string
   organizationId: string
 }) {
-  return db.dayScheduleAssignment.upsert({
+  const result = await db.dayScheduleAssignment.upsert({
     where: {
       organizationId_campusId_date: {
         organizationId: data.organizationId,
@@ -328,10 +382,14 @@ export async function assignDaySchedule(data: {
       },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function removeDayScheduleAssignment(id: string) {
-  return db.dayScheduleAssignment.delete({ where: { id } })
+  const result = await db.dayScheduleAssignment.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Special Days ───────────────────────────────────────────────────────
@@ -339,23 +397,28 @@ export async function removeDayScheduleAssignment(id: string) {
 export async function getSpecialDays(filters?: {
   startDate?: Date
   endDate?: Date
-  schoolId?: string
   campusId?: string
 }) {
-  return db.specialDay.findMany({
-    where: {
-      ...(filters?.startDate && filters?.endDate
-        ? { date: { gte: filters.startDate, lte: filters.endDate } }
-        : {}),
-      ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}),
-      ...(filters?.campusId ? { campusId: filters.campusId } : {}),
-    },
-    include: {
-      school: { select: { id: true, name: true } },
-      campus: { select: { id: true, name: true } },
-    },
-    orderBy: { date: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const startKey = filters?.startDate ? filters.startDate.toISOString() : 'none'
+  const endKey = filters?.endDate ? filters.endDate.toISOString() : 'none'
+  const bucket =
+    `academic:special-days:s=${startKey}:e=${endKey}` +
+    `:campus=${filters?.campusId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.specialDay.findMany({
+      where: {
+        ...(filters?.startDate && filters?.endDate
+          ? { date: { gte: filters.startDate, lte: filters.endDate } }
+          : {}),
+        ...(filters?.campusId ? { campusId: filters.campusId } : {}),
+      },
+      include: {
+        campus: { select: { id: true, name: true } },
+      },
+      orderBy: { date: 'asc' },
+    })
+  )
 }
 
 export async function createSpecialDay(data: {
@@ -363,47 +426,48 @@ export async function createSpecialDay(data: {
   endDate?: Date | null
   name: string
   specialDayType: string
-  schoolId?: string
   campusId?: string
   isAllSchools?: boolean
 }) {
-  return db.specialDay.create({
+  const result = await db.specialDay.create({
     data: {
       date: data.date,
       endDate: data.endDate || null,
       name: data.name,
       specialDayType: data.specialDayType,
-      schoolId: data.schoolId || null,
       campusId: data.campusId || null,
       isAllSchools: data.isAllSchools ?? true,
     },
     include: {
-      school: { select: { id: true, name: true } },
       campus: { select: { id: true, name: true } },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function updateSpecialDay(id: string, data: {
   date?: Date
   name?: string
   specialDayType?: string
-  schoolId?: string | null
   campusId?: string | null
   isAllSchools?: boolean
 }) {
-  return db.specialDay.update({
+  const result = await db.specialDay.update({
     where: { id },
     data,
     include: {
-      school: { select: { id: true, name: true } },
       campus: { select: { id: true, name: true } },
     },
   })
+  invalidateAcademicCache()
+  return result
 }
 
 export async function deleteSpecialDay(id: string) {
-  return db.specialDay.delete({ where: { id } })
+  const result = await db.specialDay.delete({ where: { id } })
+  invalidateAcademicCache()
+  return result
 }
 
 // ── Query helpers for calendar views ───────────────────────────────────

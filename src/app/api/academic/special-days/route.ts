@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getSpecialDays, createSpecialDay } from '@/lib/services/academicCalendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const CreateSpecialDaySchema = z.object({
   date: z.string().transform((s) => new Date(s)),
@@ -27,15 +28,18 @@ export async function GET(req: NextRequest) {
       const { searchParams } = new URL(req.url)
       const startDate = searchParams.get('startDate')
       const endDate = searchParams.get('endDate')
-      const schoolId = searchParams.get('schoolId') || undefined
-      const campusId = searchParams.get('campusId') || undefined
+      const campusId = searchParams.get('campusId') || searchParams.get('schoolId') || undefined
 
-      const days = await getSpecialDays({
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-        schoolId,
-        campusId,
-      })
+      const days = await cacheOrgWide(
+        orgId,
+        `academic:special-days:${startDate ?? 'any'}:${endDate ?? 'any'}:campus=${campusId ?? 'all'}`,
+        () => getSpecialDays({
+          startDate: startDate ? new Date(startDate) : undefined,
+          endDate: endDate ? new Date(endDate) : undefined,
+          campusId,
+        }),
+        { ttlMs: 60000 }
+      )
       return NextResponse.json(ok(days))
     })
   } catch (error) {
@@ -56,6 +60,7 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const input = CreateSpecialDaySchema.parse(body)
       const day = await createSpecialDay(input)
+      invalidateOrgCache(orgId, 'academic:special-days')
       return NextResponse.json(ok(day), { status: 201 })
     })
   } catch (error) {

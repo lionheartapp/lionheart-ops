@@ -6,12 +6,13 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getAcademicYears, createAcademicYear } from '@/lib/services/academicCalendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const CreateYearSchema = z.object({
   name: z.string().trim().min(1).max(50),
   startDate: z.string().transform((s) => new Date(s)),
   endDate: z.string().transform((s) => new Date(s)),
-  schoolId: z.string().optional(),
+  campusId: z.string().optional(),
   isCurrent: z.boolean().optional(),
 })
 
@@ -23,8 +24,14 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const schoolId = searchParams.get('schoolId') || undefined
-      const years = await getAcademicYears({ schoolId })
+      const campusId = searchParams.get('campusId') || undefined
+      const bucket = campusId ? `academic:years:school=${campusId}` : 'academic:years'
+      const years = await cacheOrgWide(
+        orgId,
+        bucket,
+        () => getAcademicYears({ campusId }),
+        { ttlMs: 300000 }
+      )
       return NextResponse.json(ok(years))
     })
   } catch (error) {
@@ -45,6 +52,7 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const input = CreateYearSchema.parse(body)
       const year = await createAcademicYear(input)
+      invalidateOrgCache(orgId, 'academic:years')
       return NextResponse.json(ok(year), { status: 201 })
     })
   } catch (error) {
