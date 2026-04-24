@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Loader2 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import type { ComplianceDomainCardData } from './ComplianceDomainCard'
 import type { ComplianceDomain } from '@prisma/client'
@@ -42,9 +41,7 @@ export function ComplianceSetupWizard({
     }
   }, [domainData])
 
-  const saveMutation = useOptimisticMutation({
-    queryKey: ['compliance-domains'],
-    invalidateKeys: [['compliance-records']],
+  const saveMutation = useMutation({
     mutationFn: async () => {
       if (!domainData) return
       const body = {
@@ -60,18 +57,23 @@ export function ComplianceSetupWizard({
         body: JSON.stringify(body),
       })
     },
-    onSuccess: () => {onClose()
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['compliance-domains'] })
+      queryClient.invalidateQueries({ queryKey: ['compliance-records'] })
+      onClose()
     },
   })
 
-  const populateMutation = useOptimisticMutation({
-    queryKey: ['compliance-records'],
+  const populateMutation = useMutation({
     mutationFn: async () => {
       return fetchApi('/api/maintenance/compliance/domains/populate', {
         method: 'POST',
       })
     },
-    })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['compliance-records'] })
+    },
+  })
 
   if (!domainData) return null
 
@@ -216,7 +218,7 @@ export function ComplianceSetupWizard({
                   </p>
                   <button
                     type="button"
-                    onClick={() => populateMutation.mutate(undefined)}
+                    onClick={() => populateMutation.mutate()}
                     disabled={populateMutation.isPending}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-50 text-primary-700 border border-primary-200 text-sm font-medium hover:bg-primary-100 transition-colors cursor-pointer disabled:opacity-50"
                   >
@@ -243,7 +245,7 @@ export function ComplianceSetupWizard({
               </button>
               <button
                 type="button"
-                onClick={() => saveMutation.mutate(undefined)}
+                onClick={() => saveMutation.mutate()}
                 disabled={saveMutation.isPending}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-50"
               >

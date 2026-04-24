@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, X, Loader2, Search } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 
@@ -60,25 +59,29 @@ export default function TicketWatchers({
     enabled: showSearch,
   })
 
-  const addMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: ['maintenance-ticket', ticketId],
-    mutationFn: (userId) =>
+  const addMutation = useMutation({
+    mutationFn: (userId: string) =>
       fetchApi(`/api/maintenance/tickets/${ticketId}/watchers`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ userId }),
       }),
-    onSuccess: () => setSearch(''),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+      setSearch('')
+    },
   })
 
-  const removeMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: ['maintenance-ticket', ticketId],
-    mutationFn: (userId) =>
+  const removeMutation = useMutation({
+    mutationFn: (userId: string) =>
       fetchApi(`/api/maintenance/tickets/${ticketId}/watchers`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
         body: JSON.stringify({ userId }),
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+    },
   })
 
   const watcherUserIds = new Set(watchers.map((w) => w.userId))

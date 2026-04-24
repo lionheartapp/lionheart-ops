@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, Package } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -69,7 +68,7 @@ function getInitialForm() {
     notes: '',
     status: 'ACTIVE',
     locationKey: '', // composite location key from campus locations hook
- }
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -116,13 +115,13 @@ export default function AssetCreateDrawer({
         notes: editAsset.notes || '',
         status: editAsset.status || 'ACTIVE',
         locationKey: '',
-     })
-   }
- })
+      })
+    }
+  })
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
- }
+  }
 
   // Build location options for the select
   const locationSelectOptions = locationOptions.map((loc) => ({
@@ -130,9 +129,9 @@ export default function AssetCreateDrawer({
       buildingId: loc.buildingId,
       areaId: loc.areaId,
       roomId: loc.roomId,
-   }),
+    }),
     label: loc.hierarchy?.join(' > ') || loc.label,
- }))
+  }))
 
   // Parse selected location
   function getLocationIds() {
@@ -142,14 +141,13 @@ export default function AssetCreateDrawer({
         buildingId: string | null
         areaId: string | null
         roomId: string | null
-     }
-   } catch {
+      }
+    } catch {
       return { buildingId: null, areaId: null, roomId: null }
-   }
- }
+    }
+  }
 
-  const mutation = useOptimisticMutation<MaintenanceAsset, CreateAssetPayload, unknown>({
-    queryKey: ['maintenance-assets'],
+  const mutation = useMutation<MaintenanceAsset, Error, CreateAssetPayload>({
     mutationFn: (payload) => {
       if (isEditMode && editAsset) {
         return fetchApi<MaintenanceAsset>(`/api/maintenance/assets/${editAsset.id}`, {
@@ -164,8 +162,9 @@ export default function AssetCreateDrawer({
         body: JSON.stringify(payload),
       })
     },
-    invalidateKeys: [['maintenance-asset', editAsset?.id]],
     onSuccess: (asset) => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-assets'] })
+      queryClient.invalidateQueries({ queryKey: ['maintenance-asset', editAsset?.id] })
       onCreated?.(asset as MaintenanceAsset & { assetNumber: string })
       if (!isEditMode) setForm(getInitialForm())
       setError('')
@@ -184,7 +183,7 @@ export default function AssetCreateDrawer({
       if (!form.name.trim()) {
         setError('Asset name is required')
         return
-     }
+      }
 
       const { buildingId, areaId, roomId } = getLocationIds()
 
@@ -193,7 +192,7 @@ export default function AssetCreateDrawer({
         status: form.status || 'ACTIVE',
         repairThresholdPct: parseFloat(form.repairThresholdPct || '50') / 100,
         photos: [],
-     }
+      }
 
       if (form.category) payload.category = form.category
       if (form.make.trim()) payload.make = form.make.trim()
@@ -204,18 +203,18 @@ export default function AssetCreateDrawer({
       if (form.replacementCost) {
         const cost = parseFloat(form.replacementCost)
         if (!isNaN(cost) && cost > 0) payload.replacementCost = cost
-     }
+      }
       if (form.expectedLifespanYears) {
         const years = parseInt(form.expectedLifespanYears, 10)
         if (!isNaN(years) && years > 0) payload.expectedLifespanYears = years
-     }
+      }
       if (form.notes.trim()) payload.notes = form.notes.trim()
       payload.buildingId = buildingId
       payload.areaId = areaId
       payload.roomId = roomId
 
       mutation.mutate(payload)
-   },
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [form, mutation]
   )
@@ -225,7 +224,7 @@ export default function AssetCreateDrawer({
     setForm(getInitialForm())
     setError('')
     onClose()
- }
+  }
 
   return (
     <AnimatePresence>

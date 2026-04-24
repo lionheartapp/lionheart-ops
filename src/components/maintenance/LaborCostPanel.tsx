@@ -12,8 +12,7 @@ import {
   Loader2,
   Receipt,
 } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { expandCollapse, fadeInUp, staggerContainer } from '@/lib/animations'
 import LaborEntryForm from './LaborEntryForm'
@@ -138,32 +137,32 @@ export default function LaborCostPanel({
   const summary = summaryData ?? costsData?.summary ?? EMPTY_SUMMARY
 
   // Delete mutations
-  const deleteLaborMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: ['labor-entries', ticketId],
-    mutationFn: (entryId) => {
-      setDeletingLaborId(entryId)
-      return fetchApi(`/api/maintenance/tickets/${ticketId}/labor/${entryId}`, {
+  const deleteLaborMutation = useMutation({
+    mutationFn: (entryId: string) =>
+      fetchApi(`/api/maintenance/tickets/${ticketId}/labor/${entryId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
-      })
+      }),
+    onMutate: (entryId) => setDeletingLaborId(entryId),
+    onSettled: () => {
+      setDeletingLaborId(null)
+      queryClient.invalidateQueries({ queryKey: ['labor-entries', ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['cost-summary', ticketId] })
     },
-    invalidateKeys: [['cost-summary', ticketId]],
-    onSuccess: () => setDeletingLaborId(null),
-    onError: () => setDeletingLaborId(null),
   })
 
-  const deleteCostMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: ['cost-entries', ticketId],
-    mutationFn: (entryId) => {
-      setDeletingCostId(entryId)
-      return fetchApi(`/api/maintenance/tickets/${ticketId}/costs/${entryId}`, {
+  const deleteCostMutation = useMutation({
+    mutationFn: (entryId: string) =>
+      fetchApi(`/api/maintenance/tickets/${ticketId}/costs/${entryId}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
-      })
+      }),
+    onMutate: (entryId) => setDeletingCostId(entryId),
+    onSettled: () => {
+      setDeletingCostId(null)
+      queryClient.invalidateQueries({ queryKey: ['cost-entries', ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['cost-summary', ticketId] })
     },
-    invalidateKeys: [['cost-summary', ticketId]],
-    onSuccess: () => setDeletingCostId(null),
-    onError: () => setDeletingCostId(null),
   })
 
   function onLaborCreated() {

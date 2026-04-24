@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Ticket, AlertTriangle, CheckCircle, Loader2, ExternalLink } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { COMPLIANCE_DOMAIN_DEFAULTS } from '@/lib/types/compliance'
@@ -103,8 +102,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
   // ─── Save Mutation ─────────────────────────────────────────────────────────
 
-  const saveMutation = useOptimisticMutation({
-    queryKey: ['compliance-records'],
+  const saveMutation = useMutation({
     mutationFn: async () => {
       if (!record) throw new Error('No record')
       const headers = getAuthHeaders()
@@ -124,7 +122,9 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
       }
       return res.json()
     },
-    onSuccess: () => {showToast('Changes saved')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['compliance-records'] })
+      showToast('Changes saved')
       onUpdated()
     },
     onError: (err) => {
@@ -134,8 +134,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
   // ─── Generate Ticket Mutation ──────────────────────────────────────────────
 
-  const ticketMutation = useOptimisticMutation({
-    queryKey: ['compliance-records'],
+  const ticketMutation = useMutation({
     mutationFn: async (type: 'compliance' | 'remediation') => {
       if (!record) throw new Error('No record')
       const headers = getAuthHeaders()
@@ -158,7 +157,9 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
       } else {
         setGeneratedTicket(ticket)
         showToast('Work order created: ' + ticket.ticketNumber)
-      }onUpdated()
+      }
+      queryClient.invalidateQueries({ queryKey: ['compliance-records'] })
+      onUpdated()
     },
     onError: (err) => {
       logger.error({ error: String(err) }, 'ComplianceRecordDrawer ticket generation error')
@@ -357,7 +358,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
               Cancel
             </button>
             <button
-              onClick={() => saveMutation.mutate(undefined)}
+              onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending}
               className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-60"
             >
