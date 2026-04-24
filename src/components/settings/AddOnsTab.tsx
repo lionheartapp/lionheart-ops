@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useToast } from '@/components/Toast'
 import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users } from 'lucide-react'
@@ -213,19 +212,18 @@ export default function AddOnsTab() {
   const [togglingKey, setTogglingKey] = useState<string | null>(null)
   const [configModuleId, setConfigModuleId] = useState<string | null>(null)
 
-  const mutation = useOptimisticMutation<unknown, { moduleId: string; enabled: boolean; campusId?: string }, unknown>({
-    queryKey: ['tenant-modules'],
-    mutationFn: ({ moduleId, enabled, campusId }) =>
+  const mutation = useMutation({
+    mutationFn: ({ moduleId, enabled, campusId }: { moduleId: string; enabled: boolean; campusId?: string }) =>
       toggleModule(moduleId, enabled, campusId),
-    invalidateKeys: [['permissions']],
     onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tenant-modules'] })
+      queryClient.invalidateQueries({ queryKey: ['permissions'] })
       if (variables.enabled) {
         const mod = MODULE_REGISTRY.find((m) => m.id === variables.moduleId)
         toast(`${mod?.name ?? 'Module'} enabled! Roles have been updated with new permissions.`, 'success')
       }
-      setTogglingKey(null)
     },
-    onError: () => {
+    onSettled: () => {
       setTogglingKey(null)
     },
   })

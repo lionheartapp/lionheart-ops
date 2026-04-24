@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -84,9 +83,9 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
       if (!res.ok) return []
       const data = await res.json()
       return data.ok ? data.data : []
-   },
+    },
     staleTime: 5 * 60_000,
- })
+  })
 
   // Fetch schools
   const { data: schools = [] } = useQuery<School[]>({
@@ -96,17 +95,16 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
       if (!res.ok) return []
       const data = await res.json()
       return data.ok ? data.data : []
-   },
+    },
     staleTime: 5 * 60_000,
- })
+  })
 
   const selectedBuilding = buildings.find((b) => b.id === buildingId)
   const areas = selectedBuilding?.areas ?? []
   const selectedArea = areas.find((a) => a.id === areaId)
   const rooms = selectedArea?.rooms ?? selectedBuilding?.rooms ?? []
 
-  const createMutation = useOptimisticMutation<unknown, void, unknown>({
-    queryKey: queryKeys.itDevices.all,
+  const createMutation = useMutation({
     mutationFn: async () => {
       const body: Record<string, unknown> = { deviceType, status }
       if (serialNumber.trim()) body.serialNumber = serialNumber.trim()
@@ -124,22 +122,23 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(body),
-     })
+      })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         throw new Error(data?.error?.message || 'Failed to create device')
-     }
+      }
       return res.json()
-   },
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
       toast('Device added successfully', 'success')
       resetForm()
       onClose()
-   },
-    onError: (err) => {
+    },
+    onError: (err: Error) => {
       setError(err.message)
-   },
- })
+    },
+  })
 
   const resetForm = () => {
     setDeviceType('CHROMEBOOK')
@@ -156,12 +155,12 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
     setRoomId('')
     setNotes('')
     setError('')
- }
+  }
 
   const handleClose = () => {
     resetForm()
     onClose()
- }
+  }
 
   return (
     <DetailDrawer
@@ -188,14 +187,14 @@ export default function ITDeviceCreateDrawer({ isOpen, onClose }: ITDeviceCreate
             Cancel
           </button>
         </div>
-     }
+      }
     >
       <form
         id="it-device-create-form"
         onSubmit={(e) => {
           e.preventDefault()
           createMutation.mutate()
-       }}
+        }}
         className="space-y-4"
       >
         {/* Device Type */}

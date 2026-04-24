@@ -51,7 +51,7 @@ export type Room = {
 export type Campus = {
   id: string
   name: string
-  campusType: 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
+  campusKind: 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
   address: string | null
 }
 

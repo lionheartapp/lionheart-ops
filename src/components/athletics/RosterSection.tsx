@@ -97,7 +97,7 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
 
   const displayTeams = useMemo(() => {
     if (!activeCampusId) return teams
-    return teams.filter((t) => !t.schoolId || t.schoolId === activeCampusId)
+    return teams.filter((t) => !t.campusId || t.campusId === activeCampusId)
   }, [teams, activeCampusId])
 
   const teamOptions: DropdownOption[] = useMemo(() => {

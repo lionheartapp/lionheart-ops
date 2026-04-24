@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -118,9 +117,7 @@ export default function ITSummerBatchDetail({
   const batch = batchRaw as BatchDetail | undefined
 
   // ── Mutations ────────────────────────────────────────────────────────
-  const startBatchMutation = useOptimisticMutation({
-    queryKey: queryKeys.itSummerBatchDetail.one(batchId),
-    invalidateKeys: [queryKeys.itSummerBatches.all],
+  const startBatchMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/it/summer/batches/${batchId}/start`, {
         method: 'POST',
@@ -132,14 +129,15 @@ export default function ITSummerBatchDetail({
       }
       return res.json()
     },
-    onSuccess: () => {toast('Batch started', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatchDetail.one(batchId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatches.all })
+      toast('Batch started', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
   })
 
-  const completeBatchMutation = useOptimisticMutation({
-    queryKey: queryKeys.itSummerBatchDetail.one(batchId),
-    invalidateKeys: [queryKeys.itSummerBatches.all],
+  const completeBatchMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/it/summer/batches/${batchId}/complete`, {
         method: 'POST',
@@ -151,14 +149,15 @@ export default function ITSummerBatchDetail({
       }
       return res.json()
     },
-    onSuccess: () => {toast('Batch completed', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatchDetail.one(batchId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatches.all })
+      toast('Batch completed', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
   })
 
-  const markDevicesMutation = useOptimisticMutation({
-    queryKey: queryKeys.itSummerBatchDetail.one(batchId),
-    invalidateKeys: [queryKeys.itSummerBatches.all],
+  const markDevicesMutation = useMutation({
     mutationFn: async (deviceIds: string[]) => {
       const res = await fetch(`/api/it/summer/batches/${batchId}/devices/complete`, {
         method: 'POST',
@@ -171,7 +170,10 @@ export default function ITSummerBatchDetail({
       }
       return res.json()
     },
-    onSuccess: () => {setSelectedIds(new Set())
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatchDetail.one(batchId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSummerBatches.all })
+      setSelectedIds(new Set())
       toast('Devices marked as complete', 'success')
     },
     onError: (err: Error) => toast(err.message, 'error'),
@@ -256,7 +258,7 @@ export default function ITSummerBatchDetail({
             <div className="flex items-center gap-2 shrink-0">
               {batch.status === 'PENDING' && (
                 <button
-                  onClick={() => startBatchMutation.mutate(undefined)}
+                  onClick={() => startBatchMutation.mutate()}
                   disabled={startBatchMutation.isPending}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -270,7 +272,7 @@ export default function ITSummerBatchDetail({
               )}
               {batch.status === 'IN_PROGRESS' && (
                 <button
-                  onClick={() => completeBatchMutation.mutate(undefined)}
+                  onClick={() => completeBatchMutation.mutate()}
                   disabled={completeBatchMutation.isPending}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-600 text-white text-sm font-medium hover:bg-green-700 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >

@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, Fragment } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys, queryOptions } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import {
   ShieldAlert, Plus, ChevronRight, Clock, Eye, Users,
   AlertTriangle, FileText, Send, X, CheckCircle, Lock, Activity,
@@ -144,10 +143,10 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   const [formSystems, setFormSystems] = useState('')
   const [formPii, setFormPii] = useState(false)
 
-  const createMut = useOptimisticMutation<unknown, Record<string, unknown>, unknown>({
-    queryKey: queryKeys.securityIncidents.all,
-    mutationFn: (body) => fetchApi('/api/it/incidents', { method: 'POST', body: JSON.stringify(body) }),
+  const createMut = useMutation({
+    mutationFn: (body: Record<string, unknown>) => fetchApi('/api/it/incidents', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.securityIncidents.all })
       setShowCreate(false)
       setFormTitle('')
       setFormDesc('')
@@ -157,11 +156,13 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   })
 
   // ─── Status Update ───────────────────────────────────────────────────────
-  const statusMut = useOptimisticMutation<unknown, { id: string; status: string }, unknown>({
-    queryKey: queryKeys.securityIncidents.all,
-    mutationFn: ({ id, status }) =>
+  const statusMut = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
       fetchApi(`/api/it/incidents/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
-    invalidateKeys: detailId ? [queryKeys.securityIncidentDetail.byId(detailId)] : [],
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.securityIncidents.all })
+      if (detailId) qc.invalidateQueries({ queryKey: queryKeys.securityIncidentDetail.byId(detailId) })
+    },
   })
 
   // ─── Close Mutation ──────────────────────────────────────────────────────
@@ -169,12 +170,12 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
   const [closeLessons, setCloseLessons] = useState('')
   const [showCloseForm, setShowCloseForm] = useState(false)
 
-  const closeMut = useOptimisticMutation<unknown, { id: string; body: Record<string, unknown> }, unknown>({
-    queryKey: queryKeys.securityIncidents.all,
-    mutationFn: ({ id, body }) =>
+  const closeMut = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
       fetchApi(`/api/it/incidents/${id}/close`, { method: 'POST', body: JSON.stringify(body) }),
-    invalidateKeys: detailId ? [queryKeys.securityIncidentDetail.byId(detailId)] : [],
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.securityIncidents.all })
+      if (detailId) qc.invalidateQueries({ queryKey: queryKeys.securityIncidentDetail.byId(detailId) })
       setShowCloseForm(false)
       setCloseResolution('')
       setCloseLessons('')

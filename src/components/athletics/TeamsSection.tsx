@@ -37,7 +37,7 @@ type Team = {
   gradeLevel: string | null
   coachUserId: string | null
   coachName: string | null
-  schoolId: string | null
+  campusId: string | null
   sport: { id: string; name: string; color: string }
   season: { id: string; name: string }
   _count: { games: number; practices: number }
@@ -201,7 +201,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
   const displayTeams = useMemo(() => {
     let result = teams
     if (activeCampusId) {
-      result = result.filter((t) => !t.schoolId || t.schoolId === activeCampusId)
+      result = result.filter((t) => !t.campusId || t.campusId === activeCampusId)
     }
     if (search) {
       const q = search.toLowerCase()
@@ -297,7 +297,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
             gradeLevel: form.gradeLevel || null,
             coachUserId: form.coachUserId || undefined,
             coachName: form.coachName.trim() || undefined,
-            schoolId: activeCampusId || undefined,
+            campusId: activeCampusId || undefined,
           }),
         })
         if (handleAuthResponse(res)) return

@@ -11,7 +11,7 @@ import type { Campus } from './types'
 type AddCampusDrawerProps = {
   isOpen: boolean
   onClose: () => void
-  form: { name: string; address: string; campusType: string }
+  form: { name: string; address: string; campusKind: string }
   onFormChange: (update: Partial<AddCampusDrawerProps['form']>) => void
   error: string
   saving: boolean
@@ -34,7 +34,7 @@ export function AddCampusDrawer({ isOpen, onClose, form, onFormChange, error, sa
         </div>
       }
     >
-      <form id="add-campus-form" onSubmit={onSubmit} className="p-8 space-y-6">
+      <form id="add-campus-form" onSubmit={onSubmit} className="py-6 space-y-6">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
@@ -50,18 +50,6 @@ export function AddCampusDrawer({ isOpen, onClose, form, onFormChange, error, sa
             Address (optional)
           </label>
         </div>
-        <FloatingDropdown
-          id="ct-campusType"
-          label="Campus type"
-          value={form.campusType}
-          onChange={(v) => onFormChange({ campusType: v })}
-          disabled={saving}
-          options={[
-            { value: 'HEADQUARTERS', label: 'Headquarters' },
-            { value: 'CAMPUS', label: 'Campus' },
-            { value: 'SATELLITE', label: 'Satellite' },
-          ]}
-        />
       </form>
     </DetailDrawer>
   )
@@ -73,7 +61,7 @@ type EditCampusDrawerProps = {
   isOpen: boolean
   onClose: () => void
   campus: Campus | null
-  form: { name: string; address: string; campusType: string }
+  form: { name: string; address: string; campusKind: string }
   onFormChange: (update: Partial<EditCampusDrawerProps['form']>) => void
   error: string
   saving: boolean
@@ -96,7 +84,7 @@ export function EditCampusDrawer({ isOpen, onClose, campus, form, onFormChange, 
         </div>
       }
     >
-      <form id="edit-campus-form" onSubmit={onSubmit} className="p-8 space-y-6">
+      <form id="edit-campus-form" onSubmit={onSubmit} className="py-6 space-y-6">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
@@ -113,10 +101,10 @@ export function EditCampusDrawer({ isOpen, onClose, campus, form, onFormChange, 
           </label>
         </div>
         <FloatingDropdown
-          id="ct-editCampusType"
+          id="ct-editCampusKind"
           label="Campus type"
-          value={form.campusType}
-          onChange={(v) => onFormChange({ campusType: v })}
+          value={form.campusKind}
+          onChange={(v) => onFormChange({ campusKind: v })}
           disabled={saving}
           options={[
             { value: 'HEADQUARTERS', label: 'Headquarters' },

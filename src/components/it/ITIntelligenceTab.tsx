@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -187,8 +186,7 @@ export default function ITIntelligenceTab({
 
   // ── Mutations ─────────────────────────────────────────────────────
 
-  const analyzeMutation = useOptimisticMutation({
-    queryKey: queryKeys.itLemons.all,
+  const analyzeMutation = useMutation({
     mutationFn: async (deviceId: string) => {
       const res = await fetch(`/api/it/intelligence/analyze/${deviceId}`, {
         method: 'POST',
@@ -197,15 +195,16 @@ export default function ITIntelligenceTab({
       if (!res.ok) throw new Error('Analysis failed')
       return res.json()
     },
-    onSuccess: () => {toast('AI analysis complete', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itLemons.all })
+      toast('AI analysis complete', 'success')
     },
     onError: () => {
       toast('Failed to analyze device', 'error')
     },
   })
 
-  const detectMutation = useOptimisticMutation({
-    queryKey: queryKeys.itLemons.all,
+  const detectMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/it/intelligence/detect', {
         method: 'POST',
@@ -214,15 +213,16 @@ export default function ITIntelligenceTab({
       if (!res.ok) throw new Error('Detection failed')
       return res.json()
     },
-    onSuccess: () => {toast('Lemon detection complete', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itLemons.all })
+      toast('Lemon detection complete', 'success')
     },
     onError: () => {
       toast('Failed to run lemon detection', 'error')
     },
   })
 
-  const saveConfigMutation = useOptimisticMutation({
-    queryKey: queryKeys.itConfig.all,
+  const saveConfigMutation = useMutation({
     mutationFn: async (values: ITDeviceConfig) => {
       const res = await fetch('/api/it/config', {
         method: 'PATCH',
@@ -232,7 +232,9 @@ export default function ITIntelligenceTab({
       if (!res.ok) throw new Error('Save failed')
       return res.json()
     },
-    onSuccess: () => {setConfigForm(null)
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itConfig.all })
+      setConfigForm(null)
       toast('Configuration saved', 'success')
     },
     onError: () => {

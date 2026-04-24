@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -108,9 +107,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
     staleTime: 10_000,
   })
 
-  const assignMutation = useOptimisticMutation({
-    queryKey: queryKeys.itDeviceDetail.byId(deviceId!),
-    invalidateKeys: [queryKeys.itDevices.all],
+  const assignMutation = useMutation({
     mutationFn: async (body: { studentId?: string; userId?: string }) => {
       const res = await fetch(`/api/it/devices/${deviceId}/assign`, {
         method: 'POST',
@@ -126,6 +123,8 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
     onSuccess: () => {
       setShowAssign(false)
       setAssignSearch('')
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDeviceDetail.byId(deviceId!) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
       toast('Device assigned successfully', 'success')
     },
     onError: (err: Error) => {
@@ -133,9 +132,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
     },
   })
 
-  const unassignMutation = useOptimisticMutation({
-    queryKey: queryKeys.itDeviceDetail.byId(deviceId!),
-    invalidateKeys: [queryKeys.itDevices.all],
+  const unassignMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/it/devices/${deviceId}/unassign`, {
         method: 'POST',
@@ -147,15 +144,17 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
       }
       return res.json()
     },
-    onSuccess: () => {toast('Device unassigned', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDeviceDetail.byId(deviceId!) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
+      toast('Device unassigned', 'success')
     },
     onError: (err: Error) => {
       toast(err.message, 'error')
     },
   })
 
-  const deleteMutation = useOptimisticMutation({
-    queryKey: queryKeys.itDevices.all,
+  const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/it/devices/${deviceId}`, {
         method: 'DELETE',
@@ -164,7 +163,9 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
       if (!res.ok) throw new Error('Failed to delete device')
       return res.json()
     },
-    onSuccess: () => {toast('Device deleted', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
+      toast('Device deleted', 'success')
       onClose()
     },
     onError: () => {
@@ -270,7 +271,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                 <div className="flex gap-2 ml-auto">
                   {assigneeName && (
                     <button
-                      onClick={() => unassignMutation.mutate(undefined)}
+                      onClick={() => unassignMutation.mutate()}
                       disabled={unassignMutation.isPending}
                       className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
                     >
@@ -400,7 +401,7 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
                   <p className="text-sm text-slate-700">Delete this device? This action cannot be undone.</p>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => deleteMutation.mutate(undefined)}
+                      onClick={() => deleteMutation.mutate()}
                       disabled={deleteMutation.isPending}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
                     >

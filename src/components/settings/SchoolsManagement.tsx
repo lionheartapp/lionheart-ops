@@ -1,7 +1,7 @@
 'use client'
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
-import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
+import { getAuthHeaders as getCookieAuthHeaders, fetchApi } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { Plus, Edit2, Trash2, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
@@ -62,32 +62,37 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
     if (campusIdProp) return
     const resolveOrCreateCampus = async () => {
       try {
-        const headers = getCookieAuthHeaders()
-        const res = await fetch('/api/settings/campus/campuses', { credentials: 'include', headers })
-        const data = await res.json()
-        if (data.ok && Array.isArray(data.data) && data.data.length > 0) {
-          setResolvedCampusId(data.data[0].id)
-        } else {
-          // No campuses exist — auto-create "Main Campus" with org address
-          const csrfToken = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))?.trim().split('=')[1] || ''
-          // Fetch org address to copy to campus
-          let orgAddress: string | null = null
-          try {
-            const orgRes = await fetch('/api/onboarding/school-info', { credentials: 'include', headers })
-            const orgData = await orgRes.json()
-            if (orgData.ok) orgAddress = orgData.data?.physicalAddress || null
-          } catch { /* silent */ }
+        // Use fetchApi so CSRF cookie-bootstrap + one-time retry is handled transparently.
+        const campuses = await fetchApi<Array<{ id: string }>>(
+          '/api/settings/campus/campuses'
+        )
+        if (Array.isArray(campuses) && campuses.length > 0) {
+          setResolvedCampusId(campuses[0].id)
+          return
+        }
 
-          const createRes = await fetch('/api/settings/campus/campuses', {
+        // No campuses exist — auto-create "Main Campus" with org address
+        let orgAddress: string | null = null
+        try {
+          const orgData = await fetchApi<{ physicalAddress?: string | null }>(
+            '/api/onboarding/school-info'
+          )
+          orgAddress = orgData?.physicalAddress ?? null
+        } catch { /* silent — fall back to no address */ }
+
+        const created = await fetchApi<{ id: string }>(
+          '/api/settings/campus/campuses',
+          {
             method: 'POST',
-            credentials: 'include',
-            headers: { ...headers, 'x-csrf-token': csrfToken },
-            body: JSON.stringify({ name: 'Main Campus', campusType: 'HEADQUARTERS', address: orgAddress }),
-          })
-          const createData = await createRes.json()
-          if (createData.ok && createData.data?.id) {
-            setResolvedCampusId(createData.data.id)
+            body: JSON.stringify({
+              name: 'Main Campus',
+              campusKind: 'HEADQUARTERS',
+              address: orgAddress,
+            }),
           }
+        )
+        if (created?.id) {
+          setResolvedCampusId(created.id)
         }
       } catch { /* silent */ }
     }

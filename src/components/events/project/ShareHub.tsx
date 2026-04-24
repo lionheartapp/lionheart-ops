@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/Toast'
 import {
@@ -49,9 +48,9 @@ function formatDatetimeLocal(iso: string | null): string {
     // Format as YYYY-MM-DDTHH:mm for datetime-local input
     const pad = (n: number) => String(n).padStart(2, '0')
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
- } catch {
+  } catch {
     return ''
- }
+  }
 }
 
 function getOpenStatus(config: ShareConfig): { label: string; color: string } {
@@ -60,10 +59,10 @@ function getOpenStatus(config: ShareConfig): { label: string; color: string } {
     const openDate = new Date(config.openAt)
     const formatted = openDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     return { label: `Opens ${formatted}`, color: 'text-amber-600 bg-amber-50' }
- }
+  }
   if (config.closeAt && now > new Date(config.closeAt)) {
     return { label: 'Registration Closed', color: 'text-red-600 bg-red-50' }
- }
+  }
   return { label: 'Open', color: 'text-green-600 bg-green-50' }
 }
 
@@ -112,11 +111,11 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: { message?: string } }
         throw new Error(body?.error?.message ?? 'Failed to load share config')
-     }
+      }
       const body = await res.json() as { data: ShareConfig }
       return body.data
-   },
- })
+    },
+  })
 
   // Initialize local state from fetched data (once only)
   useEffect(() => {
@@ -126,37 +125,37 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
       setMaxCapacity(configData.maxCapacity != null ? String(configData.maxCapacity) : '')
       setWaitlistEnabled(configData.waitlistEnabled)
       setInitialized(true)
-   }
- }, [configData, initialized])
+    }
+  }, [configData, initialized])
 
   // ─── Save window mutation ───────────────────────────────────────────────────
 
-  const saveMutation = useOptimisticMutation<unknown, {
+  const saveMutation = useMutation({
+    mutationFn: async (payload: {
       openAt?: string | null
       closeAt?: string | null
       maxCapacity?: number | null
       waitlistEnabled?: boolean
-   }, unknown>({
-    queryKey: ['share-config', eventProjectId],
-    mutationFn: async (payload) => {
+    }) => {
       const res = await fetch(`/api/events/projects/${eventProjectId}/share`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-     })
+      })
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: { message?: string } }
         throw new Error(body?.error?.message ?? 'Failed to save')
-     }
+      }
       return res.json()
-   },
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['share-config', eventProjectId] })
       toast('Registration settings saved', 'success')
-   },
-    onError: (err) => {
+    },
+    onError: (err: Error) => {
       toast(err.message || 'Failed to save settings', 'error')
-   },
- })
+    },
+  })
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -167,9 +166,9 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         setCopied(true)
         toast('Link copied to clipboard', 'success')
         setTimeout(() => setCopied(false), 2000)
-     })
+      })
       .catch(() => toast('Failed to copy link', 'error'))
- }
+  }
 
   function handleDownloadQR() {
     if (!configData?.qrCodeDataUrl) return
@@ -177,21 +176,21 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
     link.href = configData.qrCodeDataUrl
     link.download = 'registration-qr.png'
     link.click()
- }
+  }
 
   function handleSaveWindow() {
     saveMutation.mutate({
       openAt: openAt ? new Date(openAt).toISOString() : null,
       closeAt: closeAt ? new Date(closeAt).toISOString() : null,
-   })
- }
+    })
+  }
 
   function handleSaveCapacity() {
     saveMutation.mutate({
       maxCapacity: maxCapacity ? parseInt(maxCapacity, 10) : null,
       waitlistEnabled,
-   })
- }
+    })
+  }
 
   // ─── Skeleton ─────────────────────────────────────────────────────────────
 
@@ -203,7 +202,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         ))}
       </div>
     )
- }
+  }
 
   // ─── Registration not set up ───────────────────────────────────────────────
 
@@ -224,7 +223,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         </p>
       </motion.div>
     )
- }
+  }
 
   const statusBadge = getOpenStatus(configData)
   const capacityPct = configData.maxCapacity
@@ -351,7 +350,7 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
                   background: capacityPct && capacityPct >= 90
                     ? 'linear-gradient(90deg, #EF4444 0%, #DC2626 100%)'
                     : 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
-               }}
+                }}
               />
             </div>
             {configData.waitlistedCount > 0 && (

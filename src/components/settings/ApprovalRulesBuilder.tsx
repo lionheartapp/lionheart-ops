@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Trash2, ClipboardCheck, ChevronRight, Shield, Minus,
@@ -64,14 +63,14 @@ export default function ApprovalRulesBuilder() {
   const alwaysRules = rules.filter(r => r.isFinalApprover)
   const selectedRule = rules.find(r => r.id === selectedRuleId) ?? null
 
-  const mutate = useOptimisticMutation<unknown, { method: string; url: string; body?: Record<string, unknown> }, unknown>({
-    queryKey: ['approval-rules'],
-    mutationFn: async (action) => {
+  const mutate = useMutation({
+    mutationFn: async (action: { method: string; url: string; body?: Record<string, unknown> }) => {
       return fetchApi(action.url, {
         method: action.method,
         body: action.body ? JSON.stringify(action.body) : undefined,
       })
     },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules'] }),
   })
 
   const addRule = (opts: { schoolId?: string; isDefault?: boolean; isFinalApprover?: boolean }) => {

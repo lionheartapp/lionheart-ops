@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { StatusBadge } from './ITStatusBadge'
@@ -110,8 +109,7 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
     }
   }, [activities])
 
-  const postComment = useOptimisticMutation<unknown, void, unknown>({
-    queryKey: queryKeys.itTicketComments.byTicket(ticketId),
+  const postComment = useMutation({
     mutationFn: () =>
       fetch(`/api/it/tickets/${ticketId}/comments`, {
         method: 'POST',
@@ -124,6 +122,7 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
     onSuccess: () => {
       setComment('')
       setIsInternal(false)
+      queryClient.invalidateQueries({ queryKey: queryKeys.itTicketComments.byTicket(ticketId) })
     },
   })
 

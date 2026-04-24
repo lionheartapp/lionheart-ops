@@ -6,8 +6,7 @@
 // All interactive controls are disabled until real integration ships.
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -106,8 +105,7 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
   })
 
   // Toggle config mutation
-  const toggleConfig = useOptimisticMutation({
-    queryKey: queryKeys.itProvisioningConfig.all,
+  const toggleConfig = useMutation({
     mutationFn: async (update: Partial<ProvisioningConfig>) => {
       const res = await fetch('/api/it/provisioning/config', {
         method: 'PATCH',
@@ -117,14 +115,15 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
       if (!res.ok) throw new Error('Failed to update config')
       return res.json()
     },
-    onSuccess: () => {toast('Configuration updated')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itProvisioningConfig.all })
+      toast('Configuration updated')
     },
     onError: () => toast('Failed to update config'),
   })
 
   // Resolve orphaned account
-  const resolveOrphaned = useOptimisticMutation({
-    queryKey: queryKeys.itOrphanedAccounts.all,
+  const resolveOrphaned = useMutation({
     mutationFn: async ({ id, action, notes }: { id: string; action: string; notes?: string }) => {
       const res = await fetch(`/api/it/provisioning/orphaned/${id}/resolve`, {
         method: 'POST',
@@ -134,7 +133,9 @@ export default function ITProvisioningTab({ canManage, canView }: ITProvisioning
       if (!res.ok) throw new Error('Failed to resolve')
       return res.json()
     },
-    onSuccess: () => {toast('Account resolved')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itOrphanedAccounts.all })
+      toast('Account resolved')
     },
     onError: () => toast('Failed to resolve account'),
   })

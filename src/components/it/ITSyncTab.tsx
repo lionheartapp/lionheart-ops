@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -222,9 +221,7 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
   const totalPages = Math.ceil(jobsTotal / pageSize)
 
   // ── Mutations ───────────────────────────────────────────────────────
-  const triggerSyncMutation = useOptimisticMutation({
-    queryKey: queryKeys.itSyncJobs.all,
-    invalidateKeys: [queryKeys.itSyncConfigs.all],
+  const triggerSyncMutation = useMutation({
     mutationFn: async (provider: string) => {
       const endpoint = getTriggerEndpoint(provider)
       const res = await fetch(endpoint, {
@@ -237,15 +234,17 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
       }
       return res.json()
     },
-    onSuccess: (_data, provider) => {toast(`${PROVIDER_LABELS[provider] ?? provider} sync triggered`, 'success')
+    onSuccess: (_data, provider) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSyncJobs.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSyncConfigs.all })
+      toast(`${PROVIDER_LABELS[provider] ?? provider} sync triggered`, 'success')
     },
     onError: (err: Error) => {
       toast(err.message, 'error')
     },
   })
 
-  const toggleEnableMutation = useOptimisticMutation({
-    queryKey: queryKeys.itSyncConfigs.all,
+  const toggleEnableMutation = useMutation({
     mutationFn: async ({ id, isEnabled }: { id: string; isEnabled: boolean }) => {
       const res = await fetch(`/api/it/sync/configs/${id}`, {
         method: 'PUT',
@@ -258,7 +257,9 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
       }
       return res.json()
     },
-    onSuccess: () => {toast('Sync config updated', 'success')
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itSyncConfigs.all })
+      toast('Sync config updated', 'success')
     },
     onError: (err: Error) => {
       toast(err.message, 'error')

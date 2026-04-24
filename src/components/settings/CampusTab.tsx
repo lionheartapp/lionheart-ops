@@ -19,24 +19,36 @@ import type { Building, Area, Room, Campus, SchoolInfo, DeleteConfirm } from './
 
 type CampusTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
+  /**
+   * When true, hides the "Campus" section header and the campus selector
+   * tab bar. Used when CampusTab is rendered inside the Facilities drill-in
+   * where navigation is handled by breadcrumbs.
+   */
+  embedded?: boolean
+  /**
+   * Pre-select a specific campus on first load. In embedded mode this is the
+   * only campus shown — the selector is hidden and switching is done by
+   * going back up the breadcrumb.
+   */
+  initialCampusId?: string
 }
 
-export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
+export default function CampusTab({ onDirtyChange, embedded = false, initialCampusId }: CampusTabProps = {}) {
   // ─── Campus state ──────────────────────────────────────────────────────
   const [campuses, setCampuses] = useState<Campus[]>([])
-  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null)
+  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(initialCampusId ?? null)
   const [campusesLoading, setCampusesLoading] = useState(true)
 
   // Add campus
   const [showAddCampusModal, setShowAddCampusModal] = useState(false)
-  const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
+  const [addCampusForm, setAddCampusForm] = useState({ name: '', address: '', campusKind: 'CAMPUS' })
   const [addCampusError, setAddCampusError] = useState('')
   const [addCampusSaving, setAddCampusSaving] = useState(false)
 
   // Edit campus
   const [editCampusDrawerOpen, setEditCampusDrawerOpen] = useState(false)
   const [editingCampus, setEditingCampus] = useState<Campus | null>(null)
-  const [editCampusForm, setEditCampusForm] = useState({ name: '', address: '', campusType: 'CAMPUS' })
+  const [editCampusForm, setEditCampusForm] = useState({ name: '', address: '', campusKind: 'CAMPUS' })
   const [editCampusError, setEditCampusError] = useState('')
   const [editCampusSaving, setEditCampusSaving] = useState(false)
 
@@ -51,6 +63,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   const [schools, setSchools] = useState<SchoolInfo[]>([])
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; name: string; address: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
   // ─── Building drawer ───────────────────────────────────────────────────
   const [buildingDrawerOpen, setBuildingDrawerOpen] = useState(false)
@@ -175,7 +188,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         }
       }
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to load campus data') }
-    finally { setLoading(false) }
+    finally { setLoading(false); setHasLoadedOnce(true) }
   }
 
   const loadData = () => loadDataForCampus(selectedCampusId || '')
@@ -184,7 +197,6 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
 
   useEffect(() => {
     if (!selectedCampusId) return
-    setBuildings([]); setAreas([]); setRooms([]); setOutdoorMapSpaces([])
     setBuildingDrawerOpen(false); setOutdoorDrawerOpen(false); setRoomsBuilding(null)
     setEditingBuilding(null); setEditingOutdoor(null)
     setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null); setPlaceOnMapBuilding(null)
@@ -410,7 +422,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   }
 
   // ─── Campus CRUD ───────────────────────────────────────────────────────
-  const openAddCampusModal = () => { setAddCampusForm({ name: '', address: '', campusType: 'CAMPUS' }); setAddCampusError(''); setShowAddCampusModal(true) }
+  const openAddCampusModal = () => { setAddCampusForm({ name: '', address: '', campusKind: 'CAMPUS' }); setAddCampusError(''); setShowAddCampusModal(true) }
   const closeAddCampusModal = () => { if (addCampusSaving) return; setShowAddCampusModal(false) }
 
   const saveAddCampusForm = async (e: React.FormEvent) => {
@@ -419,7 +431,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     if (!name) { setAddCampusError('Campus name is required'); return }
     setAddCampusSaving(true)
     try {
-      const res = await fetch('/api/settings/campus/campuses', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ name, address: addCampusForm.address.trim() || null, campusType: addCampusForm.campusType }) })
+      const res = await fetch('/api/settings/campus/campuses', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ name, address: addCampusForm.address.trim() || null, campusKind: addCampusForm.campusKind }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add campus')
@@ -431,7 +443,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     finally { setAddCampusSaving(false) }
   }
 
-  const openEditCampus = (campus: Campus) => { setEditingCampus(campus); setEditCampusForm({ name: campus.name, address: campus.address || '', campusType: campus.campusType }); setEditCampusError(''); setEditCampusDrawerOpen(true) }
+  const openEditCampus = (campus: Campus) => { setEditingCampus(campus); setEditCampusForm({ name: campus.name, address: campus.address || '', campusKind: campus.campusKind }); setEditCampusError(''); setEditCampusDrawerOpen(true) }
   const closeEditCampusDrawer = () => { if (editCampusSaving) return; setEditCampusDrawerOpen(false); setEditingCampus(null) }
 
   const saveEditCampusForm = async (e: React.FormEvent) => {
@@ -440,7 +452,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
     if (!name) { setEditCampusError('Campus name is required'); return }
     setEditCampusSaving(true)
     try {
-      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ name, address: editCampusForm.address.trim() || null, campusType: editCampusForm.campusType }) })
+      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ name, address: editCampusForm.address.trim() || null, campusKind: editCampusForm.campusKind }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to update campus')
@@ -476,24 +488,28 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
   // ─── Render ────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center gap-4">
-        <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">Campus</h3>
-          <p className="text-sm text-slate-500 mt-0.5">Manage buildings, areas, and rooms</p>
-        </div>
-      </div>
+      {!embedded && (
+        <>
+          {/* Section header */}
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Campus</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Manage buildings, spaces, and rooms</p>
+            </div>
+          </div>
 
-      {/* Campus selector bar + action */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <CampusSelector campuses={campuses} selectedCampusId={selectedCampusId} onSelectCampus={setSelectedCampusId} onEditCampus={openEditCampus} onDeleteCampus={(c) => setDeleteCampusConfirm(c)} />
-        <button onClick={openAddCampusModal} className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition cursor-pointer">
-          <Plus className="w-4 h-4" /> Add Campus
-        </button>
-      </div>
+          {/* Campus selector bar + action */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CampusSelector campuses={campuses} selectedCampusId={selectedCampusId} onSelectCampus={setSelectedCampusId} onEditCampus={openEditCampus} onDeleteCampus={(c) => setDeleteCampusConfirm(c)} />
+            <button onClick={openAddCampusModal} className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition cursor-pointer">
+              <Plus className="w-4 h-4" /> Add Campus
+            </button>
+          </div>
+        </>
+      )}
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {successMessage && (
@@ -565,7 +581,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         outdoorSpaces={outdoorSpaces}
         rooms={rooms}
         schools={schools}
-        loading={loading}
+        loading={loading && !hasLoadedOnce}
         onAddBuilding={(schoolIds) => openAddBuilding(schoolIds)}
         onEditBuilding={openEditBuilding}
         onDeleteBuilding={(id, name) => openDeleteConfirm('building', id, name)}
@@ -580,6 +596,7 @@ export default function CampusTab({ onDirtyChange }: CampusTabProps = {}) {
         onAddSchool={() => schoolsRef.current?.openNew()}
         onEditSchool={(id) => schoolsRef.current?.openEdit(id)}
         onDeleteSchool={(id) => schoolsRef.current?.promptDelete(id)}
+        embedded={embedded}
       />
 
       {/* Drawers */}

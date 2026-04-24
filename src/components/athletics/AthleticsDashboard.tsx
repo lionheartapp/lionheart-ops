@@ -58,14 +58,14 @@ interface Game {
     id: string
     name: string
     level: string
-    schoolId: string | null
+    campusId: string | null
     sport: { name: string; color: string }
   }
   opponentAthleticTeam?: {
     id: string
     name: string
     level: string
-    schoolId: string | null
+    campusId: string | null
     sport: { name: string; color: string }
   } | null
 }
@@ -132,15 +132,16 @@ interface GameViewpoint {
 
 /**
  * Determines whether the viewer is on the owning or opponent side.
- * Uses `activeCampusId` to check schoolId on each side — if the owning team
+ * Uses `activeCampusId` to check campusId on each side — if the owning team
  * doesn't belong to the active campus but the opponent does, flip the viewpoint.
+ * Phase 1c Pass 5: AthleticTeam.schoolId → AthleticTeam.campusId.
  */
 function resolveGameViewpoint(game: Game, activeCampusId: string | null): GameViewpoint {
   let side: GameSide = 'owning'
 
   if (activeCampusId && game.opponentAthleticTeamId) {
-    const owningBelongs = game.athleticTeam.schoolId === activeCampusId || !game.athleticTeam.schoolId
-    const opponentBelongs = game.opponentAthleticTeam?.schoolId === activeCampusId
+    const owningBelongs = game.athleticTeam.campusId === activeCampusId || !game.athleticTeam.campusId
+    const opponentBelongs = game.opponentAthleticTeam?.campusId === activeCampusId
     if (!owningBelongs && opponentBelongs) side = 'opponent'
   }
 

@@ -40,7 +40,7 @@ export const WORKSPACE_TABS: SettingsTabDef[] = [
   { id: 'roles', label: 'Roles', icon: Shield },
   { id: 'teams', label: 'Teams', icon: Users },
   { id: 'users', label: 'Members', icon: UserCog },
-  { id: 'campus', label: 'Campus', icon: Building2 },
+  { id: 'campus', label: 'Facilities', icon: Building2 },
   { id: 'academic-calendar', label: 'Academic Calendar', icon: CalendarDays },
   { id: 'approval-config', label: 'Approval Config', icon: ClipboardCheck },
   { id: 'billing', label: 'Billing', icon: CreditCard },

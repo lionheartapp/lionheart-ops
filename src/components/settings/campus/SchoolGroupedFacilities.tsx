@@ -38,6 +38,9 @@ type Props = {
   onAddSchool: () => void
   onEditSchool: (schoolId: string) => void
   onDeleteSchool: (schoolId: string) => void
+  /** Embedded mode — drill-in from Facilities tab. Hides school grouping
+   *  and the "Add School" / "Shared Facilities" wrapper; shows a flat list. */
+  embedded?: boolean
 }
 
 type GroupKey = 'shared' | string // school id or 'shared'
@@ -64,6 +67,7 @@ export default function SchoolGroupedFacilities({
   onAddSchool,
   onEditSchool,
   onDeleteSchool,
+  embedded = false,
 }: Props) {
   // Collapsed state per group — all expanded by default
   const [collapsed, setCollapsed] = useState<Record<GroupKey, boolean>>({})
@@ -110,6 +114,38 @@ export default function SchoolGroupedFacilities({
         >
           Add First Building
         </button>
+      </div>
+    )
+  }
+
+  // Embedded (drill-in from Facilities tab): one flat card, no school grouping
+  if (embedded) {
+    return (
+      <div className="space-y-4">
+        <FacilitiesCard
+          groupKey="shared"
+          title="Buildings & Spaces"
+          subtitle={`${buildings.length} building${buildings.length === 1 ? '' : 's'} · ${outdoorSpaces.length} outdoor space${outdoorSpaces.length === 1 ? '' : 's'}`}
+          color={SHARED_COLOR}
+          icon={<Building2 className="w-4 h-4 text-white" />}
+          buildings={buildings}
+          outdoorSpaces={outdoorSpaces}
+          rooms={rooms}
+          schools={schools}
+          collapsed={!!collapsed['shared']}
+          onToggle={() => toggle('shared')}
+          onAddBuilding={() => onAddBuilding([])}
+          onEditBuilding={onEditBuilding}
+          onDeleteBuilding={onDeleteBuilding}
+          onManageRooms={onManageRooms}
+          onPlaceBuildingOnMap={onPlaceBuildingOnMap}
+          onRenameBuilding={onRenameBuilding}
+          onRenameRoom={onRenameRoom}
+          onAddOutdoor={() => onAddOutdoor([])}
+          onEditOutdoor={onEditOutdoor}
+          onDeleteOutdoor={onDeleteOutdoor}
+          onPlaceOutdoorOnMap={onPlaceOutdoorOnMap}
+        />
       </div>
     )
   }

@@ -8,7 +8,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 interface Team {
   id: string
   name: string
-  schoolId?: string | null
+  campusId?: string | null
   sport: { id: string; name: string; color: string }
   season: { id: string; name: string }
 }

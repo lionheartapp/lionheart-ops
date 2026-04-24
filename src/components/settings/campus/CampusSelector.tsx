@@ -58,7 +58,7 @@ export default function CampusSelector({
                 closeMenu()
               } else {
                 const rect = e.currentTarget.getBoundingClientRect()
-                setMenuPos({ top: rect.bottom + 4, left: rect.right - 160 })
+                setMenuPos({ top: rect.bottom + 4, left: rect.right - 176 })
                 setMenuOpen(campus.id)
               }
             }}
@@ -74,22 +74,22 @@ export default function CampusSelector({
             <>
               <div className="fixed inset-0 z-popover" onClick={closeMenu} />
               <div
-                className="fixed z-[76] w-40 ui-glass-dropdown py-1"
+                className="fixed z-[76] w-44 ui-glass-dropdown py-1"
                 style={{ top: menuPos.top, left: menuPos.left }}
               >
                 <button
                   onClick={() => { onEditCampus(campus); closeMenu() }}
-                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 whitespace-nowrap"
                   style={{ minHeight: 'auto' }}
                 >
-                  <Edit2 className="w-3.5 h-3.5" /> Edit Campus
+                  <Edit2 className="w-3.5 h-3.5 flex-shrink-0" /> Edit Campus
                 </button>
                 <button
                   onClick={() => { onDeleteCampus(campus); closeMenu() }}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 whitespace-nowrap"
                   style={{ minHeight: 'auto' }}
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete Campus
+                  <Trash2 className="w-3.5 h-3.5 flex-shrink-0" /> Delete Campus
                 </button>
               </div>
             </>,

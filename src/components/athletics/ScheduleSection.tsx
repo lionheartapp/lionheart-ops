@@ -24,7 +24,7 @@ interface Team {
   id: string
   name: string
   level: string
-  schoolId: string | null
+  campusId: string | null
   sport: { id: string; name: string; color: string }
   season: { id: string; name: string }
   _count: { games: number; practices: number }
@@ -34,7 +34,7 @@ interface TeamSummary {
   id: string
   name: string
   level?: string
-  schoolId?: string | null
+  campusId?: string | null
   sport: { name: string; color: string }
 }
 
@@ -344,7 +344,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
   const displayTeams = useMemo(() => {
     if (!activeCampusId) return teams
-    return teams.filter((t) => !t.schoolId || t.schoolId === activeCampusId)
+    return teams.filter((t) => !t.campusId || t.campusId === activeCampusId)
   }, [teams, activeCampusId])
 
   const teamOptions: DropdownOption[] = useMemo(() => {

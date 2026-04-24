@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -73,8 +72,7 @@ export default function ITStudentDetailDrawer({ studentId, isOpen, onClose, canM
 
   const student = data as StudentDetail | undefined
 
-  const deleteMutation = useOptimisticMutation<unknown, void, unknown>({
-    queryKey: queryKeys.itStudents.all,
+  const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/it/students/${studentId}`, {
         method: 'DELETE',
@@ -84,6 +82,7 @@ export default function ITStudentDetailDrawer({ studentId, isOpen, onClose, canM
       return res.json()
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itStudents.all })
       toast('Student deleted', 'success')
       onClose()
     },

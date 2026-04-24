@@ -204,7 +204,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
         sportId: sports[0].id,
         seasonId: allSeasons[0].id,
         level: teamLevel,
-        ...(activeCampusId ? { schoolId: activeCampusId } : {}),
+        ...(activeCampusId ? { campusId: activeCampusId } : {}),
       })
       queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTeams.all })
       setTeamName('')

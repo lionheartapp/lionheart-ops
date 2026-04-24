@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   QrCode, Plus, Printer, ToggleLeft, ToggleRight,
   RefreshCw, Building2, MapPin, Tag, Loader2, X,
@@ -375,20 +374,21 @@ export default function QrCodeManager() {
     queryFn: () => fetchApi<BuildingOption[]>('/api/campus/lookup'),
   })
 
-  const toggleMutation = useOptimisticMutation<unknown, { id: string; active: boolean }, unknown>({
-    queryKey: ['form-qr-codes'],
-    mutationFn: async ({ id, active }) => {
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       await fetch(`/api/forms/qr/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ active }),
       })
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['form-qr-codes'] })
+    },
   })
 
-  const regenerateMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: ['form-qr-codes'],
-    mutationFn: async (id) => {
+  const regenerateMutation = useMutation({
+    mutationFn: async (id: string) => {
       await fetch(`/api/forms/qr/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
@@ -396,6 +396,7 @@ export default function QrCodeManager() {
       })
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['form-qr-codes'] })
       toast('Token regenerated — old QR codes will stop working', 'warning')
     },
   })

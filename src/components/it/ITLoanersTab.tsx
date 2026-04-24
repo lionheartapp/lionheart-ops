@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { useToast } from '@/components/Toast'
 import {
@@ -169,9 +168,8 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
 
   // ─── Mutations ──────────────────────────────────────────────────────
 
-  const checkoutMutation = useOptimisticMutation<unknown, { deviceId: string; borrowerStudentId?: string; dueDate: string; notes?: string }, unknown>({
-    queryKey: queryKeys.itLoaners.all,
-    mutationFn: async (body) => {
+  const checkoutMutation = useMutation({
+    mutationFn: async (body: { deviceId: string; borrowerStudentId?: string; dueDate: string; notes?: string }) => {
       const { getAuthHeaders } = await import('@/lib/api-client')
       const res = await fetch('/api/it/loaners/checkout', {
         method: 'POST',
@@ -184,19 +182,19 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
       }
       return res.json()
     },
-    invalidateKeys: [queryKeys.itDevices.all],
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itLoaners.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
       toast('Device checked out successfully', 'success')
       resetCheckoutForm()
     },
-    onError: (err) => {
+    onError: (err: Error) => {
       toast(err.message || 'Failed to checkout device', 'error')
     },
   })
 
-  const checkinMutation = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: queryKeys.itLoaners.all,
-    mutationFn: async (checkoutId) => {
+  const checkinMutation = useMutation({
+    mutationFn: async (checkoutId: string) => {
       const { getAuthHeaders } = await import('@/lib/api-client')
       const res = await fetch(`/api/it/loaners/${checkoutId}/checkin`, {
         method: 'POST',
@@ -208,11 +206,12 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
       }
       return res.json()
     },
-    invalidateKeys: [queryKeys.itDevices.all],
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.itLoaners.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.itDevices.all })
       toast('Device checked in successfully', 'success')
     },
-    onError: (err) => {
+    onError: (err: Error) => {
       toast(err.message || 'Failed to check in device', 'error')
     },
   })
