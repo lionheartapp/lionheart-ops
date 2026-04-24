@@ -148,7 +148,7 @@ export function BoardReportPage(_props: BoardReportPageProps) {
       if (!res.ok) throw new Error('Failed to fetch board report')
       return res.json()
     },
-    enabled: !!token,
+    enabled: true,
     staleTime: 5 * 60 * 1000, // 5 min
   })
 
