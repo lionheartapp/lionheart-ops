@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, Package } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -147,33 +148,33 @@ export default function AssetCreateDrawer({
    }
  }
 
-  const mutation = useMutation<MaintenanceAsset, Error, CreateAssetPayload>({
+  const mutation = useOptimisticMutation<MaintenanceAsset, CreateAssetPayload, unknown>({
+    queryKey: ['maintenance-assets'],
     mutationFn: (payload) => {
       if (isEditMode && editAsset) {
         return fetchApi<MaintenanceAsset>(`/api/maintenance/assets/${editAsset.id}`, {
           method: 'PATCH',
           headers: getAuthHeaders(),
           body: JSON.stringify(payload),
-       })
-     }
+        })
+      }
       return fetchApi<MaintenanceAsset>('/api/maintenance/assets', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
-     })
-   },
+      })
+    },
+    invalidateKeys: [['maintenance-asset', editAsset?.id]],
     onSuccess: (asset) => {
-      queryClient.invalidateQueries({ queryKey: ['maintenance-assets'] })
-      queryClient.invalidateQueries({ queryKey: ['maintenance-asset', editAsset?.id] })
       onCreated?.(asset as MaintenanceAsset & { assetNumber: string })
       if (!isEditMode) setForm(getInitialForm())
       setError('')
       onClose()
-   },
+    },
     onError: (err) => {
       setError(err.message || (isEditMode ? 'Failed to update asset' : 'Failed to create asset'))
-   },
- })
+    },
+  })
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
