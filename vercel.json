@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "regions": ["pdx1"],
   "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
   "crons": [
