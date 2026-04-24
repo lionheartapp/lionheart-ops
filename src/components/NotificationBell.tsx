@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
@@ -76,19 +75,23 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
   const notifications = listData?.notifications ?? []
 
   // Mark single as read
-  const markRead = useOptimisticMutation<unknown, string, unknown>({
-    queryKey: queryKeys.notifications.all,
-    mutationFn: (id) =>
+  const markRead = useMutation({
+    mutationFn: (id: string) =>
       fetchApi(`/api/notifications/${id}/read`, { method: 'PUT' }),
-    invalidateKeys: [queryKeys.notifications.unreadCount],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount })
+    },
   })
 
   // Mark all as read
-  const markAllRead = useOptimisticMutation<unknown, void, unknown>({
-    queryKey: queryKeys.notifications.all,
+  const markAllRead = useMutation({
     mutationFn: () =>
       fetchApi('/api/notifications/read-all', { method: 'PUT' }),
-    invalidateKeys: [queryKeys.notifications.unreadCount],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount })
+    },
   })
 
   const unreadInList = notifications.filter(n => !n.isRead).length
