@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, BookOpen, Tag } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -107,30 +108,30 @@ export default function KnowledgeBaseArticleEditor({
       .filter(Boolean)
  }
 
-  const mutation = useMutation<KBArticleSummary, Error, ArticlePayload>({
+  const mutation = useOptimisticMutation<KBArticleSummary, ArticlePayload, unknown>({
+    queryKey: ['knowledge-base'],
     mutationFn: (payload) => {
       if (isEditMode && editArticle) {
         return fetchApi<KBArticleSummary>(`/api/maintenance/knowledge-base/${editArticle.id}`, {
           method: 'PATCH',
           headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
-       })
-     }
+        })
+      }
       return fetchApi<KBArticleSummary>('/api/maintenance/knowledge-base', {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-     })
-   },
+      })
+    },
     onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge-base'] })
       onSaved?.(saved)
       onClose()
-   },
+    },
     onError: (err) => {
       setError(err.message || 'Failed to save article')
-   },
- })
+    },
+  })
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
