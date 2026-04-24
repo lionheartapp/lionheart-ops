@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { ok, fail } from '@/lib/api-response'
 import { logger } from '@/lib/logger'
 import * as notificationService from '@/lib/services/notificationService'
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
       where: {
         status: 'PENDING_APPROVAL',
         deletedAt: null,
-        approvalGates: { not: null },
+        approvalGates: { not: Prisma.JsonNull },
       },
       select: {
         id: true,
