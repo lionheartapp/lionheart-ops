@@ -178,7 +178,7 @@ function ApprovalCard({
   const otherGates = project.approvalGates
     ? Object.entries(project.approvalGates)
         .filter(([key, v]) => key !== gateType && v != null)
-        .map(([key, gate]) => ({ key, ...(gate as { status: string }) }))
+        .map(([key, gate]) => ({ key, ...(gate as { status: string; teamName?: string }) }))
     : []
 
   const handleReject = () => {
@@ -219,7 +219,7 @@ function ApprovalCard({
       {/* Other gate statuses */}
       {otherGates.length > 0 && (
         <div className="flex items-center gap-1.5 mb-3">
-          {otherGates.map(({ key, status }) => {
+          {otherGates.map(({ key, status, teamName }) => {
             const config = GATE_STATUS_CONFIG[status] ?? GATE_STATUS_CONFIG.PENDING
             return (
               <span
@@ -228,7 +228,7 @@ function ApprovalCard({
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
                 {isV2GateKey(key)
-                  ? ((gate as Record<string, unknown>).teamName as string ?? key)
+                  ? (teamName ?? key)
                   : (GATE_LABELS[key] ?? key)}: {config.label}
               </span>
             )
