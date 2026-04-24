@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useOptimisticMutation } from '@/lib/hooks/useOptimisticMutation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -178,37 +177,51 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
 
   // ─── Claim mutation (optimistic) ──────────────────────────────────────────
 
-  const claimMutation = useOptimisticMutation<unknown, string, WorkOrderTicket[]>({
-    queryKey: mainQueryKey,
-    mutationFn: (ticketId) => {
+  const claimMutation = useMutation({
+    mutationFn: (ticketId: string) => claimTicketApi(ticketId),
+    onMutate: async (ticketId) => {
       setClaimingId(ticketId)
-      return claimTicketApi(ticketId)
+      await queryClient.cancelQueries({ queryKey: mainQueryKey })
+      const snapshot = queryClient.getQueryData<WorkOrderTicket[]>(mainQueryKey)
+      queryClient.setQueryData<WorkOrderTicket[]>(mainQueryKey, (old) =>
+        (old ?? []).map((t) =>
+          t.id === ticketId
+            ? { ...t, assignedTo: { id: '__optimistic__', firstName: 'You', lastName: '' }, status: 'TODO' }
+            : t
+        )
+      )
+      return { snapshot }
     },
-    optimisticUpdate: (old, ticketId) =>
-      (old ?? []).map((t) =>
-        t.id === ticketId
-          ? { ...t, assignedTo: { id: '__optimistic__', firstName: 'You', lastName: '' }, status: 'TODO' as const }
-          : t
-      ),
-    invalidateKeys: [['maintenance-tickets']],
-    onSuccess: () => setClaimingId(null),
-    onError: () => setClaimingId(null),
+    onError: (_err, _ticketId, context) => {
+      if (context?.snapshot) queryClient.setQueryData(mainQueryKey, context.snapshot)
+    },
+    onSettled: () => {
+      setClaimingId(null)
+      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+      queryClient.invalidateQueries({ queryKey: mainQueryKey })
+    },
   })
 
   // ─── Assign mutation ──────────────────────────────────────────────────────
 
-  const assignMutation = useOptimisticMutation<unknown, { ticketId: string; techId: string }, unknown>({
-    queryKey: mainQueryKey,
-    mutationFn: ({ ticketId, techId }) => assignTicketApi(ticketId, techId),
-    invalidateKeys: [['maintenance-tickets']],
+  const assignMutation = useMutation({
+    mutationFn: ({ ticketId, techId }: { ticketId: string; techId: string }) =>
+      assignTicketApi(ticketId, techId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+      queryClient.invalidateQueries({ queryKey: mainQueryKey })
+    },
   })
 
   // ─── Status change mutation ───────────────────────────────────────────────
 
-  const statusMutation = useOptimisticMutation<unknown, { ticketId: string; status: string; extra?: Record<string, string> }, unknown>({
-    queryKey: mainQueryKey,
-    mutationFn: ({ ticketId, status, extra }) => changeStatusApi(ticketId, status, extra),
-    invalidateKeys: [['maintenance-tickets']],
+  const statusMutation = useMutation({
+    mutationFn: ({ ticketId, status, extra }: { ticketId: string; status: string; extra?: Record<string, string> }) =>
+      changeStatusApi(ticketId, status, extra),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+      queryClient.invalidateQueries({ queryKey: mainQueryKey })
+    },
   })
 
   // ─── Sort toggle ──────────────────────────────────────────────────────────
