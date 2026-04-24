@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 /**
  * Stripe subscription lifecycle webhook
@@ -112,6 +113,8 @@ async function upsertSubscriptionFromStripe(sub: StripeSubscriptionPayload): Pro
         ...(metadataPlanId && metadataPlanId !== existing.planId ? { planId: metadataPlanId } : {}),
       },
     })
+    // Subscription status/trial changed — affects read-only gate for every user in the org.
+    invalidateOrgUserContexts(existing.organizationId)
     return { upserted: true }
   }
 
@@ -141,6 +144,9 @@ async function upsertSubscriptionFromStripe(sub: StripeSubscriptionPayload): Pro
       cancelAtPeriodEnd: sub.cancel_at_period_end || false,
     },
   })
+  // New subscription on an org — read-only gate state may have flipped for every
+  // user in the org. Drop their cached RequestContext entries.
+  invalidateOrgUserContexts(metadataOrgId)
   return { upserted: true }
 }
 
@@ -225,10 +231,20 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object as unknown as StripeSubscriptionPayload
+        // Look up the org before updating so we know whose caches to clear.
+        const existing = await rawPrisma.subscription.findUnique({
+          where: { stripeSubscriptionId: sub.id },
+          select: { organizationId: true },
+        })
         const result = await rawPrisma.subscription.updateMany({
           where: { stripeSubscriptionId: sub.id },
           data: { status: 'CANCELED', cancelAtPeriodEnd: false },
         })
+        if (existing) {
+          // Subscription canceled — every user in the org will now see the
+          // read-only gate. Invalidate their cached context.
+          invalidateOrgUserContexts(existing.organizationId)
+        }
         logger.info(
           { eventType: event.type, stripeSubscriptionId: sub.id, updated: result.count },
           'Subscription canceled'
@@ -377,6 +393,8 @@ export async function POST(req: NextRequest) {
             where: { id: subscription.id },
             data: { status: 'PAST_DUE' },
           })
+          // Status transition affects the read-only gate for every user in the org.
+          invalidateOrgUserContexts(subscription.organizationId)
         }
 
         logger.info(

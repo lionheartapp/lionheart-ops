@@ -191,44 +191,26 @@ export async function getAthleticsCalendarEvents(
 ): Promise<AthleticsCalendarEvent[]> {
   if (campusIds.length === 0) return []
 
-  // Phase 1: Parallel batch — schools, campuses, and teams have no interdependencies
-  // on games/practices, but teams depend on school IDs. So we batch schools+campuses
-  // first, then teams, then games+practices in parallel.
+  // Phase 1c Pass 5: AthleticTeam now references Campus directly via campusId
+  // (the old schoolId FK was renamed). No need to resolve School→Campus anymore.
 
-  // 1. Resolve campusId → schoolIds and build campus name map (parallel)
-  const [schools, campuses] = await Promise.all([
-    db.school.findMany({
-      where: { campusId: { in: campusIds } },
-      select: { id: true, campusId: true, name: true },
-    }),
-    db.campus.findMany({
-      where: { id: { in: campusIds } },
-      select: { id: true, name: true },
-    }),
-  ])
-
-  const schoolIdToCampusId = new Map<string, string>(
-    schools.map((s: { id: string; campusId: string }) => [s.id, s.campusId!])
-  )
-  // Also map campusId → itself so teams linked directly to a campus resolve correctly
-  for (const cid of campusIds) {
-    schoolIdToCampusId.set(cid, cid)
-  }
-  const schoolIds = schools.map((s: { id: string }) => s.id)
-
+  // 1. Build campus name map for output
+  const campuses = await db.campus.findMany({
+    where: { id: { in: campusIds } },
+    select: { id: true, name: true },
+  })
   const campusNameMap = new Map<string, string>(
     campuses.map((c: { id: string; name: string }) => [c.id, c.name])
   )
 
-  // 2. Fetch teams — by schoolId OR by campusId (some teams reference campus directly)
-  const teamWhereIds = [...new Set([...schoolIds, ...campusIds])]
+  // 2. Fetch teams belonging to any of the requested campuses
   const teams = await db.athleticTeam.findMany({
-    where: { schoolId: { in: teamWhereIds } },
+    where: { campusId: { in: campusIds } },
     select: {
       id: true,
       name: true,
       level: true,
-      schoolId: true,
+      campusId: true,
       sport: { select: { id: true, name: true, color: true } },
     },
   })
@@ -267,7 +249,7 @@ export async function getAthleticsCalendarEvents(
   for (const game of games) {
     const team = teamMap.get(game.athleticTeamId)
     if (!team) continue
-    const campusId = schoolIdToCampusId.get(team.schoolId) || campusIds[0]
+    const campusId = team.campusId || campusIds[0]
     const prefix = game.homeAway === 'AWAY' ? '@ ' : 'vs '
 
     results.push({
@@ -293,7 +275,7 @@ export async function getAthleticsCalendarEvents(
         teamId: team.id,
         teamName: team.name,
         teamLevel: team.level,
-        schoolId: team.schoolId,
+        schoolId: null,
         campusId,
         opponentName: game.opponentName,
         homeAway: game.homeAway,
@@ -322,7 +304,7 @@ export async function getAthleticsCalendarEvents(
   for (const practice of practices) {
     const team = teamMap.get(practice.athleticTeamId)
     if (!team) continue
-    const campusId = schoolIdToCampusId.get(team.schoolId) || campusIds[0]
+    const campusId = team.campusId || campusIds[0]
     const duration = new Date(practice.endTime).getTime() - new Date(practice.startTime).getTime()
 
     if (practice.rrule) {
@@ -380,7 +362,7 @@ function buildPracticeEvent(
       teamId: team.id,
       teamName: team.name,
       teamLevel: team.level,
-      schoolId: team.schoolId,
+      schoolId: null,
       campusId,
       location: practice.location,
       notes: practice.notes,

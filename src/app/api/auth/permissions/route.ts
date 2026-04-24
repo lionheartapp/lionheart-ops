@@ -4,6 +4,7 @@ import { getUserContext } from '@/lib/request-context'
 import { getUserPermissions, getUserTeamDetails, canSync, canAnySync } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { matchesPermission } from '@/lib/permissions'
+import { cachePerUser } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 const WORKSPACE_MANAGE_PERMISSIONS = [
@@ -33,10 +34,18 @@ export async function GET(req: NextRequest) {
     const userContext = await getUserContext(req)
 
     // Single DB query — all permission checks run in-memory against this array
-    const [perms, userTeams] = await Promise.all([
-      getUserPermissions(userContext.userId),
-      getUserTeamDetails(userContext.userId),
-    ])
+    const { perms, userTeams } = await cachePerUser(
+      userContext.userId,
+      'auth:permissions',
+      async () => {
+        const [perms, userTeams] = await Promise.all([
+          getUserPermissions(userContext.userId),
+          getUserTeamDetails(userContext.userId),
+        ])
+        return { perms, userTeams }
+      },
+      { ttlMs: 30000 }
+    )
 
     // Helper for legacy role (runs against same array, no extra DB call)
     let legacyRole = 'VIEWER'

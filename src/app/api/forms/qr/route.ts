@@ -11,6 +11,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { listQrCodes, createQrCode } from '@/lib/services/formQrService'
 import { formQrCodeCreateSchema } from '@/lib/forms/schemas'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,7 +20,12 @@ export async function GET(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.FORMS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const codes = await listQrCodes()
+      const codes = await cacheOrgWide(
+        orgId,
+        'forms:qr:list',
+        () => listQrCodes(),
+        { ttlMs: 60000 }
+      )
       return NextResponse.json(ok(codes))
     })
   } catch (error) {
@@ -47,6 +53,7 @@ export async function POST(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const qr = await createQrCode(parsed.data)
+      invalidateOrgCache(orgId, 'forms:qr')
       return NextResponse.json(ok(qr), { status: 201 })
     })
   } catch (error) {

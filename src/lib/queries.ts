@@ -285,6 +285,73 @@ export const queryKeys = {
   securityIncidentDetail: {
     byId: (id: string) => ['security-incident', id] as const,
   },
+
+  // Phase 1c — Facilities & Academic
+  schools: {
+    all: ['schools'] as const,
+    byId: (id: string) => ['schools', id] as const,
+    list: (districtId?: string) => ['schools', { districtId: districtId ?? '' }] as const,
+  },
+  districts: {
+    all: ['districts'] as const,
+    byId: (id: string) => ['districts', id] as const,
+  },
+  sites: {
+    all: ['sites'] as const,
+    byId: (id: string) => ['sites', id] as const,
+  },
+  buildings: {
+    all: ['buildings'] as const,
+    byId: (id: string) => ['buildings', id] as const,
+    byCampus: (campusId: string) => ['buildings', { campusId }] as const,
+    bySchool: (schoolId: string) => ['buildings', { schoolId }] as const,
+  },
+  spaces: {
+    all: ['spaces'] as const,
+    byBuilding: (buildingId: string) => ['spaces', { buildingId }] as const,
+  },
+  rooms: {
+    all: ['rooms'] as const,
+    bySpace: (spaceId: string) => ['rooms', { spaceId }] as const,
+  },
+  campusLookup: {
+    tree: ['campus-lookup-tree'] as const,
+  },
+  academicYears: {
+    all: ['academic-years'] as const,
+    bySchool: (schoolId: string) => ['academic-years', { schoolId }] as const,
+  },
+  academicTerms: {
+    all: ['academic-terms'] as const,
+    byYear: (academicYearId?: string) => ['academic-terms', { academicYearId: academicYearId ?? 'all' }] as const,
+  },
+  bellSchedules: {
+    all: ['bell-schedules'] as const,
+    byId: (id: string) => ['bell-schedules', id] as const,
+    bySchool: (schoolId?: string) => ['bell-schedules', { schoolId: schoolId ?? 'all' }] as const,
+  },
+  daySchedules: {
+    all: ['day-schedules'] as const,
+    range: (start: string, end: string, campusId?: string) =>
+      ['day-schedules', start, end, campusId ?? 'all'] as const,
+  },
+  specialDays: {
+    all: ['special-days'] as const,
+    range: (start?: string, end?: string, schoolId?: string, campusId?: string) =>
+      ['special-days', start ?? 'any', end ?? 'any', schoolId ?? 'all', campusId ?? 'all'] as const,
+  },
+  calendarCategories: {
+    all: ['calendar-categories'] as const,
+    byType: (calendarType?: string) => ['calendar-categories', { calendarType: calendarType ?? 'all' }] as const,
+  },
+  forms: {
+    all: ['forms'] as const,
+    byCategory: (categoryKey: string) => ['forms', 'category', categoryKey] as const,
+    qrList: ['forms', 'qr-list'] as const,
+  },
+  twilioConfig: {
+    all: ['integrations', 'twilio', 'config'] as const,
+  },
 } as const
 
 // ─── Query Option Factories ────────────────────────────────────────────

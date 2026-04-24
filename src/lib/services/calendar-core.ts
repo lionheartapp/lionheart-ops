@@ -8,6 +8,7 @@
 import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
+import { cachePerUser, cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import type {
   CalendarType,
   Prisma,
@@ -23,62 +24,89 @@ export async function getCalendars(filters?: {
   userId?: string
   roleName?: string
 }) {
-  const where: Prisma.CalendarWhereInput = {}
+  const orgId = getOrgContextId()
+  const bucket =
+    `calendars:list` +
+    `:type=${filters?.calendarType ?? 'all'}` +
+    `:campus=${filters?.campusId ?? 'all'}` +
+    `:school=${filters?.schoolId ?? 'all'}` +
+    `:active=${filters?.isActive ?? 'true'}` +
+    `:role=${filters?.roleName ?? 'none'}`
 
-  if (filters?.calendarType) {
-    where.calendarType = filters.calendarType as CalendarType
-  }
-  if (filters?.campusId) {
-    where.campusId = filters.campusId
-  }
-  if (filters?.schoolId) {
-    where.schoolId = filters.schoolId
-  }
-  if (filters?.isActive !== undefined) {
-    where.isActive = filters.isActive
-  }
+  const fetch = async () => {
+    const where: Prisma.CalendarWhereInput = {}
 
-  // Filter personal calendars so each user only sees their own "My Schedule"
-  const isAdmin = filters?.roleName && ['super admin', 'super-admin', 'administrator', 'admin'].includes(filters.roleName.toLowerCase())
-  if (filters?.userId) {
-    if (isAdmin) {
-      // Admins see all non-personal calendars + only their own personal calendar
-      where.OR = [
-        { calendarType: { not: 'PERSONAL' } },
-        { createdById: filters.userId, calendarType: 'PERSONAL' },
-      ]
-    } else {
-      // Non-admins: filter by the user's pinned campus (NEW ONTOLOGY — Phase 1b:
-      // UserCampusAssignment was dropped in favor of User.campusId).
-      const pinnedUser = await prisma.user.findUnique({
-        where: { id: filters.userId },
-        select: { campusId: true },
-      })
-      const userCampusIds = pinnedUser?.campusId ? [pinnedUser.campusId] : []
-
-      where.OR = [
-        // Campus master calendars the user belongs to
-        ...(userCampusIds.length > 0
-          ? [{ campusId: { in: userCampusIds }, calendarType: { not: 'PERSONAL' as CalendarType } }]
-          : []),
-        // Org-wide calendars (no campus, non-personal)
-        { campusId: null, calendarType: { not: 'PERSONAL' as CalendarType } },
-        // User's own personal calendar
-        { createdById: filters.userId, calendarType: 'PERSONAL' },
-      ]
+    if (filters?.calendarType) {
+      where.calendarType = filters.calendarType as CalendarType
     }
+    if (filters?.campusId) {
+      where.campusId = filters.campusId
+    }
+    if (filters?.schoolId) {
+      where.schoolId = filters.schoolId
+    }
+    if (filters?.isActive !== undefined) {
+      where.isActive = filters.isActive
+    }
+
+    // Filter personal calendars so each user only sees their own "My Schedule"
+    const isAdmin = filters?.roleName && ['super admin', 'super-admin', 'administrator', 'admin'].includes(filters.roleName.toLowerCase())
+    if (filters?.userId) {
+      if (isAdmin) {
+        // Admins see all non-personal calendars + only their own personal calendar
+        where.OR = [
+          { calendarType: { not: 'PERSONAL' } },
+          { createdById: filters.userId, calendarType: 'PERSONAL' },
+        ]
+      } else {
+        // Non-admins: filter by the user's pinned campus (NEW ONTOLOGY — Phase 1b:
+        // UserCampusAssignment was dropped in favor of User.campusId).
+        const pinnedUser = await prisma.user.findUnique({
+          where: { id: filters.userId },
+          select: { campusId: true },
+        })
+        const userCampusIds = pinnedUser?.campusId ? [pinnedUser.campusId] : []
+
+        where.OR = [
+          // Campus master calendars the user belongs to
+          ...(userCampusIds.length > 0
+            ? [{ campusId: { in: userCampusIds }, calendarType: { not: 'PERSONAL' as CalendarType } }]
+            : []),
+          // Org-wide calendars (no campus, non-personal)
+          { campusId: null, calendarType: { not: 'PERSONAL' as CalendarType } },
+          // User's own personal calendar
+          { createdById: filters.userId, calendarType: 'PERSONAL' },
+        ]
+      }
+    }
+
+    return prisma.calendar.findMany({
+      where,
+      orderBy: { name: 'asc' },
+      include: {
+        campus: { select: { id: true, name: true } },
+        school: { select: { id: true, name: true } },
+        createdBy: { select: { id: true, name: true, firstName: true, lastName: true } },
+        _count: { select: { events: true, subscriptions: true } },
+      },
+    })
   }
 
-  return prisma.calendar.findMany({
-    where,
-    orderBy: { name: 'asc' },
-    include: {
-      campus: { select: { id: true, name: true } },
-      school: { select: { id: true, name: true } },
-      createdBy: { select: { id: true, name: true, firstName: true, lastName: true } },
-      _count: { select: { events: true, subscriptions: true } },
-    },
-  })
+  // Scope decision:
+  //  - userId present → per-user cache (visibility depends on user's campus +
+  //    role). Also tag with org so mutations can blast every user's entry in
+  //    one call.
+  //  - userId absent → shared org-wide cache (e.g. internal callers without a
+  //    user context).
+  if (filters?.userId) {
+    // Tag with org so org-level mutations (createCalendar etc.) can blast
+    // every user's cached list in one call.
+    return cachePerUser(filters.userId, bucket, fetch, {
+      ttlMs: 30_000,
+      extraTags: orgId ? [`org:${orgId}`] : [],
+    })
+  }
+  return cacheOrgWide(orgId, bucket, fetch, { ttlMs: 30_000 })
 }
 
 export async function getCalendarById(id: string) {
@@ -117,7 +145,7 @@ export async function createCalendar(data: {
     }
   }
 
-  return (prisma.calendar.create as Function)({
+  const result = await (prisma.calendar.create as Function)({
     data: {
       name: data.name,
       slug: data.slug,
@@ -131,6 +159,11 @@ export async function createCalendar(data: {
       createdById: data.createdById,
     },
   })
+  // Blast every user's cached calendars list for this org. Entries are tagged
+  // with `org:${orgId}` so invalidateOrgCache hits them even though keys are
+  // per-user.
+  invalidateOrgCache(getOrgContextId(), 'calendars')
+  return result
 }
 
 export async function updateCalendar(id: string, data: Partial<{
@@ -142,14 +175,18 @@ export async function updateCalendar(id: string, data: Partial<{
   isDefault: boolean
   isActive: boolean
 }>) {
-  return (prisma.calendar.update as Function)({
+  const result = await (prisma.calendar.update as Function)({
     where: { id },
     data,
   })
+  invalidateOrgCache(getOrgContextId(), 'calendars')
+  return result
 }
 
 export async function deleteCalendar(id: string) {
-  return prisma.calendar.delete({ where: { id } })
+  const result = await prisma.calendar.delete({ where: { id } })
+  invalidateOrgCache(getOrgContextId(), 'calendars')
+  return result
 }
 
 // ─── Location Conflict Detection ────────────────────────────────────────

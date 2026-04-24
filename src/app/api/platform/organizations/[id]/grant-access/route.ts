@@ -6,6 +6,7 @@ import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
 import { platformAudit, getPlatformIp } from '@/lib/services/platformAuditService'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 const GrantAccessSchema = z.object({
   /** 'free' = 100% off, 'discount' = percentage off */
@@ -96,6 +97,10 @@ export async function POST(
         trialEndsAt: endsAt,
       },
     })
+
+    // Trial dates + subscription status changed for every user in this org —
+    // drop their cached RequestContext so the next request rebuilds from DB.
+    invalidateOrgUserContexts(id)
 
     const label = type === 'free'
       ? `Free access for ${months} month${months > 1 ? 's' : ''}`

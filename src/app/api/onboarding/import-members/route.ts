@@ -20,6 +20,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { generateSetupToken, hashSetupToken, getSetupLink } from '@/lib/auth/password-setup'
 import { sendWelcomeEmail } from '@/lib/services/emailService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 const ImportMembersSchema = z.object({
@@ -181,6 +182,12 @@ export async function POST(req: NextRequest) {
             reason,
           })
         }
+      }
+
+      // Bulk import touched users + potentially team memberships — invalidate
+      // any teams-list cache entries that might show _count.members.
+      if (imported.length > 0) {
+        invalidateOrgCache(orgId, 'teams')
       }
 
       return NextResponse.json(

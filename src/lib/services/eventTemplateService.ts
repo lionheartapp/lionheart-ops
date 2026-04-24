@@ -9,6 +9,8 @@
  */
 
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 import type {
   CreateTemplateInput,
   CreateFromTemplateInput,
@@ -94,29 +96,34 @@ function applyDateOffsets(
 export async function getTemplates(opts?: {
   eventType?: string
 }): Promise<EventTemplateSummary[]> {
-  const templates = await (prisma as unknown as OrgPrismaClient).eventTemplate.findMany({
-    where: opts?.eventType ? { eventType: opts.eventType } : undefined,
-    orderBy: [{ usageCount: 'desc' }, { createdAt: 'desc' }],
-    include: {
-      createdBy: {
-        select: { id: true, name: true, firstName: true, lastName: true },
-      },
-    },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `event-templates:list:type=${opts?.eventType ?? 'all'}`
 
-  return templates.map((t: Record<string, unknown>) => ({
-    id: t.id as string,
-    name: t.name as string,
-    description: t.description as string | null,
-    eventType: t.eventType as string,
-    expectedAttendance: t.expectedAttendance as number | null,
-    durationDays: t.durationDays as number,
-    isMultiDay: t.isMultiDay as boolean,
-    usageCount: t.usageCount as number,
-    lastUsedAt: (t.lastUsedAt as Date | null)?.toISOString() ?? null,
-    createdAt: (t.createdAt as Date).toISOString(),
-    createdBy: t.createdBy as { id: string; name: string | null; firstName: string | null; lastName: string | null },
-  }))
+  return cacheOrgWide(orgId, bucket, async () => {
+    const templates = await (prisma as unknown as OrgPrismaClient).eventTemplate.findMany({
+      where: opts?.eventType ? { eventType: opts.eventType } : undefined,
+      orderBy: [{ usageCount: 'desc' }, { createdAt: 'desc' }],
+      include: {
+        createdBy: {
+          select: { id: true, name: true, firstName: true, lastName: true },
+        },
+      },
+    })
+
+    return templates.map((t: Record<string, unknown>) => ({
+      id: t.id as string,
+      name: t.name as string,
+      description: t.description as string | null,
+      eventType: t.eventType as string,
+      expectedAttendance: t.expectedAttendance as number | null,
+      durationDays: t.durationDays as number,
+      isMultiDay: t.isMultiDay as boolean,
+      usageCount: t.usageCount as number,
+      lastUsedAt: (t.lastUsedAt as Date | null)?.toISOString() ?? null,
+      createdAt: (t.createdAt as Date).toISOString(),
+      createdBy: t.createdBy as { id: string; name: string | null; firstName: string | null; lastName: string | null },
+    }))
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -253,6 +260,9 @@ export async function saveAsTemplate(
     },
   })
 
+  // New template added — invalidate cached lists for this org.
+  invalidateOrgCache(getOrgContextId(), 'event-templates')
+
   return {
     id: created.id,
     name: created.name,
@@ -370,6 +380,9 @@ export async function createFromTemplate(
     },
   })
 
+  // usageCount/lastUsedAt feed into ordering, so cached lists are now stale.
+  invalidateOrgCache(getOrgContextId(), 'event-templates')
+
   return { eventProjectId: project.id }
 }
 
@@ -384,4 +397,5 @@ export async function deleteTemplate(templateId: string): Promise<void> {
   await rawPrisma.eventTemplate.delete({
     where: { id: templateId },
   })
+  invalidateOrgCache(getOrgContextId(), 'event-templates')
 }

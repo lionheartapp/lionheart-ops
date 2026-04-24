@@ -18,6 +18,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -109,6 +110,10 @@ export const POST = withAuth<z.infer<typeof deleteSchema>>(async ({ orgId, body,
       onboardingStatus: true,
     },
   })
+
+  // Subscription canceled + org state flipped — every user in the org needs
+  // a fresh RequestContext before the read-only gate kicks in.
+  invalidateOrgUserContexts(orgId)
 
   logger.warn(
     { orgId, userId: ctx.userId, scheduledDeleteAt },

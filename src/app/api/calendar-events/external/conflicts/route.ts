@@ -3,6 +3,7 @@ import { rawPrisma } from '@/lib/db'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
+import { cachePerUser } from '@/lib/cache/route-cache'
 
 /**
  * GET /api/calendar-events/external/conflicts?startsAt=&endsAt=
@@ -37,28 +38,33 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ok({ conflicts: [] }))
     }
 
-    const conflicts = await rawPrisma.externalCalendarEvent.findMany({
-      where: {
-        organizationId: orgId,
-        userId: ctx.userId,
-        deletedAt: null,
-        status: { not: 'cancelled' },
-        startsAt: { lt: windowEnd },
-        endsAt: { gt: windowStart },
-      },
-      orderBy: { startsAt: 'asc' },
-      take: 25, // UI only needs enough to populate a warning modal
-      select: {
-        id: true,
-        provider: true,
-        title: true,
-        startsAt: true,
-        endsAt: true,
-        isAllDay: true,
-        location: true,
-        url: true,
-      },
-    })
+    const conflicts = await cachePerUser(
+      ctx.userId,
+      `external-conflicts:${startsAt}:${endsAt}`,
+      () => rawPrisma.externalCalendarEvent.findMany({
+        where: {
+          organizationId: orgId,
+          userId: ctx.userId,
+          deletedAt: null,
+          status: { not: 'cancelled' },
+          startsAt: { lt: windowEnd },
+          endsAt: { gt: windowStart },
+        },
+        orderBy: { startsAt: 'asc' },
+        take: 25, // UI only needs enough to populate a warning modal
+        select: {
+          id: true,
+          provider: true,
+          title: true,
+          startsAt: true,
+          endsAt: true,
+          isAllDay: true,
+          location: true,
+          url: true,
+        },
+      }),
+      { ttlMs: 60000 }
+    )
 
     return NextResponse.json(ok({
       conflicts: conflicts.map((c) => ({

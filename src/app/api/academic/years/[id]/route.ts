@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { updateAcademicYear, deleteAcademicYear } from '@/lib/services/academicCalendarService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const UpdateYearSchema = z.object({
   name: z.string().trim().min(1).max(50).optional(),
@@ -26,6 +27,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateYearSchema.parse(body)
       const year = await updateAcademicYear(id, input)
+      invalidateOrgCache(orgId, 'academic:years')
+      invalidateOrgCache(orgId, 'academic:terms')
       return NextResponse.json(ok(year))
     })
   } catch (error) {
@@ -43,6 +46,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return await runWithOrgContext(orgId, async () => {
       await deleteAcademicYear(id)
+      invalidateOrgCache(orgId, 'academic:years')
+      invalidateOrgCache(orgId, 'academic:terms')
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {

@@ -7,6 +7,7 @@ import { ok, fail } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { TwilioConfigInputSchema } from '@/lib/types/integrations'
 import * as twilioService from '@/lib/services/integrations/twilioService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 /**
  * GET /api/integrations/twilio/config
@@ -19,22 +20,35 @@ export async function GET(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.INTEGRATIONS_MANAGE)
 
     return await runWithOrgContext(orgId, async () => {
-      const cred = await (prisma as unknown as OrgPrismaClient).integrationCredential.findFirst({
-        where: { organizationId: orgId, provider: 'twilio', isActive: true },
-        select: { id: true, config: true, lastSyncAt: true, createdAt: true },
-      })
+      const payload = await cacheOrgWide<{
+        isConfigured: boolean
+        phoneNumber?: string | null
+        lastSyncAt?: Date | null
+      }>(
+        orgId,
+        'integrations:twilio:config',
+        async () => {
+          const cred = await (prisma as unknown as OrgPrismaClient).integrationCredential.findFirst({
+            where: { organizationId: orgId, provider: 'twilio', isActive: true },
+            select: { id: true, config: true, lastSyncAt: true, createdAt: true },
+          })
 
-      if (!cred) {
-        return NextResponse.json(ok({ isConfigured: false }))
-      }
+          if (!cred) {
+            return { isConfigured: false }
+          }
 
-      const config = cred.config as Record<string, string> | null
-      return NextResponse.json(ok({
-        isConfigured: !!(config?.accountSid && config?.phoneNumber),
-        phoneNumber: config?.phoneNumber || null,
-        // Never return the authToken
-        lastSyncAt: cred.lastSyncAt,
-      }))
+          const config = cred.config as Record<string, string> | null
+          return {
+            isConfigured: !!(config?.accountSid && config?.phoneNumber),
+            phoneNumber: config?.phoneNumber || null,
+            // Never return the authToken
+            lastSyncAt: cred.lastSyncAt,
+          }
+        },
+        { ttlMs: 300000 }
+      )
+
+      return NextResponse.json(ok(payload))
     })
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
@@ -67,6 +81,8 @@ export async function POST(req: NextRequest) {
       parsed.data.phoneNumber
     )
 
+    invalidateOrgCache(orgId, 'integrations:twilio')
+
     return NextResponse.json(ok({ configured: true, phoneNumber: parsed.data.phoneNumber }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
@@ -87,6 +103,7 @@ export async function DELETE(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.INTEGRATIONS_MANAGE)
 
     await twilioService.disconnect(orgId)
+    invalidateOrgCache(orgId, 'integrations:twilio')
     return NextResponse.json(ok({ removed: true }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {

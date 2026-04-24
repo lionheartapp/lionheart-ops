@@ -4,6 +4,9 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp, sanitize } from '@/lib/services/auditService'
+import { invalidateUserContext } from '@/lib/cache/request-context-cache'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
+import { clearPermissionCache } from '@/lib/auth/permissions'
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
   const user = await prisma.user.findFirst({
@@ -121,6 +124,9 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
           })]
         : []),
     ])
+
+    // Team membership changes flip the cached teams-list _count.members.
+    invalidateOrgCache(orgId, 'teams')
   }
 
   const updated = await prisma.user.update({
@@ -172,6 +178,10 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
   // Backward-compat: emit `schoolScope` alias alongside the new `campusScope`
   const updatedWithCompat = { ...updated, schoolScope: updated.campusScope }
 
+  // Invalidate in-process caches — role/email/status may have changed.
+  invalidateUserContext(params.id)
+  clearPermissionCache(params.id)
+
   await audit({
     organizationId: orgId,
     userId:         ctx.userId,
@@ -217,6 +227,10 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx
       },
     },
   })
+
+  // Invalidate in-process caches — deleted user's cache entry is now dead data.
+  invalidateUserContext(params.id)
+  clearPermissionCache(params.id)
 
   await audit({
     organizationId: orgId,

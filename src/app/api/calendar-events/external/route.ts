@@ -3,6 +3,7 @@ import { rawPrisma } from '@/lib/db'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
+import { cachePerUser } from '@/lib/cache/route-cache'
 
 /**
  * GET /api/calendar-events/external
@@ -52,17 +53,22 @@ export async function GET(req: NextRequest) {
 
     // Events that overlap the requested window:
     //   (startsAt < windowEnd) AND (endsAt > windowStart)
-    const events = await rawPrisma.externalCalendarEvent.findMany({
-      where: {
-        organizationId: orgId,
-        userId: ctx.userId,
-        deletedAt: null,
-        status: { not: 'cancelled' },
-        startsAt: { lt: endDate },
-        endsAt: { gt: startDate },
-      },
-      orderBy: { startsAt: 'asc' },
-    })
+    const events = await cachePerUser(
+      ctx.userId,
+      `external-events:${start}:${end}`,
+      () => rawPrisma.externalCalendarEvent.findMany({
+        where: {
+          organizationId: orgId,
+          userId: ctx.userId,
+          deletedAt: null,
+          status: { not: 'cancelled' },
+          startsAt: { lt: endDate },
+          endsAt: { gt: startDate },
+        },
+        orderBy: { startsAt: 'asc' },
+      }),
+      { ttlMs: 60000 }
+    )
 
     const shaped = events.map((e) => {
       const baseCal = e.provider === 'microsoft_calendar' ? EXTERNAL_MICROSOFT_CALENDAR : EXTERNAL_GOOGLE_CALENDAR

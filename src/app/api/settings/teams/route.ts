@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const CreateTeamSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -24,18 +25,20 @@ function toSlug(value: string) {
 }
 
 export const GET = withAuth(async ({ orgId }) => {
-  const teams = await prisma.team.findMany({
-    where: { organizationId: orgId },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      description: true,
-      teamType: true,
-      _count: { select: { members: true } },
-    },
-    orderBy: { name: 'asc' },
-  })
+  const teams = await cacheOrgWide(orgId, 'teams:list', () =>
+    prisma.team.findMany({
+      where: { organizationId: orgId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        teamType: true,
+        _count: { select: { members: true } },
+      },
+      orderBy: { name: 'asc' },
+    })
+  )
 
   return NextResponse.json(ok(teams))
 }, { permission: PERMISSIONS.TEAMS_READ })
@@ -59,6 +62,8 @@ export const POST = withAuth<z.infer<typeof CreateTeamSchema>>(async ({ orgId, c
       teamType: body.teamType ?? null,
     },
   })
+
+  invalidateOrgCache(orgId, 'teams')
 
   await audit({
     organizationId: orgId,

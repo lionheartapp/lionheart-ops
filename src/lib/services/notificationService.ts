@@ -1,5 +1,6 @@
 import { prisma, rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
+import { cachePerUser, invalidateUserCache } from '@/lib/cache/route-cache'
 
 const log = logger.child({ service: 'notificationService' })
 
@@ -116,6 +117,9 @@ export async function createNotification(data: CreateNotificationInput) {
         linkUrl: data.linkUrl ?? null,
       },
     })
+
+    // New notification arrived → cached unread-count is now stale for this user.
+    invalidateUserCache(data.userId, 'notifications')
   } catch (err) {
     log.error({ err }, 'Failed to create notification')
   }
@@ -170,6 +174,12 @@ export async function createBulkNotifications(items: CreateBulkNotificationInput
         linkUrl: item.linkUrl ?? null,
       })),
     })
+
+    // Invalidate unread-count cache for every recipient that actually got a row.
+    const eligibleUserIds = new Set(eligible.map((item) => item.userId))
+    for (const uid of eligibleUserIds) {
+      invalidateUserCache(uid, 'notifications')
+    }
   } catch (err) {
     log.error({ err }, 'Failed to create bulk notifications')
   }
@@ -201,11 +211,23 @@ export async function getUserNotifications(
   }
 }
 
-/** Get unread notification count for a user. */
+/** Get unread notification count for a user.
+ *
+ * Cached per-user with a short TTL. This endpoint is polled by the UI on every
+ * page load, so caching it is a big win. Invalidated automatically when:
+ *   - a new notification is created for this user (create/createBulk)
+ *   - markAsRead / markAllAsRead is called for this user
+ */
 export async function getUnreadCount(userId: string): Promise<number> {
-  return prisma.notification.count({
-    where: { userId, isRead: false },
-  })
+  return cachePerUser(
+    userId,
+    'notifications:unread-count',
+    () =>
+      prisma.notification.count({
+        where: { userId, isRead: false },
+      }),
+    { ttlMs: 30_000 }
+  )
 }
 
 /** Mark a single notification as read. Validates ownership. */
@@ -214,6 +236,9 @@ export async function markAsRead(id: string, userId: string): Promise<boolean> {
     where: { id, userId },
     data: { isRead: true, readAt: new Date() },
   })
+  if (result.count > 0) {
+    invalidateUserCache(userId, 'notifications')
+  }
   return result.count > 0
 }
 
@@ -223,5 +248,8 @@ export async function markAllAsRead(userId: string): Promise<number> {
     where: { userId, isRead: false },
     data: { isRead: true, readAt: new Date() },
   })
+  if (result.count > 0) {
+    invalidateUserCache(userId, 'notifications')
+  }
   return result.count
 }

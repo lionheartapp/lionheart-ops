@@ -6,6 +6,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -192,6 +193,8 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
           },
           include: { plan: true },
         })
+        // Status may have flipped (e.g. TRIALING → ACTIVE). Drop cached context.
+        invalidateOrgUserContexts(orgId)
         return NextResponse.json(ok({ subscription: updatedSub }))
       } else {
         const newSub = await rawPrisma.subscription.create({
@@ -207,6 +210,8 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
           },
           include: { plan: true },
         })
+        // New subscription — status transitions matter to every user in the org.
+        invalidateOrgUserContexts(orgId)
         return NextResponse.json(ok({ subscription: newSub }))
       }
     } catch (stripeError) {
@@ -258,6 +263,8 @@ export const POST = withAuth<z.infer<typeof changePlanSchema>>(async ({ orgId, c
       include: { plan: true },
     })
 
+    // Status may have changed on the plan swap. Clear cached context for the org.
+    invalidateOrgUserContexts(orgId)
     return NextResponse.json(ok({ subscription: updatedSub }))
   } catch (stripeError) {
     logger.error({ error: String(stripeError) }, 'Failed to update Stripe subscription')

@@ -5,6 +5,7 @@ import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma } from '@/lib/db'
 import { NOTIFICATION_TYPES, type NotificationType } from '@/lib/services/notificationService'
+import { cachePerUser, invalidateUserCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -28,23 +29,28 @@ export async function GET(req: NextRequest) {
     Sentry.setTag('org_id', orgId)
     const ctx = await getUserContext(req)
 
-    const [preferences, user] = await Promise.all([
-      rawPrisma.notificationPreference.findMany({
-        where: { userId: ctx.userId },
-        select: { type: true, emailEnabled: true, inAppEnabled: true },
-      }),
-      rawPrisma.user.findUnique({
-        where: { id: ctx.userId },
-        select: { pauseAllNotifications: true },
-      }),
-    ])
-
-    return NextResponse.json(
-      ok({
-        preferences,
-        pauseAll: user?.pauseAllNotifications ?? false,
-      })
+    const data = await cachePerUser(
+      ctx.userId,
+      'notification-preferences',
+      async () => {
+        const [preferences, user] = await Promise.all([
+          rawPrisma.notificationPreference.findMany({
+            where: { userId: ctx.userId },
+            select: { type: true, emailEnabled: true, inAppEnabled: true },
+          }),
+          rawPrisma.user.findUnique({
+            where: { id: ctx.userId },
+            select: { pauseAllNotifications: true },
+          }),
+        ])
+        return {
+          preferences,
+          pauseAll: user?.pauseAllNotifications ?? false,
+        }
+      }
     )
+
+    return NextResponse.json(ok(data))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
@@ -122,6 +128,8 @@ export async function PUT(req: NextRequest) {
         data: { pauseAllNotifications: pauseAll },
       })
     }
+
+    invalidateUserCache(ctx.userId, 'notification-preferences')
 
     return NextResponse.json(ok({ updated: true }))
   } catch (error) {

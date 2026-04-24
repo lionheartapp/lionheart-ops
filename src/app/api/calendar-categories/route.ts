@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 
 const createCategorySchema = z.object({
@@ -23,8 +24,12 @@ export async function GET(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
-      const categories = await calendarService.getCategories(
-        searchParams.get('calendarType') || undefined
+      const calendarType = searchParams.get('calendarType') || undefined
+      const categories = await cacheOrgWide(
+        orgId,
+        `calendar:categories:type=${calendarType ?? 'all'}`,
+        () => calendarService.getCategories(calendarType),
+        { ttlMs: 300000 }
       )
       return NextResponse.json(ok(categories))
     })
@@ -47,6 +52,7 @@ export async function POST(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const category = await calendarService.createCategory(data)
+      invalidateOrgCache(orgId, 'calendar:categories')
       return NextResponse.json(ok(category), { status: 201 })
     })
   } catch (error) {

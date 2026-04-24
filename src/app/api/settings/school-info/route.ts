@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { logger } from '@/lib/logger'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 /**
  * GET/PATCH /api/settings/school-info
@@ -129,86 +130,96 @@ async function getOrCreatePrimarySchool(orgId: string, orgName: string) {
 }
 
 export const GET = withAuth(async ({ orgId }) => {
-  const organization = await prisma.organization.findUnique({
-    where: { id: orgId },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      website: true,
-      phone: true,
-      studentCount: true,
-      staffCount: true,
-      logoUrl: true,
-      heroImageUrl: true,
-      imagePosition: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  })
+  const payload = await cacheOrgWide(
+    orgId,
+    'school-info:summary',
+    async () => {
+      const organization = await prisma.organization.findUnique({
+        where: { id: orgId },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          website: true,
+          phone: true,
+          studentCount: true,
+          staffCount: true,
+          logoUrl: true,
+          heroImageUrl: true,
+          imagePosition: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
 
-  if (!organization) {
+      if (!organization) {
+        return null
+      }
+
+      const [primaryAdmin, primarySchool, snapshot] = await Promise.all([
+        prisma.user.findFirst({
+          where: {
+            organizationId: orgId,
+            userRole: {
+              slug: { in: ['super-admin', 'admin'] },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+            jobTitle: true,
+          },
+        }),
+        getOrCreatePrimarySchool(orgId, organization.name),
+        Promise.all([
+          prisma.building.count({ where: { organizationId: orgId, isActive: true } }),
+          prisma.space.count({ where: { organizationId: orgId, isActive: true } }),
+          prisma.room.count({ where: { organizationId: orgId, isActive: true } }),
+        ]),
+      ])
+
+      const [buildingCount, spaceCount, roomCount] = snapshot
+
+      return {
+        ...organization,
+        // Surface the primary School's fields as the canonical school info
+        school: {
+          id: primarySchool.id,
+          name: primarySchool.name,
+          slug: primarySchool.slug,
+          institutionType: primarySchool.institutionType,
+          address: primarySchool.address,
+          latitude: primarySchool.latitude,
+          longitude: primarySchool.longitude,
+          principalName: primarySchool.principalName,
+          principalEmail: primarySchool.principalEmail,
+          principalPhone: primarySchool.principalPhone,
+          principalPhoneExt: primarySchool.principalPhoneExt,
+          logoUrl: primarySchool.logoUrl,
+          color: primarySchool.color,
+        },
+        primaryAdminContact: {
+          name: primaryAdmin?.name || null,
+          email: primaryAdmin?.email || null,
+          phone: primaryAdmin?.phone || null,
+          title: primaryAdmin?.jobTitle || null,
+        },
+        campusSnapshot: {
+          buildings: buildingCount,
+          spaces: spaceCount,
+          rooms: roomCount,
+        },
+      }
+    }
+  )
+
+  if (!payload) {
     return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
   }
 
-  const [primaryAdmin, primarySchool, snapshot] = await Promise.all([
-    prisma.user.findFirst({
-      where: {
-        organizationId: orgId,
-        userRole: {
-          slug: { in: ['super-admin', 'admin'] },
-        },
-      },
-      orderBy: { createdAt: 'asc' },
-      select: {
-        name: true,
-        email: true,
-        phone: true,
-        jobTitle: true,
-      },
-    }),
-    getOrCreatePrimarySchool(orgId, organization.name),
-    Promise.all([
-      prisma.building.count({ where: { organizationId: orgId, isActive: true } }),
-      prisma.space.count({ where: { organizationId: orgId, isActive: true } }),
-      prisma.room.count({ where: { organizationId: orgId, isActive: true } }),
-    ]),
-  ])
-
-  const [buildingCount, spaceCount, roomCount] = snapshot
-
-  return NextResponse.json(
-    ok({
-      ...organization,
-      // Surface the primary School's fields as the canonical school info
-      school: {
-        id: primarySchool.id,
-        name: primarySchool.name,
-        slug: primarySchool.slug,
-        institutionType: primarySchool.institutionType,
-        address: primarySchool.address,
-        latitude: primarySchool.latitude,
-        longitude: primarySchool.longitude,
-        principalName: primarySchool.principalName,
-        principalEmail: primarySchool.principalEmail,
-        principalPhone: primarySchool.principalPhone,
-        principalPhoneExt: primarySchool.principalPhoneExt,
-        logoUrl: primarySchool.logoUrl,
-        color: primarySchool.color,
-      },
-      primaryAdminContact: {
-        name: primaryAdmin?.name || null,
-        email: primaryAdmin?.email || null,
-        phone: primaryAdmin?.phone || null,
-        title: primaryAdmin?.jobTitle || null,
-      },
-      campusSnapshot: {
-        buildings: buildingCount,
-        spaces: spaceCount,
-        rooms: roomCount,
-      },
-    }),
-  )
+  return NextResponse.json(ok(payload))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof SchoolInfoSchema>>(async ({ orgId, body }) => {
@@ -285,6 +296,11 @@ export const PATCH = withAuth<z.infer<typeof SchoolInfoSchema>>(async ({ orgId, 
       data: schoolPatch,
     }),
   ])
+
+  // School-info touches org name/slug/logo (surfaced across the whole app) and
+  // the primary School record, so blast the whole org cache rather than trying
+  // to enumerate every dependent bucket.
+  invalidateOrgCache(orgId)
 
   return NextResponse.json(
     ok({

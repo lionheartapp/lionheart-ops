@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { createEvent as createCalendarEvent } from '@/lib/services/calendarService'
 import type { MaintenanceTicketStatus, ITIssueType, ITPriority, ITTicketStatus, UserStatus } from '@prisma/client'
 import { clearPermissionCache } from '@/lib/auth/permissions'
+import { invalidateUserContext } from '@/lib/cache/request-context-cache'
 import { getTimezoneOffset, getOrgTimezone } from '@/lib/utils/timezone'
 
 interface ActionContext {
@@ -377,6 +378,7 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
         data: { roleId: String(payload.roleId) },
       })
       clearPermissionCache(String(payload.userId))
+      invalidateUserContext(String(payload.userId))
       return { message: `${payload.userName}'s role changed to ${payload.newRoleName}.` }
     },
   },
@@ -385,6 +387,8 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
     requiredPermission: PERMISSIONS.USERS_UPDATE,
     execute: async (payload) => {
       await prisma.user.delete({ where: { id: String(payload.userId) } }) // soft-delete via extension
+      clearPermissionCache(String(payload.userId))
+      invalidateUserContext(String(payload.userId))
       return { message: `${payload.userName}'s account has been deactivated.` }
     },
   },

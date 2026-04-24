@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { verifyAndSaveRegistration } from '@/lib/services/passkeyService'
+import { invalidateUserCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
       challengeId,
       name
     )
+
+    invalidateUserCache(ctx.userId, 'auth:passkeys')
 
     logger.info({ userId: ctx.userId }, 'Passkey registered successfully')
 

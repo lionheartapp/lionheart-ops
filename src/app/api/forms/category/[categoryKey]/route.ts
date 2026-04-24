@@ -15,6 +15,7 @@ import {
   updateCategoryFormFields,
 } from '@/lib/services/formService'
 import { formFieldSchema } from '@/lib/forms/schemas'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 
 type RouteParams = { params: Promise<{ categoryKey: string }> }
@@ -28,7 +29,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const { categoryKey } = await params
 
     return await runWithOrgContext(orgId, async () => {
-      const form = await getOrSeedCategoryForm(categoryKey)
+      const form = await cacheOrgWide(
+        orgId,
+        `forms:category:${categoryKey}`,
+        () => getOrSeedCategoryForm(categoryKey),
+        { ttlMs: 120000 }
+      )
       return NextResponse.json(ok(form))
     })
   } catch (error) {
@@ -63,6 +69,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       // Ensure the form exists (seed if needed)
       const form = await getOrSeedCategoryForm(categoryKey)
       const updated = await updateCategoryFormFields(form.id, parsed.data.fields)
+      invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok(updated))
     })
   } catch (error) {

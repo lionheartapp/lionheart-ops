@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getTerms, createTerm } from '@/lib/services/academicCalendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const CreateTermSchema = z.object({
   academicYearId: z.string().min(1),
@@ -24,7 +25,12 @@ export async function GET(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const { searchParams } = new URL(req.url)
       const academicYearId = searchParams.get('academicYearId') || undefined
-      const terms = await getTerms(academicYearId)
+      const terms = await cacheOrgWide(
+        orgId,
+        `academic:terms:year=${academicYearId ?? 'all'}`,
+        () => getTerms(academicYearId),
+        { ttlMs: 300000 }
+      )
       return NextResponse.json(ok(terms))
     })
   } catch (error) {
@@ -45,6 +51,7 @@ export async function POST(req: NextRequest) {
     return await runWithOrgContext(orgId, async () => {
       const input = CreateTermSchema.parse(body)
       const term = await createTerm(input)
+      invalidateOrgCache(orgId, 'academic:terms')
       return NextResponse.json(ok(term), { status: 201 })
     })
   } catch (error) {

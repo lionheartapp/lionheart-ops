@@ -13,6 +13,9 @@ const CreateTeamSchema = z.object({
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
   coachUserId: z.string().optional(),
   coachName: z.string().trim().max(200).optional(),
+  // Phase 1c Pass 5: AthleticTeam.schoolId was renamed to campusId.
+  // Accept both for back-compat; createTeam service maps schoolId → campusId.
+  campusId: z.string().optional(),
   schoolId: z.string().optional(),
   calendarId: z.string().optional(),
 })

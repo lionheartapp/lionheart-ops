@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { listPasskeys } from '@/lib/services/passkeyService'
+import { cachePerUser } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
@@ -16,7 +17,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
 
-    const passkeys = await listPasskeys(ctx.userId)
+    const passkeys = await cachePerUser(
+      ctx.userId,
+      'auth:passkeys',
+      () => listPasskeys(ctx.userId),
+      { ttlMs: 60000 }
+    )
 
     return NextResponse.json(ok(passkeys))
   } catch (err) {

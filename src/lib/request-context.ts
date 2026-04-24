@@ -1,6 +1,10 @@
 import { NextRequest } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
+import {
+  getCachedUserContext,
+  setCachedUserContext,
+} from '@/lib/cache/request-context-cache'
 
 export type RequestContext = {
   userId: string
@@ -15,8 +19,16 @@ export type RequestContext = {
 
 /**
  * Extract and verify user context from request headers or cookies.
- * Reads JWT from httpOnly auth-token cookie first, falls back to Authorization: Bearer header.
+ *
+ * Reads JWT from httpOnly auth-token cookie first, falls back to
+ * Authorization: Bearer header.
+ *
  * Uses rawPrisma to bypass org-scoping when looking up user by JWT.
+ *
+ * Performance: the DB-derived fields (roleName, trial, subscription) are cached
+ * in-process for 60s per user. Invalidated explicitly on user/role/subscription
+ * mutations via `invalidateUserContext(userId)`. The JWT-carried fields
+ * (userId, organizationId, email) don't need caching — they're already signed.
  */
 export async function getUserContext(req: NextRequest): Promise<RequestContext> {
   // Try cookie first (httpOnly cookie set by login endpoint)
@@ -32,6 +44,19 @@ export async function getUserContext(req: NextRequest): Promise<RequestContext> 
 
   if (!claims) {
     throw new Error('Invalid or expired token')
+  }
+
+  // Hot path — return early if the DB-derived fields are cached for this user.
+  const cached = getCachedUserContext(claims.userId)
+  if (cached) {
+    return {
+      userId: claims.userId,
+      organizationId: claims.organizationId,
+      email: claims.email,
+      roleName: cached.roleName,
+      orgTrialEndsAt: cached.orgTrialEndsAt,
+      orgSubscriptionStatus: cached.orgSubscriptionStatus,
+    }
   }
 
   const user = await rawPrisma.user.findUnique({
@@ -58,12 +83,22 @@ export async function getUserContext(req: NextRequest): Promise<RequestContext> 
     throw new Error('User not found')
   }
 
+  const roleName = user.userRole?.name ?? null
+  const orgTrialEndsAt = user.organization?.trialEndsAt ?? null
+  const orgSubscriptionStatus = user.organization?.subscriptions[0]?.status ?? null
+
+  setCachedUserContext(claims.userId, {
+    roleName,
+    orgTrialEndsAt,
+    orgSubscriptionStatus,
+  })
+
   return {
     userId: user.id,
     organizationId: user.organizationId,
     email: user.email,
-    roleName: user.userRole?.name ?? null,
-    orgTrialEndsAt: user.organization?.trialEndsAt ?? null,
-    orgSubscriptionStatus: user.organization?.subscriptions[0]?.status ?? null,
+    roleName,
+    orgTrialEndsAt,
+    orgSubscriptionStatus,
   }
 }

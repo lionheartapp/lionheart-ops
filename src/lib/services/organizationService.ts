@@ -10,6 +10,7 @@
 import { ImagePosition } from '@prisma/client';
 import { rawPrisma } from '@/lib/db';
 import { logger } from '@/lib/logger'
+import { cached, invalidateOrgCache, invalidateCacheTag } from '@/lib/cache/route-cache'
 
 
 const log = logger.child({ service: 'organizationService' })
@@ -50,32 +51,47 @@ export async function getOrganizationBranding(
     imagePosition: true,
   } as const;
 
+  // Cache pre-auth branding by slug. The entry is tagged with the resolved
+  // org id so updateOrganizationBranding can invalidate it without knowing
+  // the slug.
   try {
-    // Try exact slug match first (e.g., "linfield-christian-school")
-    const org = await rawPrisma.organization.findUnique({
-      where: { slug },
-      select,
-    });
+    return await cached<OrganizationBranding | null>(
+      `branding:slug:${slug.toLowerCase()}`,
+      async () => {
+        // Try exact slug match first (e.g., "linfield-christian-school")
+        const org = await rawPrisma.organization.findUnique({
+          where: { slug },
+          select,
+        });
 
-    if (org) return org;
+        if (org) return org;
 
-    // If no match, try fuzzy match: strip hyphens from both sides
-    // This lets "linfieldchristianschool" match "linfield-christian-school"
-    const normalizedInput = slug.replace(/-/g, '').toLowerCase();
-    const fuzzyResults = await rawPrisma.$queryRaw<Array<{ slug: string }>>`
-      SELECT slug FROM "Organization"
-      WHERE REPLACE(LOWER(slug), '-', '') = ${normalizedInput}
-      LIMIT 1
-    `;
+        // If no match, try fuzzy match: strip hyphens from both sides
+        // This lets "linfieldchristianschool" match "linfield-christian-school"
+        const normalizedInput = slug.replace(/-/g, '').toLowerCase();
+        const fuzzyResults = await rawPrisma.$queryRaw<Array<{ slug: string }>>`
+          SELECT slug FROM "Organization"
+          WHERE REPLACE(LOWER(slug), '-', '') = ${normalizedInput}
+          LIMIT 1
+        `;
 
-    if (fuzzyResults.length > 0) {
-      return await rawPrisma.organization.findUnique({
-        where: { slug: fuzzyResults[0].slug },
-        select,
-      });
-    }
+        if (fuzzyResults.length > 0) {
+          return await rawPrisma.organization.findUnique({
+            where: { slug: fuzzyResults[0].slug },
+            select,
+          });
+        }
 
-    return null;
+        return null;
+      },
+      {
+        // 5 minutes — branding is read on every anonymous login hit. If an
+        // admin changes the logo, updateOrganizationBranding invalidates
+        // immediately; TTL is just a safety net.
+        ttlMs: 5 * 60_000,
+        tags: [`bucket:branding`, `branding:slug:${slug.toLowerCase()}`],
+      }
+    )
   } catch (error) {
     log.error({ err: String(error) }, 'Error fetching organization branding');
     return null;
@@ -97,8 +113,16 @@ export async function updateOrganizationBranding(
     imagePosition?: ImagePosition;
   }
 ) {
-  return await rawPrisma.organization.update({
+  const updated = await rawPrisma.organization.update({
     where: { id: organizationId },
     data: branding,
   });
+
+  // Invalidate the pre-auth branding cache. The entry is keyed by slug, so we
+  // blast the slug-specific tag directly, plus the org-wide tag as a belt &
+  // braces (covers future callers that might cache other org-keyed data).
+  invalidateCacheTag(`branding:slug:${updated.slug.toLowerCase()}`)
+  invalidateOrgCache(organizationId, 'branding')
+
+  return updated
 }

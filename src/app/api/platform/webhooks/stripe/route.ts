@@ -4,6 +4,7 @@ import { fail, ok } from '@/lib/api-response'
 import { recordPayment } from '@/lib/services/paymentService'
 import { verifyHmacSha256 } from '@/lib/webhook-verify'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 /**
  * Stripe webhook handler
@@ -70,16 +71,26 @@ export async function POST(req: NextRequest) {
               cancelAtPeriodEnd: sub.cancel_at_period_end || false,
             },
           })
+          // Status may have flipped — drop cached RequestContext for the org.
+          invalidateOrgUserContexts(existing.organizationId)
         }
         break
       }
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object
+        // Look up the org first so we know whose caches to clear.
+        const existing = await rawPrisma.subscription.findUnique({
+          where: { stripeSubscriptionId: sub.id },
+          select: { organizationId: true },
+        })
         await rawPrisma.subscription.updateMany({
           where: { stripeSubscriptionId: sub.id },
           data: { status: 'CANCELED' },
         })
+        if (existing) {
+          invalidateOrgUserContexts(existing.organizationId)
+        }
         break
       }
 
@@ -122,6 +133,8 @@ export async function POST(req: NextRequest) {
             where: { id: subscription.id },
             data: { status: 'PAST_DUE' },
           })
+          // Status flipped to PAST_DUE — read-only gate now applies.
+          invalidateOrgUserContexts(subscription.organizationId)
         }
         break
       }

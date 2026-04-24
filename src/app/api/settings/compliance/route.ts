@@ -13,6 +13,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { audit, getIp } from '@/lib/services/auditService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 
 export async function GET(req: NextRequest) {
@@ -24,16 +25,18 @@ export async function GET(req: NextRequest) {
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: {
-          dpaSignedAt: true,
-          dpaSignatoryName: true,
-          dpaSignatoryEmail: true,
-          dpaVersion: true,
-          dpaReviewDueAt: true,
-        },
-      })
+      const org = await cacheOrgWide(orgId, 'compliance:dpa', () =>
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: {
+            dpaSignedAt: true,
+            dpaSignatoryName: true,
+            dpaSignatoryEmail: true,
+            dpaVersion: true,
+            dpaReviewDueAt: true,
+          },
+        })
+      )
 
       return NextResponse.json(ok({
         dpaSigned: !!org?.dpaSignedAt,
@@ -101,6 +104,9 @@ export async function PATCH(req: NextRequest) {
           dpaReviewDueAt: true,
         },
       })
+
+      // DPA fields are cached via the compliance bucket — nuke stale reads.
+      invalidateOrgCache(orgId, 'compliance')
 
       // Audit log the DPA change
       void audit({

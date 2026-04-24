@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { updateSpecialDay, deleteSpecialDay } from '@/lib/services/academicCalendarService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const UpdateSpecialDaySchema = z.object({
   date: z.string().transform((s) => new Date(s)).optional(),
@@ -27,6 +28,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateSpecialDaySchema.parse(body)
       const day = await updateSpecialDay(id, input)
+      invalidateOrgCache(orgId, 'academic:special-days')
       return NextResponse.json(ok(day))
     })
   } catch (error) {
@@ -44,6 +46,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return await runWithOrgContext(orgId, async () => {
       await deleteSpecialDay(id)
+      invalidateOrgCache(orgId, 'academic:special-days')
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {

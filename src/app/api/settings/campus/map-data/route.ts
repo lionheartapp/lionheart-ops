@@ -68,7 +68,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       SELECT id, latitude, longitude, name, address
       FROM "Campus"
       WHERE "organizationId" = ${orgId} AND "deletedAt" IS NULL AND "isActive" = true
-      ORDER BY "campusType" ASC, "sortOrder" ASC
+      ORDER BY "campusKind" ASC, "sortOrder" ASC
       LIMIT 1
     `
     const hq = hqRows[0]

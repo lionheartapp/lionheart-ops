@@ -5,19 +5,35 @@
  */
 
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 
 const db = prisma as unknown as OrgPrismaClient
+
+/**
+ * Invalidate every athletics read cached for the current org. Called after any
+ * mutation in this service. Single bucket keeps invalidation simple and safe —
+ * sports / seasons / teams all cross-reference each other, so blowing them all
+ * away together avoids stale joined rows.
+ */
+function invalidateAthleticsCache(): void {
+  invalidateOrgCache(getOrgContextId(), 'athletics')
+}
 
 // ── Sports ─────────────────────────────────────────────────────────────
 
 export async function getSports(filters?: { isActive?: boolean }) {
-  return db.sport.findMany({
-    where: { ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}) },
-    include: {
-      _count: { select: { athleticTeams: true, athleticSeasons: true } },
-    },
-    orderBy: { name: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `athletics:sports:active=${filters?.isActive ?? 'any'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.sport.findMany({
+      where: { ...(filters?.isActive !== undefined ? { isActive: filters.isActive } : {}) },
+      include: {
+        _count: { select: { athleticTeams: true, athleticSeasons: true } },
+      },
+      orderBy: { name: 'asc' },
+    })
+  )
 }
 
 export async function createSport(data: {
@@ -27,7 +43,7 @@ export async function createSport(data: {
   icon?: string
   seasonType?: string
 }) {
-  return db.sport.create({
+  const created = await db.sport.create({
     data: {
       name: data.name,
       abbreviation: data.abbreviation || null,
@@ -36,6 +52,8 @@ export async function createSport(data: {
       seasonType: data.seasonType || 'FALL',
     },
   })
+  invalidateAthleticsCache()
+  return created
 }
 
 export async function updateSport(id: string, data: {
@@ -44,30 +62,38 @@ export async function updateSport(id: string, data: {
   color?: string
   seasonType?: string
 }) {
-  return db.sport.update({
+  const updated = await db.sport.update({
     where: { id },
     data,
     include: {
       _count: { select: { athleticTeams: true, athleticSeasons: true } },
     },
   })
+  invalidateAthleticsCache()
+  return updated
 }
 
 export async function deleteSport(id: string) {
-  return db.sport.delete({ where: { id } })
+  const deleted = await db.sport.delete({ where: { id } })
+  invalidateAthleticsCache()
+  return deleted
 }
 
 // ── Athletic Seasons ───────────────────────────────────────────────────
 
 export async function getAthleticSeasons(filters?: { sportId?: string }) {
-  return db.athleticSeason.findMany({
-    where: { ...(filters?.sportId ? { sportId: filters.sportId } : {}) },
-    include: {
-      sport: { select: { id: true, name: true, color: true } },
-      _count: { select: { teams: true } },
-    },
-    orderBy: { startDate: 'desc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `athletics:seasons:sport=${filters?.sportId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.athleticSeason.findMany({
+      where: { ...(filters?.sportId ? { sportId: filters.sportId } : {}) },
+      include: {
+        sport: { select: { id: true, name: true, color: true } },
+        _count: { select: { teams: true } },
+      },
+      orderBy: { startDate: 'desc' },
+    })
+  )
 }
 
 export async function createAthleticSeason(data: {
@@ -83,7 +109,7 @@ export async function createAthleticSeason(data: {
       data: { isCurrent: false },
     })
   }
-  return db.athleticSeason.create({
+  const created = await db.athleticSeason.create({
     data: {
       sportId: data.sportId,
       name: data.name,
@@ -93,23 +119,29 @@ export async function createAthleticSeason(data: {
     },
     include: { sport: { select: { id: true, name: true, color: true } } },
   })
+  invalidateAthleticsCache()
+  return created
 }
 
 // ── Teams ──────────────────────────────────────────────────────────────
 
 export async function getTeams(filters?: { sportId?: string; seasonId?: string }) {
-  return db.athleticTeam.findMany({
-    where: {
-      ...(filters?.sportId ? { sportId: filters.sportId } : {}),
-      ...(filters?.seasonId ? { seasonId: filters.seasonId } : {}),
-    },
-    include: {
-      sport: { select: { id: true, name: true, color: true } },
-      season: { select: { id: true, name: true } },
-      _count: { select: { games: true, practices: true } },
-    },
-    orderBy: { name: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `athletics:teams:sport=${filters?.sportId ?? 'all'}:season=${filters?.seasonId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.athleticTeam.findMany({
+      where: {
+        ...(filters?.sportId ? { sportId: filters.sportId } : {}),
+        ...(filters?.seasonId ? { seasonId: filters.seasonId } : {}),
+      },
+      include: {
+        sport: { select: { id: true, name: true, color: true } },
+        season: { select: { id: true, name: true } },
+        _count: { select: { games: true, practices: true } },
+      },
+      orderBy: { name: 'asc' },
+    })
+  )
 }
 
 export async function getTeamById(id: string) {
@@ -132,10 +164,13 @@ export async function createTeam(data: {
   gradeLevel?: string | null
   coachUserId?: string
   coachName?: string
+  // Phase 1c Pass 5: AthleticTeam.schoolId → AthleticTeam.campusId.
+  // Accept legacy `schoolId` input name for back-compat; map to campusId.
+  campusId?: string
   schoolId?: string
   calendarId?: string
 }) {
-  return db.athleticTeam.create({
+  const created = await db.athleticTeam.create({
     data: {
       sportId: data.sportId,
       seasonId: data.seasonId,
@@ -144,7 +179,7 @@ export async function createTeam(data: {
       gradeLevel: data.gradeLevel || null,
       coachUserId: data.coachUserId || null,
       coachName: data.coachName || null,
-      schoolId: data.schoolId || null,
+      campusId: data.campusId ?? data.schoolId ?? null,
       calendarId: data.calendarId || null,
     },
     include: {
@@ -152,6 +187,8 @@ export async function createTeam(data: {
       season: { select: { id: true, name: true } },
     },
   })
+  invalidateAthleticsCache()
+  return created
 }
 
 export async function updateTeam(id: string, data: {
@@ -160,21 +197,37 @@ export async function updateTeam(id: string, data: {
   gradeLevel?: string | null
   coachUserId?: string | null
   coachName?: string | null
+  // Phase 1c Pass 5: AthleticTeam.schoolId → AthleticTeam.campusId.
+  // Accept legacy `schoolId` input name for back-compat; map to campusId.
+  campusId?: string | null
   schoolId?: string | null
   calendarId?: string | null
 }) {
-  return db.athleticTeam.update({
+  const { schoolId, campusId, ...rest } = data
+  const normalized = {
+    ...rest,
+    ...(campusId !== undefined
+      ? { campusId }
+      : schoolId !== undefined
+        ? { campusId: schoolId }
+        : {}),
+  }
+  const updated = await db.athleticTeam.update({
     where: { id },
-    data,
+    data: normalized,
     include: {
       sport: { select: { id: true, name: true, color: true } },
       season: { select: { id: true, name: true } },
     },
   })
+  invalidateAthleticsCache()
+  return updated
 }
 
 export async function deleteTeam(id: string) {
-  return db.athleticTeam.delete({ where: { id } })
+  const deleted = await db.athleticTeam.delete({ where: { id } })
+  invalidateAthleticsCache()
+  return deleted
 }
 
 // ── Games ──────────────────────────────────────────────────────────────
@@ -187,7 +240,7 @@ const GAME_INCLUDE = {
       id: true,
       name: true,
       level: true,
-      schoolId: true,
+      campusId: true,
       sport: { select: { name: true, color: true } },
     },
   },
@@ -196,7 +249,7 @@ const GAME_INCLUDE = {
       id: true,
       name: true,
       level: true,
-      schoolId: true,
+      campusId: true,
       sport: { select: { name: true, color: true } },
     },
   },
@@ -238,8 +291,12 @@ export async function getGames(filters?: {
   includeGamesAsOpponent?: boolean
   /**
    * When provided, returns games where at least one participating team
-   * belongs to this school (owning OR opponent). Skipped when undefined.
+   * belongs to this campus (owning OR opponent). Skipped when undefined.
+   *
+   * Phase 1c Pass 5: AthleticTeam.schoolId was renamed to AthleticTeam.campusId.
+   * `schoolId` is kept as a legacy alias for this filter; prefer `campusId`.
    */
+  campusId?: string
   schoolId?: string
   startDate?: Date
   endDate?: Date
@@ -265,11 +322,12 @@ export async function getGames(filters?: {
     }
   }
 
-  if (filters?.schoolId) {
+  const campusFilter = filters?.campusId ?? filters?.schoolId
+  if (campusFilter) {
     clauses.push({
       OR: [
-        { athleticTeam: { schoolId: filters.schoolId } },
-        { opponentAthleticTeam: { schoolId: filters.schoolId } },
+        { athleticTeam: { campusId: campusFilter } },
+        { opponentAthleticTeam: { campusId: campusFilter } },
       ],
     })
   }

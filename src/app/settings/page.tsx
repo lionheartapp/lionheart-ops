@@ -8,7 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import RolesTab from '@/components/settings/RolesTab'
 import TeamsTab from '@/components/settings/TeamsTab'
 import MembersTab from '@/components/settings/MembersTab'
-import CampusTab from '@/components/settings/CampusTab'
+import FacilitiesTab from '@/components/settings/FacilitiesTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
 import SecuritySettingsSection from '@/components/settings/SecuritySettingsSection'
 import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
@@ -343,7 +343,7 @@ export default function SettingsPage() {
 
               {canManageWorkspace && visitedTabs.has('campus') && (
                 <div className={activeTab === 'campus' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
-                  <CampusTab onDirtyChange={setCampusDirty} />
+                  <FacilitiesTab onDirtyChange={setCampusDirty} />
                 </div>
               )}
 

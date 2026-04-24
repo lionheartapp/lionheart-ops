@@ -13,6 +13,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { logger } from '@/lib/logger'
+import { invalidateOrgUserContexts } from '@/lib/cache/request-context-cache'
 
 function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY
@@ -56,6 +57,8 @@ export const POST = withAuth<z.infer<typeof cancelSchema>>(async ({ orgId, body,
         data: { status: 'CANCELED', cancelAtPeriodEnd: false },
         include: { plan: true },
       })
+      // Status flip to CANCELED — drop cached context for every user in the org.
+      invalidateOrgUserContexts(orgId)
       logger.info(
         { orgId, userId: ctx.userId, subscriptionId: subscription.id },
         'Subscription canceled immediately'

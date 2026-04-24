@@ -31,6 +31,8 @@
     "smoke:inventory": "node scripts/smoke-inventory.mjs",
     "smoke:all": "node scripts/smoke-roles-teams.mjs && node scripts/smoke-settings-permissions.mjs && node scripts/smoke-campus-auth-crud.mjs && node scripts/smoke-set-password.mjs && node scripts/test-ui-permissions.mjs",
     "smoke:settings": "node scripts/smoke-settings-all.mjs",
+    "smoke:isolation": "dotenv -e .env.local -e .env -- node scripts/smoke-cache-isolation.mjs",
+    "bench:cache": "dotenv -e .env.local -e .env -- node scripts/bench-cache.mjs",
     "smoke:it": "npm run smoke:campus",
     "smoke:phase22": "node scripts/smoke-phase22.mjs",
     "stripe:setup": "dotenv -e .env.local -e .env -- node scripts/setup-stripe-products.mjs",

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { renamePasskey, deletePasskey } from '@/lib/services/passkeyService'
+import { invalidateUserCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
@@ -36,6 +37,8 @@ export async function PATCH(
 
     await renamePasskey(ctx.userId, id, parsed.data.name)
 
+    invalidateUserCache(ctx.userId, 'auth:passkeys')
+
     return NextResponse.json(ok({ success: true }))
   } catch (err) {
     logger.error({ error: String(err) }, 'Passkey rename error')
@@ -58,6 +61,8 @@ export async function DELETE(
 
     const { id } = await params
     await deletePasskey(ctx.userId, id)
+
+    invalidateUserCache(ctx.userId, 'auth:passkeys')
 
     logger.info({ userId: ctx.userId, passkeyId: id }, 'Passkey deleted')
 

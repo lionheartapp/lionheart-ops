@@ -7,6 +7,8 @@
 
 import { prisma } from '@/lib/db'
 import { expandRecurrence } from './recurrenceService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 import type {
   CalendarEventStatus,
   CalendarType,
@@ -23,10 +25,14 @@ export async function getCategories(calendarType?: string) {
       { calendarType: null },
     ]
   }
-  return prisma.calendarCategory.findMany({
-    where,
-    orderBy: [{ isSystem: 'desc' }, { sortOrder: 'asc' }, { name: 'asc' }],
-  })
+  const orgId = getOrgContextId()
+  const bucket = `calendar-categories:list:type=${calendarType ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    prisma.calendarCategory.findMany({
+      where,
+      orderBy: [{ isSystem: 'desc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+    })
+  )
 }
 
 export async function createCategory(data: {
@@ -36,7 +42,7 @@ export async function createCategory(data: {
   calendarType?: string
   calendarId?: string
 }) {
-  return (prisma.calendarCategory.create as Function)({
+  const result = await (prisma.calendarCategory.create as Function)({
     data: {
       name: data.name,
       color: data.color || '#6b7280',
@@ -45,6 +51,8 @@ export async function createCategory(data: {
       calendarId: data.calendarId,
     },
   })
+  invalidateOrgCache(getOrgContextId(), 'calendar-categories')
+  return result
 }
 
 // ─── User Schedule (Meet With) ─────────────────────────────────────────

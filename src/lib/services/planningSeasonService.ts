@@ -1,7 +1,18 @@
 import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { createEventProject } from './eventProjectService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 
 const db = prisma as unknown as OrgPrismaClient
+
+/**
+ * Planning seasons + submissions cross-reference each other — submissions
+ * counts feed into the seasons list, and phase transitions change season
+ * shape. A single 'planning' bucket covers everything.
+ */
+function invalidatePlanningCache(): void {
+  invalidateOrgCache(getOrgContextId(), 'planning')
+}
 
 // ── Phase Transitions (state machine) ──────────────────────────────────
 
@@ -22,18 +33,22 @@ export function canTransition(from: string, to: string): boolean {
 // ── Seasons ────────────────────────────────────────────────────────────
 
 export async function getSeasons(filters?: { campusId?: string; schoolId?: string }) {
-  return db.planningSeason.findMany({
-    where: {
-      ...(filters?.campusId ? { campusId: filters.campusId } : {}),
-      ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}),
-    },
-    include: {
-      campus: { select: { id: true, name: true } },
-      school: { select: { id: true, name: true } },
-      _count: { select: { submissions: true, conflicts: true } },
-    },
-    orderBy: { startDate: 'desc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `planning:seasons:campus=${filters?.campusId ?? 'all'}:school=${filters?.schoolId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.planningSeason.findMany({
+      where: {
+        ...(filters?.campusId ? { campusId: filters.campusId } : {}),
+        ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}),
+      },
+      include: {
+        campus: { select: { id: true, name: true } },
+        school: { select: { id: true, name: true } },
+        _count: { select: { submissions: true, conflicts: true } },
+      },
+      orderBy: { startDate: 'desc' },
+    })
+  )
 }
 
 export async function getSeasonById(id: string) {
@@ -58,7 +73,7 @@ export async function createSeason(data: {
   campusId?: string
   schoolId?: string
 }) {
-  return db.planningSeason.create({
+  const result = await db.planningSeason.create({
     data: {
       name: data.name,
       startDate: data.startDate,
@@ -76,6 +91,8 @@ export async function createSeason(data: {
       school: { select: { id: true, name: true } },
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function updateSeason(id: string, data: {
@@ -87,7 +104,7 @@ export async function updateSeason(id: string, data: {
   finalizationDeadline?: Date | null
   budgetCap?: number | null
 }) {
-  return db.planningSeason.update({
+  const result = await db.planningSeason.update({
     where: { id },
     data,
     include: {
@@ -95,10 +112,14 @@ export async function updateSeason(id: string, data: {
       school: { select: { id: true, name: true } },
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function deleteSeason(id: string) {
-  return db.planningSeason.delete({ where: { id } })
+  const result = await db.planningSeason.delete({ where: { id } })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function transitionPhase(id: string, newPhase: string) {
@@ -107,7 +128,7 @@ export async function transitionPhase(id: string, newPhase: string) {
   if (!canTransition(season.phase, newPhase)) {
     throw new Error(`Invalid phase transition: ${season.phase} → ${newPhase}`)
   }
-  return db.planningSeason.update({
+  const result = await db.planningSeason.update({
     where: { id },
     data: { phase: newPhase },
     include: {
@@ -115,24 +136,30 @@ export async function transitionPhase(id: string, newPhase: string) {
       school: { select: { id: true, name: true } },
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 // ── Submissions ────────────────────────────────────────────────────────
 
 export async function getSubmissions(seasonId: string, filters?: { status?: string; submittedById?: string }) {
-  return db.planningSubmission.findMany({
-    where: {
-      planningSeasonId: seasonId,
-      ...(filters?.status ? { submissionStatus: filters.status } : {}),
-      ...(filters?.submittedById ? { submittedById: filters.submittedById } : {}),
-    },
-    include: {
-      submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-      resourceNeeds: true,
-      _count: { select: { comments: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `planning:submissions:season=${seasonId}:status=${filters?.status ?? 'all'}:by=${filters?.submittedById ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.planningSubmission.findMany({
+      where: {
+        planningSeasonId: seasonId,
+        ...(filters?.status ? { submissionStatus: filters.status } : {}),
+        ...(filters?.submittedById ? { submittedById: filters.submittedById } : {}),
+      },
+      include: {
+        submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+        resourceNeeds: true,
+        _count: { select: { comments: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  )
 }
 
 export async function getSubmissionById(id: string) {
@@ -166,7 +193,7 @@ export async function createSubmission(data: {
   resourceNeeds?: Array<{ resourceType: string; details?: string }>
 }) {
   const { resourceNeeds, ...rest } = data
-  return db.planningSubmission.create({
+  const result = await db.planningSubmission.create({
     data: {
       ...rest,
       isOutdoor: data.isOutdoor ?? false,
@@ -181,6 +208,9 @@ export async function createSubmission(data: {
       resourceNeeds: true,
     },
   })
+  // Bumps _count.submissions on the parent season list.
+  invalidatePlanningCache()
+  return result
 }
 
 export async function updateSubmission(id: string, data: {
@@ -196,7 +226,7 @@ export async function updateSubmission(id: string, data: {
   priority?: string
   estimatedBudget?: number | null
 }) {
-  return db.planningSubmission.update({
+  const result = await db.planningSubmission.update({
     where: { id },
     data,
     include: {
@@ -204,38 +234,48 @@ export async function updateSubmission(id: string, data: {
       resourceNeeds: true,
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function submitSubmission(id: string) {
-  return db.planningSubmission.update({
+  const result = await db.planningSubmission.update({
     where: { id },
     data: { submissionStatus: 'SUBMITTED' },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function reviewSubmission(id: string, data: {
   status: string // APPROVED_IN_PRINCIPLE, NEEDS_REVISION, DECLINED
   adminNotes?: string
 }) {
-  return db.planningSubmission.update({
+  const result = await db.planningSubmission.update({
     where: { id },
     data: {
       submissionStatus: data.status,
       adminNotes: data.adminNotes || null,
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 // ── Comments ───────────────────────────────────────────────────────────
 
 export async function getComments(submissionId: string) {
-  return db.planningComment.findMany({
-    where: { planningSubmissionId: submissionId },
-    include: {
-      author: { select: { id: true, firstName: true, lastName: true } },
-    },
-    orderBy: { createdAt: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `planning:comments:submission=${submissionId}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.planningComment.findMany({
+      where: { planningSubmissionId: submissionId },
+      include: {
+        author: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    })
+  )
 }
 
 export async function addComment(data: {
@@ -244,7 +284,7 @@ export async function addComment(data: {
   message: string
   isAdminOnly?: boolean
 }) {
-  return db.planningComment.create({
+  const result = await db.planningComment.create({
     data: {
       planningSubmissionId: data.planningSubmissionId,
       authorId: data.authorId,
@@ -255,15 +295,22 @@ export async function addComment(data: {
       author: { select: { id: true, firstName: true, lastName: true } },
     },
   })
+  // Bumps _count.comments on the parent submission list.
+  invalidatePlanningCache()
+  return result
 }
 
 // ── Blackout Dates ─────────────────────────────────────────────────────
 
 export async function getBlackoutDates(seasonId: string) {
-  return db.planningBlackoutDate.findMany({
-    where: { planningSeasonId: seasonId },
-    orderBy: { date: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `planning:blackouts:season=${seasonId}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.planningBlackoutDate.findMany({
+      where: { planningSeasonId: seasonId },
+      orderBy: { date: 'asc' },
+    })
+  )
 }
 
 export async function addBlackoutDate(data: {
@@ -271,26 +318,34 @@ export async function addBlackoutDate(data: {
   date: Date
   reason?: string
 }) {
-  return db.planningBlackoutDate.create({
+  const result = await db.planningBlackoutDate.create({
     data: {
       planningSeasonId: data.planningSeasonId,
       date: data.date,
       reason: data.reason || null,
     },
   })
+  invalidatePlanningCache()
+  return result
 }
 
 export async function removeBlackoutDate(id: string) {
-  return db.planningBlackoutDate.delete({ where: { id } })
+  const result = await db.planningBlackoutDate.delete({ where: { id } })
+  invalidatePlanningCache()
+  return result
 }
 
 // ── Conflicts ──────────────────────────────────────────────────────────
 
 export async function getConflicts(seasonId: string) {
-  return db.planningConflict.findMany({
-    where: { planningSeasonId: seasonId },
-    orderBy: [{ isResolved: 'asc' }, { severity: 'asc' }, { createdAt: 'desc' }],
-  })
+  const orgId = getOrgContextId()
+  const bucket = `planning:conflicts:season=${seasonId}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.planningConflict.findMany({
+      where: { planningSeasonId: seasonId },
+      orderBy: [{ isResolved: 'asc' }, { severity: 'asc' }, { createdAt: 'desc' }],
+    })
+  )
 }
 
 // ── Bulk Publish ───────────────────────────────────────────────────────
@@ -373,5 +428,8 @@ export async function bulkPublish(seasonId: string, calendarId: string) {
     })
   }
 
+  // Submissions flipped to PUBLISHED + new EventProjects created — blast the
+  // planning bucket so season/submission lists refresh.
+  invalidatePlanningCache()
   return results
 }

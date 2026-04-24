@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { updateTerm, deleteTerm } from '@/lib/services/academicCalendarService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const UpdateTermSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -25,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateTermSchema.parse(body)
       const term = await updateTerm(id, input)
+      invalidateOrgCache(orgId, 'academic:terms')
       return NextResponse.json(ok(term))
     })
   } catch (error) {
@@ -42,6 +44,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return await runWithOrgContext(orgId, async () => {
       await deleteTerm(id)
+      invalidateOrgCache(orgId, 'academic:terms')
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {

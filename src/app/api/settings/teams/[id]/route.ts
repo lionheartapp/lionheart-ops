@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const DeleteTeamSchema = z.object({
   reassignTeamId: z.string().trim().min(1).nullable().optional(),
@@ -83,6 +84,8 @@ export const PATCH = withAuth<z.infer<typeof UpdateTeamSchema>, { id: string }>(
     },
     select: { id: true, name: true, slug: true, description: true, teamType: true },
   })
+
+  invalidateOrgCache(orgId, 'teams')
 
   await audit({
     organizationId: orgId,
@@ -209,6 +212,8 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, ctx, par
   }
 
   await prisma.team.delete({ where: { id: params.id } })
+
+  invalidateOrgCache(orgId, 'teams')
 
   await audit({
     organizationId: orgId,

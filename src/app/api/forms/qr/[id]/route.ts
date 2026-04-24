@@ -11,6 +11,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { updateQrCode, deactivateQrCode, regenerateQrToken } from '@/lib/services/formQrService'
 import { formQrCodeUpdateSchema } from '@/lib/forms/schemas'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 
 type RouteParams = { params: Promise<{ id: string }> }
@@ -28,6 +29,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (body.regenerateToken === true) {
       return await runWithOrgContext(orgId, async () => {
         const qr = await regenerateQrToken(id)
+        invalidateOrgCache(orgId, 'forms:qr')
         return NextResponse.json(ok(qr))
       })
     }
@@ -42,6 +44,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const qr = await updateQrCode(id, parsed.data)
+      invalidateOrgCache(orgId, 'forms:qr')
       return NextResponse.json(ok(qr))
     })
   } catch (error) {
@@ -62,6 +65,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       await deactivateQrCode(id)
+      invalidateOrgCache(orgId, 'forms:qr')
       return NextResponse.json(ok({ deactivated: true }))
     })
   } catch (error) {

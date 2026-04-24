@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { cachePerUser } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -32,40 +33,52 @@ export async function GET(req: NextRequest) {
 
     Sentry.setTag('org_id', claims.organizationId)
 
-    const user = await rawPrisma.user.findUnique({
-      where: { id: claims.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        campusScope: true,
-        organizationId: true,
-        mfaEnabled: true,
-        userRole: {
-          select: { name: true, slug: true },
-        },
-        organization: {
+    const cached = await cachePerUser(
+      claims.userId,
+      'auth:me',
+      async () => {
+        const user = await rawPrisma.user.findUnique({
+          where: { id: claims.userId },
           select: {
             id: true,
+            email: true,
             name: true,
-            logoUrl: true,
+            avatar: true,
+            campusScope: true,
+            organizationId: true,
+            mfaEnabled: true,
+            userRole: {
+              select: { name: true, slug: true },
+            },
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+              },
+            },
           },
-        },
-      },
-    })
+        })
 
-    if (!user) {
+        if (!user) return null
+
+        // Fetch all team memberships for name + slugs
+        const teamMemberships = await rawPrisma.userTeam.findMany({
+          where: { userId: user.id },
+          select: { team: { select: { name: true, slug: true } } },
+        })
+        const teamName = teamMemberships[0]?.team?.name ?? null
+        const teamSlugs = teamMemberships.map((m) => m.team.slug)
+        return { user, teamName, teamSlugs }
+      },
+      { ttlMs: 30000 }
+    )
+
+    if (!cached) {
       return NextResponse.json(fail('NOT_FOUND', 'User not found'), { status: 404 })
     }
 
-    // Fetch all team memberships for name + slugs
-    const teamMemberships = await rawPrisma.userTeam.findMany({
-      where: { userId: user.id },
-      select: { team: { select: { name: true, slug: true } } },
-    })
-    const teamName = teamMemberships[0]?.team?.name ?? null
-    const teamSlugs = teamMemberships.map((m) => m.team.slug)
+    const { user, teamName, teamSlugs } = cached
 
     // Compute dashboard mode based on role slug + team membership
     const roleSlug = user.userRole?.slug ?? ''

@@ -11,6 +11,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { runWithOrgContext } from '@/lib/org-context'
 import { addField } from '@/lib/services/formService'
 import { formFieldSchema } from '@/lib/forms/schemas'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 type RouteParams = { params: Promise<{ formId: string }> }
 
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const field = await addField(formId, parsed.data)
+      invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok(field), { status: 201 })
     })
   } catch (error) {

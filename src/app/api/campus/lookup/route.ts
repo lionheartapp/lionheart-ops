@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
 import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,19 +11,55 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const db = prisma as unknown as Record<string, PrismaDelegate>
+      const payload = await cacheOrgWide(
+        orgId,
+        'campus:lookup:tree',
+        async () => {
+          const db = prisma as unknown as Record<string, PrismaDelegate>
 
-      const [buildings, unassignedSpaces] = await Promise.all([
-        db.building.findMany({
-          where: { organizationId: orgId, isActive: true },
-          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            schoolDivision: true,
-            spaces: {
-              where: { isActive: true },
+          const [buildings, unassignedSpaces] = await Promise.all([
+            db.building.findMany({
+              where: { organizationId: orgId, isActive: true },
+              orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                schoolDivision: true,
+                spaces: {
+                  where: { isActive: true },
+                  orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+                  select: {
+                    id: true,
+                    name: true,
+                    spaceType: true,
+                    rooms: {
+                      where: { isActive: true },
+                      orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
+                      select: {
+                        id: true,
+                        roomNumber: true,
+                        displayName: true,
+                        floor: true,
+                      },
+                    },
+                  },
+                },
+                rooms: {
+                  where: { isActive: true, spaceId: null },
+                  orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
+                  select: {
+                    id: true,
+                    roomNumber: true,
+                    displayName: true,
+                    floor: true,
+                    spaceId: true,
+                  },
+                },
+              },
+            }),
+            db.space.findMany({
+              where: { organizationId: orgId, isActive: true, buildingId: null },
               orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
               select: {
                 id: true,
@@ -39,53 +76,26 @@ export async function GET(req: NextRequest) {
                   },
                 },
               },
-            },
-            rooms: {
-              where: { isActive: true, spaceId: null },
-              orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
-              select: {
-                id: true,
-                roomNumber: true,
-                displayName: true,
-                floor: true,
-                spaceId: true,
-              },
-            },
-          },
-        }),
-        db.space.findMany({
-          where: { organizationId: orgId, isActive: true, buildingId: null },
-          orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-          select: {
-            id: true,
-            name: true,
-            spaceType: true,
-            rooms: {
-              where: { isActive: true },
-              orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
-              select: {
-                id: true,
-                roomNumber: true,
-                displayName: true,
-                floor: true,
-              },
-            },
-          },
-        }),
-      ])
+            }),
+          ])
 
-      // Backward-compat: emit `areas`/`unassignedAreas` aliases alongside the new names
-      const buildingsWithCompat = buildings.map((b: Record<string, unknown>) => ({
-        ...b,
-        areas: b.spaces,
-      }))
+          // Backward-compat: emit `areas`/`unassignedAreas` aliases alongside the new names
+          const buildingsWithCompat = buildings.map((b: Record<string, unknown>) => ({
+            ...b,
+            areas: b.spaces,
+          }))
 
-      return NextResponse.json(ok({
-        buildings: buildingsWithCompat,
-        unassignedSpaces,
-        // Backward-compat alias
-        unassignedAreas: unassignedSpaces,
-      }))
+          return {
+            buildings: buildingsWithCompat,
+            unassignedSpaces,
+            // Backward-compat alias
+            unassignedAreas: unassignedSpaces,
+          }
+        },
+        { ttlMs: 300000 }
+      )
+
+      return NextResponse.json(ok(payload))
     })
   } catch (error) {
     return NextResponse.json(

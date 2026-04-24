@@ -11,6 +11,9 @@ const UpdateTeamSchema = z.object({
   gradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
   coachUserId: z.string().nullable().optional(),
   coachName: z.string().trim().max(200).nullable().optional(),
+  // Phase 1c Pass 5: AthleticTeam.schoolId was renamed to campusId.
+  // Accept both for back-compat; updateTeam service maps schoolId → campusId.
+  campusId: z.string().nullable().optional(),
   schoolId: z.string().nullable().optional(),
   calendarId: z.string().nullable().optional(),
 })

@@ -1,14 +1,24 @@
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { getOrgContextId } from '@/lib/org-context'
 
 const db = prisma as unknown as OrgPrismaClient
 
 const APPROVAL_CHANNELS = ['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY', 'ATHLETIC_DIRECTOR'] as const
 
+function invalidateApprovalConfigCache(): void {
+  invalidateOrgCache(getOrgContextId(), 'approval-config')
+}
+
 export async function getApprovalConfigs(campusId?: string) {
-  return db.approvalChannelConfig.findMany({
-    where: { ...(campusId ? { campusId } : {}) },
-    orderBy: { channelType: 'asc' },
-  })
+  const orgId = getOrgContextId()
+  const bucket = `approval-config:list:campus=${campusId ?? 'all'}`
+  return cacheOrgWide(orgId, bucket, () =>
+    db.approvalChannelConfig.findMany({
+      where: { ...(campusId ? { campusId } : {}) },
+      orderBy: { channelType: 'asc' },
+    })
+  )
 }
 
 export async function upsertApprovalConfig(data: {
@@ -20,7 +30,7 @@ export async function upsertApprovalConfig(data: {
   campusId?: string | null
   organizationId: string
 }) {
-  return db.approvalChannelConfig.upsert({
+  const result = await db.approvalChannelConfig.upsert({
     where: {
       organizationId_campusId_channelType: {
         organizationId: data.organizationId,
@@ -43,6 +53,8 @@ export async function upsertApprovalConfig(data: {
       autoApproveIfNoResource: data.autoApproveIfNoResource ?? true,
     },
   })
+  invalidateApprovalConfigCache()
+  return result
 }
 
 export async function bulkUpsertApprovalConfigs(

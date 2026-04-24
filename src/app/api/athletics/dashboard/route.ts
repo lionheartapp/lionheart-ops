@@ -33,10 +33,10 @@ export const GET = withAuth(async ({ searchParams }) => {
     getTeamStandings(),
   ])
 
-  // Filter by campus — teams use schoolId which maps to campusId
-  // Same pattern as TeamsSection/ScheduleSection client-side filter
+  // Filter by campus — Phase 1c Pass 5 renamed AthleticTeam.schoolId → campusId.
+  // Same client-side pattern as TeamsSection/ScheduleSection.
   const teams = campusId
-    ? allTeams.filter((t: AthleticTeam) => !t.schoolId || t.schoolId === campusId)
+    ? allTeams.filter((t: AthleticTeam) => !t.campusId || t.campusId === campusId)
     : allTeams
   const campusTeamIds = new Set(teams.map((t: AthleticTeam) => t.id))
 

@@ -26,14 +26,26 @@ export function useAnimatedTabIndicator(activeKey: string, deps: unknown[] = [])
   const hasAnimated = useRef(false)
 
   const setTabRef = (key: string, el: HTMLElement | null) => {
-    if (el) tabRefs.current.set(key, el)
+    // React calls the ref callback with `null` when the element unmounts.
+    // Prune the map so we never hold a stale ref to a removed tab.
+    if (el) {
+      tabRefs.current.set(key, el)
+    } else {
+      tabRefs.current.delete(key)
+    }
   }
 
   useLayoutEffect(() => {
     const measure = () => {
       const container = containerRef.current
+      // If no active key, or the active tab has been removed, hide the indicator.
+      if (!container || !activeKey) {
+        indicatorOpacity.jump(0)
+        hasAnimated.current = false
+        return true
+      }
       const activeEl = tabRefs.current.get(activeKey)
-      if (!container || !activeEl) return false
+      if (!activeEl) return false
 
       const containerRect = container.getBoundingClientRect()
       const elRect = activeEl.getBoundingClientRect()
@@ -52,9 +64,10 @@ export function useAnimatedTabIndicator(activeKey: string, deps: unknown[] = [])
         indicatorOpacity.jump(1)
         hasAnimated.current = true
       } else {
-        // Animate to new position
+        // Animate to new position and ensure visibility
         fmAnimate(indicatorLeft, left, { duration: 0.35, ease: easing })
         fmAnimate(indicatorWidth, width, { duration: 0.35, ease: easing })
+        indicatorOpacity.jump(1)
       }
       return true
     }

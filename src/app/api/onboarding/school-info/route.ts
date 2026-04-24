@@ -29,6 +29,7 @@ import { ok, fail, isAuthError } from '@/lib/api-response'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { geocodeAddress } from '@/lib/services/geocodingService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 const UpdateSchoolInfoSchema = z.object({
@@ -79,46 +80,51 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
     const orgId = getOrgIdFromRequest(req)
 
-    const org = await rawPrisma.organization.findUnique({
-      where: { id: orgId },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        website: true,
-        phone: true,
-        studentCount: true,
-        staffCount: true,
-        logoUrl: true,
-      },
-    })
+    const payload = await cacheOrgWide(
+      orgId,
+      'onboarding-school-info:summary',
+      async () => {
+        const org = await rawPrisma.organization.findUnique({
+          where: { id: orgId },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            website: true,
+            phone: true,
+            studentCount: true,
+            staffCount: true,
+            logoUrl: true,
+          },
+        })
 
-    if (!org) {
+        if (!org) return null
+
+        const [primarySchool, primaryDistrict] = await Promise.all([
+          getPrimarySchool(orgId),
+          getPrimaryDistrict(orgId),
+        ])
+
+        return {
+          ...org,
+          physicalAddress: primarySchool?.address ?? null,
+          latitude: primarySchool?.latitude ?? null,
+          longitude: primarySchool?.longitude ?? null,
+          principalName: primarySchool?.principalName ?? null,
+          principalEmail: primarySchool?.principalEmail ?? null,
+          institutionType: primarySchool?.institutionType ?? null,
+          district: primaryDistrict?.name ?? null,
+          // Legacy — no longer persisted. See file header.
+          gradeRange: null as string | null,
+        }
+      }
+    )
+
+    if (!payload) {
       return NextResponse.json(fail('NOT_FOUND', 'Organization not found'), { status: 404 })
     }
 
-    const [primarySchool, primaryDistrict] = await Promise.all([
-      getPrimarySchool(orgId),
-      getPrimaryDistrict(orgId),
-    ])
-
-    // Flatten per-school + per-district fields back onto the response so the
-    // onboarding UI contract (`physicalAddress`, `principalName`, etc.) keeps
-    // working unchanged.
-    return NextResponse.json(
-      ok({
-        ...org,
-        physicalAddress: primarySchool?.address ?? null,
-        latitude: primarySchool?.latitude ?? null,
-        longitude: primarySchool?.longitude ?? null,
-        principalName: primarySchool?.principalName ?? null,
-        principalEmail: primarySchool?.principalEmail ?? null,
-        institutionType: primarySchool?.institutionType ?? null,
-        district: primaryDistrict?.name ?? null,
-        // Legacy — no longer persisted. See file header.
-        gradeRange: null,
-      })
-    )
+    return NextResponse.json(ok(payload))
   } catch (error) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
@@ -241,6 +247,10 @@ export async function PATCH(req: NextRequest) {
     }
 
     // `gradeRange` is accepted but no longer persisted — see file header.
+
+    // Blast org-level caches — onboarding touches org name/slug, primary
+    // School, and default District, all of which are read across the app.
+    invalidateOrgCache(orgId)
 
     // Re-fetch the flattened org snapshot for the response so callers get
     // the canonical shape back.

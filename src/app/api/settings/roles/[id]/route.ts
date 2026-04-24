@@ -6,6 +6,8 @@ import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { invalidateAllUserContexts } from '@/lib/cache/request-context-cache'
+import { clearAllPermissionCaches } from '@/lib/auth/permissions'
 
 const DeleteRoleSchema = z.object({
   reassignRoleId: z.string().trim().min(1).nullable().optional(),
@@ -127,6 +129,13 @@ export const PATCH = withAuth<z.infer<typeof UpdateRoleSchema>, { id: string }>(
   })
 
   invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
+
+  // Role name or permissions changed — blast-radius is every user on this role.
+  // Cheaper than tracking membership: clear all in-process auth caches.
+  if (body.name || body.permissionIds) {
+    invalidateAllUserContexts()
+    clearAllPermissionCaches()
+  }
 
   await audit({
     organizationId: orgId,
@@ -284,6 +293,11 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, ctx, req
   await prisma.role.delete({ where: { id: params.id } })
 
   invalidateSettingsCache(settingsCacheKey(orgId, 'roles'))
+
+  // Any users that had this role were just reassigned — their cached roleName
+  // is now wrong. Role delete is rare, so the broad invalidation is acceptable.
+  invalidateAllUserContexts()
+  clearAllPermissionCaches()
 
   await audit({
     organizationId: orgId,

@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getDayScheduleAssignments, assignDaySchedule } from '@/lib/services/academicCalendarService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const AssignDayScheduleSchema = z.object({
   date: z.string().transform((s) => new Date(s)),
@@ -29,11 +30,16 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(fail('VALIDATION_ERROR', 'startDate and endDate are required'), { status: 400 })
       }
 
-      const assignments = await getDayScheduleAssignments({
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        campusId,
-      })
+      const assignments = await cacheOrgWide(
+        orgId,
+        `academic:day-schedules:${startDate}:${endDate}:${campusId ?? 'all'}`,
+        () => getDayScheduleAssignments({
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+          campusId,
+        }),
+        { ttlMs: 60000 }
+      )
       return NextResponse.json(ok(assignments))
     })
   } catch (error) {
@@ -57,6 +63,7 @@ export async function POST(req: NextRequest) {
         ...input,
         organizationId: orgId,
       })
+      invalidateOrgCache(orgId, 'academic:day-schedules')
       return NextResponse.json(ok(assignment), { status: 201 })
     })
   } catch (error) {

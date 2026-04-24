@@ -11,6 +11,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { runWithOrgContext } from '@/lib/org-context'
 import { reorderFields } from '@/lib/services/formService'
 import { reorderSchema } from '@/lib/forms/schemas'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 type RouteParams = { params: Promise<{ formId: string }> }
 
@@ -32,6 +33,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const form = await reorderFields(formId, parsed.data.fieldIds)
+      invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok(form))
     })
   } catch (error) {

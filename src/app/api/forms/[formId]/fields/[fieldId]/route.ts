@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { runWithOrgContext } from '@/lib/org-context'
 import { updateField, removeField } from '@/lib/services/formService'
 import { formFieldSchema } from '@/lib/forms/schemas'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 type RouteParams = { params: Promise<{ formId: string; fieldId: string }> }
 
@@ -33,6 +34,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const field = await updateField(fieldId, parsed.data)
+      invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok(field))
     })
   } catch (error) {
@@ -53,6 +55,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       await removeField(fieldId)
+      invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {

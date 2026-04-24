@@ -20,7 +20,9 @@ const CreateGameSchema = z.object({
 
 export const GET = withAuth(async ({ searchParams }) => {
   const teamId = searchParams.get('teamId') || undefined
-  const schoolId = searchParams.get('schoolId') || undefined
+  // Phase 1c Pass 5: schoolId → campusId on AthleticTeam. Accept either query
+  // param name for back-compat; `campusId` is preferred.
+  const campusId = searchParams.get('campusId') || searchParams.get('schoolId') || undefined
   // When filtering by a team, include games where that team is on either side
   // by default — otherwise cross-school games "disappear" from the opponent's
   // schedule. Callers who want legacy behavior can pass ?asOpponent=false.
@@ -30,7 +32,7 @@ export const GET = withAuth(async ({ searchParams }) => {
   const games = await getGames({
     teamId,
     includeGamesAsOpponent,
-    schoolId,
+    campusId,
     startDate: searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined,
     endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
   })

@@ -12,6 +12,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 
 export async function GET(req: NextRequest) {
@@ -23,10 +24,12 @@ export async function GET(req: NextRequest) {
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { mfaRequired: true },
-      })
+      const org = await cacheOrgWide(orgId, 'security:mfa', () =>
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { mfaRequired: true },
+        })
+      )
 
       return NextResponse.json(ok({ mfaRequired: org?.mfaRequired ?? false }))
     })
@@ -60,6 +63,8 @@ export async function PATCH(req: NextRequest) {
         },
         select: { mfaRequired: true },
       })
+
+      invalidateOrgCache(orgId, 'security')
 
       return NextResponse.json(ok({ mfaRequired: updated.mfaRequired }))
     })

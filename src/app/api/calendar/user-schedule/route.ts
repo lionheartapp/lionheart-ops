@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,10 +26,15 @@ export async function GET(req: NextRequest) {
     }
 
     return await runWithOrgContext(orgId, async () => {
-      const events = await calendarService.getEventsForUser(
-        userId,
-        new Date(start),
-        new Date(end)
+      const events = await cacheOrgWide(
+        orgId,
+        `user-schedule:${userId}:${start}:${end}`,
+        () => calendarService.getEventsForUser(
+          userId,
+          new Date(start),
+          new Date(end)
+        ),
+        { ttlMs: 30000 }
       )
       return NextResponse.json(ok(events))
     })

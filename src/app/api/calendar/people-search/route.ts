@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     const fetchAll = !q || q.length < 2
 
     return await runWithOrgContext(orgId, async () => {
-      const users = await prisma.user.findMany({
+      const fetchUsers = () => prisma.user.findMany({
         where: {
           id: { not: ctx.userId },
           status: 'ACTIVE',
@@ -40,6 +41,11 @@ export async function GET(req: NextRequest) {
         take: fetchAll ? 100 : 10,
         orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
       })
+
+      // Only cache the "all users" path; free-text search keys would be unbounded.
+      const users = fetchAll
+        ? await cacheOrgWide(orgId, 'people-search:all', fetchUsers, { ttlMs: 60000 })
+        : await fetchUsers()
 
       return NextResponse.json(ok(users))
     })

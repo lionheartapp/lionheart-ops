@@ -7,6 +7,7 @@ import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { syncRolePermissions } from '@/lib/services/organizationRegistrationService'
+import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -18,10 +19,12 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const modules = await (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
-        where: { organizationId: orgId },
-        orderBy: { enabledAt: 'asc' },
-      })
+      const modules = await cacheOrgWide(orgId, 'modules:list', () =>
+        (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
+          where: { organizationId: orgId },
+          orderBy: { enabledAt: 'asc' },
+        })
+      )
       return NextResponse.json(ok(modules))
     })
   } catch (error) {
@@ -82,6 +85,8 @@ export async function POST(req: NextRequest) {
           },
         })
 
+        invalidateOrgCache(orgId, 'modules')
+
         // Sync role permissions in the background — don't block the UI
         // (this upserts ~200+ permission rows which takes several seconds)
         syncRolePermissions(orgId).catch((err) => {
@@ -92,6 +97,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(ok(mod), { status: 200 })
       } else {
         await db.tenantModule.deleteMany({ where: whereFilter })
+        invalidateOrgCache(orgId, 'modules')
         return NextResponse.json(ok({ moduleId: input.moduleId, campusId: input.campusId ?? null, enabled: false }))
       }
     })

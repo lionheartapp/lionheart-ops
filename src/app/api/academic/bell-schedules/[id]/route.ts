@@ -6,6 +6,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getBellScheduleById, updateBellSchedule, deleteBellSchedule } from '@/lib/services/academicCalendarService'
+import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
 const PeriodSchema = z.object({
   id: z.string().optional(),
@@ -54,6 +55,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return await runWithOrgContext(orgId, async () => {
       const input = UpdateBellScheduleSchema.parse(body)
       const schedule = await updateBellSchedule(id, input)
+      invalidateOrgCache(orgId, 'academic:bell-schedules')
+      invalidateOrgCache(orgId, 'academic:day-schedules')
       return NextResponse.json(ok(schedule))
     })
   } catch (error) {
@@ -71,6 +74,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return await runWithOrgContext(orgId, async () => {
       await deleteBellSchedule(id)
+      invalidateOrgCache(orgId, 'academic:bell-schedules')
+      invalidateOrgCache(orgId, 'academic:day-schedules')
       return NextResponse.json(ok({ deleted: true }))
     })
   } catch (error) {
