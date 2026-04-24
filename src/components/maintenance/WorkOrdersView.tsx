@@ -89,6 +89,11 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
   const canAssign = canManage
   const canChangeStatus = canManage || canClaim
 
+  // Current user ID from localStorage (for "My Board" filtering)
+  // IMPORTANT: must be declared before any useState that references it
+  const currentUserId =
+    typeof window !== 'undefined' ? (localStorage.getItem('user-id') ?? '') : ''
+
   // View mode: board (Kanban) or table — default to table when pre-filtered
   const hasInitialFilter = !!(initialStatus || initialPriority || initialUnassigned)
   const [viewMode, setViewMode] = useState<'board' | 'table'>(hasInitialFilter ? 'table' : 'board')
@@ -128,10 +133,6 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
 
   // Track which ticket is being claimed (for optimistic UI)
   const [claimingId, setClaimingId] = useState<string | null>(null)
-
-  // Current user ID from localStorage (for "My Board" filtering)
-  const currentUserId =
-    typeof window !== 'undefined' ? (localStorage.getItem('user-id') ?? '') : ''
 
   // Main tickets query (exclude SCHEDULED)
   const mainQueryKey = ['maintenance-tickets', filters, 'exclude-scheduled']
