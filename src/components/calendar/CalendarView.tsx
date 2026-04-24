@@ -470,7 +470,7 @@ export default function CalendarView() {
     // Filter by school — events linked via their calendar's campus/school
     if (calendarFilter.schoolIds.size > 0) {
       result = result.filter((e) => {
-        const schoolId = (e as Record<string, unknown>).schoolId as string | undefined
+        const schoolId = (e as unknown as Record<string, unknown>).schoolId as string | undefined
         if (schoolId) return calendarFilter.schoolIds.has(schoolId)
         // If event doesn't have a direct schoolId, allow it through (don't hide non-school events)
         return true
