@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
-import CalendarFilterPopover, { type CalendarFilter } from './CalendarFilterPopover'
+import { type CalendarFilter } from './CalendarFilterPopover'
 import { EVENT_CREATE_OPTIONS, type EventCreateMode } from '@/components/events/CreateEventMenu'
 
 interface CategoryChip {
@@ -65,6 +65,10 @@ interface CalendarToolbarProps {
   sports?: SportChip[]
   /** List of external calendars the user has synced events from. */
   externalCalendars?: { id: string; name: string; provider: string }[]
+  /** Whether the filter panel is currently open */
+  filterPanelOpen?: boolean
+  /** Toggle the filter panel open/closed */
+  onToggleFilterPanel?: () => void
 }
 
 const viewLabels: Record<CalendarViewType, string> = {
@@ -136,9 +140,10 @@ export default function CalendarToolbar({
   campuses = [],
   sports = [],
   externalCalendars = [],
+  filterPanelOpen = false,
+  onToggleFilterPanel,
 }: CalendarToolbarProps) {
   const weekDates = getWeekDates(currentDate)
-  const [filterOpen, setFilterOpen] = useState(false)
   const filterBtnRef = useRef<HTMLButtonElement>(null)
   const { containerRef: viewTabsRef, setTabRef: setViewTabRef, indicatorStyle: viewIndicatorStyle } = useAnimatedTabIndicator(view)
   const { containerRef: mobileTabsRef, setTabRef: setMobileTabRef, indicatorStyle: mobileIndicatorStyle } = useAnimatedTabIndicator(view)
@@ -338,44 +343,26 @@ export default function CalendarToolbar({
           )}
         </div>
 
-        {/* Filter button — opens filter popover with categories + athletics */}
-        {(categories.length > 0 || userCampuses.length > 0) && (
-          <>
-            <button
-              ref={filterBtnRef}
-              onClick={() => setFilterOpen((o) => !o)}
-              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                activeFilterCount > 0
-                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                  : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <CalendarFilterPopover
-              isOpen={filterOpen}
-              onClose={() => setFilterOpen(false)}
-              filter={calendarFilter}
-              onFilterChange={onCalendarFilterChange}
-              categories={categories}
-              athleticsVisible={athleticsVisible}
-              userCampuses={userCampuses}
-              visibleAthleticsCampusIds={visibleAthleticsCampusIds}
-              onToggleAthleticsCampus={onToggleAthleticsCampus}
-              onToggleAllAthletics={onToggleAllAthletics}
-              campuses={campuses}
-              sports={sports}
-              anchorRef={filterBtnRef}
-              externalCalendars={externalCalendars}
-            />
-          </>
-        )}
+        {/* Filter button — toggles the filter side panel */}
+        <button
+          ref={filterBtnRef}
+          onClick={() => onToggleFilterPanel?.()}
+          className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 flex-shrink-0 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer ${
+            filterPanelOpen
+              ? 'bg-slate-900 text-white border-slate-900'
+              : activeFilterCount > 0
+                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+          }`}
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          Filters
+          {activeFilterCount > 0 && !filterPanelOpen && (
+            <span className="ml-0.5 w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Mobile view switcher */}

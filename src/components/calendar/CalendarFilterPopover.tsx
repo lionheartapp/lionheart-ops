@@ -7,6 +7,7 @@ import { X } from 'lucide-react'
 export interface CalendarFilter {
   categoryIds: Set<string>
   campusIds: Set<string>
+  schoolIds: Set<string>
   schoolLevels: Set<string>
   sportIds: Set<string>
   teamLevels: Set<string>
@@ -140,6 +141,7 @@ export default function CalendarFilterPopover({
     onFilterChange({
       categoryIds: new Set(),
       campusIds: new Set(),
+      schoolIds: new Set(),
       schoolLevels: new Set(),
       sportIds: new Set(),
       teamLevels: new Set(),

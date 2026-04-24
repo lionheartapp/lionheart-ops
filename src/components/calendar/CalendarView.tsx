@@ -46,6 +46,7 @@ import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
 import { type CalendarFilter } from './CalendarFilterPopover'
+import CalendarFilterPanel from './CalendarFilterPanel'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { Download } from 'lucide-react'
 import { MotionConfig } from 'framer-motion'
@@ -332,6 +333,7 @@ export default function CalendarView() {
     const empty: CalendarFilter = {
       categoryIds: new Set(),
       campusIds: new Set(),
+      schoolIds: new Set(),
       schoolLevels: new Set(),
       sportIds: new Set(),
       teamLevels: new Set(),
@@ -345,6 +347,7 @@ export default function CalendarView() {
       return {
         categoryIds: new Set(parsed.categoryIds || []),
         campusIds: new Set(parsed.campusIds || []),
+        schoolIds: new Set(parsed.schoolIds || []),
         schoolLevels: new Set(parsed.schoolLevels || []),
         sportIds: new Set(parsed.sportIds || []),
         teamLevels: new Set(parsed.teamLevels || []),
@@ -362,6 +365,7 @@ export default function CalendarView() {
       localStorage.setItem(filterStorageKey, JSON.stringify({
         categoryIds: [...next.categoryIds],
         campusIds: [...next.campusIds],
+        schoolIds: [...next.schoolIds],
         schoolLevels: [...next.schoolLevels],
         sportIds: [...next.sportIds],
         teamLevels: [...next.teamLevels],
@@ -422,6 +426,35 @@ export default function CalendarView() {
   // Search filter state
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Filter panel state (persisted in localStorage)
+  const filterPanelStorageKey = authUser.id ? `calendar-filter-panel:${authUser.id}` : null
+  const [showFilterPanel, setShowFilterPanel] = useState(() => {
+    if (typeof window === 'undefined' || !filterPanelStorageKey) return false
+    try {
+      return localStorage.getItem(filterPanelStorageKey) === 'true'
+    } catch { return false }
+  })
+  const toggleFilterPanel = useCallback(() => {
+    setShowFilterPanel((prev) => {
+      const next = !prev
+      if (filterPanelStorageKey) {
+        try { localStorage.setItem(filterPanelStorageKey, String(next)) } catch { /* quota */ }
+      }
+      return next
+    })
+  }, [filterPanelStorageKey])
+
+  // Schools query for the filter panel
+  const { data: schools = [] } = useQuery<Array<{ id: string; name: string; color?: string | null }>>({
+    queryKey: ['schools'],
+    queryFn: async () => {
+      const res = await fetch('/api/settings/schools', { credentials: 'include' })
+      const json = await res.json()
+      return json.ok ? json.data : []
+    },
+    staleTime: 5 * 60_000,
+  })
+
   const filteredEvents = useMemo(() => {
     let result = events
     const q = searchQuery.trim().toLowerCase()
@@ -432,6 +465,16 @@ export default function CalendarView() {
     // Filter regular events by category
     if (calendarFilter.categoryIds.size > 0) {
       result = result.filter((e) => e.categoryId && calendarFilter.categoryIds.has(e.categoryId))
+    }
+
+    // Filter by school — events linked via their calendar's campus/school
+    if (calendarFilter.schoolIds.size > 0) {
+      result = result.filter((e) => {
+        const schoolId = (e as Record<string, unknown>).schoolId as string | undefined
+        if (schoolId) return calendarFilter.schoolIds.has(schoolId)
+        // If event doesn't have a direct schoolId, allow it through (don't hide non-school events)
+        return true
+      })
     }
 
     // Merge athletics events (controlled by visibleAthleticsCampusIds via Filters popover)
@@ -743,6 +786,8 @@ export default function CalendarView() {
           campuses={athleticsCampuses}
           sports={athleticsSports}
           externalCalendars={externalCalendarList}
+          filterPanelOpen={showFilterPanel}
+          onToggleFilterPanel={toggleFilterPanel}
         />
 
         {/* Export CSV — subtle text link, not a prominent button */}
@@ -771,7 +816,43 @@ export default function CalendarView() {
       <div className="sr-only" aria-live="polite">{eventsLoading ? 'Loading calendar events' : ''}</div>
 
       {/* Scrollable view area — white background fills to bottom */}
-      <div className="flex-1 min-h-0 flex flex-col bg-white overflow-hidden relative z-0">
+      <div className="flex-1 min-h-0 flex bg-white overflow-hidden relative z-0">
+        {/* Filter side panel */}
+        <CalendarFilterPanel
+          isOpen={showFilterPanel}
+          onClose={toggleFilterPanel}
+          filter={calendarFilter}
+          onFilterChange={setCalendarFilter}
+          schools={schools}
+          campuses={userCampuses}
+          calendars={calendars}
+          visibleCalendarIds={visibleCalendarIds}
+          onToggleCalendar={toggleCalendar}
+          categories={categories}
+          externalCalendars={externalCalendarList}
+          athleticsVisible={anyAthleticsVisible}
+          userCampuses={userCampuses}
+          visibleAthleticsCampusIds={visibleAthleticsCampusIds}
+          onToggleAthleticsCampus={(campusId: string) => {
+            setVisibleAthleticsCampusIds((prev) => {
+              const next = new Set(prev)
+              if (next.has(campusId)) next.delete(campusId)
+              else next.add(campusId)
+              return next
+            })
+          }}
+          onToggleAllAthletics={(enabled: boolean) => {
+            if (enabled) {
+              setVisibleAthleticsCampusIds(new Set(userCampuses.map((c) => c.id)))
+            } else {
+              setVisibleAthleticsCampusIds(new Set())
+            }
+          }}
+          sports={athleticsSports}
+        />
+
+        {/* Calendar content */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           {view === 'month' && (
             isMobile ? (
               <MobileMonthView
@@ -831,6 +912,7 @@ export default function CalendarView() {
               isLoading={showSkeletons}
             />
           )}
+        </div>
       </div>
 
       {/* Panels */}
