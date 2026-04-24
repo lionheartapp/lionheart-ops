@@ -3,7 +3,7 @@
 Tracked during the full 34-section site audit. Fix in priority order after audit is complete.
 
 **Last updated:** April 23, 2026
-**Audit progress:** Sections 1-6 complete
+**Audit progress:** Sections 1-7 complete
 
 ---
 
@@ -30,6 +30,7 @@ Tracked during the full 34-section site audit. Fix in priority order after audit
 |---|---------|------|-------|--------|
 | M1 | 2h | Email verification | Uses dark card theme while login uses light split layout. Minor style inconsistency. | Open |
 | M2 | 1a | Landing page | 4 console errors on landing page (likely CSP or analytics). | Open |
+| M3 | 7a | Events Hub board | Board view empty state is weak — each column just says "No events" with no illustration or CTA. List view has a good empty state with illustration + "Create First Event" button. Board should match. | Open |
 
 ## Low (nice-to-have)
 
@@ -41,6 +42,6 @@ Tracked during the full 34-section site audit. Fix in priority order after audit
 
 ## Notes
 
-- Sections 7-34 pending
+- Sections 8-34 pending — pick up at Section 8 (Events Project Detail Tabs)
 - Athletics API returning 500s on dashboard/games routes — tracked separately as a code fix (Phase 1c uncommitted changes were pushed)
 - Work orders TDZ crash fixed (currentUserId declaration order)
