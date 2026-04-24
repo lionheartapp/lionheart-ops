@@ -124,7 +124,7 @@ function YoyCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface BoardReportPageProps {
-  token?: string | null // Deprecated — no longer used; auth via httpOnly cookie
+  // No props needed — auth via httpOnly cookie
 }
 
 export function BoardReportPage(_props: BoardReportPageProps) {
@@ -313,7 +313,6 @@ export function BoardReportPage(_props: BoardReportPageProps) {
       <GenerateReportDialog
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        token={token}
         onSuccess={() => {
           // Could show a toast here — dialog handles its own feedback
         }}

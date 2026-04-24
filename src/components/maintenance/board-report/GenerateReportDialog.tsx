@@ -9,7 +9,6 @@ interface GenerateReportDialogProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
-  token: string | null
 }
 
 function getMonthYear(offset = 0): { year: number; month: number } {
@@ -37,7 +36,6 @@ export function GenerateReportDialog({
   isOpen,
   onClose,
   onSuccess,
-  token,
 }: GenerateReportDialogProps) {
   const { year: defaultYear, month: defaultMonth } = getMonthYear()
 
@@ -57,10 +55,8 @@ export function GenerateReportDialog({
     try {
       const resp = await fetch('/api/maintenance/board-report/export', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ from, to }),
       })
 
