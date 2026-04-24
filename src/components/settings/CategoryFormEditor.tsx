@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FileText, Lock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
@@ -91,24 +91,21 @@ export default function CategoryFormEditor({
     },
   })
 
-  // Debounced auto-save
-  const debouncedSave = useCallback(
-    (fields: FormFieldData[]) => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-      saveTimeoutRef.current = setTimeout(() => {
-        saveMutation.mutate(fields)
-      }, 800)
-    },
-    [saveMutation]
-  )
-
   // Local field state for optimistic editing
   const [localFields, setLocalFields] = useState<FormFieldData[] | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const fields = localFields ?? formDef?.fields ?? []
 
   function updateFields(next: FormFieldData[]) {
     setLocalFields(next)
-    debouncedSave(next)
+    setHasUnsavedChanges(true)
+  }
+
+  function handleSave() {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    saveMutation.mutate(fields, {
+      onSuccess: () => setHasUnsavedChanges(false),
+    })
   }
 
   function handleFieldChange(index: number, updated: FormFieldData) {
@@ -182,9 +179,14 @@ export default function CategoryFormEditor({
             {categoryLabel} Form Fields
           </span>
         </div>
-        <span className="text-[11px] text-[#a8a49d]">
-          {saveMutation.isPending ? 'Saving\u2026' : 'Auto-saves'}
-        </span>
+        <button
+          type="button"
+          disabled={saveMutation.isPending || !hasUnsavedChanges}
+          onClick={handleSave}
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 bg-[#1a1915] text-white hover:bg-[#2a2925]"
+        >
+          {saveMutation.isPending ? 'Saving\u2026' : hasUnsavedChanges ? 'Save changes' : 'Saved'}
+        </button>
       </div>
 
       {/* Standard fields (locked, read-only) */}

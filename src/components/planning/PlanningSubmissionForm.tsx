@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
 
 interface PlanningSubmissionFormProps {
@@ -8,6 +8,39 @@ interface PlanningSubmissionFormProps {
   onSubmit: (data: Record<string, unknown>) => void
   onCancel: () => void
   isSubmitting?: boolean
+}
+
+interface DraftFormState {
+  title: string
+  description: string
+  preferredDate: string
+  alternateDate1: string
+  alternateDate2: string
+  duration: number
+  isOutdoor: boolean
+  expectedAttendance: string
+  targetAudience: string
+  priority: string
+  estimatedBudget: string
+  resourceNeeds: Array<{ resourceType: string; details: string }>
+}
+
+function getDraftKey(seasonId: string): string {
+  return `planning-draft-${seasonId}`
+}
+
+function loadDraft(seasonId: string): DraftFormState | null {
+  try {
+    const raw = localStorage.getItem(getDraftKey(seasonId))
+    if (!raw) return null
+    return JSON.parse(raw) as DraftFormState
+  } catch {
+    return null
+  }
+}
+
+function clearDraft(seasonId: string): void {
+  localStorage.removeItem(getDraftKey(seasonId))
 }
 
 const RESOURCE_TYPES = [
@@ -18,18 +51,41 @@ const RESOURCE_TYPES = [
 ]
 
 export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, isSubmitting }: PlanningSubmissionFormProps) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [preferredDate, setPreferredDate] = useState('')
-  const [alternateDate1, setAlternateDate1] = useState('')
-  const [alternateDate2, setAlternateDate2] = useState('')
-  const [duration, setDuration] = useState(60)
-  const [isOutdoor, setIsOutdoor] = useState(false)
-  const [expectedAttendance, setExpectedAttendance] = useState('')
-  const [targetAudience, setTargetAudience] = useState('')
-  const [priority, setPriority] = useState('IMPORTANT')
-  const [estimatedBudget, setEstimatedBudget] = useState('')
-  const [resourceNeeds, setResourceNeeds] = useState<Array<{ resourceType: string; details: string }>>([])
+  const draft = loadDraft(seasonId)
+
+  const [title, setTitle] = useState(draft?.title ?? '')
+  const [description, setDescription] = useState(draft?.description ?? '')
+  const [preferredDate, setPreferredDate] = useState(draft?.preferredDate ?? '')
+  const [alternateDate1, setAlternateDate1] = useState(draft?.alternateDate1 ?? '')
+  const [alternateDate2, setAlternateDate2] = useState(draft?.alternateDate2 ?? '')
+  const [duration, setDuration] = useState(draft?.duration ?? 60)
+  const [isOutdoor, setIsOutdoor] = useState(draft?.isOutdoor ?? false)
+  const [expectedAttendance, setExpectedAttendance] = useState(draft?.expectedAttendance ?? '')
+  const [targetAudience, setTargetAudience] = useState(draft?.targetAudience ?? '')
+  const [priority, setPriority] = useState(draft?.priority ?? 'IMPORTANT')
+  const [estimatedBudget, setEstimatedBudget] = useState(draft?.estimatedBudget ?? '')
+  const [resourceNeeds, setResourceNeeds] = useState<Array<{ resourceType: string; details: string }>>(draft?.resourceNeeds ?? [])
+  const [draftRestored, setDraftRestored] = useState(draft !== null)
+
+  // Debounced auto-save to localStorage every 2 seconds
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const saveDraft = useCallback(() => {
+    const state: DraftFormState = {
+      title, description, preferredDate, alternateDate1, alternateDate2,
+      duration, isOutdoor, expectedAttendance, targetAudience, priority,
+      estimatedBudget, resourceNeeds,
+    }
+    localStorage.setItem(getDraftKey(seasonId), JSON.stringify(state))
+  }, [title, description, preferredDate, alternateDate1, alternateDate2, duration, isOutdoor, expectedAttendance, targetAudience, priority, estimatedBudget, resourceNeeds, seasonId])
+
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(saveDraft, 2000)
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [saveDraft])
 
   const addResource = (type: string) => {
     if (!resourceNeeds.find((r) => r.resourceType === type)) {
@@ -47,6 +103,8 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    clearDraft(seasonId)
+    setDraftRestored(false)
     onSubmit({
       title,
       description: description || undefined,
@@ -65,6 +123,27 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {draftRestored && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          <p className="text-xs text-blue-700">Draft restored from your previous session</p>
+          <button
+            type="button"
+            onClick={() => {
+              clearDraft(seasonId)
+              setDraftRestored(false)
+              setTitle(''); setDescription(''); setPreferredDate('')
+              setAlternateDate1(''); setAlternateDate2('')
+              setDuration(60); setIsOutdoor(false); setExpectedAttendance('')
+              setTargetAudience(''); setPriority('IMPORTANT')
+              setEstimatedBudget(''); setResourceNeeds([])
+            }}
+            className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+          >
+            Discard Draft
+          </button>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Event Title</label>
         <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Spring Concert" />

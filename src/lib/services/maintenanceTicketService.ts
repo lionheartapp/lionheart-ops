@@ -72,6 +72,10 @@ export const ALLOWED_TRANSITIONS: Record<
       requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
       description: 'Begin working on ticket',
     },
+    BACKLOG: {
+      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
+      description: 'Send ticket back to backlog',
+    },
     ON_HOLD: {
       requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
       requiredFields: ['holdReason'],
@@ -89,6 +93,10 @@ export const ALLOWED_TRANSITIONS: Record<
       requiredFields: ['completionNote', 'completionPhotos'],
       description: 'Submit for QA review with completion evidence',
     },
+    TODO: {
+      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
+      description: 'Send ticket back to todo',
+    },
     ON_HOLD: {
       requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
       requiredFields: ['holdReason'],
@@ -101,6 +109,10 @@ export const ALLOWED_TRANSITIONS: Record<
     },
   },
   ON_HOLD: {
+    TODO: {
+      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
+      description: 'Return ticket to todo',
+    },
     IN_PROGRESS: {
       requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
       description: 'Resume work on ticket',

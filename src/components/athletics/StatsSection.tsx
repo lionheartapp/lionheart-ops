@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
-import { BarChart3, Medal, Plus, Trash2, Settings, ArrowRight, CalendarDays } from 'lucide-react'
+import { BarChart3, Medal, Plus, Trash2, Settings, ArrowRight, CalendarDays, Printer, Download } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
@@ -266,6 +266,138 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
     }
   }
 
+  // ─── Export handlers ──────────────────────────────────────────────
+
+  const handleExportCSV = () => {
+    if (standings.length === 0) return
+    const headers = ['Rank', 'Team', 'Sport', 'Season', 'W', 'L', 'T', 'Win%', 'GP', 'Roster']
+    const rows = standings.map((s, i) => [
+      i + 1,
+      s.teamName,
+      s.sport.name,
+      s.season.name,
+      s.wins,
+      s.losses,
+      s.ties,
+      `${(s.winPct * 100).toFixed(1)}%`,
+      s.gamesPlayed,
+      s.rosterCount,
+    ])
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `athletics-standings-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handlePrintReport = () => {
+    const sportLabel = selectedSportId ? sports.find((s) => s.id === selectedSportId)?.name || 'All Sports' : 'All Sports'
+    const seasonLabel = selectedSeasonId ? seasons.find((s) => s.id === selectedSeasonId)?.name || 'All Seasons' : 'All Seasons'
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+
+    const standingsRows = standings.map((s, i) => `
+      <tr>
+        <td style="padding:8px 12px;text-align:center;font-weight:bold;color:#888;">${i + 1}</td>
+        <td style="padding:8px 12px;font-weight:500;">${s.teamName} <span style="color:#999;font-size:12px;">(${s.sport.name})</span></td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#16a34a;">${s.wins}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#ef4444;">${s.losses}</td>
+        <td style="padding:8px 12px;text-align:center;font-weight:600;color:#6b7280;">${s.ties}</td>
+        <td style="padding:8px 12px;text-align:center;">${(s.winPct * 100).toFixed(0)}%</td>
+        <td style="padding:8px 12px;text-align:center;">${s.gamesPlayed}</td>
+        <td style="padding:8px 12px;text-align:center;">${s.rosterCount}</td>
+      </tr>
+    `).join('')
+
+    const leadersSection = view === 'leaders' && leaders.length > 0
+      ? `
+        <h2 style="margin-top:32px;font-size:18px;font-weight:600;">Stat Leaders — ${statConfigs.find((c) => c.statKey === selectedStatKey)?.label || selectedStatKey}</h2>
+        <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+          <thead>
+            <tr style="border-bottom:2px solid #e5e7eb;">
+              <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;">Rank</th>
+              <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;">Player</th>
+              <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;">Team</th>
+              <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">Total</th>
+              <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">GP</th>
+              <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${leaders.map((l) => `
+              <tr style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:8px 12px;text-align:center;font-weight:bold;color:#888;">${l.rank}</td>
+                <td style="padding:8px 12px;font-weight:500;">${l.jerseyNumber ? `#${l.jerseyNumber} ` : ''}${l.playerName}</td>
+                <td style="padding:8px 12px;color:#6b7280;">${l.team.name}</td>
+                <td style="padding:8px 12px;text-align:center;font-weight:600;">${l.total}</td>
+                <td style="padding:8px 12px;text-align:center;color:#6b7280;">${l.gamesPlayed}</td>
+                <td style="padding:8px 12px;text-align:center;">${l.average}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `
+      : ''
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Athletics Board Report</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 40px; color: #1e293b; }
+          @media print { body { margin: 20px; } }
+          table { border-collapse: collapse; width: 100%; }
+          thead tr { border-bottom: 2px solid #e5e7eb; }
+          tbody tr { border-bottom: 1px solid #f3f4f6; }
+          tbody tr:hover { background: #f9fafb; }
+        </style>
+      </head>
+      <body>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;">
+          <h1 style="font-size:24px;font-weight:700;margin:0;">Athletics Board Report</h1>
+          <span style="color:#6b7280;font-size:14px;">${date}</span>
+        </div>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:24px;">${sportLabel} &middot; ${seasonLabel}</p>
+
+        ${standings.length > 0 ? `
+          <h2 style="font-size:18px;font-weight:600;margin-bottom:12px;">Team Standings</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">Rank</th>
+                <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;">Team</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">W</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">L</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">T</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">Win%</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">GP</th>
+                <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;">Roster</th>
+              </tr>
+            </thead>
+            <tbody>${standingsRows}</tbody>
+          </table>
+        ` : '<p style="color:#6b7280;">No standings data available.</p>'}
+
+        ${leadersSection}
+
+        <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:12px;">
+          Generated by Lionheart Athletics &middot; ${date}
+        </div>
+      </body>
+      </html>
+    `
+
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(html)
+      printWindow.document.close()
+      printWindow.onload = () => printWindow.print()
+    }
+  }
+
   // ─── Render ───────────────────────────────────────────────────────
 
   if (loading) {
@@ -313,6 +445,26 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
             <div className="w-full sm:w-48">
               <FloatingDropdown id="standings-season" label="Season" value={selectedSeasonId} onChange={setSelectedSeasonId} options={seasonOptions} />
             </div>
+            {standings.length > 0 && (
+              <div className="flex gap-2 sm:ml-auto">
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintReport}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print Report
+                </button>
+              </div>
+            )}
           </div>
 
           {loadingStandings ? (

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Search, X, ChevronRight, Tag } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
+import { getAuthHeaders } from '@/lib/api-client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,14 +29,6 @@ interface StepAssetProps {
   onSkip: () => void
   // Pre-fill from query params on mount
   initialAssetId?: string | null
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -80,6 +73,7 @@ export default function StepAsset({
       try {
         const res = await fetch(`/api/maintenance/assets/${initialAssetId}`, {
           headers: getAuthHeaders(),
+          credentials: 'include',
         })
         if (!res.ok) return
         const json = await res.json()
@@ -110,6 +104,7 @@ export default function StepAsset({
       try {
         const res = await fetch(`/api/maintenance/assets?search=${encodeURIComponent(value)}&limit=10`, {
           headers: getAuthHeaders(),
+          credentials: 'include',
         })
         const json = await res.json()
         if (json.ok) {

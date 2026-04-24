@@ -95,12 +95,16 @@ export async function notifyTeamsOfEventInfo(
 
 /**
  * Notifies the event creator when a gate status changes.
+ *
+ * @param teamName - V2 team name override. When provided, used as the gate label
+ *                   instead of looking up GATE_META (which only has V1 channel keys).
  */
 export async function notifyCreatorOfGateChange(
   eventProjectId: string,
   gateType: GateType,
   status: 'APPROVED' | 'REJECTED',
   reason?: string,
+  teamName?: string,
 ): Promise<void> {
   const project = await db.eventProject.findUnique({
     where: { id: eventProjectId },
@@ -108,8 +112,9 @@ export async function notifyCreatorOfGateChange(
   })
   if (!project?.createdById) return
 
+  // V2: use teamName directly; V1: fall back to GATE_META lookup
   const meta = GATE_META[gateType]
-  const gateLabel = meta?.label ?? gateType
+  const gateLabel = teamName ?? meta?.label ?? gateType
   const notificationType = status === 'APPROVED' ? 'event_approved' : 'event_rejected'
   const title = status === 'APPROVED'
     ? `${gateLabel} approved your event "${project.title}"`

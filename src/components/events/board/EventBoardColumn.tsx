@@ -144,10 +144,22 @@ export function EventBoardColumn({
       >
         {count === 0 ? (
           <div
-            className="flex items-center justify-center h-full py-8 text-center"
+            className="flex flex-col items-center justify-center h-full py-8 text-center"
             style={{ minHeight: '120px' }}
           >
-            <p className="text-[11px]" style={{ color: TEXT_MUTED }}>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center mb-2"
+              style={{
+                backgroundColor: WARM_CHIP,
+                opacity: isDragActive ? 0.5 : 1,
+              }}
+            >
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: accentColor, opacity: 0.6 }}
+              />
+            </div>
+            <p className="text-[11px] font-medium" style={{ color: TEXT_MUTED }}>
               {isOver && isValidDropTarget
                 ? 'Drop here'
                 : isDragActive && !isValidDropTarget

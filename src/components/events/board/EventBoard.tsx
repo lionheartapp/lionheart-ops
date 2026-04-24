@@ -35,7 +35,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { Plus, Users, User } from 'lucide-react'
+import { Plus, Users, User, Layers } from 'lucide-react'
 import { EventBoardColumn } from './EventBoardColumn'
 import { EventBoardCard } from './EventBoardCard'
 import { ApprovalReviewDrawer } from '@/components/events/ApprovalReviewDrawer'
@@ -265,6 +265,56 @@ export function EventBoard({ projects, onCreateDraftSelect, isAdmin, currentUser
         p.status !== 'CANCELLED',
       ).length
     : 0
+
+  // Detect when the entire board is empty (no events in any visible column)
+  const isBoardEmpty = useMemo(() => {
+    return BOARD_COLUMNS.every((col) => byColumn[col.status].length === 0)
+  }, [byColumn])
+
+  // When board is completely empty, show a centered empty state matching the
+  // list view pattern instead of four barren columns.
+  if (isBoardEmpty) {
+    return (
+      <div className="text-center py-16">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ backgroundColor: WARM_CHIP }}
+        >
+          <Layers className="w-7 h-7" strokeWidth={1.75} style={{ color: TEXT_PRIMARY }} />
+        </div>
+        <h3
+          className="text-[17px] font-semibold mb-2"
+          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}
+        >
+          No events yet
+        </h3>
+        <p
+          className="text-[13.5px] max-w-sm mx-auto mb-6 leading-[1.55]"
+          style={{ color: TEXT_SECONDARY }}
+        >
+          Create your first event to start planning, scheduling, and coordinating everything in one place.
+        </p>
+        <CreateEventMenu
+          isAdmin={isAdmin}
+          onSelect={onCreateDraftSelect}
+          renderTrigger={({ toggle }) => (
+            <button
+              type="button"
+              onClick={toggle}
+              className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              style={{
+                backgroundColor: TEXT_PRIMARY,
+                color: '#ffffff',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
+              }}
+            >
+              Create First Event
+            </button>
+          )}
+        />
+      </div>
+    )
+  }
 
   return (
     <>

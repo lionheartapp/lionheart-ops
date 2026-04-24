@@ -54,6 +54,27 @@ function createPinoLogger(): Logger {
   return pino({ level: 'info' }) as Logger
 }
 
-export const logger: Logger = process.env.NODE_ENV === 'production'
-  ? createPinoLogger()
-  : createConsoleLogger()
+/**
+ * Browser-safe logger factory. In the browser, pino (a Node.js library) cannot
+ * load — it depends on streams, os, and other server-only APIs. When this
+ * module is bundled into a client component (e.g. ServiceWorkerRegistration),
+ * calling `require('pino')` throws. We detect the browser environment and
+ * always fall back to the console logger there.
+ */
+function createLogger(): Logger {
+  // Browser environment — always use the lightweight console logger regardless
+  // of NODE_ENV, because pino requires Node.js APIs (streams, os, worker_threads).
+  if (typeof window !== 'undefined') {
+    return createConsoleLogger()
+  }
+
+  // Server environment — use pino in production for structured JSON logs,
+  // console logger in development for human-readable output.
+  if (process.env.NODE_ENV === 'production') {
+    return createPinoLogger()
+  }
+
+  return createConsoleLogger()
+}
+
+export const logger: Logger = createLogger()

@@ -53,6 +53,12 @@ export default function TransactionTimeline({ itemId, onCheckin, checkinPendingI
         const isOpen = isCheckout && tx.checkedInAt === null
         const absQty = Math.abs(tx.quantity)
 
+        // Overdue detection
+        const isOverdue = isOpen && tx.dueDate != null && new Date(tx.dueDate) < new Date()
+        const daysOverdue = isOverdue && tx.dueDate
+          ? Math.floor((new Date().getTime() - new Date(tx.dueDate).getTime()) / (1000 * 60 * 60 * 24))
+          : 0
+
         return (
           <div key={tx.id} className="flex gap-3">
             {/* Icon */}
@@ -104,7 +110,12 @@ export default function TransactionTimeline({ itemId, onCheckin, checkinPendingI
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {isOpen && (
+                  {isOverdue && (
+                    <span className="text-xs font-medium text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                      Overdue {daysOverdue > 0 ? `(${daysOverdue}d)` : ''}
+                    </span>
+                  )}
+                  {isOpen && !isOverdue && (
                     <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                       Outstanding
                     </span>

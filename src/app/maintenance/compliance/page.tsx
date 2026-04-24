@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { logger } from '@/lib/logger'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -14,6 +13,7 @@ import { ComplianceRecordDrawer } from '@/components/maintenance/compliance/Comp
 import { AuditExportDialog } from '@/components/maintenance/compliance/AuditExportDialog'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { fetchApi } from '@/lib/api-client'
+import { useAuth } from '@/lib/hooks/useAuth'
 import type { ComplianceDomainCardData } from '@/components/maintenance/compliance/ComplianceDomainCard'
 import type { ComplianceDomain } from '@prisma/client'
 import type { ComplianceDomainMeta } from '@/lib/types/compliance'
@@ -60,60 +60,49 @@ function DomainCardSkeleton() {
 // ─── Page Content ─────────────────────────────────────────────────────────────
 
 function ComplianceContent() {
-  const router = useRouter()
   const queryClient = useQueryClient()
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
-  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
-  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
-  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
-  )
-  const [isClient, setIsClient] = useState(false)
+  // Cookie-based auth via useAuth — no more localStorage JWT reads
+  const { user, org, orgId, isReady, logout } = useAuth({ redirectTo: '/login' })
+  const userName = user.name
+  const userEmail = user.email
+  const userAvatar = user.avatar
+  const userRole = user.role
+  const orgName = org.name
+  const orgSchoolType = org.schoolType
+  const userSchoolScope = user.campusScope ?? user.schoolScope
+  const userTeam = user.team
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
+  const isClient = isReady
 
-  // Auth guard
+  // Keep the local logo copy in sync when useAuth refreshes it
   useEffect(() => {
-    setIsClient(true)
-    if (!token || !orgId) {
-      router.push('/login')
+    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
+      setOrgLogoUrl(org.logoUrl)
     }
-  }, [token, orgId, router])
+  }, [org.logoUrl, orgLogoUrl])
 
-  // Fetch org logo if not cached
+  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
   useEffect(() => {
-    if (orgLogoUrl || !token) return
-    const fetchLogo = async () => {
-      try {
-        const res = await fetch('/api/onboarding/school-info', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.ok && data.data?.logoUrl) {
-            setOrgLogoUrl(data.data.logoUrl)
-            localStorage.setItem('org-logo-url', data.data.logoUrl)
-          }
+    if (orgLogoUrl || !isReady) return
+    let cancelled = false
+    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
+      .then((data) => {
+        if (cancelled) return
+        if (data?.logoUrl) {
+          setOrgLogoUrl(data.logoUrl)
         }
-      } catch {
+      })
+      .catch(() => {
         // Silently fail
-      }
+      })
+    return () => {
+      cancelled = true
     }
-    fetchLogo()
-  }, [orgLogoUrl, token])
+  }, [orgLogoUrl, isReady])
 
   const handleLogout = () => {
-    ;[
-      'auth-token', 'org-id', 'user-name', 'user-email', 'user-avatar',
-      'user-team', 'user-school-scope', 'user-role', 'org-name', 'org-school-type', 'org-logo-url',
-    ].forEach((k) => localStorage.removeItem(k))
-    router.push('/login')
+    logout()
   }
 
   // ─── Data ──────────────────────────────────────────────────────────────────
@@ -121,7 +110,7 @@ function ComplianceContent() {
   const { data: domainsData, isLoading: domainsLoading } = useQuery<{ data: ComplianceDomainCardData[] }>({
     queryKey: ['compliance-domains'],
     queryFn: () => fetchApi<{ data: ComplianceDomainCardData[] }>('/api/maintenance/compliance/domains'),
-    enabled: isClient && !!token,
+    enabled: isClient,
   })
 
   const domains: ComplianceDomainCardData[] = domainsData?.data ?? []
@@ -191,7 +180,7 @@ function ComplianceContent() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  if (!isClient || !token || !orgId) {
+  if (!isClient || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Package, Settings, Save, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Package, Settings, Save, ChevronLeft, ChevronRight, X, ClipboardCheck } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import StepEssentials, { type LocationEntry } from './StepEssentials'
@@ -47,6 +47,7 @@ interface AVEquipmentWizardProps {
 const STEPS = [
   { label: 'Essentials', sublabel: 'Name, location, checkout', icon: Package },
   { label: 'Details', sublabel: 'Product info, media, tags', icon: Settings },
+  { label: 'Review', sublabel: 'Confirm & create', icon: ClipboardCheck },
 ] as const
 
 // ─── Animation Variants ────────────────────────────────────────────────────
@@ -86,6 +87,94 @@ function getInitialData(item?: InventoryItemData | null): AVEquipmentFormData {
   }
 }
 
+// ─── Step 3: Review & Confirm ─────────────────────────────────────────────
+
+function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between items-start py-2 border-b border-slate-100 last:border-0">
+      <span className="text-xs font-medium text-slate-500 w-32 flex-shrink-0">{label}</span>
+      <span className="text-sm text-slate-900 text-right">{value || <span className="text-slate-400 italic">Not set</span>}</span>
+    </div>
+  )
+}
+
+function StepReview({ formData, isEditing }: { formData: AVEquipmentFormData; isEditing: boolean }) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-sm font-semibold text-slate-900 mb-1">
+          {isEditing ? 'Review your changes' : 'Review before creating'}
+        </p>
+        <p className="text-xs text-slate-500">
+          Confirm the details below, then click {isEditing ? '"Save Changes"' : '"Create Equipment"'} to finish.
+        </p>
+      </div>
+
+      {/* Essentials */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Essentials</p>
+        <ReviewRow label="Name" value={formData.name} />
+        <ReviewRow label="Description" value={formData.description} />
+        <ReviewRow label="Category" value={formData.category} />
+        <ReviewRow
+          label="Checkout"
+          value={formData.allowCheckout ? 'Allowed' : 'Not allowed'}
+        />
+        <ReviewRow
+          label="Locations"
+          value={
+            formData.locations.length > 0
+              ? formData.locations.map((l) => `${l.locationName} (x${l.quantity})`).join(', ')
+              : null
+          }
+        />
+      </div>
+
+      {/* Details */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Details</p>
+        <ReviewRow label="Manufacturer" value={formData.manufacturer} />
+        <ReviewRow label="Model" value={formData.model} />
+        <ReviewRow
+          label="Serial Numbers"
+          value={
+            formData.serialNumbers.length > 0
+              ? formData.serialNumbers.join(', ')
+              : null
+          }
+        />
+        <ReviewRow
+          label="Tags"
+          value={
+            formData.tags.length > 0
+              ? (
+                <span className="flex flex-wrap gap-1 justify-end">
+                  {formData.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </span>
+              )
+              : null
+          }
+        />
+        <ReviewRow
+          label="Documentation"
+          value={
+            formData.documentationLinks.length > 0
+              ? `${formData.documentationLinks.length} link${formData.documentationLinks.length === 1 ? '' : 's'}`
+              : null
+          }
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── Component ─────────────────────────────────────────────────────────────
 
 export default function AVEquipmentWizard({
@@ -108,6 +197,7 @@ export default function AVEquipmentWizard({
   const stepValid = [
     Boolean(formData.name.trim()), // Step 0: name required
     true, // Step 1: all optional
+    true, // Step 2: review — always valid
   ]
 
   const canAdvance = stepValid[currentStep]
@@ -310,6 +400,9 @@ export default function AVEquipmentWizard({
                 onTagsChange={(v) => update({ tags: v })}
               />
             )}
+            {currentStep === 2 && (
+              <StepReview formData={formData} isEditing={isEditing} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -330,7 +423,7 @@ export default function AVEquipmentWizard({
                 ? 'Saving…'
                 : isEditing
                 ? 'Save Changes'
-                : 'Save Equipment'}
+                : 'Create Equipment'}
             </button>
           ) : (
             <button

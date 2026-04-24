@@ -13,13 +13,7 @@ import DayView from '@/components/calendar/DayView'
 import AgendaView from '@/components/calendar/AgendaView'
 import type { PmCalendarEvent } from '@/lib/types/pm-schedule'
 
-// ─── Auth Headers ─────────────────────────────────────────────────────────────
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
+import { getAuthHeaders } from '@/lib/api-client'
 
 // ─── Adapter: PM event → CalendarEventData ────────────────────────────────────
 
@@ -116,6 +110,7 @@ export default function PmCalendarView({ onEventClick }: PmCalendarViewProps) {
       })
       const res = await fetch(`/api/maintenance/pm-schedules?${params}`, {
         headers: getAuthHeaders(),
+        credentials: 'include',
       })
       if (!res.ok) return []
       const json = await res.json()

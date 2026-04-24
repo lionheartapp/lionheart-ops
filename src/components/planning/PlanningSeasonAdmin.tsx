@@ -59,6 +59,11 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showGoBackDialog, setShowGoBackDialog] = useState(false)
   const [showReopenDialog, setShowReopenDialog] = useState(false)
+  const [showConflictsDrawer, setShowConflictsDrawer] = useState(false)
+
+  // Batch selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [batchProcessing, setBatchProcessing] = useState(false)
 
   // Review dialog state
   const [reviewTarget, setReviewTarget] = useState<{ sub: PlanningSubmission; action: string } | null>(null)
@@ -135,6 +140,49 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
     setEditSubClose(season.submissionClose?.slice(0, 10) || '')
     setEditBudgetCap(season.budgetCap?.toString() || '')
     setShowEditDrawer(true)
+  }
+
+  // Batch action handler
+  const batchableSubmissions = submissions.filter((s) => s.submissionStatus === 'SUBMITTED')
+  const allBatchableSelected = batchableSubmissions.length > 0 && batchableSubmissions.every((s) => selectedIds.has(s.id))
+
+  const toggleSelectAll = () => {
+    if (allBatchableSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(batchableSubmissions.map((s) => s.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleBatchAction = async (action: string) => {
+    if (selectedIds.size === 0) return
+    setBatchProcessing(true)
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map((subId) =>
+          reviewMutation.mutateAsync({
+            seasonId: season.id,
+            subId,
+            data: { status: action },
+          })
+        )
+      )
+      setSelectedIds(new Set())
+    } finally {
+      setBatchProcessing(false)
+    }
   }
 
   const phaseInfo = PHASE_LABELS[season.phase] || PHASE_LABELS.SETUP
@@ -221,10 +269,14 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
           <div className="text-2xl font-bold text-yellow-600">{submissions.filter((s) => s.submissionStatus === 'SUBMITTED').length}</div>
           <div className="text-xs text-slate-500">Awaiting Review</div>
         </div>
-        <div className="ui-glass p-3 text-center">
+        <button
+          onClick={() => unresolvedConflicts.length > 0 && setShowConflictsDrawer(true)}
+          className={`ui-glass p-3 text-center w-full transition-colors ${unresolvedConflicts.length > 0 ? 'cursor-pointer hover:bg-red-50/50' : ''}`}
+          disabled={unresolvedConflicts.length === 0}
+        >
           <div className="text-2xl font-bold text-red-600">{unresolvedConflicts.length}</div>
-          <div className="text-xs text-slate-500">Conflicts</div>
-        </div>
+          <div className="text-xs text-slate-500">{unresolvedConflicts.length > 0 ? 'Conflicts (click to view)' : 'Conflicts'}</div>
+        </button>
       </div>
 
       {/* Bulk Publish (when in APPROVING phase) */}
@@ -248,7 +300,28 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
 
       {/* Submissions Table */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-900 mb-3">Submissions</h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-slate-900">Submissions</h4>
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">{selectedIds.size} selected</span>
+              <button
+                onClick={() => handleBatchAction('APPROVED_IN_PRINCIPLE')}
+                disabled={batchProcessing}
+                className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {batchProcessing ? 'Processing...' : 'Batch Approve'}
+              </button>
+              <button
+                onClick={() => handleBatchAction('DECLINED')}
+                disabled={batchProcessing}
+                className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {batchProcessing ? 'Processing...' : 'Batch Decline'}
+              </button>
+            </div>
+          )}
+        </div>
         {submissions.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm">No submissions yet</div>
         ) : (
@@ -256,6 +329,17 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200/50 text-left">
+                  <th className="px-4 py-3 w-10">
+                    {batchableSubmissions.length > 0 && (
+                      <input
+                        type="checkbox"
+                        checked={allBatchableSelected}
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-300 cursor-pointer"
+                        title="Select all pending submissions"
+                      />
+                    )}
+                  </th>
                   <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Title</th>
                   <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider hidden sm:table-cell">Submitted By</th>
                   <th className="px-4 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
@@ -267,6 +351,18 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
               <tbody className="divide-y divide-slate-100">
                 {submissions.map((sub) => (
                   <tr key={sub.id} className="hover:bg-white/40 transition-colors">
+                    <td className="px-4 py-3">
+                      {sub.submissionStatus === 'SUBMITTED' ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(sub.id)}
+                          onChange={() => toggleSelect(sub.id)}
+                          className="rounded border-slate-300 cursor-pointer"
+                        />
+                      ) : (
+                        <span className="w-4 inline-block" />
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => onSelectSubmission(sub)}
@@ -367,6 +463,73 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
         isLoading={deleteSeason.isPending}
         loadingText="Deleting..."
       />
+
+      {/* Conflicts Detail Drawer */}
+      <DetailDrawer
+        isOpen={showConflictsDrawer}
+        onClose={() => setShowConflictsDrawer(false)}
+        title={`Conflicts (${unresolvedConflicts.length})`}
+        width="md"
+      >
+        <div className="space-y-3 p-1">
+          {unresolvedConflicts.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-6">No unresolved conflicts</p>
+          ) : (
+            unresolvedConflicts.map((conflict) => {
+              const severityColor = conflict.severity === 'HIGH' || conflict.severity === 'CRITICAL'
+                ? 'bg-red-100 text-red-700 border-red-200'
+                : conflict.severity === 'MEDIUM'
+                  ? 'bg-amber-100 text-amber-700 border-amber-200'
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
+
+              // Find affected submission titles
+              const affectedSubs = submissions.filter((s) => conflict.affectedIds.includes(s.id))
+
+              return (
+                <div key={conflict.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${severityColor}`}>
+                        {conflict.severity}
+                      </span>
+                      <span className="text-xs font-medium text-slate-500 uppercase">
+                        {conflict.conflictType.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-800">{conflict.description}</p>
+                  {affectedSubs.length > 0 && (
+                    <div className="pt-1">
+                      <p className="text-xs font-medium text-slate-500 mb-1">Affected Submissions:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {affectedSubs.map((sub) => (
+                          <button
+                            key={sub.id}
+                            onClick={() => {
+                              setShowConflictsDrawer(false)
+                              onSelectSubmission(sub)
+                            }}
+                            className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
+                          >
+                            {sub.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {conflict.suggestedResolution && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-1">
+                      <p className="text-xs text-blue-700">
+                        <span className="font-medium">Suggested:</span> {conflict.suggestedResolution}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
+      </DetailDrawer>
 
       {/* Edit Season Drawer */}
       <DetailDrawer

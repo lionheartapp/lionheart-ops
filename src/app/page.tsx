@@ -14,7 +14,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { animate, motion, useInView, useReducedMotion } from 'framer-motion'
+import { animate, motion, MotionConfig, useInView, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   Calendar,
@@ -80,20 +80,22 @@ function CountUp({
 
 export default function Landing() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#ffffff', color: TEXT_PRIMARY }}>
-      <Nav />
-      <Hero />
-      <TrustBar />
-      <WhatItReplaces />
-      <ModulesGrid />
-      <DeepDiveEvents />
-      <DeepDiveMaintenance />
-      <LeoSection />
-      <Pricing />
-      <FAQ />
-      <ClosingCTA />
-      <Footer />
-    </div>
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen" style={{ backgroundColor: '#ffffff', color: TEXT_PRIMARY }}>
+        <Nav />
+        <Hero />
+        <TrustBar />
+        <WhatItReplaces />
+        <ModulesGrid />
+        <DeepDiveEvents />
+        <DeepDiveMaintenance />
+        <LeoSection />
+        <Pricing />
+        <FAQ />
+        <ClosingCTA />
+        <Footer />
+      </div>
+    </MotionConfig>
   )
 }
 

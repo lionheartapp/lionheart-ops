@@ -51,6 +51,56 @@ const LOGISTICS_TABS: Array<{
   { id: 'print', label: 'Print', icon: Printer },
 ]
 
+// ─── Skeleton ────────────────────────────────────────────────────────────────────
+
+function LogisticsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-4 bg-slate-200 rounded" />
+          <div className="w-20 h-4 bg-slate-200 rounded" />
+        </div>
+        <div className="flex gap-2">
+          <div className="w-28 h-8 bg-slate-100 rounded-full" />
+          <div className="w-36 h-8 bg-slate-100 rounded-full" />
+        </div>
+      </div>
+      {/* Sub-tab bar */}
+      <div className="border-b border-slate-200 pb-1">
+        <div className="flex gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="w-16 h-4 bg-slate-100 rounded" />
+          ))}
+        </div>
+      </div>
+      {/* Content */}
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 h-24" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Error State ─────────────────────────────────────────────────────────────────
+
+function LogisticsError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="py-12 text-center">
+      <p className="text-sm text-red-500 mb-3">{message}</p>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+      >
+        Try Again
+      </button>
+    </div>
+  )
+}
+
 // ─── Quick Stats ─────────────────────────────────────────────────────────────────
 
 function QuickStats({ eventProjectId }: { eventProjectId: string }) {
@@ -283,6 +333,13 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
   const { toast } = useToast()
   const assignToGroup = useAssignToGroup(eventProjectId)
 
+  // Top-level data fetch for loading/error states
+  const { isLoading: busLoading, error: busError, refetch: refetchBus } = useGroups(eventProjectId, 'BUS')
+  const { isLoading: cabinLoading, error: cabinError, refetch: refetchCabin } = useGroups(eventProjectId, 'CABIN')
+  const { isLoading: sgLoading, error: sgError, refetch: refetchSg } = useGroups(eventProjectId, 'SMALL_GROUP')
+  const isLoading = busLoading || cabinLoading || sgLoading
+  const hasError = busError || cabinError || sgError
+
   // AI state
   const [suggestingAssignments, setSuggestingAssignments] = useState(false)
   const [assignmentResult, setAssignmentResult] = useState<AIGroupAssignmentResult | null>(null)
@@ -290,6 +347,8 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
   const [checkingConflicts, setCheckingConflicts] = useState(false)
   const [conflictReport, setConflictReport] = useState<AIConflictReport | null>(null)
   const [aiError, setAIError] = useState<string | null>(null)
+  const [failedAssignments, setFailedAssignments] = useState<Array<{ participantId: string; groupId: string; error: string }>>([])
+  const [retryingFailed, setRetryingFailed] = useState(false)
 
   const canViewMedical =
     perms?.legacyRole === 'super-admin' || perms?.legacyRole === 'admin'
@@ -357,13 +416,14 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
 
     setApplyingAssignments(true)
     setAIError(null)
+    setFailedAssignments([])
 
     // Write each AI suggestion through the existing single-assignment mutation.
     // The AI returns `participantId` which maps 1:1 to `eventRegistration.id`
     // (see src/app/api/events/ai/generate-groups/route.ts — participants are
     // built from `eventRegistration` rows and their `id` is used as-is).
     let successCount = 0
-    const failures: string[] = []
+    const failures: Array<{ participantId: string; groupId: string; error: string }> = []
 
     for (const a of assignmentResult.assignments) {
       try {
@@ -374,7 +434,7 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
         successCount += 1
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error'
-        failures.push(msg)
+        failures.push({ participantId: a.participantId, groupId: a.groupId, error: msg })
       }
     }
 
@@ -387,12 +447,48 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
         'success',
       )
     } else if (successCount > 0 && failures.length > 0) {
+      setFailedAssignments(failures)
       toast(
         `Applied ${successCount} of ${successCount + failures.length} assignments — ${failures.length} failed`,
         'warning',
       )
     } else {
+      setFailedAssignments(failures)
       toast('Failed to apply AI group assignments', 'error')
+    }
+  }
+
+  async function handleRetryFailed() {
+    if (failedAssignments.length === 0) return
+
+    setRetryingFailed(true)
+    setAIError(null)
+
+    let successCount = 0
+    const stillFailing: Array<{ participantId: string; groupId: string; error: string }> = []
+
+    for (const a of failedAssignments) {
+      try {
+        await assignToGroup.mutateAsync({
+          groupId: a.groupId,
+          registrationId: a.participantId,
+        })
+        successCount += 1
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        stillFailing.push({ participantId: a.participantId, groupId: a.groupId, error: msg })
+      }
+    }
+
+    setRetryingFailed(false)
+    setFailedAssignments(stillFailing)
+
+    if (stillFailing.length === 0) {
+      toast(`Retry successful — ${successCount} assignment${successCount === 1 ? '' : 's'} applied`, 'success')
+    } else if (successCount > 0) {
+      toast(`Retried: ${successCount} succeeded, ${stillFailing.length} still failing`, 'warning')
+    } else {
+      toast(`Retry failed — all ${stillFailing.length} assignments still failing`, 'error')
     }
   }
 
@@ -446,6 +542,21 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
   }
 
   const isGroupTab = ['buses', 'cabins', 'small-groups'].includes(activeTab)
+
+  if (isLoading) return <LogisticsSkeleton />
+
+  if (hasError) {
+    return (
+      <LogisticsError
+        message="Failed to load logistics data."
+        onRetry={() => {
+          refetchBus()
+          refetchCabin()
+          refetchSg()
+        }}
+      />
+    )
+  }
 
   return (
     <>
@@ -504,6 +615,47 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
               >
                 <X className="w-3.5 h-3.5" />
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Failed assignments panel */}
+        {failedAssignments.length > 0 && (
+          <motion.div variants={fadeInUp}>
+            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" />
+                  {failedAssignments.length} assignment{failedAssignments.length === 1 ? '' : 's'} failed
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRetryFailed}
+                    disabled={retryingFailed}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-600 text-white text-xs font-medium hover:bg-amber-700 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {retryingFailed ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    {retryingFailed ? 'Retrying...' : 'Retry Failed'}
+                  </button>
+                  <button
+                    onClick={() => setFailedAssignments([])}
+                    className="text-amber-400 hover:text-amber-600 cursor-pointer flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {failedAssignments.map((f, i) => (
+                  <p key={i} className="text-xs text-amber-700">
+                    Participant {f.participantId.slice(-6)} → Group {f.groupId.slice(-6)}: {f.error}
+                  </p>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}

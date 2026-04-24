@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getAuthHeaders } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 import {
   ClipboardList,
@@ -79,12 +80,6 @@ interface PmScheduleWizardProps {
   onCancel?: () => void
 }
 
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
-
 const EASE = [0.25, 0.1, 0.25, 1] as [number, number, number, number]
 
 const stepVariants = {
@@ -147,6 +142,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
     queryFn: async () => {
       const res = await fetch('/api/maintenance/assets?limit=200', {
         headers: getAuthHeaders(),
+        credentials: 'include',
       })
       if (!res.ok) return { assets: [] }
       const json = await res.json()
@@ -160,6 +156,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
     queryFn: async () => {
       const res = await fetch('/api/settings/users', {
         headers: getAuthHeaders(),
+        credentials: 'include',
       })
       if (!res.ok) return { users: [] }
       const json = await res.json()
@@ -257,6 +254,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
       const res = await fetch('/api/maintenance/pm-schedules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        credentials: 'include',
         body: JSON.stringify(body),
       })
 

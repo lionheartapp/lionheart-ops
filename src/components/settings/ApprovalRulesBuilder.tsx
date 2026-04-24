@@ -33,12 +33,12 @@ interface RuleData {
   isFinalApprover: boolean
   isActive: boolean
   sortOrder: number
-  school: { id: string; name: string; gradeLevel: string; color: string } | null
+  school: { id: string; name: string; color: string } | null
   campus: { id: string; name: string } | null
   steps: StepEntry[]
 }
 
-interface SchoolData { id: string; name: string; gradeLevel: string; color: string }
+interface SchoolData { id: string; name: string; institutionType: string; color: string }
 interface TeamData { id: string; name: string; slug: string; members: { id: string; name: string; email: string }[] }
 
 async function fetchRules() {

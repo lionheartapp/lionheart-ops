@@ -248,12 +248,13 @@ export function useApproveEventProject(id: string | null | undefined) {
 }
 
 /**
- * Approve a specific gate (av, facilities, admin) on an event project.
+ * Approve a specific gate on an event project.
+ * Accepts V1 channel types ('av', 'facilities', 'admin') or V2 team UUIDs.
  */
 export function useApproveGate(id: string | null | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (gateType: 'av' | 'facilities' | 'admin') =>
+    mutationFn: (gateType: string) =>
       fetchApi<EventProject>(`/api/events/projects/${id}/approve-gate`, {
         method: 'POST',
         body: JSON.stringify({ gateType }),
@@ -262,17 +263,19 @@ export function useApproveGate(id: string | null | undefined) {
       queryClient.invalidateQueries({ queryKey: ['event-project', id] })
       queryClient.invalidateQueries({ queryKey: ['event-projects'] })
       queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-gates'] })
     },
   })
 }
 
 /**
  * Reject a specific gate on an event project.
+ * Accepts V1 channel types ('av', 'facilities', 'admin') or V2 team UUIDs.
  */
 export function useRejectGate(id: string | null | undefined) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { gateType: 'av' | 'facilities' | 'admin'; reason: string }) =>
+    mutationFn: (data: { gateType: string; reason: string }) =>
       fetchApi<EventProject>(`/api/events/projects/${id}/reject-gate`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -281,6 +284,7 @@ export function useRejectGate(id: string | null | undefined) {
       queryClient.invalidateQueries({ queryKey: ['event-project', id] })
       queryClient.invalidateQueries({ queryKey: ['event-projects'] })
       queryClient.invalidateQueries({ queryKey: ['event-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-gates'] })
     },
   })
 }
@@ -361,11 +365,12 @@ export function useTransitionEventProject() {
 
 /**
  * Fetch EventProjects with a PENDING gate for a specific team.
+ * Accepts V1 channel types ('av', 'facilities', 'admin') or V2 team UUIDs.
  */
-export function usePendingGateApprovals(gateType: 'av' | 'facilities' | 'admin', enabled = true) {
+export function usePendingGateApprovals(gateType: string, enabled = true) {
   return useQuery<EventProject[]>({
     queryKey: ['pending-gates', gateType],
-    queryFn: () => fetchApi<EventProject[]>(`/api/events/projects/pending-gates?gateType=${gateType}`),
+    queryFn: () => fetchApi<EventProject[]>(`/api/events/projects/pending-gates?gateType=${encodeURIComponent(gateType)}`),
     enabled,
     staleTime: 30_000,
   })
@@ -374,11 +379,12 @@ export function usePendingGateApprovals(gateType: 'av' | 'facilities' | 'admin',
 /**
  * Fetch the count of pending gate approvals for a specific team.
  * Lightweight — used for sidebar badge counts.
+ * Accepts V1 channel types or V2 team UUIDs.
  */
-export function usePendingGateCount(gateType: 'av' | 'facilities' | 'admin', enabled = true) {
+export function usePendingGateCount(gateType: string, enabled = true) {
   return useQuery<{ count: number }>({
     queryKey: ['pending-gates-count', gateType],
-    queryFn: () => fetchApi<{ count: number }>(`/api/events/projects/pending-gates?gateType=${gateType}&countOnly=true`),
+    queryFn: () => fetchApi<{ count: number }>(`/api/events/projects/pending-gates?gateType=${encodeURIComponent(gateType)}&countOnly=true`),
     enabled,
     staleTime: 60_000,
   })

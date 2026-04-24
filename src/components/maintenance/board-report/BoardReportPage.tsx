@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
+import { getAuthHeaders } from '@/lib/api-client'
 import {
   BarChart3,
   RefreshCw,
@@ -123,10 +124,10 @@ function YoyCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface BoardReportPageProps {
-  token: string | null
+  token?: string | null // Deprecated — no longer used; auth via httpOnly cookie
 }
 
-export function BoardReportPage({ token }: BoardReportPageProps) {
+export function BoardReportPage(_props: BoardReportPageProps) {
   const now = new Date()
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
@@ -142,7 +143,7 @@ export function BoardReportPage({ token }: BoardReportPageProps) {
     queryFn: async () => {
       const res = await fetch(
         `/api/maintenance/board-report?from=${from}&to=${to}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders(), credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch board report')
       return res.json()

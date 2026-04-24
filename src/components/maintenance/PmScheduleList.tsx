@@ -35,13 +35,7 @@ interface PmSchedule {
 type SortField = 'name' | 'recurrenceType' | 'nextDueDate' | 'isActive'
 type SortDir = 'asc' | 'desc'
 
-// ─── Auth Headers ─────────────────────────────────────────────────────────────
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
+import { getAuthHeaders } from '@/lib/api-client'
 
 // ─── PmScheduleList ───────────────────────────────────────────────────────────
 
@@ -58,6 +52,7 @@ export default function PmScheduleList({ onRowClick }: PmScheduleListProps) {
     queryFn: async () => {
       const res = await fetch('/api/maintenance/pm-schedules', {
         headers: getAuthHeaders(),
+        credentials: 'include',
       })
       if (!res.ok) return []
       const json = await res.json()

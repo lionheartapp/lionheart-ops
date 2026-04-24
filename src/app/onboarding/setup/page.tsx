@@ -121,7 +121,7 @@ const featureVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.5 + i * 0.15, duration: 0.3 },
+    transition: { delay: 0.6 + i * 0.1, duration: 0.3 },
   }),
 }
 
@@ -359,33 +359,21 @@ export default function SetupPage() {
       {/* Animated Checkmark */}
       <AnimatedCheckmark />
 
-      {/* Welcome Text with typewriter effect */}
+      {/* Welcome Text */}
       <div>
         <motion.h2
           className="text-4xl font-bold text-slate-900 mb-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          style={{
-            overflow: 'hidden',
-            borderRight: '2px solid transparent',
-            whiteSpace: 'nowrap',
-            display: 'inline-block',
-            animation: 'typing 1.2s steps(22) 0.5s forwards, blink-caret 0.6s step-end 3',
-            width: 0,
-          }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         >
           Welcome to Lionheart!
         </motion.h2>
-        {/* Fallback for reduced motion / after animation */}
-        <noscript>
-          <h2 className="text-4xl font-bold text-slate-900 mb-2">Welcome to Lionheart!</h2>
-        </noscript>
         <motion.p
           className="text-lg text-slate-600"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0, duration: 0.4 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
         >
           {schoolName} is ready to go
         </motion.p>
@@ -418,7 +406,7 @@ export default function SetupPage() {
         className="flex flex-col gap-3 max-w-sm mx-auto pt-4"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.4, ease: 'easeOut' }}
+        transition={{ delay: 0.9, duration: 0.4, ease: 'easeOut' }}
       >
         <motion.button
           onClick={handleGoToDashboard}

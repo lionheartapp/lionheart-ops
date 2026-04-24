@@ -60,6 +60,10 @@ export default function InventoryPage() {
     }
   }, [router])
 
+  // ── Pagination state ──
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 50
+
   // ── Search / filter state ──
   const [rawSearch, setRawSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -70,14 +74,18 @@ export default function InventoryPage() {
   const categoryRef = useRef<HTMLDivElement>(null)
   const stockRef = useRef<HTMLDivElement>(null)
 
-  // Reset category filter when dept changes (so AV categories don't bleed into Maintenance)
+  // Reset category filter and page when dept changes (so AV categories don't bleed into Maintenance)
   useEffect(() => {
     setCategory('')
+    setPage(1)
   }, [dept])
 
-  // Debounce search
+  // Debounce search — also reset page
   useEffect(() => {
-    const t = setTimeout(() => setSearch(rawSearch), 300)
+    const t = setTimeout(() => {
+      setSearch(rawSearch)
+      setPage(1)
+    }, 300)
     return () => clearTimeout(t)
   }, [rawSearch])
 
@@ -116,27 +124,38 @@ export default function InventoryPage() {
   const [formPending, setFormPending] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  // ── Data fetching ──
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: [...inventoryKeys.list(search, category), dept],
-    queryFn: () => {
+  // ── Data fetching (paginated) ──
+  const { data: inventoryResponse, isLoading } = useQuery({
+    queryKey: [...inventoryKeys.list(search, category), dept, page],
+    queryFn: async () => {
       const params = new URLSearchParams()
       if (search) params.set('search', search)
       if (category) {
-        // Specific category selected — single filter
         params.set('category', category)
       } else {
-        // No specific category — filter to dept categories
         params.set('categories', deptCategories.join(','))
       }
-      // Opt into max page size so the inventory list doesn't silently truncate at 25.
-      // TODO: replace with proper pagination UI when inventory grows beyond 500 items.
-      params.set('limit', '500')
+      params.set('page', String(page))
+      params.set('limit', String(PAGE_SIZE))
       const qs = params.toString()
-      return fetchApi<InventoryItem[]>(`/api/inventory${qs ? `?${qs}` : ''}`)
+      const res = await fetch(`/api/inventory${qs ? `?${qs}` : ''}`, {
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : ''}`,
+          'x-org-id': typeof window !== 'undefined' ? localStorage.getItem('org-id') || '' : '',
+        },
+      })
+      const json = await res.json()
+      if (!json.ok) throw new Error(json.error?.message || 'Failed to load inventory')
+      return { items: json.data as InventoryItem[], meta: json.meta as { total: number; page: number; limit: number; totalPages: number } | undefined }
     },
     staleTime: 30_000,
   })
+
+  const items = inventoryResponse?.items ?? []
+  const paginationMeta = inventoryResponse?.meta
+  const totalPages = paginationMeta?.totalPages ?? 1
+  const totalItems = paginationMeta?.total ?? items.length
 
   // ── Client-side stock filtering ──
   const filteredItems = useMemo(() => {
@@ -149,12 +168,12 @@ export default function InventoryPage() {
 
   // ── Summary stats ──
   const stats = useMemo(() => {
-    const totalItems = items.length
+    const displayTotal = totalItems
     const totalInStock = items.reduce((sum, i) => sum + i.quantityOnHand, 0)
     const lowStockCount = items.filter((i) => i.quantityOnHand > 0 && i.quantityOnHand <= i.reorderThreshold).length
     const outOfStockCount = items.filter((i) => i.quantityOnHand === 0).length
-    return { totalItems, totalInStock, lowStockCount, outOfStockCount }
-  }, [items])
+    return { totalItems: displayTotal, totalInStock, lowStockCount, outOfStockCount }
+  }, [items, totalItems])
 
   // ── Mutations ──
   const deleteMutation = useMutation({
@@ -384,6 +403,7 @@ export default function InventoryPage() {
                       onClick={() => {
                         setCategory(cat)
                         setCategoryOpen(false)
+                        setPage(1)
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
                         category === cat ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-700 hover:bg-slate-50'
@@ -426,6 +446,7 @@ export default function InventoryPage() {
                       onClick={() => {
                         setStockFilter(opt.value)
                         setStockOpen(false)
+                        setPage(1)
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
                         stockFilter === opt.value ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-700 hover:bg-slate-50'
@@ -549,6 +570,31 @@ export default function InventoryPage() {
             </table>
           )}
         </motion.div>
+
+        {/* ── Pagination Controls ── */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 px-2">
+            <p className="text-xs text-slate-500">
+              Page {page} of {totalPages} ({totalItems} items)
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Item Detail Drawer ── */}
         <DetailDrawer

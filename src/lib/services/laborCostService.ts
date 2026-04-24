@@ -19,6 +19,7 @@ export const CreateLaborEntrySchema = z.object({
   endTime: z.string().datetime().optional(),
   durationMinutes: z.number().int().positive().optional(),
   notes: z.string().optional(),
+  hourlyRate: z.number().positive().optional(),
 })
 
 export const UpdateLaborEntrySchema = z.object({

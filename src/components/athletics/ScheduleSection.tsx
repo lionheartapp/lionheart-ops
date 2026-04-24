@@ -321,6 +321,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   const [gameDrawerOpen, setGameDrawerOpen] = useState(false)
   const [editingGame, setEditingGame] = useState<Game | null>(null)
   const [practiceDrawerOpen, setPracticeDrawerOpen] = useState(false)
+  const [editingPractice, setEditingPractice] = useState<Practice | null>(null)
   const [scoreGame, setScoreGame] = useState<Game | null>(null)
   const [playerStatsGame, setPlayerStatsGame] = useState<Game | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'game' | 'practice'; id: string; name: string } | null>(null)
@@ -331,7 +332,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   // Listen for external "add" triggers from the Add menu
   useEffect(() => {
     const handleAddGame = () => { setEditingGame(null); setGameDrawerOpen(true) }
-    const handleAddPractice = () => { setPracticeDrawerOpen(true) }
+    const handleAddPractice = () => { setEditingPractice(null); setPracticeDrawerOpen(true) }
     window.addEventListener('athletics-add-game', handleAddGame)
     window.addEventListener('athletics-add-practice', handleAddPractice)
     return () => {
@@ -447,6 +448,16 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     setGameDrawerOpen(true)
   }
 
+  const openPracticeCreate = () => {
+    setEditingPractice(null)
+    setPracticeDrawerOpen(true)
+  }
+
+  const openPracticeEdit = (practice: Practice) => {
+    setEditingPractice(practice)
+    setPracticeDrawerOpen(true)
+  }
+
   const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
@@ -524,7 +535,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             </button>
             <button
               type="button"
-              onClick={() => setPracticeDrawerOpen(true)}
+              onClick={openPracticeCreate}
               className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
@@ -585,7 +596,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
             </button>
             <button
               type="button"
-              onClick={() => setPracticeDrawerOpen(true)}
+              onClick={openPracticeCreate}
               className="px-5 py-2.5 rounded-full bg-white border border-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-50 transition-colors active:scale-[0.97] cursor-pointer"
             >
               Add Practice
@@ -664,6 +675,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                           practice={item.data}
                           showTeamName={showingAllTeams}
                           isExpanded={item.isExpanded}
+                          onEdit={() => openPracticeEdit(item.data)}
                           onDelete={() => setDeleteTarget({
                             type: 'practice',
                             id: item.data.id,
@@ -693,8 +705,9 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
       <PracticeDrawer
         isOpen={practiceDrawerOpen}
-        onClose={() => setPracticeDrawerOpen(false)}
+        onClose={() => { setPracticeDrawerOpen(false); setEditingPractice(null) }}
         onSaved={refreshSchedule}
+        editingPractice={editingPractice}
         teams={displayTeams}
         preselectedTeamId={selectedTeamId}
       />
@@ -803,11 +816,13 @@ function PracticeRow({
   practice,
   showTeamName,
   isExpanded,
+  onEdit,
   onDelete,
 }: {
   practice: Practice
   showTeamName?: boolean
   isExpanded?: boolean
+  onEdit?: () => void
   onDelete: () => void
 }) {
   const rruleText = practice.rrule ? getRruleText(practice.rrule) : null
@@ -840,7 +855,8 @@ function PracticeRow({
       {!isExpanded && (
         <RowActionMenu
           items={[
-            { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: onDelete, variant: 'danger' },
+            ...(onEdit ? [{ label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: onEdit }] : []),
+            { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: onDelete, variant: 'danger' as const },
           ]}
         />
       )}

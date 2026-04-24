@@ -19,7 +19,7 @@ export const GET = withAuth(async () => {
   const [schools, teams] = await Promise.all([
     db.school.findMany({
       where: { deletedAt: null },
-      select: { id: true, name: true, gradeLevel: true, color: true },
+      select: { id: true, name: true, institutionType: true, color: true },
       orderBy: { name: 'asc' },
     }),
     db.team.findMany({

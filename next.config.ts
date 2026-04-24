@@ -19,6 +19,17 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  async redirects() {
+    return [
+      // Browsers auto-request /favicon.ico regardless of <link rel="icon">.
+      // Redirect to the SVG favicon to prevent a 404 console error.
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.svg',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     const contentSecurityPolicy = [
       "default-src 'self'",
@@ -28,6 +39,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' data:",
       "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://maps.googleapis.com https://unpkg.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://images.unsplash.com",
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
+      "worker-src 'self'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

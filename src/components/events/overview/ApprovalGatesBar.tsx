@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import {
-  Shield, Monitor, Wrench, Sparkles, ShieldAlert, Trophy,
+  Shield, Monitor, Wrench, Sparkles, ShieldAlert, Trophy, Users,
   CheckCircle2, XCircle, Clock3, Minus,
 } from 'lucide-react'
 import { fadeInUp } from '@/lib/animations'
@@ -16,7 +16,22 @@ export interface GateState {
   reason?: string | null
 }
 
-export interface ApprovalGates {
+/** V2 gate state — keyed by team UUID, includes team metadata */
+export interface GateStateV2 {
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
+  teamName: string
+  trigger?: string
+  resourceType?: string | null
+  sortOrder?: number
+  respondedById?: string | null
+  respondedAt?: string | null
+  reason?: string | null
+  mode?: 'REQUIRED' | 'NOTIFICATION'
+  escalationHours?: number | null
+}
+
+/** V1 gates: channel-type keys */
+export interface ApprovalGatesV1 {
   admin?: GateState
   av?: GateState
   facilities?: GateState
@@ -25,9 +40,20 @@ export interface ApprovalGates {
   athletic_director?: GateState
 }
 
-// ─── Config ─────────────────────────────────────────────────────────────────
+/** Union type that accepts both V1 and V2 gate shapes */
+export type ApprovalGates = ApprovalGatesV1 | Record<string, GateStateV2>
 
-/** All supported gate types in display order */
+// ─── V2 Detection ───────────────────────────────────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isV2Gates(gates: Record<string, unknown>): boolean {
+  return Object.keys(gates).some((key) => UUID_RE.test(key))
+}
+
+// ─── V1 Config ──────────────────────────────────────────────────────────────
+
+/** All supported V1 gate types in display order */
 const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security', 'athletic_director'] as const
 
 const GATE_CONFIG: Record<string, { label: string; icon: React.ElementType }> = {
@@ -46,21 +72,62 @@ const GATE_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React
   SKIPPED: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-400', icon: Minus, label: 'Skipped' },
 }
 
+// ─── Normalized gate entry for rendering ────────────────────────────────────
+
+interface NormalizedGate {
+  key: string
+  label: string
+  icon: React.ElementType
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
+  reason?: string | null
+}
+
+function normalizeGates(gates: ApprovalGates): NormalizedGate[] {
+  const raw = gates as Record<string, unknown>
+  if (isV2Gates(raw)) {
+    // V2: iterate entries, sorted by sortOrder then key
+    const v2Gates = gates as Record<string, GateStateV2>
+    return Object.entries(v2Gates)
+      .filter(([, gate]) => gate && gate.status !== 'SKIPPED')
+      .sort((a, b) => (a[1].sortOrder ?? 0) - (b[1].sortOrder ?? 0))
+      .map(([key, gate]) => ({
+        key,
+        label: gate.teamName || 'Unknown Team',
+        icon: Users,
+        status: gate.status,
+        reason: gate.reason,
+      }))
+  }
+
+  // V1: use hardcoded keys
+  const v1Gates = gates as ApprovalGatesV1
+  return ALL_GATE_KEYS
+    .filter((key) => {
+      const gate = v1Gates[key]
+      return gate && gate.status !== 'SKIPPED'
+    })
+    .map((key) => {
+      const gate = v1Gates[key]!
+      const config = GATE_CONFIG[key] ?? { label: key, icon: Shield }
+      return {
+        key,
+        label: config.label,
+        icon: config.icon,
+        status: gate.status,
+        reason: gate.reason,
+      }
+    })
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
-  // Dynamically find which gates exist and are not skipped
-  const activeGates = ALL_GATE_KEYS.filter(
-    (key) => {
-      const gate = gates[key as keyof ApprovalGates]
-      return gate && gate.status !== 'SKIPPED'
-    },
-  )
+  const activeGates = normalizeGates(gates)
 
   if (activeGates.length === 0) return null
 
-  const allApproved = activeGates.every((key) => gates[key as keyof ApprovalGates]!.status === 'APPROVED')
-  const anyRejected = activeGates.some((key) => gates[key as keyof ApprovalGates]!.status === 'REJECTED')
+  const allApproved = activeGates.every((g) => g.status === 'APPROVED')
+  const anyRejected = activeGates.some((g) => g.status === 'REJECTED')
 
   // Responsive grid: 2 cols for ≤3 gates, 3 cols for 4+
   const gridCols = activeGates.length <= 3
@@ -90,21 +157,19 @@ export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
 
       {/* Individual gate pills */}
       <div className={`grid ${gridCols} gap-2`}>
-        {activeGates.map((key) => {
-          const gate = gates[key as keyof ApprovalGates]!
-          const config = GATE_CONFIG[key] ?? { label: key, icon: Shield }
+        {activeGates.map((gate) => {
           const statusStyle = GATE_STATUS_STYLES[gate.status]
-          const GateIcon = config.icon
+          const GateIcon = gate.icon
           const StatusIcon = statusStyle.icon
 
           return (
             <div
-              key={key}
+              key={gate.key}
               className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border ${statusStyle.bg}`}
             >
               <GateIcon className={`w-4 h-4 ${statusStyle.text} flex-shrink-0`} />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900">{config.label}</p>
+                <p className="text-xs font-semibold text-slate-900">{gate.label}</p>
                 <div className="flex items-center gap-1 mt-0.5">
                   <StatusIcon className={`w-3 h-3 ${statusStyle.text}`} />
                   <span className={`text-[10px] font-medium ${statusStyle.text}`}>{statusStyle.label}</span>
@@ -119,22 +184,15 @@ export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
       {anyRejected && (
         <div className="space-y-1.5">
           {activeGates
-            .filter((key) => {
-              const gate = gates[key as keyof ApprovalGates]
-              return gate?.status === 'REJECTED' && gate.reason
-            })
-            .map((key) => {
-              const gate = gates[key as keyof ApprovalGates]!
-              const config = GATE_CONFIG[key] ?? { label: key }
-              return (
-                <div key={key} className="flex items-start gap-2 px-3 py-2 bg-red-50 rounded-lg">
-                  <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-red-700">
-                    <span className="font-semibold">{config.label}:</span> {gate.reason}
-                  </p>
-                </div>
-              )
-            })}
+            .filter((g) => g.status === 'REJECTED' && g.reason)
+            .map((gate) => (
+              <div key={gate.key} className="flex items-start gap-2 px-3 py-2 bg-red-50 rounded-lg">
+                <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-red-700">
+                  <span className="font-semibold">{gate.label}:</span> {gate.reason}
+                </p>
+              </div>
+            ))}
         </div>
       )}
     </motion.div>

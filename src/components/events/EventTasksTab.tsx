@@ -438,6 +438,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showAllTasks, setShowAllTasks] = useState(false)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -504,11 +505,14 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
   if (isLoading) return <TasksSkeleton />
 
   // Filter tasks client-side
+  const INITIAL_DISPLAY_LIMIT = 50
   const filtered = (tasks || []).filter((t) => {
     if (statusFilter && t.status !== statusFilter) return false
     if (priorityFilter && t.priority !== priorityFilter) return false
     return true
   })
+  const visibleTasks = showAllTasks ? filtered : filtered.slice(0, INITIAL_DISPLAY_LIMIT)
+  const hasMoreTasks = filtered.length > INITIAL_DISPLAY_LIMIT
 
   const completedCount = (tasks || []).filter((t) => t.status === 'DONE').length
   const totalCount = (tasks || []).length
@@ -576,7 +580,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
             {STATUS_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setStatusFilter(f.value)}
+                onClick={() => { setStatusFilter(f.value); setShowAllTasks(false) }}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                   statusFilter === f.value
                     ? 'bg-indigo-100 text-indigo-700'
@@ -593,7 +597,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
             {PRIORITY_FILTERS.map((f) => (
               <button
                 key={f.value}
-                onClick={() => setPriorityFilter(f.value)}
+                onClick={() => { setPriorityFilter(f.value); setShowAllTasks(false) }}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                   priorityFilter === f.value
                     ? 'bg-indigo-100 text-indigo-700'
@@ -621,7 +625,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
           animate="visible"
           className="space-y-2"
         >
-          {filtered.map((task) => (
+          {visibleTasks.map((task) => (
             <TaskRow
               key={task.id}
               task={task}
@@ -633,6 +637,16 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
               isDeleting={deletingId === task.id}
             />
           ))}
+          {hasMoreTasks && !showAllTasks && (
+            <div className="text-center pt-2">
+              <button
+                onClick={() => setShowAllTasks(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
+              >
+                Show all ({filtered.length})
+              </button>
+            </div>
+          )}
         </motion.div>
       )}
     </div>

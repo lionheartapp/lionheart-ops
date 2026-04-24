@@ -281,7 +281,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       {/* Event Details — inline editable */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: TEXT_PRIMARY }}>
             <FileText className="w-4 h-4 text-slate-400" />
             Event Details
           </h3>
@@ -289,7 +289,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
             <button
               type="button"
               onClick={startEditing}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
             >
               <Pencil className="w-3 h-3" />
               Edit
@@ -425,7 +425,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
               <div className="flex items-start gap-3">
                 <CalendarDays className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-slate-900">
+                  <p className="text-sm" style={{ color: TEXT_PRIMARY }}>
                     {format(startsAt, 'EEEE, MMMM d, yyyy')}
                     {project.isMultiDay && ` – ${format(endsAt, 'EEEE, MMMM d, yyyy')}`}
                   </p>
@@ -445,7 +445,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
                     {project.isOffCampus ? (
                       <>
                         {project.venueName && (
-                          <p className="text-sm text-slate-900 font-medium">{project.venueName}</p>
+                          <p className="text-sm font-medium" style={{ color: TEXT_PRIMARY }}>{project.venueName}</p>
                         )}
                         {project.venueAddress && (
                           <p className="text-xs text-slate-500">{project.venueAddress}</p>
@@ -457,10 +457,10 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
                     ) : (
                       <>
                         {project.locationText && (
-                          <p className="text-sm text-slate-900">{project.locationText}</p>
+                          <p className="text-sm" style={{ color: TEXT_PRIMARY }}>{project.locationText}</p>
                         )}
                         {project.building && (
-                          <p className={project.locationText ? 'text-xs text-slate-500' : 'text-sm text-slate-900'}>
+                          <p className={project.locationText ? 'text-xs text-slate-500' : 'text-sm'} style={project.locationText ? undefined : { color: TEXT_PRIMARY }}>
                             {project.building.name}
                             {project.area && ` · ${project.area.name}`}
                             {project.room && ` · ${project.room.displayName || project.room.roomNumber || 'Room'}`}
@@ -486,7 +486,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
                   <Users className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <p className="text-sm text-slate-700">
                     Created by{' '}
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium" style={{ color: TEXT_PRIMARY }}>
                       {project.createdBy.firstName
                         ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
                         : project.createdBy.email}
@@ -536,7 +536,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
 
           {/* Status Timeline */}
           <motion.div variants={listItem} className="ui-glass p-6 flex flex-col">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">Event Status</h3>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: TEXT_PRIMARY }}>Event Status</h3>
             <div className="flex-1 flex items-center">
               <div className="w-full">
                 <StatusTimeline currentStatus={project.status} />
@@ -564,7 +564,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       {/* Recent Activity */}
       <motion.div variants={listItem} className="ui-glass p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">Recent Activity</h3>
+          <h3 className="text-sm font-semibold" style={{ color: TEXT_PRIMARY }}>Recent Activity</h3>
           <span className="text-xs text-slate-400">Last 5 entries</span>
         </div>
         <EventActivityLog eventProjectId={project.id} limit={5} />

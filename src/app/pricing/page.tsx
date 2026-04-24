@@ -14,19 +14,18 @@ interface Plan {
   name: string
   tagline: string
   monthlyPrice: number | null
-  annualPrice: number | null
+  annualTotal: number
   recommended: boolean
   cta: string
   ctaHref: string
   ctaVariant: 'primary' | 'accent' | 'outline'
   features: string[]
-  annualSavings?: string
 }
 
 interface FeatureRow {
   label: string
-  starter: boolean | string
-  professional: boolean | string
+  essentials: boolean | string
+  pro: boolean | string
   enterprise: boolean | string
 }
 
@@ -43,67 +42,71 @@ interface FaqItem {
 // ─── Data ────────────────────────────────────────────────────────────────
 const plans: Plan[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    tagline: 'For small schools getting started',
-    monthlyPrice: 99,
-    annualPrice: 79,
+    id: 'essentials',
+    name: 'Essentials',
+    tagline: 'Core operations for a single campus',
+    monthlyPrice: 650,
+    annualTotal: 7800,
     recommended: false,
     cta: 'Start Free Trial',
     ctaHref: '/signup',
     ctaVariant: 'outline',
-    annualSavings: 'Save $240/year',
     features: [
-      'Up to 1 campus',
-      'Up to 50 staff accounts',
-      'IT & Maintenance ticketing',
-      'Knowledge base',
-      'Basic reporting',
+      '1 campus',
+      '50 AI actions / month',
+      'Events & calendar',
+      'Maintenance tickets',
+      'IT tickets',
+      'A/V requests',
+      'System roles',
       'Email support',
     ],
   },
   {
-    id: 'professional',
-    name: 'Professional',
-    tagline: 'For growing schools that need everything',
-    monthlyPrice: 199,
-    annualPrice: 159,
+    id: 'pro',
+    name: 'Pro',
+    tagline: 'Full suite + integrations, unlimited AI',
+    monthlyPrice: 1067,
+    annualTotal: 12800,
     recommended: true,
     cta: 'Start Free Trial',
     ctaHref: '/signup',
     ctaVariant: 'accent',
-    annualSavings: 'Save $480/year',
     features: [
-      'Unlimited campuses',
-      'Unlimited staff accounts',
-      'Everything in Starter, plus:',
-      'Athletics module',
-      'Calendar & events',
-      'AI-powered diagnostics',
-      'Compliance & board reporting',
-      'Preventive maintenance scheduling',
+      'Everything in Essentials, plus:',
+      'Unlimited AI actions',
+      'Full maintenance suite',
+      'Full IT suite',
+      'Full A/V suite',
+      'Google Calendar sync',
+      'Outlook Calendar sync',
+      'Custom roles & permissions',
+      'Advanced reporting',
       'Priority support',
     ],
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    tagline: 'For large districts with custom needs',
-    monthlyPrice: null,
-    annualPrice: null,
+    tagline: 'Multi-campus, SSO, SLA, dedicated CSM',
+    monthlyPrice: 1400,
+    annualTotal: 16800,
     recommended: false,
     cta: 'Contact Sales',
     ctaHref: '/contact?topic=sales',
     ctaVariant: 'outline',
     features: [
-      'Everything in Professional, plus:',
-      'Dedicated onboarding',
-      'Custom integrations',
-      'SLA guarantee (99.9% uptime)',
-      'SSO/SAML (when available)',
-      'Dedicated account manager',
-      'Custom contract & billing',
-      'Priority enterprise support',
+      '2 campuses included',
+      'Everything in Pro, plus:',
+      'SSO / SAML',
+      'Audit logs',
+      'API access',
+      'Custom permission scopes',
+      'White label',
+      'Dedicated CSM',
+      '99.9% uptime SLA',
+      'Quarterly business reviews',
+      'Phone support',
     ],
   },
 ]
@@ -112,40 +115,44 @@ const featureCategories: FeatureCategory[] = [
   {
     name: 'Core Features',
     rows: [
-      { label: 'IT & Maintenance Ticketing', starter: true, professional: true, enterprise: true },
-      { label: 'Knowledge Base', starter: true, professional: true, enterprise: true },
-      { label: 'Role-Based Access Control', starter: true, professional: true, enterprise: true },
-      { label: 'Multi-Campus Support', starter: '1 campus', professional: 'Unlimited', enterprise: 'Unlimited' },
-      { label: 'Staff Accounts', starter: 'Up to 50', professional: 'Unlimited', enterprise: 'Unlimited' },
+      { label: 'Events & Calendar', essentials: true, pro: true, enterprise: true },
+      { label: 'Maintenance Tickets', essentials: true, pro: 'Full suite', enterprise: 'Full suite' },
+      { label: 'IT Tickets', essentials: true, pro: 'Full suite', enterprise: 'Full suite' },
+      { label: 'A/V Requests', essentials: true, pro: 'Full suite', enterprise: 'Full suite' },
+      { label: 'Multi-Campus Support', essentials: '1 campus', pro: 'Unlimited', enterprise: '2 included' },
+      { label: 'Staff Accounts', essentials: 'Unlimited', pro: 'Unlimited', enterprise: 'Unlimited' },
     ],
   },
   {
-    name: 'Modules',
+    name: 'AI & Integrations',
     rows: [
-      { label: 'Athletics Module', starter: false, professional: true, enterprise: true },
-      { label: 'Calendar & Events', starter: false, professional: true, enterprise: true },
-      { label: 'AI-Powered Diagnostics', starter: false, professional: true, enterprise: true },
-      { label: 'Compliance & Board Reporting', starter: false, professional: true, enterprise: true },
-      { label: 'Preventive Maintenance Scheduling', starter: false, professional: true, enterprise: true },
+      { label: 'AI Actions', essentials: '50 / month', pro: 'Unlimited', enterprise: 'Unlimited' },
+      { label: 'Google Calendar Sync', essentials: false, pro: true, enterprise: true },
+      { label: 'Outlook Calendar Sync', essentials: false, pro: true, enterprise: true },
+      { label: 'Advanced Reporting', essentials: false, pro: true, enterprise: true },
+      { label: 'API Access', essentials: false, pro: false, enterprise: true },
+    ],
+  },
+  {
+    name: 'Administration',
+    rows: [
+      { label: 'System Roles', essentials: true, pro: true, enterprise: true },
+      { label: 'Custom Roles & Permissions', essentials: false, pro: true, enterprise: true },
+      { label: 'Custom Permission Scopes', essentials: false, pro: false, enterprise: true },
+      { label: 'Audit Logs', essentials: false, pro: false, enterprise: true },
+      { label: 'SSO / SAML', essentials: false, pro: false, enterprise: true },
+      { label: 'White Label', essentials: false, pro: false, enterprise: true },
     ],
   },
   {
     name: 'Support',
     rows: [
-      { label: 'Email Support', starter: true, professional: true, enterprise: true },
-      { label: 'Priority Support', starter: false, professional: true, enterprise: true },
-      { label: 'Dedicated Account Manager', starter: false, professional: false, enterprise: true },
-      { label: 'SLA Guarantee', starter: false, professional: false, enterprise: '99.9% uptime' },
-      { label: 'Dedicated Onboarding', starter: false, professional: false, enterprise: true },
-    ],
-  },
-  {
-    name: 'Advanced',
-    rows: [
-      { label: 'Custom Integrations', starter: false, professional: false, enterprise: true },
-      { label: 'SSO / SAML', starter: false, professional: false, enterprise: 'Coming soon' },
-      { label: 'Custom Contract & Billing', starter: false, professional: false, enterprise: true },
-      { label: 'Data Export', starter: true, professional: true, enterprise: true },
+      { label: 'Email Support', essentials: true, pro: true, enterprise: true },
+      { label: 'Priority Support', essentials: false, pro: true, enterprise: true },
+      { label: 'Dedicated CSM', essentials: false, pro: false, enterprise: true },
+      { label: 'SLA Guarantee', essentials: false, pro: false, enterprise: '99.9% uptime' },
+      { label: 'Phone Support', essentials: false, pro: false, enterprise: true },
+      { label: 'Quarterly Business Reviews', essentials: false, pro: false, enterprise: true },
     ],
   },
 ]
@@ -153,7 +160,7 @@ const featureCategories: FeatureCategory[] = [
 const faqs: FaqItem[] = [
   {
     question: 'Is there a free trial?',
-    answer: 'Yes — all plans include a 14-day free trial with full access. No credit card required to start. You can explore every feature before committing.',
+    answer: 'Yes — all plans include a 30-day free trial with full access. No credit card required to start. You can explore every feature before committing.',
   },
   {
     question: 'Can I change plans later?',
@@ -161,15 +168,15 @@ const faqs: FaqItem[] = [
   },
   {
     question: 'What happens when my trial ends?',
-    answer: 'At the end of your 14-day trial, you choose the plan that fits your school and add a payment method. If you don\'t choose a plan, your account is paused — your data is preserved for 30 days while you decide.',
+    answer: 'At the end of your 30-day trial, your workspace switches to read-only mode until you pick a plan. You never lose data — it stays available for export.',
   },
   {
-    question: 'Do you offer discounts for schools?',
-    answer: 'Choosing annual billing saves 20% versus monthly. For multi-school districts or special circumstances, reach out through our contact form — we\'re happy to work with your procurement process.',
+    question: 'Do you offer multi-campus or district pricing?',
+    answer: 'Enterprise includes 2 campuses out of the box, with additional campuses available. For districts with more than 5 schools we build custom packages — contact sales.',
   },
   {
     question: 'How do I cancel?',
-    answer: 'You can cancel anytime from Settings > Subscription. There are no cancellation fees. After cancellation, your account remains active through the end of your billing period, then enters a 30-day data retention window.',
+    answer: 'You can cancel anytime from Settings > Subscription. There are no cancellation fees. After cancellation, your workspace enters a 30-day grace period where it stays read-only and downloadable. You can export to CSV / PDF at any time.',
   },
 ]
 
@@ -233,22 +240,20 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
 
 // ─── Main component ──────────────────────────────────────────────────────
 export default function PricingPage() {
-  const [annual, setAnnual] = useState(false)
-
   return (
     <div className="min-h-screen bg-white">
       <PublicNav />
 
       <main>
-        {/* ── Hero + Toggle ── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-primary-50/40 to-white py-16 sm:py-24">
+        {/* ── Hero ── */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/60 to-white py-16 sm:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.p
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.45, ease: EASE_OUT_CUBIC }}
-              className="text-sm font-semibold text-primary-600 tracking-wide uppercase mb-3"
+              className="text-sm font-semibold text-slate-500 tracking-wide uppercase mb-3"
             >
               Pricing
             </motion.p>
@@ -270,49 +275,12 @@ export default function PricingPage() {
               transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT_CUBIC }}
               className="text-lg text-slate-600 max-w-xl mx-auto mb-10"
             >
-              Choose the plan that fits your school. No hidden fees, cancel anytime.
+              One price per school. No per-seat math. No hidden fees, cancel anytime.
             </motion.p>
-
-            {/* Billing toggle */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.5, delay: 0.15, ease: EASE_OUT_CUBIC }}
-              className="inline-flex items-center gap-3 bg-slate-100 rounded-full p-1"
-              role="group"
-              aria-label="Billing period"
-            >
-              <button
-                onClick={() => setAnnual(false)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  !annual
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-                aria-pressed={!annual}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setAnnual(true)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-                  annual
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-                aria-pressed={annual}
-              >
-                Annual
-                <span className="text-xs font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                  Save 20%
-                </span>
-              </button>
-            </motion.div>
           </div>
 
           {/* Ambient blobs */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-100/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-slate-100/30 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
         </section>
 
         {/* ── Pricing Cards ── */}
@@ -323,8 +291,7 @@ export default function PricingPage() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-3 gap-8 -mt-6"
           >
-            {plans.map((plan, idx) => {
-              const price = annual ? plan.annualPrice : plan.monthlyPrice
+            {plans.map((plan) => {
               const isRecommended = plan.recommended
 
               return (
@@ -333,7 +300,7 @@ export default function PricingPage() {
                   variants={cardEntrance}
                   className={`relative rounded-2xl p-8 flex flex-col ${
                     isRecommended
-                      ? 'bg-gradient-to-br from-primary-600 to-indigo-700 border-2 border-primary-500 shadow-2xl shadow-primary-200 scale-[1.02] z-10'
+                      ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700 shadow-2xl shadow-slate-300 scale-[1.02] z-10'
                       : 'bg-white border border-slate-200 shadow-sm'
                   }`}
                   aria-label={`${plan.name} plan`}
@@ -341,7 +308,7 @@ export default function PricingPage() {
                   {/* Most Popular badge */}
                   {isRecommended && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="bg-amber-400 text-amber-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+                      <span className="bg-white text-slate-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
                         Most Popular
                       </span>
                     </div>
@@ -351,58 +318,25 @@ export default function PricingPage() {
                     <h2 className={`text-xl font-bold mb-1 ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
                       {plan.name}
                     </h2>
-                    <p className={`text-sm ${isRecommended ? 'text-primary-200' : 'text-slate-500'}`}>
+                    <p className={`text-sm ${isRecommended ? 'text-slate-400' : 'text-slate-500'}`}>
                       {plan.tagline}
                     </p>
                   </div>
 
                   {/* Price */}
                   <div className="mb-6">
-                    <AnimatePresence mode="wait">
-                      {price !== null ? (
-                        <motion.div
-                          key={annual ? 'annual' : 'monthly'}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex items-end gap-1"
-                        >
-                          <span className={`text-5xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
-                            ${price}
-                          </span>
-                          <span className={`text-sm mb-2 ${isRecommended ? 'text-primary-200' : 'text-slate-500'}`}>
-                            /mo
-                          </span>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="custom"
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <span className={`text-4xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
-                            Custom
-                          </span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    <div className="flex items-end gap-1">
+                      <span className={`text-5xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
+                        ${plan.annualTotal.toLocaleString('en-US')}
+                      </span>
+                      <span className={`text-sm mb-2 ${isRecommended ? 'text-slate-400' : 'text-slate-500'}`}>
+                        /year
+                      </span>
+                    </div>
 
-                    {annual && plan.annualSavings && (
-                      <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className={`text-sm mt-1 font-medium ${isRecommended ? 'text-emerald-300' : 'text-emerald-600'}`}
-                      >
-                        {plan.annualSavings}
-                      </motion.p>
-                    )}
-
-                    {price !== null && (
-                      <p className={`text-xs mt-1 ${isRecommended ? 'text-primary-200' : 'text-slate-400'}`}>
-                        {annual ? 'billed annually' : 'billed monthly'}
+                    {plan.monthlyPrice !== null && (
+                      <p className={`text-xs mt-1 ${isRecommended ? 'text-slate-400' : 'text-slate-400'}`}>
+                        Billed ${plan.monthlyPrice.toLocaleString('en-US')}/month &middot; all-in
                       </p>
                     )}
                   </div>
@@ -412,9 +346,9 @@ export default function PricingPage() {
                     href={plan.ctaHref}
                     className={`block w-full text-center py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] mb-8 cursor-pointer ${
                       isRecommended
-                        ? 'bg-white text-primary-700 hover:bg-primary-50 shadow-sm'
+                        ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-sm'
                         : plan.ctaVariant === 'accent'
-                        ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
+                        ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm'
                         : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -423,7 +357,7 @@ export default function PricingPage() {
 
                   {/* Trust signals */}
                   {plan.monthlyPrice !== null && (
-                    <p className={`text-xs text-center mb-6 ${isRecommended ? 'text-primary-200' : 'text-slate-400'}`}>
+                    <p className={`text-xs text-center mb-6 ${isRecommended ? 'text-slate-400' : 'text-slate-400'}`}>
                       No credit card required &middot; Cancel anytime
                     </p>
                   )}
@@ -438,10 +372,10 @@ export default function PricingPage() {
                           className={`flex items-start gap-3 text-sm ${
                             isDivider
                               ? isRecommended
-                                ? 'text-primary-200 font-semibold pt-2'
+                                ? 'text-slate-400 font-semibold pt-2'
                                 : 'text-slate-500 font-semibold pt-2'
                               : isRecommended
-                              ? 'text-primary-100'
+                              ? 'text-slate-300'
                               : 'text-slate-700'
                           }`}
                         >
@@ -470,7 +404,7 @@ export default function PricingPage() {
             transition={{ delay: 0.6, duration: 0.5 }}
             className="text-center text-sm text-slate-400 mt-8"
           >
-            All plans include a 14-day free trial &middot; No credit card required &middot; Cancel anytime
+            All plans include a 30-day free trial &middot; No credit card required &middot; Cancel anytime
           </motion.p>
         </section>
 
@@ -498,14 +432,14 @@ export default function PricingPage() {
                     <div
                       key={plan.id}
                       className={`p-5 text-center ${
-                        plan.recommended ? 'bg-primary-50 border-x border-primary-100' : ''
+                        plan.recommended ? 'bg-slate-50 border-x border-slate-200' : ''
                       }`}
                     >
-                      <p className={`font-bold text-base ${plan.recommended ? 'text-primary-700' : 'text-slate-900'}`}>
+                      <p className={`font-bold text-base ${plan.recommended ? 'text-slate-900' : 'text-slate-900'}`}>
                         {plan.name}
                       </p>
                       {plan.recommended && (
-                        <span className="inline-block mt-1 text-xs font-semibold bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
+                        <span className="inline-block mt-1 text-xs font-semibold bg-slate-900 text-white px-2 py-0.5 rounded-full">
                           Most Popular
                         </span>
                       )}
@@ -524,16 +458,16 @@ export default function PricingPage() {
                     {category.rows.map((row, rowIdx) => (
                       <div
                         key={rowIdx}
-                        className={`grid grid-cols-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors`}
+                        className="grid grid-cols-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors"
                       >
                         <div className="p-4 px-5">
                           <span className="text-sm text-slate-700">{row.label}</span>
                         </div>
-                        <div className={`p-4 flex items-center justify-center ${row.starter === false ? '' : ''}`}>
-                          <FeatureValue value={row.starter} />
+                        <div className="p-4 flex items-center justify-center">
+                          <FeatureValue value={row.essentials} />
                         </div>
-                        <div className={`p-4 flex items-center justify-center bg-primary-50/30`}>
-                          <FeatureValue value={row.professional} />
+                        <div className="p-4 flex items-center justify-center bg-slate-50/50">
+                          <FeatureValue value={row.pro} />
                         </div>
                         <div className="p-4 flex items-center justify-center">
                           <FeatureValue value={row.enterprise} />
@@ -551,10 +485,10 @@ export default function PricingPage() {
                 <div
                   key={plan.id}
                   className={`bg-white rounded-2xl border p-6 ${
-                    plan.recommended ? 'border-primary-300' : 'border-slate-200'
+                    plan.recommended ? 'border-slate-900' : 'border-slate-200'
                   }`}
                 >
-                  <h3 className={`font-bold text-lg mb-4 ${plan.recommended ? 'text-primary-700' : 'text-slate-900'}`}>
+                  <h3 className={`font-bold text-lg mb-4 ${plan.recommended ? 'text-slate-900' : 'text-slate-900'}`}>
                     {plan.name}
                   </h3>
                   {featureCategories.map((cat) => (
@@ -562,7 +496,7 @@ export default function PricingPage() {
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{cat.name}</p>
                       <ul className="space-y-2">
                         {cat.rows.map((row) => {
-                          const val = plan.id === 'starter' ? row.starter : plan.id === 'professional' ? row.professional : row.enterprise
+                          const val = plan.id === 'essentials' ? row.essentials : plan.id === 'pro' ? row.pro : row.enterprise
                           if (val === false) return null
                           return (
                             <li key={row.label} className="flex items-center gap-2 text-sm text-slate-700">
@@ -578,7 +512,7 @@ export default function PricingPage() {
                     href={plan.ctaHref}
                     className={`block w-full text-center py-3 px-6 rounded-xl font-semibold text-sm mt-4 transition-all duration-200 cursor-pointer ${
                       plan.recommended
-                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        ? 'bg-slate-900 text-white hover:bg-slate-800'
                         : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -607,8 +541,8 @@ export default function PricingPage() {
                 { icon: Shield, label: 'FERPA Compliant', sub: 'Built for K-12 schools' },
               ].map(({ icon: Icon, label, sub }, idx) => (
                 <motion.div key={idx} variants={cardEntrance} className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-primary-600" aria-hidden="true" />
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-slate-700" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="font-semibold text-slate-900 text-sm">{label}</p>
@@ -633,7 +567,7 @@ export default function PricingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Frequently asked questions</h2>
               <p className="text-slate-500">
                 Still have questions?{' '}
-                <Link href="/contact" className="text-primary-600 hover:text-primary-700 underline">
+                <Link href="/contact" className="text-slate-900 hover:text-slate-700 underline">
                   Contact us
                 </Link>
                 .
@@ -645,7 +579,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Bottom CTA ── */}
-        <section className="relative bg-primary-600 py-16 sm:py-20 overflow-hidden">
+        <section className="relative bg-slate-900 py-16 sm:py-20 overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" aria-hidden="true" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none" aria-hidden="true" />
 
@@ -664,9 +598,9 @@ export default function PricingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-primary-100 text-base sm:text-lg mb-8"
+              className="text-slate-300 text-base sm:text-lg mb-8"
             >
-              Start your free 14-day trial today. No credit card required.
+              Start your free 30-day trial today. No credit card required.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -677,7 +611,7 @@ export default function PricingPage() {
             >
               <Link
                 href="/signup"
-                className="px-8 py-4 min-h-[48px] bg-white text-primary-600 font-semibold rounded-xl hover:bg-primary-50 transition inline-flex items-center justify-center gap-2 active:scale-[0.97]"
+                className="px-8 py-4 min-h-[48px] bg-white text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition inline-flex items-center justify-center gap-2 active:scale-[0.97]"
               >
                 Start Free Trial
               </Link>
@@ -688,8 +622,8 @@ export default function PricingPage() {
                 Talk to Sales
               </Link>
             </motion.div>
-            <p className="text-primary-200 text-sm mt-5">
-              No credit card required &middot; 14-day free trial &middot; Cancel anytime
+            <p className="text-slate-400 text-sm mt-5">
+              No credit card required &middot; 30-day free trial &middot; Cancel anytime
             </p>
           </div>
         </section>

@@ -74,13 +74,7 @@ interface AssetDetail extends MaintenanceAsset {
   repeatAlertSentAt?: string | null
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
+import { getAuthHeaders } from '@/lib/api-client'
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—'
@@ -190,6 +184,7 @@ export default function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     queryFn: async () => {
       const res = await fetch(`/api/maintenance/assets/${assetId}`, {
         headers: getAuthHeaders(),
+        credentials: 'include',
       })
       if (!res.ok) throw new Error('Failed to load asset')
       const json = await res.json()

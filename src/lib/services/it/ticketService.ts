@@ -364,19 +364,19 @@ export async function transitionITTicketStatus(
 
 export async function assignITTicket(
   ticketId: string,
-  assigneeId: string,
+  assigneeId: string | null,
   ctx: { userId: string; orgId: string }
 ) {
   const ticket = await (prisma.iTTicket.findUnique as Function)({ where: { id: ticketId } })
   if (!ticket) throw new Error('TICKET_NOT_FOUND')
 
-  // Move to TODO if in BACKLOG
+  // Move to TODO if in BACKLOG (only when assigning, not unassigning)
   const updateData: Record<string, unknown> = { assignedToId: assigneeId }
-  if (ticket.status === 'BACKLOG') {
+  if (assigneeId && ticket.status === 'BACKLOG') {
     updateData.status = 'TODO'
   }
   // Set firstResponseAt on first assignment (SLA response tracking)
-  if (!ticket.firstResponseAt) {
+  if (assigneeId && !ticket.firstResponseAt) {
     updateData.firstResponseAt = new Date()
   }
 
@@ -398,8 +398,12 @@ export async function assignITTicket(
       actorId: ctx.userId,
       type: 'ASSIGNMENT',
       assignedToId: assigneeId,
-      content: ctx.userId === assigneeId ? 'Claimed ticket' : 'Ticket assigned',
-      ...(ticket.status === 'BACKLOG' ? { fromStatus: 'BACKLOG', toStatus: 'TODO' } : {}),
+      content: assigneeId === null
+        ? 'Ticket unassigned'
+        : ctx.userId === assigneeId
+        ? 'Claimed ticket'
+        : 'Ticket assigned',
+      ...(assigneeId && ticket.status === 'BACKLOG' ? { fromStatus: 'BACKLOG', toStatus: 'TODO' } : {}),
     },
   })
 

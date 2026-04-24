@@ -349,6 +349,28 @@ export default function PlanningPage() {
               </div>
             )}
 
+            {/* Resource Needs */}
+            {selectedSubmission.resourceNeeds && selectedSubmission.resourceNeeds.length > 0 && (
+              <div className="pt-2 border-t border-slate-100">
+                <h4 className="text-sm font-medium text-slate-900 mb-2">Resource Needs</h4>
+                <div className="space-y-2">
+                  {selectedSubmission.resourceNeeds.map((need) => (
+                    <div
+                      key={need.id}
+                      className="flex items-start gap-2 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2"
+                    >
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        {need.resourceType.replace(/_/g, ' ')}
+                      </span>
+                      {need.details && (
+                        <span className="text-sm text-slate-600">{need.details}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="pt-2 border-t border-slate-100">
               <h4 className="text-sm font-medium text-slate-900 mb-2">Comments</h4>
               <CommentThread

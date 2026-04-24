@@ -19,7 +19,9 @@ import {
   ImageIcon,
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { useToast } from '@/components/Toast'
 import { usePermissions } from '@/lib/hooks/usePermissions'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { staggerContainer, fadeInUp, expandCollapse } from '@/lib/animations'
 import TicketStatusTracker from './TicketStatusTracker'
 import TicketActivityFeed from './TicketActivityFeed'
@@ -60,6 +62,7 @@ interface MaintenanceTicket {
   holdNote?: string | null
   scheduledDate?: string | null
   availabilityNote?: string | null
+  estimatedRepairCostUSD?: number | null
   createdAt: string
   submittedById: string
   // PM fields
@@ -173,7 +176,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: perms } = usePermissions()
+  const { user: authUser } = useAuth()
 
+  const { toast } = useToast()
   const canManage = perms?.canManageMaintenance ?? false
   const canClaim = perms?.canClaimMaintenance ?? false
   const canApproveQA = perms?.canApproveQA ?? false
@@ -228,6 +233,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         body: JSON.stringify({ status: 'CANCELLED', cancellationReason: cancellationReason.trim() }),
       })
       setShowCancelForm(false)
+      setCancellationReason('')
+      setIsCancelling(false)
+      toast('Ticket cancelled', 'success')
       queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
       queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
       queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
@@ -289,8 +297,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   }
 
   // Derived state
-  const currentUserId =
-    typeof window !== 'undefined' ? localStorage.getItem('user-id') ?? '' : ''
+  const currentUserId = authUser.id ?? ''
   const isSubmitter = ticket.submittedById === currentUserId
   const canChangeStatus =
     isPrivileged && ticket.status !== 'DONE' && ticket.status !== 'CANCELLED'

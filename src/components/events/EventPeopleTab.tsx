@@ -66,6 +66,12 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
 
   const teamMembers = sorted
 
+  // Progressive disclosure — show first 50 items, expand on demand
+  const INITIAL_DISPLAY_LIMIT = 50
+  const [showAll, setShowAll] = useState(false)
+  const visibleMembers = showAll ? teamMembers : teamMembers.slice(0, INITIAL_DISPLAY_LIMIT)
+  const hasMore = teamMembers.length > INITIAL_DISPLAY_LIMIT
+
   if (isLoading) return <TeamSkeleton />
 
   return (
@@ -122,7 +128,7 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {teamMembers.map((member) => (
+              {visibleMembers.map((member) => (
                 <tr key={member.id} className="hover:bg-slate-50/50 transition-colors duration-150">
                   {/* Member */}
                   <td className="px-4 py-3">
@@ -217,6 +223,16 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
               ))}
             </tbody>
           </table>
+          {hasMore && !showAll && (
+            <div className="px-4 py-3 border-t border-gray-100 text-center">
+              <button
+                onClick={() => setShowAll(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
+              >
+                Show all ({teamMembers.length})
+              </button>
+            </div>
+          )}
         </div>
       )}
 

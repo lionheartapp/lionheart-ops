@@ -8,7 +8,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import ITActivityFeed from './ITActivityFeed'
 import { StatusBadge, PriorityBadge, TypeBadge } from './ITStatusBadge'
 import {
-  User, MapPin, Calendar, ArrowRight, UserPlus,
+  User, MapPin, Calendar, ArrowRight, UserPlus, Search, UserMinus,
   CheckCircle2, XCircle, PauseCircle, PlayCircle, Loader2,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
@@ -78,6 +78,7 @@ const NEXT_STATUS_ACTIONS: Record<string, { label: string; status: string; icon:
 export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, members = [] }: ITTicketDetailProps) {
   const queryClient = useQueryClient()
   const [showAssign, setShowAssign] = useState(false)
+  const [assignSearch, setAssignSearch] = useState('')
   const [holdReason, setHoldReason] = useState('')
   const [pendingStatus, setPendingStatus] = useState<string | null>(null)
   const [transitionNote, setTransitionNote] = useState('')
@@ -112,7 +113,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
   })
 
   const assignMutation = useMutation({
-    mutationFn: (assignedToId: string) =>
+    mutationFn: (assignedToId: string | null) =>
       fetch(`/api/it/tickets/${ticketId}/assign`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
@@ -123,6 +124,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
       }),
     onSuccess: () => {
       setShowAssign(false)
+      setAssignSearch('')
       queryClient.invalidateQueries({ queryKey: queryKeys.itTicketDetail.byId(ticketId!) })
       queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
@@ -196,6 +198,34 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{ticket.description}</p>
             )}
 
+            {/* Photos */}
+            {ticket.photos && ticket.photos.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Photos</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {ticket.photos.map((url, i) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 group cursor-pointer"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt={`Photo ${i + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                      <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/50 text-white text-xs rounded-md">
+                        {i + 1}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <User className="w-4 h-4 text-slate-400" />
@@ -252,22 +282,71 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
               </p>
             )}
 
-            {/* Assign dropdown */}
+            {/* Assign dropdown — searchable */}
             {showAssign && canManage && (
-              <div className="ml-6 space-y-1 max-h-40 overflow-y-auto">
-                {members.map((m) => (
+              <div className="ml-6 space-y-2">
+                {/* Search input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={assignSearch}
+                    onChange={(e) => setAssignSearch(e.target.value)}
+                    placeholder="Search members..."
+                    autoFocus
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 bg-white"
+                  />
+                </div>
+
+                {/* Unassign option */}
+                {ticket.assignedTo && (
                   <button
-                    key={m.id}
-                    onClick={() => assignMutation.mutate(m.id)}
+                    onClick={() => assignMutation.mutate(null)}
                     disabled={assignMutation.isPending}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition-colors flex items-center gap-2 text-red-600 cursor-pointer"
                   >
-                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
-                      {m.firstName?.[0] ?? ''}{m.lastName?.[0] ?? ''}
-                    </div>
-                    {m.firstName} {m.lastName}
+                    <UserMinus className="w-4 h-4" />
+                    Unassign
                   </button>
-                ))}
+                )}
+
+                {/* Filtered member list */}
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {members
+                    .filter((m) => {
+                      if (!assignSearch.trim()) return true
+                      const query = assignSearch.toLowerCase()
+                      return (
+                        m.firstName.toLowerCase().includes(query) ||
+                        m.lastName.toLowerCase().includes(query) ||
+                        `${m.firstName} ${m.lastName}`.toLowerCase().includes(query)
+                      )
+                    })
+                    .map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => { assignMutation.mutate(m.id); setAssignSearch('') }}
+                        disabled={assignMutation.isPending}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors flex items-center gap-2 cursor-pointer"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+                          {m.firstName?.[0] ?? ''}{m.lastName?.[0] ?? ''}
+                        </div>
+                        {m.firstName} {m.lastName}
+                      </button>
+                    ))}
+                  {members.filter((m) => {
+                    if (!assignSearch.trim()) return true
+                    const query = assignSearch.toLowerCase()
+                    return (
+                      m.firstName.toLowerCase().includes(query) ||
+                      m.lastName.toLowerCase().includes(query) ||
+                      `${m.firstName} ${m.lastName}`.toLowerCase().includes(query)
+                    )
+                  }).length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-2">No members match your search</p>
+                  )}
+                </div>
               </div>
             )}
 

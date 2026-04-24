@@ -219,11 +219,19 @@ export async function saveAsTemplate(
     ...(group.capacity ? { capacity: group.capacity as number } : {}),
   }))
 
-  // Notification rules — empty for now (Phase 22 plan 04 handles notification rules)
+  // TODO: Capture notification rules from the source EventProject once the
+  // notification rules feature is built (Phase 22 plan 04). Currently stores
+  // an empty array, so templates created now will not include any notification
+  // configuration. When implemented, query the project's notification rules
+  // and map them to NotificationRuleTemplate shapes (strip absolute times,
+  // keep relative offsets and channel preferences).
   const notificationRules: NotificationRuleTemplate[] = []
 
-  // Budget categories — extracted from EventBudgetItem model when available
-  // For now, store an empty array (Phase 22 plan 01 handles budgets)
+  // TODO: Capture budget categories from EventBudgetItem records once the
+  // budgets feature is built (Phase 22 plan 01). Currently stores an empty
+  // array, so templates created now will not include budget structure. When
+  // implemented, query project.budgetItems, extract unique category names,
+  // and optionally include default amounts as reference values.
   const budgetCategories: string[] = []
 
   const durationMs = project.endsAt.getTime() - project.startsAt.getTime()
@@ -292,7 +300,7 @@ export async function createFromTemplate(
   templateId: string,
   overrides: CreateFromTemplateInput,
   userId: string,
-): Promise<{ eventProjectId: string }> {
+): Promise<{ eventProjectId: string; docRequirementsCreated: number; docRequirementsFailed: number }> {
   const template = await (prisma as unknown as OrgPrismaClient).eventTemplate.findFirst({
     where: { id: templateId },
   })
@@ -355,9 +363,11 @@ export async function createFromTemplate(
   }
 
   // Create document requirements from template
+  let docRequirementsCreated = 0
+  let docRequirementsFailed = 0
   if (templateData.documentTypes?.length > 0) {
     try {
-      await rawPrisma.eventDocumentRequirement.createMany({
+      const result = await rawPrisma.eventDocumentRequirement.createMany({
         data: templateData.documentTypes.map((docLabel) => ({
           organizationId: project.organizationId,
           eventProjectId: project.id,
@@ -366,8 +376,18 @@ export async function createFromTemplate(
           isRequired: true,
         })),
       })
-    } catch {
-      // Non-fatal: model may not have all required fields from template
+      docRequirementsCreated = result.count
+      docRequirementsFailed = templateData.documentTypes.length - result.count
+      if (docRequirementsFailed > 0) {
+        console.warn(
+          `[eventTemplateService] Template ${templateId}: ${docRequirementsCreated}/${templateData.documentTypes.length} document requirements created, ${docRequirementsFailed} skipped`
+        )
+      }
+    } catch (err) {
+      docRequirementsFailed = templateData.documentTypes.length
+      console.warn(
+        `[eventTemplateService] Template ${templateId}: failed to create document requirements — ${err instanceof Error ? err.message : 'unknown error'}`
+      )
     }
   }
 
@@ -383,7 +403,11 @@ export async function createFromTemplate(
   // usageCount/lastUsedAt feed into ordering, so cached lists are now stale.
   invalidateOrgCache(getOrgContextId(), 'event-templates')
 
-  return { eventProjectId: project.id }
+  return {
+    eventProjectId: project.id,
+    docRequirementsCreated,
+    docRequirementsFailed,
+  }
 }
 
 // ---------------------------------------------------------------------------

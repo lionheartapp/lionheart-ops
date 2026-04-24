@@ -221,7 +221,7 @@ export function RegistrationTab({
   expectedAttendance = 50,
   description = '',
 }: RegistrationTabProps) {
-  const { data: formData, isLoading } = useRegistrationForm(eventProjectId)
+  const { data: formData, isLoading, error: formError, refetch: refetchForm } = useRegistrationForm(eventProjectId)
   const createMutation = useCreateRegistrationForm(eventProjectId)
   const updateMutation = useUpdateRegistrationForm(eventProjectId)
   const { toast } = useToast()
@@ -275,6 +275,21 @@ export function RegistrationTab({
       <div className="animate-pulse space-y-4 py-4">
         <div className="h-8 bg-slate-100 rounded-xl w-56" />
         <div className="h-48 bg-slate-100 rounded-xl" />
+        <div className="h-32 bg-slate-100 rounded-xl" />
+      </div>
+    )
+  }
+
+  if (formError) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm text-red-500 mb-3">Failed to load registration data.</p>
+        <button
+          onClick={() => refetchForm()}
+          className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+        >
+          Try Again
+        </button>
       </div>
     )
   }
@@ -297,20 +312,7 @@ export function RegistrationTab({
             Set up a registration form so parents and participants can sign up for this event. You
             can configure fields, capacity, payments, and more.
           </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleSetUpRegistration}
-              disabled={createMutation.isPending}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60"
-            >
-              {createMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ClipboardList className="w-4 h-4" />
-              )}
-              Set Up Registration
-            </button>
+          <div className="flex flex-col items-center gap-3">
             <button
               type="button"
               onClick={async () => {
@@ -323,10 +325,22 @@ export function RegistrationTab({
                 }
               }}
               disabled={createMutation.isPending}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium hover:bg-indigo-100 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer disabled:opacity-60"
             >
-              <Sparkles className="w-4 h-4" />
+              {createMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
               Generate with AI
+            </button>
+            <button
+              type="button"
+              onClick={handleSetUpRegistration}
+              disabled={createMutation.isPending}
+              className="text-sm text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors cursor-pointer disabled:opacity-60"
+            >
+              or set up a blank form manually
             </button>
           </div>
         </motion.div>

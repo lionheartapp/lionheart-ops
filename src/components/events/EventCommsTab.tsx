@@ -73,6 +73,48 @@ function SubTabBar({ activeTab, onChange, announcementCount, activeSurveyCount, 
   )
 }
 
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+
+function CommsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <div className="w-10 h-6 bg-slate-200 rounded mb-1" />
+            <div className="w-24 h-3 bg-slate-100 rounded" />
+          </div>
+        ))}
+      </div>
+      {/* Sub-tab bar */}
+      <div className="w-72 h-9 bg-slate-100 rounded-full" />
+      {/* Content card */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3">
+        <div className="w-40 h-4 bg-slate-200 rounded" />
+        <div className="w-full h-20 bg-slate-100 rounded-xl" />
+        <div className="w-full h-20 bg-slate-100 rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
+// ─── Error State ─────────────────────────────────────────────────────────────
+
+function CommsError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="py-12 text-center">
+      <p className="text-sm text-red-500 mb-3">{message}</p>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+      >
+        Try Again
+      </button>
+    </div>
+  )
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
 export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStartDate }: EventCommsTabProps) {
@@ -80,9 +122,11 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<NotificationRuleRow | undefined>(undefined)
 
-  const { data: announcements = [] } = useAnnouncements(eventProjectId)
-  const { data: surveys = [] } = useSurveys(eventProjectId)
-  const { data: notificationRules = [] } = useNotificationRules(eventProjectId)
+  const { data: announcements = [], isLoading: announcementsLoading, error: announcementsError, refetch: refetchAnnouncements } = useAnnouncements(eventProjectId)
+  const { data: surveys = [], isLoading: surveysLoading, error: surveysError, refetch: refetchSurveys } = useSurveys(eventProjectId)
+  const { data: notificationRules = [], isLoading: notificationsLoading, error: notificationsError, refetch: refetchNotifications } = useNotificationRules(eventProjectId)
+
+  const isLoading = announcementsLoading || surveysLoading || notificationsLoading
 
   const activeSurveyCount = surveys.filter(s => s.status === 'ACTIVE').length
   const notificationCount = notificationRules.length
@@ -107,6 +151,22 @@ export function EventCommsTab({ eventProjectId, eventTitle = 'Event', eventStart
   function closeDrawer() {
     setDrawerOpen(false)
     setEditingRule(undefined)
+  }
+
+  if (isLoading) return <CommsSkeleton />
+
+  if (announcementsError || surveysError || notificationsError) {
+    const errorMsg = announcementsError
+      ? 'Failed to load announcements.'
+      : surveysError
+      ? 'Failed to load surveys.'
+      : 'Failed to load notifications.'
+    const retryFn = announcementsError
+      ? refetchAnnouncements
+      : surveysError
+      ? refetchSurveys
+      : refetchNotifications
+    return <CommsError message={errorMsg} onRetry={() => retryFn()} />
   }
 
   return (

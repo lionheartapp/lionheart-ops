@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { staggerContainer, fadeInUp, expandCollapse } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
+import { useAuth } from '@/lib/hooks/useAuth'
 import WorkOrdersFilters, {
   DEFAULT_FILTERS,
   type WorkOrdersFilterState,
@@ -83,16 +84,16 @@ async function changeStatusApi(
 export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialPriority, initialUnassigned, initialSchoolId }: WorkOrdersViewProps) {
   const queryClient = useQueryClient()
   const { data: perms } = usePermissions()
+  const { user: authUser } = useAuth()
 
   const canManage = perms?.canManageMaintenance ?? false
   const canClaim = perms?.canClaimMaintenance ?? false
   const canAssign = canManage
   const canChangeStatus = canManage || canClaim
 
-  // Current user ID from localStorage (for "My Board" filtering)
+  // Current user ID from useAuth hook (cookie-based)
   // IMPORTANT: must be declared before any useState that references it
-  const currentUserId =
-    typeof window !== 'undefined' ? (localStorage.getItem('user-id') ?? '') : ''
+  const currentUserId = authUser.id ?? ''
 
   // View mode: board (Kanban) or table — default to table when pre-filtered
   const hasInitialFilter = !!(initialStatus || initialPriority || initialUnassigned)

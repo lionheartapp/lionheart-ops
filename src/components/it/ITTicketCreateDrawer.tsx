@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders, fetchApi } from '@/lib/api-client'
@@ -24,6 +24,9 @@ import {
   Wifi,
   Projector,
   HelpCircle,
+  Camera,
+  X,
+  Check,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -172,6 +175,10 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const [error, setError] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
+  const [photoUploading, setPhotoUploading] = useState<{ id: string; preview: string; status: 'uploading' | 'done' | 'error' }[]>([])
+  const [photoError, setPhotoError] = useState('')
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const win = getWindowWithSpeech()
@@ -288,6 +295,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         priority,
       }
       if (description.trim()) body.description = description.trim()
+      if (photos.length > 0) body.photos = photos
       if (passwordSubType) body.passwordSubType = passwordSubType
       if (avSubType) body.avSubType = avSubType
       if (buildingId) body.buildingId = buildingId
@@ -335,12 +343,100 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
     setAreaId('')
     setRoomId('')
     setSchoolId('')
+    setPhotos([])
+    setPhotoUploading([])
+    setPhotoError('')
     setError('')
   }
 
   const handleClose = () => {
     resetForm()
     onClose()
+  }
+
+  const MAX_PHOTOS = 3
+
+  const uploadPhotoFile = useCallback(
+    async (file: File) => {
+      const id = Math.random().toString(36).slice(2)
+      const preview = URL.createObjectURL(file)
+
+      setPhotoUploading((prev) => [...prev, { id, preview, status: 'uploading' }])
+
+      try {
+        // 1. Get signed URL from IT upload endpoint
+        const urlRes = await fetch('/api/it/tickets/upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+          body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+        })
+        if (!urlRes.ok) throw new Error('Failed to get upload URL')
+        const urlData = await urlRes.json()
+        if (!urlData.ok) throw new Error(urlData.error?.message || 'Upload URL error')
+
+        const { signedUrl, publicUrl } = urlData.data
+
+        // 2. PUT file directly to Supabase
+        const putRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        })
+        if (!putRes.ok) throw new Error('Upload to storage failed')
+
+        // 3. Mark done and add to photos list
+        setPhotoUploading((prev) =>
+          prev.map((u) => (u.id === id ? { ...u, status: 'done' } : u))
+        )
+        setPhotos((prev) => [...prev, publicUrl])
+
+        // Remove from uploading state after showing checkmark
+        setTimeout(() => {
+          setPhotoUploading((prev) => prev.filter((u) => u.id !== id))
+          URL.revokeObjectURL(preview)
+        }, 1200)
+      } catch (err) {
+        setPhotoUploading((prev) =>
+          prev.map((u) => (u.id === id ? { ...u, status: 'error' } : u))
+        )
+        setTimeout(() => {
+          setPhotoUploading((prev) => prev.filter((u) => u.id !== id))
+          URL.revokeObjectURL(preview)
+        }, 3000)
+      }
+    },
+    []
+  )
+
+  const handlePhotoFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files) return
+      setPhotoError('')
+
+      const available = MAX_PHOTOS - photos.length
+      if (available <= 0) {
+        setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`)
+        return
+      }
+
+      const toUpload = Array.from(files).slice(0, available)
+      for (const file of toUpload) {
+        if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+          setPhotoError('Only JPG, PNG, and WebP images are allowed')
+          continue
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          setPhotoError('File exceeds 10MB limit')
+          continue
+        }
+        uploadPhotoFile(file)
+      }
+    },
+    [photos.length, uploadPhotoFile]
+  )
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index))
   }
 
   // Compute title suggestions based on issue type + sub-type
@@ -613,6 +709,105 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
                 <Mic className="w-4 h-4" />
               )}
             </button>
+          )}
+        </div>
+
+        {/* Photo Upload */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-slate-700">Photos (optional)</label>
+            {photos.length > 0 && (
+              <span className="text-xs text-slate-500">{photos.length}/{MAX_PHOTOS}</span>
+            )}
+          </div>
+
+          {photos.length < MAX_PHOTOS && (
+            <div
+              onClick={() => photoInputRef.current?.click()}
+              onDrop={(e) => {
+                e.preventDefault()
+                handlePhotoFiles(e.dataTransfer.files)
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              className="rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 p-4 text-center transition-all cursor-pointer"
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                <Camera className="w-6 h-6 text-slate-400" />
+                <p className="text-sm text-slate-600">Add photos to help diagnose the issue</p>
+                <p className="text-xs text-slate-400">JPG, PNG, WebP up to 10MB each</p>
+              </div>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                onChange={(e) => handlePhotoFiles(e.target.files)}
+                className="hidden"
+              />
+            </div>
+          )}
+
+          {photoError && (
+            <p className="text-xs text-red-600">{photoError}</p>
+          )}
+
+          {/* Photo grid */}
+          {(photos.length > 0 || photoUploading.length > 0) && (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map((url, i) => (
+                <div
+                  key={url}
+                  className="relative aspect-square rounded-xl overflow-hidden group bg-slate-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={`Photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/50 text-white text-xs rounded-md">
+                    {i + 1}
+                  </div>
+                </div>
+              ))}
+
+              {photoUploading.map((u) => (
+                <div
+                  key={u.id}
+                  className="relative aspect-square rounded-xl overflow-hidden bg-slate-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={u.preview}
+                    alt="Uploading..."
+                    className="w-full h-full object-cover opacity-60"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    {u.status === 'uploading' && (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    )}
+                    {u.status === 'done' && (
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                    {u.status === 'error' && (
+                      <div className="text-center px-2">
+                        <X className="w-6 h-6 text-red-400 mx-auto mb-1" />
+                        <p className="text-xs text-white">Failed</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

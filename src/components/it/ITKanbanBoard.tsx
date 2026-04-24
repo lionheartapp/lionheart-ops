@@ -21,7 +21,7 @@ import ITKanbanColumn from './ITKanbanColumn'
 import ITKanbanCard, { type KanbanTicket } from './ITKanbanCard'
 import { BoardSkeleton } from './ITSkeleton'
 import HoldReasonDialog from './HoldReasonDialog'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ChevronDown, ChevronRight, CheckCircle2, XCircle } from 'lucide-react'
 import ITErrorState from './ITErrorState'
 import ITSearchFilterBar from './ITSearchFilterBar'
 
@@ -36,6 +36,7 @@ interface ITKanbanBoardProps {
 }
 
 const BOARD_COLUMNS = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'ON_HOLD'] as const
+const COMPLETED_STATUSES = ['DONE', 'CANCELLED'] as const
 
 const ISSUE_TYPE_OPTIONS = [
   { value: '', label: 'All Types' },
@@ -60,6 +61,7 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
   const { toast } = useToast()
   const [activeTicket, setActiveTicket] = useState<KanbanTicket | null>(null)
   const [holdPending, setHoldPending] = useState<{ ticketId: string; title: string } | null>(null)
+  const [showCompleted, setShowCompleted] = useState(false)
 
   // Filter state
   const [filterIssueType, setFilterIssueType] = useState('')
@@ -67,6 +69,58 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
   const [filterUnassigned, setFilterUnassigned] = useState(false)
 
   const { data: boardData, isLoading, isError, refetch } = useQuery(queryOptions.itBoard(activeSchoolId ?? undefined))
+
+  // Fetch recently completed tickets (last 7 days) when toggled on
+  const sevenDaysAgo = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 7)
+    return d.toISOString()
+  }, [])
+
+  const { data: completedDone } = useQuery({
+    queryKey: ['it-tickets-completed', 'DONE', activeSchoolId ?? ''],
+    queryFn: async () => {
+      const params = new URLSearchParams({ status: 'DONE', limit: '50' })
+      if (activeSchoolId) params.set('schoolId', activeSchoolId)
+      const res = await fetch(`/api/it/tickets?${params.toString()}`, {
+        headers: getAuthHeaders() as HeadersInit,
+      })
+      if (!res.ok) return { tickets: [] }
+      const body = await res.json() as { data?: { tickets: KanbanTicket[] } }
+      return body.data ?? { tickets: [] }
+    },
+    enabled: showCompleted,
+    staleTime: 30_000,
+  })
+
+  const { data: completedCancelled } = useQuery({
+    queryKey: ['it-tickets-completed', 'CANCELLED', activeSchoolId ?? ''],
+    queryFn: async () => {
+      const params = new URLSearchParams({ status: 'CANCELLED', limit: '50' })
+      if (activeSchoolId) params.set('schoolId', activeSchoolId)
+      const res = await fetch(`/api/it/tickets?${params.toString()}`, {
+        headers: getAuthHeaders() as HeadersInit,
+      })
+      if (!res.ok) return { tickets: [] }
+      const body = await res.json() as { data?: { tickets: KanbanTicket[] } }
+      return body.data ?? { tickets: [] }
+    },
+    enabled: showCompleted,
+    staleTime: 30_000,
+  })
+
+  const completedTickets = useMemo(() => {
+    const doneTickets = (completedDone as { tickets: KanbanTicket[] } | undefined)?.tickets ?? []
+    const cancelledTickets = (completedCancelled as { tickets: KanbanTicket[] } | undefined)?.tickets ?? []
+    const all = [...doneTickets, ...cancelledTickets]
+    return all.filter((t) => {
+      if (new Date(t.createdAt) < new Date(sevenDaysAgo)) return false
+      if (scope === 'mine' && currentUserId && t.assignedTo) {
+        if (t.assignedTo.id !== currentUserId) return false
+      }
+      return true
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [completedDone, completedCancelled, scope, currentUserId, sevenDaysAgo])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -263,6 +317,65 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
             onTicketClick={onTicketClick}
           />
         ))}
+      </div>
+
+      {/* Completed tickets toggle */}
+      <div className="mt-6">
+        <button
+          onClick={() => setShowCompleted(!showCompleted)}
+          className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+        >
+          {showCompleted ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronRight className="w-4 h-4" />
+          )}
+          Completed (last 7 days)
+          {showCompleted && completedTickets.length > 0 && (
+            <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
+              {completedTickets.length}
+            </span>
+          )}
+        </button>
+
+        {showCompleted && (
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {completedTickets.length === 0 ? (
+              <p className="text-sm text-slate-400 col-span-full py-4 text-center">
+                No completed or cancelled tickets in the last 7 days
+              </p>
+            ) : (
+              completedTickets.map((ticket) => (
+                <button
+                  key={ticket.id}
+                  onClick={() => onTicketClick(ticket.id)}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all text-left cursor-pointer opacity-75 hover:opacity-100"
+                >
+                  <div className="flex-shrink-0">
+                    {ticket.status === 'DONE' ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-slate-400">{ticket.ticketNumber}</span>
+                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                        ticket.status === 'DONE'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {ticket.status === 'DONE' ? 'Resolved' : 'Cancelled'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-700 truncate mt-0.5">{ticket.title}</p>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <DragOverlay>

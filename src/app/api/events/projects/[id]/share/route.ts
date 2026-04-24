@@ -52,17 +52,9 @@ export const GET = withAuth(async ({ orgId, params }) => {
     )
   }
 
-  // Build the share URL
+  // Build the share URL — use the short /r/[slug] pattern
   const baseUrl = process.env.NEXT_PUBLIC_PLATFORM_URL?.trim() || 'https://app.lionheartapp.com'
-
-  // Fetch org slug for tenant URL construction
-  const org = await rawPrisma.organization.findUnique({
-    where: { id: orgId },
-    select: { slug: true },
-  })
-
-  const orgSlug = org?.slug ?? ''
-  const shareUrl = `${baseUrl}/events/public/${orgSlug}/${form.shareSlug}`
+  const shareUrl = `${baseUrl}/r/${form.shareSlug}`
 
   // Generate QR code (server-side)
   const qrCodeSvg = await QRCode.toString(shareUrl, {

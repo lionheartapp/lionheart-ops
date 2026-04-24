@@ -60,6 +60,7 @@ export default function LaborEntryForm({
   const [durationInput, setDurationInput] = useState('')
   const [notes, setNotes] = useState('')
   const [technicianId, setTechnicianId] = useState(currentUserId)
+  const [hourlyRate, setHourlyRate] = useState('')
   const [inputMode, setInputMode] = useState<'times' | 'duration'>('times')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -82,9 +83,11 @@ export default function LaborEntryForm({
     setIsSubmitting(true)
     setError('')
 
+    const parsedRate = parseFloat(hourlyRate)
     const body: Record<string, unknown> = {
       technicianId,
       notes: notes.trim() || undefined,
+      hourlyRate: !isNaN(parsedRate) && parsedRate > 0 ? parsedRate : undefined,
     }
 
     if (inputMode === 'times' && date && startTime && endTime) {
@@ -214,6 +217,24 @@ export default function LaborEntryForm({
           </select>
         </div>
       )}
+
+      {/* Hourly Rate */}
+      <div>
+        <label className="block text-xs font-medium text-slate-700 mb-1">Hourly Rate (USD)</label>
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
+          <input
+            type="number"
+            min="0"
+            step="0.50"
+            value={hourlyRate}
+            onChange={(e) => setHourlyRate(e.target.value)}
+            placeholder="0.00"
+            className="w-full pl-6 pr-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          />
+        </div>
+        <p className="text-[10px] text-slate-400 mt-0.5">Leave blank to use the technician's default rate</p>
+      </div>
 
       {/* Notes */}
       <div>

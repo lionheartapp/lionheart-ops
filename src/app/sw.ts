@@ -13,7 +13,7 @@ const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
+  navigationPreload: false,
   runtimeCaching: [
     // Onboarding pages — NetworkOnly so the user always sees the latest
     // version of the signup funnel. Caching onboarding bit us when an

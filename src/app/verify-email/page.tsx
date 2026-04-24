@@ -64,7 +64,7 @@ function VerifyEmailContent() {
     return (
       <Layout>
         <div className="text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Email sent!</h1>
@@ -75,7 +75,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
@@ -89,7 +89,7 @@ function VerifyEmailContent() {
     return (
       <Layout>
         <div className="text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-50">
             <Clock className="h-8 w-8 text-yellow-600" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Link expired</h1>
@@ -100,7 +100,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => setShowResendForm(true)}
-            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3"
+            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3 cursor-pointer"
           >
             Resend verification email
           </button>
@@ -108,7 +108,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
@@ -122,7 +122,7 @@ function VerifyEmailContent() {
     return (
       <Layout>
         <div className="text-center">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Invalid link</h1>
@@ -133,7 +133,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => setShowResendForm(true)}
-            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3"
+            className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-colors duration-200 mb-3 cursor-pointer"
           >
             Resend verification email
           </button>
@@ -141,7 +141,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => router.push('/login')}
-            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 font-medium mt-2 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
@@ -155,8 +155,8 @@ function VerifyEmailContent() {
   return (
     <Layout>
       <div className="text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-          <Mail className="h-8 w-8 text-blue-600" />
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+          <Mail className="h-8 w-8 text-slate-600" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
         <p className="text-slate-500 text-sm mb-6">
@@ -170,7 +170,7 @@ function VerifyEmailContent() {
           <button
             type="button"
             onClick={() => setShowResendForm(true)}
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium mb-4"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium mb-4 cursor-pointer transition-colors duration-200"
           >
             <RefreshCw className="h-4 w-4" />
             Resend verification email
@@ -239,7 +239,7 @@ function ResendForm({
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="you@school.edu"
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
         />
       </div>
       <div>
@@ -253,7 +253,7 @@ function ResendForm({
           onChange={(e) => setOrgId(e.target.value)}
           required
           placeholder="Organization ID from your signup"
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
         />
       </div>
       {errorMsg && (
@@ -262,7 +262,7 @@ function ResendForm({
       <button
         type="submit"
         disabled={state === 'submitting'}
-        className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
+        className="w-full px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
       >
         {state === 'submitting' ? 'Sending...' : 'Send verification email'}
       </button>
@@ -274,12 +274,26 @@ function ResendForm({
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto" />
+    <div className="flex min-h-screen">
+      {/* Branded side panel */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950 relative overflow-hidden">
+        <div className="text-center px-12">
+          <h1 className="text-5xl font-bold text-white mb-4">Lionheart</h1>
+          <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
+          <img
+            src="/logo-white.svg"
+            alt="Lionheart"
+            className="h-10 w-auto mx-auto opacity-60"
+          />
         </div>
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+      </div>
+
+      {/* Content side */}
+      <div className="flex-1 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden text-center mb-8">
+            <img src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
+          </div>
           {children}
         </div>
       </div>

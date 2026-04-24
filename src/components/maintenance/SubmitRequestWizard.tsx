@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getAuthHeaders } from '@/lib/api-client'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { CheckCircle2, MapPin, Camera, ClipboardList, ClipboardCheck, Check, ExternalLink, Package, WifiOff } from 'lucide-react'
 import StepLocation from './SubmitRequestWizard/StepLocation'
 import StepAsset from './SubmitRequestWizard/StepAsset'
@@ -69,17 +71,12 @@ const STEPS = [
   { label: 'Review', icon: ClipboardCheck },
 ]
 
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
-
 // ─── Wizard Component ─────────────────────────────────────────────────────────
 
 export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequestWizardProps) {
   const searchParams = useSearchParams()
   const isOnline = useConnectivity()
+  const { user, orgId: authOrgId } = useAuth({ redirectTo: '' })
   const [currentStep, setCurrentStep] = useState<WizardStep>(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [success, setSuccess] = useState<SuccessData | null>(null)
@@ -211,8 +208,8 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       // Offline path: queue the mutation and store a local-only ticket
       if (!isOnline) {
         const tempId = `temp-${Date.now()}`
-        const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : ''
-        const userId = typeof window !== 'undefined' ? localStorage.getItem('user-id') : ''
+        const orgId = authOrgId ?? ''
+        const userId = user.id ?? ''
 
         await enqueueOfflineMutation({
           type: 'TICKET_CREATE',
@@ -248,6 +245,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
       const res = await fetch('/api/maintenance/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        credentials: 'include',
         body: JSON.stringify(body),
       })
 
@@ -283,6 +281,7 @@ export default function SubmitRequestWizard({ onComplete, onCancel }: SubmitRequ
     const res = await fetch('/api/maintenance/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      credentials: 'include',
       body: JSON.stringify(body),
     })
 

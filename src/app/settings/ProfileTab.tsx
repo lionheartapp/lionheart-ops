@@ -54,6 +54,10 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
   const [mfaDisableLoading, setMfaDisableLoading] = useState(false)
   const [mfaDisableError, setMfaDisableError] = useState('')
   const [backupCodesCopied, setBackupCodesCopied] = useState(false)
+  const [regenCodesOpen, setRegenCodesOpen] = useState(false)
+  const [regenPassword, setRegenPassword] = useState('')
+  const [regenLoading, setRegenLoading] = useState(false)
+  const [regenError, setRegenError] = useState('')
 
   // Passkey state
   interface PasskeyInfo {
@@ -864,46 +868,114 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             </div>
           </div>
         ) : (
-          /* Default state — show status + action button */
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-2.5 h-2.5 rounded-full ${mfaEnabled ? 'bg-green-500' : 'bg-slate-300'}`} />
-              <span className="text-sm text-slate-700">
-                {mfaEnabled ? 'Enabled — your account is protected' : 'Not enabled'}
-              </span>
+          /* Default state — show status + action buttons */
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-2.5 h-2.5 rounded-full ${mfaEnabled ? 'bg-green-500' : 'bg-slate-300'}`} />
+                <span className="text-sm text-slate-700">
+                  {mfaEnabled ? 'Enabled — your account is protected' : 'Not enabled'}
+                </span>
+              </div>
+              {mfaEnabled ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setRegenCodesOpen(true); setRegenPassword(''); setRegenError('') }}
+                    className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+                  >
+                    Regenerate Backup Codes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMfaDisableOpen(true)}
+                    className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+                  >
+                    Disable
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setMfaSetupOpen(true)
+                    setMfaError('')
+                    try {
+                      const res = await fetch('/api/auth/mfa/setup', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                      })
+                      const data = await res.json()
+                      if (!data.ok) throw new Error(data.error?.message || 'Failed to start setup')
+                      setMfaQrCode(data.data.qrCodeDataUrl)
+                      setMfaSecret(data.data.secret)
+                    } catch (err) {
+                      setMfaError(err instanceof Error ? err.message : 'Setup failed')
+                      setMfaSetupOpen(false)
+                    }
+                  }}
+                  className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
+                >
+                  Enable 2FA
+                </button>
+              )}
             </div>
-            {mfaEnabled ? (
-              <button
-                type="button"
-                onClick={() => setMfaDisableOpen(true)}
-                className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
-              >
-                Disable
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={async () => {
-                  setMfaSetupOpen(true)
-                  setMfaError('')
-                  try {
-                    const res = await fetch('/api/auth/mfa/setup', {
-                      method: 'POST',
-                      headers: getAuthHeaders(),
-                    })
-                    const data = await res.json()
-                    if (!data.ok) throw new Error(data.error?.message || 'Failed to start setup')
-                    setMfaQrCode(data.data.qrCodeDataUrl)
-                    setMfaSecret(data.data.secret)
-                  } catch (err) {
-                    setMfaError(err instanceof Error ? err.message : 'Setup failed')
-                    setMfaSetupOpen(false)
-                  }
-                }}
-                className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition"
-              >
-                Enable 2FA
-              </button>
+
+            {/* Regenerate backup codes — password confirmation */}
+            {regenCodesOpen && (
+              <div className="space-y-3 border-t border-slate-100 pt-4">
+                <p className="text-sm text-slate-600">
+                  Enter your password to regenerate backup codes. This will invalidate all existing backup codes.
+                </p>
+                <input
+                  type="password"
+                  value={regenPassword}
+                  onChange={(e) => setRegenPassword(e.target.value)}
+                  placeholder="Your password"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none transition-colors"
+                  autoComplete="current-password"
+                  autoFocus
+                />
+                {regenError && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{regenError}</div>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    disabled={regenLoading || !regenPassword}
+                    onClick={async () => {
+                      setRegenLoading(true)
+                      setRegenError('')
+                      try {
+                        const res = await fetch('/api/auth/mfa/regenerate-codes', {
+                          method: 'POST',
+                          headers: getAuthHeaders(),
+                          body: JSON.stringify({ password: regenPassword }),
+                        })
+                        const data = await res.json()
+                        if (!data.ok) throw new Error(data.error?.message || 'Failed to regenerate codes')
+                        setMfaBackupCodes(data.data.backupCodes)
+                        setRegenCodesOpen(false)
+                        setRegenPassword('')
+                      } catch (err) {
+                        setRegenError(err instanceof Error ? err.message : 'Failed to regenerate codes')
+                      } finally {
+                        setRegenLoading(false)
+                      }
+                    }}
+                    className="flex-1 ui-btn px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {regenLoading ? 'Regenerating...' : 'Regenerate Codes'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setRegenCodesOpen(false); setRegenPassword(''); setRegenError('') }}
+                    className="ui-btn px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}

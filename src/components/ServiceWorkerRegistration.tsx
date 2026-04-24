@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { logger } from '@/lib/logger'
+// NOTE: Do not import `logger` here — this is a client component and pino
+// (used by logger in production) cannot load in the browser. Use console
+// directly for the single error path below.
 
 export function ServiceWorkerRegistration() {
   useEffect(() => {
@@ -24,7 +26,8 @@ export function ServiceWorkerRegistration() {
     }
 
     navigator.serviceWorker.register('/sw.js').catch((err) => {
-      logger.error({ error: String(err) }, 'Service worker registration failed')
+      // eslint-disable-next-line no-console
+      console.error('Service worker registration failed', err)
     })
   }, [])
 

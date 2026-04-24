@@ -11,16 +11,12 @@ import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { useConnectivity } from '@/hooks/useConnectivity'
 import { db } from '@/lib/offline/db'
 import { getQueueCount } from '@/lib/offline/queue'
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
+import { getAuthHeaders } from '@/lib/api-client'
 
 async function fetchMyTickets() {
   const res = await fetch('/api/maintenance/tickets', {
     headers: getAuthHeaders(),
+    credentials: 'include',
   })
   if (!res.ok) throw new Error('Failed to fetch tickets')
   const data = await res.json()

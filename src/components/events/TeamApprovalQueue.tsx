@@ -18,6 +18,14 @@ import { usePendingGateApprovals, useApproveGate, useRejectGate, type EventProje
 import { staggerContainer, cardEntrance, fadeInUp } from '@/lib/animations'
 import { useToast } from '@/components/Toast'
 
+// ─── V2 Detection ───────────────────────────────────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isV2GateKey(key: string): boolean {
+  return UUID_RE.test(key)
+}
+
 // ─── Gate Labels ─────────────────────────────────────────────────────────────
 
 const GATE_LABELS: Record<string, string> = {
@@ -40,13 +48,16 @@ function ResourceRequirements({
   gateType,
 }: {
   project: EventProject
-  gateType: 'av' | 'facilities' | 'admin'
+  gateType: string
 }) {
   const meta = (project.metadata ?? {}) as Record<string, unknown>
 
+  // For V2 team UUIDs, we don't have a channel mapping — show all relevant requirements
+  const isV2 = isV2GateKey(gateType)
+
   // Determine which requirements to show based on the gate type
-  const isAV = gateType === 'av'
-  const isFacilities = gateType === 'facilities'
+  const isAV = gateType === 'av' || isV2
+  const isFacilities = gateType === 'facilities' || isV2
   const isAdmin = gateType === 'admin'
 
   const avNeeds = (meta.avNeeds ?? []) as string[]
@@ -145,7 +156,7 @@ function ApprovalCard({
   isApproving,
 }: {
   project: EventProject
-  gateType: 'av' | 'facilities' | 'admin'
+  gateType: string
   onApprove: (id: string) => void
   onReject: (id: string, reason: string) => void
   isApproving: boolean
@@ -216,7 +227,9 @@ function ApprovalCard({
                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${config.bg} ${config.text}`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-                {(GATE_LABELS as Record<string, string>)[key] ?? key}: {config.label}
+                {isV2GateKey(key)
+                  ? ((gate as Record<string, unknown>).teamName as string ?? key)
+                  : (GATE_LABELS[key] ?? key)}: {config.label}
               </span>
             )
           })}
@@ -296,7 +309,8 @@ function QueueSkeleton() {
 // ─── TeamApprovalQueue ───────────────────────────────────────────────────────
 
 interface TeamApprovalQueueProps {
-  gateType: 'av' | 'facilities'
+  /** V1 channel type ('av' | 'facilities') or V2 team UUID */
+  gateType: string
   teamLabel: string
 }
 

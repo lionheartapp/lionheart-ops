@@ -1,392 +1,99 @@
 'use client'
 
-// TODO: Re-enable when MDM/provisioning is fully implemented.
-// This tab currently writes provisioning-event rows to the DB, but
-// itProvisioningService does NOT actually provision Google/M365 accounts.
-// All interactive controls are disabled until real integration ships.
-
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { queryOptions, queryKeys } from '@/lib/queries'
-import { getAuthHeaders } from '@/lib/api-client'
-import { useToast } from '@/components/Toast'
 import {
-  UserCog, Settings, RefreshCw, AlertTriangle, CheckCircle2,
-  XCircle, Clock, Loader2, ChevronDown, Search, Info,
+  UserCog, Shield, RefreshCw, GraduationCap, Users, Bell,
 } from 'lucide-react'
 import { IllustrationDeployment } from '@/components/illustrations'
-import ITErrorState from './ITErrorState'
-
-// Feature flag: disables all write actions in the Provisioning tab
-// until the upstream integration (Google Admin SDK / Microsoft Graph) ships.
-const PROVISIONING_ENABLED = false
 
 interface ITProvisioningTabProps {
   canManage: boolean
   canView: boolean
 }
 
-interface ProvisioningConfig {
-  autoEnrollEnabled: boolean
-  autoSuspendEnabled: boolean
-  orphanDetectionEnabled: boolean
-  graduationArchiveEnabled: boolean
-  staffOnboardingEnabled: boolean
-  defaultOuPath: string | null
-  suspendedOuPath: string | null
-}
-
-interface ProvisioningEvent {
-  id: string
-  eventType: string
-  status: string
-  studentId: string | null
-  userId: string | null
-  details: Record<string, unknown> | null
-  errorMessage: string | null
-  createdAt: string
-  processedAt: string | null
-}
-
-interface OrphanedAccount {
-  id: string
-  email: string
-  accountType: string
-  source: string
-  detectedAt: string
-  resolvedAt: string | null
-  resolution: string | null
-  notes: string | null
-}
-
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  NEW_ENROLLMENT: 'New Enrollment',
-  TRANSFER_IN: 'Transfer In',
-  TRANSFER_OUT: 'Transfer Out',
-  GRADUATION: 'Graduation',
-  ORPHANED_DETECTED: 'Orphaned Detected',
-  STAFF_ONBOARDING: 'Staff Onboarding',
-}
-
-const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING: { label: 'Pending', color: 'text-yellow-700', bg: 'bg-yellow-100' },
-  IN_PROGRESS: { label: 'In Progress', color: 'text-blue-700', bg: 'bg-blue-100' },
-  COMPLETED: { label: 'Completed', color: 'text-green-700', bg: 'bg-green-100' },
-  FAILED: { label: 'Failed', color: 'text-red-700', bg: 'bg-red-100' },
-  SKIPPED: { label: 'Skipped', color: 'text-slate-700', bg: 'bg-slate-100' },
-}
+const PLANNED_FEATURES = [
+  {
+    icon: UserCog,
+    title: 'Auto-Enroll New Students',
+    description: 'Automatically provision Google Workspace or Microsoft 365 accounts when new students are enrolled in your SIS.',
+  },
+  {
+    icon: Shield,
+    title: 'Auto-Suspend on Transfer',
+    description: 'When a student transfers out, their account is automatically suspended to protect data and free up licenses.',
+  },
+  {
+    icon: RefreshCw,
+    title: 'Orphan Detection',
+    description: 'Weekly scans identify directory accounts with no matching SIS record so you can clean up stale accounts.',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Graduation Archive',
+    description: 'Batch archive graduating student accounts at the end of the school year with a single click.',
+  },
+  {
+    icon: Users,
+    title: 'Staff Onboarding',
+    description: 'Automatically create IT setup tickets and provision accounts when new staff members are added.',
+  },
+]
 
 export default function ITProvisioningTab({ canManage, canView }: ITProvisioningTabProps) {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  const [eventTypeFilter, setEventTypeFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-
-  // Config
-  const { data: config, isLoading: configLoading, isError: configError, refetch: refetchConfig } = useQuery({
-    ...queryOptions.itProvisioningConfig(),
-    enabled: canManage,
-  })
-
-  // Events
-  const filters: Record<string, string> = {}
-  if (eventTypeFilter) filters.eventType = eventTypeFilter
-  if (statusFilter) filters.status = statusFilter
-
-  const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useQuery({
-    ...queryOptions.itProvisioningEvents(filters),
-    enabled: canView,
-  })
-
-  // Orphaned accounts
-  const { data: orphanedAccounts = [], isLoading: orphanedLoading, isError: orphanedError } = useQuery({
-    ...queryOptions.itOrphanedAccounts(),
-    enabled: canView,
-  })
-
-  // Toggle config mutation
-  const toggleConfig = useMutation({
-    mutationFn: async (update: Partial<ProvisioningConfig>) => {
-      const res = await fetch('/api/it/provisioning/config', {
-        method: 'PATCH',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify(update),
-      })
-      if (!res.ok) throw new Error('Failed to update config')
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itProvisioningConfig.all })
-      toast('Configuration updated')
-    },
-    onError: () => toast('Failed to update config'),
-  })
-
-  // Resolve orphaned account
-  const resolveOrphaned = useMutation({
-    mutationFn: async ({ id, action, notes }: { id: string; action: string; notes?: string }) => {
-      const res = await fetch(`/api/it/provisioning/orphaned/${id}/resolve`, {
-        method: 'POST',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, notes }),
-      })
-      if (!res.ok) throw new Error('Failed to resolve')
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.itOrphanedAccounts.all })
-      toast('Account resolved')
-    },
-    onError: () => toast('Failed to resolve account'),
-  })
-
-  const typedConfig = config as ProvisioningConfig | undefined
-  const typedEvents = (eventsData as { events: ProvisioningEvent[]; total: number } | undefined)?.events || []
-  const typedOrphaned = orphanedAccounts as OrphanedAccount[]
-
-  const configToggles = [
-    { key: 'autoEnrollEnabled' as const, label: 'Auto-Enroll', desc: 'Automatically provision accounts for new enrollments' },
-    { key: 'autoSuspendEnabled' as const, label: 'Auto-Suspend', desc: 'Suspend accounts when students transfer out' },
-    { key: 'orphanDetectionEnabled' as const, label: 'Orphan Detection', desc: 'Weekly scan for accounts with no SIS match' },
-    { key: 'graduationArchiveEnabled' as const, label: 'Graduation Archive', desc: 'Batch archive accounts at graduation' },
-    { key: 'staffOnboardingEnabled' as const, label: 'Staff Onboarding', desc: 'Auto-create IT setup ticket for new staff' },
-  ]
-
-  if (configError || eventsError || orphanedError) return <ITErrorState onRetry={refetchConfig} />
-
   return (
-    <div className="space-y-6">
-      {/* Coming Soon Banner ─────────────────────────────────────────────── */}
-      <div
-        role="status"
-        className="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/60"
-      >
-        <div className="w-9 h-9 rounded-xl bg-white/70 border border-amber-200 flex items-center justify-center flex-shrink-0">
-          <Info className="w-4.5 h-4.5 text-amber-600" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-900">
-            Account Provisioning — Coming Soon
-          </p>
-          <p className="text-xs text-amber-800/90 mt-1 leading-relaxed">
-            Automated account provisioning requires a connected identity provider
-            (Google Workspace or Microsoft 365). The UI below is a preview of the
-            workflow. Toggles, triggers, and resolution actions are disabled until
-            the integration is live.
-          </p>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="text-center pt-4 pb-2">
+        <IllustrationDeployment className="w-48 h-36 mx-auto mb-4" />
+        <h2 className="text-lg font-semibold text-slate-900">
+          Account Provisioning
+        </h2>
+        <p className="text-sm text-slate-500 mt-1.5 max-w-md mx-auto leading-relaxed">
+          Automated account lifecycle management is coming soon. Connect your
+          identity provider to automatically provision, suspend, and archive
+          student and staff accounts based on your SIS data.
+        </p>
+      </div>
+
+      {/* What's Coming */}
+      <div className="ui-glass p-6">
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+          What provisioning will do
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {PLANNED_FEATURES.map((feature) => {
+            const Icon = feature.icon
+            return (
+              <div
+                key={feature.title}
+                className="flex gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100"
+              >
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-900">{feature.title}</p>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      {/* Config Section */}
-      {canManage && (
-        <div className="ui-glass p-6 opacity-75">
-          <div className="flex items-center gap-2 mb-4">
-            <Settings className="w-5 h-5 text-slate-700" />
-            <h3 className="text-sm font-semibold text-slate-900">Automation Settings</h3>
-            <span className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 border border-amber-200">
-              Coming soon
-            </span>
-          </div>
-          {configLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {configToggles.map(({ key, label, desc }) => (
-                <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{label}</p>
-                    <p className="text-xs text-slate-500">{desc}</p>
-                  </div>
-                  {/* TODO: Re-enable when MDM/provisioning is fully implemented */}
-                  <button
-                    onClick={() => {
-                      if (!PROVISIONING_ENABLED) return
-                      toggleConfig.mutate({ [key]: !(typedConfig?.[key] ?? false) })
-                    }}
-                    disabled={!PROVISIONING_ENABLED || toggleConfig.isPending}
-                    title="Coming soon — requires connected identity provider"
-                    aria-disabled={!PROVISIONING_ENABLED}
-                    className={`relative w-11 h-6 rounded-full transition-colors opacity-50 cursor-not-allowed ${
-                      typedConfig?.[key] ? 'bg-blue-500' : 'bg-slate-300'
-                    }`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                      typedConfig?.[key] ? 'translate-x-5' : ''
-                    }`} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Event Log */}
-      {canView && (
-        <div className="ui-glass p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-slate-700" />
-              <h3 className="text-sm font-semibold text-slate-900">Provisioning Events</h3>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={eventTypeFilter}
-                onChange={(e) => setEventTypeFilter(e.target.value)}
-                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
-              >
-                <option value="">All Types</option>
-                {Object.entries(EVENT_TYPE_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white"
-              >
-                <option value="">All Statuses</option>
-                {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {eventsLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : typedEvents.length === 0 ? (
-            <div className="text-center py-8">
-              <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No provisioning events yet</p>
-              <p className="text-xs text-slate-400 mt-1">Events will appear here when provisioning actions are triggered</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-2 px-3 font-medium text-slate-500">Type</th>
-                    <th className="text-left py-2 px-3 font-medium text-slate-500">Status</th>
-                    <th className="text-left py-2 px-3 font-medium text-slate-500">Details</th>
-                    <th className="text-left py-2 px-3 font-medium text-slate-500">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {typedEvents.map((event) => {
-                    const statusCfg = STATUS_LABELS[event.status] || STATUS_LABELS.PENDING
-                    return (
-                      <tr key={event.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
-                        <td className="py-2 px-3 text-slate-900">{EVENT_TYPE_LABELS[event.eventType] || event.eventType}</td>
-                        <td className="py-2 px-3">
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${statusCfg.bg} ${statusCfg.color}`}>
-                            {statusCfg.label}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-slate-500 max-w-[200px] truncate">
-                          {event.errorMessage || (event.details as Record<string, unknown>)?.action?.toString() || '—'}
-                        </td>
-                        <td className="py-2 px-3 text-slate-500">
-                          {new Date(event.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Orphaned Accounts */}
-      {canView && (
-        <div className="ui-glass p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            <h3 className="text-sm font-semibold text-slate-900">Orphaned Accounts</h3>
-            <span className="text-xs text-slate-400 ml-1">
-              Accounts with no matching SIS record
-            </span>
-          </div>
-
-          {orphanedLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
-              ))}
-            </div>
-          ) : typedOrphaned.length === 0 ? (
-            <div className="text-center py-8">
-              <IllustrationDeployment className="w-40 h-32 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No orphaned accounts</p>
-              <p className="text-xs text-slate-400 mt-1">All directory accounts have matching SIS records</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {typedOrphaned.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-100">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">{account.email}</p>
-                    <p className="text-xs text-slate-500">
-                      {account.accountType} · {account.source} · Detected {new Date(account.detectedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {canManage && (
-                    // TODO: Re-enable when MDM/provisioning is fully implemented
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => {
-                          if (!PROVISIONING_ENABLED) return
-                          resolveOrphaned.mutate({ id: account.id, action: 'keep' })
-                        }}
-                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
-                        title="Coming soon — requires connected identity provider"
-                        aria-disabled={!PROVISIONING_ENABLED}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-green-100 text-green-700 transition-colors opacity-50 cursor-not-allowed"
-                      >
-                        Keep
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!PROVISIONING_ENABLED) return
-                          resolveOrphaned.mutate({ id: account.id, action: 'suspend' })
-                        }}
-                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
-                        title="Coming soon — requires connected identity provider"
-                        aria-disabled={!PROVISIONING_ENABLED}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 transition-colors opacity-50 cursor-not-allowed"
-                      >
-                        Suspend
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!PROVISIONING_ENABLED) return
-                          resolveOrphaned.mutate({ id: account.id, action: 'delete' })
-                        }}
-                        disabled={!PROVISIONING_ENABLED || resolveOrphaned.isPending}
-                        title="Coming soon — requires connected identity provider"
-                        aria-disabled={!PROVISIONING_ENABLED}
-                        className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 text-red-700 transition-colors opacity-50 cursor-not-allowed"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Notify Me CTA */}
+      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-200 rounded-xl p-6 text-center">
+        <Bell className="w-6 h-6 text-indigo-600 mx-auto mb-2" />
+        <p className="text-sm font-semibold text-indigo-900">
+          We will notify you when provisioning is available
+        </p>
+        <p className="text-xs text-indigo-700/80 mt-1 max-w-sm mx-auto leading-relaxed">
+          Your organization will receive an in-app notification and email when
+          identity provider integrations (Google Workspace and Microsoft 365)
+          are ready to connect.
+        </p>
+      </div>
     </div>
   )
 }

@@ -169,11 +169,30 @@ export interface BuildGatesResult {
 /**
  * Build approval gates from the org's team-based approval flow.
  * Gate keys = team IDs.
+ *
+ * @param needs - Resource toggles from the event form
+ * @param resolvedSteps - When provided (from resolveApprovalSteps), only build
+ *   gates for teams present in these steps. Falls back to all flow entries.
  */
 export async function buildGatesFromFlow(
   needs: EventResourceNeeds,
+  resolvedSteps?: Array<{ teamId: string; team: { id: string; name: string }; mode: string; trigger: string; resourceType: string | null; sortOrder: number; escalationHours: number; autoSkipIfNotNeeded: boolean }>,
 ): Promise<BuildGatesResult> {
-  const entries = await getApprovalFlowEntries()
+  let entries: ApprovalFlowEntryWithTeam[]
+
+  if (resolvedSteps && resolvedSteps.length > 0) {
+    // Use only the steps resolved by ApprovalRule matching
+    const resolvedTeamIds = new Set(resolvedSteps.map((s) => s.teamId))
+    const allEntries = await getApprovalFlowEntries()
+    entries = allEntries.filter((e) => resolvedTeamIds.has(e.teamId))
+
+    // If no flow entries match the resolved steps, fall back to all entries
+    if (entries.length === 0) {
+      entries = allEntries
+    }
+  } else {
+    entries = await getApprovalFlowEntries()
+  }
 
   const gates: Record<string, GateStateV2> = {}
   const notifications: ApprovalFlowEntryWithTeam[] = []

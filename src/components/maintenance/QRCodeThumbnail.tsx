@@ -5,6 +5,7 @@ import { X, Printer, Download } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { motion, AnimatePresence } from 'framer-motion'
 import { scaleIn } from '@/lib/animations'
+import { getAuthHeaders } from '@/lib/api-client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,14 +13,6 @@ interface QRCodeThumbnailProps {
   assetId: string
   assetNumber: string
   assetName: string
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -34,7 +27,7 @@ export default function QRCodeThumbnail({ assetId, assetNumber, assetName }: QRC
   const handlePrintSingle = async () => {
     setPrintLoading(true)
     try {
-      const res = await fetch(labelSrc, { headers: getAuthHeaders() })
+      const res = await fetch(labelSrc, { headers: getAuthHeaders(), credentials: 'include' })
       if (!res.ok) throw new Error('Failed to get label data')
       const json = await res.json()
       const labelData = json.data

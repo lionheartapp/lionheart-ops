@@ -428,12 +428,15 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [page, setPage] = useState(1)
+  const pageSize = 50
 
   const [medicalTarget, setMedicalTarget] = useState<{ id: string; name: string } | null>(null)
   const [cancelTarget, setCancelTarget] = useState<{ id: string; name: string } | null>(null)
   const [balanceTarget, setBalanceTarget] = useState<{ id: string; name: string; email: string } | null>(null)
 
-  const queryKey = ['registrations', eventProjectId, statusFilter, search]
+  // Reset to page 1 when filters change
+  const queryKey = ['registrations', eventProjectId, statusFilter, search, page]
 
   const { data, isLoading } = useQuery({
     queryKey,
@@ -441,7 +444,8 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
       const url = new URL(`/api/events/projects/${eventProjectId}/registrations`, window.location.origin)
       if (statusFilter !== 'ALL') url.searchParams.set('status', statusFilter)
       if (search) url.searchParams.set('search', search)
-      url.searchParams.set('limit', '50')
+      url.searchParams.set('limit', String(pageSize))
+      url.searchParams.set('skip', String((page - 1) * pageSize))
 
       const res = await fetch(url.toString())
       if (!res.ok) throw new Error('Failed to load registrations')
@@ -580,13 +584,13 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
               type="text"
               placeholder="Search by name or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
               className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
             className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
@@ -639,9 +643,30 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
               </motion.tbody>
             </table>
 
-            {total > 50 && (
-              <div className="px-4 py-3 border-t border-slate-100">
-                <p className="text-xs text-slate-400 text-center">Showing 50 of {total} registrations</p>
+            {total > pageSize && (
+              <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
+                <p className="text-xs text-slate-400">
+                  Showing {(page - 1) * pageSize + 1}&ndash;{Math.min(page * pageSize, total)} of {total}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-xs text-slate-500">
+                    Page {page} of {Math.ceil(total / pageSize)}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
+                    disabled={page >= Math.ceil(total / pageSize)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </motion.div>

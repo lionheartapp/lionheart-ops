@@ -11,14 +11,16 @@ import { assignITTicket } from '@/lib/services/itTicketService'
 import { notifyITTicketAssigned } from '@/lib/services/itNotificationService'
 
 const AssignSchema = z.object({
-  assignedToId: z.string().uuid('assignedToId must be a valid UUID'),
+  assignedToId: z.string().uuid('assignedToId must be a valid UUID').nullable(),
 })
 
 export const PATCH = withAuth(async ({ body, ctx, orgId, params }) => {
   const ticket = await assignITTicket(params.id, body.assignedToId, { userId: ctx.userId, orgId })
 
-  // Fire-and-forget notification
-  notifyITTicketAssigned(ticket, body.assignedToId, orgId)
+  // Fire-and-forget notification (only when assigning, not unassigning)
+  if (body.assignedToId) {
+    notifyITTicketAssigned(ticket, body.assignedToId, orgId)
+  }
 
   return NextResponse.json(ok(ticket))
 }, { permission: PERMISSIONS.IT_TICKET_ASSIGN, schema: AssignSchema })

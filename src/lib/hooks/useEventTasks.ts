@@ -38,6 +38,7 @@ export function useEventTasks(
     queryFn: () => fetchApi<EventTask[]>(`/api/events/projects/${eventProjectId}/tasks${qs}`),
     enabled: !!eventProjectId,
     staleTime: 2 * 60_000,
+    placeholderData: (prev) => prev,
   })
 }
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { Plus, QrCode } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -14,56 +13,51 @@ import AssetCreateDrawer from '@/components/maintenance/AssetCreateDrawer'
 import QRScannerModal from '@/components/maintenance/QRScannerModal'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import type { MaintenanceAsset } from '@/components/maintenance/AssetRegisterTable'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { fetchApi } from '@/lib/api-client'
 
 function AssetRegisterContent() {
-  const router = useRouter()
+  // Cookie-based auth via useAuth — no more localStorage JWT reads
+  const { user, org, orgId, isReady, logout } = useAuth({ redirectTo: '/login' })
+  const userName = user.name
+  const userEmail = user.email
+  const userAvatar = user.avatar
+  const userRole = user.role
+  const orgName = org.name
+  const orgSchoolType = org.schoolType
+  const userSchoolScope = user.campusScope ?? user.schoolScope
+  const userTeam = user.team
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
+  const isClient = isReady
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('org-id') : null
-  const userName = typeof window !== 'undefined' ? localStorage.getItem('user-name') : null
-  const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user-email') : null
-  const userAvatar = typeof window !== 'undefined' ? localStorage.getItem('user-avatar') : null
-  const userRole = typeof window !== 'undefined' ? localStorage.getItem('user-role') : null
-  const orgName = typeof window !== 'undefined' ? localStorage.getItem('org-name') : null
-  const orgSchoolType = typeof window !== 'undefined' ? localStorage.getItem('org-school-type') : null
-  const userSchoolScope = typeof window !== 'undefined' ? localStorage.getItem('user-school-scope') : null
-  const userTeam = typeof window !== 'undefined' ? localStorage.getItem('user-team') : null
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null
-  )
-  const [isClient, setIsClient] = useState(false)
-
+  // Keep the local logo copy in sync when useAuth refreshes it
   useEffect(() => {
-    setIsClient(true)
-    if (!token || !orgId) {
-      router.push('/login')
+    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
+      setOrgLogoUrl(org.logoUrl)
     }
-  }, [token, orgId, router])
+  }, [org.logoUrl, orgLogoUrl])
 
+  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
   useEffect(() => {
-    if (orgLogoUrl || !token) return
-    const fetchLogo = async () => {
-      try {
-        const res = await fetch('/api/onboarding/school-info', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.ok && data.data?.logoUrl) {
-            setOrgLogoUrl(data.data.logoUrl)
-            localStorage.setItem('org-logo-url', data.data.logoUrl)
-          }
+    if (orgLogoUrl || !isReady) return
+    let cancelled = false
+    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
+      .then((data) => {
+        if (cancelled) return
+        if (data?.logoUrl) {
+          setOrgLogoUrl(data.logoUrl)
         }
-      } catch {
+      })
+      .catch(() => {
         // Silently fail
-      }
+      })
+    return () => {
+      cancelled = true
     }
-    fetchLogo()
-  }, [orgLogoUrl, token])
+  }, [orgLogoUrl, isReady])
 
   const handleLogout = () => {
-    localStorage.clear()
-    router.push('/login')
+    logout()
   }
 
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_ASSET_FILTERS)
@@ -76,7 +70,7 @@ function AssetRegisterContent() {
     setTimeout(() => setSuccessMessage(''), 4000)
   }
 
-  if (!isClient || !token || !orgId) {
+  if (!isClient || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />

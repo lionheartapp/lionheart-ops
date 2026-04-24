@@ -14,10 +14,10 @@
  */
 export const BOARD_ALLOWED_TRANSITIONS: Record<string, readonly string[]> = {
   BACKLOG:     ['TODO', 'SCHEDULED', 'CANCELLED'],
-  TODO:        ['IN_PROGRESS', 'BACKLOG', 'SCHEDULED', 'ON_HOLD', 'CANCELLED'],
-  IN_PROGRESS: ['QA', 'DONE', 'ON_HOLD', 'TODO', 'CANCELLED'],
+  TODO:        ['IN_PROGRESS', 'BACKLOG', 'ON_HOLD', 'CANCELLED'],
+  IN_PROGRESS: ['QA', 'TODO', 'ON_HOLD', 'CANCELLED'],
   ON_HOLD:     ['TODO', 'IN_PROGRESS', 'CANCELLED'],
-  SCHEDULED:   ['TODO', 'IN_PROGRESS', 'CANCELLED'],
+  SCHEDULED:   ['BACKLOG', 'CANCELLED'],
   QA:          ['DONE', 'IN_PROGRESS', 'CANCELLED'],
   DONE:        [],
   CANCELLED:   [],

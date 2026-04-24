@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { fadeInUp } from '@/lib/animations'
+import { getAuthHeaders } from '@/lib/api-client'
 import type { UploadedPhoto } from './StepPhotos'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -65,12 +66,6 @@ interface StepReviewProps {
   submitError: string
 }
 
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
-
 export default function StepReview({
   formData,
   onSubmit,
@@ -97,7 +92,8 @@ export default function StepReview({
 
     fetch('/api/maintenance/tickets/ai-detect-multi-issue', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      credentials: 'include',
+      headers: { ...getAuthHeaders() },
       body: JSON.stringify({
         title: formData.title,
         description: formData.description,

@@ -22,20 +22,24 @@ export default function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSu
   const queryClient = useQueryClient()
   const [showCheckoutForm, setShowCheckoutForm] = useState(false)
   const [checkinPendingId, setCheckinPendingId] = useState<string | null>(null)
+  const [checkinConfirmId, setCheckinConfirmId] = useState<string | null>(null)
+  const [checkinNotes, setCheckinNotes] = useState('')
 
   const checkinMutation = useMutation({
-    mutationFn: (transactionId: string) =>
+    mutationFn: ({ transactionId, notes }: { transactionId: string; notes?: string }) =>
       fetchApi(`/api/inventory/${item.id}/checkin`, {
         method: 'POST',
-        body: JSON.stringify({ transactionId }),
+        body: JSON.stringify({ transactionId, ...(notes ? { notes } : {}) }),
       }),
-    onMutate: (transactionId) => {
+    onMutate: ({ transactionId }) => {
       setCheckinPendingId(transactionId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       queryClient.invalidateQueries({ queryKey: ['inventory-transactions', item.id] })
       setCheckinPendingId(null)
+      setCheckinConfirmId(null)
+      setCheckinNotes('')
     },
     onError: () => {
       setCheckinPendingId(null)
@@ -133,9 +137,59 @@ export default function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSu
         </div>
         <TransactionTimeline
           itemId={item.id}
-          onCheckin={(txId) => checkinMutation.mutate(txId)}
+          onCheckin={(txId) => {
+            setCheckinConfirmId(txId)
+            setCheckinNotes('')
+          }}
           checkinPendingId={checkinPendingId}
         />
+
+        {/* Checkin confirmation with notes */}
+        <AnimatePresence>
+          {checkinConfirmId && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="overflow-hidden mt-3"
+            >
+              <div className="ui-glass p-4 rounded-xl space-y-3">
+                <h4 className="text-sm font-semibold text-slate-700">Confirm Check In</h4>
+                <textarea
+                  value={checkinNotes}
+                  onChange={(e) => setCheckinNotes(e.target.value)}
+                  placeholder="Return notes (optional) — e.g. condition, damage, missing parts"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all resize-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      checkinMutation.mutate({
+                        transactionId: checkinConfirmId,
+                        notes: checkinNotes.trim() || undefined,
+                      })
+                    }
+                    disabled={checkinPendingId === checkinConfirmId}
+                    className="flex-1 px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+                  >
+                    {checkinPendingId === checkinConfirmId ? 'Checking in\u2026' : 'Confirm Check In'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCheckinConfirmId(null)
+                      setCheckinNotes('')
+                    }}
+                    className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-all duration-200 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

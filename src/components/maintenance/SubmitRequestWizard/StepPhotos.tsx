@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, X, Check, Loader2, Upload, ImageIcon } from 'lucide-react'
 import { cardEntrance } from '@/lib/animations'
+import { getAuthHeaders } from '@/lib/api-client'
 
 export interface UploadedPhoto {
   url: string
@@ -20,12 +21,6 @@ interface StepPhotosProps {
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_PHOTOS = 5
-
-function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  if (token) return { Authorization: `Bearer ${token}` }
-  return {}
-}
 
 type PhotoState = {
   id: string
@@ -63,6 +58,7 @@ export default function StepPhotos({
         const urlRes = await fetch('/api/maintenance/tickets/upload-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+          credentials: 'include',
           body: JSON.stringify({ fileName: file.name, contentType: file.type }),
         })
         if (!urlRes.ok) throw new Error('Failed to get upload URL')
@@ -99,6 +95,7 @@ export default function StepPhotos({
             fetch('/api/maintenance/tickets/ai-suggest-category', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+              credentials: 'include',
               body: JSON.stringify({ imageBase64: base64 }),
             })
               .then((r) => r.json())

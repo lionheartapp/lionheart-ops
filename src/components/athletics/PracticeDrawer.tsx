@@ -13,12 +13,30 @@ interface Team {
   season: { id: string; name: string }
 }
 
+interface EditingPractice {
+  id: string
+  athleticTeamId: string
+  startTime: string
+  endTime: string
+  location: string | null
+  notes: string | null
+  rrule: string | null
+}
+
 interface PracticeDrawerProps {
   isOpen: boolean
   onClose: () => void
   onSaved: () => void
   teams: Team[]
   preselectedTeamId?: string
+  editingPractice?: EditingPractice | null
+}
+
+function toLocalDatetime(isoStr: string): string {
+  const d = new Date(isoStr)
+  const offset = d.getTimezoneOffset()
+  const local = new Date(d.getTime() - offset * 60000)
+  return local.toISOString().slice(0, 16)
 }
 
 export default function PracticeDrawer({
@@ -27,6 +45,7 @@ export default function PracticeDrawer({
   onSaved,
   teams,
   preselectedTeamId,
+  editingPractice = null,
 }: PracticeDrawerProps) {
   const [form, setForm] = useState({
     athleticTeamId: '',
@@ -42,17 +61,29 @@ export default function PracticeDrawer({
 
   useEffect(() => {
     if (!isOpen) return
-    setForm({
-      athleticTeamId: preselectedTeamId || '',
-      startTime: '',
-      endTime: '',
-      location: '',
-      notes: '',
-      recurring: false,
-      rrule: '',
-    })
+    if (editingPractice) {
+      setForm({
+        athleticTeamId: editingPractice.athleticTeamId,
+        startTime: toLocalDatetime(editingPractice.startTime),
+        endTime: toLocalDatetime(editingPractice.endTime),
+        location: editingPractice.location || '',
+        notes: editingPractice.notes || '',
+        recurring: Boolean(editingPractice.rrule),
+        rrule: editingPractice.rrule || '',
+      })
+    } else {
+      setForm({
+        athleticTeamId: preselectedTeamId || '',
+        startTime: '',
+        endTime: '',
+        location: '',
+        notes: '',
+        recurring: false,
+        rrule: '',
+      })
+    }
     setError('')
-  }, [isOpen, preselectedTeamId])
+  }, [isOpen, editingPractice, preselectedTeamId])
 
   const teamOptions: DropdownOption[] = teams.map((t) => ({
     value: t.id,
@@ -71,7 +102,6 @@ export default function PracticeDrawer({
     try {
       const token = localStorage.getItem('auth-token')
       const payload: Record<string, any> = {
-        athleticTeamId: form.athleticTeamId,
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
         location: form.location.trim() || undefined,
@@ -81,15 +111,25 @@ export default function PracticeDrawer({
         payload.rrule = form.rrule
       }
 
-      const res = await fetch('/api/athletics/practices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      })
+      let res: Response
+      if (editingPractice) {
+        res = await fetch(`/api/athletics/practices/${editingPractice.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        })
+      } else {
+        payload.athleticTeamId = form.athleticTeamId
+        res = await fetch('/api/athletics/practices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        })
+      }
 
       if (handleAuthResponse(res)) return
       const data = await res.json()
-      if (!data.ok) { setError(data.error?.message || 'Failed to create practice'); return }
+      if (!data.ok) { setError(data.error?.message || `Failed to ${editingPractice ? 'update' : 'create'} practice`); return }
 
       onSaved()
       onClose()
@@ -104,7 +144,7 @@ export default function PracticeDrawer({
     <DetailDrawer
       isOpen={isOpen}
       onClose={onClose}
-      title="New Practice"
+      title={editingPractice ? 'Edit Practice' : 'New Practice'}
       width="lg"
       footer={
         <button
@@ -113,7 +153,7 @@ export default function PracticeDrawer({
           disabled={saving}
           className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition"
         >
-          {saving ? 'Saving...' : 'Create Practice'}
+          {saving ? 'Saving...' : editingPractice ? 'Update Practice' : 'Create Practice'}
         </button>
       }
     >
@@ -125,6 +165,7 @@ export default function PracticeDrawer({
           onChange={(v) => setForm({ ...form, athleticTeamId: v })}
           options={teamOptions}
           required
+          disabled={!!editingPractice}
         />
 
         <FloatingInput

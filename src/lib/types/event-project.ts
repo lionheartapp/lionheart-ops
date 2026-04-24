@@ -1,4 +1,17 @@
 import { z } from 'zod'
+import { rrulestr } from 'rrule'
+
+/** Validate an RRULE string using the rrule library's parser. */
+function isValidRRule(value: string): boolean {
+  try {
+    // rrulestr expects the full "RRULE:" prefix for standalone strings
+    const normalized = value.startsWith('RRULE:') ? value : `RRULE:${value}`
+    rrulestr(normalized)
+    return true
+  } catch {
+    return false
+  }
+}
 
 // ─── Event Project ──────────────────────────────────────────────────────────
 
@@ -220,7 +233,9 @@ export type UpdateEventTeamMemberInput = z.infer<typeof UpdateEventTeamMemberSch
 export const CreateEventSeriesSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(5000).optional(),
-  rrule: z.string().optional(),
+  rrule: z.string().refine((val) => isValidRRule(val), {
+    message: 'Invalid RRULE: must be a valid RFC 5545 recurrence rule (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR")',
+  }).optional(),
   defaultStartTime: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:mm format').optional(),
   defaultDuration: z.number().int().positive().optional(),
   defaultLocationText: z.string().max(500).optional(),
@@ -235,7 +250,9 @@ export type CreateEventSeriesInput = z.infer<typeof CreateEventSeriesSchema>
 export const UpdateEventSeriesSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(5000).nullable().optional(),
-  rrule: z.string().nullable().optional(),
+  rrule: z.string().refine((val) => isValidRRule(val), {
+    message: 'Invalid RRULE: must be a valid RFC 5545 recurrence rule (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR")',
+  }).nullable().optional(),
   defaultStartTime: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:mm format').nullable().optional(),
   defaultDuration: z.number().int().positive().nullable().optional(),
   defaultLocationText: z.string().max(500).nullable().optional(),

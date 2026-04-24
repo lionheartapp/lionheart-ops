@@ -7,7 +7,6 @@ import {
   X,
   ChevronRight,
   ChevronLeft,
-  Sparkles,
   CheckCircle,
   Calendar,
   ClipboardList,
@@ -19,9 +18,7 @@ import {
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useTemplate, useTemplateMutations } from '@/lib/hooks/useEventTemplates'
 import { useToast } from '@/components/Toast'
-import { fetchApi } from '@/lib/api-client'
 import { tabContent } from '@/lib/animations'
-import type { TemplateData } from '@/lib/types/event-template'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,22 +28,13 @@ interface CreateFromTemplateWizardProps {
   onClose: () => void
 }
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
 interface EventDetails {
   title: string
   startsAt: string
   endsAt: string
   locationText: string
-}
-
-interface AIEnhancements {
-  scheduleAdjusted: boolean
-  budgetUpdated: boolean
-  lessonsFound: string[]
-  includeSchedule: boolean
-  includeBudget: boolean
-  includeLessons: boolean
 }
 
 const EMPTY_DETAILS: EventDetails = {
@@ -60,8 +48,7 @@ const EMPTY_DETAILS: EventDetails = {
 
 const STEP_LABELS: Record<Step, string> = {
   1: 'Event Details',
-  2: 'AI Enhancements',
-  3: 'Confirm',
+  2: 'Confirm',
 }
 
 function StepIndicator({ current, total }: { current: Step; total: number }) {
@@ -162,139 +149,7 @@ function Step1({ details, onChange }: Step1Props) {
   )
 }
 
-// ─── Step 2: AI Enhancements ──────────────────────────────────────────────────
-
-interface Step2Props {
-  enhancements: AIEnhancements | null
-  isLoading: boolean
-  onChange: (enhancements: AIEnhancements) => void
-}
-
-function Step2({ enhancements, isLoading, onChange }: Step2Props) {
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center animate-pulse">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-900">Analyzing template...</p>
-            <p className="text-xs text-slate-500">AI is adjusting dates and reviewing lessons learned</p>
-          </div>
-        </div>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="ui-glass p-4 rounded-xl animate-pulse">
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-2" />
-            <div className="h-3 bg-slate-100 rounded w-full" />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  if (!enhancements) {
-    return (
-      <div className="text-center py-8">
-        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-          <Sparkles className="w-6 h-6 text-slate-400" />
-        </div>
-        <p className="text-sm font-medium text-slate-700 mb-1">AI not available</p>
-        <p className="text-xs text-slate-500 max-w-xs mx-auto">
-          Continuing without AI enhancements. The template structure will be applied as-is.
-        </p>
-      </div>
-    )
-  }
-
-  function toggle(field: 'includeSchedule' | 'includeBudget' | 'includeLessons') {
-    if (!enhancements) return
-    onChange({ ...enhancements, [field]: !enhancements[field] })
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-        </div>
-        <p className="text-sm font-medium text-slate-900">AI-powered enhancements ready</p>
-      </div>
-
-      {/* Schedule adjustment */}
-      <label className="flex items-start gap-3 ui-glass p-4 rounded-xl cursor-pointer hover:bg-white/70 transition-colors">
-        <input
-          type="checkbox"
-          checked={enhancements.includeSchedule}
-          onChange={() => toggle('includeSchedule')}
-          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <Calendar className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-            <p className="text-sm font-medium text-slate-900">Schedule adjusted to new dates</p>
-          </div>
-          <p className="text-xs text-slate-500">
-            {enhancements.scheduleAdjusted
-              ? 'Day offsets recalculated and timing optimized for your new dates.'
-              : 'Schedule blocks preserved from the original template.'}
-          </p>
-        </div>
-      </label>
-
-      {/* Budget */}
-      <label className="flex items-start gap-3 ui-glass p-4 rounded-xl cursor-pointer hover:bg-white/70 transition-colors">
-        <input
-          type="checkbox"
-          checked={enhancements.includeBudget}
-          onChange={() => toggle('includeBudget')}
-          className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <DollarSign className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-            <p className="text-sm font-medium text-slate-900">Budget categories included</p>
-          </div>
-          <p className="text-xs text-slate-500">
-            {enhancements.budgetUpdated
-              ? 'Budget categories reviewed and updated for current conditions.'
-              : 'Budget category structure preserved from original template.'}
-          </p>
-        </div>
-      </label>
-
-      {/* Lessons learned */}
-      {enhancements.lessonsFound.length > 0 && (
-        <label className="flex items-start gap-3 ui-glass p-4 rounded-xl cursor-pointer hover:bg-white/70 transition-colors">
-          <input
-            type="checkbox"
-            checked={enhancements.includeLessons}
-            onChange={() => toggle('includeLessons')}
-            className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 cursor-pointer"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-              <ClipboardList className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-              <p className="text-sm font-medium text-slate-900">
-                Lessons from previous event
-              </p>
-            </div>
-            <ul className="space-y-1">
-              {enhancements.lessonsFound.slice(0, 4).map((lesson, i) => (
-                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                  <span className="text-indigo-400 flex-shrink-0 mt-0.5">•</span>
-                  {lesson}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </label>
-      )}
-    </div>
-  )
-}
-
-// ─── Step 3: Confirm ──────────────────────────────────────────────────────────
+// ─── Step 2: Confirm ──────────────────────────────────────────────────────────
 
 const SECTION_ICONS = [
   { icon: Calendar, label: 'Schedule structure' },
@@ -390,8 +245,6 @@ export function CreateFromTemplateWizard({
 
   const [step, setStep] = useState<Step>(1)
   const [details, setDetails] = useState<EventDetails>(EMPTY_DETAILS)
-  const [enhancements, setEnhancements] = useState<AIEnhancements | null>(null)
-  const [aiLoading, setAiLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -402,8 +255,6 @@ export function CreateFromTemplateWizard({
     if (isOpen) {
       setStep(1)
       setDetails(EMPTY_DETAILS)
-      setEnhancements(null)
-      setAiLoading(false)
       setErrorMsg(null)
       setIsCreating(false)
     }
@@ -423,41 +274,11 @@ export function CreateFromTemplateWizard({
 
   // ─── Step navigation ───────────────────────────────────────────────
 
-  const canGoToStep2 = details.title.trim() && details.startsAt && details.endsAt
+  const canAdvance = details.title.trim() && details.startsAt && details.endsAt
 
-  async function goToStep2() {
-    if (!canGoToStep2 || !template) return
+  function goToConfirm() {
+    if (!canAdvance) return
     setStep(2)
-    setAiLoading(true)
-
-    try {
-      const enhanced = await fetchApi<TemplateData>('/api/events/ai/enhance-template', {
-        method: 'POST',
-        body: JSON.stringify({
-          templateData: template.templateData,
-          startsAt: new Date(details.startsAt).toISOString(),
-          endsAt: new Date(details.endsAt).toISOString(),
-        }),
-      })
-
-      setEnhancements({
-        scheduleAdjusted: enhanced.scheduleBlocks.length > 0,
-        budgetUpdated: enhanced.budgetCategories.length > 0,
-        lessonsFound: [],
-        includeSchedule: true,
-        includeBudget: true,
-        includeLessons: true,
-      })
-    } catch {
-      // AI not available — continue without enhancements
-      setEnhancements(null)
-    } finally {
-      setAiLoading(false)
-    }
-  }
-
-  function goToStep3() {
-    setStep(3)
   }
 
   async function handleCreate() {
@@ -537,7 +358,7 @@ export function CreateFromTemplateWizard({
             </div>
 
             {/* Step Indicator */}
-            <StepIndicator current={step} total={3} />
+            <StepIndicator current={step} total={2} />
 
             {/* Step Content */}
             <AnimatePresence mode="wait">
@@ -558,12 +379,6 @@ export function CreateFromTemplateWizard({
                   </div>
                 ) : step === 1 ? (
                   <Step1 details={details} onChange={setDetails} />
-                ) : step === 2 ? (
-                  <Step2
-                    enhancements={enhancements}
-                    isLoading={aiLoading}
-                    onChange={setEnhancements}
-                  />
                 ) : (
                   <Step3
                     details={details}
@@ -612,8 +427,8 @@ export function CreateFromTemplateWizard({
               {step === 1 && (
                 <button
                   type="button"
-                  onClick={goToStep2}
-                  disabled={!canGoToStep2 || templateLoading}
+                  onClick={goToConfirm}
+                  disabled={!canAdvance || templateLoading}
                   className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
@@ -622,18 +437,6 @@ export function CreateFromTemplateWizard({
               )}
 
               {step === 2 && (
-                <button
-                  type="button"
-                  onClick={goToStep3}
-                  disabled={aiLoading}
-                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {aiLoading ? 'Loading...' : 'Continue'}
-                  {!aiLoading && <ChevronRight className="w-4 h-4" aria-hidden="true" />}
-                </button>
-              )}
-
-              {step === 3 && (
                 <button
                   type="button"
                   onClick={handleCreate}

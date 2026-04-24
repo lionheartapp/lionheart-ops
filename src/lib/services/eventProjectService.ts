@@ -34,6 +34,8 @@ import {
   type GateStateV2,
 } from './approvalFlowService'
 
+import { resolveApprovalSteps } from './approvalRuleService'
+
 import {
   notifyTeamsOfPendingApproval,
   notifyTeamsOfEventInfo,
@@ -46,6 +48,18 @@ import {
 const db = prisma as unknown as OrgPrismaClient
 
 const log = logger.child({ service: 'eventProjectService' })
+
+// ─── V1 vs V2 Gate Detection ───────────────────────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Detects whether an approvalGates object uses V2 (team UUID keys) or V1
+ * (channel-type strings like 'admin', 'av', 'facilities').
+ */
+function isV2Gates(gates: Record<string, unknown>): boolean {
+  return Object.keys(gates).some((key) => UUID_RE.test(key))
+}
 
 // ─── Re-exports from sub-modules ────────────────────────────────────────────
 
@@ -126,7 +140,16 @@ export async function createEventProject(
   let notifications: unknown[] = []
 
   if (useV2) {
-    const result = await buildGatesFromFlow(needs)
+    // Resolve which approval steps apply to THIS event's context
+    const eventCtx = {
+      schoolId: data.schoolId ?? null,
+      campusId: data.campusId ?? null,
+      category: (data as Record<string, unknown>).category as string | null ?? null,
+    }
+    const resolvedSteps = await resolveApprovalSteps(orgId, eventCtx)
+
+    // Build gates only from the resolved steps' teams (not all flow entries)
+    const result = await buildGatesFromFlow(needs, resolvedSteps)
     const hasActive = Object.values(result.gates).some((g) => g.status === 'PENDING')
     approvalGates = hasActive ? result.gates : null
     notifications = result.notifications
@@ -313,10 +336,16 @@ export async function listEventProjects(filters?: {
 }
 
 /**
- * Returns EventProjects that have a PENDING gate for the given gate type.
- * Used by team-specific approval queues (AV, Facilities).
+ * Returns EventProjects that have a PENDING gate for the given gate type or team ID.
+ * Used by team-specific approval queues (AV, Facilities for V1; team UUIDs for V2).
+ *
+ * @param gateType - V1 channel-type gate key ('admin', 'av', 'facilities', etc.)
+ * @param teamId  - V2 team UUID. When provided, filters by this key instead of gateType.
  */
-export async function listPendingGateApprovals(gateType: GateType): Promise<Record<string, unknown>[]> {
+export async function listPendingGateApprovals(
+  gateType: GateType,
+  teamId?: string,
+): Promise<Record<string, unknown>[]> {
   // Fetch all PENDING_APPROVAL projects that have approvalGates
   const projects = await db.eventProject.findMany({
     where: {
@@ -332,10 +361,18 @@ export async function listPendingGateApprovals(gateType: GateType): Promise<Reco
     orderBy: { startsAt: 'asc' },
   })
 
-  // Filter to only those with a PENDING gate of the requested type
-  return projects.filter((p: any) => {
-    const gates = p.approvalGates as ApprovalGates | null
+  // Filter to only those with a PENDING gate of the requested type/team
+  return projects.filter((p: Record<string, unknown>) => {
+    const gates = p.approvalGates as Record<string, { status: string }> | null
     if (!gates) return false
+
+    if (teamId) {
+      // V2: look up by team UUID key
+      const gate = gates[teamId]
+      return gate && gate.status === 'PENDING'
+    }
+
+    // V1: look up by channel-type key
     const gate = gates[gateType]
     return gate && gate.status === 'PENDING'
   })
@@ -581,6 +618,13 @@ export async function transitionEventProject(
   const fromStatus = existing.status as TransitionStatus
   const key = `${fromStatus}->${toStatus}`
 
+  // Guard: prevent duplicate submission when already pending approval
+  if (fromStatus === 'PENDING_APPROVAL' && toStatus === 'PENDING_APPROVAL') {
+    throw new Error(
+      'This event is already pending approval. It cannot be submitted again until the current review is complete.',
+    )
+  }
+
   if (!ALLOWED_TRANSITIONS.has(key)) {
     throw new Error(
       `Transition ${key} is not allowed. Approvals must go through the Review Approval drawer.`,
@@ -620,52 +664,100 @@ export async function approveGate(
     throw new Error(`Cannot approve gate on EventProject in status ${existing.status}. Expected PENDING_APPROVAL.`)
   }
 
-  const gates: ApprovalGates = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+  const rawGates: Record<string, unknown> = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+  const v2 = isV2Gates(rawGates)
 
-  // Validate gate exists
-  if (gateType !== 'admin' && !gates[gateType]) {
-    throw new Error(`No ${gateType} gate exists on this event. It may not require ${gateType} approval.`)
+  let shouldConfirm: boolean
+  let gateLabel: string
+
+  if (v2) {
+    // ── V2: team-based gates (gateType is passed as a team UUID) ──
+    const gates = rawGates as Record<string, GateStateV2>
+    const gateKey = gateType as string // team UUID
+
+    if (!gates[gateKey]) {
+      throw new Error(`No gate exists for team ${gateKey} on this event.`)
+    }
+
+    // Prerequisite check: all lower-sortOrder gates must be cleared
+    if (!isGateActionable(gateKey, gates)) {
+      const blocking = Object.entries(gates)
+        .filter(([k, g]) => k !== gateKey && g.sortOrder < gates[gateKey].sortOrder && g.status !== 'APPROVED' && g.status !== 'SKIPPED')
+        .map(([, g]) => g.teamName)
+      throw new Error(`Cannot approve this gate yet. Waiting on: ${blocking.join(', ')}`)
+    }
+
+    // Update the gate immutably
+    gates[gateKey] = {
+      ...gates[gateKey],
+      status: 'APPROVED',
+      respondedById: approverId,
+      respondedAt: new Date().toISOString(),
+    }
+
+    shouldConfirm = allGatesCleared(gates)
+    gateLabel = gates[gateKey].teamName
+
+    const updateData: Record<string, unknown> = { approvalGates: gates }
+    if (shouldConfirm) {
+      updateData.status = 'CONFIRMED'
+      updateData.approvedById = approverId
+      updateData.approvedAt = new Date()
+    }
+
+    await db.eventProject.update({ where: { id: eventProjectId }, data: updateData })
+
+    await appendActivityLog(eventProjectId, approverId, 'GATE_APPROVED', {
+      gateType: gateKey,
+      teamName: gateLabel,
+      allGatesCleared: shouldConfirm,
+      gates,
+    })
+
+    // Notify creator with V2 team name
+    notifyCreatorOfGateChange(eventProjectId, gateType, 'APPROVED', undefined, gateLabel).catch(() => {})
+  } else {
+    // ── V1: channel-type gates (original logic) ──
+    const gates = rawGates as ApprovalGates
+
+    if (gateType !== 'admin' && !gates[gateType]) {
+      throw new Error(`No ${gateType} gate exists on this event. It may not require ${gateType} approval.`)
+    }
+
+    // Admin gate: check prerequisites
+    if (gateType === 'admin' && !isAdminGateActionable(gates)) {
+      const pendingGates: string[] = []
+      if (gates.av && gates.av.status === 'PENDING') pendingGates.push('AV')
+      if (gates.facilities && gates.facilities.status === 'PENDING') pendingGates.push('Facilities')
+      throw new Error(`Cannot approve admin gate. Waiting on: ${pendingGates.join(', ')}`)
+    }
+
+    // Update the gate
+    const gate = gates[gateType]!
+    gate.status = 'APPROVED'
+    gate.respondedById = approverId
+    gate.respondedAt = new Date().toISOString()
+
+    shouldConfirm = allGatesApproved(gates)
+
+    const updateData: Record<string, unknown> = { approvalGates: gates }
+    if (shouldConfirm) {
+      updateData.status = 'CONFIRMED'
+      updateData.approvedById = approverId
+      updateData.approvedAt = new Date()
+    }
+
+    await db.eventProject.update({ where: { id: eventProjectId }, data: updateData })
+
+    await appendActivityLog(eventProjectId, approverId, 'GATE_APPROVED', {
+      gateType,
+      allGatesCleared: shouldConfirm,
+      gates,
+    })
+
+    // Notify creator (V1)
+    notifyCreatorOfGateChange(eventProjectId, gateType, 'APPROVED').catch(() => {})
   }
-
-  // Admin gate: check prerequisites
-  if (gateType === 'admin' && !isAdminGateActionable(gates)) {
-    const pendingGates: string[] = []
-    if (gates.av && gates.av.status === 'PENDING') pendingGates.push('AV')
-    if (gates.facilities && gates.facilities.status === 'PENDING') pendingGates.push('Facilities')
-    throw new Error(`Cannot approve admin gate. Waiting on: ${pendingGates.join(', ')}`)
-  }
-
-  // Update the gate
-  const gate = gates[gateType]!
-  gate.status = 'APPROVED'
-  gate.respondedById = approverId
-  gate.respondedAt = new Date().toISOString()
-
-  // Check if event should be fully confirmed
-  const shouldConfirm = allGatesApproved(gates)
-
-  const updateData: Record<string, unknown> = {
-    approvalGates: gates,
-  }
-  if (shouldConfirm) {
-    updateData.status = 'CONFIRMED'
-    updateData.approvedById = approverId
-    updateData.approvedAt = new Date()
-  }
-
-  const updated = await db.eventProject.update({
-    where: { id: eventProjectId },
-    data: updateData,
-  })
-
-  await appendActivityLog(eventProjectId, approverId, 'GATE_APPROVED', {
-    gateType,
-    allGatesCleared: shouldConfirm,
-    gates,
-  })
-
-  // Notify the event creator (fire-and-forget)
-  notifyCreatorOfGateChange(eventProjectId, gateType, 'APPROVED').catch(() => {})
 
   // If fully approved, create CalendarEvent bridge + sync + post-approval automations
   if (shouldConfirm) {
@@ -690,7 +782,9 @@ export async function approveGate(
     }).catch(() => {})
   }
 
-  return updated
+  // Re-fetch for consistent return shape
+  const updated = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  return updated as Record<string, unknown>
 }
 
 /**
@@ -710,39 +804,81 @@ export async function rejectGate(
     throw new Error(`Cannot reject gate on EventProject in status ${existing.status}. Expected PENDING_APPROVAL.`)
   }
 
-  const gates: ApprovalGates = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+  const rawGates: Record<string, unknown> = existing.approvalGates ?? { admin: { status: 'PENDING' } }
+  const v2 = isV2Gates(rawGates)
 
-  if (gateType !== 'admin' && !gates[gateType]) {
-    throw new Error(`No ${gateType} gate exists on this event.`)
+  let gateLabel: string | undefined
+
+  if (v2) {
+    // ── V2: team-based gates ──
+    const gates = rawGates as Record<string, GateStateV2>
+    const gateKey = gateType as string
+
+    if (!gates[gateKey]) {
+      throw new Error(`No gate exists for team ${gateKey} on this event.`)
+    }
+
+    gateLabel = gates[gateKey].teamName
+
+    gates[gateKey] = {
+      ...gates[gateKey],
+      status: 'REJECTED',
+      respondedById: actorId,
+      respondedAt: new Date().toISOString(),
+      reason,
+    }
+
+    await db.eventProject.update({
+      where: { id: eventProjectId },
+      data: {
+        status: 'DRAFT',
+        approvalGates: gates,
+        rejectionReason: reason,
+      },
+    })
+
+    await appendActivityLog(eventProjectId, actorId, 'GATE_REJECTED', {
+      gateType: gateKey,
+      teamName: gateLabel,
+      reason,
+      gates,
+    })
+
+    notifyCreatorOfGateChange(eventProjectId, gateType, 'REJECTED', reason, gateLabel).catch(() => {})
+  } else {
+    // ── V1: channel-type gates ──
+    const gates = rawGates as ApprovalGates
+
+    if (gateType !== 'admin' && !gates[gateType]) {
+      throw new Error(`No ${gateType} gate exists on this event.`)
+    }
+
+    const gate = gates[gateType]!
+    gate.status = 'REJECTED'
+    gate.respondedById = actorId
+    gate.respondedAt = new Date().toISOString()
+    gate.reason = reason
+
+    await db.eventProject.update({
+      where: { id: eventProjectId },
+      data: {
+        status: 'DRAFT',
+        approvalGates: gates,
+        rejectionReason: reason,
+      },
+    })
+
+    await appendActivityLog(eventProjectId, actorId, 'GATE_REJECTED', {
+      gateType,
+      reason,
+      gates,
+    })
+
+    notifyCreatorOfGateChange(eventProjectId, gateType, 'REJECTED', reason).catch(() => {})
   }
 
-  // Mark the gate as rejected
-  const gate = gates[gateType]!
-  gate.status = 'REJECTED'
-  gate.respondedById = actorId
-  gate.respondedAt = new Date().toISOString()
-  gate.reason = reason
-
-  // Send event back to DRAFT for revision
-  const updated = await db.eventProject.update({
-    where: { id: eventProjectId },
-    data: {
-      status: 'DRAFT',
-      approvalGates: gates,
-      rejectionReason: reason,
-    },
-  })
-
-  await appendActivityLog(eventProjectId, actorId, 'GATE_REJECTED', {
-    gateType,
-    reason,
-    gates,
-  })
-
-  // Notify the event creator (fire-and-forget)
-  notifyCreatorOfGateChange(eventProjectId, gateType, 'REJECTED', reason).catch(() => {})
-
-  return updated
+  const updated = await db.eventProject.findUnique({ where: { id: eventProjectId } })
+  return updated as Record<string, unknown>
 }
 
 /**
@@ -766,16 +902,34 @@ export async function resubmitForApproval(
     throw new Error('No approval gates found. Use the standard submission flow.')
   }
 
-  const gates: ApprovalGates = existing.approvalGates as ApprovalGates
+  const rawGates = existing.approvalGates as Record<string, unknown>
+  const v2 = isV2Gates(rawGates)
 
-  // Reset any rejected gates back to PENDING
-  for (const key of ['av', 'facilities', 'admin'] as GateType[]) {
-    const gate = gates[key]
-    if (gate && gate.status === 'REJECTED') {
-      gate.status = 'PENDING'
-      gate.respondedById = null
-      gate.respondedAt = null
-      gate.reason = null
+  // Reset any rejected gates back to PENDING — works for both V1 and V2
+  // by iterating all keys dynamically instead of hardcoded channel names
+  if (v2) {
+    const gates = rawGates as Record<string, GateStateV2>
+    for (const key of Object.keys(gates)) {
+      if (gates[key].status === 'REJECTED') {
+        gates[key] = {
+          ...gates[key],
+          status: 'PENDING',
+          respondedById: null,
+          respondedAt: null,
+          reason: null,
+        }
+      }
+    }
+  } else {
+    const gates = rawGates as ApprovalGates
+    for (const key of Object.keys(gates) as GateType[]) {
+      const gate = gates[key]
+      if (gate && gate.status === 'REJECTED') {
+        gate.status = 'PENDING'
+        gate.respondedById = null
+        gate.respondedAt = null
+        gate.reason = null
+      }
     }
   }
 
@@ -783,19 +937,23 @@ export async function resubmitForApproval(
     where: { id: eventProjectId },
     data: {
       status: 'PENDING_APPROVAL',
-      approvalGates: gates,
+      approvalGates: rawGates,
       rejectionReason: null,
     },
   })
 
   await appendActivityLog(eventProjectId, userId, 'RESUBMITTED', {
-    gates,
+    gates: rawGates,
   })
 
   // Re-notify teams of the resubmission
   const freshProject = await db.eventProject.findUnique({ where: { id: eventProjectId } })
   if (freshProject?.approvalGates) {
-    notifyTeamsOfPendingApproval(freshProject.title, eventProjectId, freshProject.approvalGates as ApprovalGates).catch(() => {})
+    if (v2) {
+      notifyV2TeamsOfPendingApproval(freshProject.title, eventProjectId, freshProject.approvalGates as Record<string, GateStateV2>).catch(() => {})
+    } else {
+      notifyTeamsOfPendingApproval(freshProject.title, eventProjectId, freshProject.approvalGates as ApprovalGates).catch(() => {})
+    }
   }
 
   // Re-run conflict detection with potentially updated details

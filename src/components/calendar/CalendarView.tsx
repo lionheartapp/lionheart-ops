@@ -170,15 +170,41 @@ export default function CalendarView() {
   const queryClient = useQueryClient()
   const { data: calendars = [], isLoading: calendarsLoading } = useCalendars()
 
-  // Track visible calendars
-  const [visibleCalendarIds, setVisibleCalendarIds] = useState<Set<string>>(new Set())
+  // Track visible calendars — persisted in localStorage so toggling survives
+  // page reloads and is instant (client-side only, never hits the DB).
+  const visibilityStorageKey = authUser.id ? `calendar-visibility:${authUser.id}` : null
+
+  const [visibleCalendarIds, setVisibleCalendarIdsRaw] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined' || !visibilityStorageKey) return new Set()
+    try {
+      const raw = localStorage.getItem(visibilityStorageKey)
+      if (raw) return new Set(JSON.parse(raw) as string[])
+    } catch { /* corrupted — fall through to empty */ }
+    return new Set()
+  })
+
+  // Wrap setter to persist to localStorage on every change
+  const setVisibleCalendarIds = useCallback(
+    (updater: Set<string> | ((prev: Set<string>) => Set<string>)) => {
+      setVisibleCalendarIdsRaw((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater
+        if (visibilityStorageKey) {
+          try {
+            localStorage.setItem(visibilityStorageKey, JSON.stringify([...next]))
+          } catch { /* quota exceeded — silently skip */ }
+        }
+        return next
+      })
+    },
+    [visibilityStorageKey],
+  )
 
   // Initialize visible calendars when they load, and auto-add new calendars
   useEffect(() => {
     if (calendars.length > 0) {
       setVisibleCalendarIds((prev) => {
         if (prev.size === 0) {
-          // First load — show all active calendars
+          // First load with no persisted state — show all active calendars
           return new Set(calendars.filter((c) => c.isActive).map((c) => c.id))
         }
         // Subsequent loads — add any new calendar IDs that weren't in the set before
@@ -190,7 +216,7 @@ export default function CalendarView() {
         return next
       })
     }
-  }, [calendars]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [calendars, setVisibleCalendarIds])
 
   const toggleCalendar = useCallback((calendarId: string) => {
     setVisibleCalendarIds((prev) => {
@@ -199,7 +225,7 @@ export default function CalendarView() {
       else next.add(calendarId)
       return next
     })
-  }, [])
+  }, [setVisibleCalendarIds])
 
   // Category hooks
   const { data: categories = [] } = useCategories()

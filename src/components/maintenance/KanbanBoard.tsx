@@ -180,15 +180,18 @@ export default function KanbanBoard({
 
   async function handleDragEnd(event: DragEndEvent) {
     const draggedTicket = activeTicket
-    setActiveTicket(null)
     setOverColumnId(null)
 
-    if (!event.over || !draggedTicket) return
+    if (!event.over || !draggedTicket) {
+      setActiveTicket(null)
+      return
+    }
 
     const overId = event.over.id as string
 
     // ─── Dropped on a technician avatar ────────────────────────────────────
     if (overId.startsWith('tech-')) {
+      setActiveTicket(null)
       const techId = overId.replace('tech-', '')
       try {
         await fetchApi(`/api/maintenance/tickets/${draggedTicket.id}`, {
@@ -215,10 +218,14 @@ export default function KanbanBoard({
     }
 
     // No-op if same column
-    if (targetStatus === draggedTicket.status) return
+    if (targetStatus === draggedTicket.status) {
+      setActiveTicket(null)
+      return
+    }
 
     // ─── Validate transition ────────────────────────────────────────────────
     if (!isValidTransition(draggedTicket.status, targetStatus)) {
+      setActiveTicket(null)
       toast(
         `Cannot move from ${draggedTicket.status.replace('_', ' ')} to ${targetStatus.replace('_', ' ')}`,
         'error'
@@ -228,23 +235,28 @@ export default function KanbanBoard({
 
     // ─── Gate: ON_HOLD requires hold reason modal ───────────────────────────
     if (targetStatus === 'ON_HOLD') {
+      setActiveTicket(null)
       setHoldPending({ ticketId: draggedTicket.id })
       return
     }
 
     // ─── Gate: QA requires completion modal ────────────────────────────────
     if (targetStatus === 'QA') {
+      setActiveTicket(null)
       setQaPending({ ticketId: draggedTicket.id })
       return
     }
 
     // ─── Non-gated: optimistic update ──────────────────────────────────────
+    // Set optimistic state BEFORE clearing activeTicket so the card moves
+    // to its new column instantly — no flash back to the old column.
     const snapshot = localTickets ?? tickets
     setLocalTickets(
       (localTickets ?? tickets).map((t) =>
         t.id === draggedTicket.id ? { ...t, status: targetStatus } : t
       )
     )
+    setActiveTicket(null)
 
     try {
       await fetchApi(`/api/maintenance/tickets/${draggedTicket.id}/status`, {
@@ -417,7 +429,10 @@ export default function KanbanBoard({
         </div>
 
         {/* Drag overlay */}
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+        }}>
           {activeTicket ? (
             <KanbanCard ticket={activeTicket} isOverlay />
           ) : null}
