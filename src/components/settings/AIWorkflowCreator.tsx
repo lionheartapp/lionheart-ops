@@ -80,7 +80,13 @@ export default function AIWorkflowCreator({
   const [mentionStart, setMentionStart] = useState(-1)
   const mentionContainerRef = useRef<HTMLDivElement>(null)
 
-  // Build mention suggestions: people first, then teams
+  // Cascading mention state — after selecting a school, offer to narrow to campus
+  const [cascadeSchoolId, setCascadeSchoolId] = useState<string | null>(null)
+  const [cascadeSchoolName, setCascadeSchoolName] = useState<string | null>(null)
+  const [cascadeIndex, setCascadeIndex] = useState(0)
+  const [cascadeInsertPos, setCascadeInsertPos] = useState(-1)
+
+  // Build mention suggestions: people first, then teams, schools, campuses
   const mentionSuggestions = useMemo(() => {
     if (mentionQuery === null) return []
     const q = mentionQuery.toLowerCase()
@@ -97,11 +103,25 @@ export default function AIWorkflowCreator({
       .filter(c => c.name.toLowerCase().includes(q))
       .map(c => ({ id: c.id, label: c.name, sublabel: c.schoolName || 'Campus', type: 'campus' as const }))
     return [...people, ...teamList, ...schoolList, ...campusList].slice(0, 10)
-  }, [mentionQuery, context.members, context.teams])
+  }, [mentionQuery, context.members, context.teams, context.schools, context.campuses])
+
+  // Cascade suggestions — campuses belonging to the selected school
+  const cascadeSuggestions = useMemo(() => {
+    if (!cascadeSchoolId) return []
+    return context.campuses
+      .filter(c => c.schoolName === cascadeSchoolName)
+      .map(c => ({ id: c.id, label: c.name, sublabel: cascadeSchoolName || 'Campus', type: 'campus' as const }))
+  }, [cascadeSchoolId, cascadeSchoolName, context.campuses])
 
   const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value
     setText(val)
+
+    // Dismiss cascade if user starts typing
+    if (cascadeSchoolId) {
+      setCascadeSchoolId(null)
+      setCascadeSchoolName(null)
+    }
 
     // Detect @ mention
     const cursor = e.target.selectionStart || 0
@@ -114,25 +134,101 @@ export default function AIWorkflowCreator({
     } else {
       setMentionQuery(null)
     }
-  }, [])
+  }, [cascadeSchoolId])
 
-  const insertMention = useCallback((suggestion: { label: string }) => {
+  const insertMention = useCallback((suggestion: { id: string; label: string; type: 'person' | 'team' | 'school' | 'campus' }) => {
     const before = text.slice(0, mentionStart)
     const after = text.slice(textareaRef.current?.selectionStart || mentionStart)
     const newText = `${before}@${suggestion.label} ${after}`
     setText(newText)
     setMentionQuery(null)
-    // Focus back on textarea
+
+    const insertEnd = mentionStart + suggestion.label.length + 2 // @name + space
+
+    // If a school was selected and it has campuses, trigger cascade
+    if (suggestion.type === 'school') {
+      const schoolCampuses = context.campuses.filter(c => c.schoolName === suggestion.label)
+      if (schoolCampuses.length > 0) {
+        setCascadeSchoolId(suggestion.id)
+        setCascadeSchoolName(suggestion.label)
+        setCascadeIndex(0)
+        setCascadeInsertPos(insertEnd)
+        // Focus textarea but don't close cascade
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus()
+            textareaRef.current.setSelectionRange(insertEnd, insertEnd)
+          }
+        })
+        return
+      }
+    }
+
+    // Normal flow — focus back on textarea
     requestAnimationFrame(() => {
       if (textareaRef.current) {
-        const pos = mentionStart + suggestion.label.length + 2 // @name + space
+        textareaRef.current.focus()
+        textareaRef.current.setSelectionRange(insertEnd, insertEnd)
+      }
+    })
+  }, [text, mentionStart, context.campuses])
+
+  // Insert a campus from the cascade dropdown
+  const insertCascadeCampus = useCallback((suggestion: { label: string }) => {
+    const before = text.slice(0, cascadeInsertPos)
+    const after = text.slice(cascadeInsertPos)
+    const newText = `${before}@${suggestion.label} ${after}`
+    setText(newText)
+
+    // Clear cascade state
+    setCascadeSchoolId(null)
+    setCascadeSchoolName(null)
+
+    const pos = cascadeInsertPos + suggestion.label.length + 2
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
         textareaRef.current.focus()
         textareaRef.current.setSelectionRange(pos, pos)
       }
     })
-  }, [text, mentionStart])
+  }, [text, cascadeInsertPos])
+
+  // Skip cascade — dismiss without inserting a campus
+  const dismissCascade = useCallback(() => {
+    setCascadeSchoolId(null)
+    setCascadeSchoolName(null)
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus()
+        textareaRef.current.setSelectionRange(cascadeInsertPos, cascadeInsertPos)
+      }
+    })
+  }, [cascadeInsertPos])
 
   const handleTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle cascade dropdown navigation first
+    if (cascadeSchoolId && cascadeSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        // +1 for the "Skip" option at the end
+        setCascadeIndex(i => (i + 1) % (cascadeSuggestions.length + 1))
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setCascadeIndex(i => (i - 1 + cascadeSuggestions.length + 1) % (cascadeSuggestions.length + 1))
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault()
+        if (cascadeIndex < cascadeSuggestions.length) {
+          insertCascadeCampus(cascadeSuggestions[cascadeIndex])
+        } else {
+          dismissCascade()
+        }
+      } else if (e.key === 'Escape') {
+        dismissCascade()
+      }
+      return
+    }
+
+    // Normal @ mention navigation
     if (mentionQuery === null || mentionSuggestions.length === 0) return
 
     if (e.key === 'ArrowDown') {
@@ -147,7 +243,7 @@ export default function AIWorkflowCreator({
     } else if (e.key === 'Escape') {
       setMentionQuery(null)
     }
-  }, [mentionQuery, mentionSuggestions, mentionIndex, insertMention])
+  }, [mentionQuery, mentionSuggestions, mentionIndex, insertMention, cascadeSchoolId, cascadeSuggestions, cascadeIndex, insertCascadeCampus, dismissCascade])
 
   // Reset state when opening
   useEffect(() => {
@@ -158,6 +254,8 @@ export default function AIWorkflowCreator({
       setResult(null)
       setError(null)
       setIsListening(false)
+      setCascadeSchoolId(null)
+      setCascadeSchoolName(null)
     }
   }, [isOpen])
 
@@ -356,7 +454,7 @@ export default function AIWorkflowCreator({
         </div>
 
         {/* Body */}
-        <div className={`flex-1 px-6 py-5 ${mentionQuery !== null ? 'overflow-visible' : 'overflow-y-auto'}`}>
+        <div className={`flex-1 px-6 py-5 ${mentionQuery !== null || cascadeSchoolId ? 'overflow-visible' : 'overflow-y-auto'}`}>
           <AnimatePresence mode="wait">
             {/* ── Input phase ────────────────────────────────────────── */}
             {phase === 'input' && (
@@ -416,17 +514,71 @@ export default function AIWorkflowCreator({
                                   : s.type === 'school' ? 'bg-violet-100 text-violet-700'
                                   : 'bg-green-100 text-green-700'
                               }`}>
-                                {s.type === 'person' ? s.label.charAt(0).toUpperCase() : s.label.charAt(0).toUpperCase()}
+                                {s.label.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-800 truncate">{s.label}</p>
                                 <p className="text-[10px] text-slate-400">{s.sublabel}</p>
                               </div>
                               <span className="text-[10px] text-slate-300 flex-shrink-0">
-                                {s.type === 'person' ? 'Person' : 'Team'}
+                                {s.type === 'person' ? 'Person' : s.type === 'team' ? 'Team' : s.type === 'school' ? 'School' : 'Campus'}
                               </span>
                             </button>
                           ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Cascade dropdown — narrow school to campus */}
+                  <AnimatePresence>
+                    {cascadeSchoolId && cascadeSuggestions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute left-4 right-4 top-full mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-10"
+                      >
+                        <div className="py-1 max-h-48 overflow-y-auto">
+                          <p className="px-3 py-1.5 text-[10px] font-semibold text-violet-500 uppercase tracking-wide flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                            Narrow down — {cascadeSchoolName}
+                          </p>
+                          {cascadeSuggestions.map((c, i) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => insertCascadeCampus(c)}
+                              onMouseEnter={() => setCascadeIndex(i)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
+                                i === cascadeIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-green-100 text-green-700">
+                                {c.label.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-slate-800 truncate">{c.label}</p>
+                                <p className="text-[10px] text-slate-400">{c.sublabel}</p>
+                              </div>
+                              <span className="text-[10px] text-slate-300 flex-shrink-0">Campus</span>
+                            </button>
+                          ))}
+                          {/* Skip option */}
+                          <button
+                            type="button"
+                            onClick={dismissCascade}
+                            onMouseEnter={() => setCascadeIndex(cascadeSuggestions.length)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors cursor-pointer border-t border-slate-100 ${
+                              cascadeIndex === cascadeSuggestions.length ? 'bg-slate-100' : 'hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 bg-slate-100 text-slate-400">
+                              ×
+                            </div>
+                            <p className="text-sm text-slate-500">Skip — use all campuses</p>
+                          </button>
                         </div>
                       </motion.div>
                     )}
