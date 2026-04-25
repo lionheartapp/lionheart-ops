@@ -2,7 +2,8 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Sparkles, Loader2 } from 'lucide-react'
+import type { ResolvedSearchFilter } from '@/lib/hooks/useSmartSearch'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import { type CalendarFilter } from './CalendarFilterPopover'
@@ -53,6 +54,12 @@ interface CalendarToolbarProps {
   onCreateFromTemplate?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
+  /** AI-parsed search filter (null when not active) */
+  aiFilter?: ResolvedSearchFilter | null
+  /** Whether AI is currently processing the search query */
+  aiSearchProcessing?: boolean
+  /** Clear the AI filter */
+  onClearAiFilter?: () => void
   categories: CategoryChip[]
   calendarFilter: CalendarFilter
   onCalendarFilterChange: (filter: CalendarFilter) => void
@@ -129,6 +136,9 @@ export default function CalendarToolbar({
   onCreateFromTemplate,
   searchQuery,
   onSearchChange,
+  aiFilter,
+  aiSearchProcessing = false,
+  onClearAiFilter,
   categories,
   calendarFilter,
   onCalendarFilterChange,
@@ -324,20 +334,39 @@ export default function CalendarToolbar({
         </div>
       </div>
 
-      {/* Zone 2: Filter bar — inset well */}
-      <div className="flex items-center gap-3 mt-3 px-4 py-3 bg-stone-50/60 rounded-xl">
-        {/* Search input */}
-        <div className="relative flex-shrink-0 w-48 sm:w-56">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+      {/* Zone 2: Smart search + filters */}
+      <div className="flex items-center gap-3 mt-3">
+        {/* Search input — full width, AI-aware */}
+        <div className="relative flex-1 min-w-0">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
+            {aiSearchProcessing ? (
+              <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+            ) : aiFilter ? (
+              <Sparkles className="w-4 h-4 text-blue-500" />
+            ) : (
+              <Search className="w-4 h-4 text-stone-400" />
+            )}
+          </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search events..."
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
+            placeholder="Search events or ask anything — e.g. &quot;high school events next week&quot;"
+            className={`w-full pl-11 pr-10 py-3 text-[14px] rounded-full bg-stone-50 hover:bg-stone-100/80 focus:bg-white transition-all duration-200 placeholder:text-stone-400 focus:outline-none ${
+              aiFilter
+                ? 'ring-2 ring-blue-200 bg-white shadow-sm'
+                : 'focus:ring-2 focus:ring-slate-900/10 focus:shadow-sm'
+            }`}
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 hover:bg-stone-100 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2" aria-label="Clear search">
+            <button
+              onClick={() => {
+                onSearchChange('')
+                onClearAiFilter?.()
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
               <X className="w-3.5 h-3.5 text-stone-400" />
             </button>
           )}
@@ -347,12 +376,12 @@ export default function CalendarToolbar({
         <button
           ref={filterBtnRef}
           onClick={() => onToggleFilterPanel?.()}
-          className={`relative flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 flex-shrink-0 border focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer ${
+          className={`relative flex items-center gap-1.5 px-4 py-3 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer ${
             filterPanelOpen
-              ? 'bg-slate-900 text-white border-slate-900'
+              ? 'bg-slate-900 text-white'
               : activeFilterCount > 0
-                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                ? 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+                : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
           }`}
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -364,6 +393,36 @@ export default function CalendarToolbar({
           )}
         </button>
       </div>
+
+      {/* AI search summary — appears below search bar when active */}
+      <AnimatePresence>
+        {aiFilter?.summary && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-2 mt-2 px-1">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-[12px] font-medium text-blue-700">
+                <Sparkles className="w-3 h-3 flex-shrink-0" />
+                <span>{aiFilter.summary}</span>
+                <button
+                  onClick={() => {
+                    onSearchChange('')
+                    onClearAiFilter?.()
+                  }}
+                  className="ml-1 p-0.5 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
+                  aria-label="Clear AI filter"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile view switcher */}
       <div

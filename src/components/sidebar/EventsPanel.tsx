@@ -5,8 +5,9 @@ import {
   Home,
   Calendar,
   ScrollText,
-  Sparkles,
+  ClipboardCheck,
 } from 'lucide-react'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 interface EventsPanelProps {
   pathname: string
@@ -17,12 +18,15 @@ export default function EventsPanel({
   pathname,
   setIsOpen,
 }: EventsPanelProps) {
-  // Dropped the duplicate "EVENTS" caps header — the column itself is
-  // labeled Events by the main nav, so repeating it was noise.
+  const { isAdmin } = useAuth()
+
   const navLinks = [
     { href: '/events', label: 'Events Hub', icon: Home, match: (p: string) => p === '/events' },
     { href: '/calendar', label: 'Calendar', icon: Calendar, match: (p: string) => p.startsWith('/calendar') },
     { href: '/planning', label: 'Year Plans', icon: ScrollText, match: (p: string) => p.startsWith('/planning') },
+    ...(isAdmin ? [
+      { href: '/events/approval-rules', label: 'Approval Rules', icon: ClipboardCheck, match: (p: string) => p.startsWith('/events/approval-rules') },
+    ] : []),
   ]
 
   return (

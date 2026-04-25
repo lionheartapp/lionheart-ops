@@ -84,28 +84,24 @@ function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
 function FilterCheckbox({
   checked,
   color = '#3B82F6',
-  onChange,
 }: {
   checked: boolean
   color?: string
-  onChange: () => void
+  onChange?: () => void
 }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors duration-150 cursor-pointer"
-      style={checked ? { backgroundColor: color, borderColor: color } : undefined}
-      aria-checked={checked}
+    <div
+      className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors duration-150"
+      style={checked ? { backgroundColor: color, borderColor: color } : { borderColor: '#cbd5e1' }}
       role="checkbox"
+      aria-checked={checked}
     >
-      {!checked && <span className="w-4 h-4 rounded border border-slate-300 group-hover:border-slate-400 block" />}
       {checked && (
         <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
       )}
-    </button>
+    </div>
   )
 }
 
@@ -600,7 +596,7 @@ export default function CalendarFilterPanel({
             animate={{ width: 280, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            className="hidden sm:flex flex-col flex-shrink-0 border-r border-slate-200 overflow-hidden h-full"
+            className="hidden sm:flex flex-col flex-shrink-0 border-r border-slate-200 overflow-hidden self-stretch"
           >
             {panelContent}
           </motion.div>

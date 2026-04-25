@@ -268,6 +268,10 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         } else {
           localStorage.removeItem('org-logo-url')
         }
+        // Notify sidebar to pick up branding changes without a full page reload
+        window.dispatchEvent(new CustomEvent('branding-changed', {
+          detail: { name: data.data.name, logoUrl: data.data.logoUrl || null },
+        }))
       }
 
       setSuccess('School information saved')

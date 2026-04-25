@@ -177,8 +177,8 @@ export async function GET(req: NextRequest) {
       })
 
       const combined = [...deduped, ...projectEvents].sort((a, b) => {
-        const aStart = (a as { startTime: string }).startTime
-        const bStart = (b as { startTime: string }).startTime
+        const aStart = String((a as { startTime: string | Date }).startTime)
+        const bStart = String((b as { startTime: string | Date }).startTime)
         return aStart.localeCompare(bStart)
       })
 
@@ -192,7 +192,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to fetch calendar events')
+    log.error({ err: error, message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, 'Failed to fetch calendar events')
     Sentry.captureException(error)
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }

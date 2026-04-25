@@ -53,10 +53,21 @@ export default function DashboardLayout({
   // Resolve user/org data: prefer explicit props, fall back to localStorage
   const userName = userNameProp || ls('user-name') || undefined
   const userEmail = userEmailProp || ls('user-email') || undefined
-  const organizationName = orgNameProp || ls('org-name') || undefined
-  const orgLogoUrl = organizationLogoUrl || ls('org-logo-url') || undefined
+  const [organizationName, setOrganizationName] = useState(orgNameProp || ls('org-name') || undefined)
+  const [orgLogoUrl, setOrgLogoUrl] = useState(organizationLogoUrl || ls('org-logo-url') || undefined)
   const initialUserAvatar = userAvatarProp || ls('user-avatar') || null
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar)
+
+  // Listen for branding changes from SchoolInfoTab so sidebar updates live
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ name: string; logoUrl: string | null }>).detail
+      if (detail.name) setOrganizationName(detail.name)
+      setOrgLogoUrl(detail.logoUrl || undefined)
+    }
+    window.addEventListener('branding-changed', handler)
+    return () => window.removeEventListener('branding-changed', handler)
+  }, [])
 
   // Default logout clears localStorage and redirects to login
   const onLogout = useMemo(() => {

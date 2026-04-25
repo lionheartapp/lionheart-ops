@@ -1855,6 +1855,7 @@ model ApprovalRule {
   // ── Behavior ──
   isDefault        Boolean  @default(false)  // Catch-all rule when no other conditions match
   isFinalApprover  Boolean  @default(false)  // Always runs last (e.g., Admin sign-off)
+  executionMode    String   @default("PARALLEL") // PARALLEL = all steps at once, SEQUENTIAL = one after another
   sortOrder        Int      @default(0)      // Evaluation priority (lower = checked first)
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())

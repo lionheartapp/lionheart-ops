@@ -12,6 +12,30 @@ export interface ParsedEvent {
   categoryHint?: string
 }
 
+export interface SearchContextItem {
+  id: string
+  name: string
+}
+
+export interface SearchContext {
+  schools: SearchContextItem[]
+  campuses: SearchContextItem[]
+  categories: SearchContextItem[]
+  sports: SearchContextItem[]
+}
+
+export interface ParsedSearchFilter {
+  titleSearch?: string
+  schoolNames?: string[]
+  campusNames?: string[]
+  categoryNames?: string[]
+  schoolLevels?: string[]
+  sportNames?: string[]
+  teamLevels?: string[]
+  dateRange?: { start: string; end: string }
+  summary?: string
+}
+
 export class GeminiService {
   private client: GoogleGenAI | null
 
@@ -75,6 +99,56 @@ JSON:`
       return { title: text }
     } catch {
       return { title: text }
+    }
+  }
+
+  async parseSearchQuery(
+    query: string,
+    context: SearchContext,
+  ): Promise<ParsedSearchFilter> {
+    if (!this.client) {
+      return { titleSearch: query }
+    }
+
+    const prompt = `You are a calendar search assistant for a school management platform.
+The user typed a search query. Parse it into structured filters.
+
+Return ONLY valid JSON with these optional fields:
+- titleSearch (string): any remaining free-text to match against event titles (after extracting structured filters)
+- schoolNames (string[]): school names mentioned (fuzzy match against available schools)
+- campusNames (string[]): campus names mentioned
+- categoryNames (string[]): category/team names like "AV", "facilities", "IT", "athletics"
+- schoolLevels (string[]): values from [ELEMENTARY, MIDDLE_SCHOOL, HIGH_SCHOOL]
+- sportNames (string[]): sport names mentioned
+- teamLevels (string[]): values from [VARSITY, VARSITY_B, JUNIOR_VARSITY, FRESHMAN, FROSH_SOPH, C_TEAM, CLUB, INTRAMURAL, UNIFIED]
+- dateRange (object): { start: "YYYY-MM-DD", end: "YYYY-MM-DD" } if a time range is mentioned
+- summary (string): a short human-readable summary of what was understood, e.g. "High school AV events"
+
+Available context:
+- Schools: ${JSON.stringify(context.schools.map((s) => s.name))}
+- Campuses: ${JSON.stringify(context.campuses.map((c) => c.name))}
+- Categories: ${JSON.stringify(context.categories.map((c) => c.name))}
+- Sports: ${JSON.stringify(context.sports.map((s) => s.name))}
+- Today's date: ${new Date().toISOString().split('T')[0]}
+
+User query: "${query.replace(/"/g, '\\"')}"
+
+JSON:`
+
+    try {
+      const result = await this.client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+      })
+
+      const responseText = result.text || ''
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]) as ParsedSearchFilter
+      }
+      return { titleSearch: query }
+    } catch {
+      return { titleSearch: query }
     }
   }
 

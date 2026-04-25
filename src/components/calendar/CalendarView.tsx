@@ -48,6 +48,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import CalendarFilterPanel from './CalendarFilterPanel'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
+import { useSmartSearch } from '@/lib/hooks/useSmartSearch'
 import { Download } from 'lucide-react'
 import { MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
@@ -455,24 +456,73 @@ export default function CalendarView() {
     staleTime: 5 * 60_000,
   })
 
+  // AI-powered smart search — parses natural language queries into structured filters
+  const smartSearchContext = useMemo(() => ({
+    schools,
+    campuses: userCampuses.map((c) => ({ id: c.id, name: c.name })),
+    categories: categories.map((c) => ({ id: c.id, name: c.name })),
+    sports: athleticsSports.map((s) => ({ id: s.id, name: s.name })),
+  }), [schools, userCampuses, categories, athleticsSports])
+
+  const { aiFilter, isProcessing: aiSearchProcessing, clearAiFilter } = useSmartSearch(
+    searchQuery,
+    smartSearchContext,
+  )
+
   const filteredEvents = useMemo(() => {
     let result = events
     const q = searchQuery.trim().toLowerCase()
-    if (q) {
-      result = result.filter((e) => e.title.toLowerCase().includes(q))
+
+    // When AI filter is active, use its titleSearch for text matching
+    // and apply structured filters. Otherwise, use plain text search.
+    if (aiFilter) {
+      const aiTitle = aiFilter.titleSearch?.toLowerCase()
+      if (aiTitle) {
+        result = result.filter((e) => e.title.toLowerCase().includes(aiTitle))
+      }
+
+      // AI-parsed category filter
+      if (aiFilter.categoryIds?.length) {
+        const catSet = new Set(aiFilter.categoryIds)
+        result = result.filter((e) => e.categoryId && catSet.has(e.categoryId))
+      }
+
+      // AI-parsed school filter
+      if (aiFilter.schoolIds?.length) {
+        const schoolSet = new Set(aiFilter.schoolIds)
+        result = result.filter((e) => {
+          const schoolId = (e as unknown as Record<string, unknown>).schoolId as string | undefined
+          if (schoolId) return schoolSet.has(schoolId)
+          return true
+        })
+      }
+
+      // AI-parsed date range filter
+      if (aiFilter.dateRange) {
+        const rangeStart = new Date(aiFilter.dateRange.start).getTime()
+        const rangeEnd = new Date(aiFilter.dateRange.end).getTime()
+        result = result.filter((e) => {
+          const eventStart = new Date(e.startTime).getTime()
+          return eventStart >= rangeStart && eventStart <= rangeEnd
+        })
+      }
+    } else {
+      // Plain text title search (no AI)
+      if (q) {
+        result = result.filter((e) => e.title.toLowerCase().includes(q))
+      }
     }
 
-    // Filter regular events by category
-    if (calendarFilter.categoryIds.size > 0) {
+    // Manual filter: category (only when AI filter isn't already handling categories)
+    if (!aiFilter?.categoryIds?.length && calendarFilter.categoryIds.size > 0) {
       result = result.filter((e) => e.categoryId && calendarFilter.categoryIds.has(e.categoryId))
     }
 
-    // Filter by school — events linked via their calendar's campus/school
-    if (calendarFilter.schoolIds.size > 0) {
+    // Manual filter: school (only when AI filter isn't already handling schools)
+    if (!aiFilter?.schoolIds?.length && calendarFilter.schoolIds.size > 0) {
       result = result.filter((e) => {
         const schoolId = (e as unknown as Record<string, unknown>).schoolId as string | undefined
         if (schoolId) return calendarFilter.schoolIds.has(schoolId)
-        // If event doesn't have a direct schoolId, allow it through (don't hide non-school events)
         return true
       })
     }
@@ -480,8 +530,33 @@ export default function CalendarView() {
     // Merge athletics events (controlled by visibleAthleticsCampusIds via Filters popover)
     if (filteredAthleticsEvents.length > 0) {
       let athEvents = filteredAthleticsEvents
-      if (q) {
-        athEvents = athEvents.filter((e) => e.title.toLowerCase().includes(q))
+
+      // Apply AI school level / sport / team level filters to athletics
+      if (aiFilter?.schoolLevels?.length) {
+        const lvlSet = new Set(aiFilter.schoolLevels)
+        athEvents = athEvents.filter((e) => {
+          const lvl = (e as unknown as Record<string, unknown>).schoolLevel as string | undefined
+          return lvl ? lvlSet.has(lvl) : true
+        })
+      }
+      if (aiFilter?.sportIds?.length) {
+        const sportSet = new Set(aiFilter.sportIds)
+        athEvents = athEvents.filter((e) => {
+          const sportId = (e as unknown as Record<string, unknown>).sportId as string | undefined
+          return sportId ? sportSet.has(sportId) : true
+        })
+      }
+      if (aiFilter?.teamLevels?.length) {
+        const tlSet = new Set(aiFilter.teamLevels)
+        athEvents = athEvents.filter((e) => {
+          const tl = (e as unknown as Record<string, unknown>).teamLevel as string | undefined
+          return tl ? tlSet.has(tl) : true
+        })
+      }
+
+      const titleQ = aiFilter?.titleSearch?.toLowerCase() || (aiFilter ? '' : q)
+      if (titleQ) {
+        athEvents = athEvents.filter((e) => e.title.toLowerCase().includes(titleQ))
       }
       result = [...result, ...athEvents]
     }
@@ -494,14 +569,15 @@ export default function CalendarView() {
       if (hidden && hidden.size > 0) {
         extEvents = extEvents.filter((e) => !hidden.has(e.calendarId))
       }
-      if (q) {
-        extEvents = extEvents.filter((e) => e.title.toLowerCase().includes(q))
+      const titleQ = aiFilter?.titleSearch?.toLowerCase() || (aiFilter ? '' : q)
+      if (titleQ) {
+        extEvents = extEvents.filter((e) => e.title.toLowerCase().includes(titleQ))
       }
       result = [...result, ...extEvents]
     }
 
     return result
-  }, [events, searchQuery, calendarFilter, filteredAthleticsEvents, externalEvents])
+  }, [events, searchQuery, calendarFilter, filteredAthleticsEvents, externalEvents, aiFilter])
 
   // Meet-with state
   const [meetWithPeople, setMeetWithPeople] = useState<MeetWithPerson[]>([])
@@ -746,7 +822,7 @@ export default function CalendarView() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="flex flex-col flex-1 min-h-0 -mx-4 sm:-mx-10 -mt-4 sm:-mt-6 lg:-mt-8">
+    <div className="flex flex-col flex-1 min-h-0 -mx-4 sm:-mx-10 -mt-4 sm:-mt-6 lg:-mt-8 -mb-10">
       {/* Header area — stays fixed, white bg, shadow at bottom edge */}
       <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-5 sm:pt-6 pb-5 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
         <CalendarToolbar
@@ -762,6 +838,9 @@ export default function CalendarView() {
           isAdmin={isAdmin}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          aiFilter={aiFilter}
+          aiSearchProcessing={aiSearchProcessing}
+          onClearAiFilter={clearAiFilter}
           categories={categories}
           calendarFilter={calendarFilter}
           onCalendarFilterChange={setCalendarFilter}

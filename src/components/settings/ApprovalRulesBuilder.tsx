@@ -52,6 +52,8 @@ export default function ApprovalRulesBuilder() {
   const { data, isLoading } = useQuery({ queryKey: ['approval-rules'], queryFn: fetchRules })
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null)
   const [addStepTeamId, setAddStepTeamId] = useState('')
+  const [addStepType, setAddStepType] = useState<'team' | 'person'>('team')
+  const [addStepPersonId, setAddStepPersonId] = useState('')
   const [showAddStep, setShowAddStep] = useState(false)
 
   const rules = data?.rules ?? []
@@ -96,10 +98,27 @@ export default function ApprovalRulesBuilder() {
     mutate.mutate({ method: 'PATCH', url: `/api/settings/approval-rules/${id}`, body: data })
   }
 
-  const addStep = (ruleId: string, teamId: string) => {
-    mutate.mutate({ method: 'POST', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { teamId } })
+  // Flatten all team members into a single list for the person picker
+  const allMembers = teams.flatMap(t =>
+    t.members.map(m => ({ ...m, teamName: t.name }))
+  ).filter((m, i, arr) => arr.findIndex(x => x.id === m.id) === i)
+
+  const addStep = (ruleId: string) => {
+    if (addStepType === 'team' && addStepTeamId) {
+      mutate.mutate({ method: 'POST', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { teamId: addStepTeamId } })
+    } else if (addStepType === 'person' && addStepPersonId) {
+      // Find the person's team (or use first team as fallback — the person is the real assignee)
+      const member = allMembers.find(m => m.id === addStepPersonId)
+      const memberTeam = teams.find(t => t.members.some(m => m.id === addStepPersonId))
+      mutate.mutate({
+        method: 'POST', url: `/api/settings/approval-rules/${ruleId}/steps`,
+        body: { teamId: memberTeam?.id || teams[0]?.id, assignedUserId: addStepPersonId },
+      })
+    }
     setShowAddStep(false)
     setAddStepTeamId('')
+    setAddStepPersonId('')
+    setAddStepType('team')
   }
 
   const updateStep = (ruleId: string, stepId: string, data: Record<string, unknown>) => {
@@ -309,12 +328,14 @@ export default function ApprovalRulesBuilder() {
 
                           {/* Step info */}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800">{step.team.name}</p>
+                            <p className="text-sm font-medium text-slate-800">
+                              {step.assignedUser
+                                ? `${step.assignedUser.firstName || ''} ${step.assignedUser.lastName || ''}`.trim() || step.assignedUser.email
+                                : step.team.name}
+                            </p>
                             <p className="text-xs text-slate-400 mt-0.5">
+                              {step.assignedUser && <>{step.team.name} · </>}
                               {step.trigger === 'ALWAYS' ? 'Every event' : 'When resource needed'}
-                              {step.assignedUser && (
-                                <> · {step.assignedUser.firstName} {step.assignedUser.lastName}</>
-                              )}
                             </p>
                           </div>
 
@@ -364,30 +385,72 @@ export default function ApprovalRulesBuilder() {
                 {/* Add step */}
                 <div className="px-6 py-4 border-t border-slate-100">
                   {showAddStep ? (
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={addStepTeamId}
-                        onChange={(e) => setAddStepTeamId(e.target.value)}
-                        className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none appearance-none"
-                        autoFocus
-                      >
-                        <option value="">Select team...</option>
-                        {teams
-                          .filter(t => !selectedRule.steps.some(s => s.teamId === t.id))
-                          .map(t => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
-                          ))}
-                      </select>
-                      <button
-                        onClick={() => addStep(selectedRule.id, addStepTeamId)}
-                        disabled={!addStepTeamId}
-                        className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-full hover:bg-slate-800 disabled:opacity-40 transition-colors"
-                      >
-                        Add
-                      </button>
-                      <button onClick={() => { setShowAddStep(false); setAddStepTeamId('') }} className="p-1.5 hover:bg-slate-100 rounded-lg">
-                        <X className="w-4 h-4 text-slate-400" />
-                      </button>
+                    <div className="space-y-3">
+                      {/* Type toggle: Team or Person */}
+                      <div className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => { setAddStepType('team'); setAddStepPersonId('') }}
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                            addStepType === 'team' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                          }`}
+                        >
+                          Team
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setAddStepType('person'); setAddStepTeamId('') }}
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                            addStepType === 'person' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                          }`}
+                        >
+                          Person
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {addStepType === 'team' ? (
+                          <select
+                            value={addStepTeamId}
+                            onChange={(e) => setAddStepTeamId(e.target.value)}
+                            className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none appearance-none"
+                            autoFocus
+                          >
+                            <option value="">Select team...</option>
+                            {teams
+                              .filter(t => !selectedRule.steps.some(s => s.teamId === t.id && !s.assignedUser))
+                              .map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                          </select>
+                        ) : (
+                          <select
+                            value={addStepPersonId}
+                            onChange={(e) => setAddStepPersonId(e.target.value)}
+                            className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none appearance-none"
+                            autoFocus
+                          >
+                            <option value="">Select person...</option>
+                            {allMembers
+                              .filter(m => !selectedRule.steps.some(s => s.assignedUser?.id === m.id))
+                              .map(m => (
+                                <option key={m.id} value={m.id}>
+                                  {m.name || m.email} ({m.teamName})
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                        <button
+                          onClick={() => addStep(selectedRule.id)}
+                          disabled={addStepType === 'team' ? !addStepTeamId : !addStepPersonId}
+                          className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-full hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+                        >
+                          Add
+                        </button>
+                        <button onClick={() => { setShowAddStep(false); setAddStepTeamId(''); setAddStepPersonId(''); setAddStepType('team') }} className="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">
+                          <X className="w-4 h-4 text-slate-400" />
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <button

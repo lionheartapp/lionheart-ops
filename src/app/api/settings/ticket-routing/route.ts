@@ -29,12 +29,7 @@ export const GET = withAuth(async ({ orgId }) => {
 export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({ orgId, body }) => {
   const { module, schoolId, strategy, managerUserId } = body
 
-  if (strategy === 'MANAGER_TRIAGE' && !managerUserId) {
-    return NextResponse.json(
-      fail('VALIDATION_ERROR', 'Manager is required for triage strategy'),
-      { status: 400 }
-    )
-  }
+  // Manager can be set after selecting the strategy — don't block the switch
 
   // Upsert — schoolId can be null (org-wide default)
   // Can't use prisma upsert with nullable unique, so use findFirst + create/update
