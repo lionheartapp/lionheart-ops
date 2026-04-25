@@ -18,7 +18,7 @@ type DeleteCampusDialogProps = {
 export function DeleteCampusDialog({ campus, loading, onConfirm, onCancel }: DeleteCampusDialogProps) {
   if (!campus) return null
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <Trash2 className="w-6 h-6 text-red-600" />
@@ -52,7 +52,7 @@ type PlaceOnMapDialogProps = {
 export function PlaceOnMapDialog({ building, onSkip, onPlace }: PlaceOnMapDialogProps) {
   if (!building) return null
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-modal p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-modal p-4">
       <div className="ui-glass-overlay rounded-2xl max-w-sm w-full p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
           <MapPin className="w-6 h-6 text-primary-600" />

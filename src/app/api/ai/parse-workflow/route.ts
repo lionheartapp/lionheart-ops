@@ -65,10 +65,20 @@ function resolveWorkflowNames(
 
   return {
     rules: parsed.rules.map((rule) => {
+      const campusId = fuzzy(rule.campusName, context.campuses)
+      // Auto-attach parent school when only a campus is mentioned
+      let schoolId = fuzzy(rule.schoolName, context.schools)
+      if (campusId && !schoolId) {
+        const campus = context.campuses.find(c => c.id === campusId)
+        if (campus?.schoolName) {
+          schoolId = fuzzy(campus.schoolName, context.schools)
+        }
+      }
+
       return {
         name: rule.name,
-        schoolId: fuzzy(rule.schoolName, context.schools),
-        campusId: fuzzy(rule.campusName, context.campuses),
+        schoolId,
+        campusId,
         categoryId: fuzzy(rule.categoryName, context.categories),
         executionMode: rule.executionMode || 'PARALLEL',
         isDefault: !rule.schoolName && !rule.campusName && !rule.categoryName,

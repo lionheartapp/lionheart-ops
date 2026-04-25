@@ -130,7 +130,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 z-mobilenav"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-mobilenav"
             onClick={onClose}
           />
 

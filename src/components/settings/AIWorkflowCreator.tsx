@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Sparkles, X, Loader2, Check, ArrowRight, RotateCcw } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
@@ -444,14 +445,14 @@ export default function AIWorkflowCreator({
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 z-[100]"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100]"
         onClick={onClose}
       />
 
@@ -831,6 +832,7 @@ export default function AIWorkflowCreator({
           )}
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body,
   )
 }

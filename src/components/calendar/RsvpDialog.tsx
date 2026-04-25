@@ -39,7 +39,7 @@ export default function RsvpDialog({ isOpen, status, onSubmit, onCancel }: RsvpD
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 z-lightbox"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-lightbox"
             onClick={onCancel}
           />
           <motion.div

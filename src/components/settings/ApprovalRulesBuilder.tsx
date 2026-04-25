@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Trash2, ClipboardCheck, ChevronRight, Shield, GripVertical,
-  Layers, ArrowDown, Users, Sparkles,
+  Layers, ArrowDown, Users, Sparkles, Search,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
@@ -187,6 +187,7 @@ export default function ApprovalRulesBuilder() {
   const { data, isLoading } = useQuery({ queryKey: ['approval-rules'], queryFn: fetchRules })
   const { activeSchoolId } = useActiveSchool()
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null)
+  const [ruleSearch, setRuleSearch] = useState('')
   const [addStepTeamId, setAddStepTeamId] = useState('')
   const [addStepType, setAddStepType] = useState<'team' | 'person'>('team')
   const [addStepPersonId, setAddStepPersonId] = useState('')
@@ -221,8 +222,14 @@ export default function ApprovalRulesBuilder() {
   }, [allRules, activeSchoolId, campuses])
 
   // Flat list: all specific rules, then default catch-all at the bottom
-  const specificRules = rules.filter(r => !r.isDefault)
+  const allSpecificRules = rules.filter(r => !r.isDefault)
   const defaultRule = rules.find(r => r.isDefault)
+
+  // Search filter
+  const searchLower = ruleSearch.toLowerCase().trim()
+  const specificRules = searchLower
+    ? allSpecificRules.filter(r => r.name.toLowerCase().includes(searchLower))
+    : allSpecificRules
   const selectedRule = rules.find(r => r.id === selectedRuleId) ?? null
 
   // DnD sensors
@@ -400,9 +407,32 @@ export default function ApprovalRulesBuilder() {
       <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 200px)' }}>
 
         {/* ── Left panel: flat rule list ─────────────────────────────── */}
-        <div className="w-80 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-100/50">
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Approval Rules</p>
+        <div className="w-96 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">
+          <div className="px-4 py-3 border-b border-slate-200 bg-slate-100/50 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                Approval Rules
+                <span className="ml-1.5 text-[10px] font-medium text-slate-400">{rules.length}</span>
+              </p>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={ruleSearch}
+                onChange={(e) => setRuleSearch(e.target.value)}
+                placeholder="Search rules..."
+                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-400 transition-colors placeholder:text-slate-400"
+              />
+              {ruleSearch && (
+                <button
+                  onClick={() => setRuleSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3 text-slate-400" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
