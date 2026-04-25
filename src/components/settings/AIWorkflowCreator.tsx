@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Sparkles, X, Loader2, Check, ArrowRight, RotateCcw } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
@@ -73,6 +73,81 @@ export default function AIWorkflowCreator({
   const [error, setError] = useState<string | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // @ mention state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [mentionIndex, setMentionIndex] = useState(0)
+  const [mentionStart, setMentionStart] = useState(-1)
+  const mentionContainerRef = useRef<HTMLDivElement>(null)
+
+  // Build mention suggestions: people first, then teams
+  const mentionSuggestions = useMemo(() => {
+    if (mentionQuery === null) return []
+    const q = mentionQuery.toLowerCase()
+    const people = context.members
+      .filter(m => m.name.toLowerCase().includes(q))
+      .map(m => ({ id: m.id, label: m.name, sublabel: m.teamName || '', type: 'person' as const }))
+    const teamList = context.teams
+      .filter(t => t.name.toLowerCase().includes(q))
+      .map(t => ({ id: t.id, label: t.name, sublabel: 'Team', type: 'team' as const }))
+    const schoolList = context.schools
+      .filter(s => s.name.toLowerCase().includes(q))
+      .map(s => ({ id: s.id, label: s.name, sublabel: 'School', type: 'school' as const }))
+    const campusList = context.campuses
+      .filter(c => c.name.toLowerCase().includes(q))
+      .map(c => ({ id: c.id, label: c.name, sublabel: c.schoolName || 'Campus', type: 'campus' as const }))
+    return [...people, ...teamList, ...schoolList, ...campusList].slice(0, 10)
+  }, [mentionQuery, context.members, context.teams])
+
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value
+    setText(val)
+
+    // Detect @ mention
+    const cursor = e.target.selectionStart || 0
+    const before = val.slice(0, cursor)
+    const atMatch = before.match(/@(\w*)$/)
+    if (atMatch) {
+      setMentionQuery(atMatch[1])
+      setMentionStart(cursor - atMatch[0].length)
+      setMentionIndex(0)
+    } else {
+      setMentionQuery(null)
+    }
+  }, [])
+
+  const insertMention = useCallback((suggestion: { label: string }) => {
+    const before = text.slice(0, mentionStart)
+    const after = text.slice(textareaRef.current?.selectionStart || mentionStart)
+    const newText = `${before}@${suggestion.label} ${after}`
+    setText(newText)
+    setMentionQuery(null)
+    // Focus back on textarea
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        const pos = mentionStart + suggestion.label.length + 2 // @name + space
+        textareaRef.current.focus()
+        textareaRef.current.setSelectionRange(pos, pos)
+      }
+    })
+  }, [text, mentionStart])
+
+  const handleTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (mentionQuery === null || mentionSuggestions.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setMentionIndex(i => (i + 1) % mentionSuggestions.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setMentionIndex(i => (i - 1 + mentionSuggestions.length) % mentionSuggestions.length)
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault()
+      insertMention(mentionSuggestions[mentionIndex])
+    } else if (e.key === 'Escape') {
+      setMentionQuery(null)
+    }
+  }, [mentionQuery, mentionSuggestions, mentionIndex, insertMention])
 
   // Reset state when opening
   useEffect(() => {
@@ -262,7 +337,7 @@ export default function AIWorkflowCreator({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-x-4 top-[10%] mx-auto max-w-2xl bg-white rounded-2xl shadow-2xl z-[100] flex flex-col max-h-[80vh] overflow-hidden"
+        className="fixed inset-x-4 top-[10%] mx-auto max-w-2xl bg-white rounded-2xl shadow-2xl z-[100] flex flex-col max-h-[80vh]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -281,7 +356,7 @@ export default function AIWorkflowCreator({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className={`flex-1 px-6 py-5 ${mentionQuery !== null ? 'overflow-visible' : 'overflow-y-auto'}`}>
           <AnimatePresence mode="wait">
             {/* ── Input phase ────────────────────────────────────────── */}
             {phase === 'input' && (
@@ -292,12 +367,13 @@ export default function AIWorkflowCreator({
                 exit={{ opacity: 0 }}
                 className="space-y-4"
               >
-                <div className="relative">
+                <div className="relative" ref={mentionContainerRef}>
                   <textarea
                     ref={textareaRef}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder={'Describe how approvals should work...\n\nExample: "For River Springs, any event that needs AV should be approved by Kevin Patel. Large events need facilities and security sign-off too. Athletics events always go through the athletic director. Everything else just needs admin approval."'}
+                    onChange={handleTextChange}
+                    onKeyDown={handleTextareaKeyDown}
+                    placeholder={'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "For River Springs, any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
                     className="w-full h-40 px-4 py-3 text-sm bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none resize-none placeholder:text-slate-400 transition-colors"
                   />
                   {isListening && (
@@ -309,6 +385,52 @@ export default function AIWorkflowCreator({
                       <span className="text-xs text-red-500 font-medium">Listening...</span>
                     </div>
                   )}
+
+                  {/* @ mention dropdown */}
+                  <AnimatePresence>
+                    {mentionQuery !== null && mentionSuggestions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute left-4 right-4 top-full mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-10"
+                      >
+                        <div className="py-1 max-h-48 overflow-y-auto">
+                          <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
+                            {mentionQuery ? `Matching "${mentionQuery}"` : 'People & Teams'}
+                          </p>
+                          {mentionSuggestions.map((s, i) => (
+                            <button
+                              key={`${s.type}-${s.id}`}
+                              type="button"
+                              onClick={() => insertMention(s)}
+                              onMouseEnter={() => setMentionIndex(i)}
+                              className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
+                                i === mentionIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
+                              }`}
+                            >
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                                s.type === 'person' ? 'bg-blue-100 text-blue-700'
+                                  : s.type === 'team' ? 'bg-amber-100 text-amber-700'
+                                  : s.type === 'school' ? 'bg-violet-100 text-violet-700'
+                                  : 'bg-green-100 text-green-700'
+                              }`}>
+                                {s.type === 'person' ? s.label.charAt(0).toUpperCase() : s.label.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-slate-800 truncate">{s.label}</p>
+                                <p className="text-[10px] text-slate-400">{s.sublabel}</p>
+                              </div>
+                              <span className="text-[10px] text-slate-300 flex-shrink-0">
+                                {s.type === 'person' ? 'Person' : 'Team'}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {error && (

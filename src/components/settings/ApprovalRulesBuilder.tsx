@@ -192,6 +192,7 @@ export default function ApprovalRulesBuilder() {
   const [addStepPersonId, setAddStepPersonId] = useState('')
   const [showAddStep, setShowAddStep] = useState(false)
   const [showAICreator, setShowAICreator] = useState(false)
+  const [showAIDisclaimer, setShowAIDisclaimer] = useState(false)
 
   const allRules = data?.rules ?? []
   const schools = data?.schools ?? []
@@ -365,6 +366,35 @@ export default function ApprovalRulesBuilder() {
           </div>
         </div>
       </div>
+
+      {/* AI disclaimer banner */}
+      <AnimatePresence>
+        {showAIDisclaimer && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800">AI-generated rules — please review</p>
+                <p className="text-xs text-amber-600 mt-0.5">
+                  These rules were created by AI and may not be 100% accurate. Please review each rule's conditions, steps, and execution mode before relying on them.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAIDisclaimer(false)}
+                className="p-1 hover:bg-amber-100 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5 text-amber-400" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Two-column builder */}
       <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ minHeight: 'calc(100vh - 200px)' }}>
@@ -757,6 +787,7 @@ export default function ApprovalRulesBuilder() {
             onRulesCreated={() => {
               queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
               setShowAICreator(false)
+              setShowAIDisclaimer(true)
             }}
           />
         )}

@@ -224,10 +224,12 @@ Return ONLY valid JSON with this structure:
 Rules:
 - Each rule is independent. If an event matches multiple rules, ALL matching rules' steps are merged.
 - A rule with no school/campus/category conditions matches ALL events (use this for default/catch-all rules).
-- "WHEN_RESOURCE_REQUESTED" means the step only activates when the event specifically needs that resource (AV, facilities, etc.)
+- DEFAULT trigger is "ALWAYS" unless the user explicitly says "if needed", "when requested", or "only when AV/facilities is required".
+- "WHEN_RESOURCE_REQUESTED" should ONLY be used when the user explicitly mentions conditional activation (e.g., "if they need AV", "when facilities are requested").
+- If the user says "needs approval from X" or "must be approved by X", that's trigger: "ALWAYS", mode: "REQUIRED".
+- If the user says "first X, then Y" or "X first and then Y", that means executionMode: "SEQUENTIAL" and both steps have trigger: "ALWAYS".
 - "SEQUENTIAL" means step 1 must approve before step 2 sees it. "PARALLEL" means all steps review at once.
-- If the user mentions "always" or "every event" for a step, that's trigger: "ALWAYS"
-- If the user mentions "if needed" or "when requested", that's trigger: "WHEN_RESOURCE_REQUESTED"
+- If the user mentions ordering words like "first", "then", "after", "before", "next", that implies SEQUENTIAL execution.
 
 Available context:
 - Schools: ${JSON.stringify(context.schools.map(s => s.name))}
