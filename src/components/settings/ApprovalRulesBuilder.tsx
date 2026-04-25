@@ -397,7 +397,7 @@ export default function ApprovalRulesBuilder() {
       </AnimatePresence>
 
       {/* Two-column builder */}
-      <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ minHeight: 'calc(100vh - 200px)' }}>
+      <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 200px)' }}>
 
         {/* ── Left panel: flat rule list ─────────────────────────────── */}
         <div className="w-80 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">

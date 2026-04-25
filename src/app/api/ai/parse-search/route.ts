@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { geminiService } from '@/lib/services/ai/gemini.service'
-import type { SearchContext } from '@/lib/services/ai/gemini.service'
+import type { SearchContext, ParsedSearchFilter } from '@/lib/services/ai/gemini.service'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
  * Fuzzy-match AI-returned names against actual context items and resolve to IDs.
  */
 function resolveNamesToIds(
-  parsed: Record<string, unknown>,
+  parsed: ParsedSearchFilter,
   context: SearchContext,
 ) {
   const fuzzyMatch = (name: string, items: Array<{ id: string; name: string }>) => {
