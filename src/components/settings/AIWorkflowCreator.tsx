@@ -5,6 +5,30 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Sparkles, X, Loader2, Check, ArrowRight, RotateCcw } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 
+// Web Speech API types (not in default TS lib)
+declare global {
+  interface Window {
+    SpeechRecognition: { new(): SpeechRecognitionInstance }
+    webkitSpeechRecognition: { new(): SpeechRecognitionInstance }
+  }
+}
+interface SpeechRecognitionInstance {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorResultEvent) => void) | null
+  onend: (() => void) | null
+}
+interface SpeechRecognitionResultEvent {
+  results: SpeechRecognitionResultList
+}
+interface SpeechRecognitionErrorResultEvent {
+  error: string
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface ContextItem {
@@ -71,7 +95,7 @@ export default function AIWorkflowCreator({
   const [transcript, setTranscript] = useState('')
   const [result, setResult] = useState<ParsedResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // @ mention state
@@ -274,8 +298,8 @@ export default function AIWorkflowCreator({
   // ─── Voice ──────────────────────────────────────────────────────────────
 
   const startListening = useCallback(async () => {
-    const SpeechRecognition = window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition: typeof window.SpeechRecognition }).webkitSpeechRecognition
-    if (!SpeechRecognition) {
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognitionCtor) {
       setError('Voice input is not supported in this browser. Try Chrome or Edge.')
       return
     }
@@ -290,12 +314,12 @@ export default function AIWorkflowCreator({
       return
     }
 
-    const recognition = new SpeechRecognition()
+    const recognition = new SpeechRecognitionCtor()
     recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = 'en-US'
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: SpeechRecognitionResultEvent) => {
       let final = ''
       let interim = ''
       for (let i = 0; i < event.results.length; i++) {
@@ -310,7 +334,7 @@ export default function AIWorkflowCreator({
       setText(final + interim)
     }
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: SpeechRecognitionErrorResultEvent) => {
       if (event.error !== 'aborted') {
         setError(`Voice error: ${event.error}`)
       }
