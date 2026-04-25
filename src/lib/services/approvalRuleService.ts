@@ -102,6 +102,9 @@ interface UpdateRuleInput {
   schoolId?: string | null
   campusId?: string | null
   eventCategory?: string | null
+  minAttendance?: number | null
+  requiresResource?: string | null
+  isOffCampus?: boolean | null
   isDefault?: boolean
   isFinalApprover?: boolean
   isActive?: boolean
