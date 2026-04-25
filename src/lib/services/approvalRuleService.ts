@@ -99,6 +99,7 @@ interface UpdateRuleInput {
   isDefault?: boolean
   isFinalApprover?: boolean
   isActive?: boolean
+  executionMode?: string
   sortOrder?: number
 }
 

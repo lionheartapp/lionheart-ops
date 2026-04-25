@@ -15,11 +15,20 @@ const db = prisma as unknown as OrgPrismaClient
 export const GET = withAuth(async () => {
   const rules = await getApprovalRules()
 
-  // Also fetch schools and teams for the builder dropdowns
-  const [schools, teams] = await Promise.all([
+  // Also fetch schools, campuses, categories, and teams for the builder dropdowns
+  const [schools, campuses, categories, teams] = await Promise.all([
     db.school.findMany({
       where: { deletedAt: null },
       select: { id: true, name: true, institutionType: true, color: true },
+      orderBy: { name: 'asc' },
+    }),
+    db.campus.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true, schoolId: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    }),
+    db.calendarCategory.findMany({
+      select: { id: true, name: true, color: true },
       orderBy: { name: 'asc' },
     }),
     db.team.findMany({
@@ -50,7 +59,7 @@ export const GET = withAuth(async () => {
     })),
   }))
 
-  return NextResponse.json(ok({ rules, schools, teams: shapedTeams }))
+  return NextResponse.json(ok({ rules, schools, campuses, categories, teams: shapedTeams }))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 const CreateSchema = z.object({
