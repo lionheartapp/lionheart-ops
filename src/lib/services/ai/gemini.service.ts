@@ -36,6 +36,42 @@ export interface ParsedSearchFilter {
   summary?: string
 }
 
+export interface WorkflowContextItem {
+  id: string
+  name: string
+  schoolName?: string
+  teamName?: string
+}
+
+export interface WorkflowContext {
+  schools: WorkflowContextItem[]
+  campuses: WorkflowContextItem[]
+  categories: WorkflowContextItem[]
+  teams: WorkflowContextItem[]
+  members: WorkflowContextItem[]
+}
+
+export interface ParsedWorkflowStep {
+  type: 'team' | 'person'
+  name: string
+  mode: 'REQUIRED' | 'NOTIFICATION'
+  trigger: 'ALWAYS' | 'WHEN_RESOURCE_REQUESTED'
+}
+
+export interface ParsedWorkflowRule {
+  name: string
+  schoolName: string | null
+  campusName: string | null
+  categoryName: string | null
+  executionMode: 'PARALLEL' | 'SEQUENTIAL'
+  steps: ParsedWorkflowStep[]
+}
+
+export interface ParsedWorkflow {
+  rules: ParsedWorkflowRule[]
+  summary: string
+}
+
 export class GeminiService {
   private client: GoogleGenAI | null
 
@@ -149,6 +185,75 @@ JSON:`
       return { titleSearch: query }
     } catch {
       return { titleSearch: query }
+    }
+  }
+
+  async parseApprovalWorkflow(
+    text: string,
+    context: WorkflowContext,
+  ): Promise<ParsedWorkflow> {
+    if (!this.client) {
+      return { rules: [], summary: 'AI unavailable' }
+    }
+
+    const prompt = `You are an approval workflow assistant for a school management platform.
+The user is describing how event approvals should work at their organization. Parse their description into structured approval rules.
+
+Return ONLY valid JSON with this structure:
+{
+  "rules": [
+    {
+      "name": "string - short descriptive name for the rule",
+      "schoolName": "string or null - school this applies to (fuzzy match against available schools)",
+      "campusName": "string or null - campus this applies to",
+      "categoryName": "string or null - event category this applies to",
+      "executionMode": "PARALLEL or SEQUENTIAL",
+      "steps": [
+        {
+          "type": "team or person",
+          "name": "string - team name or person name (fuzzy match against available options)",
+          "mode": "REQUIRED or NOTIFICATION",
+          "trigger": "ALWAYS or WHEN_RESOURCE_REQUESTED"
+        }
+      ]
+    }
+  ],
+  "summary": "string - brief human-readable summary of what was understood"
+}
+
+Rules:
+- Each rule is independent. If an event matches multiple rules, ALL matching rules' steps are merged.
+- A rule with no school/campus/category conditions matches ALL events (use this for default/catch-all rules).
+- "WHEN_RESOURCE_REQUESTED" means the step only activates when the event specifically needs that resource (AV, facilities, etc.)
+- "SEQUENTIAL" means step 1 must approve before step 2 sees it. "PARALLEL" means all steps review at once.
+- If the user mentions "always" or "every event" for a step, that's trigger: "ALWAYS"
+- If the user mentions "if needed" or "when requested", that's trigger: "WHEN_RESOURCE_REQUESTED"
+
+Available context:
+- Schools: ${JSON.stringify(context.schools.map(s => s.name))}
+- Campuses: ${JSON.stringify(context.campuses.map(c => ({ name: c.name, school: c.schoolName })))}
+- Categories: ${JSON.stringify(context.categories.map(c => c.name))}
+- Teams: ${JSON.stringify(context.teams.map(t => t.name))}
+- People: ${JSON.stringify(context.members.map(m => ({ name: m.name, team: m.teamName })))}
+
+User description: "${text.replace(/"/g, '\\"')}"
+
+JSON:`
+
+    try {
+      const result = await this.client.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+      })
+
+      const responseText = result.text || ''
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]) as ParsedWorkflow
+      }
+      return { rules: [], summary: 'Could not parse workflow' }
+    } catch {
+      return { rules: [], summary: 'Failed to parse workflow' }
     }
   }
 

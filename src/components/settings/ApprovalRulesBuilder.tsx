@@ -5,10 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Trash2, ClipboardCheck, ChevronRight, Shield, GripVertical,
-  GitBranch, Layers, ArrowDown, Users,
+  Layers, ArrowDown, Users, Sparkles,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
+import AIWorkflowCreator from './AIWorkflowCreator'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -190,7 +191,7 @@ export default function ApprovalRulesBuilder() {
   const [addStepType, setAddStepType] = useState<'team' | 'person'>('team')
   const [addStepPersonId, setAddStepPersonId] = useState('')
   const [showAddStep, setShowAddStep] = useState(false)
-  const [showAddMenu, setShowAddMenu] = useState(false)
+  const [showAICreator, setShowAICreator] = useState(false)
 
   const allRules = data?.rules ?? []
   const schools = data?.schools ?? []
@@ -218,9 +219,9 @@ export default function ApprovalRulesBuilder() {
     })
   }, [allRules, activeSchoolId, campuses])
 
-  const conditionalRules = rules.filter(r => !r.isFinalApprover && !r.isDefault)
+  // Flat list: all specific rules, then default catch-all at the bottom
+  const specificRules = rules.filter(r => !r.isDefault)
   const defaultRule = rules.find(r => r.isDefault)
-  const alwaysRules = rules.filter(r => r.isFinalApprover)
   const selectedRule = rules.find(r => r.id === selectedRuleId) ?? null
 
   // DnD sensors
@@ -240,18 +241,13 @@ export default function ApprovalRulesBuilder() {
   })
 
   const addRule = (opts: { schoolId?: string; isDefault?: boolean; isFinalApprover?: boolean }) => {
-    const name = opts.isFinalApprover
-      ? 'Always Required'
-      : opts.isDefault
-        ? 'All Other Events'
-        : opts.schoolId
-          ? (schools.find(s => s.id === opts.schoolId)?.name || 'School') + ' Events'
-          : 'New Condition'
+    const name = opts.isDefault
+      ? 'All Other Events'
+      : 'New Rule'
     mutate.mutate({
       method: 'POST', url: '/api/settings/approval-rules',
       body: { name, ...opts },
     })
-    setShowAddMenu(false)
   }
 
   const deleteRule = (id: string) => {
@@ -259,8 +255,19 @@ export default function ApprovalRulesBuilder() {
     mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${id}` })
   }
 
-  const updateRule = (id: string, data: Record<string, unknown>) => {
-    mutate.mutate({ method: 'PATCH', url: `/api/settings/approval-rules/${id}`, body: data })
+  const updateRule = (id: string, updates: Record<string, unknown>) => {
+    // Optimistic cache update — instant visual feedback
+    queryClient.setQueryData(['approval-rules'], (old: { rules: RuleData[] } | undefined) => {
+      if (!old) return old
+      return { ...old, rules: old.rules.map(r => r.id === id ? { ...r, ...updates } : r) }
+    })
+    // Background save
+    fetchApi(`/api/settings/approval-rules/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }).catch(() => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+    })
   }
 
   // Flatten all team members for the person picker
@@ -292,7 +299,7 @@ export default function ApprovalRulesBuilder() {
     mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { stepId } })
   }, [mutate])
 
-  // Step reorder handler
+  // Step reorder handler — optimistic update + single background save
   const handleStepDragEnd = useCallback((event: DragEndEvent) => {
     if (!selectedRule) return
     const { active, over } = event
@@ -302,22 +309,38 @@ export default function ApprovalRulesBuilder() {
     const newIndex = selectedRule.steps.findIndex(s => s.id === over.id)
     if (oldIndex === -1 || newIndex === -1) return
 
-    // Build new sort order array and send to API
+    // Build reordered steps
     const reordered = [...selectedRule.steps]
     const [moved] = reordered.splice(oldIndex, 1)
     reordered.splice(newIndex, 0, moved)
+    const withNewOrder = reordered.map((step, i) => ({ ...step, sortOrder: i }))
 
-    // Update each step's sortOrder
-    reordered.forEach((step, i) => {
-      if (step.sortOrder !== i) {
-        mutate.mutate({
-          method: 'PUT',
-          url: `/api/settings/approval-rules/${selectedRule.id}/steps`,
-          body: { stepId: step.id, sortOrder: i },
-        })
+    // Optimistic cache update — instant visual feedback
+    queryClient.setQueryData(['approval-rules'], (old: { rules: RuleData[]; schools: SchoolData[]; campuses: CampusData[]; categories: CategoryData[]; teams: TeamData[] } | undefined) => {
+      if (!old) return old
+      return {
+        ...old,
+        rules: old.rules.map(r =>
+          r.id === selectedRule.id ? { ...r, steps: withNewOrder } : r
+        ),
       }
     })
-  }, [selectedRule, mutate])
+
+    // Background save — send all reorders, only refetch once at the end
+    const stepsToUpdate = withNewOrder.filter((step, i) => selectedRule.steps[i]?.id !== step.id)
+    Promise.all(
+      stepsToUpdate.map(step =>
+        fetchApi(`/api/settings/approval-rules/${selectedRule.id}/steps`, {
+          method: 'PUT',
+          body: JSON.stringify({ stepId: step.id, sortOrder: step.sortOrder }),
+        })
+      )
+    ).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+    }).catch(() => {
+      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+    })
+  }, [selectedRule, queryClient])
 
   if (isLoading) {
     return (
@@ -327,10 +350,6 @@ export default function ApprovalRulesBuilder() {
       </div>
     )
   }
-
-  // Schools not yet assigned to a conditional rule
-  const usedSchoolIds = conditionalRules.map(r => r.schoolId).filter(Boolean)
-  const unusedSchools = schools.filter(s => !usedSchoolIds.includes(s.id))
 
   return (
     <div className="space-y-6">
@@ -350,19 +369,18 @@ export default function ApprovalRulesBuilder() {
       {/* Two-column builder */}
       <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ minHeight: 'calc(100vh - 200px)' }}>
 
-        {/* ── Left panel: if/else tree ─────────────────────────────── */}
+        {/* ── Left panel: flat rule list ─────────────────────────────── */}
         <div className="w-80 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">
           <div className="px-4 py-3 border-b border-slate-200 bg-slate-100/50">
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">When event is created</p>
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Approval Rules</p>
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            {/* Conditional branches */}
-            {conditionalRules.map((rule, idx) => (
-              <TreeBranch
+            {/* Specific rules — each is independent, all matching rules merge */}
+            {specificRules.map(rule => (
+              <RuleCard
                 key={rule.id}
                 rule={rule}
-                type={idx === 0 ? 'if' : 'else-if'}
                 isSelected={selectedRuleId === rule.id}
                 onClick={() => setSelectedRuleId(rule.id)}
                 onDelete={() => deleteRule(rule.id)}
@@ -370,118 +388,46 @@ export default function ApprovalRulesBuilder() {
               />
             ))}
 
-            {/* Default / else branch */}
-            {defaultRule && (
-              <TreeBranch
-                rule={defaultRule}
-                type="else"
-                isSelected={selectedRuleId === defaultRule.id}
-                onClick={() => setSelectedRuleId(defaultRule.id)}
-                onDelete={() => deleteRule(defaultRule.id)}
-                categories={categories}
-              />
-            )}
-
-            {/* Divider before "always" section */}
-            {(conditionalRules.length > 0 || defaultRule) && alwaysRules.length > 0 && (
+            {/* Default catch-all — always at the bottom */}
+            {specificRules.length > 0 && defaultRule && (
               <div className="pt-2 pb-1">
                 <div className="border-t border-slate-200" />
               </div>
             )}
-
-            {/* Always-required rules */}
-            {alwaysRules.map(rule => (
-              <TreeBranch
-                key={rule.id}
-                rule={rule}
-                type="always"
-                isSelected={selectedRuleId === rule.id}
-                onClick={() => setSelectedRuleId(rule.id)}
-                onDelete={() => deleteRule(rule.id)}
+            {defaultRule && (
+              <RuleCard
+                rule={defaultRule}
+                isSelected={selectedRuleId === defaultRule.id}
+                onClick={() => setSelectedRuleId(defaultRule.id)}
+                onDelete={() => deleteRule(defaultRule.id)}
                 categories={categories}
+                isDefault
               />
-            ))}
+            )}
           </div>
 
-          {/* Bottom actions — Add menu */}
-          <div className="p-3 border-t border-slate-200 relative">
+          {/* Bottom actions */}
+          <div className="p-3 border-t border-slate-200 space-y-1">
             <button
-              onClick={() => setShowAddMenu(o => !o)}
+              onClick={() => setShowAICreator(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer w-full"
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Create with AI
+            </button>
+            <button
+              onClick={() => addRule({})}
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer w-full"
             >
-              <Plus className="w-3.5 h-3.5" /> Add rule
+              <Plus className="w-3.5 h-3.5" /> Add rule manually
             </button>
-
-            {/* Dropdown menu */}
-            <AnimatePresence>
-              {showAddMenu && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setShowAddMenu(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.12 }}
-                    className="absolute bottom-full left-3 mb-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-40"
-                  >
-                    <div className="p-1.5 space-y-0.5">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide px-3 py-1.5">Add rule type</p>
-
-                      {/* If condition */}
-                      <button
-                        onClick={() => {
-                          const school = unusedSchools[0]
-                          addRule(school ? { schoolId: school.id } : {})
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                      >
-                        <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                          <GitBranch className="w-3.5 h-3.5 text-amber-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-800">
-                            {conditionalRules.length === 0 ? 'When condition' : 'Or when condition'}
-                          </p>
-                          <p className="text-[11px] text-slate-400">Match events by school, campus, or category</p>
-                        </div>
-                      </button>
-
-                      {/* Else catch-all */}
-                      {!defaultRule && conditionalRules.length > 0 && (
-                        <button
-                          onClick={() => addRule({ isDefault: true })}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <Layers className="w-3.5 h-3.5 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">Everything else</p>
-                            <p className="text-[11px] text-slate-400">Applies when no other conditions match</p>
-                          </div>
-                        </button>
-                      )}
-
-                      {/* Always */}
-                      {!alwaysRules.length && (
-                        <button
-                          onClick={() => addRule({ isFinalApprover: true })}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                        >
-                          <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                            <Shield className="w-3.5 h-3.5 text-green-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">Always</p>
-                            <p className="text-[11px] text-slate-400">Runs for every event regardless of conditions</p>
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+            {!defaultRule && (
+              <button
+                onClick={() => addRule({ isDefault: true })}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors cursor-pointer w-full"
+              >
+                <Layers className="w-3.5 h-3.5" /> Add default catch-all
+              </button>
+            )}
           </div>
         </div>
 
@@ -504,7 +450,8 @@ export default function ApprovalRulesBuilder() {
                       type="text"
                       value={selectedRule.name}
                       onChange={(e) => updateRule(selectedRule.id, { name: e.target.value })}
-                      className="text-sm font-semibold text-slate-900 bg-transparent border-none outline-none focus:ring-0 p-0 w-full"
+                      className="text-lg font-semibold text-slate-900 bg-transparent border-none outline-none hover:bg-slate-50 focus:bg-slate-50 rounded-lg px-2 py-1 -mx-2 w-[calc(100%+1rem)] transition-colors"
+                      placeholder="Rule name..."
                     />
                   </div>
 
@@ -793,54 +740,59 @@ export default function ApprovalRulesBuilder() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* AI Workflow Creator Modal */}
+      <AnimatePresence>
+        {showAICreator && (
+          <AIWorkflowCreator
+            isOpen={showAICreator}
+            onClose={() => setShowAICreator(false)}
+            context={{
+              schools: schools.map(s => ({ id: s.id, name: s.name })),
+              campuses: campuses.map(c => ({ id: c.id, name: c.name, schoolName: schools.find(s => s.id === c.schoolId)?.name })),
+              categories: categories.map(c => ({ id: c.id, name: c.name })),
+              teams: teams.map(t => ({ id: t.id, name: t.name })),
+              members: allMembers.map(m => ({ id: m.id, name: m.name || m.email, teamName: m.teamName })),
+            }}
+            onRulesCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+              setShowAICreator(false)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-// ─── Tree Branch Item ───────────────────────────────────────────────────────
+// ─── Rule Card ──────────────────────────────────────────────────────────────
 
-function TreeBranch({
+function RuleCard({
   rule,
-  type,
   isSelected,
   onClick,
   onDelete,
   categories = [],
+  isDefault = false,
 }: {
   rule: RuleData
-  type: 'if' | 'else-if' | 'else' | 'always'
   isSelected: boolean
   onClick: () => void
   onDelete: () => void
   categories?: CategoryData[]
+  isDefault?: boolean
 }) {
-  const keyword = type === 'if' ? 'When' : type === 'else-if' ? 'Or when' : type === 'else' ? 'Everything else' : 'Always'
-  const keywordColor = type === 'always'
-    ? 'text-green-600'
-    : type === 'else'
-      ? 'text-blue-500'
-      : 'text-amber-600'
-
   const categoryName = rule.eventCategory
     ? categories.find(c => c.id === rule.eventCategory)?.name || rule.eventCategory
     : null
 
   const conditionParts = [
-    rule.school && `school is "${rule.school.name}"`,
-    rule.campus && `campus is "${rule.campus.name}"`,
-    categoryName && `category is "${categoryName}"`,
+    rule.school && rule.school.name,
+    rule.campus && rule.campus.name,
+    categoryName,
   ].filter(Boolean)
 
-  const conditionLabel = conditionParts.length > 0
-    ? conditionParts.join(' & ')
-    : type === 'else'
-      ? '(no conditions matched)'
-      : type === 'always'
-        ? '(runs for every event)'
-        : 'any event'
-
   const stepCount = rule.steps.length
-  const modeLabel = (rule.executionMode || 'PARALLEL') === 'SEQUENTIAL' ? ' (sequential)' : ''
 
   return (
     <div
@@ -851,40 +803,50 @@ function TreeBranch({
       }`}
       onClick={onClick}
     >
-      {/* Connector line */}
-      {(type === 'else-if' || type === 'else') && (
-        <div className="absolute -top-1 left-5 w-px h-1 bg-slate-300" />
-      )}
-
       <div className="px-3 py-2.5">
         <div className="flex items-start gap-2">
-          <div className="flex flex-col items-center pt-0.5">
-            <span className={`text-[11px] font-bold ${keywordColor}`}>{keyword}</span>
-          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-600 leading-relaxed">{conditionLabel}</p>
+            {/* Rule name */}
+            <p className="text-[13px] font-medium text-slate-800 truncate">{rule.name}</p>
+
+            {/* Condition chips */}
+            {!isDefault && conditionParts.length > 0 && (
+              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                <span className="text-[10px] font-medium text-amber-600">When</span>
+                {conditionParts.map((part, i) => (
+                  <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                    {part}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {isDefault && (
+              <p className="text-[10px] text-blue-500 mt-0.5">Applies when no other rules match</p>
+            )}
+
+            {!isDefault && conditionParts.length === 0 && (
+              <p className="text-[10px] text-slate-400 mt-0.5 italic">No conditions set — click to configure</p>
+            )}
+
+            {/* Step preview */}
             {stepCount > 0 && (
-              <div className="mt-1.5 space-y-0.5">
-                {rule.steps.slice(0, 3).map((step) => (
-                  <div key={step.id} className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <span className="text-slate-300">└</span>
-                    <span className={step.mode === 'REQUIRED' ? 'text-slate-600' : 'text-slate-400'}>
-                      {step.assignedUser
-                        ? `${step.assignedUser.firstName || ''} ${step.assignedUser.lastName || ''}`.trim()
-                        : step.team.name}
-                    </span>
-                    {step.mode === 'NOTIFICATION' && (
-                      <span className="text-slate-300">(notify)</span>
-                    )}
-                  </div>
+              <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+                {rule.steps.slice(0, 3).map((step, i) => (
+                  <span key={step.id} className="text-[10px] text-slate-500">
+                    {i > 0 && <span className="text-slate-300 mr-1">→</span>}
+                    {step.assignedUser
+                      ? `${step.assignedUser.firstName || ''} ${step.assignedUser.lastName || ''}`.trim()
+                      : step.team.name}
+                  </span>
                 ))}
                 {stepCount > 3 && (
-                  <p className="text-[10px] text-slate-300 pl-4">+{stepCount - 3} more{modeLabel}</p>
+                  <span className="text-[10px] text-slate-300">+{stepCount - 3} more</span>
                 )}
               </div>
             )}
-            {stepCount === 0 && (
-              <p className="mt-1 text-[10px] text-slate-300 italic">No steps — add actions →</p>
+            {stepCount === 0 && !isDefault && conditionParts.length > 0 && (
+              <p className="mt-1 text-[10px] text-slate-300 italic">No steps yet</p>
             )}
           </div>
 

@@ -14,6 +14,7 @@ const UpdateSchema = z.object({
   isDefault: z.boolean().optional(),
   isFinalApprover: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  executionMode: z.enum(['PARALLEL', 'SEQUENTIAL']).optional(),
   sortOrder: z.number().int().min(0).optional(),
 })
 
