@@ -467,7 +467,7 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
 
       {/* Modal confirm for deletes triggered externally (when table is hidden) */}
       {hideTable && deletingSchool && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">Delete {deletingSchool.name}?</h3>

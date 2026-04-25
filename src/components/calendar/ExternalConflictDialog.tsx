@@ -51,7 +51,7 @@ export default function ExternalConflictDialog({ isOpen, conflicts, onCancel, on
   if (!isOpen || conflicts.length === 0) return null
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="ext-conflict-title">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true" aria-labelledby="ext-conflict-title">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-xl overflow-hidden">
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-3">

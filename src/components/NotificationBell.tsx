@@ -142,7 +142,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
     <div className="fixed inset-0 z-modal overflow-hidden" role="presentation" aria-hidden={!isOpen}>
       {/* Overlay */}
       <div
-        className={`absolute inset-0 bg-black/30 transition-opacity duration-300 cursor-pointer ${shouldShow ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 cursor-pointer ${shouldShow ? 'opacity-100' : 'opacity-0'}`}
         onClick={handleClose}
         role="presentation"
       />
