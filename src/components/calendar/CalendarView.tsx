@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import type { EventCreateMode } from '@/components/events/CreateEventMenu'
 import {
   useCalendars,
@@ -65,6 +66,7 @@ export default function CalendarView() {
   const { toast } = useToast()
   const router = useRouter()
   const { isAdmin, user: authUser } = useAuth()
+  const { activeSchoolId } = useActiveSchool()
   const {
     currentDate,
     setCurrentDate,
@@ -312,9 +314,13 @@ export default function CalendarView() {
     true
   )
   const activeCalendarIds = Array.from(visibleCalendarIds)
-  const events = activeCalendarIds.length > 0
+  const calendarFiltered = activeCalendarIds.length > 0
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
     : []
+  // Apply campus filter from the global school/campus picker
+  const events = activeSchoolId
+    ? calendarFiltered.filter((e) => !e.calendar.campus || e.calendar.campus.id === activeSchoolId)
+    : calendarFiltered
 
   // ── Athletics calendar overlay ──────────────────────────────────────
   // Fetch user's assigned campuses (scoped — falls back to all for admins)

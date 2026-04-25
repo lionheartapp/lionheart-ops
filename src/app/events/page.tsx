@@ -813,7 +813,7 @@ function MyEventsPanel({ isAdmin, onOpenCreate }: MyEventsPanelProps) {
   const filters = {
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(!isAdmin ? { createdBy: 'me' } : {}),
-    ...(activeSchoolId ? { schoolId: activeSchoolId } : {}),
+    ...(activeSchoolId ? { campusId: activeSchoolId } : {}),
   }
 
   const { data: projects, isLoading } = useEventProjects(
@@ -1050,7 +1050,7 @@ export default function EventsPage() {
   // School scope: when an active school is selected the service returns events
   // for that school plus district-wide events (schoolId IS NULL).
   const { data: allProjects = [] } = useEventProjects(
-    activeSchoolId ? { schoolId: activeSchoolId } : undefined,
+    activeSchoolId ? { campusId: activeSchoolId } : undefined,
   )
   const archiveCount = allProjects.filter(
     (p) => p.status === 'COMPLETED' || p.status === 'CANCELLED',
