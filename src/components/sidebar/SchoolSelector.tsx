@@ -1,24 +1,15 @@
 'use client'
 
 /**
- * SchoolSelector — Global "which school am I looking at?" dropdown.
+ * SchoolSelector — Global "which campus am I viewing?" dropdown.
  *
- * Lives at the top of the Sidebar (below the org logo, above search) on
- * PowerSchool-style. Rendering contract:
+ * Grouped by school entity: campuses are nested under their parent school
+ * so admins can find the right campus quickly across a large org.
  *
- *   - Hidden entirely when the org has <= 1 school (useActiveSchool
- *     reports `isMultiSchool: false`). Single-school orgs never see it.
- *   - While campuses are loading, renders a matched-height skeleton so the
- *     Sidebar doesn't shift layout on hydration.
- *   - The selection is a *viewpoint*, not a filter. Cross-school records
- *     still appear from consumer queries; consumers re-render from the
- *     selected school's perspective (home/away flips, "your team" label,
- *     etc.). See useActiveSchool.ts for the full contract.
- *
- * Interaction:
- *   - Click to toggle, click-outside to close.
- *   - Up/Down arrow to move focus, Enter/Space to pick, Escape to close.
- *   - "All Schools" is the first option and selects `null`.
+ * - "All Schools" selects null (org-wide view).
+ * - School headers are non-selectable group labels.
+ * - Campuses are the selectable items.
+ * - Keyboard nav: Up/Down moves focus, Enter/Space picks, Escape closes.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
@@ -26,10 +17,27 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronDown, School } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
+import { useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@/lib/queries'
 
-interface MenuOption {
+interface CampusWithSchool {
+  id: string
+  name: string
+  isActive: boolean
+  school?: { id: string; name: string } | null
+}
+
+interface SchoolGroup {
+  schoolId: string | null
+  schoolName: string
+  campuses: CampusWithSchool[]
+}
+
+interface FlatOption {
+  type: 'all' | 'header' | 'campus'
   id: string | null
   label: string
+  schoolName?: string
 }
 
 const ALL_SCHOOLS_LABEL = 'All Schools'
@@ -45,17 +53,60 @@ export default function SchoolSelector(): JSX.Element | null {
     setActiveSchoolId,
   } = useActiveSchool()
 
+  // Fetch full campus data with school relations for grouping
+  const { data: rawCampuses } = useQuery(queryOptions.campuses())
+
   const [isOpen, setIsOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState<number>(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  const options = useMemo<MenuOption[]>(() => {
-    return [
-      { id: null, label: ALL_SCHOOLS_LABEL },
-      ...schools.map((s) => ({ id: s.id, label: s.name })),
-    ]
-  }, [schools])
+  // Group campuses by school
+  const { groups, flatOptions } = useMemo(() => {
+    const campusList = (rawCampuses ?? []) as CampusWithSchool[]
+    const active = campusList.filter(c => c.isActive)
+
+    // Build school groups
+    const groupMap = new Map<string, SchoolGroup>()
+    const ungrouped: CampusWithSchool[] = []
+
+    for (const campus of active) {
+      if (campus.school) {
+        const key = campus.school.id
+        if (!groupMap.has(key)) {
+          groupMap.set(key, { schoolId: key, schoolName: campus.school.name, campuses: [] })
+        }
+        groupMap.get(key)!.campuses.push(campus)
+      } else {
+        ungrouped.push(campus)
+      }
+    }
+
+    const sortedGroups = Array.from(groupMap.values()).sort((a, b) => a.schoolName.localeCompare(b.schoolName))
+
+    // Build flat list for keyboard nav (skip headers for selection)
+    const flat: FlatOption[] = [{ type: 'all', id: null, label: ALL_SCHOOLS_LABEL }]
+
+    for (const group of sortedGroups) {
+      flat.push({ type: 'header', id: `header-${group.schoolId}`, label: group.schoolName })
+      for (const campus of group.campuses) {
+        flat.push({ type: 'campus', id: campus.id, label: campus.name, schoolName: group.schoolName })
+      }
+    }
+
+    // Ungrouped campuses (no school assigned)
+    for (const campus of ungrouped) {
+      flat.push({ type: 'campus', id: campus.id, label: campus.name })
+    }
+
+    return { groups: sortedGroups, flatOptions: flat }
+  }, [rawCampuses])
+
+  // Selectable options only (skip headers)
+  const selectableIndices = useMemo(() =>
+    flatOptions.map((o, i) => o.type !== 'header' ? i : -1).filter(i => i >= 0),
+    [flatOptions]
+  )
 
   // Reset focus index whenever we re-open
   useEffect(() => {
@@ -63,9 +114,9 @@ export default function SchoolSelector(): JSX.Element | null {
       setFocusedIndex(-1)
       return
     }
-    const idx = options.findIndex((o) => o.id === activeSchoolId)
-    setFocusedIndex(idx >= 0 ? idx : 0)
-  }, [isOpen, activeSchoolId, options])
+    const currentIdx = flatOptions.findIndex(o => o.id === activeSchoolId)
+    setFocusedIndex(currentIdx >= 0 ? currentIdx : 0)
+  }, [isOpen, activeSchoolId, flatOptions])
 
   // Click-outside
   useEffect(() => {
@@ -83,7 +134,6 @@ export default function SchoolSelector(): JSX.Element | null {
     (id: string | null) => {
       setActiveSchoolId(id)
       setIsOpen(false)
-      // Return focus to the trigger — standard menu UX.
       requestAnimationFrame(() => buttonRef.current?.focus())
     },
     [setActiveSchoolId],
@@ -105,33 +155,28 @@ export default function SchoolSelector(): JSX.Element | null {
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setFocusedIndex((prev) => (prev + 1) % options.length)
+      const currentSelectable = selectableIndices.indexOf(focusedIndex)
+      const next = (currentSelectable + 1) % selectableIndices.length
+      setFocusedIndex(selectableIndices[next])
       return
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setFocusedIndex((prev) => (prev - 1 + options.length) % options.length)
-      return
-    }
-    if (e.key === 'Home') {
-      e.preventDefault()
-      setFocusedIndex(0)
-      return
-    }
-    if (e.key === 'End') {
-      e.preventDefault()
-      setFocusedIndex(options.length - 1)
+      const currentSelectable = selectableIndices.indexOf(focusedIndex)
+      const prev = (currentSelectable - 1 + selectableIndices.length) % selectableIndices.length
+      setFocusedIndex(selectableIndices[prev])
       return
     }
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      if (focusedIndex >= 0 && focusedIndex < options.length) {
-        selectAndClose(options[focusedIndex].id)
+      const opt = flatOptions[focusedIndex]
+      if (opt && opt.type !== 'header') {
+        selectAndClose(opt.id)
       }
     }
   }
 
-  // Skeleton while initial load runs — keeps Sidebar height stable.
+  // Skeleton while initial load runs
   if (isLoading) {
     return (
       <div className="px-4 pb-3" aria-hidden="true">
@@ -140,21 +185,17 @@ export default function SchoolSelector(): JSX.Element | null {
     )
   }
 
-  // Single-school orgs: render nothing (not even a spacer — the search bar
-  // already provides the gap below the logo).
   if (!isMultiSchool) return null
 
   const triggerLabel = activeSchool?.name ?? ALL_SCHOOLS_LABEL
 
-  // Role-scoped users (member/viewer pinned to one school) see a read-only
-  // badge instead of an interactive picker. The hook also enforces the pin
-  // server-side permissions back this up — this is the UI half of that contract.
+  // Read-only for scoped users
   if (!canSwitchSchools) {
     return (
       <div className="px-4 pb-3">
         <div
           role="group"
-          aria-label={`Active school: ${triggerLabel} (pinned to your account)`}
+          aria-label={`Active campus: ${triggerLabel} (pinned to your account)`}
           className="w-full h-9 rounded-xl border border-slate-200/60 bg-white/30 px-3 flex items-center gap-2 text-sm text-slate-700"
         >
           <School className="w-4 h-4 flex-shrink-0 text-slate-400" aria-hidden="true" />
@@ -174,7 +215,7 @@ export default function SchoolSelector(): JSX.Element | null {
           onKeyDown={handleTriggerKeyDown}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          aria-label={`Active school: ${triggerLabel}. Click to change.`}
+          aria-label={`Active campus: ${triggerLabel}. Click to change.`}
           className={`w-full h-9 rounded-xl border px-3 flex items-center gap-2 text-sm transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
             isOpen
               ? 'bg-white/80 border-slate-400/60 text-slate-900 shadow-sm'
@@ -195,7 +236,7 @@ export default function SchoolSelector(): JSX.Element | null {
           {isOpen && (
             <motion.div
               role="listbox"
-              aria-label="Select a school"
+              aria-label="Select a campus"
               tabIndex={-1}
               onKeyDown={handleMenuKeyDown}
               variants={dropdownVariants}
@@ -204,10 +245,24 @@ export default function SchoolSelector(): JSX.Element | null {
               exit="hidden"
               className="absolute z-30 mt-1 left-0 right-0 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden"
             >
-              <ul className="py-1 max-h-64 overflow-y-auto" role="presentation">
-                {options.map((option, idx) => {
+              <ul className="py-1 max-h-80 overflow-y-auto" role="presentation">
+                {flatOptions.map((option, idx) => {
+                  if (option.type === 'header') {
+                    return (
+                      <li key={option.id} role="presentation">
+                        <div className="px-3 pt-3 pb-1.5 first:pt-2">
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                            {option.label}
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  }
+
                   const selected = option.id === activeSchoolId
                   const focused = idx === focusedIndex
+                  const isAll = option.type === 'all'
+
                   return (
                     <li key={option.id ?? 'all'} role="presentation">
                       <button
@@ -216,9 +271,11 @@ export default function SchoolSelector(): JSX.Element | null {
                         aria-selected={selected}
                         onClick={() => selectAndClose(option.id)}
                         onMouseEnter={() => setFocusedIndex(idx)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2 text-sm text-left transition-colors cursor-pointer ${
+                          isAll ? 'px-3 py-2 font-medium border-b border-slate-100' : 'pl-6 pr-3 py-1.5'
+                        } ${
                           focused ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-50'
-                        } ${option.id === null ? 'font-medium border-b border-slate-100' : ''}`}
+                        }`}
                       >
                         <span className="flex-1 truncate">{option.label}</span>
                         {selected && (

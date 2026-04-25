@@ -11,7 +11,6 @@ import {
   CreditCard,
   Home,
   CalendarDays,
-  ClipboardCheck,
   Route,
 } from 'lucide-react'
 import type { SettingsTabDef } from './types'
@@ -42,7 +41,6 @@ export const WORKSPACE_TABS: SettingsTabDef[] = [
   { id: 'users', label: 'Members', icon: UserCog },
   { id: 'campus', label: 'Facilities', icon: Building2 },
   { id: 'academic-calendar', label: 'Academic Calendar', icon: CalendarDays },
-  { id: 'approval-config', label: 'Approval Config', icon: ClipboardCheck },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'add-ons', label: 'Add-ons', icon: Puzzle },
   { id: 'integrations', label: 'Integrations', icon: Link2 },

@@ -12,7 +12,6 @@ import FacilitiesTab from '@/components/settings/FacilitiesTab'
 import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
 import SecuritySettingsSection from '@/components/settings/SecuritySettingsSection'
 import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
-import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
 import AddOnsTab from '@/components/settings/AddOnsTab'
 import AuditLogTab from '@/components/settings/AuditLogTab'
 import BillingTab from '@/components/settings/BillingTab'
@@ -353,11 +352,7 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {canManageWorkspace && visitedTabs.has('approval-config') && (
-                <div className={activeTab === 'approval-config' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'approval-config'}>
-                  <ApprovalRulesBuilder />
-                </div>
-              )}
+              {/* Approval Config moved to /events/approval-rules */}
 
               {canManageWorkspace && visitedTabs.has('add-ons') && (
                 <div className={activeTab === 'add-ons' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>

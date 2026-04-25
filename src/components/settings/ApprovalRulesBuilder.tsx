@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -8,6 +8,7 @@ import {
   GitBranch, Layers, ArrowDown, Users,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -183,6 +184,7 @@ function SortableStepRow({
 export default function ApprovalRulesBuilder() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ['approval-rules'], queryFn: fetchRules })
+  const { activeSchoolId } = useActiveSchool()
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null)
   const [addStepTeamId, setAddStepTeamId] = useState('')
   const [addStepType, setAddStepType] = useState<'team' | 'person'>('team')
@@ -190,11 +192,31 @@ export default function ApprovalRulesBuilder() {
   const [showAddStep, setShowAddStep] = useState(false)
   const [showAddMenu, setShowAddMenu] = useState(false)
 
-  const rules = data?.rules ?? []
+  const allRules = data?.rules ?? []
   const schools = data?.schools ?? []
   const campuses = data?.campuses ?? []
   const categories = data?.categories ?? []
   const teams = data?.teams ?? []
+
+  // Filter rules by the active campus selection. When a campus is selected,
+  // show rules that match that campus, its parent school, or are global (no
+  // school/campus condition). When "All Schools", show everything.
+  const rules = useMemo(() => {
+    if (!activeSchoolId) return allRules
+    const selectedCampus = campuses.find(c => c.id === activeSchoolId)
+    const selectedSchoolId = selectedCampus?.schoolId ?? null
+    return allRules.filter(r => {
+      // Always show catch-all and always-required rules
+      if (r.isDefault || r.isFinalApprover) return true
+      // Show rules with no conditions (global)
+      if (!r.schoolId && !r.campusId) return true
+      // Show rules matching this campus
+      if (r.campusId === activeSchoolId) return true
+      // Show rules matching this campus's school
+      if (r.schoolId && r.schoolId === selectedSchoolId && !r.campusId) return true
+      return false
+    })
+  }, [allRules, activeSchoolId, campuses])
 
   const conditionalRules = rules.filter(r => !r.isFinalApprover && !r.isDefault)
   const defaultRule = rules.find(r => r.isDefault)
@@ -344,6 +366,7 @@ export default function ApprovalRulesBuilder() {
                 isSelected={selectedRuleId === rule.id}
                 onClick={() => setSelectedRuleId(rule.id)}
                 onDelete={() => deleteRule(rule.id)}
+                categories={categories}
               />
             ))}
 
@@ -355,6 +378,7 @@ export default function ApprovalRulesBuilder() {
                 isSelected={selectedRuleId === defaultRule.id}
                 onClick={() => setSelectedRuleId(defaultRule.id)}
                 onDelete={() => deleteRule(defaultRule.id)}
+                categories={categories}
               />
             )}
 
@@ -374,6 +398,7 @@ export default function ApprovalRulesBuilder() {
                 isSelected={selectedRuleId === rule.id}
                 onClick={() => setSelectedRuleId(rule.id)}
                 onDelete={() => deleteRule(rule.id)}
+                categories={categories}
               />
             ))}
           </div>
@@ -780,12 +805,14 @@ function TreeBranch({
   isSelected,
   onClick,
   onDelete,
+  categories = [],
 }: {
   rule: RuleData
   type: 'if' | 'else-if' | 'else' | 'always'
   isSelected: boolean
   onClick: () => void
   onDelete: () => void
+  categories?: CategoryData[]
 }) {
   const keyword = type === 'if' ? 'When' : type === 'else-if' ? 'Or when' : type === 'else' ? 'Everything else' : 'Always'
   const keywordColor = type === 'always'
@@ -794,10 +821,14 @@ function TreeBranch({
       ? 'text-blue-500'
       : 'text-amber-600'
 
+  const categoryName = rule.eventCategory
+    ? categories.find(c => c.id === rule.eventCategory)?.name || rule.eventCategory
+    : null
+
   const conditionParts = [
     rule.school && `school is "${rule.school.name}"`,
     rule.campus && `campus is "${rule.campus.name}"`,
-    rule.eventCategory && `category is "${rule.eventCategory}"`,
+    categoryName && `category is "${categoryName}"`,
   ].filter(Boolean)
 
   const conditionLabel = conditionParts.length > 0
