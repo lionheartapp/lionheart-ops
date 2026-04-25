@@ -30,6 +30,9 @@ interface StepEntry {
   trigger: string
   resourceType: string | null
   escalationHours: number
+  escalationAction: string
+  escalateToUserId: string | null
+  escalateToUser: { id: string; firstName: string | null; lastName: string | null; avatar?: string | null } | null
   sortOrder: number
   team: { id: string; name: string; slug: string }
   assignedUser: { id: string; firstName: string | null; lastName: string | null; email: string; avatar?: string | null } | null
@@ -176,20 +179,37 @@ function SortableStepRow({
         <option value="WHEN_RESOURCE_REQUESTED">If needed</option>
       </select>
 
-      {/* Escalation timer */}
+      {/* Escalation: timer + action */}
       {step.mode === 'REQUIRED' && (
-        <select
-          value={step.escalationHours}
-          onChange={(e) => updateStep(ruleId, step.id, { escalationHours: Number(e.target.value) })}
-          title="Reminder if no response"
-          className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none flex-shrink-0"
-        >
-          <option value={24}>24h</option>
-          <option value={48}>48h</option>
-          <option value={72}>72h</option>
-          <option value={96}>4 days</option>
-          <option value={168}>1 week</option>
-        </select>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <select
+            value={step.escalationHours}
+            onChange={(e) => updateStep(ruleId, step.id, { escalationHours: Number(e.target.value) })}
+            title="Time before escalation"
+            className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none"
+          >
+            <option value={24}>24h</option>
+            <option value={48}>48h</option>
+            <option value={72}>72h</option>
+            <option value={96}>4 days</option>
+            <option value={168}>1 week</option>
+          </select>
+          <span className="text-[10px] text-slate-300">→</span>
+          <select
+            value={step.escalationAction || 'REMIND'}
+            onChange={(e) => {
+              const updates: Record<string, unknown> = { escalationAction: e.target.value }
+              if (e.target.value !== 'ESCALATE') updates.escalateToUserId = null
+              updateStep(ruleId, step.id, updates)
+            }}
+            title="What happens after the timer"
+            className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none"
+          >
+            <option value="REMIND">Remind</option>
+            <option value="AUTO_APPROVE">Auto-approve</option>
+            <option value="ESCALATE">Escalate</option>
+          </select>
+        </div>
       )}
 
       {/* Remove */}

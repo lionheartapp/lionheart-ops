@@ -29,6 +29,7 @@ export async function getApprovalRules() {
         include: {
           team: { select: { id: true, name: true, slug: true } },
           assignedUser: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+          escalateToUser: { select: { id: true, firstName: true, lastName: true, avatar: true } },
         },
       },
     },
@@ -46,6 +47,7 @@ export async function getApprovalRuleById(id: string) {
         include: {
           team: { select: { id: true, name: true, slug: true } },
           assignedUser: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+          escalateToUser: { select: { id: true, firstName: true, lastName: true, avatar: true } },
         },
       },
     },

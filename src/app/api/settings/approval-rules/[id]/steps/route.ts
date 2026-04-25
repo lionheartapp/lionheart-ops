@@ -31,6 +31,8 @@ const UpdateStepSchema = z.object({
   trigger: z.enum(['ALWAYS', 'WHEN_RESOURCE_REQUESTED']).optional(),
   resourceType: z.string().optional().nullable(),
   escalationHours: z.number().int().min(1).max(720).optional(),
+  escalationAction: z.enum(['REMIND', 'AUTO_APPROVE', 'ESCALATE']).optional(),
+  escalateToUserId: z.string().optional().nullable(),
   assignedUserId: z.string().optional().nullable(),
   sortOrder: z.number().int().min(0).optional(),
 })

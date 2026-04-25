@@ -345,6 +345,7 @@ model User {
   presenceSessions          EventPresenceSession[]   @relation("PresenceUser")
   eventChatMessages         EventChatMessage[]       @relation("EventChatAuthor")
   approvalFlowAssignments   ApprovalFlowEntry[]      @relation("ApprovalFlowAssignee")
+  approvalFlowEscalations   ApprovalFlowEntry[]      @relation("ApprovalFlowEscalateTo")
   // Phase 22 relations
   eventTemplatesCreated     EventTemplate[]          @relation("EventTemplateCreator")
   notificationRulesCreated  EventNotificationRule[]  @relation("NotificationRuleCreator")
@@ -1887,6 +1888,8 @@ model ApprovalFlowEntry {
   trigger             String   @default("ALWAYS")    // ALWAYS | WHEN_RESOURCE_REQUESTED
   resourceType        String?  // e.g. "av", "facilities", "custodial", "security", "athletic", "transportation"
   escalationHours     Int      @default(72)
+  escalationAction    String   @default("REMIND")    // REMIND | AUTO_APPROVE | ESCALATE
+  escalateToUserId    String?  // when escalationAction=ESCALATE, forward to this person
   autoSkipIfNotNeeded Boolean  @default(true)
   sortOrder           Int      @default(0)           // lower = clears first; highest = final approver
   assignedUserId      String?  // optional: specific person override instead of whole team
@@ -1897,8 +1900,9 @@ model ApprovalFlowEntry {
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rule         ApprovalRule? @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   team         Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  assignedUser User?         @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
-  school       School?       @relation("ApprovalFlowSchool", fields: [schoolId], references: [id], onDelete: SetNull)
+  assignedUser   User?         @relation("ApprovalFlowAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  escalateToUser User?         @relation("ApprovalFlowEscalateTo", fields: [escalateToUserId], references: [id], onDelete: SetNull)
+  school         School?       @relation("ApprovalFlowSchool", fields: [schoolId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, teamId, assignedUserId, schoolId, ruleId])
   @@index([organizationId])
