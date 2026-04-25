@@ -292,12 +292,11 @@ export default function ApprovalRulesBuilder() {
       if (!old) return old
       return { ...old, rules: old.rules.map(r => r.id === id ? { ...r, ...updates } : r) }
     })
-    // Background save
-    fetchApi(`/api/settings/approval-rules/${id}`, {
+    // Background save via the shared mutation (handles CSRF, refetch on success)
+    mutate.mutate({
       method: 'PATCH',
-      body: JSON.stringify(updates),
-    }).catch(() => {
-      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+      url: `/api/settings/approval-rules/${id}`,
+      body: updates,
     })
   }
 
