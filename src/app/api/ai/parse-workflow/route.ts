@@ -80,8 +80,11 @@ function resolveWorkflowNames(
         schoolId,
         campusId,
         categoryId: fuzzy(rule.categoryName, context.categories),
+        minAttendance: rule.minAttendance ?? null,
+        requiresResource: rule.requiresResource ?? null,
+        isOffCampus: rule.isOffCampus ?? null,
         executionMode: rule.executionMode || 'PARALLEL',
-        isDefault: !rule.schoolName && !rule.campusName && !rule.categoryName,
+        isDefault: !rule.schoolName && !rule.campusName && !rule.categoryName && !rule.minAttendance && !rule.requiresResource && rule.isOffCampus == null,
         steps: rule.steps.map(step => {
           if (step.type === 'person') {
             const member = context.members.find(m =>

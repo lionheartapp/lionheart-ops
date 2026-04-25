@@ -20,6 +20,8 @@ interface OrgUser {
 interface PeoplePickerProps {
   selectedUserIds: string[]
   onChange: (ids: string[]) => void
+  /** Hide the title and info text (when wrapped in an external toggle card) */
+  hideHeader?: boolean
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -37,7 +39,7 @@ function initials(u: OrgUser) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function PeoplePicker({ selectedUserIds, onChange }: PeoplePickerProps) {
+export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: PeoplePickerProps) {
   const { data: usersRaw } = useQuery(queryOptions.members())
   const users = (usersRaw ?? []) as OrgUser[]
   const [search, setSearch] = useState('')
@@ -77,15 +79,19 @@ export function PeoplePicker({ selectedUserIds, onChange }: PeoplePickerProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <UserPlus className="w-3.5 h-3.5 text-slate-400" />
-        <p className="text-sm font-medium text-slate-700">Request Specific People</p>
-      </div>
+      {!hideHeader && (
+        <>
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-3.5 h-3.5 text-slate-400" />
+            <p className="text-sm font-medium text-slate-700">Request Specific People</p>
+          </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-        <Info className="w-3 h-3 flex-shrink-0" />
-        <span>People will be notified after the event is fully approved.</span>
-      </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+            <Info className="w-3 h-3 flex-shrink-0" />
+            <span>People will be notified after the event is fully approved.</span>
+          </div>
+        </>
+      )}
 
       {/* Selected people chips */}
       {selectedUsers.length > 0 && (
@@ -93,12 +99,12 @@ export function PeoplePicker({ selectedUserIds, onChange }: PeoplePickerProps) {
           {selectedUsers.map((u) => (
             <span
               key={u.id}
-              className="inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-medium text-indigo-700"
+              className="inline-flex items-center gap-1.5 pl-0.5 pr-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-[13px] font-medium text-stone-800"
             >
               {u.avatar ? (
-                <img src={u.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                <img src={u.avatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
               ) : (
-                <span className="w-4 h-4 rounded-full bg-indigo-200 text-[8px] font-bold flex items-center justify-center text-indigo-700">
+                <span className="w-6 h-6 rounded-full bg-stone-300 text-[9px] font-bold flex items-center justify-center text-stone-700 flex-shrink-0">
                   {initials(u)}
                 </span>
               )}
@@ -106,7 +112,7 @@ export function PeoplePicker({ selectedUserIds, onChange }: PeoplePickerProps) {
               <button
                 type="button"
                 onClick={() => onChange(selectedUserIds.filter((id) => id !== u.id))}
-                className="ml-0.5 text-indigo-400 hover:text-indigo-600 cursor-pointer"
+                className="ml-0.5 text-stone-400 hover:text-stone-600 cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -125,7 +131,7 @@ export function PeoplePicker({ selectedUserIds, onChange }: PeoplePickerProps) {
             onChange={(e) => { setSearch(e.target.value); setIsOpen(true) }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search by name or email..."
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
           />
         </div>
 

@@ -166,6 +166,7 @@ model Organization {
   // Event Project module relations
   eventProjects               EventProject[]
   eventTeamMembers            EventTeamMember[]
+  eventInvitations            EventInvitation[]
   eventSeries                 EventSeries[]
   eventScheduleBlocks         EventScheduleBlock[]
   eventTasks                  EventTask[]
@@ -354,6 +355,8 @@ model User {
   // Event Team Member relations
   eventTeamMemberships      EventTeamMember[]        @relation("EventTeamMembers")
   addedEventTeamMembers     EventTeamMember[]        @relation("EventTeamMemberAdder")
+  eventInvitations          EventInvitation[]        @relation("EventInvitations")
+  sentEventInvitations      EventInvitation[]        @relation("EventInvitationSender")
   // Phase 22: External Integrations (per-user, e.g. Google Calendar)
   integrationCredentials    IntegrationCredential[]
   externalCalendarEvents    ExternalCalendarEvent[]
@@ -1852,6 +1855,9 @@ model ApprovalRule {
   schoolId         String?  // If set, only events at this school trigger this rule
   campusId         String?  // If set, only events at this campus trigger this rule
   eventCategory    String?  // If set, only events with this category trigger this rule
+  minAttendance    Int?     // If set, only events with expected attendance >= this value
+  requiresResource String?  // If set, only events needing this resource (av, facilities, custodial, security)
+  isOffCampus      Boolean? // If set, only events matching this off-campus status
   // ── Behavior ──
   isDefault        Boolean  @default(false)  // Catch-all rule when no other conditions match
   isFinalApprover  Boolean  @default(false)  // Always runs last (e.g., Admin sign-off)
@@ -4371,6 +4377,8 @@ model EventProject {
   teamMembers           EventTeamMember[]
   // Event Chat
   chatMessages          EventChatMessage[]
+  // Event Invitations (RSVP)
+  invitations           EventInvitation[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -4416,6 +4424,37 @@ model EventTeamMember {
   @@index([organizationId])
   @@index([eventProjectId])
   @@index([userId])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  MAYBE
+  DECLINED
+}
+
+model EventInvitation {
+  id               String           @id @default(cuid())
+  organizationId   String
+  eventProjectId   String
+  userId           String
+  invitedById      String
+  status           InvitationStatus @default(PENDING)
+  note             String?          // Note from the inviter
+  responseNote     String?          // Reason for decline / comment from invitee
+  respondedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject EventProject @relation(fields: [eventProjectId], references: [id], onDelete: Cascade)
+  user         User         @relation("EventInvitations", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("EventInvitationSender", fields: [invitedById], references: [id], onDelete: Restrict)
+
+  @@unique([eventProjectId, userId])
+  @@index([organizationId])
+  @@index([eventProjectId])
+  @@index([userId, status])
 }
 
 model EventSeries {

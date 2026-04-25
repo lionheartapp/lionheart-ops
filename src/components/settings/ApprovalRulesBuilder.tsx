@@ -32,7 +32,7 @@ interface StepEntry {
   escalationHours: number
   sortOrder: number
   team: { id: string; name: string; slug: string }
-  assignedUser: { id: string; firstName: string | null; lastName: string | null; email: string } | null
+  assignedUser: { id: string; firstName: string | null; lastName: string | null; email: string; avatar?: string | null } | null
 }
 
 interface RuleData {
@@ -42,6 +42,9 @@ interface RuleData {
   schoolId: string | null
   campusId: string | null
   eventCategory: string | null
+  minAttendance: number | null
+  requiresResource: string | null
+  isOffCampus: boolean | null
   isDefault: boolean
   isFinalApprover: boolean
   executionMode: string
@@ -55,7 +58,7 @@ interface RuleData {
 interface SchoolData { id: string; name: string; institutionType: string; color: string }
 interface CampusData { id: string; name: string; schoolId: string | null }
 interface CategoryData { id: string; name: string; color: string }
-interface TeamData { id: string; name: string; slug: string; members: { id: string; name: string; email: string }[] }
+interface TeamData { id: string; name: string; slug: string; members: { id: string; name: string; email: string; avatar?: string | null }[] }
 
 async function fetchRules() {
   return fetchApi('/api/settings/approval-rules') as Promise<{
@@ -105,10 +108,14 @@ function SortableStepRow({
         <GripVertical className="w-3.5 h-3.5 text-slate-300" />
       </button>
 
-      {/* Step number / execution indicator */}
-      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-600 flex-shrink-0">
-        {executionMode === 'PARALLEL' ? '∥' : idx + 1}
-      </div>
+      {/* Step avatar / number */}
+      {step.assignedUser?.avatar ? (
+        <img src={step.assignedUser.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+      ) : (
+        <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-600 flex-shrink-0">
+          {executionMode === 'PARALLEL' ? '∥' : idx + 1}
+        </div>
+      )}
 
       {/* Step info */}
       <div className="flex-1 min-w-0">
@@ -168,6 +175,22 @@ function SortableStepRow({
         <option value="ALWAYS">Always</option>
         <option value="WHEN_RESOURCE_REQUESTED">If needed</option>
       </select>
+
+      {/* Escalation timer */}
+      {step.mode === 'REQUIRED' && (
+        <select
+          value={step.escalationHours}
+          onChange={(e) => updateStep(ruleId, step.id, { escalationHours: Number(e.target.value) })}
+          title="Reminder if no response"
+          className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none flex-shrink-0"
+        >
+          <option value={24}>24h</option>
+          <option value={48}>48h</option>
+          <option value={72}>72h</option>
+          <option value={96}>4 days</option>
+          <option value={168}>1 week</option>
+        </select>
+      )}
 
       {/* Remove */}
       <button
@@ -588,14 +611,103 @@ export default function ApprovalRulesBuilder() {
                         </select>
                       </div>
 
+                      {/* Extra conditions — shown only when active or when user clicks "+ Add condition" */}
+                      {selectedRule.minAttendance != null && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                          <span className="text-xs text-slate-400 flex-shrink-0">attendance ≥</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={selectedRule.minAttendance ?? ''}
+                            onChange={(e) => updateRule(selectedRule.id, { minAttendance: e.target.value ? Number(e.target.value) : null })}
+                            placeholder="Any size"
+                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0"
+                          />
+                          <button onClick={() => updateRule(selectedRule.id, { minAttendance: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                        </div>
+                      )}
+
+                      {selectedRule.requiresResource != null && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                          <span className="text-xs text-slate-400 flex-shrink-0">needs</span>
+                          <select
+                            value={selectedRule.requiresResource || ''}
+                            onChange={(e) => updateRule(selectedRule.id, { requiresResource: e.target.value || null })}
+                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
+                          >
+                            <option value="av">A/V Equipment</option>
+                            <option value="facilities">Facilities Setup</option>
+                            <option value="custodial">Custodial</option>
+                            <option value="security">Security</option>
+                          </select>
+                          <button onClick={() => updateRule(selectedRule.id, { requiresResource: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                        </div>
+                      )}
+
+                      {selectedRule.isOffCampus != null && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                          <span className="text-xs text-slate-400 flex-shrink-0">location is</span>
+                          <select
+                            value={selectedRule.isOffCampus ? 'true' : 'false'}
+                            onChange={(e) => updateRule(selectedRule.id, { isOffCampus: e.target.value === 'true' })}
+                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
+                          >
+                            <option value="false">On campus</option>
+                            <option value="true">Off campus</option>
+                          </select>
+                          <button onClick={() => updateRule(selectedRule.id, { isOffCampus: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                        </div>
+                      )}
+
+                      {/* + Add condition button — shows options not yet active */}
+                      {(selectedRule.minAttendance == null || selectedRule.requiresResource == null || selectedRule.isOffCampus == null) && (
+                        <div className="flex items-center gap-1.5 pl-14">
+                          <span className="text-[10px] text-slate-400 mr-1">+ Add:</span>
+                          {selectedRule.minAttendance == null && (
+                            <button
+                              type="button"
+                              onClick={() => updateRule(selectedRule.id, { minAttendance: 100 })}
+                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
+                            >
+                              Attendance
+                            </button>
+                          )}
+                          {selectedRule.requiresResource == null && (
+                            <button
+                              type="button"
+                              onClick={() => updateRule(selectedRule.id, { requiresResource: 'av' })}
+                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
+                            >
+                              Resource
+                            </button>
+                          )}
+                          {selectedRule.isOffCampus == null && (
+                            <button
+                              type="button"
+                              onClick={() => updateRule(selectedRule.id, { isOffCampus: true })}
+                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
+                            >
+                              Location
+                            </button>
+                          )}
+                        </div>
+                      )}
+
                       {/* Active conditions summary */}
-                      {(selectedRule.schoolId || selectedRule.campusId || selectedRule.eventCategory) && (
+                      {(selectedRule.schoolId || selectedRule.campusId || selectedRule.eventCategory || selectedRule.minAttendance || selectedRule.requiresResource || selectedRule.isOffCampus != null) && (
                         <p className="text-[10px] text-slate-400 pl-14">
                           Matches events where{' '}
                           {[
                             selectedRule.school && `school = ${selectedRule.school.name}`,
                             selectedRule.campus && `campus = ${selectedRule.campus.name}`,
                             selectedRule.eventCategory && `category = ${categories.find(c => c.id === selectedRule.eventCategory)?.name || selectedRule.eventCategory}`,
+                            selectedRule.minAttendance && `attendance ≥ ${selectedRule.minAttendance}`,
+                            selectedRule.requiresResource && `needs ${selectedRule.requiresResource.toUpperCase()}`,
+                            selectedRule.isOffCampus === true && 'off-campus',
+                            selectedRule.isOffCampus === false && 'on-campus',
                           ].filter(Boolean).join(' AND ')}
                         </p>
                       )}
@@ -812,7 +924,7 @@ export default function ApprovalRulesBuilder() {
               campuses: campuses.map(c => ({ id: c.id, name: c.name, schoolName: schools.find(s => s.id === c.schoolId)?.name })),
               categories: categories.map(c => ({ id: c.id, name: c.name })),
               teams: teams.map(t => ({ id: t.id, name: t.name })),
-              members: allMembers.map(m => ({ id: m.id, name: m.name || m.email, teamName: m.teamName })),
+              members: allMembers.map(m => ({ id: m.id, name: m.name || m.email, teamName: m.teamName, avatar: m.avatar })),
             }}
             onRulesCreated={() => {
               queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
@@ -851,6 +963,10 @@ function RuleCard({
     rule.school && rule.school.name,
     rule.campus && rule.campus.name,
     categoryName,
+    rule.minAttendance && `${rule.minAttendance}+ people`,
+    rule.requiresResource && rule.requiresResource.toUpperCase(),
+    rule.isOffCampus === true && 'Off-campus',
+    rule.isOffCampus === false && 'On-campus',
   ].filter(Boolean)
 
   const stepCount = rule.steps.length

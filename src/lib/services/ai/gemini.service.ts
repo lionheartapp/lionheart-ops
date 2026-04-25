@@ -63,6 +63,9 @@ export interface ParsedWorkflowRule {
   schoolName: string | null
   campusName: string | null
   categoryName: string | null
+  minAttendance: number | null
+  requiresResource: string | null
+  isOffCampus: boolean | null
   executionMode: 'PARALLEL' | 'SEQUENTIAL'
   steps: ParsedWorkflowStep[]
 }
@@ -207,6 +210,9 @@ Return ONLY valid JSON with this structure:
       "schoolName": "string or null - school this applies to (fuzzy match against available schools)",
       "campusName": "string or null - campus this applies to",
       "categoryName": "string or null - event category this applies to",
+      "minAttendance": "number or null - minimum expected attendance threshold (e.g., 100 for 'large events')",
+      "requiresResource": "string or null - one of: 'av', 'facilities', 'custodial', 'security'",
+      "isOffCampus": "boolean or null - true for off-campus events, false for on-campus only, null for any",
       "executionMode": "PARALLEL or SEQUENTIAL",
       "steps": [
         {
@@ -223,13 +229,20 @@ Return ONLY valid JSON with this structure:
 
 Rules:
 - Each rule is independent. If an event matches multiple rules, ALL matching rules' steps are merged.
-- A rule with no school/campus/category conditions matches ALL events (use this for default/catch-all rules).
+- A rule with no conditions matches ALL events (use this for default/catch-all rules).
 - DEFAULT trigger is "ALWAYS" unless the user explicitly says "if needed", "when requested", or "only when AV/facilities is required".
 - "WHEN_RESOURCE_REQUESTED" should ONLY be used when the user explicitly mentions conditional activation (e.g., "if they need AV", "when facilities are requested").
 - If the user says "needs approval from X" or "must be approved by X", that's trigger: "ALWAYS", mode: "REQUIRED".
 - If the user says "first X, then Y" or "X first and then Y", that means executionMode: "SEQUENTIAL" and both steps have trigger: "ALWAYS".
 - "SEQUENTIAL" means step 1 must approve before step 2 sees it. "PARALLEL" means all steps review at once.
 - If the user mentions ordering words like "first", "then", "after", "before", "next", that implies SEQUENTIAL execution.
+- "large events", "big events", "100+ people" → set minAttendance to the number mentioned (default 100 if vague).
+- "needs AV", "requires A/V equipment" → requiresResource: "av"
+- "needs facilities", "room setup needed" → requiresResource: "facilities"
+- "needs security", "security required" → requiresResource: "security"
+- "off-campus", "off campus", "outside venue" → isOffCampus: true
+- "on-campus only" → isOffCampus: false
+- When escalation is mentioned ("remind after 24 hours", "escalate if stalled"), note it in the summary but do not add it to the JSON structure.
 
 Available context:
 - Schools: ${JSON.stringify(context.schools.map(s => s.name))}

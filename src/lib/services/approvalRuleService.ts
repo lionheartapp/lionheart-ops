@@ -28,7 +28,7 @@ export async function getApprovalRules() {
         orderBy: { sortOrder: 'asc' },
         include: {
           team: { select: { id: true, name: true, slug: true } },
-          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
         },
       },
     },
@@ -45,7 +45,7 @@ export async function getApprovalRuleById(id: string) {
         orderBy: { sortOrder: 'asc' },
         include: {
           team: { select: { id: true, name: true, slug: true } },
-          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
         },
       },
     },
@@ -60,6 +60,9 @@ interface CreateRuleInput {
   schoolId?: string | null
   campusId?: string | null
   eventCategory?: string | null
+  minAttendance?: number | null
+  requiresResource?: string | null
+  isOffCampus?: boolean | null
   isDefault?: boolean
   isFinalApprover?: boolean
 }
@@ -81,6 +84,9 @@ export async function createApprovalRule(input: CreateRuleInput) {
       schoolId: input.schoolId || null,
       campusId: input.campusId || null,
       eventCategory: input.eventCategory || null,
+      minAttendance: input.minAttendance ?? null,
+      requiresResource: input.requiresResource || null,
+      isOffCampus: input.isOffCampus ?? null,
       isDefault: input.isDefault ?? false,
       isFinalApprover: input.isFinalApprover ?? false,
       sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
@@ -170,12 +176,20 @@ interface EventContext {
   schoolId?: string | null
   campusId?: string | null
   category?: string | null
+  expectedAttendance?: number | null
+  requiresAV?: boolean
+  requiresFacilities?: boolean
+  requiresCustodial?: boolean
+  requiresSecurity?: boolean
+  isOffCampus?: boolean
 }
 
 /**
  * Given an event context, returns the ordered list of approval steps.
- * 1. Find the first matching conditional rule
- * 2. Always include isFinalApprover rule steps at the end
+ * All matching conditional rules are merged (not just first match).
+ * Steps are deduplicated by team+user so the same approver isn't added twice.
+ * Default rules only apply when no conditional rules matched.
+ * isFinalApprover rules always apply at the end.
  */
 export async function resolveApprovalSteps(orgId: string, eventCtx: EventContext) {
   const rules = await rawPrisma.approvalRule.findMany({
@@ -192,6 +206,7 @@ export async function resolveApprovalSteps(orgId: string, eventCtx: EventContext
   })
 
   const matchedSteps: typeof rules[0]['steps'] = []
+  const defaultSteps: typeof rules[0]['steps'] = []
   const finalSteps: typeof rules[0]['steps'] = []
 
   for (const rule of rules) {
@@ -201,24 +216,41 @@ export async function resolveApprovalSteps(orgId: string, eventCtx: EventContext
       continue
     }
 
-    // Default rules match when no specific rule matched yet
+    // Collect default rules separately — only used if no conditional match
     if (rule.isDefault) {
-      if (matchedSteps.length === 0) {
-        matchedSteps.push(...rule.steps)
-      }
+      defaultSteps.push(...rule.steps)
       continue
     }
 
-    // Conditional matching
+    // Conditional matching — merge ALL matching rules
     const matchesSchool = !rule.schoolId || rule.schoolId === eventCtx.schoolId
     const matchesCampus = !rule.campusId || rule.campusId === eventCtx.campusId
     const matchesCategory = !rule.eventCategory || rule.eventCategory === eventCtx.category
+    const matchesAttendance = rule.minAttendance == null || (eventCtx.expectedAttendance ?? 0) >= rule.minAttendance
+    const matchesResource = !rule.requiresResource || (
+      (rule.requiresResource === 'av' && eventCtx.requiresAV) ||
+      (rule.requiresResource === 'facilities' && eventCtx.requiresFacilities) ||
+      (rule.requiresResource === 'custodial' && eventCtx.requiresCustodial) ||
+      (rule.requiresResource === 'security' && eventCtx.requiresSecurity)
+    )
+    const matchesOffCampus = rule.isOffCampus == null || rule.isOffCampus === (eventCtx.isOffCampus ?? false)
 
-    if (matchesSchool && matchesCampus && matchesCategory) {
+    if (matchesSchool && matchesCampus && matchesCategory && matchesAttendance && matchesResource && matchesOffCampus) {
       matchedSteps.push(...rule.steps)
-      break // First match wins (rules are sorted by priority)
     }
   }
 
-  return [...matchedSteps, ...finalSteps]
+  // Use default rules only when no conditional rules matched
+  const baseSteps = matchedSteps.length > 0 ? matchedSteps : defaultSteps
+
+  // Deduplicate: same team + same user shouldn't appear twice
+  const seen = new Set<string>()
+  const deduped = baseSteps.filter((step) => {
+    const key = `${step.teamId}:${step.assignedUserId ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  return [...deduped, ...finalSteps]
 }

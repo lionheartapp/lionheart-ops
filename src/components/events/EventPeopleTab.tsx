@@ -14,6 +14,8 @@ import type { EventTeamMember } from '@/lib/hooks/useEventTeam'
 import { PRESET_TEAM_ROLES, EVENT_MEMBER_PERMISSION_KEYS } from '@/lib/types/event-project'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { getUserName, getInitials } from './people/people-types'
+import { EventInvitationsSection } from './EventInvitationsSection'
+import { useAuth } from '@/lib/hooks/useAuth'
 import { TeamSkeleton } from './people/TeamSkeleton'
 import { AddMembersDrawer } from './people/AddMembersDrawer'
 import { EditRoleDrawer } from './people/EditRoleDrawer'
@@ -24,6 +26,7 @@ interface EventPeopleTabProps {
 }
 
 export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabProps) {
+  const { user } = useAuth()
   const { data: members, isLoading } = useEventTeam(eventProjectId)
   const batchAdd = useAddTeamMembersBatch(eventProjectId)
   const updateMutation = useUpdateTeamMember(eventProjectId)
@@ -97,6 +100,16 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
           Add Members
         </button>
       </div>
+
+      {/* Invited People (RSVP) */}
+      {user?.id && (
+        <div className="mb-6">
+          <EventInvitationsSection
+            eventProjectId={eventProjectId}
+            currentUserId={user.id}
+          />
+        </div>
+      )}
 
       {/* Empty State */}
       {teamMembers.length === 0 ? (

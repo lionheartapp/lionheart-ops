@@ -40,7 +40,7 @@ export const GET = withAuth(async () => {
         members: {
           select: {
             user: {
-              select: { id: true, firstName: true, lastName: true, email: true },
+              select: { id: true, firstName: true, lastName: true, email: true, avatar: true },
             },
           },
         },
@@ -52,10 +52,11 @@ export const GET = withAuth(async () => {
     id: t.id,
     name: t.name,
     slug: t.slug,
-    members: t.members.map((m: { user: { id: string; firstName: string | null; lastName: string | null; email: string } }) => ({
+    members: t.members.map((m: { user: { id: string; firstName: string | null; lastName: string | null; email: string; avatar: string | null } }) => ({
       id: m.user.id,
       name: `${m.user.firstName ?? ''} ${m.user.lastName ?? ''}`.trim() || m.user.email,
       email: m.user.email,
+      avatar: m.user.avatar,
     })),
   }))
 
@@ -68,6 +69,9 @@ const CreateSchema = z.object({
   schoolId: z.string().optional().nullable(),
   campusId: z.string().optional().nullable(),
   eventCategory: z.string().optional().nullable(),
+  minAttendance: z.number().int().positive().optional().nullable(),
+  requiresResource: z.enum(['av', 'facilities', 'custodial', 'security']).optional().nullable(),
+  isOffCampus: z.boolean().optional().nullable(),
   isDefault: z.boolean().optional(),
   isFinalApprover: z.boolean().optional(),
 })

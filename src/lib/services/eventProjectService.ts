@@ -145,6 +145,12 @@ export async function createEventProject(
       schoolId: data.schoolId ?? null,
       campusId: data.campusId ?? null,
       category: (data as Record<string, unknown>).category as string | null ?? null,
+      expectedAttendance: data.expectedAttendance ?? null,
+      requiresAV,
+      requiresFacilities,
+      requiresCustodial,
+      requiresSecurity,
+      isOffCampus: !!(data as Record<string, unknown>).isOffCampus,
     }
     const resolvedSteps = await resolveApprovalSteps(orgId, eventCtx)
 
@@ -235,6 +241,20 @@ export async function createEventProject(
     ).catch(() => {})
   } else if (!useV2 && notifications.length > 0) {
     notifyTeamsOfEventInfo(project.title as string, project.id as string, notifications as string[]).catch(() => {})
+  }
+
+  // Create invitation records for requested attendees (fire-and-forget)
+  const meta = (data.metadata ?? {}) as Record<string, unknown>
+  const requestedAttendees = Array.isArray(meta.requestedAttendees) ? meta.requestedAttendees as string[] : []
+  if (requestedAttendees.length > 0) {
+    import('./eventInvitationService').then(({ createEventInvitations }) =>
+      createEventInvitations(
+        project.id,
+        requestedAttendees,
+        createdById,
+        (meta.peopleNote as string) ?? undefined,
+      )
+    ).catch(() => {})
   }
 
   // Auto-detect conflicts (fire-and-forget — results stored in metadata)

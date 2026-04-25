@@ -26,6 +26,7 @@ interface ContextItem {
   name: string
   schoolName?: string
   teamName?: string
+  avatar?: string | null
 }
 
 interface WorkflowContext {
@@ -110,7 +111,7 @@ export default function AIWorkflowCreator({
     const people = f === 'person'
       ? context.members
           .filter(m => m.name.toLowerCase().includes(q))
-          .map(m => ({ id: m.id, label: m.name, sublabel: m.teamName || '', type: 'person' as const }))
+          .map(m => ({ id: m.id, label: m.name, sublabel: m.teamName || '', type: 'person' as const, avatar: m.avatar }))
       : []
     const teamList = f === 'team'
       ? context.teams
@@ -407,6 +408,9 @@ export default function AIWorkflowCreator({
             schoolId: rule.schoolId,
             campusId: rule.campusId,
             eventCategory: rule.categoryId,
+            minAttendance: rule.minAttendance ?? null,
+            requiresResource: rule.requiresResource ?? null,
+            isOffCampus: rule.isOffCampus ?? null,
             isDefault: rule.isDefault,
             executionMode: rule.executionMode,
           }),
@@ -554,14 +558,18 @@ export default function AIWorkflowCreator({
                                 i === mentionIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
                               }`}
                             >
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                                s.type === 'person' ? 'bg-blue-100 text-blue-700'
-                                  : s.type === 'team' ? 'bg-amber-100 text-amber-700'
-                                  : s.type === 'school' ? 'bg-violet-100 text-violet-700'
-                                  : 'bg-green-100 text-green-700'
-                              }`}>
-                                {s.label.charAt(0).toUpperCase()}
-                              </div>
+                              {s.type === 'person' && s.avatar ? (
+                                <img src={s.avatar} alt={s.label} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                              ) : (
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                                  s.type === 'person' ? 'bg-blue-100 text-blue-700'
+                                    : s.type === 'team' ? 'bg-amber-100 text-amber-700'
+                                    : s.type === 'school' ? 'bg-violet-100 text-violet-700'
+                                    : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {s.label.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-800 truncate">{s.label}</p>
                                 <p className="text-[10px] text-slate-400">{s.sublabel}</p>
@@ -629,6 +637,45 @@ export default function AIWorkflowCreator({
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+
+                {/* Quick-insert chips — common conditions people might not think of */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: 'If A/V needed', insert: 'If the event needs A/V equipment, ' },
+                    { label: 'If off-campus', insert: 'If the event is off-campus, ' },
+                    { label: 'If 100+ attendees', insert: 'If expected attendance is over 100, ' },
+                    { label: 'If weekend', insert: 'If the event is on a weekend, ' },
+                    { label: 'Sequential', insert: 'Approvals should happen in order: ' },
+                    { label: 'Notify only', insert: 'Just notify (no approval needed) ' },
+                    { label: 'Escalate if stalled', insert: 'If no response within 24 hours, escalate to ' },
+                    ...(context.schools.length > 1 ? [{ label: `@ School`, insert: 'For @' }] : []),
+                    ...(context.teams.length > 0 ? [{ label: `@ Team`, insert: 'approved by @' }] : []),
+                  ].filter(chip => !text.toLowerCase().includes(chip.insert.trim().toLowerCase().slice(0, 15))).slice(0, 8).map((chip) => (
+                    <button
+                      key={chip.label}
+                      type="button"
+                      onClick={() => {
+                        const el = textareaRef.current
+                        if (!el) return
+                        const cursor = el.selectionStart || text.length
+                        const before = text.slice(0, cursor)
+                        const after = text.slice(cursor)
+                        const needsSpace = before.length > 0 && !before.endsWith(' ') && !before.endsWith('\n')
+                        const newText = before + (needsSpace ? ' ' : '') + chip.insert + after
+                        setText(newText)
+                        // Move cursor to end of inserted text
+                        requestAnimationFrame(() => {
+                          const newPos = cursor + (needsSpace ? 1 : 0) + chip.insert.length
+                          el.focus()
+                          el.setSelectionRange(newPos, newPos)
+                        })
+                      }}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
                 </div>
 
                 {error && (

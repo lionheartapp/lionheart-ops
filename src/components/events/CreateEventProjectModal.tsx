@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, CalendarDays, Users, Calendar, Clock, Monitor, Wrench,
-  Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert, Trophy,
+  Loader2, CalendarDays, Users, Monitor, Wrench,
+  Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert,
   School as SchoolIcon,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { TimePicker } from '@/components/calendar/TimePicker'
 import { useCreateEventProject } from '@/lib/hooks/useEventProject'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useToast } from '@/components/Toast'
@@ -67,7 +68,6 @@ interface FormData {
   facilityNotes: string
   requiresCustodial: boolean
   requiresSecurity: boolean
-  requiresAthleticDirector: boolean
 }
 
 const defaultForm: FormData = {
@@ -87,10 +87,28 @@ const defaultForm: FormData = {
   facilityNotes: '',
   requiresCustodial: false,
   requiresSecurity: false,
-  requiresAthleticDirector: false,
 }
 
 const ALL_SCHOOLS_VALUE = '__ALL_SCHOOLS__'
+
+function formatDateDisplay(dateStr: string): string {
+  if (!dateStr) return 'Pick a date'
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'short' })
+  const monthName = date.toLocaleDateString('en-US', { month: 'short' })
+  return `${dayName}, ${monthName} ${day}`
+}
+
+function safePick(ref: React.RefObject<HTMLInputElement | null>) {
+  const el = ref.current
+  if (!el) return
+  if (typeof el.showPicker === 'function') {
+    try { el.showPicker() } catch { el.click() }
+  } else {
+    el.click()
+  }
+}
 
 const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string }> = {
   single: { title: 'New Single Event', placeholder: 'e.g. Spring Retreat 2026' },
@@ -163,6 +181,150 @@ function StepperHeader({ currentStep, onStepClick }: { currentStep: Step; onStep
   )
 }
 
+// ─── Date & Time Block (Cal.com-style) ──────────────────────────────────────
+
+function DateTimeBlock({
+  form,
+  update,
+  errors,
+  isMultiDay,
+}: {
+  form: FormData
+  update: <K extends keyof FormData>(key: K, value: FormData[K]) => void
+  errors: Partial<Record<keyof FormData | 'location', string>>
+  isMultiDay: boolean
+}) {
+  const startDateRef = useRef<HTMLInputElement>(null)
+  const endDateRef = useRef<HTMLInputElement>(null)
+
+  // When start time changes, auto-advance end time to maintain 1-hour gap
+  const handleStartTimeChange = useCallback((time: string) => {
+    update('startsAtTime', time)
+    // Auto-set end time to 1 hour later
+    const [h, m] = time.split(':').map(Number)
+    const endH = (h + 1) % 24
+    const endTime = `${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+    update('endsAtTime', endTime)
+  }, [update])
+
+  const handleEndTimeChange = useCallback((time: string) => {
+    update('endsAtTime', time)
+  }, [update])
+
+  // Smart default: if no date set, default to today when clicking
+  const ensureDate = () => {
+    if (!form.startsAt) {
+      const today = new Date()
+      const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`
+      update('startsAt', dateStr)
+      update('endsAt', dateStr)
+    }
+  }
+
+  if (isMultiDay) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <button
+              type="button"
+              onClick={() => { ensureDate(); safePick(startDateRef) }}
+              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                form.startsAt
+                  ? 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                  : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-dashed border-slate-300'
+              } ${errors.startsAt ? 'ring-1 ring-red-300' : ''}`}
+            >
+              <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">From</span>
+              {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick start date'}
+            </button>
+            <input
+              ref={startDateRef}
+              type="date"
+              value={form.startsAt}
+              onChange={(e) => update('startsAt', e.target.value)}
+              className="sr-only"
+              tabIndex={-1}
+            />
+          </div>
+          <span className="text-slate-300 text-sm mt-4">&rarr;</span>
+          <div className="flex-1">
+            <button
+              type="button"
+              onClick={() => { ensureDate(); safePick(endDateRef) }}
+              className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                form.endsAt
+                  ? 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                  : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-dashed border-slate-300'
+              } ${errors.endsAt ? 'ring-1 ring-red-300' : ''}`}
+            >
+              <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">To</span>
+              {form.endsAt ? formatDateDisplay(form.endsAt) : 'Pick end date'}
+            </button>
+            <input
+              ref={endDateRef}
+              type="date"
+              value={form.endsAt}
+              onChange={(e) => update('endsAt', e.target.value)}
+              min={form.startsAt}
+              className="sr-only"
+              tabIndex={-1}
+            />
+          </div>
+        </div>
+        {errors.startsAt && <p className="text-xs text-red-500">{errors.startsAt}</p>}
+        {errors.endsAt && <p className="text-xs text-red-500">{errors.endsAt}</p>}
+      </div>
+    )
+  }
+
+  // Single-day: unified "when" block
+  return (
+    <div className="space-y-3">
+      {/* Date as clickable chip */}
+      <div>
+        <button
+          type="button"
+          onClick={() => { ensureDate(); safePick(startDateRef) }}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+            form.startsAt
+              ? 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+              : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-dashed border-slate-300'
+          } ${errors.startsAt ? 'ring-1 ring-red-300' : ''}`}
+        >
+          <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
+          {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick a date'}
+        </button>
+        <input
+          ref={startDateRef}
+          type="date"
+          value={form.startsAt}
+          onChange={(e) => {
+            update('startsAt', e.target.value)
+            update('endsAt', e.target.value)
+          }}
+          className="sr-only"
+          tabIndex={-1}
+        />
+        {errors.startsAt && <p className="text-xs text-red-500 mt-1">{errors.startsAt}</p>}
+      </div>
+
+      {/* Time pickers as pill dropdowns */}
+      <div className="flex items-center gap-2">
+        <TimePicker
+          value={form.startsAtTime || '09:00'}
+          onChange={handleStartTimeChange}
+        />
+        <span className="text-slate-300 text-sm">&ndash;</span>
+        <TimePicker
+          value={form.endsAtTime || '10:00'}
+          onChange={handleEndTimeChange}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Modal ──────────────────────────────────────────────────────────────
 
 export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single' }: CreateEventProjectModalProps) {
@@ -173,6 +335,8 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
   const [form, setForm] = useState<FormData>(defaultForm)
   const [location, setLocation] = useState<LocationData>(defaultLocationData())
   const [requestedAttendees, setRequestedAttendees] = useState<string[]>([])
+  const [showPeoplePicker, setShowPeoplePicker] = useState(false)
+  const [peopleNote, setPeopleNote] = useState('')
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'location', string>>>({})
   const [mode, setMode] = useState<EventMode>(initialMode)
   const [step, setStep] = useState<Step>(1)
@@ -207,6 +371,8 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     setForm(defaultForm)
     setLocation(defaultLocationData())
     setRequestedAttendees([])
+    setShowPeoplePicker(false)
+    setPeopleNote('')
     setErrors({})
     setStep(1)
     onClose()
@@ -293,7 +459,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       requiresFacilities: form.requiresFacilities,
       requiresCustodial: form.requiresCustodial,
       requiresSecurity: form.requiresSecurity,
-      requiresAthleticDirector: form.requiresAthleticDirector,
+      requiresAthleticDirector: false,
       isOffCampus: location.isOffCampus,
       locationText: location.locationText || undefined,
       buildingId: location.isOffCampus ? undefined : (location.buildingId || undefined),
@@ -308,7 +474,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       metadata: {
         ...(form.requiresAV ? { avNeeds: form.avNeeds, avNotes: form.avNotes.trim() } : {}),
         ...(form.requiresFacilities ? { facilityNeeds: form.facilityNeeds, facilityNotes: form.facilityNotes.trim() } : {}),
-        ...(requestedAttendees.length > 0 ? { requestedAttendees } : {}),
+        ...(requestedAttendees.length > 0 ? { requestedAttendees, peopleNote: peopleNote.trim() || undefined } : {}),
       },
     }
 
@@ -445,90 +611,13 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               </div>
             )}
 
-            {/* Single-day: Date + Start/End times */}
-            {!isMultiDay && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    <Calendar className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
-                    Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.startsAt}
-                    onChange={(e) => {
-                      update('startsAt', e.target.value)
-                      update('endsAt', e.target.value)
-                    }}
-                    className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 ${
-                      errors.startsAt ? 'border-red-300' : 'border-slate-200'
-                    }`}
-                  />
-                  {errors.startsAt && <p className="text-xs text-red-500 mt-1">{errors.startsAt}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      <Clock className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
-                      Start Time
-                    </label>
-                    <input
-                      type="time"
-                      value={form.startsAtTime}
-                      onChange={(e) => update('startsAtTime', e.target.value)}
-                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      End Time
-                    </label>
-                    <input
-                      type="time"
-                      value={form.endsAtTime}
-                      onChange={(e) => update('endsAtTime', e.target.value)}
-                      className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Multi-day: Start Date → End Date */}
-            {isMultiDay && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    <CalendarDays className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
-                    Start Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.startsAt}
-                    onChange={(e) => update('startsAt', e.target.value)}
-                    className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 ${
-                      errors.startsAt ? 'border-red-300' : 'border-slate-200'
-                    }`}
-                  />
-                  {errors.startsAt && <p className="text-xs text-red-500 mt-1">{errors.startsAt}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    End Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.endsAt}
-                    onChange={(e) => update('endsAt', e.target.value)}
-                    min={form.startsAt}
-                    className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 ${
-                      errors.endsAt ? 'border-red-300' : 'border-slate-200'
-                    }`}
-                  />
-                  {errors.endsAt && <p className="text-xs text-red-500 mt-1">{errors.endsAt}</p>}
-                </div>
-              </div>
-            )}
+            {/* ── When block (Cal.com-style) ── */}
+            <DateTimeBlock
+              form={form}
+              update={update}
+              errors={errors}
+              isMultiDay={isMultiDay}
+            />
           </div>
         )}
 
@@ -557,11 +646,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
 
         {/* ═══════════════════ Step 3: Team & People ══════════════════════════ */}
         {step === 3 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-4 animate-in fade-in duration-200">
             {/* ── Requirements ── */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <p className="text-sm font-medium text-slate-700">Requirements</p>
-              <p className="text-xs text-slate-500 -mt-2">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
+              <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
 
               {/* A/V Section */}
               <div className={`rounded-xl border transition-colors ${form.requiresAV ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200'}`}>
@@ -684,80 +773,82 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               </div>
             </div>
 
-            {/* ── Additional Resource Toggles ── */}
-            <div className="space-y-2">
+            {/* ── Additional Resource Toggles (compact row) ── */}
+            <div className="grid grid-cols-2 gap-2">
               {/* Custodial */}
               <div className={`rounded-xl border transition-colors ${form.requiresCustodial ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
-                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresCustodial ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                    <Sparkles className={`w-4 h-4 transition-colors ${form.requiresCustodial ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                  <div className={`p-1 rounded-lg transition-colors ${form.requiresCustodial ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                    <Sparkles className={`w-3.5 h-3.5 transition-colors ${form.requiresCustodial ? 'text-emerald-600' : 'text-slate-400'}`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">Custodial</p>
-                    <p className="text-[11px] text-slate-500">Cleaning and setup coordination</p>
-                  </div>
+                  <p className="text-sm font-medium text-slate-900 flex-1">Custodial</p>
                   <div
                     role="switch"
                     aria-checked={form.requiresCustodial}
                     onClick={() => update('requiresCustodial', !form.requiresCustodial)}
-                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresCustodial ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresCustodial ? 'bg-emerald-500' : 'bg-slate-200'}`}
                   >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresCustodial ? 'translate-x-4' : ''}`} />
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.requiresCustodial ? 'translate-x-4' : ''}`} />
                   </div>
                 </label>
               </div>
 
               {/* Security */}
               <div className={`rounded-xl border transition-colors ${form.requiresSecurity ? 'border-red-200 bg-red-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
-                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresSecurity ? 'bg-red-100' : 'bg-slate-100'}`}>
-                    <ShieldAlert className={`w-4 h-4 transition-colors ${form.requiresSecurity ? 'text-red-600' : 'text-slate-400'}`} />
+                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                  <div className={`p-1 rounded-lg transition-colors ${form.requiresSecurity ? 'bg-red-100' : 'bg-slate-100'}`}>
+                    <ShieldAlert className={`w-3.5 h-3.5 transition-colors ${form.requiresSecurity ? 'text-red-600' : 'text-slate-400'}`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">Security</p>
-                    <p className="text-[11px] text-slate-500">Security presence and parking management</p>
-                  </div>
+                  <p className="text-sm font-medium text-slate-900 flex-1">Security</p>
                   <div
                     role="switch"
                     aria-checked={form.requiresSecurity}
                     onClick={() => update('requiresSecurity', !form.requiresSecurity)}
-                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresSecurity ? 'bg-red-500' : 'bg-slate-200'}`}
+                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresSecurity ? 'bg-red-500' : 'bg-slate-200'}`}
                   >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresSecurity ? 'translate-x-4' : ''}`} />
-                  </div>
-                </label>
-              </div>
-
-              {/* Athletic Director */}
-              <div className={`rounded-xl border transition-colors ${form.requiresAthleticDirector ? 'border-purple-200 bg-purple-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
-                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresAthleticDirector ? 'bg-purple-100' : 'bg-slate-100'}`}>
-                    <Trophy className={`w-4 h-4 transition-colors ${form.requiresAthleticDirector ? 'text-purple-600' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">Athletic Director</p>
-                    <p className="text-[11px] text-slate-500">Athletic facility and schedule approval</p>
-                  </div>
-                  <div
-                    role="switch"
-                    aria-checked={form.requiresAthleticDirector}
-                    onClick={() => update('requiresAthleticDirector', !form.requiresAthleticDirector)}
-                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresAthleticDirector ? 'bg-purple-500' : 'bg-slate-200'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresAthleticDirector ? 'translate-x-4' : ''}`} />
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.requiresSecurity ? 'translate-x-4' : ''}`} />
                   </div>
                 </label>
               </div>
             </div>
 
-            {/* ── Divider ── */}
-            <div className="border-t border-slate-100" />
+            {/* ── Request Specific People (toggle card) ── */}
+            <div className={`rounded-xl border transition-colors ${requestedAttendees.length > 0 || showPeoplePicker ? 'border-stone-300 bg-stone-50/50' : 'border-slate-200'}`}>
+              <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                <div className={`p-1 rounded-lg transition-colors ${showPeoplePicker ? 'bg-stone-200' : 'bg-slate-100'}`}>
+                  <Users className={`w-3.5 h-3.5 transition-colors ${showPeoplePicker ? 'text-stone-700' : 'text-slate-400'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900">Request Specific People</p>
+                  <p className="text-[11px] text-slate-500">Notify specific staff after approval</p>
+                </div>
+                <div
+                  role="switch"
+                  aria-checked={showPeoplePicker}
+                  onClick={() => setShowPeoplePicker((p) => !p)}
+                  className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${showPeoplePicker ? 'bg-slate-900' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showPeoplePicker ? 'translate-x-4' : ''}`} />
+                </div>
+              </label>
 
-            {/* ── Request Specific People ── */}
-            <PeoplePicker
-              selectedUserIds={requestedAttendees}
-              onChange={setRequestedAttendees}
-            />
+              {showPeoplePicker && (
+                <div className="px-3.5 pb-3.5 space-y-3 border-t border-stone-200 pt-3">
+                  <PeoplePicker
+                    selectedUserIds={requestedAttendees}
+                    onChange={setRequestedAttendees}
+                    hideHeader
+                  />
+                  <textarea
+                    value={peopleNote}
+                    onChange={(e) => setPeopleNote(e.target.value)}
+                    rows={2}
+                    placeholder="Note for requested people — role, instructions, etc."
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 resize-none bg-white"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

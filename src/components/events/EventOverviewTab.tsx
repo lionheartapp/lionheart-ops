@@ -28,6 +28,8 @@ import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBa
 import { ConflictBanner } from './overview/ConflictBanner'
 import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
 import type { EventProject } from '@/lib/hooks/useEventProject'
+import { EventInvitationsSection } from './EventInvitationsSection'
+import { useAuth } from '@/lib/hooks/useAuth'
 import type { ConflictItem } from './overview/ConflictBanner'
 import {
   SURFACE,
@@ -181,6 +183,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
   const updateProject = useUpdateEventProject(project.id)
 
   // ── Editable fields state ──
@@ -277,6 +280,14 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
 
       {/* Resource Requirements — A/V and Facilities needs */}
       <ResourceRequirementsSection project={project} />
+
+      {/* Invitations & RSVP */}
+      {user?.id && (
+        <EventInvitationsSection
+          eventProjectId={project.id}
+          currentUserId={user.id}
+        />
+      )}
 
       {/* Event Details — inline editable */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
