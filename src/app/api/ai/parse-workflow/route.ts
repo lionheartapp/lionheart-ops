@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { geminiService } from '@/lib/services/ai/gemini.service'
-import type { WorkflowContext } from '@/lib/services/ai/gemini.service'
+import type { WorkflowContext, ParsedWorkflow } from '@/lib/services/ai/gemini.service'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 }
 
 function resolveWorkflowNames(
-  parsed: { rules: Array<Record<string, unknown>>; summary: string },
+  parsed: ParsedWorkflow,
   context: WorkflowContext,
 ) {
   const fuzzy = (name: string | null | undefined, items: Array<{ id: string; name: string }>) => {
@@ -65,15 +65,14 @@ function resolveWorkflowNames(
 
   return {
     rules: parsed.rules.map((rule) => {
-      const steps = (rule.steps as Array<{ type: string; name: string; mode: string; trigger: string }>) || []
       return {
-        name: rule.name as string,
-        schoolId: fuzzy(rule.schoolName as string, context.schools),
-        campusId: fuzzy(rule.campusName as string, context.campuses),
-        categoryId: fuzzy(rule.categoryName as string, context.categories),
-        executionMode: (rule.executionMode as string) || 'PARALLEL',
+        name: rule.name,
+        schoolId: fuzzy(rule.schoolName, context.schools),
+        campusId: fuzzy(rule.campusName, context.campuses),
+        categoryId: fuzzy(rule.categoryName, context.categories),
+        executionMode: rule.executionMode || 'PARALLEL',
         isDefault: !rule.schoolName && !rule.campusName && !rule.categoryName,
-        steps: steps.map(step => {
+        steps: rule.steps.map(step => {
           if (step.type === 'person') {
             const member = context.members.find(m =>
               m.name.toLowerCase().includes(step.name.toLowerCase()) ||

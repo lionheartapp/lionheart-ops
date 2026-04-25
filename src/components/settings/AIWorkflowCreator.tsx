@@ -78,6 +78,7 @@ export default function AIWorkflowCreator({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const [mentionStart, setMentionStart] = useState(-1)
+  const [mentionFilter, setMentionFilter] = useState<'person' | 'team' | 'school' | 'campus'>('person')
   const mentionContainerRef = useRef<HTMLDivElement>(null)
 
   // Cascading mention state — after selecting a school, offer to narrow to campus
@@ -86,24 +87,34 @@ export default function AIWorkflowCreator({
   const [cascadeIndex, setCascadeIndex] = useState(0)
   const [cascadeInsertPos, setCascadeInsertPos] = useState(-1)
 
-  // Build mention suggestions: people first, then teams, schools, campuses
+  // Build mention suggestions filtered by active category tab
   const mentionSuggestions = useMemo(() => {
     if (mentionQuery === null) return []
     const q = mentionQuery.toLowerCase()
-    const people = context.members
-      .filter(m => m.name.toLowerCase().includes(q))
-      .map(m => ({ id: m.id, label: m.name, sublabel: m.teamName || '', type: 'person' as const }))
-    const teamList = context.teams
-      .filter(t => t.name.toLowerCase().includes(q))
-      .map(t => ({ id: t.id, label: t.name, sublabel: 'Team', type: 'team' as const }))
-    const schoolList = context.schools
-      .filter(s => s.name.toLowerCase().includes(q))
-      .map(s => ({ id: s.id, label: s.name, sublabel: 'School', type: 'school' as const }))
-    const campusList = context.campuses
-      .filter(c => c.name.toLowerCase().includes(q))
-      .map(c => ({ id: c.id, label: c.name, sublabel: c.schoolName || 'Campus', type: 'campus' as const }))
+    const f = mentionFilter
+
+    const people = f === 'person'
+      ? context.members
+          .filter(m => m.name.toLowerCase().includes(q))
+          .map(m => ({ id: m.id, label: m.name, sublabel: m.teamName || '', type: 'person' as const }))
+      : []
+    const teamList = f === 'team'
+      ? context.teams
+          .filter(t => t.name.toLowerCase().includes(q))
+          .map(t => ({ id: t.id, label: t.name, sublabel: 'Team', type: 'team' as const }))
+      : []
+    const schoolList = f === 'school'
+      ? context.schools
+          .filter(s => s.name.toLowerCase().includes(q))
+          .map(s => ({ id: s.id, label: s.name, sublabel: 'School', type: 'school' as const }))
+      : []
+    const campusList = f === 'campus'
+      ? context.campuses
+          .filter(c => c.name.toLowerCase().includes(q))
+          .map(c => ({ id: c.id, label: c.name, sublabel: c.schoolName || 'Campus', type: 'campus' as const }))
+      : []
     return [...people, ...teamList, ...schoolList, ...campusList].slice(0, 10)
-  }, [mentionQuery, context.members, context.teams, context.schools, context.campuses])
+  }, [mentionQuery, mentionFilter, context.members, context.teams, context.schools, context.campuses])
 
   // Cascade suggestions — campuses belonging to the selected school
   const cascadeSuggestions = useMemo(() => {
@@ -131,6 +142,7 @@ export default function AIWorkflowCreator({
       setMentionQuery(atMatch[1])
       setMentionStart(cursor - atMatch[0].length)
       setMentionIndex(0)
+      setMentionFilter('person')
     } else {
       setMentionQuery(null)
     }
@@ -494,10 +506,29 @@ export default function AIWorkflowCreator({
                         transition={{ duration: 0.12 }}
                         className="absolute left-4 right-4 top-full mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-10"
                       >
-                        <div className="py-1 max-h-48 overflow-y-auto">
-                          <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">
-                            {mentionQuery ? `Matching "${mentionQuery}"` : 'People & Teams'}
-                          </p>
+                        <div className="py-1 max-h-56 overflow-y-auto">
+                          {/* Category filter tabs */}
+                          <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 mb-1">
+                            {([
+                              { key: 'person', label: 'People' },
+                              { key: 'team', label: 'Teams' },
+                              { key: 'school', label: 'Schools' },
+                              { key: 'campus', label: 'Campuses' },
+                            ] as const).map(tab => (
+                              <button
+                                key={tab.key}
+                                type="button"
+                                onMouseDown={(e) => { e.preventDefault(); setMentionFilter(tab.key); setMentionIndex(0) }}
+                                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors cursor-pointer ${
+                                  mentionFilter === tab.key
+                                    ? 'bg-slate-900 text-white'
+                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {tab.label}
+                              </button>
+                            ))}
+                          </div>
                           {mentionSuggestions.map((s, i) => (
                             <button
                               key={`${s.type}-${s.id}`}
