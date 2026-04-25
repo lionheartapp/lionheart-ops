@@ -317,14 +317,19 @@ export async function listEventProjects(filters?: {
   schoolId?: string
   createdById?: string
 }): Promise<Record<string, unknown>[]> {
+  const andClauses: Record<string, unknown>[] = []
+  if (filters?.campusId) {
+    andClauses.push({ OR: [{ campusId: filters.campusId }, { campusId: null }] })
+  }
+  if (filters?.schoolId) {
+    andClauses.push({ OR: [{ schoolId: filters.schoolId }, { schoolId: null }] })
+  }
+
   return db.eventProject.findMany({
     where: {
       ...(filters?.status ? { status: filters.status } : {}),
-      ...(filters?.campusId ? { campusId: filters.campusId } : {}),
-      ...(filters?.schoolId
-        ? { OR: [{ schoolId: filters.schoolId }, { schoolId: null }] }
-        : {}),
       ...(filters?.createdById ? { createdById: filters.createdById } : {}),
+      ...(andClauses.length > 0 ? { AND: andClauses } : {}),
     },
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true } },
