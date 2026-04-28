@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
+import { getOrgContextId } from '@/lib/org-context'
 import type { InvitationStatus } from '@prisma/client'
 import { createNotification } from './notificationService'
 
@@ -24,6 +25,7 @@ export async function createEventInvitations(
     try {
       await prisma.eventInvitation.create({
         data: {
+          organizationId: getOrgContextId(),
           eventProjectId,
           userId,
           invitedById,
