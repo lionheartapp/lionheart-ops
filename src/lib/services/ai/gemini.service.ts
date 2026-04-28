@@ -93,7 +93,7 @@ export class GeminiService {
 
     const prompt = `Extract structured event hints from this school operations request: ${input}`
     const result = await this.client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
 
@@ -126,7 +126,7 @@ JSON:`
 
     try {
       const result = await this.client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       })
 
@@ -176,7 +176,7 @@ JSON:`
 
     try {
       const result = await this.client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       })
 
@@ -228,10 +228,12 @@ Return ONLY valid JSON with this structure:
 }
 
 Rules:
-- Each rule is independent. If an event matches multiple rules, ALL matching rules' steps are merged.
+- PREFER fewer rules with multiple steps over many single-step rules. Use step-level triggers ("WHEN_RESOURCE_REQUESTED") to handle conditional approvers WITHIN a single rule instead of creating separate rules.
+- Example: "all events need admin approval, and if AV is needed Kevin must approve" → ONE rule with 2 steps: admin (trigger: ALWAYS) + Kevin (trigger: WHEN_RESOURCE_REQUESTED). NOT two separate rules.
+- Only create a SEPARATE rule when the conditions (school, campus, category, attendance) are genuinely different — e.g., different schools need different approvers.
 - A rule with no conditions matches ALL events (use this for default/catch-all rules).
 - DEFAULT trigger is "ALWAYS" unless the user explicitly says "if needed", "when requested", or "only when AV/facilities is required".
-- "WHEN_RESOURCE_REQUESTED" should ONLY be used when the user explicitly mentions conditional activation (e.g., "if they need AV", "when facilities are requested").
+- "WHEN_RESOURCE_REQUESTED" means this step only activates when the event requests that resource. Use it for conditional approvers (e.g., "if AV is needed, Kevin approves" → Kevin's step has trigger: WHEN_RESOURCE_REQUESTED).
 - If the user says "needs approval from X" or "must be approved by X", that's trigger: "ALWAYS", mode: "REQUIRED".
 - If the user says "first X, then Y" or "X first and then Y", that means executionMode: "SEQUENTIAL" and both steps have trigger: "ALWAYS".
 - "SEQUENTIAL" means step 1 must approve before step 2 sees it. "PARALLEL" means all steps review at once.
@@ -257,7 +259,7 @@ JSON:`
 
     try {
       const result = await this.client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       })
 
@@ -286,7 +288,7 @@ Keep it informative and appropriate for parents and staff. Do not use emoji.`
 
     try {
       const result = await this.client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       })
       return result.text || ''
