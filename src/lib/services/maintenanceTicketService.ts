@@ -284,7 +284,38 @@ export async function createMaintenanceTicket(
     },
   }).catch(() => {}) // Ignore if already exists
 
-  // Attempt auto-routing (fire-and-forget — failures don't block ticket creation)
+  // Check for approval rules — if gates are needed, set PENDING_APPROVAL and skip routing
+  let needsApproval = false
+  try {
+    const { resolveMaintenanceApprovalSteps } = await import('./approvalRuleService')
+    const { buildGatesFromFlow } = await import('./approvalFlowService')
+    const ticketCtx = {
+      schoolId: data.schoolId ?? null,
+      campusId: data.schoolId ?? null, // campusId stored as schoolId in create
+      category: data.category,
+      priority: data.priority,
+      buildingId: data.buildingId ?? null,
+      estimatedRepairCostUSD: null, // not available at creation time
+    }
+    const resolvedSteps = await resolveMaintenanceApprovalSteps(orgId, ticketCtx)
+    if (resolvedSteps.length > 0) {
+      const { gates } = await buildGatesFromFlow({}, resolvedSteps)
+      const hasActiveGates = Object.values(gates).some((g: { status: string }) => g.status === 'PENDING')
+      if (hasActiveGates) {
+        await rawPrisma.maintenanceTicket.update({
+          where: { id: ticket.id },
+          data: { status: 'PENDING_APPROVAL', approvalGates: gates },
+        })
+        needsApproval = true
+        log.info({ ticketId: ticket.id, gateCount: Object.keys(gates).length }, 'Ticket requires approval')
+      }
+    }
+  } catch (err) {
+    log.error({ err: String(err), ticketId: ticket.id }, 'Approval check failed — proceeding without gates')
+  }
+
+  // Attempt auto-routing only if approval is not needed (routing runs after approval clears)
+  if (!needsApproval) {
   import('@/lib/services/ticketRoutingService').then(({ routeTicket }) => {
     routeTicket({
       module: 'MAINTENANCE',
@@ -307,6 +338,7 @@ export async function createMaintenanceTicket(
   }).catch((err: unknown) =>
     log.error({ err: String(err) }, 'ticketRoutingService import failed')
   )
+  } // end if (!needsApproval)
 
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketSubmitted, notifyUrgentTicket }) => {

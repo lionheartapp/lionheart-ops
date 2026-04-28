@@ -287,6 +287,7 @@ model User {
   technicianProfile     TechnicianProfile?
   maintenanceTicketsSubmitted MaintenanceTicket[] @relation("SubmittedBy")
   maintenanceTicketsAssigned  MaintenanceTicket[] @relation("AssignedTo")
+  maintenanceTicketsApproved  MaintenanceTicket[] @relation("MaintenanceApprover")
   maintenanceActivitiesPerformed MaintenanceTicketActivity[] @relation("ActivityActor")
   maintenanceActivitiesAssignedTo MaintenanceTicketActivity[] @relation("ActivityAssignedTo")
   maintenanceLaborEntries MaintenanceLaborEntry[]
@@ -709,6 +710,7 @@ model Building {
   itTickets          ITTicket[]
   itDevices          ITDevice[]
   eventProjects      EventProject[]
+  approvalRules      ApprovalRule[]  @relation("ApprovalRuleBuilding")
 
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
@@ -1850,15 +1852,22 @@ model ApprovalChannelConfig {
 model ApprovalRule {
   id               String   @id @default(cuid())
   organizationId   String
-  name             String   // "Elementary Events", "High School Events", "All Events"
+  module           String   @default("EVENT") // EVENT | MAINTENANCE
+  name             String   // "Elementary Events", "HVAC Approval", etc.
   description      String?  // Optional explanation
-  // ── Conditions (null = matches all) ──
-  schoolId         String?  // If set, only events at this school trigger this rule
-  campusId         String?  // If set, only events at this campus trigger this rule
-  eventCategory    String?  // If set, only events with this category trigger this rule
+  // ── Shared conditions (null = matches all) ──
+  schoolId         String?  // If set, only items at this school trigger this rule
+  campusId         String?  // If set, only items at this campus trigger this rule
+  // ── Event-specific conditions ──
+  eventCategory    String?  // If set, only events with this category
   minAttendance    Int?     // If set, only events with expected attendance >= this value
   requiresResource String?  // If set, only events needing this resource (av, facilities, custodial, security)
   isOffCampus      Boolean? // If set, only events matching this off-campus status
+  // ── Maintenance-specific conditions ──
+  maintenanceCategory   String?  // ELECTRICAL, PLUMBING, HVAC, etc.
+  maintenancePriority   String?  // LOW, MEDIUM, HIGH, URGENT
+  maintenanceBuildingId String?  // Only tickets in this building
+  maintenanceMinCost    Float?   // Only tickets with estimatedRepairCostUSD >= this value
   // ── Behavior ──
   isDefault        Boolean  @default(false)  // Catch-all rule when no other conditions match
   isFinalApprover  Boolean  @default(false)  // Always runs last (e.g., Admin sign-off)
@@ -1868,14 +1877,17 @@ model ApprovalRule {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?       @relation("ApprovalRuleSchool", fields: [schoolId], references: [id], onDelete: SetNull)
-  campus       Campus?       @relation("ApprovalRuleCampus", fields: [campusId], references: [id], onDelete: SetNull)
-  steps        ApprovalFlowEntry[]
+  organization         Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  school               School?       @relation("ApprovalRuleSchool", fields: [schoolId], references: [id], onDelete: SetNull)
+  campus               Campus?       @relation("ApprovalRuleCampus", fields: [campusId], references: [id], onDelete: SetNull)
+  maintenanceBuilding  Building?     @relation("ApprovalRuleBuilding", fields: [maintenanceBuildingId], references: [id], onDelete: SetNull)
+  steps                ApprovalFlowEntry[]
 
   @@index([organizationId])
+  @@index([organizationId, module])
   @@index([schoolId])
   @@index([campusId])
+  @@index([maintenanceBuildingId])
 }
 
 // Individual step within an approval rule's chain
@@ -2412,6 +2424,7 @@ enum TournamentFormat {
 
 enum MaintenanceTicketStatus {
   BACKLOG
+  PENDING_APPROVAL
   TODO
   IN_PROGRESS
   ON_HOLD
@@ -2495,6 +2508,11 @@ model MaintenanceTicket {
   pmChecklistDone         Boolean[]               @default([])  // Parallel array: true = item checked off
   assetId                 String?                               // Optional link to a MaintenanceAsset
   customFields            Json?                                 // Category-scoped dynamic field values
+  // Approval workflow
+  approvalGates           Json?                                 // Same shape as EventProject.approvalGates
+  approvedById            String?
+  approvedAt              DateTime?
+  rejectionReason         String?
   // SLA tracking
   firstResponseAt         DateTime?                             // When ticket was first assigned or commented on
   slaResponseDue          DateTime?                             // Computed: createdAt + category SLA response target
@@ -2512,6 +2530,7 @@ model MaintenanceTicket {
   organization  Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy   User                      @relation("SubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
   assignedTo    User?                     @relation("AssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  approvedBy    User?                     @relation("MaintenanceApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   building      Building?                 @relation(fields: [buildingId], references: [id], onDelete: SetNull)
   space         Space?                    @relation(fields: [spaceId], references: [id], onDelete: SetNull)
   room          Room?                     @relation(fields: [roomId], references: [id], onDelete: SetNull)

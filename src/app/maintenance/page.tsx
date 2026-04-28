@@ -14,7 +14,8 @@ import PmCalendarView from '@/components/maintenance/PmCalendarView'
 import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
-import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route } from 'lucide-react'
+import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
+import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
@@ -35,6 +36,7 @@ const SUB_TABS: {
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'pm-calendar', label: 'PM Calendar', icon: CalendarClock },
   { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
+  { key: 'approvals', label: 'Approvals', icon: ShieldCheck, requiresManage: true },
 ]
 
 /**
@@ -360,6 +362,18 @@ function MaintenanceContent() {
                         className="animate-[fadeIn_200ms_ease-out]"
                       >
                         <TicketRoutingTab defaultModule="MAINTENANCE" />
+                      </div>
+                    )}
+
+                    {/* Approvals tab — managers only */}
+                    {canManageMaintenance && activeTab === 'approvals' && (
+                      <div
+                        role="tabpanel"
+                        id="tabpanel-approvals"
+                        aria-labelledby="tab-approvals"
+                        className="animate-[fadeIn_200ms_ease-out]"
+                      >
+                        <ApprovalRulesBuilder module="MAINTENANCE" />
                       </div>
                     )}
                 </>

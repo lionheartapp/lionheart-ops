@@ -42,12 +42,20 @@ interface RuleData {
   id: string
   name: string
   description: string | null
+  module: string
   schoolId: string | null
   campusId: string | null
+  // Event conditions
   eventCategory: string | null
   minAttendance: number | null
   requiresResource: string | null
   isOffCampus: boolean | null
+  // Maintenance conditions
+  maintenanceCategory: string | null
+  maintenancePriority: string | null
+  maintenanceBuildingId: string | null
+  maintenanceMinCost: number | null
+  maintenanceBuilding: { id: string; name: string } | null
   isDefault: boolean
   isFinalApprover: boolean
   executionMode: string
@@ -61,11 +69,30 @@ interface RuleData {
 interface SchoolData { id: string; name: string; institutionType: string; color: string }
 interface CampusData { id: string; name: string; schoolId: string | null }
 interface CategoryData { id: string; name: string; color: string }
+interface BuildingData { id: string; name: string }
 interface TeamData { id: string; name: string; slug: string; members: { id: string; name: string; email: string; avatar?: string | null }[] }
 
-async function fetchRules() {
-  return fetchApi('/api/settings/approval-rules') as Promise<{
-    rules: RuleData[]; schools: SchoolData[]; campuses: CampusData[]; categories: CategoryData[]; teams: TeamData[]
+const MAINTENANCE_CATEGORIES = [
+  { value: 'ELECTRICAL', label: 'Electrical' },
+  { value: 'PLUMBING', label: 'Plumbing' },
+  { value: 'HVAC', label: 'HVAC' },
+  { value: 'STRUCTURAL', label: 'Structural' },
+  { value: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard' },
+  { value: 'IT_AV', label: 'IT / A/V' },
+  { value: 'GROUNDS', label: 'Grounds' },
+  { value: 'OTHER', label: 'Other' },
+]
+
+const MAINTENANCE_PRIORITIES = [
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'URGENT', label: 'Urgent' },
+]
+
+async function fetchRules(module: string) {
+  return fetchApi(`/api/settings/approval-rules?module=${module}`) as Promise<{
+    rules: RuleData[]; schools: SchoolData[]; campuses: CampusData[]; categories: CategoryData[]; buildings: BuildingData[]; teams: TeamData[]
   }>
 }
 
@@ -225,9 +252,17 @@ function SortableStepRow({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-export default function ApprovalRulesBuilder() {
+interface ApprovalRulesBuilderProps {
+  module?: 'EVENT' | 'MAINTENANCE'
+}
+
+export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRulesBuilderProps) {
   const queryClient = useQueryClient()
-  const { data, isLoading } = useQuery({ queryKey: ['approval-rules'], queryFn: fetchRules })
+  const isMaintenance = module === 'MAINTENANCE'
+  const { data, isLoading } = useQuery({
+    queryKey: ['approval-rules', module],
+    queryFn: () => fetchRules(module),
+  })
   const { activeSchoolId } = useActiveSchool()
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null)
   const [ruleSearch, setRuleSearch] = useState('')
@@ -242,6 +277,7 @@ export default function ApprovalRulesBuilder() {
   const schools = data?.schools ?? []
   const campuses = data?.campuses ?? []
   const categories = data?.categories ?? []
+  const buildings = data?.buildings ?? []
   const teams = data?.teams ?? []
 
   // Filter rules by the active campus selection. When a campus is selected,
@@ -288,16 +324,16 @@ export default function ApprovalRulesBuilder() {
         body: action.body ? JSON.stringify(action.body) : undefined,
       })
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules', module] }),
   })
 
   const addRule = (opts: { schoolId?: string; isDefault?: boolean; isFinalApprover?: boolean }) => {
     const name = opts.isDefault
-      ? 'All Other Events'
+      ? (isMaintenance ? 'All Other Tickets' : 'All Other Events')
       : 'New Rule'
     mutate.mutate({
       method: 'POST', url: '/api/settings/approval-rules',
-      body: { name, ...opts },
+      body: { name, module, ...opts },
     })
   }
 
@@ -308,7 +344,7 @@ export default function ApprovalRulesBuilder() {
 
   const updateRule = (id: string, updates: Record<string, unknown>) => {
     // Optimistic cache update — instant visual feedback
-    queryClient.setQueryData(['approval-rules'], (old: { rules: RuleData[] } | undefined) => {
+    queryClient.setQueryData(['approval-rules', module], (old: { rules: RuleData[] } | undefined) => {
       if (!old) return old
       return { ...old, rules: old.rules.map(r => r.id === id ? { ...r, ...updates } : r) }
     })
@@ -386,9 +422,9 @@ export default function ApprovalRulesBuilder() {
         })
       )
     ).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+      queryClient.invalidateQueries({ queryKey: ['approval-rules', module] })
     }).catch(() => {
-      queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+      queryClient.invalidateQueries({ queryKey: ['approval-rules', module] })
     })
   }, [selectedRule, queryClient])
 
@@ -487,6 +523,7 @@ export default function ApprovalRulesBuilder() {
                 onClick={() => setSelectedRuleId(rule.id)}
                 onDelete={() => deleteRule(rule.id)}
                 categories={categories}
+                isMaintenance={isMaintenance}
               />
             ))}
 
@@ -504,6 +541,7 @@ export default function ApprovalRulesBuilder() {
                 onDelete={() => deleteRule(defaultRule.id)}
                 categories={categories}
                 isDefault
+                isMaintenance={isMaintenance}
               />
             )}
           </div>
@@ -612,124 +650,133 @@ export default function ApprovalRulesBuilder() {
                         </select>
                       </div>
 
-                      {/* Category condition */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
-                        <span className="text-xs text-slate-400 flex-shrink-0">category is</span>
-                        <select
-                          value={selectedRule.eventCategory || ''}
-                          onChange={(e) => {
-                            updateRule(selectedRule.id, { eventCategory: e.target.value || null })
-                          }}
-                          className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
-                        >
-                          <option value="">Any category</option>
-                          {categories.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Extra conditions — shown only when active or when user clicks "+ Add condition" */}
-                      {selectedRule.minAttendance != null && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
-                          <span className="text-xs text-slate-400 flex-shrink-0">attendance ≥</span>
-                          <input
-                            type="number"
-                            min="1"
-                            value={selectedRule.minAttendance ?? ''}
-                            onChange={(e) => updateRule(selectedRule.id, { minAttendance: e.target.value ? Number(e.target.value) : null })}
-                            placeholder="Any size"
-                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0"
-                          />
-                          <button onClick={() => updateRule(selectedRule.id, { minAttendance: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
-                        </div>
-                      )}
-
-                      {selectedRule.requiresResource != null && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
-                          <span className="text-xs text-slate-400 flex-shrink-0">needs</span>
-                          <select
-                            value={selectedRule.requiresResource || ''}
-                            onChange={(e) => updateRule(selectedRule.id, { requiresResource: e.target.value || null })}
-                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
-                          >
-                            <option value="av">A/V Equipment</option>
-                            <option value="facilities">Facilities Setup</option>
-                            <option value="custodial">Custodial</option>
-                            <option value="security">Security</option>
-                          </select>
-                          <button onClick={() => updateRule(selectedRule.id, { requiresResource: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
-                        </div>
-                      )}
-
-                      {selectedRule.isOffCampus != null && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
-                          <span className="text-xs text-slate-400 flex-shrink-0">location is</span>
-                          <select
-                            value={selectedRule.isOffCampus ? 'true' : 'false'}
-                            onChange={(e) => updateRule(selectedRule.id, { isOffCampus: e.target.value === 'true' })}
-                            className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
-                          >
-                            <option value="false">On campus</option>
-                            <option value="true">Off campus</option>
-                          </select>
-                          <button onClick={() => updateRule(selectedRule.id, { isOffCampus: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
-                        </div>
-                      )}
-
-                      {/* + Add condition button — shows options not yet active */}
-                      {(selectedRule.minAttendance == null || selectedRule.requiresResource == null || selectedRule.isOffCampus == null) && (
-                        <div className="flex items-center gap-1.5 pl-14">
-                          <span className="text-[10px] text-slate-400 mr-1">+ Add:</span>
-                          {selectedRule.minAttendance == null && (
-                            <button
-                              type="button"
-                              onClick={() => updateRule(selectedRule.id, { minAttendance: 100 })}
-                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
-                            >
-                              Attendance
-                            </button>
+                      {/* Module-specific conditions */}
+                      {!isMaintenance ? (
+                        <>
+                          {/* Event: Category */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                            <span className="text-xs text-slate-400 flex-shrink-0">category is</span>
+                            <select value={selectedRule.eventCategory || ''} onChange={(e) => updateRule(selectedRule.id, { eventCategory: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                              <option value="">Any category</option>
+                              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                          </div>
+                          {/* Event extra conditions */}
+                          {selectedRule.minAttendance != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">attendance ≥</span>
+                              <input type="number" min="1" value={selectedRule.minAttendance ?? ''} onChange={(e) => updateRule(selectedRule.id, { minAttendance: e.target.value ? Number(e.target.value) : null })} placeholder="Any size" className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0" />
+                              <button onClick={() => updateRule(selectedRule.id, { minAttendance: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
                           )}
-                          {selectedRule.requiresResource == null && (
-                            <button
-                              type="button"
-                              onClick={() => updateRule(selectedRule.id, { requiresResource: 'av' })}
-                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
-                            >
-                              Resource
-                            </button>
+                          {selectedRule.requiresResource != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">needs</span>
+                              <select value={selectedRule.requiresResource || ''} onChange={(e) => updateRule(selectedRule.id, { requiresResource: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                                <option value="av">A/V Equipment</option><option value="facilities">Facilities Setup</option><option value="custodial">Custodial</option><option value="security">Security</option>
+                              </select>
+                              <button onClick={() => updateRule(selectedRule.id, { requiresResource: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
                           )}
-                          {selectedRule.isOffCampus == null && (
-                            <button
-                              type="button"
-                              onClick={() => updateRule(selectedRule.id, { isOffCampus: true })}
-                              className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
-                            >
-                              Location
-                            </button>
+                          {selectedRule.isOffCampus != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">location is</span>
+                              <select value={selectedRule.isOffCampus ? 'true' : 'false'} onChange={(e) => updateRule(selectedRule.id, { isOffCampus: e.target.value === 'true' })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                                <option value="false">On campus</option><option value="true">Off campus</option>
+                              </select>
+                              <button onClick={() => updateRule(selectedRule.id, { isOffCampus: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
                           )}
-                        </div>
+                          {(selectedRule.minAttendance == null || selectedRule.requiresResource == null || selectedRule.isOffCampus == null) && (
+                            <div className="flex items-center gap-1.5 pl-14">
+                              <span className="text-[10px] text-slate-400 mr-1">+ Add:</span>
+                              {selectedRule.minAttendance == null && <button type="button" onClick={() => updateRule(selectedRule.id, { minAttendance: 100 })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Attendance</button>}
+                              {selectedRule.requiresResource == null && <button type="button" onClick={() => updateRule(selectedRule.id, { requiresResource: 'av' })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Resource</button>}
+                              {selectedRule.isOffCampus == null && <button type="button" onClick={() => updateRule(selectedRule.id, { isOffCampus: true })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Location</button>}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {/* Maintenance: Category */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                            <span className="text-xs text-slate-400 flex-shrink-0">category is</span>
+                            <select value={selectedRule.maintenanceCategory || ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceCategory: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                              <option value="">Any category</option>
+                              {MAINTENANCE_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                            </select>
+                          </div>
+                          {/* Maintenance: Priority */}
+                          {selectedRule.maintenancePriority != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">priority is</span>
+                              <select value={selectedRule.maintenancePriority || ''} onChange={(e) => updateRule(selectedRule.id, { maintenancePriority: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                                {MAINTENANCE_PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                              </select>
+                              <button onClick={() => updateRule(selectedRule.id, { maintenancePriority: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                          {/* Maintenance: Building */}
+                          {selectedRule.maintenanceBuildingId != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">building is</span>
+                              <select value={selectedRule.maintenanceBuildingId || ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceBuildingId: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
+                                {buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                              </select>
+                              <button onClick={() => updateRule(selectedRule.id, { maintenanceBuildingId: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                          {/* Maintenance: Min cost */}
+                          {selectedRule.maintenanceMinCost != null && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
+                              <span className="text-xs text-slate-400 flex-shrink-0">cost ≥ $</span>
+                              <input type="number" min="1" value={selectedRule.maintenanceMinCost ?? ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceMinCost: e.target.value ? Number(e.target.value) : null })} placeholder="Any" className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0" />
+                              <button onClick={() => updateRule(selectedRule.id, { maintenanceMinCost: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                          {/* + Add maintenance conditions */}
+                          {(selectedRule.maintenancePriority == null || selectedRule.maintenanceBuildingId == null || selectedRule.maintenanceMinCost == null) && (
+                            <div className="flex items-center gap-1.5 pl-14">
+                              <span className="text-[10px] text-slate-400 mr-1">+ Add:</span>
+                              {selectedRule.maintenancePriority == null && <button type="button" onClick={() => updateRule(selectedRule.id, { maintenancePriority: 'HIGH' })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Priority</button>}
+                              {selectedRule.maintenanceBuildingId == null && buildings.length > 0 && <button type="button" onClick={() => updateRule(selectedRule.id, { maintenanceBuildingId: buildings[0]?.id })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Building</button>}
+                              {selectedRule.maintenanceMinCost == null && <button type="button" onClick={() => updateRule(selectedRule.id, { maintenanceMinCost: 500 })} className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors">Min Cost</button>}
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {/* Active conditions summary */}
-                      {(selectedRule.schoolId || selectedRule.campusId || selectedRule.eventCategory || selectedRule.minAttendance || selectedRule.requiresResource || selectedRule.isOffCampus != null) && (
-                        <p className="text-[10px] text-slate-400 pl-14">
-                          Matches events where{' '}
-                          {[
-                            selectedRule.school && `school = ${selectedRule.school.name}`,
-                            selectedRule.campus && `campus = ${selectedRule.campus.name}`,
-                            selectedRule.eventCategory && `category = ${categories.find(c => c.id === selectedRule.eventCategory)?.name || selectedRule.eventCategory}`,
-                            selectedRule.minAttendance && `attendance ≥ ${selectedRule.minAttendance}`,
-                            selectedRule.requiresResource && `needs ${selectedRule.requiresResource.toUpperCase()}`,
-                            selectedRule.isOffCampus === true && 'off-campus',
-                            selectedRule.isOffCampus === false && 'on-campus',
-                          ].filter(Boolean).join(' AND ')}
-                        </p>
-                      )}
+                      {(() => {
+                        const parts = [
+                          selectedRule.school && `school = ${selectedRule.school.name}`,
+                          selectedRule.campus && `campus = ${selectedRule.campus.name}`,
+                          // Event
+                          !isMaintenance && selectedRule.eventCategory && `category = ${categories.find(c => c.id === selectedRule.eventCategory)?.name || selectedRule.eventCategory}`,
+                          !isMaintenance && selectedRule.minAttendance && `attendance ≥ ${selectedRule.minAttendance}`,
+                          !isMaintenance && selectedRule.requiresResource && `needs ${selectedRule.requiresResource.toUpperCase()}`,
+                          !isMaintenance && selectedRule.isOffCampus === true && 'off-campus',
+                          !isMaintenance && selectedRule.isOffCampus === false && 'on-campus',
+                          // Maintenance
+                          isMaintenance && selectedRule.maintenanceCategory && `category = ${MAINTENANCE_CATEGORIES.find(c => c.value === selectedRule.maintenanceCategory)?.label}`,
+                          isMaintenance && selectedRule.maintenancePriority && `priority = ${selectedRule.maintenancePriority}`,
+                          isMaintenance && selectedRule.maintenanceBuilding && `building = ${selectedRule.maintenanceBuilding.name}`,
+                          isMaintenance && selectedRule.maintenanceMinCost && `cost ≥ $${selectedRule.maintenanceMinCost}`,
+                        ].filter(Boolean)
+                        return parts.length > 0 ? (
+                          <p className="text-[10px] text-slate-400 pl-14">
+                            Matches {isMaintenance ? 'tickets' : 'events'} where {parts.join(' AND ')}
+                          </p>
+                        ) : null
+                      })()}
                     </div>
                   )}
 
@@ -938,15 +985,18 @@ export default function ApprovalRulesBuilder() {
           <AIWorkflowCreator
             isOpen={showAICreator}
             onClose={() => setShowAICreator(false)}
+            module={module}
             context={{
               schools: schools.map(s => ({ id: s.id, name: s.name })),
               campuses: campuses.map(c => ({ id: c.id, name: c.name, schoolName: schools.find(s => s.id === c.schoolId)?.name })),
-              categories: categories.map(c => ({ id: c.id, name: c.name })),
+              categories: isMaintenance
+                ? MAINTENANCE_CATEGORIES.map(c => ({ id: c.value, name: c.label }))
+                : categories.map(c => ({ id: c.id, name: c.name })),
               teams: teams.map(t => ({ id: t.id, name: t.name })),
               members: allMembers.map(m => ({ id: m.id, name: m.name || m.email, teamName: m.teamName, avatar: m.avatar })),
             }}
             onRulesCreated={() => {
-              queryClient.invalidateQueries({ queryKey: ['approval-rules'] })
+              queryClient.invalidateQueries({ queryKey: ['approval-rules', module] })
               setShowAICreator(false)
               setShowAIDisclaimer(true)
             }}
@@ -973,6 +1023,7 @@ function RuleCard({
   onDelete: () => void
   categories?: CategoryData[]
   isDefault?: boolean
+  isMaintenance?: boolean
 }) {
   const categoryName = rule.eventCategory
     ? categories.find(c => c.id === rule.eventCategory)?.name || rule.eventCategory
@@ -981,11 +1032,17 @@ function RuleCard({
   const conditionParts = [
     rule.school && rule.school.name,
     rule.campus && rule.campus.name,
-    categoryName,
-    rule.minAttendance && `${rule.minAttendance}+ people`,
-    rule.requiresResource && rule.requiresResource.toUpperCase(),
-    rule.isOffCampus === true && 'Off-campus',
-    rule.isOffCampus === false && 'On-campus',
+    // Event conditions
+    !isMaintenance && categoryName,
+    !isMaintenance && rule.minAttendance && `${rule.minAttendance}+ people`,
+    !isMaintenance && rule.requiresResource && rule.requiresResource.toUpperCase(),
+    !isMaintenance && rule.isOffCampus === true && 'Off-campus',
+    !isMaintenance && rule.isOffCampus === false && 'On-campus',
+    // Maintenance conditions
+    isMaintenance && rule.maintenanceCategory && MAINTENANCE_CATEGORIES.find(c => c.value === rule.maintenanceCategory)?.label,
+    isMaintenance && rule.maintenancePriority,
+    isMaintenance && rule.maintenanceBuilding?.name,
+    isMaintenance && rule.maintenanceMinCost && `≥$${rule.maintenanceMinCost}`,
   ].filter(Boolean)
 
   const stepCount = rule.steps.length

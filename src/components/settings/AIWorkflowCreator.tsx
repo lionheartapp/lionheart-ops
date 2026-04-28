@@ -71,6 +71,7 @@ type Phase = 'input' | 'processing' | 'preview' | 'saving' | 'done'
 interface AIWorkflowCreatorProps {
   isOpen: boolean
   onClose: () => void
+  module?: 'EVENT' | 'MAINTENANCE'
   context: WorkflowContext
   onRulesCreated: () => void
 }
@@ -80,9 +81,11 @@ interface AIWorkflowCreatorProps {
 export default function AIWorkflowCreator({
   isOpen,
   onClose,
+  module = 'EVENT',
   context,
   onRulesCreated,
 }: AIWorkflowCreatorProps) {
+  const isMaintenance = module === 'MAINTENANCE'
   const [phase, setPhase] = useState<Phase>('input')
   const [text, setText] = useState('')
   const [isListening, setIsListening] = useState(false)
@@ -408,9 +411,12 @@ export default function AIWorkflowCreator({
           method: 'POST',
           body: JSON.stringify({
             name: rule.name,
+            module,
             schoolId: rule.schoolId,
             campusId: rule.campusId,
-            eventCategory: rule.categoryId,
+            ...(isMaintenance
+              ? { maintenanceCategory: rule.categoryId }
+              : { eventCategory: rule.categoryId }),
             minAttendance: rule.minAttendance ?? null,
             requiresResource: rule.requiresResource ?? null,
             isOffCampus: rule.isOffCampus ?? null,
@@ -505,7 +511,9 @@ export default function AIWorkflowCreator({
                     value={text}
                     onChange={handleTextChange}
                     onKeyDown={handleTextareaKeyDown}
-                    placeholder={'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "For River Springs, any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
+                    placeholder={isMaintenance
+                      ? 'Describe how maintenance approvals should work... Use @ to mention people or teams.\n\nExample: "HVAC tickets need approval from @David Garcia. Any ticket over $500 needs admin sign-off. Urgent tickets should notify the facilities director."'
+                      : 'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "For River Springs, any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
                     className="w-full h-40 px-4 py-3 text-sm bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none resize-none placeholder:text-slate-400 transition-colors"
                   />
                   {isListening && (
@@ -645,10 +653,18 @@ export default function AIWorkflowCreator({
                 {/* Quick-insert chips — common conditions people might not think of */}
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { label: 'If A/V needed', insert: 'If the event needs A/V equipment, ' },
-                    { label: 'If off-campus', insert: 'If the event is off-campus, ' },
-                    { label: 'If 100+ attendees', insert: 'If expected attendance is over 100, ' },
-                    { label: 'If weekend', insert: 'If the event is on a weekend, ' },
+                    ...(isMaintenance ? [
+                      { label: 'If HVAC', insert: 'If the ticket category is HVAC, ' },
+                      { label: 'If electrical', insert: 'If the ticket is for electrical work, ' },
+                      { label: 'If urgent', insert: 'If the ticket priority is urgent, ' },
+                      { label: 'If cost > $500', insert: 'If the estimated repair cost is over $500, ' },
+                      { label: 'If plumbing', insert: 'If the ticket is for plumbing, ' },
+                    ] : [
+                      { label: 'If A/V needed', insert: 'If the event needs A/V equipment, ' },
+                      { label: 'If off-campus', insert: 'If the event is off-campus, ' },
+                      { label: 'If 100+ attendees', insert: 'If expected attendance is over 100, ' },
+                      { label: 'If weekend', insert: 'If the event is on a weekend, ' },
+                    ]),
                     { label: 'Sequential', insert: 'Approvals should happen in order: ' },
                     { label: 'Notify only', insert: 'Just notify (no approval needed) ' },
                     { label: 'Escalate if stalled', insert: 'If no response within 24 hours, escalate to ' },

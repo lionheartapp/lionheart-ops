@@ -12,11 +12,12 @@ const db = prisma as unknown as OrgPrismaClient
  * GET /api/settings/approval-rules
  * Returns all approval rules with their steps, plus schools/teams for the builder.
  */
-export const GET = withAuth(async () => {
-  const rules = await getApprovalRules()
+export const GET = withAuth(async ({ searchParams }) => {
+  const module = searchParams.get('module') || undefined
+  const rules = await getApprovalRules(module)
 
-  // Also fetch schools, campuses, categories, and teams for the builder dropdowns
-  const [schools, campuses, categories, teams] = await Promise.all([
+  // Fetch shared dropdowns: schools, campuses, teams
+  const [schools, campuses, teams] = await Promise.all([
     db.school.findMany({
       where: { deletedAt: null },
       select: { id: true, name: true, institutionType: true, color: true },
@@ -26,10 +27,6 @@ export const GET = withAuth(async () => {
       where: { deletedAt: null },
       select: { id: true, name: true, schoolId: true },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    }),
-    db.calendarCategory.findMany({
-      select: { id: true, name: true, color: true },
-      orderBy: { name: 'asc' },
     }),
     db.team.findMany({
       orderBy: { name: 'asc' },
@@ -48,6 +45,22 @@ export const GET = withAuth(async () => {
     }),
   ])
 
+  // Module-specific dropdowns
+  const categories = module === 'MAINTENANCE'
+    ? [] // Maintenance categories are hardcoded enums, not DB records
+    : await db.calendarCategory.findMany({
+        select: { id: true, name: true, color: true },
+        orderBy: { name: 'asc' },
+      })
+
+  const buildings = module === 'MAINTENANCE'
+    ? await db.building.findMany({
+        where: { deletedAt: null, isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      })
+    : []
+
   const shapedTeams = teams.map((t) => ({
     id: t.id,
     name: t.name,
@@ -60,18 +73,25 @@ export const GET = withAuth(async () => {
     })),
   }))
 
-  return NextResponse.json(ok({ rules, schools, campuses, categories, teams: shapedTeams }))
+  return NextResponse.json(ok({ rules, schools, campuses, categories, buildings, teams: shapedTeams }))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 const CreateSchema = z.object({
   name: z.string().min(1).max(100),
+  module: z.enum(['EVENT', 'MAINTENANCE']).optional(),
   description: z.string().max(500).optional(),
   schoolId: z.string().optional().nullable(),
   campusId: z.string().optional().nullable(),
+  // Event conditions
   eventCategory: z.string().optional().nullable(),
   minAttendance: z.number().int().positive().optional().nullable(),
   requiresResource: z.enum(['av', 'facilities', 'custodial', 'security']).optional().nullable(),
   isOffCampus: z.boolean().optional().nullable(),
+  // Maintenance conditions
+  maintenanceCategory: z.string().optional().nullable(),
+  maintenancePriority: z.string().optional().nullable(),
+  maintenanceBuildingId: z.string().optional().nullable(),
+  maintenanceMinCost: z.number().positive().optional().nullable(),
   isDefault: z.boolean().optional(),
   isFinalApprover: z.boolean().optional(),
 })
@@ -82,6 +102,6 @@ const CreateSchema = z.object({
  */
 export const POST = withAuth(async ({ body }) => {
   const rule = await createApprovalRule(body)
-  const rules = await getApprovalRules()
+  const rules = await getApprovalRules(body.module)
   return NextResponse.json(ok(rules))
 }, { permission: PERMISSIONS.SETTINGS_UPDATE, schema: CreateSchema })

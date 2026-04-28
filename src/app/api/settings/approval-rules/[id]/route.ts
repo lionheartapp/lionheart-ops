@@ -10,10 +10,16 @@ const UpdateSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   schoolId: z.string().optional().nullable(),
   campusId: z.string().optional().nullable(),
+  // Event conditions
   eventCategory: z.string().optional().nullable(),
   minAttendance: z.number().int().positive().optional().nullable(),
   requiresResource: z.enum(['av', 'facilities', 'custodial', 'security']).optional().nullable(),
   isOffCampus: z.boolean().optional().nullable(),
+  // Maintenance conditions
+  maintenanceCategory: z.string().optional().nullable(),
+  maintenancePriority: z.string().optional().nullable(),
+  maintenanceBuildingId: z.string().optional().nullable(),
+  maintenanceMinCost: z.number().positive().optional().nullable(),
   isDefault: z.boolean().optional(),
   isFinalApprover: z.boolean().optional(),
   isActive: z.boolean().optional(),

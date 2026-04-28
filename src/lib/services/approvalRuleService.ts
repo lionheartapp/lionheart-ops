@@ -16,14 +16,15 @@ const db = () => prisma as unknown as OrgPrismaClient
 
 // ─── Read ─────────────────────────────────────────────────────────────────────
 
-export async function getApprovalRules() {
+export async function getApprovalRules(module?: string) {
   const orgId = getOrgContextId()
   return rawPrisma.approvalRule.findMany({
-    where: { organizationId: orgId },
+    where: { organizationId: orgId, ...(module ? { module } : {}) },
     orderBy: { sortOrder: 'asc' },
     include: {
       school: { select: { id: true, name: true, color: true } },
       campus: { select: { id: true, name: true } },
+      maintenanceBuilding: { select: { id: true, name: true } },
       steps: {
         orderBy: { sortOrder: 'asc' },
         include: {
@@ -56,13 +57,20 @@ export async function getApprovalRuleById(id: string) {
 
 interface CreateRuleInput {
   name: string
+  module?: string
   description?: string
   schoolId?: string | null
   campusId?: string | null
+  // Event conditions
   eventCategory?: string | null
   minAttendance?: number | null
   requiresResource?: string | null
   isOffCampus?: boolean | null
+  // Maintenance conditions
+  maintenanceCategory?: string | null
+  maintenancePriority?: string | null
+  maintenanceBuildingId?: string | null
+  maintenanceMinCost?: number | null
   isDefault?: boolean
   isFinalApprover?: boolean
 }
@@ -70,15 +78,15 @@ interface CreateRuleInput {
 export async function createApprovalRule(input: CreateRuleInput) {
   const orgId = getOrgContextId()
 
-  // Get max sortOrder for this org
   const maxSort = await rawPrisma.approvalRule.aggregate({
-    where: { organizationId: orgId },
+    where: { organizationId: orgId, module: input.module || 'EVENT' },
     _max: { sortOrder: true },
   })
 
   return rawPrisma.approvalRule.create({
     data: {
       organizationId: orgId,
+      module: input.module || 'EVENT',
       name: input.name,
       description: input.description || null,
       schoolId: input.schoolId || null,
@@ -87,6 +95,10 @@ export async function createApprovalRule(input: CreateRuleInput) {
       minAttendance: input.minAttendance ?? null,
       requiresResource: input.requiresResource || null,
       isOffCampus: input.isOffCampus ?? null,
+      maintenanceCategory: input.maintenanceCategory || null,
+      maintenancePriority: input.maintenancePriority || null,
+      maintenanceBuildingId: input.maintenanceBuildingId || null,
+      maintenanceMinCost: input.maintenanceMinCost ?? null,
       isDefault: input.isDefault ?? false,
       isFinalApprover: input.isFinalApprover ?? false,
       sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
@@ -105,6 +117,10 @@ interface UpdateRuleInput {
   minAttendance?: number | null
   requiresResource?: string | null
   isOffCampus?: boolean | null
+  maintenanceCategory?: string | null
+  maintenancePriority?: string | null
+  maintenanceBuildingId?: string | null
+  maintenanceMinCost?: number | null
   isDefault?: boolean
   isFinalApprover?: boolean
   isActive?: boolean
@@ -247,6 +263,78 @@ export async function resolveApprovalSteps(orgId: string, eventCtx: EventContext
   const baseSteps = matchedSteps.length > 0 ? matchedSteps : defaultSteps
 
   // Deduplicate: same team + same user shouldn't appear twice
+  const seen = new Set<string>()
+  const deduped = baseSteps.filter((step) => {
+    const key = `${step.teamId}:${step.assignedUserId ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  return [...deduped, ...finalSteps]
+}
+
+// ─── Maintenance approval step resolution ────────────────────────────────────
+
+interface MaintenanceTicketContext {
+  schoolId?: string | null
+  campusId?: string | null
+  category?: string | null
+  priority?: string | null
+  buildingId?: string | null
+  estimatedRepairCostUSD?: number | null
+}
+
+/**
+ * Given a maintenance ticket context, returns the ordered list of approval steps.
+ * Same merge-all-matching-rules logic as event approval.
+ */
+export async function resolveMaintenanceApprovalSteps(orgId: string, ticketCtx: MaintenanceTicketContext) {
+  const rules = await rawPrisma.approvalRule.findMany({
+    where: { organizationId: orgId, module: 'MAINTENANCE', isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      steps: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          team: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+
+  const matchedSteps: typeof rules[0]['steps'] = []
+  const defaultSteps: typeof rules[0]['steps'] = []
+  const finalSteps: typeof rules[0]['steps'] = []
+
+  for (const rule of rules) {
+    if (rule.isFinalApprover) {
+      finalSteps.push(...rule.steps)
+      continue
+    }
+
+    if (rule.isDefault) {
+      defaultSteps.push(...rule.steps)
+      continue
+    }
+
+    // Shared conditions
+    const matchesSchool = !rule.schoolId || rule.schoolId === ticketCtx.schoolId
+    const matchesCampus = !rule.campusId || rule.campusId === ticketCtx.campusId
+
+    // Maintenance-specific conditions
+    const matchesCategory = !rule.maintenanceCategory || rule.maintenanceCategory === ticketCtx.category
+    const matchesPriority = !rule.maintenancePriority || rule.maintenancePriority === ticketCtx.priority
+    const matchesBuilding = !rule.maintenanceBuildingId || rule.maintenanceBuildingId === ticketCtx.buildingId
+    const matchesCost = rule.maintenanceMinCost == null || (ticketCtx.estimatedRepairCostUSD ?? 0) >= rule.maintenanceMinCost
+
+    if (matchesSchool && matchesCampus && matchesCategory && matchesPriority && matchesBuilding && matchesCost) {
+      matchedSteps.push(...rule.steps)
+    }
+  }
+
+  const baseSteps = matchedSteps.length > 0 ? matchedSteps : defaultSteps
+
   const seen = new Set<string>()
   const deduped = baseSteps.filter((step) => {
     const key = `${step.teamId}:${step.assignedUserId ?? ''}`
