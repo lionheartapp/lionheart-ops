@@ -157,7 +157,7 @@ export default function AIWorkflowCreator({
       setMentionQuery(atMatch[1])
       setMentionStart(cursor - atMatch[0].length)
       setMentionIndex(0)
-      setMentionFilter('person')
+      setMentionFilter('school')
     } else {
       setMentionQuery(null)
     }
@@ -529,10 +529,10 @@ export default function AIWorkflowCreator({
                           {/* Category filter tabs */}
                           <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 mb-1">
                             {([
-                              { key: 'person', label: 'People' },
-                              { key: 'team', label: 'Teams' },
                               { key: 'school', label: 'Schools' },
                               { key: 'campus', label: 'Campuses' },
+                              { key: 'team', label: 'Teams' },
+                              { key: 'person', label: 'People' },
                             ] as const).map(tab => (
                               <button
                                 key={tab.key}

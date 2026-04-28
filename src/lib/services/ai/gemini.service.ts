@@ -267,7 +267,9 @@ JSON:`
         return JSON.parse(jsonMatch[0]) as ParsedWorkflow
       }
       return { rules: [], summary: 'Could not parse workflow' }
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[parseApprovalWorkflow] Gemini error:', err instanceof Error ? err.message : err)
       return { rules: [], summary: 'Failed to parse workflow' }
     }
   }
