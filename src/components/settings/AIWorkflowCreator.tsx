@@ -51,6 +51,9 @@ interface ResolvedRule {
   schoolId: string | null
   campusId: string | null
   categoryId: string | null
+  minAttendance: number | null
+  requiresResource: string | null
+  isOffCampus: boolean | null
   executionMode: string
   isDefault: boolean
   steps: ResolvedStep[]
