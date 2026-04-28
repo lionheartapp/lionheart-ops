@@ -320,6 +320,124 @@ async function run() {
   assert(updated?.escalationAction === 'AUTO_APPROVE', 'Escalation action updated to AUTO_APPROVE')
   console.log()
 
+  // ── Test 8: Maintenance approval rule ───────────────────────────────
+  console.log('8. Testing maintenance approval workflow...')
+
+  const maintRule = await prisma.approvalRule.create({
+    data: {
+      organizationId: org.id,
+      module: 'MAINTENANCE',
+      name: '[SMOKE] HVAC Tickets Need Approval',
+      maintenanceCategory: 'HVAC',
+      executionMode: 'PARALLEL',
+      sortOrder: 996,
+    },
+  })
+  cleanup.push(() => prisma.approvalRule.delete({ where: { id: maintRule.id } }).catch(() => {}))
+
+  assert(maintRule.module === 'MAINTENANCE', 'Maintenance rule created with module=MAINTENANCE')
+  assert(maintRule.maintenanceCategory === 'HVAC', 'Rule has maintenanceCategory=HVAC')
+
+  // Add a step
+  const maintStep = await prisma.approvalFlowEntry.create({
+    data: {
+      organizationId: org.id,
+      ruleId: maintRule.id,
+      teamId: team.id,
+      mode: 'REQUIRED',
+      trigger: 'ALWAYS',
+      sortOrder: 0,
+    },
+  })
+  cleanup.push(() => prisma.approvalFlowEntry.delete({ where: { id: maintStep.id } }).catch(() => {}))
+
+  assert(!!maintStep.id, `Maintenance step created: ${team.name}`)
+
+  // Verify maintenance resolver matches HVAC tickets
+  const maintRules = await prisma.approvalRule.findMany({
+    where: { organizationId: org.id, module: 'MAINTENANCE', isActive: true },
+    include: { steps: { include: { team: { select: { id: true, name: true } } } } },
+  })
+
+  const hvacCtx = { category: 'HVAC', priority: 'MEDIUM', buildingId: null, estimatedRepairCostUSD: null }
+  const hvacMatched = []
+  for (const r of maintRules) {
+    if (r.isDefault || r.isFinalApprover) continue
+    const matchesCategory = !r.maintenanceCategory || r.maintenanceCategory === hvacCtx.category
+    if (matchesCategory) hvacMatched.push(...r.steps)
+  }
+  assert(hvacMatched.length > 0, 'HVAC ticket matches maintenance approval rule')
+
+  // Plumbing should NOT match
+  const plumbingCtx = { ...hvacCtx, category: 'PLUMBING' }
+  const plumbingMatched = []
+  for (const r of maintRules) {
+    if (r.isDefault || r.isFinalApprover) continue
+    if (r.id === maintRule.id && r.maintenanceCategory !== plumbingCtx.category) continue
+    if (r.id === maintRule.id) plumbingMatched.push(...r.steps)
+  }
+  assert(plumbingMatched.length === 0, 'PLUMBING ticket does NOT match HVAC rule')
+
+  // Create a maintenance ticket with approval gates
+  const building = await prisma.building.findFirst({
+    where: { organizationId: org.id, deletedAt: null },
+    select: { id: true },
+  })
+
+  const maintTicket = await prisma.maintenanceTicket.create({
+    data: {
+      organizationId: org.id,
+      ticketNumber: 'SMOKE-001',
+      title: '[SMOKE] HVAC Repair',
+      category: 'HVAC',
+      specialty: 'HVAC',
+      priority: 'MEDIUM',
+      status: 'PENDING_APPROVAL',
+      submittedById: user.id,
+      buildingId: building?.id ?? null,
+      approvalGates: {
+        [team.id]: {
+          status: 'PENDING',
+          teamName: team.name,
+          trigger: 'ALWAYS',
+          resourceType: null,
+          sortOrder: 0,
+        },
+      },
+    },
+  })
+  cleanup.push(() => prisma.maintenanceTicket.delete({ where: { id: maintTicket.id } }).catch(() => {}))
+
+  assert(maintTicket.status === 'PENDING_APPROVAL', 'Maintenance ticket status is PENDING_APPROVAL')
+  assert(!!maintTicket.approvalGates, 'Maintenance ticket has approval gates')
+
+  // Approve the gate
+  const mGates = maintTicket.approvalGates
+  mGates[team.id] = { ...mGates[team.id], status: 'APPROVED', respondedById: user.id, respondedAt: new Date().toISOString() }
+  const approvedTicket = await prisma.maintenanceTicket.update({
+    where: { id: maintTicket.id },
+    data: { approvalGates: mGates, status: 'BACKLOG', approvedById: user.id, approvedAt: new Date() },
+  })
+  assert(approvedTicket.status === 'BACKLOG', 'Approved maintenance ticket transitions to BACKLOG')
+  assert(!!approvedTicket.approvedById, 'approvedById is set')
+  console.log()
+
+  // ── Test 9: Module isolation ──────────────────────────────────────
+  console.log('9. Testing module isolation...')
+
+  const eventRules = await prisma.approvalRule.findMany({
+    where: { organizationId: org.id, module: 'EVENT' },
+    select: { id: true, module: true },
+  })
+  const maintRulesOnly = await prisma.approvalRule.findMany({
+    where: { organizationId: org.id, module: 'MAINTENANCE' },
+    select: { id: true, module: true },
+  })
+  assert(eventRules.every(r => r.module === 'EVENT'), 'Event rules are all module=EVENT')
+  assert(maintRulesOnly.every(r => r.module === 'MAINTENANCE'), 'Maintenance rules are all module=MAINTENANCE')
+  assert(!eventRules.some(r => maintRulesOnly.some(m => m.id === r.id)), 'No overlap between event and maintenance rules')
+  console.log()
+
   // ── Summary ────────────────────────────────────────────────────────
   console.log('─'.repeat(50))
   console.log(`\n  ${passed} passed, ${failed} failed\n`)
