@@ -165,7 +165,8 @@ export default function FieldEditor({
                 <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Question</label>
                 <input
                   ref={labelRef}
-                  className="mt-1 w-full text-base font-medium text-slate-900 bg-transparent border-0 border-b-2 border-slate-200 focus:border-slate-900 outline-none pb-1 transition-colors"
+                  style={{ borderRadius: 0 }}
+                  className="mt-1 w-full text-base font-medium text-slate-900 bg-transparent border-0 border-b border-slate-200 focus:border-slate-900 outline-none pb-1 transition-colors"
                   value={field.label}
                   placeholder="What do you want to ask?"
                   onChange={(e) =>
@@ -181,6 +182,7 @@ export default function FieldEditor({
               <div>
                 <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Help text</label>
                 <input
+                  style={{ borderRadius: 0 }}
                   className="mt-1 w-full text-sm text-slate-600 bg-transparent border-0 border-b border-slate-100 focus:border-slate-400 outline-none pb-1 transition-colors"
                   value={field.helpText || ''}
                   placeholder="Optional description for the submitter..."

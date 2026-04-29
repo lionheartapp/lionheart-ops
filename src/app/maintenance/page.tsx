@@ -16,7 +16,10 @@ import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
-import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText } from 'lucide-react'
+import {
+  LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText,
+  Zap, Droplets, Wind, Hammer, SprayCan, Trees, HelpCircle, ChevronLeft, Pencil,
+} from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
@@ -42,14 +45,13 @@ const SUB_TABS: {
 ]
 
 const MAINTENANCE_CATEGORY_KEYS = [
-  { key: 'ELECTRICAL', label: 'Electrical' },
-  { key: 'PLUMBING', label: 'Plumbing' },
-  { key: 'HVAC', label: 'HVAC' },
-  { key: 'STRUCTURAL', label: 'Structural' },
-  { key: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard' },
-  { key: 'IT_AV', label: 'IT / A/V' },
-  { key: 'GROUNDS', label: 'Grounds' },
-  { key: 'OTHER', label: 'Other' },
+  { key: 'ELECTRICAL', label: 'Electrical', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { key: 'PLUMBING', label: 'Plumbing', icon: Droplets, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { key: 'HVAC', label: 'HVAC', icon: Wind, color: 'text-teal-600', bg: 'bg-teal-50' },
+  { key: 'STRUCTURAL', label: 'Structural', icon: Hammer, color: 'text-orange-600', bg: 'bg-orange-50' },
+  { key: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard', icon: SprayCan, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { key: 'GROUNDS', label: 'Grounds', icon: Trees, color: 'text-green-600', bg: 'bg-green-50' },
+  { key: 'OTHER', label: 'Other', icon: HelpCircle, color: 'text-slate-600', bg: 'bg-slate-50' },
 ]
 
 /**
@@ -416,46 +418,78 @@ function MaintenanceContent() {
 // ─── Forms Tab ──────────────────────────────────────────────────────────────
 
 function MaintenanceFormsTab() {
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
 
+  const editingCat = MAINTENANCE_CATEGORY_KEYS.find((c) => c.key === editingCategory)
+
+  // Editing view — full-width form editor
+  if (editingCat) {
+    const Icon = editingCat.icon
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setEditingCategory(null)}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 cursor-pointer transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to all categories
+        </button>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className={`w-10 h-10 rounded-xl ${editingCat.bg} flex items-center justify-center`}>
+              <Icon className={`w-5 h-5 ${editingCat.color}`} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">{editingCat.label} Form</h3>
+              <p className="text-sm text-slate-500">Fields shown when submitting a {editingCat.label.toLowerCase()} ticket</p>
+            </div>
+          </div>
+
+          <CategoryFormEditor
+            key={editingCat.key}
+            categoryKey={editingCat.key.toLowerCase()}
+            categoryLabel={editingCat.label}
+            module="MAINTENANCE"
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Card grid view — all categories
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h3 className="text-lg font-semibold text-slate-900">Ticket Forms</h3>
         <p className="text-sm text-slate-500 mt-0.5">
-          Configure what fields appear when submitters create a ticket in each category.
+          Each maintenance category has its own intake form. Click a category to customize what fields appear.
         </p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
-            Category Fields
-          </h4>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
-          >
-            <option value="">Select a category...</option>
-            {MAINTENANCE_CATEGORY_KEYS.map((cat) => (
-              <option key={cat.key} value={cat.key}>{cat.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {selectedCategory ? (
-          <CategoryFormEditor
-            key={selectedCategory}
-            categoryKey={selectedCategory.toLowerCase()}
-            categoryLabel={MAINTENANCE_CATEGORY_KEYS.find((c) => c.key === selectedCategory)?.label ?? selectedCategory}
-            module="MAINTENANCE"
-          />
-        ) : (
-          <div className="text-sm text-slate-400 italic py-6 text-center">
-            Pick a category above to configure its extra fields.
-          </div>
-        )}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {MAINTENANCE_CATEGORY_KEYS.map((cat) => {
+          const Icon = cat.icon
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() => setEditingCategory(cat.key)}
+              className="group text-left bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer"
+            >
+              <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center mb-3`}>
+                <Icon className={`w-5 h-5 ${cat.color}`} />
+              </div>
+              <h4 className="text-sm font-semibold text-slate-900">{cat.label}</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Customize intake fields</p>
+              <div className="mt-3 flex items-center gap-1 text-xs text-slate-400 group-hover:text-slate-600 transition-colors">
+                <Pencil className="w-3 h-3" />
+                Edit form
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
