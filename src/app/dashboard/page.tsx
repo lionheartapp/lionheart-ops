@@ -18,6 +18,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { getAuthHeaders } from '@/lib/api-client'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
+import SubmitRequestWizard from '@/components/maintenance/SubmitRequestWizard'
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -346,7 +347,14 @@ export default function DashboardPage() {
     }
   }, [isReady, org.id, user.dashboardMode, fetchTickets, fetchEvents])
 
+  const [showMaintenanceWizard, setShowMaintenanceWizard] = useState(false)
+
   const openCreateDrawer = useCallback((category: 'MAINTENANCE' | 'IT') => {
+    if (category === 'MAINTENANCE') {
+      setShowMaintenanceWizard(true)
+      setIsCreateDropdownOpen(false)
+      return
+    }
     setCreateCategory(category)
     setCreateForm({ title: '', description: '', locationText: '', priority: 'NORMAL' })
     setCreateError('')
@@ -1200,6 +1208,37 @@ export default function DashboardPage() {
           )}
         </div>
       </DetailDrawer>
+      {/* ─── Maintenance Wizard (full form with custom fields) ───────────── */}
+      <AnimatePresence>
+        {showMaintenanceWizard && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+              onClick={() => setShowMaintenanceWizard(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed inset-4 sm:inset-x-auto sm:inset-y-8 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            >
+              <div className="flex-1 overflow-y-auto p-6">
+                <SubmitRequestWizard
+                  onComplete={() => {
+                    setShowMaintenanceWizard(false)
+                    fetchTickets(user.dashboardMode || 'staff')
+                  }}
+                  onCancel={() => setShowMaintenanceWizard(false)}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ─── Event Project Create flows (same as Events Hub) ───────────────── */}
       <CreateEventProjectModal
         isOpen={projectModalOpen}
