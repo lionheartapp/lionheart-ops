@@ -15,7 +15,8 @@ import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
-import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck } from 'lucide-react'
+import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
+import { LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
@@ -37,6 +38,18 @@ const SUB_TABS: {
   { key: 'pm-calendar', label: 'PM Calendar', icon: CalendarClock },
   { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
   { key: 'approvals', label: 'Approvals', icon: ShieldCheck, requiresManage: true },
+  { key: 'forms', label: 'Forms', icon: FileText, requiresManage: true },
+]
+
+const MAINTENANCE_CATEGORY_KEYS = [
+  { key: 'ELECTRICAL', label: 'Electrical' },
+  { key: 'PLUMBING', label: 'Plumbing' },
+  { key: 'HVAC', label: 'HVAC' },
+  { key: 'STRUCTURAL', label: 'Structural' },
+  { key: 'CUSTODIAL_BIOHAZARD', label: 'Custodial / Biohazard' },
+  { key: 'IT_AV', label: 'IT / A/V' },
+  { key: 'GROUNDS', label: 'Grounds' },
+  { key: 'OTHER', label: 'Other' },
 ]
 
 /**
@@ -376,6 +389,18 @@ function MaintenanceContent() {
                         <ApprovalRulesBuilder module="MAINTENANCE" />
                       </div>
                     )}
+
+                    {/* Forms tab — managers only */}
+                    {canManageMaintenance && activeTab === 'forms' && (
+                      <div
+                        role="tabpanel"
+                        id="tabpanel-forms"
+                        aria-labelledby="tab-forms"
+                        className="animate-[fadeIn_200ms_ease-out]"
+                      >
+                        <MaintenanceFormsTab />
+                      </div>
+                    )}
                 </>
               </>
             ) : (
@@ -385,6 +410,54 @@ function MaintenanceContent() {
         </div>
       </MotionConfig>
     </DashboardLayout>
+  )
+}
+
+// ─── Forms Tab ──────────────────────────────────────────────────────────────
+
+function MaintenanceFormsTab() {
+  const [selectedCategory, setSelectedCategory] = useState('')
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900">Ticket Forms</h3>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Configure what fields appear when submitters create a ticket in each category.
+        </p>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+            Category Fields
+          </h4>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
+          >
+            <option value="">Select a category...</option>
+            {MAINTENANCE_CATEGORY_KEYS.map((cat) => (
+              <option key={cat.key} value={cat.key}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedCategory ? (
+          <CategoryFormEditor
+            key={selectedCategory}
+            categoryKey={selectedCategory.toLowerCase()}
+            categoryLabel={MAINTENANCE_CATEGORY_KEYS.find((c) => c.key === selectedCategory)?.label ?? selectedCategory}
+            module="MAINTENANCE"
+          />
+        ) : (
+          <div className="text-sm text-slate-400 italic py-6 text-center">
+            Pick a category above to configure its extra fields.
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
