@@ -84,7 +84,7 @@ export default function FieldEditor({
       expanded ? 'border-slate-300 bg-white shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'
     }`}>
       {/* ── Collapsed header ── */}
-      <div className="flex items-center gap-2.5 px-3 py-2.5">
+      <div className="flex items-center gap-2.5 px-3 py-3.5">
         {/* Drag handle */}
         <button
           type="button"

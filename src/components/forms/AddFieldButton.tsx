@@ -55,7 +55,7 @@ export default function AddFieldButton({ onAdd }: AddFieldButtonProps) {
       </button>
 
       {open && (
-        <div className="absolute z-20 left-0 right-0 mt-2 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-[fadeIn_100ms_ease-out]">
+        <div className="absolute z-20 left-0 right-0 bottom-full mb-2 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-[fadeIn_100ms_ease-out]">
           {/* Common types — shown first */}
           <div className="p-2">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 py-1">Common</p>

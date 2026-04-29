@@ -194,7 +194,7 @@ export default function CategoryFormEditor({
         {STANDARD_TICKET_FIELDS.map((f) => (
           <div
             key={f.key}
-            className="flex items-center justify-between px-4 py-2.5"
+            className="flex items-center justify-between px-4 py-3.5"
           >
             <div>
               <div className="text-sm text-[#1a1915]">
