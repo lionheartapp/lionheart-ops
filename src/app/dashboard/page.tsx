@@ -1208,7 +1208,7 @@ export default function DashboardPage() {
           )}
         </div>
       </DetailDrawer>
-      {/* ─── Maintenance Wizard (full form with custom fields) ───────────── */}
+      {/* ─── Maintenance Wizard (slide-in drawer) ───────────────────────── */}
       <AnimatePresence>
         {showMaintenanceWizard && (
           <>
@@ -1220,10 +1220,11 @@ export default function DashboardPage() {
               onClick={() => setShowMaintenanceWizard(false)}
             />
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="fixed inset-4 sm:inset-x-auto sm:inset-y-8 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-xl bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl overflow-hidden"
             >
               <div className="flex-1 overflow-y-auto p-6">
                 <SubmitRequestWizard

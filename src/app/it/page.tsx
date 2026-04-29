@@ -23,7 +23,7 @@ import QrCodeManager from '@/components/forms/QrCodeManager'
 import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
 import { useAiAvailability } from '@/lib/hooks/useAiAvailability'
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
-import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText } from 'lucide-react'
+import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText, Laptop, Code, KeyRound, Wifi, Projector, HelpCircle, ChevronLeft, Pencil } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
@@ -389,63 +389,101 @@ function ITContent() {
 // ─── Forms Tab ────────────────────────────────────────────────────────────────
 
 const IT_CATEGORY_KEYS = [
-  { key: 'HARDWARE', label: 'Hardware' },
-  { key: 'SOFTWARE', label: 'Software' },
-  { key: 'ACCOUNT_PASSWORD', label: 'Accounts & Passwords' },
-  { key: 'NETWORK', label: 'Network' },
-  { key: 'DISPLAY_AV', label: 'Displays & A/V' },
-  { key: 'OTHER', label: 'Other' },
+  { key: 'HARDWARE', label: 'Hardware', icon: Laptop, color: 'text-slate-600', bg: 'bg-slate-50' },
+  { key: 'SOFTWARE', label: 'Software', icon: Code, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { key: 'ACCOUNT_PASSWORD', label: 'Accounts & Passwords', icon: KeyRound, color: 'text-amber-600', bg: 'bg-amber-50' },
+  { key: 'NETWORK', label: 'Network', icon: Wifi, color: 'text-green-600', bg: 'bg-green-50' },
+  { key: 'DISPLAY_AV', label: 'Displays & A/V', icon: Projector, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { key: 'OTHER', label: 'Other', icon: HelpCircle, color: 'text-slate-500', bg: 'bg-slate-50' },
 ]
 
 function FormsTab({ aiAvailable }: { aiAvailable: boolean }) {
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
 
+  const editingCat = IT_CATEGORY_KEYS.find((c) => c.key === editingCategory)
+
+  // Editing view
+  if (editingCat) {
+    const Icon = editingCat.icon
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setEditingCategory(null)}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 cursor-pointer transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to all categories
+        </button>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className={`w-10 h-10 rounded-xl ${editingCat.bg} flex items-center justify-center`}>
+              <Icon className={`w-5 h-5 ${editingCat.color}`} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">{editingCat.label} Form</h3>
+              <p className="text-sm text-slate-500">Fields shown when submitting a {editingCat.label.toLowerCase()} ticket</p>
+            </div>
+          </div>
+
+          {aiAvailable && (
+            <div className="rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2 text-xs text-blue-700 mb-4">
+              AI uses these fields to know what to ask during the conversation.
+            </div>
+          )}
+
+          <CategoryFormEditor
+            key={editingCat.key}
+            categoryKey={editingCat.key.toLowerCase()}
+            categoryLabel={editingCat.label}
+            module="IT"
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Card grid view
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h3 className="text-lg font-semibold text-slate-900">Ticket Forms</h3>
         <p className="text-sm text-slate-500 mt-0.5">
           {aiAvailable
-            ? 'These fields tell the AI what to ask about for each category. When AI is unavailable, they show as a manual form.'
-            : 'These fields are shown to submitters after they pick a category.'}
+            ? 'Each category has its own intake form. The AI uses these fields to guide the conversation.'
+            : 'Each IT category has its own intake form. Click a category to customize what fields appear.'}
         </p>
       </div>
 
       {aiAvailable && (
-        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm text-blue-800">
-          AI is enabled for your organization. The AI assistant uses these field definitions to know what information to gather during the conversation.
+        <div className="rounded-xl border border-blue-100 bg-blue-50/50 px-4 py-3 text-sm text-blue-800">
+          AI is enabled. Field definitions tell the AI what information to gather during the conversation.
         </div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">
-            Category Fields
-          </h4>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
-          >
-            <option value="">Select a category...</option>
-            {IT_CATEGORY_KEYS.map((cat) => (
-              <option key={cat.key} value={cat.key}>{cat.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {selectedCategory ? (
-          <CategoryFormEditor
-            key={selectedCategory}
-            categoryKey={selectedCategory.toLowerCase()}
-            categoryLabel={IT_CATEGORY_KEYS.find((c) => c.key === selectedCategory)?.label ?? selectedCategory}
-            module="IT"
-          />
-        ) : (
-          <div className="text-sm text-slate-400 italic py-6 text-center">
-            Pick a category above to configure its extra fields.
-          </div>
-        )}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {IT_CATEGORY_KEYS.map((cat) => {
+          const Icon = cat.icon
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() => setEditingCategory(cat.key)}
+              className="group text-left bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer"
+            >
+              <div className={`w-10 h-10 rounded-xl ${cat.bg} flex items-center justify-center mb-3`}>
+                <Icon className={`w-5 h-5 ${cat.color}`} />
+              </div>
+              <h4 className="text-sm font-semibold text-slate-900">{cat.label}</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Customize intake fields</p>
+              <div className="mt-3 flex items-center gap-1 text-xs text-slate-400 group-hover:text-slate-600 transition-colors">
+                <Pencil className="w-3 h-3" />
+                Edit form
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
