@@ -23,7 +23,6 @@ import {
   Database,
   Loader2,
   ShieldCheck,
-  TriangleAlert,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp } from '@/lib/animations'
@@ -100,6 +99,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
     queryFn: () => fetchApi<EntityRow[]>('/api/it/erate/entities'),
     staleTime: 5 * 60_000,
     enabled,
+    retry: false,
   })
 
   const yearsQuery = useQuery({
@@ -107,6 +107,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
     queryFn: () => fetchApi<FundingYearCard[]>('/api/it/erate/funding-years'),
     staleTime: 60_000,
     enabled,
+    retry: false,
   })
 
   if (!enabled) return null
@@ -122,7 +123,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
 
   if (isLoading) {
     return (
-      <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
+      <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="h-4 w-28 bg-slate-100 rounded animate-pulse" />
           <div className="h-3 w-16 bg-slate-100 rounded animate-pulse" />
@@ -135,32 +136,9 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
     )
   }
 
-  // ─── Error state ───────────────────────────────────────────────────────
+  // ─── Error state — hide silently (E-Rate is optional) ──────────────────
 
-  if (isError) {
-    return (
-      <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-800">E-Rate Snapshot</h3>
-        </div>
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-red-50 border border-red-100">
-          <TriangleAlert className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm text-slate-700">Couldn&apos;t load E-Rate data.</p>
-            <button
-              onClick={() => {
-                entitiesQuery.refetch()
-                yearsQuery.refetch()
-              }}
-              className="mt-1 text-xs text-red-600 hover:text-red-700 font-medium cursor-pointer"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    )
-  }
+  if (isError) return null
 
   // ─── Empty / onboarding state ──────────────────────────────────────────
 
@@ -204,7 +182,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
   if (!latest) {
     // Onboarded but no rolled-up year yet (sync not run or USAC has no rows for this BEN).
     return (
-      <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
+      <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
@@ -245,7 +223,7 @@ export default function ITERateWidget({ enabled = true }: ITERateWidgetProps): J
   const deadlinePast = days !== null && days < 0
 
   return (
-    <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
+    <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
