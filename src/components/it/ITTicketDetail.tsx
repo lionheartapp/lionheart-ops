@@ -56,23 +56,29 @@ interface TicketDetail {
   customFields?: Record<string, unknown> | null
 }
 
-const NEXT_STATUS_ACTIONS: Record<string, { label: string; status: string; icon: typeof PlayCircle; color: string }[]> = {
+const NEXT_STATUS_ACTIONS: Record<string, { label: string; status: string; icon: typeof PlayCircle; variant: 'primary' | 'secondary' | 'destructive' }[]> = {
   BACKLOG: [
-    { label: 'Start', status: 'TODO', icon: PlayCircle, color: 'bg-blue-600 hover:bg-blue-700' },
+    { label: 'Start', status: 'TODO', icon: PlayCircle, variant: 'primary' },
   ],
   TODO: [
-    { label: 'In Progress', status: 'IN_PROGRESS', icon: PlayCircle, color: 'bg-indigo-600 hover:bg-indigo-700' },
-    { label: 'Hold', status: 'ON_HOLD', icon: PauseCircle, color: 'bg-yellow-600 hover:bg-yellow-700' },
+    { label: 'In Progress', status: 'IN_PROGRESS', icon: PlayCircle, variant: 'primary' },
+    { label: 'Hold', status: 'ON_HOLD', icon: PauseCircle, variant: 'secondary' },
   ],
   IN_PROGRESS: [
-    { label: 'Resolve', status: 'DONE', icon: CheckCircle2, color: 'bg-green-600 hover:bg-green-700' },
-    { label: 'Hold', status: 'ON_HOLD', icon: PauseCircle, color: 'bg-yellow-600 hover:bg-yellow-700' },
-    { label: 'Cancel', status: 'CANCELLED', icon: XCircle, color: 'bg-red-600 hover:bg-red-700' },
+    { label: 'Resolve', status: 'DONE', icon: CheckCircle2, variant: 'primary' },
+    { label: 'Hold', status: 'ON_HOLD', icon: PauseCircle, variant: 'secondary' },
+    { label: 'Cancel', status: 'CANCELLED', icon: XCircle, variant: 'destructive' },
   ],
   ON_HOLD: [
-    { label: 'Resume', status: 'IN_PROGRESS', icon: PlayCircle, color: 'bg-indigo-600 hover:bg-indigo-700' },
-    { label: 'Cancel', status: 'CANCELLED', icon: XCircle, color: 'bg-red-600 hover:bg-red-700' },
+    { label: 'Resume', status: 'IN_PROGRESS', icon: PlayCircle, variant: 'primary' },
+    { label: 'Cancel', status: 'CANCELLED', icon: XCircle, variant: 'destructive' },
   ],
+}
+
+const ACTION_STYLES: Record<string, string> = {
+  primary: 'bg-slate-900 text-white hover:bg-slate-800',
+  secondary: 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50',
+  destructive: 'bg-white border border-slate-200 text-red-600 hover:bg-red-50',
 }
 
 export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, members = [] }: ITTicketDetailProps) {
@@ -433,7 +439,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                       key={action.status}
                       onClick={() => handleStatusChange(action.status)}
                       disabled={statusMutation.isPending}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-medium transition-colors ${action.color}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${ACTION_STYLES[action.variant]}`}
                     >
                       <action.icon className="w-3.5 h-3.5" />
                       {action.label}

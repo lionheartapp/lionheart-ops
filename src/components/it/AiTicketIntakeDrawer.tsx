@@ -35,11 +35,19 @@ interface AiTicketIntakeDrawerProps {
   isOpen: boolean
   onClose: () => void
   onTicketCreated?: (ticketNumber: string) => void
+  onSwitchToManual?: () => void
   source?: 'DASHBOARD' | 'QR_CODE' | 'MAGIC_LINK'
   prefilledLocation?: string | null
   prefilledCategory?: string | null
   orgId?: string // for unauthenticated flows
 }
+
+const EXAMPLE_PROMPTS = [
+  "My laptop won't connect to Wi-Fi",
+  "I can't sign in to my account",
+  "Projector in my room isn't displaying",
+  "Smart board is frozen and won't restart",
+]
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -47,6 +55,7 @@ export default function AiTicketIntakeDrawer({
   isOpen,
   onClose,
   onTicketCreated,
+  onSwitchToManual,
   source = 'DASHBOARD',
   prefilledLocation,
   prefilledCategory,
@@ -61,9 +70,11 @@ export default function AiTicketIntakeDrawer({
   const [submitted, setSubmitted] = useState(false)
   const [ticketNumber, setTicketNumber] = useState('')
   const [selfResolved, setSelfResolved] = useState(false)
+  const [aiErrored, setAiErrored] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const toastFiredRef = useRef(false)
   const { toast } = useToast()
 
   // Auto-scroll to bottom
@@ -183,7 +194,11 @@ export default function AiTicketIntakeDrawer({
         ])
       }
     } catch {
-      toast('Failed to connect to AI assistant', 'error')
+      setAiErrored(true)
+      if (!toastFiredRef.current) {
+        toastFiredRef.current = true
+        toast('Something went wrong. You can still submit using the manual form.', 'error')
+      }
     } finally {
       setStreaming(false)
     }
@@ -275,6 +290,8 @@ export default function AiTicketIntakeDrawer({
     setSubmitted(false)
     setSelfResolved(false)
     setTicketNumber('')
+    setAiErrored(false)
+    toastFiredRef.current = false
     onClose()
   }
 
@@ -319,6 +336,55 @@ export default function AiTicketIntakeDrawer({
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {/* Welcome state — shown while waiting for initial AI greeting */}
+          {messages.length === 0 && !submitted && !selfResolved && (
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-[#f5f4f0] px-4 py-3 text-sm text-[#6a6864] leading-relaxed">
+                Hi! Tell me what&apos;s going on and I&apos;ll help get it sorted. You can describe
+                the issue in your own words.
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-[#a8a49d] font-medium uppercase tracking-wide">Try something like...</p>
+                {EXAMPLE_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => { if (!streaming) sendMessage(prompt) }}
+                    disabled={streaming}
+                    className="w-full text-left px-3.5 py-2.5 rounded-xl border border-[rgba(17,15,10,0.08)] text-sm text-[#1a1915] hover:bg-[#f5f4f0] cursor-pointer transition-colors disabled:opacity-50"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+              {onSwitchToManual && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); onSwitchToManual() }}
+                  className="text-xs text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                >
+                  Use manual form instead
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* AI error fallback */}
+          {aiErrored && onSwitchToManual && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 text-center space-y-2">
+              <AlertTriangle className="w-6 h-6 text-amber-500 mx-auto" />
+              <p className="text-sm font-medium text-[#1a1915]">AI assistant is unavailable</p>
+              <p className="text-xs text-[#6a6864]">You can still submit your issue using the manual form.</p>
+              <button
+                type="button"
+                onClick={() => { onClose(); onSwitchToManual() }}
+                className="mt-1 px-4 py-2 rounded-full bg-[#1a1915] text-white text-sm font-medium hover:bg-[#2a2925] active:scale-[0.97] cursor-pointer transition-all"
+              >
+                Open manual form
+              </button>
+            </div>
+          )}
+
           <AnimatePresence>
             {messages.map((msg, i) => (
               <motion.div

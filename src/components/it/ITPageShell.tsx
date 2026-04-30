@@ -1,11 +1,72 @@
 'use client'
 
-import { useState, useEffect, type ReactNode, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Component, type ReactNode, Suspense } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
-import { ShieldAlert } from 'lucide-react'
+import { ShieldAlert, RefreshCw } from 'lucide-react'
+
+// ─── Error Boundary ──────────────────────────────────────────────────────────
+
+interface ErrorBoundaryProps {
+  children: ReactNode
+  resetKey: string
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+}
+
+class ITErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false, error: null })
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="max-w-md mx-auto mt-24 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">Something went wrong</h2>
+          <p className="text-sm text-slate-500 leading-relaxed mb-4">
+            An unexpected error occurred. Try again or navigate to a different page.
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Try again
+          </button>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+function ErrorBoundaryWrapper({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const resetKey = `${pathname}?${searchParams?.toString() ?? ''}`
+  return <ITErrorBoundary resetKey={resetKey}>{children}</ITErrorBoundary>
+}
 
 function ITPageShellInner({ children }: { children: ReactNode }) {
   const router = useRouter()
@@ -114,7 +175,7 @@ function ITPageShellInner({ children }: { children: ReactNode }) {
       onLogout={handleLogout}
     >
       <MotionConfig reducedMotion="user">
-        {children}
+        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
       </MotionConfig>
     </DashboardLayout>
   )

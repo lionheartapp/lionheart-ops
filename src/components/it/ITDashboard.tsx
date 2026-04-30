@@ -17,10 +17,6 @@ import {
   PauseCircle,
   UserX,
   Plus,
-  BarChart3,
-  ShieldAlert,
-  Laptop,
-  Link2,
   RefreshCw,
   ChevronRight,
   Clock,
@@ -124,7 +120,7 @@ export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchool
 
   if (isError) {
     return (
-      <div className="ui-glass rounded-2xl p-10 flex flex-col items-center justify-center text-center">
+      <div className="bg-white border border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-center">
         <AlertTriangle className="w-8 h-8 text-red-400 mb-3" />
         <p className="text-sm font-medium text-slate-600 mb-1">Unable to load dashboard data</p>
         <p className="text-xs text-slate-400 mb-4">Check your connection and try again.</p>
@@ -231,10 +227,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchool
               variants={cardEntrance}
               custom={i}
               onClick={card.onClick}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.97] ${
+              className={`cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.97] rounded-xl p-5 ${
                 card.accent
-                  ? 'bg-gradient-to-br from-red-50/80 to-red-100/80 backdrop-blur-sm border border-red-200/30 rounded-2xl p-5 shadow-sm'
-                  : 'ui-glass p-5'
+                  ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200'
+                  : 'bg-white border border-gray-200'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
@@ -251,45 +247,15 @@ export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchool
         })}
       </div>
 
-      {/* Quick Actions */}
-      <motion.div variants={fadeInUp} className="ui-glass p-4 rounded-2xl">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={onCreateTicket}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Create Ticket
-          </button>
-          <button
-            onClick={() => router.push('/it/devices')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
-          >
-            <Laptop className="w-4 h-4" />
-            Devices
-          </button>
-          <button
-            onClick={() => router.push('/it/security')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            Security
-          </button>
-          <button
-            onClick={() => router.push('/it/admin?tab=analytics')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </button>
-          <button
-            onClick={() => router.push('/it?tab=magic-links')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 active:scale-[0.97] transition-all duration-200 cursor-pointer"
-          >
-            <Link2 className="w-4 h-4" />
-            Magic Links
-          </button>
-        </div>
+      {/* Quick Action */}
+      <motion.div variants={fadeInUp}>
+        <button
+          onClick={onCreateTicket}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          Create Ticket
+        </button>
       </motion.div>
 
       {/* E-Rate snapshot — only for users who can view E-Rate */}
@@ -300,10 +266,10 @@ export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchool
         {/* Needs Attention */}
         <motion.div
           variants={fadeInUp}
-          className={`rounded-2xl p-5 shadow-sm backdrop-blur-sm border ${
+          className={`rounded-xl p-5 border ${
             needsAttentionTotal > 0
-              ? 'bg-gradient-to-br from-red-50/80 to-red-100/80 border-red-200/30'
-              : 'bg-gradient-to-br from-green-50/80 to-green-100/80 border-green-200/30'
+              ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-200'
+              : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
           }`}
         >
           <div className="flex items-center justify-between mb-4">
@@ -388,7 +354,7 @@ export default function ITDashboard({ onViewTicket, onCreateTicket, activeSchool
         </motion.div>
 
         {/* Recent Activity */}
-        <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
+        <motion.div variants={fadeInUp} className="bg-white border border-gray-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-slate-800">Recent Activity</h3>
             <button

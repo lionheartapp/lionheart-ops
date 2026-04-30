@@ -36,8 +36,14 @@ export default function ITKanbanColumn({ status, tickets, onTicketClick }: ITKan
       <SortableContext items={tickets.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div className="flex-1 px-3 pb-3 space-y-2 min-h-[120px] overflow-y-auto max-h-[calc(100vh-280px)]">
           {tickets.length === 0 ? (
-            <div className="flex items-center justify-center h-20 text-xs text-slate-400">
-              No tickets
+            <div className="flex flex-col items-center justify-center h-20 text-center px-2">
+              <p className="text-xs text-slate-400">
+                {status === 'BACKLOG' ? 'No new tickets — inbox zero!'
+                  : status === 'TODO' ? 'Nothing queued up'
+                  : status === 'IN_PROGRESS' ? 'No active work right now'
+                  : status === 'ON_HOLD' ? 'Nothing on hold'
+                  : 'No tickets'}
+              </p>
             </div>
           ) : (
             tickets.map((ticket) => (

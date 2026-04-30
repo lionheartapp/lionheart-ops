@@ -23,11 +23,12 @@ import QrCodeManager from '@/components/forms/QrCodeManager'
 import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
 import { useAiAvailability } from '@/lib/hooks/useAiAvailability'
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
-import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText, Laptop, Code, KeyRound, Wifi, Projector, HelpCircle, ChevronLeft, Pencil } from 'lucide-react'
+import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText, Laptop, Code, KeyRound, Wifi, Projector, HelpCircle, ChevronLeft, Pencil, Settings, BarChart3 } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
-type HelpDeskTab = 'dashboard' | 'tickets' | 'magic-links' | 'routing' | 'forms' | 'qr-codes'
+type HelpDeskTab = 'tickets' | 'insights' | 'settings'
+type SettingsSubTab = 'routing' | 'forms' | 'magic-links' | 'qr-codes'
 type TicketViewMode = 'board' | 'list'
 type TicketScope = 'mine' | 'all'
 
@@ -48,13 +49,26 @@ const TAB_REDIRECTS: Record<string, string> = {
   sync: '/it/admin',
 }
 
+// Old tab params → new tab structure
+const OLD_TAB_MAP: Record<string, HelpDeskTab> = {
+  dashboard: 'insights',
+  'magic-links': 'settings',
+  routing: 'settings',
+  forms: 'settings',
+  'qr-codes': 'settings',
+}
+
 const TABS: { key: HelpDeskTab; label: string; icon: typeof LayoutDashboard; requiresManage?: boolean }[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, requiresManage: true },
   { key: 'tickets', label: 'Tickets', icon: List },
-  { key: 'magic-links', label: 'Magic Links', icon: Link2, requiresManage: true },
-  { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
-  { key: 'forms', label: 'Forms', icon: FileText, requiresManage: true },
-  { key: 'qr-codes', label: 'QR Codes', icon: QrCode, requiresManage: true },
+  { key: 'insights', label: 'Insights', icon: BarChart3, requiresManage: true },
+  { key: 'settings', label: 'Settings', icon: Settings, requiresManage: true },
+]
+
+const SETTINGS_SUB_TABS: { key: SettingsSubTab; label: string; icon: typeof Route }[] = [
+  { key: 'routing', label: 'Routing', icon: Route },
+  { key: 'forms', label: 'Forms', icon: FileText },
+  { key: 'magic-links', label: 'Magic Links', icon: Link2 },
+  { key: 'qr-codes', label: 'QR Codes', icon: QrCode },
 ]
 
 function ITContent() {
@@ -82,14 +96,16 @@ function ITContent() {
     const paramTab = searchParams?.get('tab')
     // Handle old "board" param — redirect to tickets tab with board view
     if (paramTab === 'board') return 'tickets'
-    if (paramTab && ['dashboard', 'tickets', 'magic-links', 'routing', 'forms', 'qr-codes'].includes(paramTab)) {
+    // Map old tab names to new structure
+    if (paramTab && OLD_TAB_MAP[paramTab]) return OLD_TAB_MAP[paramTab]
+    if (paramTab && ['tickets', 'insights', 'settings'].includes(paramTab)) {
       return paramTab as HelpDeskTab
     }
-    if (canSeeManageTabs) return 'dashboard'
     return 'tickets'
   }
 
   const [activeTab, setActiveTab] = useState<HelpDeskTab>('tickets')
+  const [settingsSubTab, setSettingsSubTab] = useState<SettingsSubTab>('routing')
 
   // View mode: board vs list (persisted per user)
   const viewModeKey = user.id ? `it-view-mode:${user.id}` : null
@@ -102,10 +118,13 @@ function ITContent() {
     if (viewModeKey) localStorage.setItem(viewModeKey, mode)
   }
 
-  // Handle old "board" tab param → set view mode to board
+  // Handle old "board" tab param → set view mode to board and clean URL
   useEffect(() => {
     const paramTab = searchParams?.get('tab')
-    if (paramTab === 'board') setViewMode('board')
+    if (paramTab === 'board') {
+      setViewMode('board')
+      window.history.replaceState(null, '', '/it?tab=tickets')
+    }
   }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scope: mine (my tickets + unassigned) vs all
@@ -128,6 +147,7 @@ function ITContent() {
   // Drawer state
   const [detailTicketId, setDetailTicketId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [forceManualForm, setForceManualForm] = useState(false)
 
   // Check for ?new=1 URL param
   useEffect(() => {
@@ -154,8 +174,7 @@ function ITContent() {
 
   const handleTabChange = (tab: HelpDeskTab) => {
     setActiveTab(tab)
-    const defaultTab = canSeeManageTabs ? 'dashboard' : 'tickets'
-    const url = tab === defaultTab ? '/it' : `/it?tab=${tab}`
+    const url = tab === 'tickets' ? '/it' : `/it?tab=${tab}`
     window.history.replaceState(null, '', url)
   }
 
@@ -174,7 +193,7 @@ function ITContent() {
           IT Help Desk
         </motion.h1>
         <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
-          {p.canManage ? 'Manage IT support tickets and assignments' : 'Submit and track your IT requests'}
+          Get help and track your requests
         </motion.p>
         {isMultiSchool && (
           <motion.p variants={fadeInUp} className="text-xs font-medium text-slate-500 mt-1">
@@ -270,22 +289,6 @@ function ITContent() {
       </div>
 
       {/* Tab content */}
-      {canSeeManageTabs && (
-        <div
-          role="tabpanel"
-          id="tabpanel-dashboard"
-          aria-labelledby="tab-dashboard"
-          className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'dashboard'}
-        >
-          <ITDashboard
-            onViewTicket={setDetailTicketId}
-            onCreateTicket={() => setShowCreate(true)}
-            activeSchoolId={activeSchoolId}
-          />
-        </div>
-      )}
-
       <div
         role="tabpanel"
         id="tabpanel-tickets"
@@ -312,48 +315,53 @@ function ITContent() {
         )}
       </div>
 
+      {/* Insights tab (formerly Dashboard) — managers/admins only */}
       {canSeeManageTabs && (
         <div
           role="tabpanel"
-          id="tabpanel-magic-links"
-          aria-labelledby="tab-magic-links"
-          className={activeTab === 'magic-links' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'magic-links'}
+          id="tabpanel-insights"
+          aria-labelledby="tab-insights"
+          className={activeTab === 'insights' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+          aria-hidden={activeTab !== 'insights'}
         >
-          <ITMagicLinksTab />
+          <ITDashboard
+            onViewTicket={setDetailTicketId}
+            onCreateTicket={() => setShowCreate(true)}
+            activeSchoolId={activeSchoolId}
+          />
         </div>
       )}
 
-      {/* Routing tab — managers/admins only */}
-      {canSeeManageTabs && activeTab === 'routing' && (
+      {/* Settings tab — managers/admins only */}
+      {canSeeManageTabs && activeTab === 'settings' && (
         <div
-          id="tabpanel-routing"
-          aria-labelledby="tab-routing"
+          role="tabpanel"
+          id="tabpanel-settings"
+          aria-labelledby="tab-settings"
           className="animate-[fadeIn_200ms_ease-out]"
         >
-          <TicketRoutingTab defaultModule="IT" />
-        </div>
-      )}
+          {/* Settings sub-tabs */}
+          <div className="flex items-center gap-1 mb-5 border-b border-slate-100 pb-3">
+            {SETTINGS_SUB_TABS.map(({ key, label, icon: SubIcon }) => (
+              <button
+                key={key}
+                onClick={() => setSettingsSubTab(key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                  settingsSubTab === key
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <SubIcon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
 
-      {/* Forms tab — managers/admins only */}
-      {canSeeManageTabs && activeTab === 'forms' && (
-        <div
-          id="tabpanel-forms"
-          aria-labelledby="tab-forms"
-          className="animate-[fadeIn_200ms_ease-out]"
-        >
-          <FormsTab aiAvailable={aiAvailable} />
-        </div>
-      )}
-
-      {/* QR Codes tab — managers/admins only */}
-      {canSeeManageTabs && activeTab === 'qr-codes' && (
-        <div
-          id="tabpanel-qr-codes"
-          aria-labelledby="tab-qr-codes"
-          className="animate-[fadeIn_200ms_ease-out]"
-        >
-          <QrCodeManager />
+          {settingsSubTab === 'routing' && <TicketRoutingTab defaultModule="IT" />}
+          {settingsSubTab === 'forms' && <FormsTab aiAvailable={aiAvailable} />}
+          {settingsSubTab === 'magic-links' && <ITMagicLinksTab />}
+          {settingsSubTab === 'qr-codes' && <QrCodeManager />}
         </div>
       )}
 
@@ -367,18 +375,22 @@ function ITContent() {
       />
 
       {/* Create drawer — AI chat when available, manual form when not */}
-      {aiAvailable ? (
+      {aiAvailable && !forceManualForm ? (
         <AiTicketIntakeDrawer
           isOpen={showCreate}
           onClose={() => setShowCreate(false)}
           onTicketCreated={() => {
             queryClient.invalidateQueries({ queryKey: ['it-tickets'] })
           }}
+          onSwitchToManual={() => {
+            setForceManualForm(true)
+            setShowCreate(true)
+          }}
         />
       ) : (
         <ITTicketCreateDrawer
           isOpen={showCreate}
-          onClose={() => setShowCreate(false)}
+          onClose={() => { setShowCreate(false); setForceManualForm(false) }}
           canManage={p.canManage}
         />
       )}

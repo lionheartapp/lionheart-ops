@@ -65,6 +65,21 @@ const TYPE_OPTIONS = [
   { value: 'OTHER', label: 'Other' },
 ]
 
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const minutes = Math.floor(diffMs / 60_000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  return `${weeks}w ago`
+}
+
 export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage, scope = 'mine', currentUserId, activeSchoolId }: ITTicketsListProps) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -83,8 +98,6 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
 
   const { data, isLoading } = useQuery(queryOptions.itTickets(filters))
 
-  if (isLoading) return <TicketsListSkeleton />
-
   const allTickets = ((data as { tickets?: Ticket[] })?.tickets ?? []) as Ticket[]
 
   // Apply scope filter client-side: "mine" shows my tickets + unassigned
@@ -94,6 +107,8 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
   }, [allTickets, scope, currentUserId])
 
   const total = tickets.length
+
+  if (isLoading) return <TicketsListSkeleton />
 
   return (
     <div className="space-y-4">
@@ -120,7 +135,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
 
       {/* Results */}
       {tickets.length === 0 ? (
-        <div className="ui-glass py-14 text-center">
+        <div className="bg-white border border-gray-200 rounded-xl py-14 text-center">
           <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
           <p className="text-sm font-medium text-slate-600 mb-1">No tickets found</p>
           <p className="text-xs text-slate-400 mb-4">Try adjusting your filters or create a new request</p>
@@ -130,7 +145,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
           <p className="text-xs text-slate-500">{total} ticket{total !== 1 ? 's' : ''}</p>
 
           {/* Desktop table */}
-          <div className="hidden sm:block ui-glass-table">
+          <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-slate-500 border-b border-slate-200/50">
@@ -175,7 +190,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
                       className="px-4 py-3 text-xs text-slate-500"
                       title={formatDateTimeWithTz(t.createdAt)}
                     >
-                      {formatDateWithTz(t.createdAt)}
+                      {timeAgo(t.createdAt)}
                     </td>
                   </tr>
                 ))}
@@ -189,7 +204,7 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
               <button
                 key={t.id}
                 onClick={() => onViewTicket(t.id)}
-                className="w-full text-left ui-glass-hover p-4"
+                className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-mono text-xs text-slate-500">{t.ticketNumber}</span>
