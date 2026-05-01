@@ -1,6 +1,7 @@
 export interface ApiUser {
   id: string
   email: string
+  name: string | null
   firstName: string | null
   lastName: string | null
   avatar: string | null
@@ -23,9 +24,19 @@ export interface RoleOption {
   slug: string
 }
 
-export function getInitials(firstName: string | null, lastName: string | null, email: string) {
+export function getDisplayName(user: { firstName: string | null; lastName: string | null; name: string | null }): string | null {
+  const full = [user.firstName, user.lastName].filter(Boolean).join(' ')
+  return full || user.name || null
+}
+
+export function getInitials(firstName: string | null, lastName: string | null, email: string, name?: string | null) {
   if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase()
   if (firstName) return firstName[0].toUpperCase()
+  if (name) {
+    const parts = name.trim().split(/\s+/)
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    return name[0].toUpperCase()
+  }
   return email[0].toUpperCase()
 }
 

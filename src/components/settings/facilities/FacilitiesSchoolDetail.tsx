@@ -7,14 +7,14 @@ import {
   Building2,
   MapPin,
   Pencil,
-  MoreVertical,
+  Trash2,
   Map as MapIcon,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import SchoolsManagement, {
   type SchoolsManagementHandle,
 } from '@/components/settings/SchoolsManagement'
-import { AddCampusDrawer } from '@/components/settings/campus/CampusFormDrawers'
+import { AddCampusDrawer, EditCampusDrawer } from '@/components/settings/campus/CampusFormDrawers'
 
 // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -173,6 +173,82 @@ export default function FacilitiesSchoolDetail({
       setAddError(err instanceof Error ? err.message : 'Failed to create campus')
     } finally {
       setAddSaving(false)
+    }
+  }
+
+  // ─── Edit Campus drawer state ────────────────────────────────────────────
+  const [editOpen, setEditOpen] = useState(false)
+  const [editCampus, setEditCampus] = useState<CampusRow | null>(null)
+  const [editForm, setEditForm] = useState<{
+    name: string
+    address: string
+    campusKind: string
+  }>({ name: '', address: '', campusKind: 'CAMPUS' })
+  const [editError, setEditError] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+
+  const openEditCampus = (campus: CampusRow): void => {
+    setEditCampus(campus)
+    setEditForm({
+      name: campus.name,
+      address: campus.address ?? '',
+      campusKind: campus.campusKind,
+    })
+    setEditError('')
+    setEditOpen(true)
+  }
+
+  const closeEditCampus = (): void => {
+    setEditOpen(false)
+    setEditError('')
+    setEditCampus(null)
+  }
+
+  const handleEditCampusSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault()
+    if (!editCampus) return
+    const name = editForm.name.trim()
+    if (!name) {
+      setEditError('Campus name is required')
+      return
+    }
+    setEditSaving(true)
+    setEditError('')
+    try {
+      await fetchApi(`/api/settings/campus/campuses/${editCampus.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name,
+          address: editForm.address.trim() || null,
+          campusKind: editForm.campusKind,
+        }),
+      })
+      setEditOpen(false)
+      setEditCampus(null)
+      await loadAll()
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to update campus')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  // ─── Delete Campus ──────────────────────────────────────────────────────
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeleteCampus = async (campusId: string): Promise<void> => {
+    setDeleting(true)
+    try {
+      await fetchApi(`/api/settings/campus/campuses/${campusId}`, {
+        method: 'DELETE',
+      })
+      setDeleteConfirmId(null)
+      await loadAll()
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to delete campus')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -432,7 +508,7 @@ export default function FacilitiesSchoolDetail({
                         tabIndex={0}
                         onClick={(e) => {
                           e.stopPropagation()
-                          // Future: open campus edit drawer
+                          openEditCampus(campus)
                         }}
                         onKeyDown={(e) => e.stopPropagation()}
                         className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -445,13 +521,13 @@ export default function FacilitiesSchoolDetail({
                         tabIndex={0}
                         onClick={(e) => {
                           e.stopPropagation()
-                          // Future: open campus kebab menu
+                          setDeleteConfirmId(campus.id)
                         }}
                         onKeyDown={(e) => e.stopPropagation()}
-                        className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        aria-label="More actions"
+                        className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        aria-label="Delete campus"
                       >
-                        <MoreVertical className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </span>
                       <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors ml-1" />
                     </div>
@@ -497,6 +573,51 @@ export default function FacilitiesSchoolDetail({
         saving={addSaving}
         onSubmit={handleAddCampusSubmit}
       />
+
+      {/* Edit Campus drawer */}
+      <EditCampusDrawer
+        isOpen={editOpen}
+        onClose={closeEditCampus}
+        campus={editCampus ? { id: editCampus.id, name: editCampus.name, campusKind: editCampus.campusKind, address: editCampus.address } : null}
+        form={editForm}
+        onFormChange={(update) => setEditForm((prev) => ({ ...prev, ...update }))}
+        error={editError}
+        saving={editSaving}
+        onSubmit={handleEditCampusSubmit}
+      />
+
+      {/* Delete Campus confirmation */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Delete campus?</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                This will remove the campus and all associated buildings and spaces. This action cannot be undone.
+              </p>
+            </div>
+            {editError && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{editError}</div>}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => { setDeleteConfirmId(null); setEditError('') }}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteCampus(deleteConfirmId)}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50 transition cursor-pointer"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

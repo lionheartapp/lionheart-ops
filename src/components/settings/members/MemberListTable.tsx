@@ -2,7 +2,7 @@
 
 import { Edit2, Trash2, UserMinus, UserCheck, Shield, Download } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
-import { getInitials, getAvatarColor, formatDate, StatusBadge, type ApiUser } from './types'
+import { getInitials, getDisplayName, getAvatarColor, formatDate, StatusBadge, type ApiUser } from './types'
 
 interface MemberListTableProps {
   users: ApiUser[]
@@ -66,11 +66,11 @@ export default function MemberListTable({
         {users.map((u) => (
           <div key={u.id} className="flex items-center gap-3 px-4 py-3">
             <span className={`relative inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
-              {getInitials(u.firstName, u.lastName, u.email)}
+              {getInitials(u.firstName, u.lastName, u.email, u.name)}
               {u.avatar && (
                 <img
                   src={u.avatar}
-                  alt={`${u.firstName} ${u.lastName}`}
+                  alt={getDisplayName(u) ?? u.email}
                   className="absolute inset-0 h-9 w-9 rounded-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
@@ -78,7 +78,7 @@ export default function MemberListTable({
             </span>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-slate-900 text-sm truncate">
-                {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
+                {getDisplayName(u) || '—'}
               </div>
               <div className="text-xs text-slate-500 truncate">{u.email}</div>
               <div className="flex items-center gap-2 mt-1">
@@ -109,11 +109,11 @@ export default function MemberListTable({
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
                   <span className={`relative inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
-                    {getInitials(u.firstName, u.lastName, u.email)}
+                    {getInitials(u.firstName, u.lastName, u.email, u.name)}
                     {u.avatar && (
                       <img
                         src={u.avatar}
-                        alt={`${u.firstName} ${u.lastName}`}
+                        alt={getDisplayName(u) ?? u.email}
                         className="absolute inset-0 h-8 w-8 rounded-full object-cover"
                         onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
@@ -121,7 +121,7 @@ export default function MemberListTable({
                   </span>
                   <div>
                     <div className="font-medium text-slate-900">
-                      {[u.firstName, u.lastName].filter(Boolean).join(' ') || '—'}
+                      {getDisplayName(u) || '—'}
                     </div>
                     <div className="text-xs text-slate-500">{u.email}</div>
                   </div>

@@ -93,7 +93,7 @@ export default function EditMemberDrawer({
       isOpen={user !== null}
       onClose={handleClose}
       title={user
-        ? `Edit ${[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}`
+        ? `Edit ${[user.firstName, user.lastName].filter(Boolean).join(' ') || user.name || user.email}`
         : 'Edit Member'}
       width="lg"
       footer={

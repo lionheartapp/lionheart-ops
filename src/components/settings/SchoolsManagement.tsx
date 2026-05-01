@@ -25,7 +25,7 @@ type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'principalName' | 'prin
 
 export type SchoolsManagementHandle = {
   openNew: () => void
-  openEdit: (schoolId: string) => void
+  openEdit: (schoolId: string) => void | Promise<void>
   promptDelete: (schoolId: string) => void
   /** Called after any change so parent can refresh facility views */
   reload: () => void
@@ -119,9 +119,24 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
     ref,
     () => ({
       openNew: () => handleOpenNew(),
-      openEdit: (schoolId: string) => {
-        const school = schools.find((s) => s.id === schoolId)
-        if (school) handleEdit(school)
+      openEdit: async (schoolId: string) => {
+        // First try local state
+        const local = schools.find((s) => s.id === schoolId)
+        if (local) {
+          handleEdit(local)
+          return
+        }
+        // Fallback: fetch all schools and find the target
+        try {
+          const allSchools = await fetchApi<SchoolData[]>('/api/settings/schools')
+          const found = Array.isArray(allSchools) ? allSchools.find((s) => s.id === schoolId) : undefined
+          if (found) {
+            setSchools(allSchools)
+            handleEdit(found)
+          }
+        } catch {
+          // silent — school not found
+        }
       },
       promptDelete: (schoolId: string) => setDeleteConfirmId(schoolId),
       reload: () => loadSchools(),

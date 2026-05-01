@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import PermissionToggleList, { type PermissionItem } from '@/components/settings/PermissionToggleList'
 import { handleAuthResponse } from '@/lib/client-auth'
-import { getInitials, getAvatarColor, type ApiUser } from './types'
+import { getInitials, getDisplayName, getAvatarColor, type ApiUser } from './types'
 
 interface MemberPermissionsDrawerProps {
   user: ApiUser | null
@@ -162,17 +162,17 @@ export default function MemberPermissionsDrawer({
             {user.avatar ? (
               <img
                 src={user.avatar}
-                alt={`${user.firstName} ${user.lastName}`}
+                alt={getDisplayName(user) ?? user.email}
                 className="h-12 w-12 rounded-full object-cover flex-shrink-0"
               />
             ) : (
               <span className={`inline-flex items-center justify-center h-12 w-12 rounded-full text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(user.id)}`}>
-                {getInitials(user.firstName, user.lastName, user.email)}
+                {getInitials(user.firstName, user.lastName, user.email, user.name)}
               </span>
             )}
             <div>
               <p className="text-base font-semibold text-slate-900">
-                {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
+                {getDisplayName(user) || user.email}
               </p>
               <p className="text-sm text-slate-500">{user.email}</p>
             </div>

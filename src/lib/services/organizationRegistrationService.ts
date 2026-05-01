@@ -513,6 +513,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
         create: {
           email:        validated.adminEmail,
           name:         validated.adminName,
+          firstName:    validated.adminName.split(/\s+/)[0] || validated.adminName,
+          lastName:     validated.adminName.split(/\s+/).slice(1).join(' ') || null,
           passwordHash,
           status:       'ACTIVE',
         },

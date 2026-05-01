@@ -59,6 +59,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const userSelect = {
     id: true,
     email: true,
+    name: true,
     firstName: true,
     lastName: true,
     avatar: true,
