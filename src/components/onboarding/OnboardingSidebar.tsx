@@ -24,10 +24,10 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-8 xl:p-10 relative overflow-hidden min-h-screen">
-        {/* Decorative background circles */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+      <div className="hidden lg:flex flex-col justify-between p-8 xl:p-10 relative overflow-hidden min-h-screen" style={{ backgroundColor: '#0b0b0e' }}>
+        {/* Ambient gradient orbs */}
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full pointer-events-none opacity-25" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', filter: 'blur(120px)' }} />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full pointer-events-none opacity-15" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', filter: 'blur(120px)' }} />
 
         <div className="relative z-10">
           {/* Logo */}
@@ -48,11 +48,16 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
                     <motion.div
                       className={`relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-300 ${
                         isCompleted || isPast
-                          ? 'bg-green-400 text-white'
+                          ? 'bg-emerald-500 text-white'
                           : isActive
-                            ? 'bg-white text-primary-700'
-                            : 'bg-white/20 text-white/60'
+                            ? 'bg-white text-gray-900'
+                            : 'text-white/60'
                       }`}
+                      style={
+                        !isCompleted && !isPast && !isActive
+                          ? { background: 'rgba(255,255,255,0.1)' }
+                          : undefined
+                      }
                       initial={false}
                       animate={isCompleted ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.3 }}
@@ -81,9 +86,9 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
 
                     {/* Connecting line */}
                     {idx < STEPS.length - 1 && (
-                      <div className="relative w-0.5 h-16 bg-white/20 my-1">
+                      <div className="relative w-0.5 h-16 my-1" style={{ background: 'rgba(255,255,255,0.1)' }}>
                         <motion.div
-                          className="absolute top-0 left-0 w-full bg-green-400"
+                          className="absolute top-0 left-0 w-full bg-emerald-500"
                           initial={{ height: 0 }}
                           animate={{ height: isPast || isCompleted ? '100%' : '0%' }}
                           transition={{ duration: 0.5, delay: 0.2 }}
@@ -98,14 +103,14 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
                       className={`font-semibold transition-colors duration-300 ${
                         isActive || isPast || isCompleted
                           ? 'text-white'
-                          : 'text-white/50'
+                          : 'text-white/40'
                       }`}
                     >
                       {step.label}
                     </p>
                     <p
                       className={`text-sm mt-0.5 transition-colors duration-300 ${
-                        isActive ? 'text-white/80' : 'text-white/40'
+                        isActive ? 'text-white/70' : 'text-white/30'
                       }`}
                     >
                       {step.subtitle}
@@ -125,14 +130,14 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
           transition={{ duration: 0.4 }}
           className="relative z-10 mt-8"
         >
-          <p className="text-white/70 text-sm font-medium">
+          <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {TAGLINES[activeStep] || 'You\u2019re doing great!'}
           </p>
         </motion.div>
       </div>
 
       {/* Mobile Top Bar */}
-      <div className="lg:hidden bg-gradient-to-r from-primary-600 to-indigo-700 px-4 py-4">
+      <div className="lg:hidden px-4 py-4" style={{ backgroundColor: '#0b0b0e' }}>
         <div className="flex items-center justify-between">
           <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
 
@@ -148,17 +153,22 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
                     key={step.number}
                     className={`rounded-full transition-colors duration-300 ${
                       isCompleted
-                        ? 'bg-green-400 w-2.5 h-2.5'
+                        ? 'bg-emerald-500 w-2.5 h-2.5'
                         : isActive
                           ? 'bg-white w-2.5 h-2.5'
-                          : 'bg-white/30 w-2 h-2'
+                          : 'w-2 h-2'
                     }`}
+                    style={
+                      !isCompleted && !isActive
+                        ? { background: 'rgba(255,255,255,0.2)' }
+                        : undefined
+                    }
                     layout
                   />
                 )
               })}
             </div>
-            <span className="text-white/80 text-sm font-medium">
+            <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>
               {STEPS.find((s) => s.number === activeStep)?.label}
             </span>
           </div>

@@ -38,7 +38,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
   if (isPlanStep) {
     return (
       <MotionConfig reducedMotion="user">
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen" style={{ backgroundColor: '#fdfcfb' }}>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
             <StepTransition stepKey={pathname}>
               {children}
@@ -51,7 +51,7 @@ export default function OnboardingLayout({ children }: OnboardingLayoutProps) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-white grid grid-cols-1 lg:grid-cols-[340px_1fr]">
+      <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[340px_1fr]" style={{ backgroundColor: '#fdfcfb' }}>
         {/* Sidebar */}
         <OnboardingSidebar activeStep={activeStep} completedSteps={completedSteps} />
 

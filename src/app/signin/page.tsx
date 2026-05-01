@@ -5,6 +5,15 @@ import { Loader2, AlertCircle } from 'lucide-react'
 import { motion, MotionConfig } from 'framer-motion'
 import Link from 'next/link'
 
+const showcaseCardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.3 + i * 0.15, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  }),
+}
+
 export default function SigninPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -44,10 +53,11 @@ export default function SigninPage() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2" style={{ backgroundColor: '#fdfcfb' }}>
       {/* Left Panel — Form */}
       <motion.div
-        className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 bg-white"
+        className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20"
+        style={{ backgroundColor: '#fdfcfb' }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -58,8 +68,8 @@ export default function SigninPage() {
             <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h1>
-          <p className="text-slate-600 mb-8">
+          <h1 className="text-3xl font-semibold mb-2" style={{ color: '#1a1915', letterSpacing: '-0.025em' }}>Welcome back</h1>
+          <p className="mb-8" style={{ color: '#6a6864' }}>
             Enter your school&apos;s subdomain to sign in.
           </p>
 
@@ -75,9 +85,9 @@ export default function SigninPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="subdomain" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <label htmlFor="subdomain" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 School Subdomain
               </label>
               <div className="relative">
@@ -87,20 +97,21 @@ export default function SigninPage() {
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-2.5 pr-44 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-primary-500 transition"
+                  className="w-full px-4 py-2.5 pr-44 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
+                  style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
                   required
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none" style={{ color: '#a8a49d' }}>
                   .lionheartapp.com
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1.5">
+              <p className="text-xs mt-1.5" style={{ color: '#a8a49d' }}>
                 Enter your school&apos;s subdomain to continue
               </p>
             </div>
 
-            <div className="bg-primary-50 rounded-lg p-3">
-              <p className="text-sm text-primary-700 text-center">
+            <div className="rounded-xl p-3" style={{ backgroundColor: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.1)' }}>
+              <p className="text-sm text-center" style={{ color: '#6366f1' }}>
                 You&apos;ll be redirected to your school&apos;s branded login page
               </p>
             </div>
@@ -108,7 +119,8 @@ export default function SigninPage() {
             <button
               type="submit"
               disabled={loading || !subdomain.trim()}
-              className="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-full mt-2 flex items-center justify-center gap-2 text-[14px] font-semibold text-white transition-all duration-200 hover:-translate-y-px cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#1a1915', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.08)' }}
               aria-busy={loading}
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -116,9 +128,9 @@ export default function SigninPage() {
             </button>
           </form>
 
-          <p className="text-sm text-slate-600 text-center mt-8">
+          <p className="text-sm text-center mt-8" style={{ color: '#6a6864' }}>
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary-600 font-medium hover:text-primary-700">
+            <Link href="/signup" className="font-semibold underline" style={{ color: '#1a1915' }}>
               Sign up
             </Link>
           </p>
@@ -126,14 +138,15 @@ export default function SigninPage() {
       </motion.div>
 
       {/* Right Panel — Product Showcase */}
-      <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 xl:p-16 relative overflow-hidden">
-        {/* Decorative background circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+      <div className="hidden lg:flex flex-col justify-center items-center p-12 xl:p-16 relative overflow-hidden" style={{ backgroundColor: '#0b0b0e' }}>
+        {/* Ambient gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full pointer-events-none opacity-25" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', filter: 'blur(120px)' }} />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none opacity-15" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', filter: 'blur(120px)' }} />
 
         <div className="relative z-10 max-w-lg text-center">
           <motion.h2
-            className="text-3xl xl:text-4xl font-bold text-white mb-4"
+            className="text-3xl xl:text-4xl font-semibold text-white mb-4"
+            style={{ letterSpacing: '-0.03em' }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -141,7 +154,8 @@ export default function SigninPage() {
             Your school operations hub
           </motion.h2>
           <motion.p
-            className="text-primary-100 text-lg mb-12"
+            className="text-lg mb-12"
+            style={{ color: 'rgba(255,255,255,0.6)' }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -149,61 +163,64 @@ export default function SigninPage() {
             Everything you need to manage IT, maintenance, and daily operations in one place.
           </motion.p>
 
-          {/* Mockup: Dashboard preview */}
+          {/* Dashboard preview card */}
           <motion.div
-            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-left"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            custom={0}
+            variants={showcaseCardVariants}
+            initial="hidden"
+            animate="visible"
+            className="rounded-2xl p-6 text-left" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
             <div className="flex items-center gap-2 mb-4">
               <div className="w-3 h-3 bg-red-400 rounded-full" />
               <div className="w-3 h-3 bg-yellow-400 rounded-full" />
               <div className="w-3 h-3 bg-green-400 rounded-full" />
-              <span className="text-white/60 text-xs ml-2">Dashboard</span>
+              <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Dashboard</span>
             </div>
 
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-white/10 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-2xl font-bold text-white">12</p>
-                <p className="text-primary-200 text-xs">Open Tickets</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Open Tickets</p>
               </div>
-              <div className="bg-white/10 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-300">94%</p>
-                <p className="text-primary-200 text-xs">Resolved</p>
+              <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-2xl font-bold text-emerald-400">94%</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Resolved</p>
               </div>
-              <div className="bg-white/10 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-amber-300">2.1h</p>
-                <p className="text-primary-200 text-xs">Avg Response</p>
+              <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-2xl font-bold text-amber-400">2.1h</p>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Avg Response</p>
               </div>
             </div>
 
             {/* Recent tickets */}
             <div className="space-y-2">
               <motion.div
-                className="bg-white/10 rounded-lg p-3 flex items-center justify-between"
+                className="rounded-lg p-3 flex items-center justify-between"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6, duration: 0.4 }}
               >
                 <div>
                   <p className="text-white text-sm font-medium">Projector in Room 201</p>
-                  <p className="text-primary-200 text-xs">IT Support</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>IT Support</p>
                 </div>
-                <span className="text-xs bg-amber-500/30 text-amber-200 px-2 py-1 rounded-full">In Progress</span>
+                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24' }}>In Progress</span>
               </motion.div>
               <motion.div
-                className="bg-white/10 rounded-lg p-3 flex items-center justify-between"
+                className="rounded-lg p-3 flex items-center justify-between"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.7, duration: 0.4 }}
               >
                 <div>
                   <p className="text-white text-sm font-medium">AC unit in Gym</p>
-                  <p className="text-primary-200 text-xs">Maintenance</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Maintenance</p>
                 </div>
-                <span className="text-xs bg-emerald-500/30 text-emerald-200 px-2 py-1 rounded-full">Resolved</span>
+                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>Resolved</span>
               </motion.div>
             </div>
           </motion.div>
@@ -222,7 +239,7 @@ export default function SigninPage() {
                 </div>
               ))}
             </div>
-            <p className="text-primary-100 text-sm ml-2">
+            <p className="text-sm ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
               Trusted by school administrators
             </p>
           </motion.div>
