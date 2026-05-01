@@ -17,4 +17,4 @@ export const POST = withAuth(async ({ ctx, params, body }) => {
   const { id } = await params
   const result = await approveMaintenanceGate(id, body.gateKey, ctx.userId)
   return NextResponse.json(ok(result))
-}, { permission: PERMISSIONS.MAINTENANCE_MANAGE, schema: ApproveSchema })
+}, { permission: PERMISSIONS.MAINTENANCE_APPROVE_QA, schema: ApproveSchema })

@@ -18,4 +18,4 @@ export const POST = withAuth(async ({ ctx, params, body }) => {
   const { id } = await params
   await rejectMaintenanceGate(id, body.gateKey, ctx.userId, body.reason)
   return NextResponse.json(ok({ rejected: true }))
-}, { permission: PERMISSIONS.MAINTENANCE_MANAGE, schema: RejectSchema })
+}, { permission: PERMISSIONS.MAINTENANCE_APPROVE_QA, schema: RejectSchema })
