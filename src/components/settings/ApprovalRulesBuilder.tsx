@@ -1016,6 +1016,7 @@ function RuleCard({
   onDelete,
   categories = [],
   isDefault = false,
+  isMaintenance = false,
 }: {
   rule: RuleData
   isSelected: boolean
