@@ -1,9 +1,10 @@
 'use client'
 
 import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode, useState, useRef, useEffect, useCallback } from 'react'
+import { Calendar, Clock } from 'lucide-react'
 
 // Shared styles — top-label pattern (Linear/Stripe style)
-const inputBase = 'w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-lg outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:cursor-not-allowed'
+const inputBase = 'w-full px-3.5 py-2.5 text-sm text-slate-900 bg-white border border-slate-200 rounded-lg outline-none transition-all placeholder:text-slate-400 hover:border-slate-400 hover:shadow-sm focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:cursor-not-allowed'
 const labelStyle = 'block text-xs font-medium text-slate-500 mb-1.5'
 
 // ─── FloatingInput ────────────────────────────────────────────────────────────
@@ -12,23 +13,36 @@ interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
 }
 
+const dateTimeTypes = new Set(['date', 'time', 'datetime-local'])
+
 export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
-  ({ label, id, className, required, ...props }, ref) => (
-    <div>
-      <label htmlFor={id} className={labelStyle}>
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input
-        ref={ref}
-        id={id}
-        placeholder={props.placeholder || label}
-        required={required}
-        aria-required={required || undefined}
-        className={`${inputBase} ${className || ''}`}
-        {...props}
-      />
-    </div>
-  )
+  ({ label, id, className, required, type, ...props }, ref) => {
+    const isDateTime = dateTimeTypes.has(type || '')
+    const Icon = type === 'time' ? Clock : Calendar
+
+    return (
+      <div>
+        <label htmlFor={id} className={labelStyle}>
+          {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
+        <div className={isDateTime ? 'relative' : undefined}>
+          {isDateTime && (
+            <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-[2]" />
+          )}
+          <input
+            ref={ref}
+            id={id}
+            type={type}
+            placeholder={props.placeholder || label}
+            required={required}
+            aria-required={required || undefined}
+            className={`${inputBase} ${isDateTime ? 'pl-9' : ''} ${className || ''}`}
+            {...props}
+          />
+        </div>
+      </div>
+    )
+  }
 )
 FloatingInput.displayName = 'FloatingInput'
 

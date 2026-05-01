@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react'
+import { ChevronDown, ChevronRight, LayoutGrid, List, Download, Plus } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { useToast } from '@/components/Toast'
+import { STATUS_LABELS } from '@/lib/constants/maintenance'
 import { staggerContainer, fadeInUp, expandCollapse } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -34,6 +37,8 @@ interface WorkOrdersViewProps {
   initialPriority?: string
   initialUnassigned?: boolean
   initialSchoolId?: string
+  initialCategory?: string
+  initialSearch?: string
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
@@ -81,8 +86,9 @@ async function changeStatusApi(
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialPriority, initialUnassigned, initialSchoolId }: WorkOrdersViewProps) {
+export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialPriority, initialUnassigned, initialSchoolId, initialCategory, initialSearch }: WorkOrdersViewProps) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const { data: perms } = usePermissions()
   const { user: authUser } = useAuth()
 
@@ -115,6 +121,8 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
     schoolId: initialSchoolId || schoolIdFilter,
     ...(initialStatus ? { status: initialStatus as WorkOrdersFilterState['status'] } : {}),
     ...(initialPriority ? { priority: initialPriority as WorkOrdersFilterState['priority'] } : {}),
+    ...(initialCategory ? { category: initialCategory as WorkOrdersFilterState['category'] } : {}),
+    ...(initialSearch ? { search: initialSearch } : {}),
     ...(initialUnassigned ? { unassigned: true } : {}),
   })
 
@@ -122,6 +130,26 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
   useEffect(() => {
     setFilters((prev) => ({ ...prev, schoolId: schoolIdFilter }))
   }, [schoolIdFilter])
+
+  // Sync filter state to URL params (shallow, no navigation)
+  const router = useRouter()
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    // Skip on first render to avoid overwriting initial URL
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    const params = new URLSearchParams()
+    if (filters.status) params.set('status', filters.status)
+    if (filters.priority) params.set('priority', filters.priority)
+    if (filters.category) params.set('category', filters.category)
+    if (filters.unassigned) params.set('unassigned', 'true')
+    if (filters.search) params.set('q', filters.search)
+    if (filters.schoolId && filters.schoolId !== schoolIdFilter) params.set('schoolId', filters.schoolId)
+    const qs = params.toString()
+    router.replace(`/maintenance/work-orders${qs ? `?${qs}` : ''}`, { scroll: false })
+  }, [filters.status, filters.priority, filters.category, filters.unassigned, filters.search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sort state (default: priority desc, then age asc handled inside table)
   const [sort, setSort] = useState<SortState>({ field: 'priority', dir: 'desc' })
@@ -215,11 +243,35 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
     },
   })
 
-  // ─── Status change mutation ───────────────────────────────────────────────
+  // ─── Status change mutation (with undo toast) ─────────────────────────────
 
   const statusMutation = useMutation({
-    mutationFn: ({ ticketId, status, extra }: { ticketId: string; status: string; extra?: Record<string, string> }) =>
+    mutationFn: ({ ticketId, status, extra, previousStatus }: { ticketId: string; status: string; extra?: Record<string, string>; previousStatus?: string }) =>
       changeStatusApi(ticketId, status, extra),
+    onSuccess: (_data, variables) => {
+      const { ticketId, status, previousStatus } = variables
+      const label = STATUS_LABELS[status] ?? status
+      // Only offer undo for reversible transitions (not DONE/CANCELLED)
+      if (previousStatus && status !== 'DONE' && status !== 'CANCELLED') {
+        toast(`Status changed to ${label}`, 'success', {
+          duration: 5000,
+          action: {
+            label: 'Undo',
+            onClick: () => {
+              changeStatusApi(ticketId, previousStatus).then(() => {
+                queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+                queryClient.invalidateQueries({ queryKey: mainQueryKey })
+                toast('Status reverted', 'info')
+              }).catch(() => {
+                toast('Failed to undo', 'error')
+              })
+            },
+          },
+        })
+      } else {
+        toast(`Status changed to ${label}`, 'success')
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
       queryClient.invalidateQueries({ queryKey: mainQueryKey })
@@ -337,6 +389,25 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
           >
             <List className="w-4 h-4" />
           </button>
+        {/* Divider */}
+        <div className="w-px h-5 bg-slate-200" />
+
+        {/* Export CSV */}
+        <button
+          onClick={() => {
+            const params = new URLSearchParams()
+            if (filters.schoolId) params.set('schoolId', filters.schoolId)
+            if (filters.status) params.set('status', filters.status)
+            if (filters.priority) params.set('priority', filters.priority)
+            if (filters.category) params.set('category', filters.category)
+            const qs = params.toString()
+            window.open(`/api/settings/export/tickets${qs ? `?${qs}` : ''}`, '_blank')
+          }}
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          title="Export filtered tickets as CSV"
+        >
+          <Download className="w-4 h-4" />
+        </button>
         </div>
         </div>
       </motion.div>
@@ -384,8 +455,10 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
               technicians={technicians}
               onClaim={(ticketId) => claimMutation.mutate(ticketId)}
               onAssign={(ticketId, techId) => assignMutation.mutate({ ticketId, techId })}
-              onStatusChange={(ticketId, status, extra) =>
-                statusMutation.mutate({ ticketId, status, extra })
+              onStatusChange={(ticketId, status, extra) => {
+                const currentTicket = displayedTickets.find((t) => t.id === ticketId)
+                statusMutation.mutate({ ticketId, status, extra, previousStatus: currentTicket?.status })
+              }
               }
               claimingId={claimingId}
             />
@@ -446,6 +519,14 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
           )}
         </>
       )}
+      {/* Mobile FAB — quick ticket creation */}
+      <button
+        onClick={() => router.push('/maintenance/work-orders?create=true')}
+        className="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-gray-900 text-white shadow-lg flex items-center justify-center hover:bg-gray-800 active:scale-95 transition-all cursor-pointer"
+        aria-label="Create ticket"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </motion.div>
   )
 }

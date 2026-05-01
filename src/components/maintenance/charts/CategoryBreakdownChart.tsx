@@ -11,27 +11,7 @@ import {
 import type { PieLabelRenderProps } from 'recharts'
 import type { CategoryBreakdownResult } from '@/lib/services/maintenanceAnalyticsService'
 
-const CATEGORY_COLORS: Record<string, string> = {
-  ELECTRICAL: '#f59e0b',
-  PLUMBING: '#3b82f6',
-  HVAC: '#06b6d4',
-  STRUCTURAL: '#8b5cf6',
-  CUSTODIAL_BIOHAZARD: '#ef4444',
-  IT_AV: '#6366f1',
-  GROUNDS: '#22c55e',
-  OTHER: '#a8a49d',
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  ELECTRICAL: 'Electrical',
-  PLUMBING: 'Plumbing',
-  HVAC: 'HVAC',
-  STRUCTURAL: 'Structural',
-  CUSTODIAL_BIOHAZARD: 'Custodial',
-  IT_AV: 'IT/AV',
-  GROUNDS: 'Grounds',
-  OTHER: 'Other',
-}
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/lib/constants/maintenance'
 
 interface CategoryBreakdownChartProps {
   data: CategoryBreakdownResult[]

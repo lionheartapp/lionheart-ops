@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowLeft, BookOpen, Pencil, ExternalLink, Tag } from 'lucide-react'
-import { sanitizeHtml } from '@/lib/sanitize'
+import ReactMarkdown from 'react-markdown'
 import Link from 'next/link'
 import PondCareDosageCalculator from '@/components/maintenance/calculators/PondCareDosageCalculator'
 import { KBArticleTypeBadge, formatArticleDate } from '@/components/maintenance/KnowledgeBaseList'
@@ -39,36 +39,12 @@ interface KnowledgeBaseArticleViewerProps {
 }
 
 // ─── Markdown renderer ────────────────────────────────────────────────────────
-// Content is sanitized via sanitizeHtml() before rendering.
 
 function MarkdownContent({ content }: { content: string }) {
-  // Convert basic markdown to HTML manually (no external library needed)
-  const html = content
-    // Headers
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold text-slate-900 mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold text-slate-900 mt-5 mb-2">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-slate-900 mt-6 mb-3">$1</h1>')
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    // Italic
-    .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
-    // Inline code
-    .replace(/`(.+?)`/g, '<code class="px-1 py-0.5 bg-slate-100 rounded text-xs font-mono text-slate-800">$1</code>')
-    // Unordered lists
-    .replace(/^- (.+)$/gm, '<li class="flex items-start gap-2 text-sm text-slate-700 leading-relaxed"><span class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 flex-shrink-0"></span><span>$1</span></li>')
-    // Ordered lists (simple)
-    .replace(/^\d+\. (.+)$/gm, '<li class="text-sm text-slate-700 leading-relaxed list-decimal ml-4">$1</li>')
-    // Paragraphs (double newline)
-    .replace(/\n\n/g, '</p><p class="text-sm text-slate-700 leading-relaxed mb-3">')
-    // Wrap in paragraph tags
-  const wrapped = `<p class="text-sm text-slate-700 leading-relaxed mb-3">${html}</p>`
-
   return (
-    <div
-      className="prose prose-sm max-w-none"
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: sanitizeHtml(wrapped) }}
-    />
+    <div className="prose prose-sm prose-slate max-w-none">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
   )
 }
 

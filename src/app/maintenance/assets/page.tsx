@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import { motion, MotionConfig } from 'framer-motion'
 import { Plus, QrCode } from 'lucide-react'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -13,52 +13,10 @@ import AssetCreateDrawer from '@/components/maintenance/AssetCreateDrawer'
 import QRScannerModal from '@/components/maintenance/QRScannerModal'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import type { MaintenanceAsset } from '@/components/maintenance/AssetRegisterTable'
-import { useAuth } from '@/lib/hooks/useAuth'
-import { fetchApi } from '@/lib/api-client'
+import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 
 function AssetRegisterContent() {
-  // Cookie-based auth via useAuth — no more localStorage JWT reads
-  const { user, org, orgId, isReady, logout } = useAuth({ redirectTo: '/login' })
-  const userName = user.name
-  const userEmail = user.email
-  const userAvatar = user.avatar
-  const userRole = user.role
-  const orgName = org.name
-  const orgSchoolType = org.schoolType
-  const userSchoolScope = user.campusScope ?? user.schoolScope
-  const userTeam = user.team
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
-  const isClient = isReady
-
-  // Keep the local logo copy in sync when useAuth refreshes it
-  useEffect(() => {
-    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
-      setOrgLogoUrl(org.logoUrl)
-    }
-  }, [org.logoUrl, orgLogoUrl])
-
-  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
-  useEffect(() => {
-    if (orgLogoUrl || !isReady) return
-    let cancelled = false
-    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
-      .then((data) => {
-        if (cancelled) return
-        if (data?.logoUrl) {
-          setOrgLogoUrl(data.logoUrl)
-        }
-      })
-      .catch(() => {
-        // Silently fail
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [orgLogoUrl, isReady])
-
-  const handleLogout = () => {
-    logout()
-  }
+  const { layoutProps, isReady, orgId } = useDashboardLayoutProps()
 
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_ASSET_FILTERS)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -70,7 +28,7 @@ function AssetRegisterContent() {
     setTimeout(() => setSuccessMessage(''), 4000)
   }
 
-  if (!isClient || !orgId) {
+  if (!isReady || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
@@ -79,16 +37,7 @@ function AssetRegisterContent() {
   }
 
   return (
-    <DashboardLayout
-      userName={userName || 'User'}
-      userEmail={userEmail || 'user@school.edu'}
-      userAvatar={userAvatar || undefined}
-      organizationName={orgName || 'School'}
-      organizationLogoUrl={orgLogoUrl || undefined}
-      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
-      teamLabel={userTeam || userRole || 'Team'}
-      onLogout={handleLogout}
-    >
+    <DashboardLayout {...layoutProps}>
       <MotionConfig reducedMotion="user">
         <div>
             {/* Page header */}

@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
             name: true,
             avatar: true,
             campusScope: true,
+            schoolId: true,
             organizationId: true,
             mfaEnabled: true,
             userRole: {
@@ -121,6 +122,7 @@ export async function GET(req: NextRequest) {
           name: user.name || 'User',
           avatar: user.avatar ?? null,
           campusScope: user.campusScope ?? null,
+          schoolId: user.schoolId ?? null,
           // Backward-compat alias — remove once clients are migrated
           schoolScope: user.campusScope ?? null,
           role: user.userRole?.name ?? null,

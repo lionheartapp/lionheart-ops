@@ -6,7 +6,6 @@ import {
   Home,
   CalendarClock,
   Trophy,
-  Search,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
@@ -24,7 +23,6 @@ interface MainNavContentProps {
   userAvatar?: string
   isSuperAdmin: boolean
   isImpersonating: boolean
-  onSearchOpen?: () => void
   onLogout?: () => void
   onBugDialogOpen: () => void
   onViewAsOpen: () => void
@@ -80,7 +78,6 @@ export default function MainNavContent({
   userAvatar,
   isSuperAdmin,
   isImpersonating,
-  onSearchOpen,
   onLogout,
   onBugDialogOpen,
   onViewAsOpen,
@@ -151,19 +148,8 @@ export default function MainNavContent({
       {/* Global school selector — hidden when org has <= 1 school */}
       <SchoolSelector />
 
-      {/* Search Trigger */}
-      <div className="px-4 pb-8">
-        <button
-          onClick={onSearchOpen}
-          className="w-full h-9 rounded-xl border border-slate-300/60 bg-white/40 px-3 flex items-center gap-2 text-sm text-slate-500 hover:bg-white/60 hover:border-slate-400/50 transition cursor-pointer"
-        >
-          <Search className="w-4 h-4 flex-shrink-0" />
-          <span className="flex-1 text-left">Search...</span>
-          <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-500 bg-white/50 rounded border border-slate-300/50">
-            {typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+'}K
-          </kbd>
-        </button>
-      </div>
+      {/* Spacer below school selector */}
+      <div className="pb-4" />
 
       {/* SVG gradient for active nav icons */}
       <svg width="0" height="0" className="absolute">

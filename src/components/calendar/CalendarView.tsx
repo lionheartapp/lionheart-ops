@@ -103,10 +103,6 @@ export default function CalendarView() {
    * options (including "With AI (Leo)") as /events and the dashboard.
    */
   const handleCreateEventProject = useCallback((mode: EventCreateMode) => {
-    if (mode === 'ai') {
-      router.push('/events/new/ai')
-      return
-    }
     if (mode === 'single') {
       setSingleEventOpen(true)
       return

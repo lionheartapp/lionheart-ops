@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Ticket, AlertTriangle, CheckCircle, Loader2, ExternalLink } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -82,6 +83,7 @@ function TicketChip({ ticket, label }: { ticket: { ticketNumber: string; status:
 // ─── Main Drawer ──────────────────────────────────────────────────────────────
 
 export function ComplianceRecordDrawer({ record, onClose, onUpdated }: ComplianceRecordDrawerProps) {
+  const focusTrapRef = useFocusTrap(true)
   const queryClient = useQueryClient()
 
   const [outcome, setOutcome] = useState<ComplianceOutcome>(record?.outcome ?? 'PENDING')
@@ -175,7 +177,7 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex">
+      <div ref={focusTrapRef} className="fixed inset-0 z-50 flex">
         {/* Backdrop */}
         <motion.div
           key="backdrop"

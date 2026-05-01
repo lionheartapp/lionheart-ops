@@ -51,6 +51,8 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       teamSlugs?: string[]
       /** Grade-level division the user is pinned to. Null/empty = org-wide. */
       campusScope?: string
+      /** User's home school ID for default school selection */
+      schoolId?: string
       /** @deprecated Use campusScope — kept for backward-compat during Phase 1c migration. */
       schoolScope?: string
       role?: string
@@ -67,6 +69,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     localStorage.setItem('user-campus-scope', campusScopeValue)
     // Keep legacy key in sync during the migration window
     localStorage.setItem('user-school-scope', campusScopeValue)
+    localStorage.setItem('user-school-id', data.user?.schoolId || '')
     localStorage.setItem('user-role', data.user?.role || '')
     localStorage.setItem('org-name', data.organization?.name || '')
     // `gradeLevel` and `schoolType` were removed from Organization in Phase 1c

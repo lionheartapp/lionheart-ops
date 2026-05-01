@@ -6,6 +6,7 @@
  */
 
 import { rawPrisma } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 import { createNotification } from './notificationService'
 import { logger } from '@/lib/logger'
 
@@ -36,7 +37,7 @@ export async function approveMaintenanceGate(
     select: { id: true, approvalGates: true, status: true, title: true, submittedById: true, organizationId: true },
   })
 
-  const gates = (ticket.approvalGates ?? {}) as Record<string, GateState>
+  const gates = (ticket.approvalGates ?? {}) as unknown as Record<string, GateState>
   if (!gates[gateKey]) throw new Error('Gate not found')
   if (gates[gateKey].status !== 'PENDING') throw new Error('Gate already resolved')
 
@@ -54,7 +55,7 @@ export async function approveMaintenanceGate(
   await rawPrisma.maintenanceTicket.update({
     where: { id: ticketId },
     data: {
-      approvalGates: gates,
+      approvalGates: gates as unknown as Prisma.InputJsonValue,
       ...(allCleared
         ? { status: 'BACKLOG', approvedById: userId, approvedAt: new Date() }
         : {}),
@@ -73,7 +74,7 @@ export async function approveMaintenanceGate(
       content: allCleared
         ? 'All approvals cleared — ticket moved to backlog'
         : `Gate ${gates[gateKey].teamName} approved`,
-      metadata: { gateKey, gates },
+      metadata: { gateKey, gates } as unknown as Prisma.InputJsonValue,
     },
   }).catch(() => {})
 
@@ -81,7 +82,7 @@ export async function approveMaintenanceGate(
   if (allCleared) {
     createNotification({
       userId: ticket.submittedById,
-      type: 'ticket_update',
+      type: 'maintenance_assigned',
       title: 'Ticket Approved',
       body: `Your maintenance request "${ticket.title}" has been approved and is now in the queue.`,
       linkUrl: `/maintenance?ticket=${ticketId}`,
@@ -133,7 +134,7 @@ export async function rejectMaintenanceGate(
     select: { id: true, approvalGates: true, title: true, submittedById: true, organizationId: true },
   })
 
-  const gates = (ticket.approvalGates ?? {}) as Record<string, GateState>
+  const gates = (ticket.approvalGates ?? {}) as unknown as Record<string, GateState>
   if (!gates[gateKey]) throw new Error('Gate not found')
 
   gates[gateKey] = {
@@ -147,7 +148,7 @@ export async function rejectMaintenanceGate(
   await rawPrisma.maintenanceTicket.update({
     where: { id: ticketId },
     data: {
-      approvalGates: gates,
+      approvalGates: gates as unknown as Prisma.InputJsonValue,
       status: 'CANCELLED',
       rejectionReason: reason,
     },
@@ -163,14 +164,14 @@ export async function rejectMaintenanceGate(
       fromStatus: 'PENDING_APPROVAL',
       toStatus: 'CANCELLED',
       content: `Ticket rejected: ${reason}`,
-      metadata: { gateKey, gates, reason },
+      metadata: { gateKey, gates, reason } as unknown as Prisma.InputJsonValue,
     },
   }).catch(() => {})
 
   // Notify submitter
   createNotification({
     userId: ticket.submittedById,
-    type: 'ticket_update',
+    type: 'maintenance_qa_rejected',
     title: 'Ticket Rejected',
     body: `Your maintenance request "${ticket.title}" was rejected: "${reason}"`,
     linkUrl: `/maintenance?ticket=${ticketId}`,

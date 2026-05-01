@@ -133,6 +133,7 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('user-campus-scope', campusScopeValue)
         // Keep legacy key in sync during the migration window
         localStorage.setItem('user-school-scope', campusScopeValue)
+        localStorage.setItem('user-school-id', user.schoolId || '')
         localStorage.setItem('user-role', user.role || '')
         localStorage.setItem('org-name', org.name || '')
         // `org-school-type` was sourced from Organization.schoolType, which was

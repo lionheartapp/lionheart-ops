@@ -213,7 +213,7 @@ export default function MessageList({
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [conversation, isLoading, isStreaming, activeTools])
 
   const isLastAssistantStreaming = isStreaming && conversation.length > 0 && conversation[conversation.length - 1]?.role === 'assistant'
@@ -227,10 +227,10 @@ export default function MessageList({
 
   return (
     <div className={`flex-1 min-h-0 px-4 py-4 space-y-3 leo-scrollbar overflow-x-hidden ${conversation.length > 0 || isLoading ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ background: 'linear-gradient(180deg, #fdfcfb 0%, #f9f8f6 100%)' }}>
-      {/* Empty state — animated orb */}
+      {/* Empty state — animated orb + quick-start suggestions */}
       {conversation.length === 0 && !isLoading && (
         <motion.div
-          className="flex flex-col items-center justify-center h-full text-center px-6"
+          className="flex flex-col items-center justify-center h-full text-center px-4"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
@@ -239,9 +239,26 @@ export default function MessageList({
           <p className="text-sm font-medium text-slate-700 mb-1">
             Hi! I&apos;m Leo, your AI Assistant
           </p>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed mb-5">
             Ask me anything about your school — tickets, events, campus info, or analytics.
           </p>
+          <div className="w-full space-y-2">
+            {[
+              { icon: Calendar, label: "What's on the calendar this week?" },
+              { icon: BarChart3, label: 'Show me open maintenance tickets' },
+              { icon: Building2, label: 'Check room availability' },
+              { icon: ListChecks, label: 'Summarize recent activity' },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => onSuggestionSelect?.(item.label)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-slate-600 bg-white/60 border border-slate-200/60 rounded-xl hover:bg-white hover:border-slate-300 hover:text-slate-900 transition-all cursor-pointer group/chip"
+              >
+                <item.icon className="w-4 h-4 text-slate-400 group-hover/chip:text-indigo-500 transition-colors flex-shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
         </motion.div>
       )}
 

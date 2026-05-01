@@ -66,24 +66,19 @@ export interface PlanningConflict {
 
 // ── API Helpers ────────────────────────────────────────────────────────
 
-function authHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
-  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-}
+import { fetchApi } from '@/lib/api-client'
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, { ...options, headers: { ...authHeaders(), ...options?.headers } })
-  const data = await res.json()
-  if (!data.ok) throw new Error(data.error?.message || 'Request failed')
-  return data.data
+  return fetchApi<T>(url, options)
 }
 
 // ── Season Hooks ───────────────────────────────────────────────────────
 
-export function useSeasons() {
+export function useSeasons(schoolId?: string | null) {
+  const params = schoolId ? `?schoolId=${encodeURIComponent(schoolId)}` : ''
   return useQuery<PlanningSeason[]>({
-    queryKey: ['planning-seasons'],
-    queryFn: () => apiFetch('/api/planning-seasons'),
+    queryKey: ['planning-seasons', schoolId ?? 'all'],
+    queryFn: () => apiFetch(`/api/planning-seasons${params}`),
   })
 }
 

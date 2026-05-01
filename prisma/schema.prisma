@@ -280,6 +280,7 @@ model User {
   resourceResponses     EventResourceRequest[] @relation("ResourceResponder")
   planningSubmissions   PlanningSubmission[] @relation("PlanningSubmitter")
   planningComments      PlanningComment[]    @relation("PlanningCommentAuthor")
+  planningConflictComments PlanningConflictComment[] @relation("PlanningConflictCommentAuthor")
   ownedCalendars        Calendar[]           @relation("CalendarOwner")
   notifications         Notification[]
   athletes              Athlete[]
@@ -1818,8 +1819,24 @@ model PlanningConflict {
   updatedAt        DateTime          @updatedAt
 
   planningSeason PlanningSeason @relation(fields: [planningSeasonId], references: [id], onDelete: Cascade)
+  comments       PlanningConflictComment[]
 
   @@index([planningSeasonId, isResolved])
+}
+
+model PlanningConflictComment {
+  id                 String   @id @default(cuid())
+  planningConflictId String
+  authorId           String
+  message            String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  planningConflict PlanningConflict @relation(fields: [planningConflictId], references: [id], onDelete: Cascade)
+  author           User             @relation("PlanningConflictCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([planningConflictId, createdAt])
+  @@index([authorId])
 }
 
 // ─── Approval & Resource Request Models ────────────────────────────────

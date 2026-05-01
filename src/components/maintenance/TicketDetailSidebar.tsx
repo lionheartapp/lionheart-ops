@@ -89,23 +89,8 @@ interface TicketDetailSidebarProps {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const PRIORITY_COLORS: Record<string, string> = {
-  URGENT: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-amber-100 text-amber-700',
-  LOW: 'bg-slate-100 text-slate-500',
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  ELECTRICAL: 'Electrical',
-  PLUMBING: 'Plumbing',
-  HVAC: 'HVAC',
-  STRUCTURAL: 'Structural',
-  CUSTODIAL_BIOHAZARD: 'Custodial / Biohazard',
-  IT_AV: 'IT / A/V',
-  GROUNDS: 'Grounds',
-  OTHER: 'Other',
-}
+import { PRIORITY_COLORS, CATEGORY_LABELS } from '@/lib/constants/maintenance'
+import KBSuggestionsPanel from './KBSuggestionsPanel'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -554,6 +539,13 @@ export default function TicketDetailSidebar({
         >
           <LaborCostPanel ticketId={ticket.id} currentUserId={currentUserId} />
         </CollapsibleSection>
+      )}
+
+      {/* KB Article Suggestions */}
+      {ticket.category && (
+        <div className="pt-3 border-t border-slate-100">
+          <KBSuggestionsPanel category={ticket.category} title={ticket.title} />
+        </div>
       )}
     </div>
   )

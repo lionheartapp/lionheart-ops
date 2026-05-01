@@ -103,6 +103,13 @@ export default function Sidebar({
   const selection = useSidebarSelectionState({ initialSettingsTab })
   const perms = useSidebarPermissionFlags()
 
+  // Auto-expand maintenance section for maintenance team members
+  useEffect(() => {
+    if (perms.isOnMaintenanceTeam) {
+      setFacilitiesOpen(() => true)
+    }
+  }, [perms.isOnMaintenanceTeam]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useSidebarEvents({
     setActiveSettingsTab: selection.setActiveSettingsTab,
     setCalendarData: selection.setCalendarData,
@@ -252,7 +259,6 @@ export default function Sidebar({
       userAvatar={userAvatar}
       isSuperAdmin={isSuperAdmin}
       isImpersonating={isImpersonating}
-      onSearchOpen={onSearchOpen}
       onLogout={onLogout}
       onBugDialogOpen={() => setBugDialogOpen(true)}
       onViewAsOpen={() => setIsViewAsOpen(true)}

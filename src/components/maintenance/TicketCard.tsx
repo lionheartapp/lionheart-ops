@@ -3,46 +3,7 @@
 import { motion } from 'framer-motion'
 import { cardEntrance } from '@/lib/animations'
 import { WifiOff } from 'lucide-react'
-
-const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-slate-100 text-slate-600',
-  TODO: 'bg-blue-100 text-blue-700',
-  IN_PROGRESS: 'bg-indigo-100 text-indigo-700',
-  ON_HOLD: 'bg-yellow-100 text-yellow-700',
-  SCHEDULED: 'bg-purple-100 text-purple-700',
-  QA: 'bg-orange-100 text-orange-700',
-  DONE: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-red-100 text-red-700',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  BACKLOG: 'Backlog',
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  ON_HOLD: 'On Hold',
-  SCHEDULED: 'Scheduled',
-  QA: 'QA Review',
-  DONE: 'Done',
-  CANCELLED: 'Cancelled',
-}
-
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-slate-100 text-slate-600',
-  MEDIUM: 'bg-blue-100 text-blue-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  URGENT: 'bg-red-100 text-red-700',
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  ELECTRICAL: 'Electrical',
-  PLUMBING: 'Plumbing',
-  HVAC: 'HVAC',
-  STRUCTURAL: 'Structural',
-  CUSTODIAL_BIOHAZARD: 'Custodial',
-  IT_AV: 'IT / A/V',
-  GROUNDS: 'Grounds',
-  OTHER: 'Other',
-}
+import { STATUS_BADGE_COLORS, STATUS_LABELS, PRIORITY_COLORS, CATEGORY_LABELS } from '@/lib/constants/maintenance'
 
 function relativeTime(date: string | Date): string {
   const now = Date.now()
@@ -139,7 +100,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
             Pending Sync
           </span>
         ) : (
-          <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[ticket.status] || 'bg-slate-100 text-slate-600'}`}>
+          <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_BADGE_COLORS[ticket.status] || 'bg-slate-100 text-slate-600'}`}>
             {STATUS_LABELS[ticket.status] || ticket.status}
           </span>
         )}

@@ -41,6 +41,7 @@ import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFr
 import { EventBoard } from '@/components/events/board/EventBoard'
 import { ArchiveDrawer } from '@/components/events/board/ArchiveDrawer'
 import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
+import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import {
@@ -1024,6 +1025,8 @@ export default function EventsPage() {
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [archiveDrawerOpen, setArchiveDrawerOpen] = useState(false)
+  const [yearPlanPromptOpen, setYearPlanPromptOpen] = useState(false)
+  const [pendingCreateMode, setPendingCreateMode] = useState<EventCreateMode>('single')
 
   // View toggle — board is default for admins on desktop. Persisted per-user
   // in localStorage so repeat visitors stay on their preferred view.
@@ -1056,17 +1059,18 @@ export default function EventsPage() {
     (p) => p.status === 'COMPLETED' || p.status === 'CANCELLED',
   ).length
 
-  const handleOpenCreate = (mode: EventCreateMode) => {
-    if (mode === 'ai') {
-      router.push('/events/new/ai')
-    } else if (mode === 'recurring') {
+  const proceedWithCreate = (mode: EventCreateMode) => {
+    if (mode === 'recurring') {
       setSeriesDrawerOpen(true)
-    } else if (mode === 'template') {
-      setTemplateDrawerOpen(true)
     } else {
       setCreateMode(mode)
       setCreateModalOpen(true)
     }
+  }
+
+  const handleOpenCreate = (mode: EventCreateMode) => {
+    setPendingCreateMode(mode)
+    setYearPlanPromptOpen(true)
   }
 
   if (!isReady) {
@@ -1124,6 +1128,20 @@ export default function EventsPage() {
           </>
         )}
       </div>
+
+      {/* Year plan routing prompt */}
+      <YearPlanPrompt
+        isOpen={yearPlanPromptOpen}
+        onClose={() => setYearPlanPromptOpen(false)}
+        onYearPlan={(seasonId) => {
+          setYearPlanPromptOpen(false)
+          router.push(`/planning?action=create`)
+        }}
+        onRegularEvent={() => {
+          setYearPlanPromptOpen(false)
+          proceedWithCreate(pendingCreateMode)
+        }}
+      />
 
       {/* Create modals + drawers (lifted so CTA in header can trigger them) */}
       <CreateEventProjectModal

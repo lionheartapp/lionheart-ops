@@ -130,13 +130,13 @@ export default function SupportSection({
                 >
                   <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
                   <span className="text-sm">Maintenance</span>
-                  {!facilitiesOpen && (facilitiesGateCount?.count ?? 0) > 0 && (
+                  {(facilitiesGateCount?.count ?? 0) > 0 && (
                     <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">
                       {facilitiesGateCount!.count}
                     </span>
                   )}
                   <motion.span
-                    className={`${!facilitiesOpen && (facilitiesGateCount?.count ?? 0) > 0 ? '' : 'ml-auto'} block`}
+                    className={`${(facilitiesGateCount?.count ?? 0) > 0 ? '' : 'ml-auto'} block`}
                     animate={{ rotate: facilitiesOpen ? 180 : 0 }}
                     transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                   >
@@ -190,24 +190,6 @@ export default function SupportSection({
                         }`}
                       >
                         <span className="text-sm">Work Orders</span>
-                      </PrefetchLink>
-                    )}
-                    {(isOnMaintenanceTeam || canManageMaintenance) && (
-                      <PrefetchLink
-                        href="/maintenance/event-approvals"
-                        data-facility-active={pathname === '/maintenance/event-approvals' ? 'true' : undefined}
-                        onClick={closePanels}
-                        className={`flex items-center justify-between pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/maintenance/event-approvals' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
-                        }`}
-                        aria-current={pathname === '/maintenance/event-approvals' ? 'page' : undefined}
-                      >
-                        <span className="text-sm">Event Approvals</span>
-                        {(facilitiesGateCount?.count ?? 0) > 0 && (
-                          <span className="ml-auto flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
-                            {facilitiesGateCount!.count}
-                          </span>
-                        )}
                       </PrefetchLink>
                     )}
                     {canReadInventory && (isOnMaintenanceTeam || canManageMaintenance) && (

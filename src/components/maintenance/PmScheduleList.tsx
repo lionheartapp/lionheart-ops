@@ -263,12 +263,12 @@ export default function PmScheduleList({ onRowClick }: PmScheduleListProps) {
                 <td className="px-4 py-3 text-slate-600">
                   <div className="flex flex-col gap-0.5 max-w-[200px]">
                     {s.asset && (
-                      <span className="truncate text-xs">
+                      <span className="truncate text-xs" title={`${s.asset.assetNumber} — ${s.asset.name}`}>
                         {s.asset.assetNumber} — {s.asset.name}
                       </span>
                     )}
                     {locationLabel && (
-                      <span className="flex items-center gap-1 text-xs text-slate-500 truncate">
+                      <span className="flex items-center gap-1 text-xs text-slate-500 truncate" title={locationLabel}>
                         <MapPin className="w-3 h-3 flex-shrink-0" />
                         {locationLabel}
                       </span>

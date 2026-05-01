@@ -39,7 +39,9 @@ export async function getSeasons(filters?: { campusId?: string; schoolId?: strin
     db.planningSeason.findMany({
       where: {
         ...(filters?.campusId ? { campusId: filters.campusId } : {}),
-        ...(filters?.schoolId ? { schoolId: filters.schoolId } : {}),
+        ...(filters?.schoolId
+          ? { OR: [{ schoolId: filters.schoolId }, { schoolId: null }] }
+          : {}),
       },
       include: {
         campus: { select: { id: true, name: true } },
@@ -244,6 +246,14 @@ export async function submitSubmission(id: string) {
     data: { submissionStatus: 'SUBMITTED' },
   })
   invalidatePlanningCache()
+
+  // Auto-detect conflicts against other submissions
+  if (result.planningSeasonId) {
+    detectConflicts(id, result.planningSeasonId).catch(() => {
+      // Non-blocking — conflict detection failure shouldn't break submission
+    })
+  }
+
   return result
 }
 
@@ -346,6 +356,126 @@ export async function getConflicts(seasonId: string) {
       orderBy: [{ isResolved: 'asc' }, { severity: 'asc' }, { createdAt: 'desc' }],
     })
   )
+}
+
+/**
+ * Detect and create conflicts for a newly submitted proposal.
+ * Checks against all other non-draft, non-declined submissions in the same season.
+ * Creates PlanningConflict records for date overlaps and resource bottlenecks.
+ */
+export async function detectConflicts(submissionId: string, seasonId: string) {
+  const submission = await db.planningSubmission.findUnique({
+    where: { id: submissionId },
+    include: { resourceNeeds: true },
+  })
+  if (!submission) return []
+
+  // All competing submissions (not drafts, not declined, not the current one)
+  const others = await db.planningSubmission.findMany({
+    where: {
+      planningSeasonId: seasonId,
+      id: { not: submissionId },
+      submissionStatus: { notIn: ['DRAFT', 'DECLINED'] },
+    },
+    include: { resourceNeeds: true, submittedBy: { select: { firstName: true, lastName: true } } },
+  })
+
+  const newConflicts: Array<{
+    planningSeasonId: string
+    conflictType: 'DATE_OVERLAP' | 'RESOURCE_BOTTLENECK'
+    severity: 'CRITICAL' | 'WARNING' | 'INFO'
+    description: string
+    affectedIds: string[]
+    suggestedResolution: string | null
+  }> = []
+
+  const subDates = [
+    submission.preferredDate,
+    submission.alternateDate1,
+    submission.alternateDate2,
+  ].filter(Boolean).map((d) => new Date(d!).toDateString())
+
+  for (const other of others) {
+    const otherDates = [
+      other.preferredDate,
+      other.alternateDate1,
+      other.alternateDate2,
+    ].filter(Boolean).map((d) => new Date(d!).toDateString())
+
+    // Check date overlap (preferred dates match)
+    const preferredOverlap =
+      new Date(submission.preferredDate).toDateString() ===
+      new Date(other.preferredDate).toDateString()
+
+    const anyDateOverlap = subDates.some((d) => otherDates.includes(d))
+
+    if (preferredOverlap) {
+      const otherName = other.submittedBy
+        ? `${other.submittedBy.firstName || ''} ${other.submittedBy.lastName || ''}`.trim()
+        : 'Another user'
+
+      newConflicts.push({
+        planningSeasonId: seasonId,
+        conflictType: 'DATE_OVERLAP',
+        severity: 'CRITICAL',
+        description: `"${submission.title}" and "${other.title}" are both scheduled for ${new Date(submission.preferredDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`,
+        affectedIds: [submissionId, other.id],
+        suggestedResolution: 'Consider using alternate dates or coordinate timing to avoid overlap.',
+      })
+    } else if (anyDateOverlap) {
+      newConflicts.push({
+        planningSeasonId: seasonId,
+        conflictType: 'DATE_OVERLAP',
+        severity: 'WARNING',
+        description: `"${submission.title}" and "${other.title}" have overlapping alternate dates.`,
+        affectedIds: [submissionId, other.id],
+        suggestedResolution: 'Review alternate dates to ensure no scheduling conflict.',
+      })
+    }
+
+    // Check resource conflicts (same resource type needed on overlapping dates)
+    if (anyDateOverlap && submission.resourceNeeds.length > 0 && other.resourceNeeds.length > 0) {
+      const subResources = new Set(submission.resourceNeeds.map((r: { resourceType: string }) => r.resourceType))
+      const sharedResources = other.resourceNeeds
+        .filter((r: { resourceType: string }) => subResources.has(r.resourceType))
+        .map((r: { resourceType: string }) => r.resourceType)
+
+      if (sharedResources.length > 0) {
+        newConflicts.push({
+          planningSeasonId: seasonId,
+          conflictType: 'RESOURCE_BOTTLENECK',
+          severity: 'WARNING',
+          description: `"${submission.title}" and "${other.title}" both need ${sharedResources.join(', ').toLowerCase().replace(/_/g, ' ')} on overlapping dates.`,
+          affectedIds: [submissionId, other.id],
+          suggestedResolution: 'Coordinate resource sharing or stagger event times.',
+        })
+      }
+    }
+  }
+
+  // Deduplicate: don't create a conflict if the same pair already has one of the same type
+  const existingConflicts = await db.planningConflict.findMany({
+    where: { planningSeasonId: seasonId, isResolved: false },
+    select: { conflictType: true, affectedIds: true },
+  })
+
+  const isExisting = (type: string, ids: string[]) =>
+    existingConflicts.some((ec) => {
+      if (ec.conflictType !== type) return false
+      const existingIds = Array.isArray(ec.affectedIds) ? ec.affectedIds as string[] : []
+      return ids.every((id) => existingIds.includes(id))
+    })
+
+  const toCreate = newConflicts.filter((c) => !isExisting(c.conflictType, c.affectedIds))
+
+  if (toCreate.length > 0) {
+    await Promise.all(
+      toCreate.map((c) => db.planningConflict.create({ data: c }))
+    )
+    invalidatePlanningCache()
+  }
+
+  return toCreate
 }
 
 // ── Bulk Publish ───────────────────────────────────────────────────────

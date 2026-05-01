@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
           name: true,
           avatar: true,
           campusScope: true,
+          schoolId: true,
           passwordHash: true,
           status: true,
           emailVerified: true,
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
             name: user.name,
             avatar: user.avatar,
             campusScope: user.campusScope,
+            schoolId: user.schoolId,
             // Backward-compat alias — remove once clients are migrated
             schoolScope: user.campusScope,
             role: user.userRole?.name || null,

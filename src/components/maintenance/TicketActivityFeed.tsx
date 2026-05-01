@@ -51,27 +51,7 @@ interface TicketActivityFeedProps {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<string, string> = {
-  BACKLOG: 'Backlog',
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  ON_HOLD: 'On Hold',
-  SCHEDULED: 'Scheduled',
-  QA: 'QA Review',
-  DONE: 'Done',
-  CANCELLED: 'Cancelled',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-slate-100 text-slate-600',
-  TODO: 'bg-blue-100 text-blue-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  ON_HOLD: 'bg-orange-100 text-orange-700',
-  SCHEDULED: 'bg-purple-100 text-purple-700',
-  QA: 'bg-pink-100 text-pink-700',
-  DONE: 'bg-primary-100 text-primary-700',
-  CANCELLED: 'bg-slate-100 text-slate-400',
-}
+import { STATUS_BADGE_COLORS, STATUS_LABELS } from '@/lib/constants/maintenance'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -174,14 +154,14 @@ function ActivityEntry({ activity }: { activity: Activity }) {
           <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
             {activity.fromStatus && (
               <>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.fromStatus] ?? 'bg-slate-100 text-slate-600'}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_BADGE_COLORS[activity.fromStatus] ?? 'bg-slate-100 text-slate-600'}`}>
                   {STATUS_LABELS[activity.fromStatus] ?? activity.fromStatus}
                 </span>
                 <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
               </>
             )}
             {activity.toStatus && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[activity.toStatus] ?? 'bg-slate-100 text-slate-600'}`}>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_BADGE_COLORS[activity.toStatus] ?? 'bg-slate-100 text-slate-600'}`}>
                 {STATUS_LABELS[activity.toStatus] ?? activity.toStatus}
               </span>
             )}
@@ -309,6 +289,7 @@ export default function TicketActivityFeed({ ticketId, isPrivileged }: TicketAct
           <button
             onClick={() => commentMutation.mutate()}
             disabled={!comment.trim() || commentMutation.isPending}
+            aria-busy={commentMutation.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {commentMutation.isPending ? (

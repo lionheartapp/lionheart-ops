@@ -20,10 +20,8 @@ import {
   Calendar,
   CalendarDays,
   ChevronDown,
-  Copy,
   Plus,
   RefreshCw,
-  Sparkles,
 } from 'lucide-react'
 
 // ─── Tokens (warm editorial palette; kept inline to stay self-contained) ────
@@ -40,11 +38,9 @@ const CARD_SHADOW =
 // ─── Public types ───────────────────────────────────────────────────────────
 
 export type EventCreateMode =
-  | 'ai'
   | 'single'
   | 'recurring'
   | 'multiday'
-  | 'template'
 
 export interface EventCreateOption {
   mode: EventCreateMode
@@ -61,13 +57,6 @@ export interface EventCreateOption {
  * same options without round-tripping through the dropdown UI.
  */
 export const EVENT_CREATE_OPTIONS: ReadonlyArray<EventCreateOption> = [
-  {
-    mode: 'ai',
-    label: 'With AI (Leo)',
-    description: 'Describe your event in plain English and let Leo draft it',
-    icon: Sparkles,
-    highlight: true,
-  },
   {
     mode: 'single',
     label: 'Single Event',
@@ -86,13 +75,6 @@ export const EVENT_CREATE_OPTIONS: ReadonlyArray<EventCreateOption> = [
     label: 'Multi-day Event',
     description: 'Spans across multiple days',
     icon: CalendarDays,
-  },
-  {
-    mode: 'template',
-    label: 'From Template',
-    description: 'Start from a saved event template',
-    icon: Copy,
-    adminOnly: true,
   },
 ]
 

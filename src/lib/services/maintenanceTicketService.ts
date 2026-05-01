@@ -25,134 +25,15 @@ import type {
   HoldReason,
 } from '@prisma/client'
 
+// Re-export from extracted modules so existing imports don't break
+export { CATEGORY_TO_SPECIALTY, ALLOWED_TRANSITIONS } from './maintenanceTicketStateMachine'
+export type { TransitionConfig } from './maintenanceTicketStateMachine'
+export { getTicketDetail, listTickets, TICKET_INCLUDES } from './maintenanceTicketQueries'
+
+import { CATEGORY_TO_SPECIALTY, ALLOWED_TRANSITIONS } from './maintenanceTicketStateMachine'
+import { TICKET_INCLUDES } from './maintenanceTicketQueries'
+
 const log = logger.child({ service: 'maintenanceTicketService' })
-
-// ─── Category → Specialty Map ─────────────────────────────────────────────────
-
-export const CATEGORY_TO_SPECIALTY: Record<MaintenanceCategory, MaintenanceSpecialty> = {
-  ELECTRICAL: 'ELECTRICAL',
-  PLUMBING: 'PLUMBING',
-  HVAC: 'HVAC',
-  STRUCTURAL: 'STRUCTURAL',
-  CUSTODIAL_BIOHAZARD: 'CUSTODIAL_BIOHAZARD',
-  IT_AV: 'IT_AV',
-  GROUNDS: 'GROUNDS',
-  OTHER: 'OTHER',
-}
-
-// ─── Transition Map ───────────────────────────────────────────────────────────
-
-type TransitionConfig = {
-  requiredPermissions: string[]
-  requiredFields?: string[]
-  description: string
-}
-
-export const ALLOWED_TRANSITIONS: Record<
-  MaintenanceTicketStatus,
-  Partial<Record<MaintenanceTicketStatus, TransitionConfig>>
-> = {
-  BACKLOG: {
-    TODO: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Claim or assign ticket to start work',
-    },
-    SCHEDULED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Schedule ticket for a future date',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  TODO: {
-    IN_PROGRESS: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Begin working on ticket',
-    },
-    BACKLOG: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Send ticket back to backlog',
-    },
-    ON_HOLD: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      requiredFields: ['holdReason'],
-      description: 'Place ticket on hold with reason',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  IN_PROGRESS: {
-    QA: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      requiredFields: ['completionNote', 'completionPhotos'],
-      description: 'Submit for QA review with completion evidence',
-    },
-    TODO: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Send ticket back to todo',
-    },
-    ON_HOLD: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      requiredFields: ['holdReason'],
-      description: 'Place ticket on hold with reason',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  ON_HOLD: {
-    TODO: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Return ticket to todo',
-    },
-    IN_PROGRESS: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Resume work on ticket',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  QA: {
-    DONE: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_APPROVE_QA],
-      description: 'Approve QA and close ticket',
-    },
-    IN_PROGRESS: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_APPROVE_QA],
-      requiredFields: ['rejectionNote'],
-      description: 'Reject QA and send back to work',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  SCHEDULED: {
-    BACKLOG: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_ASSIGN],
-      description: 'Release scheduled ticket to backlog (system/cron)',
-    },
-    CANCELLED: {
-      requiredPermissions: [PERMISSIONS.MAINTENANCE_CANCEL],
-      requiredFields: ['cancellationReason'],
-      description: 'Cancel ticket with reason',
-    },
-  },
-  DONE: {},
-  CANCELLED: {},
-}
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -178,26 +59,6 @@ const CreateTicketSchema = z.object({
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
-
-// ─── Ticket Includes ──────────────────────────────────────────────────────────
-
-const TICKET_INCLUDES = {
-  submittedBy: {
-    select: { id: true, firstName: true, lastName: true, email: true, userRole: { select: { name: true } } },
-  },
-  assignedTo: { select: { id: true, firstName: true, lastName: true } },
-  building: { select: { id: true, name: true } },
-  space: { select: { id: true, name: true } },
-  room: { select: { id: true, roomNumber: true, displayName: true } },
-  campus: { select: { id: true, name: true } },
-  asset: {
-    select: {
-      repeatAlertSentAt: true,
-      costAlertSentAt: true,
-      eolAlertSentAt: true,
-    },
-  },
-} as const
 
 // ─── Generate Ticket Number ───────────────────────────────────────────────────
 
@@ -304,7 +165,7 @@ export async function createMaintenanceTicket(
       if (hasActiveGates) {
         await rawPrisma.maintenanceTicket.update({
           where: { id: ticket.id },
-          data: { status: 'PENDING_APPROVAL', approvalGates: gates },
+          data: { status: 'PENDING_APPROVAL', approvalGates: JSON.parse(JSON.stringify(gates)) },
         })
         needsApproval = true
         log.info({ ticketId: ticket.id, gateCount: Object.keys(gates).length }, 'Ticket requires approval')
@@ -655,115 +516,5 @@ export async function assignTicket(
   return updated
 }
 
-// ─── Get Ticket Detail ────────────────────────────────────────────────────────
-
-export async function getTicketDetail(ticketId: string, userId: string) {
-  const canReadAll = await canAny(userId, [
-    PERMISSIONS.MAINTENANCE_READ_ALL,
-    PERMISSIONS.MAINTENANCE_CLAIM,
-  ])
-
-  const ticket = await prisma.maintenanceTicket.findUnique({
-    where: { id: ticketId },
-    include: {
-      ...TICKET_INCLUDES,
-      activities: {
-        include: {
-          actor: { select: { id: true, firstName: true, lastName: true } },
-          assignedTo: { select: { id: true, firstName: true, lastName: true } },
-        },
-        orderBy: { createdAt: 'asc' },
-      },
-      watchers: {
-        include: {
-          user: { select: { id: true, firstName: true, lastName: true, email: true } },
-        },
-      },
-    },
-  })
-
-  if (!ticket) return null
-
-  // Filter internal activities for users without broad access
-  const filteredActivities = canReadAll
-    ? ticket.activities
-    : ticket.activities.filter((a) => !a.isInternal)
-
-  return { ...ticket, activities: filteredActivities }
-}
-
-// ─── List Tickets ─────────────────────────────────────────────────────────────
-
-type ListFilters = {
-  status?: MaintenanceTicketStatus
-  priority?: MaintenancePriority
-  category?: MaintenanceCategory
-  schoolId?: string
-  assignedToId?: string
-  search?: string
-  unassigned?: boolean
-  excludeStatus?: MaintenanceTicketStatus
-}
-
-export async function listTickets(filters: ListFilters, ctx: UserContext) {
-  const hasReadAll = await canAny(ctx.userId, [PERMISSIONS.MAINTENANCE_READ_ALL])
-  const hasClaim = await canAny(ctx.userId, [PERMISSIONS.MAINTENANCE_CLAIM])
-
-  const where: Record<string, unknown> = {}
-
-  // Role-scoped filtering
-  if (hasReadAll) {
-    // Head/admin sees everything
-  } else if (hasClaim) {
-    // Technician sees unassigned + own assigned
-    where.OR = [
-      { assignedToId: null },
-      { assignedToId: ctx.userId },
-    ]
-  } else {
-    // Submitter sees own tickets only
-    where.submittedById = ctx.userId
-  }
-
-  // Apply filters
-  if (filters.status) where.status = filters.status
-  if (filters.priority) where.priority = filters.priority
-  if (filters.category) where.category = filters.category
-  if (filters.schoolId) where.campusId = filters.schoolId
-  if (filters.assignedToId !== undefined) where.assignedToId = filters.assignedToId
-  if (filters.unassigned) where.assignedToId = null
-  if (filters.excludeStatus) {
-    where.NOT = { status: filters.excludeStatus }
-  }
-  if (filters.search) {
-    where.title = { contains: filters.search, mode: 'insensitive' }
-  }
-
-  const tickets = await prisma.maintenanceTicket.findMany({
-    where,
-    include: {
-      ...TICKET_INCLUDES,
-    },
-    orderBy: [
-      { priority: 'desc' },
-      { createdAt: 'asc' },
-    ],
-  })
-
-  // For technicians, add matchesSpecialty flag
-  if (hasClaim && !hasReadAll) {
-    const profile = await rawPrisma.technicianProfile.findUnique({
-      where: { userId: ctx.userId },
-    })
-    const techSpecialties = (profile?.specialties ?? []) as MaintenanceSpecialty[]
-
-    return tickets.map((t) => ({
-      ...t,
-      matchesSpecialty:
-        (t.specialty as MaintenanceSpecialty) === 'OTHER' ||
-        techSpecialties.includes(t.specialty as MaintenanceSpecialty),
-    }))
-  }
-
-  return tickets
-}
+// Query functions (getTicketDetail, listTickets) are in maintenanceTicketQueries.ts
+// and re-exported from this file for backward compatibility.

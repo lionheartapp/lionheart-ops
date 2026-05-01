@@ -45,45 +45,19 @@ interface ComplianceDomainCardProps {
   isUpdating?: boolean
 }
 
-// ─── Domain Icons ─────────────────────────────────────────────────────────────
+// ─── Domain Config (unified icon, color, background) ────────────────────────
 
-const DOMAIN_ICONS: Record<ComplianceDomain, typeof Shield> = {
-  AHERA: Shield,
-  FIRE_SAFETY: Flame,
-  PLAYGROUND: Trees,
-  LEAD_WATER: Droplets,
-  BOILER: Thermometer,
-  ELEVATOR: ArrowUpFromLine,
-  KITCHEN: UtensilsCrossed,
-  ADA: Accessibility,
-  RADON: Wind,
-  IPM: Bug,
-}
-
-const DOMAIN_ICON_COLORS: Record<ComplianceDomain, string> = {
-  AHERA: 'text-slate-600',
-  FIRE_SAFETY: 'text-red-600',
-  PLAYGROUND: 'text-green-600',
-  LEAD_WATER: 'text-blue-600',
-  BOILER: 'text-orange-600',
-  ELEVATOR: 'text-indigo-600',
-  KITCHEN: 'text-yellow-600',
-  ADA: 'text-purple-600',
-  RADON: 'text-teal-600',
-  IPM: 'text-primary-600',
-}
-
-const DOMAIN_BG_COLORS: Record<ComplianceDomain, string> = {
-  AHERA: 'bg-slate-50',
-  FIRE_SAFETY: 'bg-red-50',
-  PLAYGROUND: 'bg-green-50',
-  LEAD_WATER: 'bg-blue-50',
-  BOILER: 'bg-orange-50',
-  ELEVATOR: 'bg-indigo-50',
-  KITCHEN: 'bg-yellow-50',
-  ADA: 'bg-purple-50',
-  RADON: 'bg-teal-50',
-  IPM: 'bg-primary-50',
+const DOMAIN_CONFIG: Record<ComplianceDomain, { icon: typeof Shield; iconColor: string; bg: string }> = {
+  AHERA:       { icon: Shield,           iconColor: 'text-slate-600',   bg: 'bg-slate-50' },
+  FIRE_SAFETY: { icon: Flame,            iconColor: 'text-red-600',     bg: 'bg-red-50' },
+  PLAYGROUND:  { icon: Trees,            iconColor: 'text-green-600',   bg: 'bg-green-50' },
+  LEAD_WATER:  { icon: Droplets,         iconColor: 'text-blue-600',    bg: 'bg-blue-50' },
+  BOILER:      { icon: Thermometer,      iconColor: 'text-orange-600',  bg: 'bg-orange-50' },
+  ELEVATOR:    { icon: ArrowUpFromLine,  iconColor: 'text-indigo-600',  bg: 'bg-indigo-50' },
+  KITCHEN:     { icon: UtensilsCrossed,  iconColor: 'text-yellow-600',  bg: 'bg-yellow-50' },
+  ADA:         { icon: Accessibility,    iconColor: 'text-purple-600',  bg: 'bg-purple-50' },
+  RADON:       { icon: Wind,             iconColor: 'text-teal-600',    bg: 'bg-teal-50' },
+  IPM:         { icon: Bug,              iconColor: 'text-primary-600', bg: 'bg-primary-50' },
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -147,9 +121,7 @@ export function ComplianceDomainCard({
   isUpdating = false,
 }: ComplianceDomainCardProps) {
   const { domain, isEnabled, meta, nextRecord, status } = data
-  const Icon = DOMAIN_ICONS[domain]
-  const iconColor = DOMAIN_ICON_COLORS[domain]
-  const iconBg = DOMAIN_BG_COLORS[domain]
+  const { icon: Icon, iconColor, bg: iconBg } = DOMAIN_CONFIG[domain]
 
   const dueDateStr = nextRecord
     ? new Date(nextRecord.dueDate).toLocaleDateString('en-US', {

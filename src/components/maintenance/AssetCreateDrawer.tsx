@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, Package } from 'lucide-react'
@@ -92,6 +93,7 @@ export default function AssetCreateDrawer({
   onCreated,
   editAsset,
 }: AssetCreateDrawerProps) {
+  const focusTrapRef = useFocusTrap(isOpen)
   const queryClient = useQueryClient()
   const { data: locationOptions = [] } = useCampusLocations()
   const isEditMode = !!editAsset
@@ -248,6 +250,7 @@ export default function AssetCreateDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            ref={focusTrapRef}
             className="fixed inset-y-0 right-0 w-full sm:w-[480px] z-50 flex flex-col ui-glass-overlay"
           >
             {/* Header */}

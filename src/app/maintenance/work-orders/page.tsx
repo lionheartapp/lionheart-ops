@@ -1,6 +1,6 @@
 'use client'
-// cache-bust: force webpack recompile after shared chunk fixes
-import { useState, useEffect, Suspense } from 'react'
+
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
@@ -8,58 +8,14 @@ import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
 import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
-import { useAuth } from '@/lib/hooks/useAuth'
-import { fetchApi } from '@/lib/api-client'
+import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 
 function WorkOrdersContent() {
   const searchParams = useSearchParams()
-
-  // Cookie-based auth via useAuth — no more localStorage JWT reads
-  const { user, org, orgId, isReady, logout } = useAuth({ redirectTo: '/login' })
-  const userName = user.name
-  const userEmail = user.email
-  const userAvatar = user.avatar
-  const userRole = user.role
-  const orgName = org.name
-  const orgSchoolType = org.schoolType
-  const userSchoolScope = user.campusScope ?? user.schoolScope
-  const userTeam = user.team
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
-  const isClient = isReady
-
-  // Keep the local logo copy in sync when useAuth refreshes it
-  useEffect(() => {
-    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
-      setOrgLogoUrl(org.logoUrl)
-    }
-  }, [org.logoUrl, orgLogoUrl])
-
-  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
-  useEffect(() => {
-    if (orgLogoUrl || !isReady) return
-    let cancelled = false
-    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
-      .then((data) => {
-        if (cancelled) return
-        if (data?.logoUrl) {
-          setOrgLogoUrl(data.logoUrl)
-        }
-      })
-      .catch(() => {
-        // Silently fail
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [orgLogoUrl, isReady])
-
+  const { layoutProps, isReady, orgId } = useDashboardLayoutProps()
   const campusFilter = useCampusFilter()
 
-  const handleLogout = () => {
-    logout()
-  }
-
-  if (!isClient || !orgId) {
+  if (!isReady || !orgId) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
@@ -68,16 +24,7 @@ function WorkOrdersContent() {
   }
 
   return (
-    <DashboardLayout
-      userName={userName || 'User'}
-      userEmail={userEmail || 'user@school.edu'}
-      userAvatar={userAvatar || undefined}
-      organizationName={orgName || 'School'}
-      organizationLogoUrl={orgLogoUrl || undefined}
-      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
-      teamLabel={userTeam || userRole || 'Team'}
-      onLogout={handleLogout}
-    >
+    <DashboardLayout {...layoutProps}>
       <MotionConfig reducedMotion="user">
         <div>
             {/* Page header */}
@@ -107,6 +54,8 @@ function WorkOrdersContent() {
               initialPriority={searchParams.get('priority') || undefined}
               initialUnassigned={searchParams.get('unassigned') === 'true'}
               initialSchoolId={searchParams.get('schoolId') || undefined}
+              initialCategory={searchParams.get('category') || undefined}
+              initialSearch={searchParams.get('q') || undefined}
             />
         </div>
       </MotionConfig>

@@ -31,6 +31,7 @@ import QAReviewPanel from './QAReviewPanel'
 import LaborTimerButton from './LaborTimerButton'
 import PmChecklistSection from './PmChecklistSection'
 import TicketDetailSidebar from './TicketDetailSidebar'
+import PanelErrorBoundary from '@/components/PanelErrorBoundary'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -101,27 +102,7 @@ interface TicketDetailPageProps {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const STATUS_LABELS: Record<string, string> = {
-  BACKLOG: 'Backlog',
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  ON_HOLD: 'On Hold',
-  SCHEDULED: 'Scheduled',
-  QA: 'QA Review',
-  DONE: 'Done',
-  CANCELLED: 'Cancelled',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: 'bg-slate-100 text-slate-600',
-  TODO: 'bg-blue-100 text-blue-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  ON_HOLD: 'bg-orange-100 text-orange-700',
-  SCHEDULED: 'bg-purple-100 text-purple-700',
-  QA: 'bg-pink-100 text-pink-700',
-  DONE: 'bg-primary-100 text-primary-700',
-  CANCELLED: 'bg-slate-100 text-slate-400',
-}
+import { STATUS_BADGE_COLORS, STATUS_LABELS } from '@/lib/constants/maintenance'
 
 // Client-side allowed transitions — simplified for action button display
 const ACTION_TRANSITIONS: Record<MaintenanceStatus, { to: MaintenanceStatus; label: string }[]> = {
@@ -338,9 +319,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               <button
-                onClick={() => router.back()}
+                onClick={() => router.push('/maintenance/work-orders')}
                 className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer text-slate-500 hover:text-slate-700 flex-shrink-0"
-                title="Go back"
+                title="Back to Work Orders"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -351,7 +332,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   </span>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      STATUS_COLORS[ticket.status] ?? 'bg-slate-100 text-slate-600'
+                      STATUS_BADGE_COLORS[ticket.status] ?? 'bg-slate-100 text-slate-600'
                     }`}
                   >
                     {STATUS_LABELS[ticket.status] ?? ticket.status}
@@ -426,6 +407,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                     }
                   }}
                   disabled={statusMutation.isPending}
+                  aria-busy={statusMutation.isPending}
                   className="ui-btn-md ui-btn-primary"
                 >
                   {statusMutation.isPending ? (
@@ -604,7 +586,9 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         {/* QA Review Panel */}
         {showQAReview && (
           <motion.div variants={fadeInUp}>
-            <QAReviewPanel ticket={ticket} onComplete={onStatusActionComplete} />
+            <PanelErrorBoundary label="QA Review">
+              <QAReviewPanel ticket={ticket} onComplete={onStatusActionComplete} />
+            </PanelErrorBoundary>
           </motion.div>
         )}
 
@@ -692,20 +676,24 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   Refresh
                 </button>
               </div>
-              <TicketActivityFeed ticketId={ticketId} isPrivileged={isPrivileged} />
+              <PanelErrorBoundary label="Activity Feed">
+                <TicketActivityFeed ticketId={ticketId} isPrivileged={isPrivileged} />
+              </PanelErrorBoundary>
             </motion.div>
           </motion.div>
 
           {/* ─── Right: Sidebar ──────────────────────────────────── */}
           <motion.div variants={fadeInUp} className="lg:col-span-1">
             <div className="ui-glass p-5 rounded-2xl lg:sticky lg:top-4">
-              <TicketDetailSidebar
-                ticket={ticket}
-                canManage={canManage}
-                canAssign={canManage}
-                isPrivileged={isPrivileged}
-                currentUserId={currentUserId}
-              />
+              <PanelErrorBoundary label="Ticket Details">
+                <TicketDetailSidebar
+                  ticket={ticket}
+                  canManage={canManage}
+                  canAssign={canManage}
+                  isPrivileged={isPrivileged}
+                  currentUserId={currentUserId}
+                />
+              </PanelErrorBoundary>
             </div>
           </motion.div>
         </div>

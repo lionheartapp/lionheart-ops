@@ -13,7 +13,14 @@ export default function PublicNav() {
         >
           <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
         </Link>
-        <div className="flex gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Link
+            href="/help"
+            className="hidden sm:inline-block px-3 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors duration-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            aria-label="Browse the Lionheart help center"
+          >
+            Help
+          </Link>
           <Link
             href="/signin"
             className="ui-btn-md ui-btn-ghost rounded-lg"

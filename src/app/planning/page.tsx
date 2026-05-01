@@ -1,17 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { Plus, ChevronDown } from 'lucide-react'
 import { IllustrationCalendar } from '@/components/illustrations/IllustrationCalendar'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
-import PlanningSubmissionForm from '@/components/planning/PlanningSubmissionForm'
 import MySubmissions from '@/components/planning/MySubmissions'
 import PlanningSeasonAdmin from '@/components/planning/PlanningSeasonAdmin'
 import CommentThread from '@/components/planning/CommentThread'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
+import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
+import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useSeasons, useCreateSeason, useSubmissions, useCreateSubmission, useSubmitSubmission, useComments, useAddComment } from '@/lib/hooks/usePlanningSeason'
 import type { PlanningSubmission } from '@/lib/hooks/usePlanningSeason'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -32,8 +35,9 @@ export default function PlanningPage() {
   const [orgLogoUrl] = useState<string | null>(typeof window !== 'undefined' ? localStorage.getItem('org-logo-url') : null)
 
   const isAdmin = userRole ? (userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('super')) : false
+  const { activeSchoolId } = useActiveSchool()
 
-  const { data: seasons = [], isLoading: seasonsLoading } = useSeasons()
+  const { data: seasons = [], isLoading: seasonsLoading } = useSeasons(activeSchoolId)
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null)
 
   // Auto-select: prefer first non-CLOSED season, else first season
@@ -49,8 +53,19 @@ export default function PlanningPage() {
   const submitSubmission = useSubmitSubmission()
   const addComment = useAddComment()
 
-  const [showForm, setShowForm] = useState(false)
+  const searchParams = useSearchParams()
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<'single' | 'multiday'>('single')
+  const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
   const [selectedSubmission, setSelectedSubmission] = useState<PlanningSubmission | null>(null)
+
+  // Auto-open form when navigating with ?action=create
+  useEffect(() => {
+    if (searchParams.get('action') === 'create' && activeSeason?.phase === 'COLLECTING') {
+      setCreateModalOpen(true)
+      router.replace('/planning', { scroll: false })
+    }
+  }, [searchParams, activeSeason?.phase, router])
 
   // Create season form state (admin)
   const [showCreateSeason, setShowCreateSeason] = useState(false)
@@ -175,13 +190,19 @@ export default function PlanningPage() {
                 New Year Plan
               </button>
             )}
-            {activeSeason && !isAdmin && activeSeason.phase === 'COLLECTING' && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition"
-              >
-                + New Submission
-              </button>
+            {activeSeason && activeSeason.phase === 'COLLECTING' && (
+              <CreateEventMenu
+                isAdmin={isAdmin}
+                label="Submit Event"
+                onSelect={(mode: EventCreateMode) => {
+                  if (mode === 'recurring') {
+                    setSeriesDrawerOpen(true)
+                  } else {
+                    setCreateMode(mode as 'single' | 'multiday')
+                    setCreateModalOpen(true)
+                  }
+                }}
+              />
             )}
           </div>
         </motion.div>
@@ -295,32 +316,14 @@ export default function PlanningPage() {
           />
         )}
 
-        {/* Teacher View */}
+        {/* My Submissions — visible to non-admins when form is closed */}
         {activeSeason && !isAdmin && (
-          <>
-            {showForm ? (
-              <div className="ui-glass p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">New Event Submission</h3>
-                <PlanningSubmissionForm
-                  seasonId={activeSeason.id}
-                  isSubmitting={createSubmission.isPending}
-                  onSubmit={(data) => {
-                    createSubmission.mutate({ seasonId: activeSeason.id, data }, {
-                      onSuccess: () => setShowForm(false),
-                    })
-                  }}
-                  onCancel={() => setShowForm(false)}
-                />
-              </div>
-            ) : (
-              <MySubmissions
-                submissions={mySubmissions}
-                onSubmit={(id) => submitSubmission.mutate({ seasonId: activeSeason.id, subId: id })}
-                onSelect={setSelectedSubmission}
-                isSubmitting={submitSubmission.isPending}
-              />
-            )}
-          </>
+          <MySubmissions
+            submissions={mySubmissions}
+            onSubmit={(id) => submitSubmission.mutate({ seasonId: activeSeason.id, subId: id })}
+            onSelect={setSelectedSubmission}
+            isSubmitting={submitSubmission.isPending}
+          />
         )}
 
         {/* Submission Detail Panel */}
@@ -390,6 +393,22 @@ export default function PlanningPage() {
       </motion.div>
       </div>
       </MotionConfig>
+
+      {/* Event creation drawers — routed as planning submissions */}
+      {activeSeason && (
+        <>
+          <CreateEventProjectModal
+            isOpen={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            initialMode={createMode}
+            planningSeasonId={activeSeason.id}
+          />
+          <EventSeriesDrawer
+            isOpen={seriesDrawerOpen}
+            onClose={() => setSeriesDrawerOpen(false)}
+          />
+        </>
+      )}
     </DashboardLayout>
   )
 }

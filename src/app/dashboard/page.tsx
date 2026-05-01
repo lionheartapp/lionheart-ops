@@ -11,7 +11,7 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -35,6 +35,12 @@ import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
+import PlanningSeasonWidget from '@/components/dashboard/PlanningSeasonWidget'
+import YearPlanPrompt from '@/components/events/YearPlanPrompt'
+import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
+import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
+import { useToast } from '@/components/Toast'
+import { format } from 'date-fns'
 
 interface TicketData {
   id: string
@@ -228,6 +234,8 @@ export default function DashboardPage() {
   const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
   const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const [yearPlanPromptOpen, setYearPlanPromptOpen] = useState(false)
+  const [pendingCreateMode, setPendingCreateMode] = useState<EventCreateMode>('single')
 
   // Leo item click drawer state
   const [leoDrawerOpen, setLeoDrawerOpen] = useState(false)
@@ -235,6 +243,66 @@ export default function DashboardPage() {
   const [leoDrawerItem, setLeoDrawerItem] = useState<Record<string, unknown> | null>(null)
   const [leoDrawerDetail, setLeoDrawerDetail] = useState<Record<string, unknown> | null>(null)
   const [leoDrawerLoading, setLeoDrawerLoading] = useState(false)
+
+  // ── Facility Requests (pending event approvals for maintenance team) ──
+  const { data: permFlags } = usePermissions()
+  // Only show facility requests to users actually on the maintenance team —
+  // general admins with canManageMaintenance see these on the Maintenance Hub instead.
+  const canApproveFacilities = isOnTeam(permFlags, 'maintenance')
+  const { data: pendingFacilityRequests } = usePendingGateApprovals('facilities', !!canApproveFacilities)
+  const facilityRequestCount = pendingFacilityRequests?.length ?? 0
+  const { toast } = useToast()
+  const [facilityProcessingIds, setFacilityProcessingIds] = useState<Set<string>>(new Set())
+
+  const handleFacilityApprove = async (projectId: string) => {
+    setFacilityProcessingIds((prev) => new Set(prev).add(projectId))
+    try {
+      const res = await fetch(`/api/events/projects/${projectId}/approve-gate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gateType: 'facilities' }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err?.error?.message || 'Failed to approve')
+      }
+      toast('Facility request approved', 'success')
+      window.dispatchEvent(new Event('focus'))
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to approve', 'error')
+    } finally {
+      setFacilityProcessingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(projectId)
+        return next
+      })
+    }
+  }
+
+  const handleFacilityReject = async (projectId: string, reason: string) => {
+    setFacilityProcessingIds((prev) => new Set(prev).add(projectId))
+    try {
+      const res = await fetch(`/api/events/projects/${projectId}/reject-gate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gateType: 'facilities', reason }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err?.error?.message || 'Failed to reject')
+      }
+      toast('Event sent back for revision', 'success')
+      window.dispatchEvent(new Event('focus'))
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to reject', 'error')
+    } finally {
+      setFacilityProcessingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(projectId)
+        return next
+      })
+    }
+  }
 
   // Listen for leo-item-click events from the StructuredList in Leo
   useEffect(() => {
@@ -434,22 +502,19 @@ export default function DashboardPage() {
    *   recurring  → EventSeriesDrawer (admin-only)
    *   template   → TemplateListDrawer → CreateFromTemplateWizard
    */
-  const handleUpcomingCreate = useCallback((mode: EventCreateMode) => {
-    setIsCreateDropdownOpen(false)
-    if (mode === 'ai') {
-      router.push('/events/new/ai')
-      return
-    }
+  const proceedWithDashboardCreate = useCallback((mode: EventCreateMode) => {
     if (mode === 'recurring') {
       setSeriesDrawerOpen(true)
       return
     }
-    if (mode === 'template') {
-      setTemplateDrawerOpen(true)
-      return
-    }
-    setProjectModalMode(mode)
+    setProjectModalMode(mode as 'single' | 'multiday')
     setProjectModalOpen(true)
+  }, [])
+
+  const handleUpcomingCreate = useCallback((mode: EventCreateMode) => {
+    setIsCreateDropdownOpen(false)
+    setPendingCreateMode(mode)
+    setYearPlanPromptOpen(true)
   }, [router])
 
   // Close dropdown when clicking outside
@@ -699,6 +764,100 @@ export default function DashboardPage() {
         </motion.div>
       </motion.div>
 
+      {/* Facility Requests Banner — shown to maintenance team when events need approval */}
+      {canApproveFacilities && facilityRequestCount > 0 && (
+        <motion.div
+          className="mb-6 rounded-2xl p-4 shadow-sm backdrop-blur-sm border bg-gradient-to-br from-amber-50/80 to-amber-100/80 border-amber-200/30 flex-shrink-0"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Wrench className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">Facility Requests</h3>
+                <p className="text-xs text-amber-600">
+                  {facilityRequestCount} event{facilityRequestCount !== 1 ? 's' : ''} requesting facilities support
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/maintenance?tab=dashboard')}
+              className="text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors flex items-center gap-0.5 cursor-pointer"
+            >
+              View in Maintenance
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {pendingFacilityRequests!.slice(0, 2).map((project) => {
+              const startsAt = new Date(project.startsAt)
+              const dateDisplay = format(startsAt, 'MMM d, yyyy')
+              const creatorName = project.createdBy?.firstName
+                ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
+                : project.createdBy?.email
+              const meta = (project.metadata ?? {}) as Record<string, unknown>
+              const facilityNeeds = (meta.facilityNeeds ?? []) as string[]
+
+              return (
+                <div key={project.id} className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{project.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
+                        <CalendarRange className="w-2.5 h-2.5" />
+                        {dateDisplay}
+                      </span>
+                      {creatorName && (
+                        <span className="text-[10px] text-slate-400">by {creatorName}</span>
+                      )}
+                      {facilityNeeds.slice(0, 2).map((need) => (
+                        <span key={need} className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">
+                          {need}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => handleFacilityApprove(project.id)}
+                      disabled={facilityProcessingIds.has(project.id)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-medium hover:bg-green-700 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {facilityProcessingIds.has(project.id) ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-3 h-3" />
+                      )}
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => router.push('/maintenance?tab=dashboard')}
+                      className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
+                    >
+                      Details
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+            {facilityRequestCount > 2 && (
+              <button
+                onClick={() => router.push('/maintenance?tab=dashboard')}
+                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors cursor-pointer"
+              >
+                +{facilityRequestCount - 2} more request{facilityRequestCount - 2 !== 1 ? 's' : ''}
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {/* Dashboard Panels Grid */}
       <motion.div
         className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 lg:overflow-hidden overflow-y-auto mb-10"
@@ -714,6 +873,7 @@ export default function DashboardPage() {
                 (right rail) can stay full-height without the checklist
                 squeezing it from above. */}
             <OnboardingChecklistWidget />
+            <PlanningSeasonWidget />
             <div className="flex-1 min-h-0">
               <UpcomingEventsPanel
                 items={upcomingItems}
@@ -736,6 +896,7 @@ export default function DashboardPage() {
         ) : (
         <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
           <OnboardingChecklistWidget />
+          <PlanningSeasonWidget />
           <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
           {/* Sticky header — stays pinned while events scroll */}
           <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
@@ -1021,7 +1182,7 @@ export default function DashboardPage() {
         {/* Right Rail — Embedded Leo AI Assistant */}
         <motion.div
           variants={cardEntrance}
-          className="min-h-0 overflow-hidden h-full"
+          className="min-h-0 overflow-hidden lg:h-[800px]"
         >
           <ChatPanel variant="embedded" />
         </motion.div>
@@ -1239,6 +1400,20 @@ export default function DashboardPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Year plan routing prompt */}
+      <YearPlanPrompt
+        isOpen={yearPlanPromptOpen}
+        onClose={() => setYearPlanPromptOpen(false)}
+        onYearPlan={() => {
+          setYearPlanPromptOpen(false)
+          router.push('/planning?action=create')
+        }}
+        onRegularEvent={() => {
+          setYearPlanPromptOpen(false)
+          proceedWithDashboardCreate(pendingCreateMode)
+        }}
+      />
 
       {/* ─── Event Project Create flows (same as Events Hub) ───────────────── */}
       <CreateEventProjectModal

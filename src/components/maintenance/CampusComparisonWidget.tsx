@@ -18,14 +18,7 @@ interface CampusComparisonWidgetProps {
 
 export default function CampusComparisonWidget({ data, onCampusClick }: CampusComparisonWidgetProps) {
   if (!data || data.length === 0) {
-    return (
-      <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-800">Tickets by Campus</h3>
-        </div>
-        <div className="text-xs text-slate-400 text-center py-4">No campus data available</div>
-      </motion.div>
-    )
+    return null
   }
 
   const maxCount = Math.max(1, ...data.map((d) => d.count))

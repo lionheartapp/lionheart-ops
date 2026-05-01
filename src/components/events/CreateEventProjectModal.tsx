@@ -10,6 +10,7 @@ import {
 import DetailDrawer from '@/components/DetailDrawer'
 import { TimePicker } from '@/components/calendar/TimePicker'
 import { useCreateEventProject } from '@/lib/hooks/useEventProject'
+import { useCreateSubmission, useSubmitSubmission } from '@/lib/hooks/usePlanningSeason'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useToast } from '@/components/Toast'
 import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
@@ -49,6 +50,8 @@ interface CreateEventProjectModalProps {
   isOpen: boolean
   onClose: () => void
   initialMode?: EventMode
+  /** When set, creates a planning submission instead of a live event project */
+  planningSeasonId?: string | null
 }
 
 interface FormData {
@@ -327,10 +330,13 @@ function DateTimeBlock({
 
 // ─── Main Modal ──────────────────────────────────────────────────────────────
 
-export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single' }: CreateEventProjectModalProps) {
+export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single', planningSeasonId }: CreateEventProjectModalProps) {
   const router = useRouter()
   const createProject = useCreateEventProject()
+  const createSubmission = useCreateSubmission()
+  const submitSubmission = useSubmitSubmission()
   const { toast } = useToast()
+  const isPlanning = !!planningSeasonId
   const { activeSchoolId, schools, isMultiSchool } = useActiveSchool()
   const [form, setForm] = useState<FormData>(defaultForm)
   const [location, setLocation] = useState<LocationData>(defaultLocationData())
@@ -352,7 +358,10 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     }
   }, [isOpen, initialMode, activeSchoolId])
 
-  const config = MODE_CONFIG[mode]
+  const baseConfig = MODE_CONFIG[mode]
+  const config = isPlanning
+    ? { ...baseConfig, title: `Submit ${baseConfig.title.replace('New ', '')} to Year Plan` }
+    : baseConfig
   const isMultiDay = mode === 'multiday'
 
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
@@ -479,10 +488,38 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     }
 
     try {
-      const project = await createProject.mutateAsync(payload)
-      toast('Event project created', 'success')
-      handleClose()
-      router.push(`/events/${project.id}`)
+      if (isPlanning && planningSeasonId) {
+        // Create as planning submission
+        const duration = Math.round(
+          (new Date(endDateTime).getTime() - new Date(startDateTime).getTime()) / 60000
+        )
+        const resourceNeeds: Array<{ resourceType: string; details?: string }> = []
+        if (form.requiresAV) resourceNeeds.push({ resourceType: 'AV_EQUIPMENT', details: form.avNeeds.join(', ') })
+        if (form.requiresFacilities) resourceNeeds.push({ resourceType: 'FACILITY', details: form.facilityNeeds.join(', ') })
+        if (form.requiresCustodial) resourceNeeds.push({ resourceType: 'CUSTODIAL' })
+
+        const sub = (await createSubmission.mutateAsync({
+          seasonId: planningSeasonId,
+          data: {
+            title: form.title.trim(),
+            description: form.description.trim() || undefined,
+            preferredDate: form.startsAt,
+            duration: Math.max(15, duration || 60),
+            expectedAttendance: form.expectedAttendance ? parseInt(form.expectedAttendance, 10) : undefined,
+            isOutdoor: location.isOffCampus,
+            resourceNeeds: resourceNeeds.length > 0 ? resourceNeeds : undefined,
+          },
+        })) as { id: string }
+        // Auto-submit the draft
+        await submitSubmission.mutateAsync({ seasonId: planningSeasonId, subId: sub.id })
+        toast('Event submitted to year plan', 'success')
+        handleClose()
+      } else {
+        const project = await createProject.mutateAsync(payload)
+        toast('Event project created', 'success')
+        handleClose()
+        router.push(`/events/${project.id}`)
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to create event', 'error')
     }
@@ -516,11 +553,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={createProject.isPending}
+          disabled={createProject.isPending || createSubmission.isPending}
           className="flex-1 max-w-xs py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          {createProject.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-          Create {isMultiDay ? 'Multi-day ' : ''}Event
+          {(createProject.isPending || createSubmission.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isPlanning ? 'Submit to Year Plan' : `Create ${isMultiDay ? 'Multi-day ' : ''}Event`}
         </button>
       )}
       <button

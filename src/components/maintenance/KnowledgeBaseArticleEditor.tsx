@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, BookOpen, Tag } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import MarkdownEditor from './MarkdownEditor'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,6 +83,7 @@ export default function KnowledgeBaseArticleEditor({
   editArticle,
   onSaved,
 }: KnowledgeBaseArticleEditorProps) {
+  const focusTrapRef = useFocusTrap(isOpen)
   const queryClient = useQueryClient()
   const isEditMode = !!editArticle
 
@@ -182,6 +185,7 @@ export default function KnowledgeBaseArticleEditor({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            ref={focusTrapRef}
             className="fixed right-0 top-0 bottom-0 w-full max-w-lg ui-glass-overlay z-50 flex flex-col shadow-2xl"
           >
             {/* Header */}
@@ -266,15 +270,14 @@ export default function KnowledgeBaseArticleEditor({
               {/* Content */}
               <div>
                 <label className={labelClass} htmlFor="kb-content">
-                  Content * <span className="text-slate-400 font-normal">(Markdown supported)</span>
+                  Content *
                 </label>
-                <textarea
+                <MarkdownEditor
                   id="kb-content"
-                  className={`${inputClass} font-mono text-xs leading-relaxed`}
-                  rows={12}
                   value={form.content}
-                  onChange={(e) => updateField('content', e.target.value)}
+                  onChange={(v) => updateField('content', v)}
                   placeholder="Write article content in Markdown..."
+                  rows={12}
                   required
                 />
               </div>

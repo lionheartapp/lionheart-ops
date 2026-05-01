@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -154,15 +155,23 @@ function AssetTableSkeleton() {
 
 export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegisterTableProps) {
   const router = useRouter()
+  const [page, setPage] = useState(1)
 
+  // Reset to page 1 when filters change
   const queryString = buildQueryString(filters)
+  useEffect(() => {
+    setPage(1)
+  }, [queryString])
+
+  const paginatedQuery = `${queryString}${queryString ? '&' : ''}page=${page}&limit=25`
   const { data, isLoading } = useQuery<AssetListResponse>({
-    queryKey: ['maintenance-assets', queryString],
-    queryFn: () => fetchApi<AssetListResponse>(`/api/maintenance/assets?${queryString}`),
+    queryKey: ['maintenance-assets', paginatedQuery],
+    queryFn: () => fetchApi<AssetListResponse>(`/api/maintenance/assets?${paginatedQuery}`),
     staleTime: 30_000,
   })
 
   const assets = data?.assets ?? []
+  const totalPages = data?.pages ?? 1
 
   if (isLoading) {
     return (
@@ -227,7 +236,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                 <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-primary-700 font-semibold">
                   {asset.assetNumber}
                 </td>
-                <td className="px-4 py-3 font-medium text-slate-900 max-w-[200px] truncate">
+                <td className="px-4 py-3 font-medium text-slate-900 max-w-[200px] truncate" title={asset.name}>
                   {asset.name}
                 </td>
                 <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
@@ -238,7 +247,7 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
                     ? `${asset.make} ${asset.model}`
                     : asset.make || asset.model || '—'}
                 </td>
-                <td className="px-4 py-3 text-slate-600 max-w-[160px] truncate">
+                <td className="px-4 py-3 text-slate-600 max-w-[160px] truncate" title={getLocationText(asset)}>
                   {getLocationText(asset)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -283,9 +292,30 @@ export default function AssetRegisterTable({ filters, onAddAsset }: AssetRegiste
           </motion.tbody>
         </table>
       </div>
-      {data && data.total > data.limit && (
-        <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-500 text-right">
-          Showing {assets.length} of {data.total} assets
+      {data && totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
+          <span className="text-xs text-slate-500">
+            Showing {(page - 1) * (data.limit) + 1}–{Math.min(page * data.limit, data.total)} of {data.total}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              Previous
+            </button>
+            <span className="px-3 py-1.5 text-xs text-slate-500">
+              {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

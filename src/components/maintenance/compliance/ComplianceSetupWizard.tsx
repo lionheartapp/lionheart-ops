@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Loader2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -24,6 +25,7 @@ export function ComplianceSetupWizard({
   isOpen,
   onClose,
 }: ComplianceSetupWizardProps) {
+  const focusTrapRef = useFocusTrap(isOpen)
   const queryClient = useQueryClient()
 
   const [isEnabled, setIsEnabled] = useState(true)
@@ -99,6 +101,7 @@ export function ComplianceSetupWizard({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            ref={focusTrapRef}
             className="fixed right-0 top-0 h-full w-full max-w-md ui-glass-overlay z-50 flex flex-col"
           >
             {/* Header */}

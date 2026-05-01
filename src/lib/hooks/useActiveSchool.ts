@@ -104,14 +104,15 @@ function readFromStorage(): string | null {
  * Reads the new `user-campus-scope` key first, then falls back to the legacy
  * `user-school-scope` key for sessions started before the rename.
  */
-function readRoleScope(): { isScoped: boolean; campusScope: string | null } {
-  if (typeof window === 'undefined') return { isScoped: false, campusScope: null }
+function readRoleScope(): { isScoped: boolean; campusScope: string | null; homeSchoolId: string | null } {
+  if (typeof window === 'undefined') return { isScoped: false, campusScope: null, homeSchoolId: null }
   const role = (window.localStorage.getItem('user-role') || '').toLowerCase()
   const campusScope =
     window.localStorage.getItem('user-campus-scope') ||
     window.localStorage.getItem('user-school-scope')
+  const homeSchoolId = window.localStorage.getItem('user-school-id') || null
   const isScoped = (role === 'member' || role === 'viewer') && Boolean(campusScope)
-  return { isScoped, campusScope }
+  return { isScoped, campusScope, homeSchoolId }
 }
 
 export function useActiveSchool(): UseActiveSchoolReturn {
@@ -130,7 +131,7 @@ export function useActiveSchool(): UseActiveSchoolReturn {
 
   // Track role-scope so the UI can render read-only when the user is pinned.
   // Re-read on `storage` events so logout/login flows stay current.
-  const [roleScope, setRoleScope] = useState<{ isScoped: boolean; campusScope: string | null }>(
+  const [roleScope, setRoleScope] = useState<{ isScoped: boolean; campusScope: string | null; homeSchoolId: string | null }>(
     () => readRoleScope(),
   )
 
@@ -147,7 +148,8 @@ export function useActiveSchool(): UseActiveSchoolReturn {
       if (
         event.key === 'user-role' ||
         event.key === 'user-campus-scope' ||
-        event.key === 'user-school-scope'
+        event.key === 'user-school-scope' ||
+        event.key === 'user-school-id'
       ) {
         setRoleScope(readRoleScope())
       }
@@ -180,6 +182,29 @@ export function useActiveSchool(): UseActiveSchoolReturn {
     window.localStorage.setItem(ACTIVE_SCHOOL_STORAGE_KEY, match.id)
     setActiveSchoolIdState(match.id)
   }, [schools, schoolsLoading, activeSchoolId, roleScope])
+
+  // Auto-default to user's home school on first load. Every user with a
+  // schoolId starts in their own school — admins can switch away, members
+  // stay pinned (handled by the scoped enforcement above). Only fires when
+  // there's no existing selection in localStorage. District users (no schoolId)
+  // stay on "All Schools".
+  useEffect(() => {
+    if (schoolsLoading) return
+    if (schools.length === 0) return
+    if (activeSchoolId) return // user already has a selection
+    if (!roleScope.homeSchoolId) return // district user → stay on "All Schools"
+
+    const match = schools.find((s) => s.id === roleScope.homeSchoolId)
+    if (!match) return
+
+    window.localStorage.setItem(ACTIVE_SCHOOL_STORAGE_KEY, match.id)
+    setActiveSchoolIdState(match.id)
+    window.dispatchEvent(
+      new CustomEvent<ActiveSchoolChangeDetail>(ACTIVE_SCHOOL_EVENT, {
+        detail: { schoolId: match.id },
+      }),
+    )
+  }, [schools, schoolsLoading, activeSchoolId, roleScope.homeSchoolId])
 
   // If the currently-selected school disappears (deactivated, deleted), fall
   // back to "All Schools" to avoid a stale pointer.

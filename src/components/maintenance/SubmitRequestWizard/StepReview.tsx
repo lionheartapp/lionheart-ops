@@ -29,12 +29,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-slate-100 text-slate-700',
-  MEDIUM: 'bg-blue-100 text-blue-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  URGENT: 'bg-red-100 text-red-700',
-}
+import { PRIORITY_COLORS } from '@/lib/constants/maintenance'
 
 interface MultiIssueData {
   hasMultipleIssues: boolean

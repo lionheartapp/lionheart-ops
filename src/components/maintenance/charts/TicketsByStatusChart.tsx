@@ -24,16 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: '#ef4444',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  BACKLOG: 'Backlog',
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  ON_HOLD: 'On Hold',
-  SCHEDULED: 'Scheduled',
-  QA: 'QA Review',
-  DONE: 'Done',
-  CANCELLED: 'Cancelled',
-}
+import { STATUS_LABELS } from '@/lib/constants/maintenance'
 
 interface TicketsByStatusChartProps {
   data: TicketsByStatusResult
