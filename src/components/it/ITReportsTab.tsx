@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fadeInUp, staggerContainer, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
@@ -17,16 +18,10 @@ import {
   Loader2,
   X,
   Calendar,
-  Building2,
   PieChart,
 } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────
-
-interface School {
-  id: string
-  name: string
-}
 
 interface AnnualReportData {
   totalDevices: number
@@ -177,13 +172,8 @@ export default function ITReportsTab({}: ITReportsTabProps) {
   const defaultTo = `${currentYear}-06-30`
   const [dateFrom, setDateFrom] = useState(defaultFrom)
   const [dateTo, setDateTo] = useState(defaultTo)
-  const [schoolId, setSchoolId] = useState<string>('')
-
-  // Fetch campuses for school filter
-  const { data: campuses } = useQuery({
-    ...queryOptions.campuses(),
-  })
-  const schools = (campuses ?? []) as School[]
+  const { activeSchoolId } = useActiveSchool()
+  const schoolId = activeSchoolId ?? ''
 
   // ─── Report Queries ─────────────────────────────────────────────────
 
@@ -259,7 +249,6 @@ export default function ITReportsTab({}: ITReportsTabProps) {
   // ─── Determine if filters should show ──────────────────────────────
 
   const showDateRange = selectedReport === 'annual' || selectedReport === 'damage-fees'
-  const showSchoolFilter = schools.length > 1
 
   // ─── Get active query ──────────────────────────────────────────────
 
@@ -326,46 +315,27 @@ export default function ITReportsTab({}: ITReportsTabProps) {
             className="space-y-4"
           >
             {/* Filters Bar */}
-            {(showDateRange || showSchoolFilter) && (
+            {showDateRange && (
               <div className="ui-glass p-4 flex flex-wrap items-center gap-4">
-                {showDateRange && (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-slate-400" />
-                      <label className="text-xs text-slate-500 font-medium">From</label>
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-slate-500 font-medium">To</label>
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                  </>
-                )}
-                {showSchoolFilter && (
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-slate-400" />
-                    <select
-                      value={schoolId}
-                      onChange={(e) => setSchoolId(e.target.value)}
-                      className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white"
-                    >
-                      <option value="">All Schools</option>
-                      {schools.map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <label className="text-xs text-slate-500 font-medium">From</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-slate-500 font-medium">To</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
+                  />
+                </div>
               </div>
             )}
 

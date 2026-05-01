@@ -58,7 +58,7 @@ export default function MyRequestsView() {
           <button
             type="button"
             onClick={() => setShowWizard(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 active:scale-[0.97] transition-all cursor-pointer shadow-sm shadow-primary-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
           >
             <Wrench className="w-4 h-4" />
             Submit Request

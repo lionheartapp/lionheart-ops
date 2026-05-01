@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, MotionConfig, AnimatePresence } from 'framer-motion'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
@@ -18,30 +18,36 @@ import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import {
   LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText,
-  Zap, Droplets, Wind, Hammer, SprayCan, Trees, HelpCircle, ChevronLeft, Pencil,
+  Zap, Droplets, Wind, Hammer, SprayCan, Trees, HelpCircle, ChevronLeft, Pencil, Settings,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceTab } from '@/components/Sidebar'
 import { cacheAssignedTickets } from '@/lib/offline/sync'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { fetchApi } from '@/lib/api-client'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
+import { useOrgLogo } from '@/lib/hooks/useOrgLogo'
 import TabIndicator from '@/components/ui/TabIndicator'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 
-const SUB_TABS: {
+const MAIN_TABS: {
   key: MaintenanceTab
   label: string
   icon: typeof LayoutDashboard
-  requiresManage?: boolean
 }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'pm-calendar', label: 'PM Calendar', icon: CalendarClock },
-  { key: 'routing', label: 'Routing', icon: Route, requiresManage: true },
-  { key: 'approvals', label: 'Approvals', icon: ShieldCheck, requiresManage: true },
-  { key: 'forms', label: 'Forms', icon: FileText, requiresManage: true },
+]
+
+const CONFIG_TABS: {
+  key: MaintenanceTab
+  label: string
+  icon: typeof Route
+}[] = [
+  { key: 'routing', label: 'Routing', icon: Route },
+  { key: 'approvals', label: 'Approvals', icon: ShieldCheck },
+  { key: 'forms', label: 'Forms', icon: FileText },
 ]
 
 const MAINTENANCE_CATEGORY_KEYS = [
@@ -66,59 +72,19 @@ function MaintenanceContent() {
   // Audit ref C1/H4: cookie-based auth via useAuth — no more localStorage
   // JWT reads or Bearer header construction.
   const { user, org, orgId, isReady } = useAuth({ redirectTo: '/login' })
-  const userName = user.name
-  const userEmail = user.email
-  const userAvatar = user.avatar
-  const userRole = user.role
-  const orgName = org.name
-  // Retained as display fallback; Organization.schoolType was removed in
-  // Phase 1c, the API now emits `null` for backward compat.
-  const orgSchoolType = org.schoolType
-  // Prefer campusScope; schoolScope is kept as a deprecated alias during Phase 1c migration.
-  const userSchoolScope = user.campusScope ?? user.schoolScope
-  const userTeam = user.team
-  const [orgLogoUrl, setOrgLogoUrl] = useState<string | null>(org.logoUrl)
+  const orgLogoUrl = useOrgLogo(org.logoUrl, isReady)
   const isClient = isReady
-
-  // Keep the local logo copy in sync when useAuth refreshes it
-  useEffect(() => {
-    if (org.logoUrl && org.logoUrl !== orgLogoUrl) {
-      setOrgLogoUrl(org.logoUrl)
-    }
-  }, [org.logoUrl, orgLogoUrl])
 
   // Cache assigned tickets for offline access on mount (when online)
   useEffect(() => {
     if (!isReady || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
     const userId = user.id ?? ''
-    // cacheAssignedTickets is part of legacy offline sync that still takes a
-    // token arg; pass the sentinel so it no-ops cleanly until the sync layer
-    // migrates to cookie auth in a follow-up.
     cacheAssignedTickets('cookie-auth', orgId, userId).catch(() => {
       // Non-fatal — silently ignore cache failures
     })
   }, [isReady, orgId, user.id])
 
-  // Fetch org logo via fetchApi (cookie-auth + CSRF) if not already present
-  useEffect(() => {
-    if (orgLogoUrl || !isReady) return
-    let cancelled = false
-    fetchApi<{ logoUrl?: string | null }>('/api/onboarding/school-info')
-      .then((data) => {
-        if (cancelled) return
-        if (data?.logoUrl) {
-          setOrgLogoUrl(data.logoUrl)
-        }
-      })
-      .catch(() => {
-        // Silently fail — logo is non-critical
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [orgLogoUrl, isReady])
-
-  const { data: perms } = usePermissions()
+  const { data: perms, isLoading: permsLoading } = usePermissions()
   const canManageMaintenance = perms?.canManageMaintenance ?? false
   const canClaimMaintenance = perms?.canClaimMaintenance ?? false
   const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
@@ -137,6 +103,22 @@ function MaintenanceContent() {
   }
 
   const [activeTab, setActiveTab] = useState<MaintenanceTab>('dashboard')
+  const [configMenuOpen, setConfigMenuOpen] = useState(false)
+  const configMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close config menu on outside click
+  useEffect(() => {
+    if (!configMenuOpen) return
+    function handler(e: MouseEvent) {
+      if (configMenuRef.current && !configMenuRef.current.contains(e.target as Node)) {
+        setConfigMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [configMenuOpen])
+
+  const isConfigTab = CONFIG_TABS.some((t) => t.key === activeTab)
 
   // Set default tab once permissions load
   useEffect(() => {
@@ -165,8 +147,8 @@ function MaintenanceContent() {
     logout()
   }
 
-  // Loading screen during hydration
-  if (!isClient || !orgId) {
+  // Loading screen during hydration or while permissions resolve
+  if (!isClient || !orgId || permsLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
@@ -176,13 +158,13 @@ function MaintenanceContent() {
 
   return (
     <DashboardLayout
-      userName={userName || 'User'}
-      userEmail={userEmail || 'user@school.edu'}
-      userAvatar={userAvatar || undefined}
-      organizationName={orgName || 'School'}
+      userName={user.name || 'User'}
+      userEmail={user.email || 'user@school.edu'}
+      userAvatar={user.avatar || undefined}
+      organizationName={org.name || 'School'}
       organizationLogoUrl={orgLogoUrl || undefined}
-      schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
-      teamLabel={userTeam || userRole || 'Team'}
+      schoolLabel={user.campusScope ?? user.schoolScope ?? org.schoolType ?? org.name ?? 'School'}
+      teamLabel={user.team || user.role || 'Team'}
       onLogout={handleLogout}
     >
       <MotionConfig reducedMotion="user">
@@ -199,15 +181,52 @@ function MaintenanceContent() {
                   Maintenance
                 </h1>
                 <CampusFilterChip campusFilter={campusFilter} />
-                {canManageMaintenance && (
-                  <Link
-                    href="/maintenance/board-report"
-                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors duration-200 cursor-pointer"
-                  >
-                    <FileBarChart className="w-4 h-4" />
-                    Board Report
-                  </Link>
-                )}
+                <div className="ml-auto flex items-center gap-2">
+                  {canManageMaintenance && (
+                    <Link
+                      href="/maintenance/board-report"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors duration-200 cursor-pointer"
+                    >
+                      <FileBarChart className="w-4 h-4" />
+                      Board Report
+                    </Link>
+                  )}
+                  {canManageMaintenance && (
+                    <div className="relative" ref={configMenuRef}>
+                      <button
+                        onClick={() => setConfigMenuOpen((o) => !o)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors duration-200 cursor-pointer ${
+                          isConfigTab || configMenuOpen
+                            ? 'text-slate-900 bg-slate-100'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        }`}
+                        aria-label="Configuration"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configure
+                      </button>
+                      {configMenuOpen && (
+                        <div className="absolute right-0 top-full mt-1 z-50 ui-glass-dropdown min-w-[180px] py-1">
+                          {CONFIG_TABS.map(({ key, label, icon: Icon }) => (
+                            <button
+                              key={key}
+                              onClick={() => {
+                                setActiveTab(key)
+                                setConfigMenuOpen(false)
+                              }}
+                              className={`flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors cursor-pointer ${
+                                activeTab === key ? 'text-slate-900 bg-slate-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4" />
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </motion.div>
               <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
                 {campusFilter.selectedCampusName === 'All Campuses'
@@ -220,7 +239,7 @@ function MaintenanceContent() {
             {showDashboardTabs ? (
               <>
                 <div ref={tabContainerRef} role="tablist" aria-label="Maintenance tabs" className="relative flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-                  {SUB_TABS.filter((t) => !t.requiresManage || canManageMaintenance).map(({ key, label, icon: Icon }) => (
+                  {MAIN_TABS.map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
                       ref={(el) => setTabRef(key, el)}

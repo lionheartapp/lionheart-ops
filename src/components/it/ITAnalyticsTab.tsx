@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
-import { fetchApi } from '@/lib/api-client'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
@@ -34,11 +34,6 @@ interface AnalyticsData {
   slaCompliance: { campus: string; total: number; met: number; breached: number; compliancePct: number }[]
   summerThroughput: { total: number; completed: number; completionPct: number; repairCount: number }
   loanerUtilization: { totalLoaners: number; activeCheckouts: number; utilizationPct: number }
-}
-
-interface School {
-  id: string
-  name: string
 }
 
 // ─── Bar color palette ─────────────────────────────────────────────────
@@ -397,24 +392,16 @@ const TIME_RANGES = [
 ] as const
 
 export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabProps) {
-  const [schoolId, setSchoolId] = useState<string>('')
+  const { activeSchoolId } = useActiveSchool()
   const [months, setMonths] = useState<number>(6)
 
-  // Fetch schools for the filter dropdown
-  const { data: schoolsRaw } = useQuery({
-    queryKey: ['campuses'],
-    queryFn: () => fetchApi<School[]>('/api/settings/campus/campuses'),
-    staleTime: 5 * 60_000,
-  })
-  const schools: School[] = Array.isArray(schoolsRaw) ? schoolsRaw : []
-
-  // Fetch analytics data
+  // Fetch analytics data — scoped by the nav school picker
   const {
     data: analyticsRaw,
     isLoading,
     isError,
   } = useQuery({
-    ...queryOptions.itAnalytics(schoolId || undefined, months),
+    ...queryOptions.itAnalytics(activeSchoolId || undefined, months),
     enabled: canViewBoardReports,
   })
 
@@ -522,38 +509,23 @@ export default function ITAnalyticsTab({ canViewBoardReports }: ITAnalyticsTabPr
       animate="visible"
       className="space-y-6"
     >
-      {/* ── Header: School filter + Time range ───────────────────────── */}
+      {/* ── Header: Time range ────────────────────────────────────────── */}
       <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-sm font-semibold text-slate-900">IT Analytics</h2>
-        <div className="flex items-center gap-3">
-          <select
-            value={schoolId}
-            onChange={(e) => setSchoolId(e.target.value)}
-            className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
-          >
-            <option value="">All Campuses</option>
-            {schools.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex rounded-lg border border-slate-200 overflow-hidden">
-            {TIME_RANGES.map((range) => (
-              <button
-                key={range.value}
-                onClick={() => setMonths(range.value)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                  months === range.value
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                {range.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+          {TIME_RANGES.map((range) => (
+            <button
+              key={range.value}
+              onClick={() => setMonths(range.value)}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                months === range.value
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {range.label}
+            </button>
+          ))}
         </div>
       </motion.div>
 

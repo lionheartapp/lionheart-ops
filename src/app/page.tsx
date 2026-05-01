@@ -143,9 +143,10 @@ function Nav() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold text-white transition-all duration-200 hover:-translate-y-px"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
             style={{
               backgroundColor: TEXT_PRIMARY,
+              color: '#ffffff',
               boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
             }}
           >
@@ -226,9 +227,10 @@ function Hero() {
         >
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-[14px] font-semibold text-white transition-all duration-200 hover:-translate-y-px"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-[14px] font-semibold transition-all duration-200 hover:-translate-y-px"
             style={{
               backgroundColor: TEXT_PRIMARY,
+              color: '#ffffff',
               boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.1)',
             }}
           >

@@ -571,9 +571,10 @@ export function ClosingCTA() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 px-7 py-4 rounded-full text-[15px] font-semibold text-white transition-all duration-200 hover:-translate-y-px"
+            className="inline-flex items-center gap-2 px-7 py-4 rounded-full text-[15px] font-semibold transition-all duration-200 hover:-translate-y-px"
             style={{
               backgroundColor: TEXT_PRIMARY,
+              color: '#ffffff',
               boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.12)',
             }}
           >
@@ -618,7 +619,8 @@ export function Footer() {
     {
       heading: 'Resources',
       links: [
-        { label: 'Documentation', href: '/docs' },
+        { label: 'Help Center', href: '/help' },
+        { label: 'Documentation', href: '/help' },
         { label: 'Status', href: '/status' },
         { label: 'Changelog', href: '/changelog' },
       ],
