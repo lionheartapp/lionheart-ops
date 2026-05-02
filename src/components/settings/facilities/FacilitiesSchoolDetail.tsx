@@ -312,33 +312,30 @@ export default function FacilitiesSchoolDetail({
   }, [schoolId])
 
   // Remove parent content padding so the hero can bleed edge-to-edge.
-  // Target: div.relative.pl-4.pr-4.sm:px-10.flex.flex-col.min-h-full.pt-6.lg:pt-8.pb-10
-  // inside #main-content (DashboardLayout inner wrapper).
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    // Find the layout wrapper — it's the direct child of <main> with flex-col
-    const main = document.getElementById('main-content')
-    if (!main) return
-    // Walk all descendants to find the padding wrapper
-    const candidates = main.querySelectorAll<HTMLElement>('div')
-    let target: HTMLElement | null = null
-    for (const div of candidates) {
-      const cs = getComputedStyle(div)
-      const pt = parseFloat(cs.paddingTop)
-      const pl = parseFloat(cs.paddingLeft)
-      // The wrapper has ~32px top and ~40px left padding
-      if (pt >= 24 && pl >= 16 && div.classList.contains('relative') && div.classList.contains('flex-col')) {
-        target = div
-        break
+    if (!rootRef.current) return
+    // Walk up from our element. The DashboardLayout wrapper has padding
+    // ~32px top, ~40px sides. Zero it out on every padded ancestor.
+    const restored: Array<{ el: HTMLElement; css: string }> = []
+    let el: HTMLElement | null = rootRef.current.parentElement
+    while (el) {
+      const cs = getComputedStyle(el)
+      const pt = parseFloat(cs.paddingTop) || 0
+      const pl = parseFloat(cs.paddingLeft) || 0
+      if (pt > 8 || pl > 8) {
+        restored.push({ el, css: el.style.cssText })
+        el.style.setProperty('padding-top', '0px', 'important')
+        el.style.setProperty('padding-left', '0px', 'important')
+        el.style.setProperty('padding-right', '0px', 'important')
       }
+      if (el.tagName === 'MAIN') break
+      el = el.parentElement
     }
-    if (!target) return
-    const orig = target.style.cssText
-    target.style.paddingTop = '0px'
-    target.style.paddingLeft = '0px'
-    target.style.paddingRight = '0px'
     return () => {
-      target.style.cssText = orig
+      for (const { el: target, css } of restored) {
+        target.style.cssText = css
+      }
     }
   }, [])
 
