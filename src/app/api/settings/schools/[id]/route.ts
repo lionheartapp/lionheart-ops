@@ -16,6 +16,7 @@ const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 const UpdateSchoolSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  logoUrl: z.string().nullable().optional(),
   principalName: z.string().trim().max(100).nullable().optional(),
   principalEmail: z.string().email().nullable().optional(),
   principalPhone: z.string().trim().max(20).nullable().optional(),
@@ -77,6 +78,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
     data: {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.color !== undefined && { color: input.color }),
+      ...(input.logoUrl !== undefined && { logoUrl: input.logoUrl }),
       ...(input.principalName !== undefined && { principalName: input.principalName }),
       ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
       ...(input.principalPhone !== undefined && { principalPhone }),

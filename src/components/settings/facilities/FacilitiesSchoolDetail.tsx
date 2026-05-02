@@ -11,6 +11,7 @@ import {
   Search,
   AlertTriangle,
   ArrowRight,
+  Camera,
   CheckCircle2,
   DoorOpen,
   Layers,
@@ -146,6 +147,7 @@ export default function FacilitiesSchoolDetail({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   const schoolsHandleRef = useRef<SchoolsManagementHandle>(null)
 
@@ -309,6 +311,31 @@ export default function FacilitiesSchoolDetail({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId])
 
+  // ─── Logo upload ────────────────────────────────────────────────────────
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !school) return
+    if (!file.type.startsWith('image/')) return
+    if (file.size > 2 * 1024 * 1024) return // 2MB limit
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = reader.result as string
+      try {
+        await fetchApi(`/api/settings/schools/${school.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ logoUrl: dataUrl }),
+        })
+        setSchool((prev) => prev ? { ...prev, logoUrl: dataUrl } : prev)
+      } catch {
+        // silent
+      }
+    }
+    reader.readAsDataURL(file)
+    // Reset so the same file can be re-selected
+    e.target.value = ''
+  }
+
   // ─── Derived state ───────────────────────────────────────────────────────
   const gradeSummary = useMemo(() => gradeRangeLabel(campuses), [campuses])
   const typeLabel = school?.institutionType ? INSTITUTION_LABELS[school.institutionType] : null
@@ -416,12 +443,22 @@ export default function FacilitiesSchoolDetail({
         <span className="text-slate-900 font-medium truncate">{school.name}</span>
       </nav>
 
-      {/* School header — single tight row */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden"
+      {/* School hero card */}
+      <div
+        className="rounded-2xl p-6 pb-0 overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${school.color}18 0%, ${school.color}08 100%)`,
+          border: `1px solid ${school.color}25`,
+        }}
+      >
+        <div className="flex items-center gap-5 flex-wrap pb-6">
+          {/* Logo with upload */}
+          <button
+            type="button"
+            onClick={() => logoInputRef.current?.click()}
+            className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer shadow-lg"
             style={{ backgroundColor: school.color }}
+            title="Upload school logo"
           >
             {school.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -429,19 +466,30 @@ export default function FacilitiesSchoolDetail({
             ) : (
               getInitials(school.name)
             )}
-          </div>
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
+          </button>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleLogoUpload}
+          />
+
           <div className="flex-1 min-w-[220px]">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-semibold text-slate-900">{school.name}</h2>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="text-xl font-bold text-slate-900">{school.name}</h2>
               {typeLabel && (
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/80 text-slate-600 font-medium backdrop-blur-sm">
                   {typeLabel}
                   {gradeSummary ? ` · ${gradeSummary}` : ''}
                 </span>
               )}
             </div>
             {school.address && (
-              <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
+              <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1.5">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{school.address}</span>
               </div>
@@ -451,7 +499,7 @@ export default function FacilitiesSchoolDetail({
             <button
               type="button"
               onClick={() => schoolsHandleRef.current?.openEdit(school.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 shadow-sm transition-colors duration-200 cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit school
@@ -459,42 +507,42 @@ export default function FacilitiesSchoolDetail({
             <button
               type="button"
               onClick={() => openAddCampus()}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 shadow-sm transition-colors duration-200 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add campus
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} />
-        <StatCard
-          label="Buildings"
-          value={totals.buildings}
-          icon={<Layers className="w-4 h-4" />}
-          dim={totals.buildings === 0}
-        />
-        <StatCard
-          label="Spaces"
-          value={totals.spaces}
-          icon={<DoorOpen className="w-4 h-4" />}
-          dim={totals.spaces === 0}
-        />
-        <StatCard
-          label="Setup"
-          value={`${setupPct}%`}
-          icon={
-            setupComplete ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            ) : (
-              <Sparkles className="w-4 h-4 text-amber-500" />
-            )
-          }
-          accent={setupComplete ? 'success' : 'progress'}
-        />
+        {/* Stats strip — inset at the bottom of the hero */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-5">
+          <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} />
+          <StatCard
+            label="Buildings"
+            value={totals.buildings}
+            icon={<Layers className="w-4 h-4" />}
+            dim={totals.buildings === 0}
+          />
+          <StatCard
+            label="Spaces"
+            value={totals.spaces}
+            icon={<DoorOpen className="w-4 h-4" />}
+            dim={totals.spaces === 0}
+          />
+          <StatCard
+            label="Setup"
+            value={`${setupPct}%`}
+            icon={
+              setupComplete ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-amber-500" />
+              )
+            }
+            accent={setupComplete ? 'success' : 'progress'}
+          />
+        </div>
       </div>
 
       {/* Setup banner — only when something is incomplete */}
@@ -697,20 +745,20 @@ interface StatCardProps {
 }
 
 function StatCard({ label, value, icon, dim, accent }: StatCardProps) {
-  const accentRing =
+  const accentBorder =
     accent === 'success'
-      ? 'ring-1 ring-emerald-200'
+      ? 'border-emerald-200'
       : accent === 'progress'
-        ? 'ring-1 ring-amber-200'
-        : ''
+        ? 'border-amber-200'
+        : 'border-slate-200/80'
   return (
-    <div className={`bg-slate-50 rounded-lg p-4 ${accentRing}`}>
+    <div className={`bg-white rounded-xl p-4 border ${accentBorder} shadow-sm`}>
       <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1">
         <span className="text-slate-400">{icon}</span>
         {label}
       </div>
       <div
-        className={`text-2xl font-semibold tabular-nums ${
+        className={`text-2xl font-bold tabular-nums ${
           dim ? 'text-slate-300' : 'text-slate-900'
         }`}
       >
