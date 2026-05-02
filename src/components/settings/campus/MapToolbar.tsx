@@ -9,6 +9,8 @@ import type { LatLng } from './map-types'
 
 export interface MapToolbarProps {
   mapAddress: string | null
+  /** Campus name shown in header when in embedded (single-campus) mode */
+  campusName?: string | null
   editable: boolean
   /* Drawing mode */
   drawingMode: { buildingId: string; points: LatLng[] } | null
@@ -38,6 +40,7 @@ export interface MapToolbarProps {
 
 export default function MapToolbar({
   mapAddress,
+  campusName,
   editable,
   drawingMode,
   onFinishDrawing,
@@ -58,9 +61,20 @@ export default function MapToolbar({
     <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
       <div className="flex items-center gap-2 min-w-0">
         <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" />
-        <span className="text-sm font-medium text-slate-700">Campus Map</span>
-        {mapAddress && (
-          <span className="text-xs text-slate-500 ml-1 hidden sm:inline truncate">{mapAddress}</span>
+        {campusName ? (
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-slate-700">{campusName}</span>
+            {mapAddress && (
+              <p className="text-xs text-slate-500 truncate">{mapAddress}</p>
+            )}
+          </div>
+        ) : (
+          <>
+            <span className="text-sm font-medium text-slate-700">Campus Map</span>
+            {mapAddress && (
+              <span className="text-xs text-slate-500 ml-1 hidden sm:inline truncate">{mapAddress}</span>
+            )}
+          </>
         )}
       </div>
 

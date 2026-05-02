@@ -63,4 +63,6 @@ export interface InteractiveCampusMapProps {
   onQuickPlaceDone?: () => void
   /** When true, hides school legend and increases map height (single-campus view) */
   embedded?: boolean
+  /** Campus name shown in map header when embedded */
+  campusName?: string | null
 }

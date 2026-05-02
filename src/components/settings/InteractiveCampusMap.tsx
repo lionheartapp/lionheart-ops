@@ -40,6 +40,7 @@ export default function InteractiveCampusMap({
   quickPlaceMode = null,
   onQuickPlaceDone,
   embedded = false,
+  campusName: campusNameProp,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -579,6 +580,7 @@ export default function InteractiveCampusMap({
       {/* Header bar */}
       <MapToolbar
         mapAddress={mapConfig?.address ?? null}
+        campusName={embedded ? (campusNameProp ?? mapConfig?.orgName ?? null) : null}
         editable={editable}
         drawingMode={drawingMode}
         onFinishDrawing={finishDrawing}
