@@ -74,7 +74,7 @@ export default function BuildingFormDrawer({
         </div>
       }
     >
-      <form id="building-form" onSubmit={onSubmit} className="p-8 space-y-6">
+      <form id="building-form" onSubmit={onSubmit} className="pt-4 space-y-6">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}

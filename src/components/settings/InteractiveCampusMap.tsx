@@ -41,6 +41,8 @@ export default function InteractiveCampusMap({
   onQuickPlaceDone,
   embedded = false,
   campusName: campusNameProp,
+  fillContainer = false,
+  hideChrome = false,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -186,7 +188,7 @@ export default function InteractiveCampusMap({
         mapInstanceRef.current.remove()
       }
 
-      const CAMPUS_RADIUS = 0.006
+      const CAMPUS_RADIUS = 0.02
       const campusBounds = L.latLngBounds(
         [mapConfig.center.lat - CAMPUS_RADIUS, mapConfig.center.lng - CAMPUS_RADIUS],
         [mapConfig.center.lat + CAMPUS_RADIUS, mapConfig.center.lng + CAMPUS_RADIUS]
@@ -195,27 +197,27 @@ export default function InteractiveCampusMap({
       const map = L.map(mapContainerRef.current, {
         center: [mapConfig.center.lat, mapConfig.center.lng],
         zoom: 17,
-        minZoom: 15,
-        maxZoom: 18,
+        minZoom: 14,
+        maxZoom: 20,
         maxBounds: campusBounds,
-        maxBoundsViscosity: 0.8,
+        maxBoundsViscosity: 0.5,
         zoomControl: false,
         attributionControl: false,
       })
 
       const satellite = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 18 }
+        { maxZoom: 20, maxNativeZoom: 18 }
       )
 
       const street = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { maxZoom: 18 }
+        { maxZoom: 20, maxNativeZoom: 19 }
       )
 
       const labels = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 18, opacity: 0.7 }
+        { maxZoom: 20, maxNativeZoom: 18, opacity: 0.7 }
       )
 
       satellite.addTo(map)
@@ -327,30 +329,49 @@ export default function InteractiveCampusMap({
   /* ── Quick-place mode (external trigger, no popover) ───────────── */
 
   useEffect(() => {
-    const map = mapInstanceRef.current
-    if (!map || !quickPlaceMode) return
+    if (!quickPlaceMode) return
 
-    const handleClick = (e: any) => {
-      if (quickPlaceMode === 'building' && onAddBuildingAtPosition) {
-        onAddBuildingAtPosition(e.latlng.lat, e.latlng.lng)
-      } else if (quickPlaceMode === 'outdoor' && onAddOutdoorSpaceAtPosition) {
-        onAddOutdoorSpaceAtPosition(e.latlng.lat, e.latlng.lng)
+    // The map may not be initialized yet (Leaflet loads async).
+    // Poll briefly until the map instance is ready.
+    let cancelled = false
+    let cleanupFn: (() => void) | null = null
+
+    const attach = () => {
+      const map = mapInstanceRef.current
+      if (!map) {
+        if (!cancelled) setTimeout(attach, 100)
+        return
       }
-      if (onQuickPlaceDone) onQuickPlaceDone()
+
+      const handleClick = (e: any) => {
+        if (quickPlaceMode === 'building' && onAddBuildingAtPosition) {
+          onAddBuildingAtPosition(e.latlng.lat, e.latlng.lng)
+        } else if (quickPlaceMode === 'outdoor' && onAddOutdoorSpaceAtPosition) {
+          onAddOutdoorSpaceAtPosition(e.latlng.lat, e.latlng.lng)
+        }
+        if (onQuickPlaceDone) onQuickPlaceDone()
+      }
+
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && onQuickPlaceDone) onQuickPlaceDone()
+      }
+
+      map.on('click', handleClick)
+      document.addEventListener('keydown', handleEscape)
+      map.getContainer().style.cursor = 'crosshair'
+
+      cleanupFn = () => {
+        map.off('click', handleClick)
+        document.removeEventListener('keydown', handleEscape)
+        map.getContainer().style.cursor = ''
+      }
     }
 
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onQuickPlaceDone) onQuickPlaceDone()
-    }
-
-    map.on('click', handleClick)
-    document.addEventListener('keydown', handleEscape)
-    map.getContainer().style.cursor = 'crosshair'
+    attach()
 
     return () => {
-      map.off('click', handleClick)
-      document.removeEventListener('keydown', handleEscape)
-      map.getContainer().style.cursor = ''
+      cancelled = true
+      cleanupFn?.()
     }
   }, [quickPlaceMode, onAddBuildingAtPosition, onAddOutdoorSpaceAtPosition, onQuickPlaceDone])
 
@@ -576,9 +597,9 @@ export default function InteractiveCampusMap({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+    <div className={hideChrome ? 'overflow-hidden bg-white h-full' : 'rounded-xl border border-slate-200 overflow-hidden bg-white'}>
       {/* Header bar */}
-      <MapToolbar
+      {!hideChrome && <MapToolbar
         mapAddress={mapConfig?.address ?? null}
         campusName={embedded ? (campusNameProp ?? mapConfig?.orgName ?? null) : null}
         editable={editable}
@@ -603,10 +624,10 @@ export default function InteractiveCampusMap({
         }}
         canPlace={!!(onAddBuildingAtPosition || onAddOutdoorSpaceAtPosition)}
         onFitAllMarkers={fitAllMarkers}
-      />
+      />}
 
       {/* Map container */}
-      <div className="relative">
+      <div className={fillContainer ? 'relative h-full' : 'relative'}>
         {loading && (
           <div className="absolute inset-0 z-dropdown flex items-center justify-center bg-slate-100">
             <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
@@ -614,7 +635,7 @@ export default function InteractiveCampusMap({
         )}
         <div
           ref={mapContainerRef}
-          style={{ height: embedded ? 600 : 500, width: '100%', position: 'relative', zIndex: 0 }}
+          style={{ height: fillContainer ? '100%' : (embedded ? 600 : 500), width: '100%', position: 'relative', zIndex: 0 }}
         />
 
         {/* Custom zoom controls */}
@@ -675,8 +696,8 @@ export default function InteractiveCampusMap({
         )}
       </div>
 
-      {/* Legend — hidden in embedded (single-campus) view */}
-      {!embedded && (
+      {/* Legend — hidden in embedded (single-campus) view or chrome-free mode */}
+      {!embedded && !hideChrome && (
         <MapLegend
           buildings={buildings}
           outdoorSpaces={outdoorSpaces}
@@ -684,8 +705,8 @@ export default function InteractiveCampusMap({
         />
       )}
 
-      {/* Status bar */}
-      {(editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (
+      {/* Status bar — hidden in chrome-free mode (PlacementOverlay has its own) */}
+      {!hideChrome && (editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (
         <div className="px-4 py-2 border-t border-slate-200 bg-amber-50 text-xs text-amber-700 font-medium">
           {drawingMode && 'Click on the map to place outline points. Place at least 3 points, then click Done.'}
           {editingPolygon && !drawingMode && 'Drag vertices to adjust the outline, then save'}

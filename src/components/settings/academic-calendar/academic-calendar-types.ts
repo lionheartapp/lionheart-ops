@@ -5,6 +5,7 @@ export interface SchoolOption {
   name: string
   gradeLevel: string
   color: string
+  campuses: { id: string; name: string; gradeLevel: string }[]
 }
 
 export type DeleteTarget =

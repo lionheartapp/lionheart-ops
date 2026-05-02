@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Building2 } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarDays } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import type { SchoolOption, DeleteTarget, SubTab } from './academic-calendar/academic-calendar-types'
 import { apiFetch } from './academic-calendar/academic-calendar-types'
 import { AcademicYearSubTab } from './academic-calendar/AcademicYearSubTab'
@@ -16,14 +17,18 @@ import { SpecialDaysSubTab } from './academic-calendar/SpecialDaysSubTab'
 export default function AcademicCalendarTab() {
   const queryClient = useQueryClient()
 
-  // ── Schools for multi-campus ──
-  const { data: schools = [] } = useQuery<SchoolOption[]>({
-    queryKey: ['schools-list'],
-    queryFn: () => apiFetch('/api/settings/schools'),
-    staleTime: 5 * 60 * 1000,
-  })
-  const [activeSchoolId, setActiveSchoolId] = useState<string>('')
-  const isMultiSchool = schools.length > 1
+  // ── Use global school/campus selection from sidebar ──
+  const { activeSchoolId, schools: activeSchools, isMultiSchool } = useActiveSchool()
+
+  // Map to SchoolOption[] shape for sub-tab compatibility
+  const schools: SchoolOption[] = activeSchools.map((s) => ({
+    id: s.id,
+    name: s.name,
+    gradeLevel: '',
+    color: '',
+    campuses: [],
+  }))
+
   const [subTab, setSubTab] = useState<SubTab>('academic-year')
 
   // ── Form visibility (lifted so parent can render action buttons) ──
@@ -186,33 +191,6 @@ export default function AcademicCalendarTab() {
               ))}
             </div>
 
-          {isMultiSchool && (
-            <div className="flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <div className="flex gap-0.5 bg-slate-100 rounded-lg p-0.5">
-                <button
-                  onClick={() => setActiveSchoolId('')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer ${
-                    activeSchoolId === '' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  All Schools
-                </button>
-                {schools.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setActiveSchoolId(s.id)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer flex items-center gap-1.5 ${
-                      activeSchoolId === s.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-                    {s.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {renderTabAction()}
@@ -223,7 +201,7 @@ export default function AcademicCalendarTab() {
       {subTab === 'academic-year' && (
         <AcademicYearSubTab
           schools={schools}
-          activeSchoolId={activeSchoolId}
+          activeSchoolId={activeSchoolId ?? ''}
           onRequestDelete={setDeleteTarget}
           showForm={showYearForm}
           onShowForm={setShowYearForm}
@@ -233,7 +211,7 @@ export default function AcademicCalendarTab() {
       {subTab === 'bell-schedules' && (
         <BellScheduleSubTab
           schools={schools}
-          activeSchoolId={activeSchoolId}
+          activeSchoolId={activeSchoolId ?? ''}
           isMultiSchool={isMultiSchool}
           onRequestDelete={setDeleteTarget}
           showForm={showScheduleForm}
@@ -244,7 +222,7 @@ export default function AcademicCalendarTab() {
       {subTab === 'special-days' && (
         <SpecialDaysSubTab
           schools={schools}
-          activeSchoolId={activeSchoolId}
+          activeSchoolId={activeSchoolId ?? ''}
           isMultiSchool={isMultiSchool}
           onRequestDelete={setDeleteTarget}
           showForm={showSpecialDayForm}

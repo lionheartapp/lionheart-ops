@@ -71,7 +71,7 @@ export default function OutdoorFormDrawer({
         </div>
       }
     >
-      <form id="outdoor-form" onSubmit={onSubmit} className="p-8 space-y-6">
+      <form id="outdoor-form" onSubmit={onSubmit} className="pt-4 space-y-6">
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}

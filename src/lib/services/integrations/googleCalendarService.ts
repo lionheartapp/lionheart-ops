@@ -11,9 +11,11 @@ import { rawPrisma } from '@/lib/db'
 import type { GoogleCalendarEvent } from '@/lib/types/integrations'
 import type { EventProject } from '@prisma/client'
 
+// Single broad Calendar scope. Required because the integration both reads existing
+// events (for conflict detection) and writes/modifies/deletes events (for two-way sync).
+// Using one scope simplifies Google's OAuth verification — only one scope to justify.
 const GOOGLE_SCOPES = [
-  'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar',
 ]
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 

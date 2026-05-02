@@ -65,4 +65,8 @@ export interface InteractiveCampusMapProps {
   embedded?: boolean
   /** Campus name shown in map header when embedded */
   campusName?: string | null
+  /** When true, map fills its parent container height instead of fixed 500/600px */
+  fillContainer?: boolean
+  /** When true, hides the toolbar, legend, and status bar — used inside PlacementOverlay */
+  hideChrome?: boolean
 }

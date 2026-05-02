@@ -14,7 +14,8 @@ import OutdoorFormDrawer from './campus/OutdoorFormDrawer'
 import RoomsDrawer from './campus/RoomsDrawer'
 import BuildingInfoDrawer from './campus/BuildingInfoDrawer'
 import { AddCampusDrawer, EditCampusDrawer } from './campus/CampusFormDrawers'
-import { DeleteCampusDialog, PlaceOnMapDialog, EntityDeleteDialog } from './campus/CampusDialogs'
+import { DeleteCampusDialog, EntityDeleteDialog } from './campus/CampusDialogs'
+import PlacementOverlay from './campus/PlacementOverlay'
 import type { Building, Area, Room, Campus, SchoolInfo, DeleteConfirm } from './campus/types'
 
 type CampusTabProps = {
@@ -91,7 +92,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
   const [pendingOutdoorCoords, setPendingOutdoorCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [pendingMarkerData, setPendingMarkerData] = useState<{ lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null>(null)
   const [lastCreatedBuilding, setLastCreatedBuilding] = useState<Building | null>(null)
-  const [placeOnMapBuilding, setPlaceOnMapBuilding] = useState<Building | null>(null)
+  // placeOnMapBuilding removed — placement now uses PlacementOverlay directly
   const [placingExistingBuilding, setPlacingExistingBuilding] = useState<Building | null>(null)
   const [placingExistingOutdoor, setPlacingExistingOutdoor] = useState<Area | null>(null)
   const [selectedMapBuildingId, setSelectedMapBuildingId] = useState<string | null>(null)
@@ -199,7 +200,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
     if (!selectedCampusId) return
     setBuildingDrawerOpen(false); setOutdoorDrawerOpen(false); setRoomsBuilding(null)
     setEditingBuilding(null); setEditingOutdoor(null)
-    setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null); setPlaceOnMapBuilding(null)
+    setSelectedMapBuildingId(null); setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null)
     loadData()
   }, [selectedCampusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -263,23 +264,23 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
    * coordinates. Fires when the user picks "Place on Map" from a row action
    * or clicks the "Not placed" pill on a row.
    */
-  const scrollMapIntoView = () => {
-    const mapEl = document.querySelector('.leaflet-container')
-    if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
   const handlePlaceBuildingOnMap = (b: Building) => {
-    setPlacingExistingOutdoor(null) // ensure modes are mutually exclusive
+    // Close any open drawers first
+    setBuildingDrawerOpen(false)
+    setOutdoorDrawerOpen(false)
+    setRoomsBuilding(null)
+    setSelectedMapBuildingId(null)
+    setPlacingExistingOutdoor(null)
     setPlacingExistingBuilding(b)
-    setSuccessMessage(`Click anywhere on the map to place "${b.name}"`)
-    scrollMapIntoView()
   }
 
   const handlePlaceOutdoorOnMap = (a: Area) => {
+    setBuildingDrawerOpen(false)
+    setOutdoorDrawerOpen(false)
+    setRoomsBuilding(null)
+    setSelectedMapBuildingId(null)
     setPlacingExistingBuilding(null)
     setPlacingExistingOutdoor(a)
-    setSuccessMessage(`Click anywhere on the map to place "${a.name}"`)
-    scrollMapIntoView()
   }
 
   /**
@@ -518,7 +519,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
           {lastCreatedBuilding && (
             <div className="flex items-center gap-2 ml-4">
               {!lastCreatedBuilding.latitude && (
-                <button onClick={() => { setSuccessMessage(''); setLastCreatedBuilding(null); setPlaceOnMapBuilding(lastCreatedBuilding) }} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors cursor-pointer">
+                <button onClick={() => { setSuccessMessage(''); const b = lastCreatedBuilding; setLastCreatedBuilding(null); setPlacingExistingBuilding(b) }} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors cursor-pointer">
                   <MapPin className="h-3.5 w-3.5" /> Place on Map
                 </button>
               )}
@@ -539,24 +540,14 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
         campusName={embedded ? (campuses.find((c) => c.id === selectedCampusId)?.name ?? null) : null}
         schools={schools}
         editable
-        quickPlaceMode={placingExistingBuilding ? 'building' : placingExistingOutdoor ? 'outdoor' : null}
-        onQuickPlaceDone={() => { setPlacingExistingBuilding(null); setPlacingExistingOutdoor(null) }}
+        quickPlaceMode={null}
+        onQuickPlaceDone={undefined}
         onOrgCenterChange={async (lat, lng) => { try { const res = await fetch('/api/settings/campus/map-data', { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('School center position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save school center position') } }}
         onBuildingPositionChange={async (buildingId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage('Building position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building position') } }}
         onAddBuildingAtPosition={async (lat, lng) => {
-          if (placingExistingBuilding) {
-            const building = placingExistingBuilding; setPlacingExistingBuilding(null)
-            try { const res = await fetch(`/api/settings/campus/buildings/${building.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === building.id ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage(`"${building.name}" placed on map`) } } catch { setError('Failed to place building on map') }
-            await loadData(); return
-          }
           setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds: [] }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
         onAddOutdoorSpaceAtPosition={async (lat, lng) => {
-          if (placingExistingOutdoor) {
-            const area = placingExistingOutdoor; setPlacingExistingOutdoor(null)
-            try { const res = await fetch(`/api/settings/campus/areas/${area.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setAreas((prev) => prev.map((a) => (a.id === area.id ? { ...a, latitude: lat, longitude: lng } : a))); setSuccessMessage(`"${area.name}" placed on map`) } } catch { setError('Failed to place outdoor space on map') }
-            await loadData(); return
-          }
           setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds: [] }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' })
         }}
         onBuildingSelected={setSelectedMapBuildingId}
@@ -616,7 +607,47 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
 
       {/* Dialogs */}
       <DeleteCampusDialog campus={deleteCampusConfirm} loading={deleteCampusLoading} onConfirm={confirmDeleteCampus} onCancel={() => setDeleteCampusConfirm(null)} />
-      <PlaceOnMapDialog building={placeOnMapBuilding} onSkip={() => setPlaceOnMapBuilding(null)} onPlace={(b) => { setPlaceOnMapBuilding(null); setPlacingExistingBuilding(b); const mapEl = document.querySelector('.leaflet-container'); if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' }) }} />
+      {/* Full-screen placement overlay */}
+      {(placingExistingBuilding || placingExistingOutdoor) && (
+        <PlacementOverlay
+          entity={{
+            id: (placingExistingBuilding || placingExistingOutdoor)!.id,
+            name: (placingExistingBuilding || placingExistingOutdoor)!.name,
+            type: placingExistingBuilding ? 'building' : 'outdoor',
+          }}
+          campusId={selectedCampusId || undefined}
+          mapCenter={mapCenter}
+          buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code, latitude: b.latitude, longitude: b.longitude, schoolDivision: b.schoolDivision, school: b.school, polygonCoordinates: b.polygonCoordinates || null }))}
+          outdoorSpaces={outdoorMapSpaces}
+          schools={schools}
+          onPlace={async (lat, lng) => {
+            const entity = placingExistingBuilding || placingExistingOutdoor!
+            const endpoint = placingExistingBuilding ? 'buildings' : 'areas'
+            setPlacingExistingBuilding(null)
+            setPlacingExistingOutdoor(null)
+            try {
+              const res = await fetch(`/api/settings/campus/${endpoint}/${entity.id}`, {
+                method: 'PATCH',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ latitude: lat, longitude: lng }),
+              })
+              if (res.ok) {
+                if (placingExistingBuilding) {
+                  setBuildings((prev) => prev.map((b) => (b.id === entity.id ? { ...b, latitude: lat, longitude: lng } : b)))
+                }
+                setSuccessMessage(`"${entity.name}" placed on map`)
+                await loadData()
+              }
+            } catch {
+              setError('Failed to place on map')
+            }
+          }}
+          onCancel={() => {
+            setPlacingExistingBuilding(null)
+            setPlacingExistingOutdoor(null)
+          }}
+        />
+      )}
       <EntityDeleteDialog confirm={deleteConfirm} loading={deleteLoading} onDelete={handleDeleteConfirm} onDeactivate={handleDeactivateFromDialog} onCancel={() => setDeleteConfirm(null)} />
 
       <PhotoLightbox images={lightboxImages} initialIndex={lightboxIndex} isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} />

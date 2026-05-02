@@ -232,7 +232,7 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
                   >
                     {school.logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={school.logoUrl} alt={school.name} className="w-full h-full object-cover" />
+                      <img src={school.logoUrl} alt={school.name} className="w-full h-full object-contain bg-white p-1.5" />
                     ) : (
                       getInitials(school.name)
                     )}
