@@ -572,6 +572,7 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
                 }))
               }}
               options={[
+                { value: 'ALL_GRADES', label: 'All Grades (K-12)' },
                 { value: 'ELEMENTARY', label: 'Elementary' },
                 { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
                 { value: 'HIGH_SCHOOL', label: 'High School' },

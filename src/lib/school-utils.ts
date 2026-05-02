@@ -3,7 +3,7 @@
 
 export type SchoolFormData = {
   name: string
-  gradeLevel: 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
+  gradeLevel: 'ALL_GRADES' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
   color: string
   principalName: string
   principalEmail: string
@@ -41,6 +41,7 @@ export type PrincipalEditorData = {
 }
 
 export const GRADE_LEVEL_DEFAULTS: Record<string, string> = {
+  ALL_GRADES: '#3b82f6',
   ELEMENTARY: '#a855f7',
   MIDDLE_SCHOOL: '#14b8a6',
   HIGH_SCHOOL: '#ef4444',
@@ -61,8 +62,8 @@ export const COLOR_PRESETS = [
 
 export const EMPTY_FORM: SchoolFormData = {
   name: '',
-  gradeLevel: 'ELEMENTARY',
-  color: '#a855f7',
+  gradeLevel: 'ALL_GRADES',
+  color: '#3b82f6',
   principalName: '',
   principalEmail: '',
   principalPhone: '',
