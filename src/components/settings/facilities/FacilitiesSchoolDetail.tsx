@@ -434,8 +434,8 @@ export default function FacilitiesSchoolDetail({
       <div
         className="pb-6 mb-0 relative overflow-hidden"
         style={{
-          margin: '-4rem -4rem 0',
-          padding: '4rem 4rem 1.5rem',
+          margin: '-6rem -6rem 0',
+          padding: '6rem 6rem 1.5rem',
           background: `linear-gradient(135deg, #1e293b 0%, ${school.color}dd 50%, ${school.color} 100%)`,
         }}
       >
