@@ -486,13 +486,13 @@ export default function FacilitiesSchoolDetail({
           <button
             type="button"
             onClick={() => logoInputRef.current?.click()}
-            className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer ring-2 ring-white/20 shadow-xl"
-            style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+            className={`relative w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer ring-2 ring-white/20 shadow-xl ${school.logoUrl ? 'bg-white' : 'text-white'}`}
+            style={school.logoUrl ? undefined : { backgroundColor: 'rgba(255,255,255,0.15)' }}
             title="Upload school logo"
           >
             {school.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={school.logoUrl} alt={school.name} className="w-full h-full object-cover" />
+              <img src={school.logoUrl} alt={school.name} className="w-full h-full object-contain p-1.5" />
             ) : (
               getInitials(school.name)
             )}
