@@ -581,35 +581,11 @@ export default function FacilitiesSchoolDetail({
       {/* Content below hero — re-apply padding since parent padding is removed */}
       <div className="px-4 sm:px-10 pb-10 space-y-5 mt-5">
 
-      {/* Setup banner — only when something is incomplete */}
-      {!setupComplete && (
-        <SetupBanner
-          steps={setupSteps}
-          missingAddressCount={totals.missingAddress}
-          onResume={() => {
-            // Jump to the first incomplete step
-            const next = setupSteps.find((s) => !s.done)
-            if (next?.key === 'addresses') {
-              const target = campuses.find((c) => !c.address && !c.site?.address)
-              if (target) openEditCampus(target)
-              return
-            }
-            if (next?.key === 'campuses' || next?.key === 'school') {
-              openAddCampus()
-              return
-            }
-            // Buildings/rooms live inside a campus — drop the user into the first one
-            const first = campuses[0]
-            if (first) onOpenCampus(first.id, first.name, school?.name ?? '')
-          }}
-        />
-      )}
-
       {/* Campuses section header */}
-      <div className="flex items-center gap-2">
-        <Layers className="w-4 h-4 text-slate-400" />
-        <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Campuses</h4>
-        <span className="text-xs text-slate-400">Click a campus to manage its buildings and spaces</span>
+      <div className="flex items-center gap-3">
+        <Layers className="w-5 h-5 text-slate-400" />
+        <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">Campuses</h3>
+        <span className="text-sm text-slate-400">Click a campus to manage its buildings and spaces</span>
       </div>
 
       {/* Search bar */}
