@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import FacilitiesLanding from './facilities/FacilitiesLanding'
 import FacilitiesSchoolDetail from './facilities/FacilitiesSchoolDetail'
+import SchoolsManagement, { type SchoolsManagementHandle } from './SchoolsManagement'
 import CampusTab from './CampusTab'
 
 interface FacilitiesTabProps {
@@ -17,6 +18,8 @@ type ViewMode =
 
 export default function FacilitiesTab({ onDirtyChange }: FacilitiesTabProps = {}) {
   const [view, setView] = useState<ViewMode>({ kind: 'landing' })
+  const schoolsRef = useRef<SchoolsManagementHandle>(null)
+  const [landingKey, setLandingKey] = useState(0)
 
   if (view.kind === 'campus-detail') {
     return (
@@ -60,8 +63,19 @@ export default function FacilitiesTab({ onDirtyChange }: FacilitiesTabProps = {}
   }
 
   return (
-    <FacilitiesLanding
-      onSelectSchool={(schoolId) => setView({ kind: 'school-detail', schoolId })}
-    />
+    <>
+      <FacilitiesLanding
+        key={landingKey}
+        onSelectSchool={(schoolId) => setView({ kind: 'school-detail', schoolId })}
+        onAddSchool={() => schoolsRef.current?.openNew()}
+      />
+      <div className="hidden">
+        <SchoolsManagement
+          ref={schoolsRef}
+          hideTable
+          onSchoolsChanged={() => setLandingKey((k) => k + 1)}
+        />
+      </div>
+    </>
   )
 }

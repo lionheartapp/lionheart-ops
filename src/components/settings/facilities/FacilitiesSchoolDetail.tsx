@@ -312,30 +312,21 @@ export default function FacilitiesSchoolDetail({
   }, [schoolId])
 
   // Remove parent content padding so the hero can bleed edge-to-edge.
+  // Inject a <style> tag that overrides the DashboardLayout padding wrapper.
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!rootRef.current) return
-    // Walk up from our element. The DashboardLayout wrapper has padding
-    // ~32px top, ~40px sides. Zero it out on every padded ancestor.
-    const restored: Array<{ el: HTMLElement; css: string }> = []
-    let el: HTMLElement | null = rootRef.current.parentElement
-    while (el) {
-      const cs = getComputedStyle(el)
-      const pt = parseFloat(cs.paddingTop) || 0
-      const pl = parseFloat(cs.paddingLeft) || 0
-      if (pt > 8 || pl > 8) {
-        restored.push({ el, css: el.style.cssText })
-        el.style.setProperty('padding-top', '0px', 'important')
-        el.style.setProperty('padding-left', '0px', 'important')
-        el.style.setProperty('padding-right', '0px', 'important')
+    const style = document.createElement('style')
+    style.setAttribute('data-facilities-hero', '')
+    style.textContent = `
+      #main-content > div {
+        padding-top: 0px !important;
+        padding-left: 0px !important;
+        padding-right: 0px !important;
       }
-      if (el.tagName === 'MAIN') break
-      el = el.parentElement
-    }
+    `
+    document.head.appendChild(style)
     return () => {
-      for (const { el: target, css } of restored) {
-        target.style.cssText = css
-      }
+      style.remove()
     }
   }, [])
 
@@ -460,9 +451,9 @@ export default function FacilitiesSchoolDetail({
     <div ref={rootRef}>
       {/* Full-width dark hero */}
       <div
-        className="relative pb-6 mb-0 overflow-hidden px-4 sm:px-10 pt-6 lg:pt-8"
+        className="relative pb-6 lg:pb-8 mb-0 overflow-hidden px-4 sm:px-10 pt-6 lg:pt-8"
         style={{
-          background: `linear-gradient(135deg, #1e293b 0%, ${school.color}dd 50%, ${school.color} 100%)`,
+          background: `linear-gradient(135deg, #0f172a 0%, #1e293b 40%, ${school.color}99 100%)`,
         }}
       >
 
