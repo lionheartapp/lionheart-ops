@@ -430,27 +430,26 @@ export default function FacilitiesSchoolDetail({
   // ─── Main view ──────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
-        <button
-          type="button"
-          onClick={onBack}
-          className="hover:text-slate-800 transition-colors cursor-pointer"
-        >
-          Facilities
-        </button>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-        <span className="text-slate-900 font-medium truncate">{school.name}</span>
-      </nav>
-
-      {/* School hero card */}
+      {/* Full-width hero: breadcrumb + school info + stats */}
       <div
-        className="rounded-2xl p-6 pb-0 overflow-hidden"
+        className="-mx-6 -mt-6 px-6 pt-6 pb-0 mb-0"
         style={{
           background: `linear-gradient(135deg, ${school.color}18 0%, ${school.color}08 100%)`,
-          border: `1px solid ${school.color}25`,
+          borderBottom: `1px solid ${school.color}20`,
         }}
       >
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-slate-500 mb-5" aria-label="Breadcrumb">
+          <button
+            type="button"
+            onClick={onBack}
+            className="hover:text-slate-800 transition-colors cursor-pointer"
+          >
+            Facilities
+          </button>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="text-slate-900 font-medium truncate">{school.name}</span>
+        </nav>
         <div className="flex items-center gap-5 flex-wrap pb-6">
           {/* Logo with upload */}
           <button
