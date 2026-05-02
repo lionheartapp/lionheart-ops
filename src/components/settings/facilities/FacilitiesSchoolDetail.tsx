@@ -521,6 +521,13 @@ export default function FacilitiesSchoolDetail({
         />
       )}
 
+      {/* Campuses section header */}
+      <div className="flex items-center gap-2">
+        <Layers className="w-4 h-4 text-slate-400" />
+        <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Campuses</h4>
+        <span className="text-xs text-slate-400">Click a campus to manage its buildings and spaces</span>
+      </div>
+
       {/* Search bar */}
       {campuses.length > 0 && (
         <div className="flex items-center gap-2">
