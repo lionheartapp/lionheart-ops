@@ -535,6 +535,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
         mapCenter={mapCenter}
         buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code, latitude: b.latitude, longitude: b.longitude, schoolDivision: b.schoolDivision, school: b.school, polygonCoordinates: b.polygonCoordinates || null }))}
         outdoorSpaces={outdoorMapSpaces}
+        embedded={embedded}
         schools={schools}
         editable
         quickPlaceMode={placingExistingBuilding ? 'building' : placingExistingOutdoor ? 'outdoor' : null}

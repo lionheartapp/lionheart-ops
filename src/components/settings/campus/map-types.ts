@@ -61,4 +61,6 @@ export interface InteractiveCampusMapProps {
   pendingMarker?: { lat: number; lng: number; label: string; type: 'building' | 'outdoor' } | null
   quickPlaceMode?: 'building' | 'outdoor' | null
   onQuickPlaceDone?: () => void
+  /** When true, hides school legend and increases map height (single-campus view) */
+  embedded?: boolean
 }

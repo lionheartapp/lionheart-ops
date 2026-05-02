@@ -56,11 +56,11 @@ export default function MapToolbar({
 }: MapToolbarProps) {
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
-      <div className="flex items-center gap-2">
-        <MapPin className="w-4 h-4 text-primary-600" />
+      <div className="flex items-center gap-2 min-w-0">
+        <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" />
         <span className="text-sm font-medium text-slate-700">Campus Map</span>
         {mapAddress && (
-          <span className="text-xs text-slate-500 ml-2 hidden sm:inline">{mapAddress}</span>
+          <span className="text-xs text-slate-500 ml-1 hidden sm:inline truncate">{mapAddress}</span>
         )}
       </div>
 

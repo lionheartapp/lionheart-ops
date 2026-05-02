@@ -39,6 +39,7 @@ export default function InteractiveCampusMap({
   pendingMarker = null,
   quickPlaceMode = null,
   onQuickPlaceDone,
+  embedded = false,
 }: InteractiveCampusMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -611,7 +612,7 @@ export default function InteractiveCampusMap({
         )}
         <div
           ref={mapContainerRef}
-          style={{ height: 500, width: '100%', position: 'relative', zIndex: 0 }}
+          style={{ height: embedded ? 600 : 500, width: '100%', position: 'relative', zIndex: 0 }}
         />
 
         {/* Custom zoom controls */}
@@ -672,12 +673,14 @@ export default function InteractiveCampusMap({
         )}
       </div>
 
-      {/* Legend */}
-      <MapLegend
-        buildings={buildings}
-        outdoorSpaces={outdoorSpaces}
-        schools={schools}
-      />
+      {/* Legend — hidden in embedded (single-campus) view */}
+      {!embedded && (
+        <MapLegend
+          buildings={buildings}
+          outdoorSpaces={outdoorSpaces}
+          schools={schools}
+        />
+      )}
 
       {/* Status bar */}
       {(editingPolygon || placingMode || drawingMode || clickPopover || quickPlaceMode) && (

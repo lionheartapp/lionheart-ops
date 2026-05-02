@@ -8,7 +8,13 @@ import {
   MapPin,
   Pencil,
   Trash2,
-  Map as MapIcon,
+  Search,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  DoorOpen,
+  Layers,
+  Sparkles,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import SchoolsManagement, {
@@ -20,8 +26,9 @@ import { AddCampusDrawer, EditCampusDrawer } from '@/components/settings/campus/
 
 type InstitutionType = 'PUBLIC' | 'PRIVATE' | 'CHARTER' | 'HYBRID' | 'FAITH_BASED'
 type GradeLevel = 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
+type CampusKind = 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
 
-type School = {
+interface School {
   id: string
   name: string
   color: string
@@ -31,12 +38,12 @@ type School = {
   campuses: Array<{ id: string; name: string; gradeLevel: GradeLevel | null }>
 }
 
-type CampusRow = {
+interface CampusRow {
   id: string
   name: string
   address: string | null
   gradeLevel: GradeLevel | null
-  campusKind: 'HEADQUARTERS' | 'CAMPUS' | 'SATELLITE'
+  campusKind: CampusKind
   latitude: number | null
   longitude: number | null
   schoolId: string | null
@@ -49,7 +56,7 @@ type CampusRow = {
 interface FacilitiesSchoolDetailProps {
   schoolId: string
   onBack: () => void
-  onOpenCampus: (campusId: string) => void
+  onOpenCampus: (campusId: string, campusName: string, schoolName: string) => void
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -63,9 +70,9 @@ const INSTITUTION_LABELS: Record<InstitutionType, string> = {
 }
 
 const GRADE_BADGE: Record<GradeLevel, { label: string; bg: string; text: string }> = {
-  ELEMENTARY: { label: 'K-5', bg: 'bg-violet-50', text: 'text-violet-700' },
-  MIDDLE_SCHOOL: { label: '6-8', bg: 'bg-sky-50', text: 'text-sky-700' },
-  HIGH_SCHOOL: { label: '9-12', bg: 'bg-rose-50', text: 'text-rose-700' },
+  ELEMENTARY: { label: 'K–5', bg: 'bg-violet-50', text: 'text-violet-700' },
+  MIDDLE_SCHOOL: { label: '6–8', bg: 'bg-sky-50', text: 'text-sky-700' },
+  HIGH_SCHOOL: { label: '9–12', bg: 'bg-rose-50', text: 'text-rose-700' },
 }
 
 function getInitials(name: string): string {
@@ -83,26 +90,48 @@ function gradeRangeLabel(campuses: Array<{ gradeLevel: GradeLevel | null }>): st
   const hasElem = levels.has('ELEMENTARY')
   const hasMid = levels.has('MIDDLE_SCHOOL')
   const hasHigh = levels.has('HIGH_SCHOOL')
-  if (hasElem && hasHigh) return 'K-12'
-  if (hasElem && hasMid) return 'K-8'
-  if (hasMid && hasHigh) return '6-12'
-  if (hasElem) return 'K-5'
-  if (hasMid) return '6-8'
-  if (hasHigh) return '9-12'
+  if (hasElem && hasHigh) return 'K–12'
+  if (hasElem && hasMid) return 'K–8'
+  if (hasMid && hasHigh) return '6–12'
+  if (hasElem) return 'K–5'
+  if (hasMid) return '6–8'
+  if (hasHigh) return '9–12'
   return null
 }
 
-// Key used to group campuses into sites: real siteId if present, otherwise
-// fall back to address (or the campus id itself if no address).
-function groupKey(c: CampusRow): string {
-  if (c.siteId) return `site:${c.siteId}`
-  if (c.address) return `addr:${c.address.trim().toLowerCase()}`
-  return `solo:${c.id}`
+// Identify which campuses share a site (for the "Shares site" chip).
+function sharedSiteCampusIds(campuses: CampusRow[]): Map<string, string[]> {
+  const bySite = new Map<string, string[]>()
+  for (const c of campuses) {
+    if (!c.siteId) continue
+    const existing = bySite.get(c.siteId) ?? []
+    existing.push(c.id)
+    bySite.set(c.siteId, existing)
+  }
+  // Only keep sites with more than one campus
+  return new Map([...bySite.entries()].filter(([, ids]) => ids.length > 1))
 }
 
-function groupLabel(c: CampusRow): { label: string | null; address: string | null } {
-  if (c.site) return { label: c.site.label, address: c.site.address }
-  return { label: null, address: c.address }
+// ─── Setup completeness ─────────────────────────────────────────────────
+
+interface SetupStep {
+  key: string
+  label: string
+  done: boolean
+}
+
+function computeSetupSteps(school: School, campuses: CampusRow[]): SetupStep[] {
+  const totalBuildings = campuses.reduce((n, c) => n + c._count.buildings, 0)
+  const totalSpaces = campuses.reduce((n, c) => n + c._count.spaces, 0)
+  const allHaveAddress =
+    campuses.length > 0 && campuses.every((c) => Boolean(c.address || c.site?.address))
+  return [
+    { key: 'school', label: 'School info added', done: Boolean(school.name) },
+    { key: 'campuses', label: 'At least one campus', done: campuses.length > 0 },
+    { key: 'addresses', label: 'Every campus has an address', done: allHaveAddress },
+    { key: 'buildings', label: 'At least one building', done: totalBuildings > 0 },
+    { key: 'rooms', label: 'At least one room', done: totalSpaces > 0 },
+  ]
 }
 
 // ─── Component ───────────────────────────────────────────────────────────
@@ -116,6 +145,7 @@ export default function FacilitiesSchoolDetail({
   const [campuses, setCampuses] = useState<CampusRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   const schoolsHandleRef = useRef<SchoolsManagementHandle>(null)
 
@@ -126,7 +156,6 @@ export default function FacilitiesSchoolDetail({
     address: string
     campusKind: string
   }>({ name: '', address: '', campusKind: 'CAMPUS' })
-  // When adding "at this site" we carry the siteId so the new campus shares it
   const [addSiteId, setAddSiteId] = useState<string | null>(null)
   const [addError, setAddError] = useState('')
   const [addSaving, setAddSaving] = useState(false)
@@ -169,7 +198,7 @@ export default function FacilitiesSchoolDetail({
       })
       setAddOpen(false)
       await loadAll()
-    } catch (err) {
+    } catch (err: unknown) {
       setAddError(err instanceof Error ? err.message : 'Failed to create campus')
     } finally {
       setAddSaving(false)
@@ -226,7 +255,7 @@ export default function FacilitiesSchoolDetail({
       setEditOpen(false)
       setEditCampus(null)
       await loadAll()
-    } catch (err) {
+    } catch (err: unknown) {
       setEditError(err instanceof Error ? err.message : 'Failed to update campus')
     } finally {
       setEditSaving(false)
@@ -245,14 +274,14 @@ export default function FacilitiesSchoolDetail({
       })
       setDeleteConfirmId(null)
       await loadAll()
-    } catch (err) {
+    } catch (err: unknown) {
       setEditError(err instanceof Error ? err.message : 'Failed to delete campus')
     } finally {
       setDeleting(false)
     }
   }
 
-  const loadAll = async () => {
+  const loadAll = async (): Promise<void> => {
     setLoading(true)
     setError(null)
     try {
@@ -268,7 +297,7 @@ export default function FacilitiesSchoolDetail({
         ? allCampuses.filter((c) => c.schoolId === schoolId)
         : []
       setCampuses(filtered)
-    } catch (e) {
+    } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load school')
     } finally {
       setLoading(false)
@@ -280,49 +309,73 @@ export default function FacilitiesSchoolDetail({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId])
 
-  // Group campuses by site (or shared address)
-  const groups = useMemo(() => {
-    const byKey = new Map<string, { label: string | null; address: string | null; rows: CampusRow[] }>()
-    for (const c of campuses) {
-      const key = groupKey(c)
-      const existing = byKey.get(key)
-      if (existing) {
-        existing.rows.push(c)
-      } else {
-        const { label, address } = groupLabel(c)
-        byKey.set(key, { label, address, rows: [c] })
-      }
-    }
-    return Array.from(byKey.entries()).map(([key, g]) => ({ key, ...g }))
-  }, [campuses])
-
+  // ─── Derived state ───────────────────────────────────────────────────────
   const gradeSummary = useMemo(() => gradeRangeLabel(campuses), [campuses])
   const typeLabel = school?.institutionType ? INSTITUTION_LABELS[school.institutionType] : null
+  const sharedSites = useMemo(() => sharedSiteCampusIds(campuses), [campuses])
 
-  // ─── UI: Loading skeleton ──────────────────────────────────────────────
+  const totals = useMemo(() => {
+    const buildings = campuses.reduce((n, c) => n + c._count.buildings, 0)
+    const spaces = campuses.reduce((n, c) => n + c._count.spaces, 0)
+    const missingAddress = campuses.filter((c) => !c.address && !c.site?.address).length
+    return { buildings, spaces, missingAddress }
+  }, [campuses])
+
+  const setupSteps = useMemo(
+    () => (school ? computeSetupSteps(school, campuses) : []),
+    [school, campuses],
+  )
+  const setupPct = setupSteps.length
+    ? Math.round((setupSteps.filter((s) => s.done).length / setupSteps.length) * 100)
+    : 0
+  const setupComplete = setupPct === 100
+
+  const filteredCampuses = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return campuses
+    return campuses.filter((c) =>
+      [c.name, c.address ?? '', c.site?.address ?? ''].some((s) => s.toLowerCase().includes(q)),
+    )
+  }, [campuses, search])
+
+  // ─── Loading skeleton ────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <button
+          type="button"
           onClick={onBack}
           className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
         >
           <ChevronRight className="w-4 h-4 rotate-180" />
           Facilities
         </button>
-        <div className="bg-white border border-slate-200 rounded-xl p-6 animate-pulse">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-xl bg-slate-200" />
+        <div className="bg-white border border-slate-200 rounded-xl p-5 animate-pulse">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-slate-200" />
             <div className="flex-1 space-y-2">
               <div className="h-5 w-56 bg-slate-200 rounded" />
               <div className="h-3 w-72 bg-slate-200 rounded" />
             </div>
           </div>
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-slate-50 rounded-lg p-4 animate-pulse">
+              <div className="h-3 w-16 bg-slate-200 rounded mb-2" />
+              <div className="h-6 w-10 bg-slate-200 rounded" />
+            </div>
+          ))}
+        </div>
         {[1, 2].map((i) => (
           <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 animate-pulse">
-            <div className="h-4 w-48 bg-slate-200 rounded mb-3" />
-            <div className="h-24 w-full bg-slate-100 rounded-lg" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-slate-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 bg-slate-200 rounded" />
+                <div className="h-3 w-60 bg-slate-100 rounded" />
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -331,8 +384,9 @@ export default function FacilitiesSchoolDetail({
 
   if (error || !school) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <button
+          type="button"
           onClick={onBack}
           className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
         >
@@ -346,11 +400,13 @@ export default function FacilitiesSchoolDetail({
     )
   }
 
+  // ─── Main view ──────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
+      <nav className="flex items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
         <button
+          type="button"
           onClick={onBack}
           className="hover:text-slate-800 transition-colors cursor-pointer"
         >
@@ -360,11 +416,11 @@ export default function FacilitiesSchoolDetail({
         <span className="text-slate-900 font-medium truncate">{school.name}</span>
       </nav>
 
-      {/* School header card */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-center gap-5 flex-wrap">
+      {/* School header — single tight row */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="flex items-center gap-4 flex-wrap">
           <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 overflow-hidden"
+            className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden"
             style={{ backgroundColor: school.color }}
           >
             {school.logoUrl ? (
@@ -376,15 +432,11 @@ export default function FacilitiesSchoolDetail({
           </div>
           <div className="flex-1 min-w-[220px]">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-semibold text-slate-900">{school.name}</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{school.name}</h2>
               {typeLabel && (
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                   {typeLabel}
-                </span>
-              )}
-              {gradeSummary && (
-                <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  {gradeSummary}
+                  {gradeSummary ? ` · ${gradeSummary}` : ''}
                 </span>
               )}
             </div>
@@ -394,22 +446,20 @@ export default function FacilitiesSchoolDetail({
                 <span className="truncate">{school.address}</span>
               </div>
             )}
-            <div className="text-xs text-slate-400 mt-1">
-              {campuses.length} {campuses.length === 1 ? 'campus' : 'campuses'} ·{' '}
-              {groups.length} {groups.length === 1 ? 'site' : 'sites'}
-            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
+              type="button"
               onClick={() => schoolsHandleRef.current?.openEdit(school.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit school
             </button>
             <button
+              type="button"
               onClick={() => openAddCampus()}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add campus
@@ -418,149 +468,135 @@ export default function FacilitiesSchoolDetail({
         </div>
       </div>
 
-      {/* Site groups */}
-      <div className="space-y-4">
-        {groups.length === 0 && (
+      {/* Stats strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} />
+        <StatCard
+          label="Buildings"
+          value={totals.buildings}
+          icon={<Layers className="w-4 h-4" />}
+          dim={totals.buildings === 0}
+        />
+        <StatCard
+          label="Spaces"
+          value={totals.spaces}
+          icon={<DoorOpen className="w-4 h-4" />}
+          dim={totals.spaces === 0}
+        />
+        <StatCard
+          label="Setup"
+          value={`${setupPct}%`}
+          icon={
+            setupComplete ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-amber-500" />
+            )
+          }
+          accent={setupComplete ? 'success' : 'progress'}
+        />
+      </div>
+
+      {/* Setup banner — only when something is incomplete */}
+      {!setupComplete && (
+        <SetupBanner
+          steps={setupSteps}
+          missingAddressCount={totals.missingAddress}
+          onResume={() => {
+            // Jump to the first incomplete step
+            const next = setupSteps.find((s) => !s.done)
+            if (next?.key === 'addresses') {
+              const target = campuses.find((c) => !c.address && !c.site?.address)
+              if (target) openEditCampus(target)
+              return
+            }
+            if (next?.key === 'campuses' || next?.key === 'school') {
+              openAddCampus()
+              return
+            }
+            // Buildings/rooms live inside a campus — drop the user into the first one
+            const first = campuses[0]
+            if (first) onOpenCampus(first.id, first.name, school?.name ?? '')
+          }}
+        />
+      )}
+
+      {/* Search bar */}
+      {campuses.length > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search campuses…"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-colors"
+            />
+          </div>
+          <span className="text-xs text-slate-400">
+            {filteredCampuses.length} of {campuses.length}
+          </span>
+        </div>
+      )}
+
+      {/* Campus cards */}
+      <div className="space-y-3">
+        {campuses.length === 0 && (
           <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-10 text-center">
             <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center mx-auto mb-3">
               <Building2 className="w-5 h-5 text-slate-400" />
             </div>
             <div className="text-sm font-medium text-slate-700">No campuses yet</div>
-            <div className="text-xs text-slate-500 mt-1">
-              Add a campus to start organizing buildings and spaces.
+            <div className="text-xs text-slate-500 mt-1 mb-4">
+              Add your first campus to start organizing buildings and spaces.
             </div>
+            <button
+              type="button"
+              onClick={() => openAddCampus()}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add campus
+            </button>
           </div>
         )}
 
-        {groups.map((group) => (
-          <div
-            key={group.key}
-            className="bg-white border border-slate-200 rounded-xl overflow-hidden"
-          >
-            {/* Site header */}
-            <div className="flex items-center gap-4 p-5 border-b border-slate-100">
-              {/* Map thumbnail placeholder */}
-              <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-                <MapIcon className="w-6 h-6 text-emerald-600/70" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="text-sm font-semibold text-slate-900">
-                    {group.label ?? (group.address ?? 'Unassigned address')}
-                  </div>
-                  {group.rows.length > 1 && (
-                    <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200">
-                      Shared by {group.rows.length} campuses
-                    </span>
-                  )}
-                </div>
-                {group.address && group.label && (
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">{group.address}</span>
-                  </div>
-                )}
-                {!group.address && (
-                  <div className="text-xs text-slate-400 mt-1 italic">No address set</div>
-                )}
-              </div>
-              <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer">
-                <Pencil className="w-3 h-3" />
-                Edit address
-              </button>
-            </div>
-
-            {/* Campus rows */}
-            <div className="divide-y divide-slate-100">
-              {group.rows.map((campus) => {
-                const badge = campus.gradeLevel ? GRADE_BADGE[campus.gradeLevel] : null
-                return (
-                  <button
-                    key={campus.id}
-                    onClick={() => onOpenCampus(campus.id)}
-                    className="w-full text-left flex items-center gap-4 p-4 hover:bg-slate-50/80 transition-colors cursor-pointer group"
-                  >
-                    {badge ? (
-                      <span
-                        className={`text-[11px] font-semibold uppercase tracking-wide px-2 py-1 rounded ${badge.bg} ${badge.text} flex-shrink-0`}
-                      >
-                        {badge.label}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-1 rounded bg-slate-100 text-slate-500 flex-shrink-0">
-                        —
-                      </span>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-900 truncate">
-                        {campus.name}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-0.5">
-                        {campus._count.buildings}{' '}
-                        {campus._count.buildings === 1 ? 'building' : 'buildings'} ·{' '}
-                        {campus._count.spaces}{' '}
-                        {campus._count.spaces === 1 ? 'space' : 'spaces'}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openEditCampus(campus)
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        aria-label="Edit campus"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setDeleteConfirmId(campus.id)
-                        }}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                        aria-label="Delete campus"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors ml-1" />
-                    </div>
-                  </button>
-                )
-              })}
-
-              {/* Add another campus at this site */}
-              <button
-                onClick={() => {
-                  const firstRow = group.rows[0]
-                  openAddCampus({
-                    siteId: firstRow?.siteId ?? null,
-                    address: group.address,
-                  })
-                }}
-                className="w-full flex items-center justify-center gap-2 py-3 text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50/80 transition-colors cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add another campus at this site
-              </button>
-            </div>
+        {campuses.length > 0 && filteredCampuses.length === 0 && (
+          <div className="text-sm text-slate-500 text-center py-8">
+            No campuses match &ldquo;{search}&rdquo;.
           </div>
+        )}
+
+        {filteredCampuses.map((campus) => (
+          <CampusCard
+            key={campus.id}
+            campus={campus}
+            schoolColor={school.color}
+            sharesSite={Boolean(campus.siteId && sharedSites.has(campus.siteId))}
+            onOpen={() => onOpenCampus(campus.id, campus.name, school.name)}
+            onEdit={() => openEditCampus(campus)}
+            onDelete={() => setDeleteConfirmId(campus.id)}
+            onAddBuilding={() => onOpenCampus(campus.id, campus.name, school.name)}
+          />
         ))}
+
+        {/* Add another campus — flush dashed */}
+        {campuses.length > 0 && (
+          <button
+            type="button"
+            onClick={() => openAddCampus()}
+            className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-slate-500 hover:text-slate-800 border border-dashed border-slate-300 rounded-xl hover:border-slate-400 hover:bg-slate-50/60 transition-colors duration-200 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Add another campus
+          </button>
+        )}
       </div>
 
       {/* Hidden SchoolsManagement — powers the Edit school drawer via ref */}
       <div className="hidden">
-        <SchoolsManagement
-          ref={schoolsHandleRef}
-          hideTable
-          onSchoolsChanged={loadAll}
-        />
+        <SchoolsManagement ref={schoolsHandleRef} hideTable onSchoolsChanged={loadAll} />
       </div>
 
       {/* Add Campus drawer */}
@@ -578,7 +614,16 @@ export default function FacilitiesSchoolDetail({
       <EditCampusDrawer
         isOpen={editOpen}
         onClose={closeEditCampus}
-        campus={editCampus ? { id: editCampus.id, name: editCampus.name, campusKind: editCampus.campusKind, address: editCampus.address } : null}
+        campus={
+          editCampus
+            ? {
+                id: editCampus.id,
+                name: editCampus.name,
+                campusKind: editCampus.campusKind,
+                address: editCampus.address,
+              }
+            : null
+        }
         form={editForm}
         onFormChange={(update) => setEditForm((prev) => ({ ...prev, ...update }))}
         error={editError}
@@ -588,21 +633,33 @@ export default function FacilitiesSchoolDetail({
 
       {/* Delete Campus confirmation */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6 space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-slate-900">Delete campus?</h3>
               <p className="text-sm text-slate-500 mt-1">
-                This will remove the campus and all associated buildings and spaces. This action cannot be undone.
+                This will remove the campus and all associated buildings and spaces. This action
+                cannot be undone.
               </p>
             </div>
-            {editError && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{editError}</div>}
+            {editError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {editError}
+              </div>
+            )}
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => { setDeleteConfirmId(null); setEditError('') }}
+                onClick={() => {
+                  setDeleteConfirmId(null)
+                  setEditError('')
+                }}
                 disabled={deleting}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
               >
                 Cancel
               </button>
@@ -610,7 +667,7 @@ export default function FacilitiesSchoolDetail({
                 type="button"
                 onClick={() => handleDeleteCampus(deleteConfirmId)}
                 disabled={deleting}
-                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50 transition cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors duration-200 cursor-pointer"
               >
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
@@ -618,6 +675,218 @@ export default function FacilitiesSchoolDetail({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────
+
+interface StatCardProps {
+  label: string
+  value: string | number
+  icon: React.ReactNode
+  dim?: boolean
+  accent?: 'success' | 'progress'
+}
+
+function StatCard({ label, value, icon, dim, accent }: StatCardProps) {
+  const accentRing =
+    accent === 'success'
+      ? 'ring-1 ring-emerald-200'
+      : accent === 'progress'
+        ? 'ring-1 ring-amber-200'
+        : ''
+  return (
+    <div className={`bg-slate-50 rounded-lg p-4 ${accentRing}`}>
+      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1">
+        <span className="text-slate-400">{icon}</span>
+        {label}
+      </div>
+      <div
+        className={`text-2xl font-semibold tabular-nums ${
+          dim ? 'text-slate-300' : 'text-slate-900'
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  )
+}
+
+interface SetupBannerProps {
+  steps: SetupStep[]
+  missingAddressCount: number
+  onResume: () => void
+}
+
+function SetupBanner({ steps, missingAddressCount, onResume }: SetupBannerProps) {
+  const next = steps.find((s) => !s.done)
+  const summaryParts: string[] = []
+  if (missingAddressCount > 0) {
+    summaryParts.push(
+      `${missingAddressCount} ${missingAddressCount === 1 ? 'campus needs' : 'campuses need'} an address`,
+    )
+  }
+  const totalBuildings = steps.find((s) => s.key === 'buildings')
+  if (totalBuildings && !totalBuildings.done) summaryParts.push('0 buildings added')
+  const totalRooms = steps.find((s) => s.key === 'rooms')
+  if (totalRooms && !totalRooms.done) summaryParts.push('0 rooms mapped')
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+        <AlertTriangle className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-amber-900">Finish your campus setup</div>
+        <div className="text-xs text-amber-800/80 mt-0.5 truncate">
+          {summaryParts.length > 0 ? summaryParts.join(' · ') : `Next: ${next?.label ?? 'continue'}`}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onResume}
+        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-white border border-amber-300 rounded-full hover:bg-amber-100 transition-colors duration-200 cursor-pointer flex-shrink-0"
+      >
+        Resume setup
+        <ArrowRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )
+}
+
+interface CampusCardProps {
+  campus: CampusRow
+  schoolColor: string
+  sharesSite: boolean
+  onOpen: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onAddBuilding: () => void
+}
+
+function CampusCard({
+  campus,
+  schoolColor,
+  sharesSite,
+  onOpen,
+  onEdit,
+  onDelete,
+  onAddBuilding,
+}: CampusCardProps) {
+  const badge = campus.gradeLevel ? GRADE_BADGE[campus.gradeLevel] : null
+  const isPrimary = campus.campusKind === 'HEADQUARTERS'
+  const address = campus.address || campus.site?.address || null
+
+  return (
+    <div className="group bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors duration-200">
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
+          style={{ backgroundColor: schoolColor }}
+        >
+          {getInitials(campus.name)}
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={onOpen}
+              className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors cursor-pointer text-left"
+            >
+              {campus.name}
+            </button>
+            {isPrimary && (
+              <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
+                Primary
+              </span>
+            )}
+            {badge && (
+              <span
+                className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${badge.bg} ${badge.text}`}
+              >
+                {badge.label}
+              </span>
+            )}
+            {sharesSite && (
+              <span
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-500"
+                title="Shares a physical site with another campus"
+              >
+                Shared site
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-slate-500">
+            {address ? (
+              <span className="flex items-center gap-1 min-w-0 truncate">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{address}</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-dashed border-amber-300 hover:bg-amber-100 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3 h-3" />
+                Add address
+              </button>
+            )}
+            <span className="text-slate-300">·</span>
+            <span>
+              {campus._count.buildings}{' '}
+              {campus._count.buildings === 1 ? 'building' : 'buildings'}
+            </span>
+            <span className="text-slate-300">·</span>
+            <span>
+              {campus._count.spaces} {campus._count.spaces === 1 ? 'room' : 'rooms'}
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onAddBuilding}
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+          >
+            <Plus className="w-3 h-3" />
+            Building
+          </button>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
+          >
+            Manage
+            <ChevronRight className="w-3 h-3" />
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
+            aria-label="Edit campus"
+            title="Edit campus"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors duration-200 cursor-pointer"
+            aria-label="Delete campus"
+            title="Delete campus"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
