@@ -312,52 +312,33 @@ export default function FacilitiesSchoolDetail({
   }, [schoolId])
 
   // Remove parent content padding so the hero can bleed edge-to-edge.
-  // Walk up from our element and zero out padding on every ancestor until
-  // we hit the <main> tag (DashboardLayout's content boundary).
+  // Target: div.relative.pl-4.pr-4.sm:px-10.flex.flex-col.min-h-full.pt-6.lg:pt-8.pb-10
+  // inside #main-content (DashboardLayout inner wrapper).
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!rootRef.current) return
-    const originals: Array<{ el: HTMLElement; pt: string; pl: string; pr: string }> = []
-    let el: HTMLElement | null = rootRef.current.parentElement
-    while (el && el.tagName !== 'MAIN') {
-      const cs = getComputedStyle(el)
+    // Find the layout wrapper — it's the direct child of <main> with flex-col
+    const main = document.getElementById('main-content')
+    if (!main) return
+    // Walk all descendants to find the padding wrapper
+    const candidates = main.querySelectorAll<HTMLElement>('div')
+    let target: HTMLElement | null = null
+    for (const div of candidates) {
+      const cs = getComputedStyle(div)
       const pt = parseFloat(cs.paddingTop)
       const pl = parseFloat(cs.paddingLeft)
-      const pr = parseFloat(cs.paddingRight)
-      if (pt > 0 || pl > 0 || pr > 0) {
-        originals.push({
-          el,
-          pt: el.style.paddingTop,
-          pl: el.style.paddingLeft,
-          pr: el.style.paddingRight,
-        })
-        if (pt > 0) el.style.paddingTop = '0px'
-        if (pl > 0) el.style.paddingLeft = '0px'
-        if (pr > 0) el.style.paddingRight = '0px'
-      }
-      el = el.parentElement
-    }
-    // Also zero the <main> itself if it has padding
-    if (el?.tagName === 'MAIN') {
-      const cs = getComputedStyle(el)
-      if (parseFloat(cs.paddingTop) > 0 || parseFloat(cs.paddingLeft) > 0) {
-        originals.push({
-          el,
-          pt: el.style.paddingTop,
-          pl: el.style.paddingLeft,
-          pr: el.style.paddingRight,
-        })
-        el.style.paddingTop = '0px'
-        el.style.paddingLeft = '0px'
-        el.style.paddingRight = '0px'
+      // The wrapper has ~32px top and ~40px left padding
+      if (pt >= 24 && pl >= 16 && div.classList.contains('relative') && div.classList.contains('flex-col')) {
+        target = div
+        break
       }
     }
+    if (!target) return
+    const orig = target.style.cssText
+    target.style.paddingTop = '0px'
+    target.style.paddingLeft = '0px'
+    target.style.paddingRight = '0px'
     return () => {
-      for (const { el: target, pt, pl, pr } of originals) {
-        target.style.paddingTop = pt
-        target.style.paddingLeft = pl
-        target.style.paddingRight = pr
-      }
+      target.style.cssText = orig
     }
   }, [])
 
