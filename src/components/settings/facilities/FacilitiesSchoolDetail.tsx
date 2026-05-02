@@ -311,6 +311,20 @@ export default function FacilitiesSchoolDetail({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId])
 
+  // Remove parent content padding so the hero can bleed edge-to-edge.
+  // The padding is on #main-content > div (DashboardLayout inner wrapper).
+  useEffect(() => {
+    const wrapper = document.querySelector('#main-content > div') as HTMLElement | null
+    if (!wrapper) return
+    const origPadding = wrapper.style.cssText
+    wrapper.style.paddingTop = '0'
+    wrapper.style.paddingLeft = '0'
+    wrapper.style.paddingRight = '0'
+    return () => {
+      wrapper.style.cssText = origPadding
+    }
+  }, [])
+
   // ─── Logo upload ────────────────────────────────────────────────────────
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -429,13 +443,12 @@ export default function FacilitiesSchoolDetail({
 
   // ─── Main view ──────────────────────────────────────────────────────────
   return (
-    <div className="space-y-5">
+    <div>
       {/* Full-width dark hero */}
       <div
-        className="relative pb-6 mb-0 overflow-hidden rounded-2xl"
+        className="relative pb-6 mb-0 overflow-hidden px-4 sm:px-10 pt-6 lg:pt-8"
         style={{
           background: `linear-gradient(135deg, #1e293b 0%, ${school.color}dd 50%, ${school.color} 100%)`,
-          padding: '1.5rem 1.5rem 1.5rem',
         }}
       >
 
@@ -559,6 +572,9 @@ export default function FacilitiesSchoolDetail({
           />
         </div>
       </div>
+
+      {/* Content below hero — re-apply padding since parent padding is removed */}
+      <div className="px-4 sm:px-10 pb-10 space-y-5 mt-5">
 
       {/* Setup banner — only when something is incomplete */}
       {!setupComplete && (
@@ -745,6 +761,7 @@ export default function FacilitiesSchoolDetail({
           </div>
         </div>
       )}
+      </div>{/* end content wrapper */}
     </div>
   )
 }
