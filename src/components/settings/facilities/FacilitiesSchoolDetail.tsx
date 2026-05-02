@@ -312,33 +312,52 @@ export default function FacilitiesSchoolDetail({
   }, [schoolId])
 
   // Remove parent content padding so the hero can bleed edge-to-edge.
-  // Walk up from our own element to find the DashboardLayout padding wrapper.
+  // Walk up from our element and zero out padding on every ancestor until
+  // we hit the <main> tag (DashboardLayout's content boundary).
   const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!rootRef.current) return
-    // Find the nearest ancestor with the layout padding classes
+    const originals: Array<{ el: HTMLElement; pt: string; pl: string; pr: string }> = []
     let el: HTMLElement | null = rootRef.current.parentElement
-    let target: HTMLElement | null = null
-    while (el) {
-      if (el.classList.contains('pt-6') || el.classList.contains('lg:pt-8')) {
-        target = el
-        break
+    while (el && el.tagName !== 'MAIN') {
+      const cs = getComputedStyle(el)
+      const pt = parseFloat(cs.paddingTop)
+      const pl = parseFloat(cs.paddingLeft)
+      const pr = parseFloat(cs.paddingRight)
+      if (pt > 0 || pl > 0 || pr > 0) {
+        originals.push({
+          el,
+          pt: el.style.paddingTop,
+          pl: el.style.paddingLeft,
+          pr: el.style.paddingRight,
+        })
+        if (pt > 0) el.style.paddingTop = '0px'
+        if (pl > 0) el.style.paddingLeft = '0px'
+        if (pr > 0) el.style.paddingRight = '0px'
       }
       el = el.parentElement
     }
-    if (!target) return
-    const orig = {
-      paddingTop: target.style.paddingTop,
-      paddingLeft: target.style.paddingLeft,
-      paddingRight: target.style.paddingRight,
+    // Also zero the <main> itself if it has padding
+    if (el?.tagName === 'MAIN') {
+      const cs = getComputedStyle(el)
+      if (parseFloat(cs.paddingTop) > 0 || parseFloat(cs.paddingLeft) > 0) {
+        originals.push({
+          el,
+          pt: el.style.paddingTop,
+          pl: el.style.paddingLeft,
+          pr: el.style.paddingRight,
+        })
+        el.style.paddingTop = '0px'
+        el.style.paddingLeft = '0px'
+        el.style.paddingRight = '0px'
+      }
     }
-    target.style.paddingTop = '0'
-    target.style.paddingLeft = '0'
-    target.style.paddingRight = '0'
     return () => {
-      target.style.paddingTop = orig.paddingTop
-      target.style.paddingLeft = orig.paddingLeft
-      target.style.paddingRight = orig.paddingRight
+      for (const { el: target, pt, pl, pr } of originals) {
+        target.style.paddingTop = pt
+        target.style.paddingLeft = pl
+        target.style.paddingRight = pr
+      }
     }
   }, [])
 
