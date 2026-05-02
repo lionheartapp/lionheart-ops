@@ -312,16 +312,33 @@ export default function FacilitiesSchoolDetail({
   }, [schoolId])
 
   // Remove parent content padding so the hero can bleed edge-to-edge.
-  // The padding is on #main-content > div (DashboardLayout inner wrapper).
+  // Walk up from our own element to find the DashboardLayout padding wrapper.
+  const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    const wrapper = document.querySelector('#main-content > div') as HTMLElement | null
-    if (!wrapper) return
-    const origPadding = wrapper.style.cssText
-    wrapper.style.paddingTop = '0'
-    wrapper.style.paddingLeft = '0'
-    wrapper.style.paddingRight = '0'
+    if (!rootRef.current) return
+    // Find the nearest ancestor with the layout padding classes
+    let el: HTMLElement | null = rootRef.current.parentElement
+    let target: HTMLElement | null = null
+    while (el) {
+      if (el.classList.contains('pt-6') || el.classList.contains('lg:pt-8')) {
+        target = el
+        break
+      }
+      el = el.parentElement
+    }
+    if (!target) return
+    const orig = {
+      paddingTop: target.style.paddingTop,
+      paddingLeft: target.style.paddingLeft,
+      paddingRight: target.style.paddingRight,
+    }
+    target.style.paddingTop = '0'
+    target.style.paddingLeft = '0'
+    target.style.paddingRight = '0'
     return () => {
-      wrapper.style.cssText = origPadding
+      target.style.paddingTop = orig.paddingTop
+      target.style.paddingLeft = orig.paddingLeft
+      target.style.paddingRight = orig.paddingRight
     }
   }, [])
 
@@ -443,7 +460,7 @@ export default function FacilitiesSchoolDetail({
 
   // ─── Main view ──────────────────────────────────────────────────────────
   return (
-    <div>
+    <div ref={rootRef}>
       {/* Full-width dark hero */}
       <div
         className="relative pb-6 mb-0 overflow-hidden px-4 sm:px-10 pt-6 lg:pt-8"
