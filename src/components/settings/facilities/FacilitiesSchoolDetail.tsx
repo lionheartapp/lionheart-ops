@@ -581,31 +581,29 @@ export default function FacilitiesSchoolDetail({
       {/* Content below hero — re-apply padding since parent padding is removed */}
       <div className="px-4 sm:px-10 pb-10 space-y-5 mt-5">
 
-      {/* Campuses section header */}
+      {/* Campuses section header + search */}
       <div className="flex items-center gap-3">
         <Layers className="w-5 h-5 text-slate-400" />
         <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">Campuses</h3>
-        <span className="text-sm text-slate-400">Click a campus to manage its buildings and spaces</span>
-      </div>
-
-      {/* Search bar */}
-      {campuses.length > 0 && (
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search campuses…"
-              className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-colors"
-            />
+        <span className="text-sm text-slate-400 hidden sm:inline">Click a campus to manage its buildings and spaces</span>
+        {campuses.length > 0 && (
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search…"
+                className="w-44 pl-9 pr-3 py-1.5 text-sm bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-colors"
+              />
+            </div>
+            <span className="text-xs text-slate-400 tabular-nums">
+              {filteredCampuses.length} of {campuses.length}
+            </span>
           </div>
-          <span className="text-xs text-slate-400">
-            {filteredCampuses.length} of {campuses.length}
-          </span>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Campus cards */}
       <div className="space-y-3">
