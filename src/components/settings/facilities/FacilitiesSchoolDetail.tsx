@@ -432,7 +432,7 @@ export default function FacilitiesSchoolDetail({
     <div className="space-y-5">
       {/* Full-width hero: breadcrumb + school info + stats */}
       <div
-        className="-mx-6 -mt-6 px-6 pt-6 pb-0 mb-0"
+        className="-mx-4 sm:-mx-10 -mt-6 lg:-mt-8 px-4 sm:px-10 pt-6 lg:pt-8 pb-0 mb-0"
         style={{
           background: `linear-gradient(135deg, ${school.color}18 0%, ${school.color}08 100%)`,
           borderBottom: `1px solid ${school.color}20`,
