@@ -432,13 +432,13 @@ export default function FacilitiesSchoolDetail({
     <div className="space-y-5">
       {/* Full-width dark hero */}
       <div
-        className="pb-6 mb-0 relative overflow-hidden"
+        className="relative pb-6 mb-0 overflow-hidden rounded-2xl"
         style={{
-          margin: '-6rem -6rem 0',
-          padding: '6rem 6rem 1.5rem',
           background: `linear-gradient(135deg, #1e293b 0%, ${school.color}dd 50%, ${school.color} 100%)`,
+          padding: '1.5rem 1.5rem 1.5rem',
         }}
       >
+
         {/* Ambient glow */}
         <div
           className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-30 pointer-events-none"
