@@ -430,33 +430,44 @@ export default function FacilitiesSchoolDetail({
   // ─── Main view ──────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
-      {/* Full-width hero: breadcrumb + school info + stats */}
+      {/* Full-width dark hero */}
       <div
-        className="-mx-4 sm:-mx-10 -mt-6 lg:-mt-8 px-4 sm:px-10 pt-6 lg:pt-8 pb-0 mb-0"
+        className="-mx-4 sm:-mx-10 -mt-6 lg:-mt-8 px-4 sm:px-10 pt-6 lg:pt-8 pb-6 mb-0 relative overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${school.color}18 0%, ${school.color}08 100%)`,
-          borderBottom: `1px solid ${school.color}20`,
+          background: `linear-gradient(135deg, #1e293b 0%, ${school.color}dd 50%, ${school.color} 100%)`,
         }}
       >
+        {/* Ambient glow */}
+        <div
+          className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-30 pointer-events-none"
+          style={{ backgroundColor: school.color }}
+        />
+        <div
+          className="absolute -bottom-10 -left-10 w-60 h-60 rounded-full blur-[80px] opacity-20 pointer-events-none"
+          style={{ backgroundColor: school.color }}
+        />
+
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-slate-500 mb-5" aria-label="Breadcrumb">
+        <nav className="relative flex items-center gap-2 text-sm text-white/60 mb-6" aria-label="Breadcrumb">
           <button
             type="button"
             onClick={onBack}
-            className="hover:text-slate-800 transition-colors cursor-pointer"
+            className="hover:text-white transition-colors cursor-pointer"
           >
             Facilities
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-slate-900 font-medium truncate">{school.name}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+          <span className="text-white font-medium truncate">{school.name}</span>
         </nav>
-        <div className="flex items-center gap-5 flex-wrap pb-6">
+
+        {/* School info row */}
+        <div className="relative flex items-center gap-5 flex-wrap mb-6">
           {/* Logo with upload */}
           <button
             type="button"
             onClick={() => logoInputRef.current?.click()}
-            className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer shadow-lg"
-            style={{ backgroundColor: school.color }}
+            className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer ring-2 ring-white/20 shadow-xl"
+            style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
             title="Upload school logo"
           >
             {school.logoUrl ? (
@@ -465,7 +476,7 @@ export default function FacilitiesSchoolDetail({
             ) : (
               getInitials(school.name)
             )}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
               <Camera className="w-5 h-5 text-white" />
             </div>
           </button>
@@ -479,16 +490,16 @@ export default function FacilitiesSchoolDetail({
 
           <div className="flex-1 min-w-[220px]">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-xl font-bold text-slate-900">{school.name}</h2>
+              <h2 className="text-xl font-bold text-white">{school.name}</h2>
               {typeLabel && (
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/80 text-slate-600 font-medium backdrop-blur-sm">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/15 text-white/80 font-medium backdrop-blur-sm border border-white/10">
                   {typeLabel}
                   {gradeSummary ? ` · ${gradeSummary}` : ''}
                 </span>
               )}
             </div>
             {school.address && (
-              <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1.5">
+              <div className="flex items-center gap-1.5 text-sm text-white/60 mt-1.5">
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{school.address}</span>
               </div>
@@ -498,7 +509,7 @@ export default function FacilitiesSchoolDetail({
             <button
               type="button"
               onClick={() => schoolsHandleRef.current?.openEdit(school.id)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 shadow-sm transition-colors duration-200 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-white/15 border border-white/20 rounded-full hover:bg-white/25 backdrop-blur-sm shadow-sm transition-colors duration-200 cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit school
@@ -506,7 +517,7 @@ export default function FacilitiesSchoolDetail({
             <button
               type="button"
               onClick={() => openAddCampus()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 shadow-sm transition-colors duration-200 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-slate-900 bg-white rounded-full hover:bg-white/90 shadow-sm transition-colors duration-200 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add campus
@@ -514,32 +525,35 @@ export default function FacilitiesSchoolDetail({
           </div>
         </div>
 
-        {/* Stats strip — inset at the bottom of the hero */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-5">
-          <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} />
+        {/* Stats strip — glassmorphic cards */}
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} dark />
           <StatCard
             label="Buildings"
             value={totals.buildings}
             icon={<Layers className="w-4 h-4" />}
             dim={totals.buildings === 0}
+            dark
           />
           <StatCard
             label="Spaces"
             value={totals.spaces}
             icon={<DoorOpen className="w-4 h-4" />}
             dim={totals.spaces === 0}
+            dark
           />
           <StatCard
             label="Setup"
             value={`${setupPct}%`}
             icon={
               setupComplete ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               ) : (
-                <Sparkles className="w-4 h-4 text-amber-500" />
+                <Sparkles className="w-4 h-4 text-amber-400" />
               )
             }
             accent={setupComplete ? 'success' : 'progress'}
+            dark
           />
         </div>
       </div>
@@ -741,9 +755,34 @@ interface StatCardProps {
   icon: React.ReactNode
   dim?: boolean
   accent?: 'success' | 'progress'
+  dark?: boolean
 }
 
-function StatCard({ label, value, icon, dim, accent }: StatCardProps) {
+function StatCard({ label, value, icon, dim, accent, dark }: StatCardProps) {
+  if (dark) {
+    const accentBorder =
+      accent === 'success'
+        ? 'border-emerald-400/30'
+        : accent === 'progress'
+          ? 'border-amber-400/30'
+          : 'border-white/10'
+    return (
+      <div className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border ${accentBorder}`}>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-white/60 mb-1">
+          <span className="text-white/40">{icon}</span>
+          {label}
+        </div>
+        <div
+          className={`text-2xl font-bold tabular-nums ${
+            dim ? 'text-white/30' : 'text-white'
+          }`}
+        >
+          {value}
+        </div>
+      </div>
+    )
+  }
+
   const accentBorder =
     accent === 'success'
       ? 'border-emerald-200'
