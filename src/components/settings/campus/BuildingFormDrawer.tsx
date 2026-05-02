@@ -27,6 +27,8 @@ type BuildingFormDrawerProps = {
   onSelectExistingBuilding?: (b: Building) => void
   /** True when the drawer was opened from a map click (coords are pending). Tweaks the combobox copy. */
   hasPendingCoords?: boolean
+  /** When true, hides the school access selector (single-campus context) */
+  embedded?: boolean
 }
 
 export default function BuildingFormDrawer({
@@ -45,6 +47,7 @@ export default function BuildingFormDrawer({
   existingBuildings,
   onSelectExistingBuilding,
   hasPendingCoords,
+  embedded = false,
 }: BuildingFormDrawerProps) {
   const comboboxOptions: ComboboxOption[] = React.useMemo(() => {
     if (!existingBuildings) return []
@@ -139,14 +142,16 @@ export default function BuildingFormDrawer({
           />
         </section>
 
-        <section className="space-y-4 border-t border-slate-200 pt-6">
-          <SchoolAccessSelector
-            selectedIds={form.schoolIds}
-            schools={schools}
-            onChange={(ids) => onFormChange({ schoolIds: ids })}
-            disabled={saving}
-          />
-        </section>
+        {!embedded && (
+          <section className="space-y-4 border-t border-slate-200 pt-6">
+            <SchoolAccessSelector
+              selectedIds={form.schoolIds}
+              schools={schools}
+              onChange={(ids) => onFormChange({ schoolIds: ids })}
+              disabled={saving}
+            />
+          </section>
+        )}
 
         {editingBuilding && onImagesChange && (
           <section className="border-t border-slate-200 pt-4">

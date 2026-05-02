@@ -25,6 +25,8 @@ type OutdoorFormDrawerProps = {
   existingOutdoorSpaces?: Area[]
   onSelectExistingOutdoor?: (a: Area) => void
   hasPendingCoords?: boolean
+  /** When true, hides the school access selector (single-campus context) */
+  embedded?: boolean
 }
 
 export default function OutdoorFormDrawer({
@@ -43,6 +45,7 @@ export default function OutdoorFormDrawer({
   existingOutdoorSpaces,
   onSelectExistingOutdoor,
   hasPendingCoords,
+  embedded = false,
 }: OutdoorFormDrawerProps) {
   const comboboxOptions: ComboboxOption[] = React.useMemo(() => {
     if (!existingOutdoorSpaces) return []
@@ -131,14 +134,16 @@ export default function OutdoorFormDrawer({
           />
         </section>
 
-        <section className="space-y-4 border-t border-slate-200 pt-6">
-          <SchoolAccessSelector
-            selectedIds={form.schoolIds}
-            schools={schools}
-            onChange={(ids) => onFormChange({ schoolIds: ids })}
-            disabled={saving}
-          />
-        </section>
+        {!embedded && (
+          <section className="space-y-4 border-t border-slate-200 pt-6">
+            <SchoolAccessSelector
+              selectedIds={form.schoolIds}
+              schools={schools}
+              onChange={(ids) => onFormChange({ schoolIds: ids })}
+              disabled={saving}
+            />
+          </section>
+        )}
 
         {editingOutdoor && onImagesChange && (
           <section className="border-t border-slate-200 pt-4">
