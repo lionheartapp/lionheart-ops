@@ -779,7 +779,13 @@ function CampusCard({
   const address = campus.address || campus.site?.address || null
 
   return (
-    <div className="group bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 transition-colors duration-200">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen() } }}
+      className="group bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
+    >
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div
@@ -792,13 +798,9 @@ function CampusCard({
         {/* Body */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={onOpen}
-              className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors cursor-pointer text-left"
-            >
+            <span className="text-sm font-semibold text-slate-900">
               {campus.name}
-            </button>
+            </span>
             {isPrimary && (
               <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
                 Primary
@@ -830,7 +832,7 @@ function CampusCard({
             ) : (
               <button
                 type="button"
-                onClick={onEdit}
+                onClick={(e) => { e.stopPropagation(); onEdit() }}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-dashed border-amber-300 hover:bg-amber-100 transition-colors cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
@@ -850,7 +852,7 @@ function CampusCard({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
             onClick={onAddBuilding}
@@ -858,14 +860,6 @@ function CampusCard({
           >
             <Plus className="w-3 h-3" />
             Building
-          </button>
-          <button
-            type="button"
-            onClick={onOpen}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
-          >
-            Manage
-            <ChevronRight className="w-3 h-3" />
           </button>
           <button
             type="button"
@@ -885,6 +879,7 @@ function CampusCard({
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors ml-1" />
         </div>
       </div>
     </div>
