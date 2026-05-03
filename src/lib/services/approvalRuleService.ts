@@ -14,6 +14,56 @@ import { getOrgContextId } from '@/lib/org-context'
 
 const db = () => prisma as unknown as OrgPrismaClient
 
+// ─── Org-scope guards ─────────────────────────────────────────────────────────
+//
+// These helpers exist because every write/read on ApprovalRule and
+// ApprovalFlowEntry in this service uses `rawPrisma`, which bypasses the
+// org-scoped Prisma extension. Without an explicit organizationId filter, a
+// caller could read or mutate records belonging to another tenant just by
+// guessing an id. Each guard verifies that the row exists AND belongs to the
+// caller's current org context. Throws an Error('… not found') which the
+// route-level withAuth wrapper translates into a 404.
+
+async function assertRuleInOrg(ruleId: string, orgId: string): Promise<void> {
+  const rule = await rawPrisma.approvalRule.findFirst({
+    where: { id: ruleId, organizationId: orgId },
+    select: { id: true },
+  })
+  if (!rule) {
+    throw new Error('Approval rule not found')
+  }
+}
+
+async function assertStepInOrg(stepId: string, orgId: string): Promise<void> {
+  const step = await rawPrisma.approvalFlowEntry.findFirst({
+    where: { id: stepId, organizationId: orgId },
+    select: { id: true },
+  })
+  if (!step) {
+    throw new Error('Approval step not found')
+  }
+}
+
+async function assertTeamInOrg(teamId: string, orgId: string): Promise<void> {
+  const team = await rawPrisma.team.findFirst({
+    where: { id: teamId, organizationId: orgId },
+    select: { id: true },
+  })
+  if (!team) {
+    throw new Error('Team not found in this organization')
+  }
+}
+
+async function assertUserInOrg(userId: string, orgId: string): Promise<void> {
+  const user = await rawPrisma.user.findFirst({
+    where: { id: userId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!user) {
+    throw new Error('User not found in this organization')
+  }
+}
+
 // ─── Read ─────────────────────────────────────────────────────────────────────
 
 export async function getApprovalRules(module?: string) {
@@ -37,8 +87,11 @@ export async function getApprovalRules(module?: string) {
 }
 
 export async function getApprovalRuleById(id: string) {
-  return rawPrisma.approvalRule.findUnique({
-    where: { id },
+  const orgId = getOrgContextId()
+  // Multi-tenant safety: filter by organizationId so a caller in org A cannot
+  // read another org's rule by guessing the id.
+  return rawPrisma.approvalRule.findFirst({
+    where: { id, organizationId: orgId },
     include: {
       school: { select: { id: true, name: true, color: true } },
       campus: { select: { id: true, name: true } },
@@ -129,6 +182,9 @@ interface UpdateRuleInput {
 }
 
 export async function updateApprovalRule(id: string, input: UpdateRuleInput) {
+  const orgId = getOrgContextId()
+  // CR-001: verify the rule belongs to caller's org before mutating.
+  await assertRuleInOrg(id, orgId)
   return rawPrisma.approvalRule.update({
     where: { id },
     data: input,
@@ -138,6 +194,9 @@ export async function updateApprovalRule(id: string, input: UpdateRuleInput) {
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteApprovalRule(id: string) {
+  const orgId = getOrgContextId()
+  // CR-002: verify the rule belongs to caller's org before deleting.
+  await assertRuleInOrg(id, orgId)
   // Cascade deletes steps via onDelete: Cascade
   return rawPrisma.approvalRule.delete({ where: { id } })
 }
@@ -157,9 +216,19 @@ interface AddStepInput {
 export async function addStepToRule(input: AddStepInput) {
   const orgId = getOrgContextId()
 
+  // CR-004: verify the parent rule, the team, and the optional assigned user
+  // all belong to the caller's org before creating a flow entry. Without these
+  // checks, a caller could attach steps to another tenant's rule, or attach
+  // approvers from another tenant.
+  await assertRuleInOrg(input.ruleId, orgId)
+  await assertTeamInOrg(input.teamId, orgId)
+  if (input.assignedUserId) {
+    await assertUserInOrg(input.assignedUserId, orgId)
+  }
+
   // Get max sortOrder for steps in this rule
   const maxSort = await rawPrisma.approvalFlowEntry.aggregate({
-    where: { ruleId: input.ruleId },
+    where: { ruleId: input.ruleId, organizationId: orgId },
     _max: { sortOrder: true },
   })
 
@@ -179,6 +248,17 @@ export async function addStepToRule(input: AddStepInput) {
 }
 
 export async function updateStep(id: string, data: Record<string, unknown>) {
+  const orgId = getOrgContextId()
+  // CR-003: verify the step belongs to caller's org before mutating.
+  await assertStepInOrg(id, orgId)
+  // If the caller is reassigning to a different user/team, verify those
+  // referenced resources belong to the same org as well.
+  if (typeof data.assignedUserId === 'string' && data.assignedUserId.length > 0) {
+    await assertUserInOrg(data.assignedUserId, orgId)
+  }
+  if (typeof data.teamId === 'string' && data.teamId.length > 0) {
+    await assertTeamInOrg(data.teamId, orgId)
+  }
   return rawPrisma.approvalFlowEntry.update({
     where: { id },
     data,
@@ -186,6 +266,9 @@ export async function updateStep(id: string, data: Record<string, unknown>) {
 }
 
 export async function removeStep(id: string) {
+  const orgId = getOrgContextId()
+  // CR-003: verify the step belongs to caller's org before deleting.
+  await assertStepInOrg(id, orgId)
   return rawPrisma.approvalFlowEntry.delete({ where: { id } })
 }
 

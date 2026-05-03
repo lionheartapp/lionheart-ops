@@ -228,7 +228,12 @@ export async function middleware(req: NextRequest) {
       pathname === '/api/it/tickets/sub'
     ) {
       limiter = publicApiRateLimiter
-    } else if (pathname === '/api/ai/assistant/chat') {
+    } else if (pathname.startsWith('/api/ai/')) {
+      // F-012: every /api/ai/* route uses Gemini and so has direct cost
+      // exposure. Previously only /api/ai/assistant/chat was throttled — a
+      // misbehaving (or malicious) authenticated user could fire thousands
+      // of requests/sec at parse-event, parse-workflow, ai-diagnose, etc.
+      // Now all AI routes share the 30/min/IP limit.
       limiter = aiChatRateLimiter
     }
 

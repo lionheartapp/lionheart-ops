@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { safeName } from '@/lib/sanitize'
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -14,7 +15,8 @@ const isValidPhone = (value: string) => {
 const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 
 const CreateSchoolSchema = z.object({
-  name: z.string().trim().min(1).max(120),
+  // LIVE-001: HTML-strip both school name and principal name on the way in.
+  name: safeName({ max: 120 }),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   principalName: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(100).nullable().optional()),
   principalEmail: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().email().nullable().optional()),

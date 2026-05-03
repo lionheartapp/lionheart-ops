@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { hash } from 'bcryptjs'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
@@ -10,6 +11,31 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { audit, getIp } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
+import { safeName } from '@/lib/sanitize'
+
+// CR-010 + LIVE-001: Zod schema with HTML-stripping on free-text user fields.
+// Adds an actual email-format check (the previous code only required truthy
+// non-empty), bounds on string lengths, enum-validation for status/
+// employmentType/campusScope/provisioningMode, and array typing for teamIds.
+// teamIds membership in the caller's org is enforced separately at handler
+// level.
+const InviteUserSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(254),
+  firstName: safeName({ max: 100 }),
+  lastName: safeName({ max: 100 }),
+  roleId: z.string().min(1, 'roleId is required'),
+  teamIds: z.array(z.string().min(1)).max(50).optional(),
+  phone: z.string().trim().max(40).optional().nullable(),
+  jobTitle: z.string().trim().max(120).optional().nullable(),
+  employmentType: z
+    .enum(['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN', 'VOLUNTEER'])
+    .optional()
+    .nullable(),
+  // Accept legacy schoolScope alias; resolved below.
+  campusScope: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional().nullable(),
+  schoolScope: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).optional().nullable(),
+  provisioningMode: z.enum(['ADMIN_CREATE', 'INVITE_ONLY']).optional(),
+})
 
 export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const { page, limit, skip } = parsePagination(searchParams)
@@ -98,15 +124,19 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     }),
   ])
 
-  // Compliance: log bulk PII access
-  void audit({
-    organizationId: orgId,
-    userId: ctx.userId,
-    userEmail: ctx.email,
-    action: 'users.read',
-    resourceType: 'User',
-    changes: { count: users.length, page, search: search || undefined, filters: { roleId, teamSlug, status, campusScope } },
-  })
+  // F-011: removed users.read audit row.
+  //
+  // The previous implementation wrote an audit log entry on every GET — once
+  // per page, once per keystroke in the search box, once per filter change.
+  // Real audit signals (role.create, user.invite, etc.) were buried in
+  // read-noise and the table grew unbounded.
+  //
+  // If we want compliance-grade tracking of bulk PII access, the right place
+  // is the dedicated CSV export endpoint (/api/settings/export/users), which
+  // is already gated by USERS_READ and explicitly downloads the data — that's
+  // a meaningful event. Routine list-views of the Members tab are not.
+  void audit
+  void getIp
 
   // Backward-compat: emit `schoolScope` alias alongside the new `campusScope`
   const usersWithCompat = users.map((u: Record<string, unknown>) => ({
@@ -119,38 +149,30 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
 
 export const POST = withAuth(async ({ req, orgId, ctx }) => {
   const log = logger.child({ route: '/api/settings/users', method: 'POST' })
-  const body = await req.json()
-
-  const passwordSetupTokenModel = (prisma as unknown as OrgPrismaClient).passwordSetupToken
-  const email = String(body.email || '').trim().toLowerCase()
-  const firstName = String(body.firstName || '').trim()
-  const lastName = String(body.lastName || '').trim()
-  const roleId = body.roleId ? String(body.roleId) : null
-  const teamIds = Array.isArray(body.teamIds) ? body.teamIds.map(String) : []
-  const phone = body.phone ? String(body.phone).trim() : null
-  const jobTitle = body.jobTitle ? String(body.jobTitle).trim() : null
-  const rawEmploymentType = body.employmentType ? String(body.employmentType) : null
-  const allowedEmploymentTypes = ['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN', 'VOLUNTEER'] as const
-  const employmentType = allowedEmploymentTypes.includes(rawEmploymentType as (typeof allowedEmploymentTypes)[number])
-    ? (rawEmploymentType as (typeof allowedEmploymentTypes)[number])
-    : null
-  // Accept both `campusScope` (preferred) and legacy `schoolScope` for backward compat.
-  // `null` is now the org-wide default (replaces the old 'GLOBAL' enum value).
-  const rawCampusScope = (body.campusScope ?? body.schoolScope)
-    ? String(body.campusScope ?? body.schoolScope)
-    : null
-  const allowedCampusScopes = ['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL'] as const
-  const campusScope = allowedCampusScopes.includes(rawCampusScope as (typeof allowedCampusScopes)[number])
-    ? (rawCampusScope as (typeof allowedCampusScopes)[number])
-    : null
-  const provisioningMode = body.provisioningMode === 'INVITE_ONLY' ? 'INVITE_ONLY' : 'ADMIN_CREATE'
-
-  if (!email || !firstName || !lastName || !roleId) {
+  const rawBody = await req.json().catch(() => ({}))
+  const parsed = InviteUserSchema.safeParse(rawBody)
+  if (!parsed.success) {
     return NextResponse.json(
-      fail('BAD_REQUEST', 'firstName, lastName, email, and roleId are required'),
+      fail('VALIDATION_ERROR', 'Invalid user invite input', parsed.error.issues),
       { status: 400 }
     )
   }
+
+  const passwordSetupTokenModel = (prisma as unknown as OrgPrismaClient).passwordSetupToken
+  const {
+    email,
+    firstName,
+    lastName,
+    roleId,
+    phone = null,
+    jobTitle = null,
+    employmentType = null,
+  } = parsed.data
+  const teamIds = parsed.data.teamIds ?? []
+  // Accept both `campusScope` (preferred) and legacy `schoolScope` for backward compat.
+  // `null` is now the org-wide default (replaces the old 'GLOBAL' enum value).
+  const campusScope = parsed.data.campusScope ?? parsed.data.schoolScope ?? null
+  const provisioningMode = parsed.data.provisioningMode ?? 'ADMIN_CREATE'
 
   const existing = await prisma.user.findUnique({
     where: {
@@ -177,6 +199,21 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
     return NextResponse.json(fail('BAD_REQUEST', 'Invalid role for this organization'), {
       status: 400,
     })
+  }
+
+  // CR-010: verify every supplied teamId actually belongs to this org. Without
+  // this, a caller could attach a new user to teams from another tenant.
+  if (teamIds.length > 0) {
+    const validTeams = await prisma.team.findMany({
+      where: { id: { in: teamIds }, organizationId: orgId },
+      select: { id: true },
+    })
+    if (validTeams.length !== teamIds.length) {
+      return NextResponse.json(
+        fail('BAD_REQUEST', 'One or more selected teams do not belong to this organization'),
+        { status: 400 }
+      )
+    }
   }
 
   // Fetch org slug for tenant-aware email links

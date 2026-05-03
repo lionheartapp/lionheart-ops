@@ -29,6 +29,35 @@ export const GET = withAuth(async ({ orgId }) => {
 export const POST = withAuth<z.infer<typeof UpsertRoutingConfigSchema>>(async ({ orgId, body }) => {
   const { module, schoolId, strategy, managerUserId } = body
 
+  // CR-011: verify any caller-supplied managerUserId / schoolId belong to the
+  // current org before persisting. Without these checks, an admin could pin
+  // another org's user as the triage manager (or another org's school as the
+  // routing target), corrupting downstream routing semantics.
+  if (managerUserId) {
+    const manager = await prisma.user.findFirst({
+      where: { id: managerUserId, organizationId: orgId },
+      select: { id: true },
+    })
+    if (!manager) {
+      return NextResponse.json(
+        fail('BAD_REQUEST', 'Selected manager is not a member of this organization'),
+        { status: 400 }
+      )
+    }
+  }
+  if (schoolId) {
+    const school = await prisma.school.findFirst({
+      where: { id: schoolId, organizationId: orgId },
+      select: { id: true },
+    })
+    if (!school) {
+      return NextResponse.json(
+        fail('BAD_REQUEST', 'Selected school does not belong to this organization'),
+        { status: 400 }
+      )
+    }
+  }
+
   // Manager can be set after selecting the strategy — don't block the switch
 
   // Upsert — schoolId can be null (org-wide default)

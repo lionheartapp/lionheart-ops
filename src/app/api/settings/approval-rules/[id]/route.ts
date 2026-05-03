@@ -4,9 +4,11 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { updateApprovalRule, deleteApprovalRule, getApprovalRules } from '@/lib/services/approvalRuleService'
+import { safeName } from '@/lib/sanitize'
 
 const UpdateSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  // LIVE-001
+  name: safeName({ max: 100 }).optional(),
   description: z.string().max(500).optional().nullable(),
   schoolId: z.string().optional().nullable(),
   campusId: z.string().optional().nullable(),

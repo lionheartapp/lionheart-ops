@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
+import { safeName } from '@/lib/sanitize'
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -14,7 +15,8 @@ const isValidPhone = (value: string) => {
 const isValidExtension = (value: string) => /^\d{1,6}$/.test(value)
 
 const UpdateSchoolSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
+  // LIVE-001
+  name: safeName({ max: 120 }).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   logoUrl: z.string().nullable().optional(),
   principalName: z.string().trim().max(100).nullable().optional(),

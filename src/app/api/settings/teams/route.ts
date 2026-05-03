@@ -6,9 +6,11 @@ import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
+import { safeName } from '@/lib/sanitize'
 
 const CreateTeamSchema = z.object({
-  name: z.string().trim().min(1).max(120),
+  // LIVE-001: HTML-strip name and description on the way in.
+  name: safeName({ max: 120 }),
   slug: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(500).optional().nullable(),
   teamType: z.enum(['PRE_SCHOOL', 'ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),

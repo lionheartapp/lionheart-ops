@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
+import { safeName } from '@/lib/sanitize'
 
 /**
  * POST /api/settings/campus/buildings
@@ -20,7 +21,8 @@ import { invalidateOrgCache } from '@/lib/cache/settings-cache'
  */
 const CreateBuildingSchema = z
   .object({
-    name: z.string().trim().min(1).max(120),
+    // LIVE-001
+    name: safeName({ max: 120 }),
     code: z.string().trim().min(1).max(30).optional().nullable(),
     // Polymorphic parent — exactly one of these must be set.
     districtId: z.string().min(1).optional().nullable(),

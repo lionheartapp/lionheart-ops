@@ -1,8 +1,34 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
+import { safeName } from '@/lib/sanitize'
+
+// CR-007: Zod schemas for both query and body — replaces hand-rolled validation.
+const SearchSchema = z.object({
+  q: z.string().trim().max(100).optional(),
+})
+
+const PrincipalCreateSchema = z.object({
+  // LIVE-001 + CR-007: HTML-strip + length-bound the principal name.
+  name: safeName({ max: 120 }),
+  phone: z
+    .string()
+    .trim()
+    .max(40)
+    .refine((v) => !v || isValidPhone(v), 'Principal phone must be a valid phone number')
+    .optional()
+    .nullable(),
+  phoneExt: z
+    .string()
+    .trim()
+    .max(8)
+    .refine((v) => !v || isValidExtension(v), 'Extension must be numeric and up to 6 digits')
+    .optional()
+    .nullable(),
+})
 
 const isValidPhone = (value: string) => {
   const digits = value.replace(/\D/g, '')
@@ -57,9 +83,21 @@ const toPrincipalResponse = (user: {
 })
 
 // GET - Search for principals by name
+//
+// CR-006: tightened from SETTINGS_READ (granted to MEMBER) to USERS_READ (admin
+// only). The previous gate let any active member of the org scrape names,
+// emails, phones, and job titles for up to 15 users at a time by typing a
+// single character. Principal lookup is an admin task.
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const query = (searchParams.get('q') || '').trim()
+  const parsed = SearchSchema.safeParse({ q: searchParams.get('q') ?? undefined })
+  if (!parsed.success) {
+    return NextResponse.json(
+      fail('VALIDATION_ERROR', 'Invalid search query', parsed.error.issues),
+      { status: 400 }
+    )
+  }
 
+  const query = (parsed.data.q || '').trim()
   if (!query) {
     return NextResponse.json(ok([]))
   }
@@ -94,36 +132,36 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   })
 
   return NextResponse.json(ok(users.map(toPrincipalResponse)))
-}, { permission: PERMISSIONS.SETTINGS_READ })
+}, { permission: PERMISSIONS.USERS_READ })
 
 // POST - Create a new principal (user)
+//
+// CR-005: principals are reference-only User rows — they have an auto-generated
+// email (often pointing to a non-existent inbox) and an empty passwordHash so
+// they cannot log in. We mark them as PENDING (not ACTIVE) so they don't count
+// as billable active users and don't appear in active-user dashboards. An admin
+// can later promote them via the canonical /api/settings/users invite flow.
+//
+// CR-007: input validation moved to Zod (see PrincipalCreateSchema above).
+//
+// CR-008: the role assigned to the principal is now resolved by slug ("member")
+// rather than picking the first row returned by findMany — which was often the
+// super-admin role since system roles seed first.
 export const POST = withAuth(async ({ req, orgId }) => {
-  const body = await req.json()
-
-  const principalName = String(body.name || '').trim().replace(/\s+/g, ' ')
-  const phone = String(body.phone || '').trim() || null
-  const phoneExt = String(body.phoneExt || '').trim() || null
-
-  if (!principalName) {
+  const rawBody = await req.json().catch(() => ({}))
+  const parsed = PrincipalCreateSchema.safeParse(rawBody)
+  if (!parsed.success) {
     return NextResponse.json(
-      fail('BAD_REQUEST', 'Principal name is required'),
+      fail('VALIDATION_ERROR', 'Invalid principal input', parsed.error.issues),
       { status: 400 }
     )
   }
 
-  if (phone && !isValidPhone(phone)) {
-    return NextResponse.json(
-      fail('VALIDATION_ERROR', 'Principal phone must be a valid phone number'),
-      { status: 400 }
-    )
-  }
-
-  if (phoneExt && !isValidExtension(phoneExt)) {
-    return NextResponse.json(
-      fail('VALIDATION_ERROR', 'Extension must be numeric and up to 6 digits'),
-      { status: 400 }
-    )
-  }
+  const principalName = parsed.data.name.replace(/\s+/g, ' ')
+  const phone = parsed.data.phone || null
+  // phoneExt is currently parsed but not persisted — preserved for future use.
+  const _phoneExt = parsed.data.phoneExt || null
+  void _phoneExt
 
   const { firstName, lastName } = splitPrincipalName(principalName)
 
@@ -171,25 +209,37 @@ export const POST = withAuth(async ({ req, orgId }) => {
     suffix += 1
   }
 
-  // Get a basic role for the principal
-  let roleId = null
-  const roles = await prisma.role.findMany({
-    where: { organizationId: orgId },
-    select: { id: true },
-    take: 1,
-  })
-  if (roles.length > 0) {
-    roleId = roles[0].id
-  }
+  // CR-008: resolve a specific safe role by slug. Falling back to "the first
+  // role we found" (the previous behavior) frequently picked the super-admin
+  // role, since system roles are seeded first. Prefer the standard "member"
+  // role; if it doesn't exist, fall back to any non-system role; if none of
+  // those exist either, fail clearly rather than silently escalating.
+  const memberRole =
+    (await prisma.role.findFirst({
+      where: { organizationId: orgId, slug: 'member' },
+      select: { id: true },
+    })) ||
+    (await prisma.role.findFirst({
+      where: { organizationId: orgId, isSystem: false },
+      select: { id: true },
+      orderBy: { createdAt: 'asc' },
+    }))
 
-  if (!roleId) {
+  if (!memberRole) {
     return NextResponse.json(
-      fail('BAD_REQUEST', 'No roles available in organization'),
+      fail(
+        'BAD_REQUEST',
+        'Cannot create principal: no safe default role found in this organization. Create a "member" role first.'
+      ),
       { status: 400 }
     )
   }
+  const roleId = memberRole.id
 
-  // Create the user
+  // CR-005: create the principal as a PENDING reference-only stub. Empty
+  // passwordHash blocks password-based login (already enforced by the login
+  // route). Status PENDING keeps them out of active-user counts and dashboards
+  // until an admin formally invites them via /api/settings/users.
   const user = await prisma.user.create({
     data: {
       organizationId: orgId,
@@ -201,7 +251,7 @@ export const POST = withAuth(async ({ req, orgId }) => {
       jobTitle: 'Principal',
       passwordHash: '', // Will need to be set later
       roleId,
-      status: 'ACTIVE',
+      status: 'PENDING',
     },
     select: {
       id: true,

@@ -54,4 +54,9 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       'Content-Disposition': `attachment; filename="users-${date}.csv"`,
     },
   })
-}, { permission: PERMISSIONS.SETTINGS_READ })
+  // CR-032: bulk PII CSV export was readable by every member (SETTINGS_READ).
+  // Tightened to USERS_READ — admins + the specialist roles that legitimately
+  // need to look up users (Athletic Director, IT Coordinator, Head of
+  // Maintenance) keep access; regular members no longer can download the org
+  // member list.
+}, { permission: PERMISSIONS.USERS_READ })

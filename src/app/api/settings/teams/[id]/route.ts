@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { invalidateOrgCache } from '@/lib/cache/route-cache'
+import { safeName } from '@/lib/sanitize'
 
 const DeleteTeamSchema = z.object({
   reassignTeamId: z.string().trim().min(1).nullable().optional(),
@@ -20,7 +21,8 @@ const DeleteTeamSchema = z.object({
 })
 
 const UpdateTeamSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
+  // LIVE-001
+  name: safeName({ max: 120 }).optional(),
   description: z.string().trim().max(500).optional().nullable(),
   teamType: z.enum(['PRE_SCHOOL', 'ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
 })

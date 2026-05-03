@@ -86,6 +86,43 @@ const DEFAULT_ORG: AuthOrg = {
   logoUrl: null,
 }
 
+/**
+ * LIVE-002: request coalescing for /api/auth/me.
+ *
+ * Without this, every component that calls useAuth (or anywhere else that
+ * fires /api/auth/me) starts its own network round-trip. On the Settings page
+ * the dashboard layout, the page itself, and several embedded components all
+ * end up calling /me at roughly the same instant — we observed 5 simultaneous
+ * requests on a single page load (some from React StrictMode in dev, the rest
+ * from genuine duplicate consumers).
+ *
+ * `inFlightMe` holds the currently-in-flight promise so concurrent callers
+ * share the same fetch. Once the response resolves the in-flight ref is
+ * cleared, so a future call (e.g. after a navigation) does a fresh fetch.
+ *
+ * Note for production: React StrictMode double-invokes effects in development
+ * only — production won't see the 2x amplification, but the same coalescing
+ * still helps multiple components mount in the same tick.
+ */
+type AuthMeResponse = { ok: boolean; data?: { user: AuthUser; org: AuthOrg }; error?: unknown }
+let inFlightMe: Promise<AuthMeResponse> | null = null
+
+function fetchAuthMeShared(): Promise<AuthMeResponse> {
+  if (inFlightMe) return inFlightMe
+  inFlightMe = fetch('/api/auth/me', { credentials: 'include' })
+    .then(async (res): Promise<AuthMeResponse> => {
+      if (!res.ok) return { ok: false, error: { status: res.status } }
+      const json = await res.json().catch(() => null)
+      return (json as AuthMeResponse) ?? { ok: false }
+    })
+    .catch((err): AuthMeResponse => ({ ok: false, error: err }))
+    .finally(() => {
+      // Clear once resolved so future mounts can re-fetch.
+      inFlightMe = null
+    })
+  return inFlightMe
+}
+
 export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {}): AuthState {
   const router = useRouter()
 
@@ -134,18 +171,21 @@ export function useAuth({ redirectTo = '/login' }: { redirectTo?: string } = {})
     return !!localStorage.getItem('auth-token') && !!localStorage.getItem('org-id')
   })
 
-  // Background refresh from server (keeps data fresh, handles session expiry)
+  // Background refresh from server (keeps data fresh, handles session expiry).
+  // LIVE-002: routes through fetchAuthMeShared() so multiple useAuth consumers
+  // mounting in the same tick share a single network round-trip.
   useEffect(() => {
     let cancelled = false
 
-    fetch('/api/auth/me', { credentials: 'include' })
-      .then((res) => {
-        if (!res.ok) throw new Error('Not authenticated')
-        return res.json()
-      })
+    fetchAuthMeShared()
       .then((json) => {
         if (cancelled) return
-        if (!json.ok) throw new Error('Not authenticated')
+        if (!json.ok || !json.data) {
+          setIsAuthenticated(false)
+          setIsReady(true)
+          if (redirectTo) router.push(redirectTo)
+          return
+        }
         setUser(json.data.user)
         setOrg(json.data.org)
         setIsAuthenticated(true)

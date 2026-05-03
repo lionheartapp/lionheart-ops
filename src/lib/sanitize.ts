@@ -90,6 +90,36 @@ export function zodSanitizedString() {
 }
 
 /**
+ * LIVE-001: standard Zod schema for user-supplied "name" / "title" /
+ * "label" display fields.
+ *
+ * - Trims whitespace
+ * - Length-bounds (default 1..120, override per use site)
+ * - Strips ALL HTML tags so attempts like
+ *     name = '<img src=x onerror=alert(1)>'
+ *   never reach the database — protecting downstream consumers (welcome
+ *   emails, audit log messages, CSV exports, anywhere a future component
+ *   uses dangerouslySetInnerHTML).
+ * - Re-validates after stripping so an input that becomes empty
+ *   (e.g. `<script></script>`) is rejected with a clear message.
+ *
+ * Usage:
+ *   name: safeName()                      // 1..120
+ *   name: safeName({ min: 1, max: 200 })  // custom bounds
+ */
+export function safeName(opts: { min?: number; max?: number } = {}) {
+  const min = opts.min ?? 1
+  const max = opts.max ?? 120
+  return z
+    .string()
+    .trim()
+    .min(min)
+    .max(max)
+    .transform(stripAllHtml)
+    .pipe(z.string().min(min, 'Name cannot be empty after sanitization'))
+}
+
+/**
  * Zod transform helper for rich-text fields.
  * Removes dangerous HTML while preserving safe formatting tags.
  *

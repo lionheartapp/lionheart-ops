@@ -57,4 +57,8 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       totalPages: Math.ceil(total / limit),
     })
   )
-}, { permission: PERMISSIONS.SETTINGS_READ })
+  // CR-009: tightened from SETTINGS_READ (granted to MEMBER + many specialist
+  // roles) to SETTINGS_UPDATE (Administrator only; Super Admin passes via the
+  // *:* wildcard). Audit logs include other users' email addresses, IPs, and
+  // resource changes — they shouldn't be readable by every member.
+}, { permission: PERMISSIONS.SETTINGS_UPDATE })

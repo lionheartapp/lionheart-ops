@@ -6,9 +6,14 @@ import { prisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { getCached, invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
+import { safeName } from '@/lib/sanitize'
 
+// LIVE-001: name fields are user-supplied display strings — `safeName()` strips
+// HTML before persisting so they can never become a stored-XSS sink in
+// downstream consumers (emails, CSV exports, audit log messages, anywhere
+// that uses dangerouslySetInnerHTML).
 const CreateRoleSchema = z.object({
-  name: z.string().trim().min(1).max(120),
+  name: safeName({ max: 120 }),
   slug: z.string().trim().min(1).max(120).optional(),
   permissionIds: z.array(z.string().trim().min(1)).optional(),
 })

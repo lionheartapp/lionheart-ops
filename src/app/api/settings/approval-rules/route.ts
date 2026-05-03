@@ -5,6 +5,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { getApprovalRules, createApprovalRule } from '@/lib/services/approvalRuleService'
+import { safeName } from '@/lib/sanitize'
 
 const db = prisma as unknown as OrgPrismaClient
 
@@ -77,7 +78,8 @@ export const GET = withAuth(async ({ searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 const CreateSchema = z.object({
-  name: z.string().min(1).max(100),
+  // LIVE-001
+  name: safeName({ max: 100 }),
   module: z.enum(['EVENT', 'MAINTENANCE']).optional(),
   description: z.string().max(500).optional(),
   schoolId: z.string().optional().nullable(),

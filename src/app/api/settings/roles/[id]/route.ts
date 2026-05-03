@@ -8,6 +8,7 @@ import { audit, getIp } from '@/lib/services/auditService'
 import { invalidateSettingsCache, settingsCacheKey } from '@/lib/cache/settings-cache'
 import { invalidateAllUserContexts } from '@/lib/cache/request-context-cache'
 import { clearAllPermissionCaches } from '@/lib/auth/permissions'
+import { safeName } from '@/lib/sanitize'
 
 const DeleteRoleSchema = z.object({
   reassignRoleId: z.string().trim().min(1).nullable().optional(),
@@ -22,7 +23,8 @@ const DeleteRoleSchema = z.object({
 })
 
 const UpdateRoleSchema = z.object({
-  name: z.string().trim().min(1).max(120).optional(),
+  // LIVE-001: HTML-strip on the way in.
+  name: safeName({ max: 120 }).optional(),
   permissionIds: z.array(z.string().trim().min(1)).optional(),
 })
 
