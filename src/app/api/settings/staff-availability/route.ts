@@ -111,7 +111,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({ orgId, body }) => {
-  const { userId, moduleParam, status, outUntil, maxActiveTickets, delegateUserId, workingHours, skillTags } = body
+  const { userId, module, status, outUntil, maxActiveTickets, delegateUserId, workingHours, skillTags } = body
 
   // Upsert — create if doesn't exist
   const existing = await rawPrisma.staffAvailability.findUnique({
@@ -119,7 +119,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
       organizationId_userId_module: {
         organizationId: orgId,
         userId,
-        moduleParam,
+        module,
       },
     },
   })
@@ -144,7 +144,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
         data: {
           organizationId: orgId,
           userId,
-          moduleParam,
+          module,
           status: status ?? 'AVAILABLE',
           outUntil: outUntil ? new Date(outUntil) : null,
           maxActiveTickets: maxActiveTickets ?? 10,
@@ -163,13 +163,13 @@ const DeleteAvailabilitySchema = z.object({
 })
 
 export const DELETE = withAuth<z.infer<typeof DeleteAvailabilitySchema>>(async ({ orgId, body }) => {
-  const { userId, moduleParam } = body
+  const { userId, module } = body
 
   await rawPrisma.staffAvailability.deleteMany({
     where: {
       organizationId: orgId,
       userId,
-      moduleParam,
+      module,
     },
   })
 
