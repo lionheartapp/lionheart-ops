@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai'
+import { logger } from '@/lib/logger'
 
 export interface ParsedEvent {
   title?: string
@@ -271,7 +272,7 @@ JSON:`
       return { rules: [], summary: 'Could not parse workflow' }
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error('[parseApprovalWorkflow] Gemini error:', err instanceof Error ? err.message : err)
+      logger.error({ error: String(err instanceof Error ? err.message : err) }, '[parseApprovalWorkflow] Gemini error:')
       return { rules: [], summary: 'Failed to parse workflow' }
     }
   }

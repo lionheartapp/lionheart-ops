@@ -21,6 +21,7 @@ import type { ScoredActionItem, ActionItemType, ResolveAction } from '@/lib/serv
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { staggerContainer, listItem, cardEntrance } from '@/lib/animations'
 import { useToast } from '@/components/Toast'
+import { logger } from '@/lib/logger'
 
 // ─── Icon map by action item type ─────────────────────────────────────────────
 
@@ -306,7 +307,7 @@ export default function EventDashboard() {
 
       toast(successMsg, 'success')
     } catch (error: unknown) {
-      console.error('Failed to resolve action:', error)
+      logger.error({ error: String(error) }, 'Failed to resolve action:')
       toast('Failed to resolve action. Please try again.', 'error')
     } finally {
       setResolvingIds((prev) => {

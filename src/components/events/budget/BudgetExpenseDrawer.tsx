@@ -15,6 +15,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import { useToast } from '@/components/Toast'
 import { useGetReceiptUploadUrl } from '@/lib/hooks/useBudget'
 import type { BudgetCategoryRow, BudgetLineItemRow, BudgetLineItemInput } from '@/lib/types/budget'
+import { logger } from '@/lib/logger'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -190,7 +191,7 @@ export function BudgetExpenseDrawer({
       // Suppress path unused warning
       void path
     } catch (error: unknown) {
-      console.error('Receipt upload failed:', error)
+      logger.error({ error: String(error) }, 'Receipt upload failed:')
       toast('Failed to upload receipt', 'error')
     } finally {
       setUploadingReceipt(false)

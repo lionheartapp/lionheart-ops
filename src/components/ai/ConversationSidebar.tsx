@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, X, Plus } from 'lucide-react'
+import { logger } from '@/lib/logger'
 
 interface ConversationItem {
   id: string
@@ -66,7 +67,7 @@ export default function ConversationSidebar({
         setConversations(json.data.conversations)
       }
     } catch (error: unknown) {
-      console.error('Failed to fetch conversations:', error)
+      logger.error({ error: String(error) }, 'Failed to fetch conversations:')
     } finally {
       setIsLoading(false)
     }
@@ -97,7 +98,7 @@ export default function ConversationSidebar({
         credentials: 'include',
       })
     } catch (error: unknown) {
-      console.error('Failed to delete conversation:', error)
+      logger.error({ error: String(error) }, 'Failed to delete conversation:')
     } finally {
       setDeletingId(null)
     }

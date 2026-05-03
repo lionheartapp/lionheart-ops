@@ -100,7 +100,7 @@ function HeadcountView({ eventProjectId, checkedIn, total }: HeadcountViewProps)
         try {
           groups = JSON.parse(p.groups) as typeof groups
         } catch (error: unknown) {
-          console.error('Failed to parse participant groups JSON:', error)
+          logger.error({ error: String(error) }, 'Failed to parse participant groups JSON:')
           groups = []
         }
 
@@ -325,7 +325,7 @@ export default function DayOfDashboard({
         try {
           groups = JSON.parse(p.groups) as typeof groups
         } catch (error: unknown) {
-          console.error('Failed to parse cached participant groups JSON:', error)
+          logger.error({ error: String(error) }, 'Failed to parse cached participant groups JSON:')
           groups = []
         }
         return {

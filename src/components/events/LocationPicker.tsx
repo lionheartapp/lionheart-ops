@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, Building2, DoorOpen, Search, Loader2, Navigation } from 'lucide-react'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
+import { logger } from '@/lib/logger'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ function usePlacesAutocomplete(query: string) {
           setSuggestions([])
         }
       } catch (error: unknown) {
-        console.error('Places autocomplete fetch failed:', error)
+        logger.error({ error: String(error) }, 'Places autocomplete fetch failed:')
         setSuggestions([])
       } finally {
         setLoading(false)
@@ -111,7 +112,7 @@ function useCampusBuildings() {
           setBuildings(json.data.buildings ?? [])
         }
       } catch (error: unknown) {
-        console.error('Failed to fetch campus buildings:', error)
+        logger.error({ error: String(error) }, 'Failed to fetch campus buildings:')
       } finally {
         setLoading(false)
       }

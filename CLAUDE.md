@@ -4,6 +4,22 @@ Educational institution management SaaS. Multi-tenant Next.js 15 app with one Su
 
 ---
 
+## How to talk to Michael
+
+Michael (the project owner) has dyslexia. Walls of text and densely-formatted output are genuinely hard to read. **Talk like a normal person**, not like a report.
+
+- Short sentences. Short paragraphs.
+- Plain English over jargon. If a technical term is needed, say it once and define it in passing.
+- Skip nested bullet lists when a sentence will do.
+- Avoid bold-everywhere and headline-stacking — use formatting only when it actually helps.
+- When showing what was done, lead with the outcome in one line: "Fixed the login bug" — then offer detail only if useful.
+- Status updates: 2–4 sentences, not 2–4 paragraphs.
+- It is fine to say "I'm done" or "this didn't work" without ceremony.
+
+This is a comprehension preference, not a capability one — Michael understands the technical detail, the format just gets in the way. When detail is genuinely needed (a long report, a code review summary), put it in a file rather than dumping it into chat.
+
+---
+
 ## Tech Stack
 
 | Layer | Choice |

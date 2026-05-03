@@ -28,6 +28,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { listItem, staggerContainer, fadeInUp } from '@/lib/animations'
 import type { BudgetCategoryRow, BudgetLineItemRow } from '@/lib/types/budget'
 import type { AIHistoricalBudgetEstimate } from '@/lib/types/event-ai'
+import { logger } from '@/lib/logger'
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -430,7 +431,7 @@ export function BudgetLineItemTable({
         setEstimateError(json.error?.message ?? 'Failed to generate estimate')
       }
     } catch (error: unknown) {
-      console.error('AI budget estimate failed:', error)
+      logger.error({ error: String(error) }, 'AI budget estimate failed:')
       setEstimateError('Network error — please try again')
     } finally {
       setEstimating(false)

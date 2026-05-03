@@ -18,6 +18,8 @@ export type { FormDrawerProps } from './FormDrawer'
 export { default as Pagination } from './Pagination'
 export type { PaginationProps } from './Pagination'
 
+export { default as EmptyState } from './EmptyState'
+
 // Re-export existing UI components for convenience
 export { FloatingInput, FloatingSelect, FloatingDropdown, FloatingTextarea } from './FloatingInput'
 export { default as TabIndicator } from './TabIndicator'
