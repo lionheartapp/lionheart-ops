@@ -131,7 +131,14 @@ export default function SupportSection({
                   <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
                   <span className="text-sm">Maintenance</span>
                   {(facilitiesGateCount?.count ?? 0) > 0 && (
-                    <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">
+                    // F-041: badge previously had no label — users couldn't
+                    // tell if "1" meant tickets, alerts, or notifications.
+                    // The count represents pending facilities approval gates.
+                    <span
+                      className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto"
+                      title={`${facilitiesGateCount!.count} event${facilitiesGateCount!.count === 1 ? '' : 's'} waiting for facilities approval`}
+                      aria-label={`${facilitiesGateCount!.count} event${facilitiesGateCount!.count === 1 ? '' : 's'} waiting for facilities approval`}
+                    >
                       {facilitiesGateCount!.count}
                     </span>
                   )}
@@ -442,7 +449,12 @@ export default function SupportSection({
               <Video className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
               <span className="text-sm">A/V Production</span>
               {!avOpen && (avGateCount?.count ?? 0) > 0 && (
-                <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto">
+                // F-041: descriptive label so the count isn't ambiguous.
+                <span
+                  className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none ml-auto"
+                  title={`${avGateCount!.count} event${avGateCount!.count === 1 ? '' : 's'} waiting for A/V approval`}
+                  aria-label={`${avGateCount!.count} event${avGateCount!.count === 1 ? '' : 's'} waiting for A/V approval`}
+                >
                   {avGateCount!.count}
                 </span>
               )}
@@ -486,7 +498,12 @@ export default function SupportSection({
                 >
                   <span className="text-sm">Event Approvals</span>
                   {(avGateCount?.count ?? 0) > 0 && (
-                    <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none">
+                    // F-041: descriptive label so the count isn't ambiguous.
+                    <span
+                      className="flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none"
+                      title={`${avGateCount!.count} event${avGateCount!.count === 1 ? '' : 's'} pending`}
+                      aria-label={`${avGateCount!.count} event${avGateCount!.count === 1 ? '' : 's'} pending`}
+                    >
                       {avGateCount!.count}
                     </span>
                   )}
