@@ -1,6 +1,6 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect, useRef } from 'react'
 import { MotionConfig } from 'framer-motion'
 import { usePrefetchOnAuth } from '@/lib/hooks/usePrefetchOnAuth'
@@ -88,6 +88,11 @@ function installCsrfInterceptor() {
 function AuthBridge({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false)
   const ran = useRef(false)
+  // F-010: get the TanStack Query client so we can prime the modules cache
+  // directly. Previously AuthBridge only wrote to localStorage, and any
+  // component that subscribed via useModules() then fired ITS OWN
+  // /api/modules fetch — guaranteed duplicate on dashboard first paint.
+  const qc = useQueryClient()
 
   useEffect(() => {
     if (ran.current) return
@@ -146,12 +151,19 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         localStorage.setItem('org-logo-url', org.logoUrl || '')
         localStorage.setItem('dashboard-mode', user.dashboardMode || 'default')
 
-        // Prefetch modules for instant add-on rendering
+        // F-010: prefetch modules AND prime the TanStack Query cache so that
+        // any component subscribing via useModules() doesn't trigger a second
+        // /api/modules round-trip on the same render. Previously the
+        // AuthBridge fetched modules to seed localStorage, and useModules()
+        // independently fetched again because it had no in-memory cache yet.
         fetch('/api/modules', { credentials: 'include' })
           .then((res) => res.json())
           .then((json) => {
             if (json.ok && Array.isArray(json.data)) {
               localStorage.setItem('cached-modules', JSON.stringify(json.data))
+              // Match the queryKey used by useModules() in
+              // src/lib/hooks/useModuleEnabled.ts.
+              qc.setQueryData(['tenant-modules'], json.data)
             }
           })
           .catch(() => {})

@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePlanningDashboard } from '@/lib/hooks/usePlanningDashboard'
 import {
   CalendarRange,
   Send,
@@ -91,27 +92,11 @@ function formatShortDate(dateStr: string): string {
 export default function PlanningSeasonWidget() {
   const router = useRouter()
   const { activeSchoolId } = useActiveSchool()
-  const [data, setData] = useState<DashboardPlanningData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchData = useCallback(async () => {
-    try {
-      const url = activeSchoolId
-        ? `/api/planning-seasons/my-dashboard?schoolId=${encodeURIComponent(activeSchoolId)}`
-        : '/api/planning-seasons/my-dashboard'
-      const res = await fetch(url, { credentials: 'include' })
-      if (res.ok) {
-        const json = await res.json()
-        if (json.ok) setData(json.data)
-      }
-    } catch {
-      // Silently fail — widget is non-critical
-    } finally {
-      setLoading(false)
-    }
-  }, [activeSchoolId])
-
-  useEffect(() => { fetchData() }, [fetchData])
+  // F-010: shared cache so PlanningSeasonWidget + YearPlanPrompt don't both
+  // fire their own /api/planning-seasons/my-dashboard request on the
+  // dashboard. See src/lib/hooks/usePlanningDashboard.ts.
+  const { data: dashboardData, isLoading: loading } = usePlanningDashboard(activeSchoolId ?? null)
+  const data = dashboardData as DashboardPlanningData | null
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createMode, setCreateMode] = useState<'single' | 'multiday'>('single')

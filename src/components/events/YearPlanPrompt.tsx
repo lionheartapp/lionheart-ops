@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CalendarRange, Calendar, X } from 'lucide-react'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
+import { usePlanningDashboard } from '@/lib/hooks/usePlanningDashboard'
 
 interface ActiveSeason {
   id: string
@@ -32,36 +33,15 @@ export default function YearPlanPrompt({
   onRegularEvent,
 }: YearPlanPromptProps) {
   const { activeSchoolId } = useActiveSchool()
-  const [season, setSeason] = useState<ActiveSeason | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchSeason = useCallback(async () => {
-    try {
-      const url = activeSchoolId
-        ? `/api/planning-seasons/my-dashboard?schoolId=${encodeURIComponent(activeSchoolId)}`
-        : '/api/planning-seasons/my-dashboard'
-      const res = await fetch(url, { credentials: 'include' })
-      if (res.ok) {
-        const json = await res.json()
-        if (json.ok && json.data?.season?.isSubmissionsOpen) {
-          setSeason(json.data.season)
-          return
-        }
-      }
-      setSeason(null)
-    } catch {
-      setSeason(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [activeSchoolId])
-
-  useEffect(() => {
-    if (isOpen) {
-      setLoading(true)
-      fetchSeason()
-    }
-  }, [isOpen, fetchSeason])
+  // F-010: shared cache so this component doesn't fire its own
+  // /api/planning-seasons/my-dashboard request when PlanningSeasonWidget
+  // already requested the same data on the dashboard.
+  const { data: dashboardData, isLoading: loading } = usePlanningDashboard(activeSchoolId ?? null)
+  const rawSeason = dashboardData?.season
+  const season: ActiveSeason | null =
+    rawSeason && rawSeason.isSubmissionsOpen
+      ? { id: rawSeason.id, name: rawSeason.name, isSubmissionsOpen: rawSeason.isSubmissionsOpen }
+      : null
 
   // If no active collecting season, skip straight to regular event
   useEffect(() => {

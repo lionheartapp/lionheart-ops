@@ -10,11 +10,21 @@ import { queryOptions } from '@/lib/queries'
  * Call this once in a component that mounts after the user is authenticated
  * (e.g. inside the Providers wrapper or DashboardLayout).
  *
- * It fires prefetch requests for data used across all major pages so that
- * navigating between Dashboard, Calendar, Athletics, and Settings is instant.
+ * F-010: trimmed aggressively. Previously this fired 18 prefetches on every
+ * authenticated mount — including the entire Athletics module (8 endpoints)
+ * and every Settings tab data source — regardless of which page the user
+ * was actually navigating to. That added ~25 of the 34 API calls observed
+ * on the dashboard's first paint.
  *
- * prefetchQuery will NOT refetch if data already exists and is within staleTime,
- * so calling this multiple times is safe and essentially free.
+ * Now: only prefetch the cross-cutting data that's used by virtually every
+ * authenticated route (current user permissions, tickets, calendars,
+ * school info, modules). Pages that need Athletics, Settings sub-data,
+ * etc. fetch on mount via their own hooks — TanStack Query's staleTime
+ * + the AuthBridge's primed module cache keeps things instant after the
+ * first visit anyway.
+ *
+ * prefetchQuery will NOT refetch if data already exists and is within
+ * staleTime, so calling this multiple times is safe and essentially free.
  */
 export function usePrefetchOnAuth(token: string | null) {
   const queryClient = useQueryClient()
@@ -25,31 +35,14 @@ export function usePrefetchOnAuth(token: string | null) {
     if (!token || hasPrefetched.current) return
     hasPrefetched.current = true
 
-    // Fire all prefetches in parallel — don't await, let them run in background
+    // Cross-cutting data only — used by most authenticated pages.
+    // Fire in parallel; don't await, let them run in the background.
     const prefetches = [
-      // Dashboard
       queryClient.prefetchQuery(queryOptions.tickets()),
-      // Calendar
       queryClient.prefetchQuery(queryOptions.calendars()),
-      // Auth / permissions
       queryClient.prefetchQuery(queryOptions.permissions()),
       queryClient.prefetchQuery(queryOptions.schoolInfo()),
-      // Settings tabs
-      queryClient.prefetchQuery(queryOptions.members()),
-      queryClient.prefetchQuery(queryOptions.roles()),
-      queryClient.prefetchQuery(queryOptions.teams()),
-      queryClient.prefetchQuery(queryOptions.settingsPermissions()),
-      queryClient.prefetchQuery(queryOptions.campuses()),
       queryClient.prefetchQuery(queryOptions.modules()),
-      // Athletics
-      queryClient.prefetchQuery(queryOptions.athleticsDashboard()),
-      queryClient.prefetchQuery(queryOptions.athleticsSports()),
-      queryClient.prefetchQuery(queryOptions.athleticsTeams()),
-      queryClient.prefetchQuery(queryOptions.athleticsSeasons()),
-      queryClient.prefetchQuery(queryOptions.athleticsTournaments()),
-      queryClient.prefetchQuery(queryOptions.athleticsGames()),
-      queryClient.prefetchQuery(queryOptions.athleticsPractices()),
-      queryClient.prefetchQuery(queryOptions.athleticsRoster()),
     ]
 
     // Swallow errors — prefetch failures are non-critical

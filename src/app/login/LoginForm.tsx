@@ -79,15 +79,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     localStorage.setItem('org-school-type', data.organization?.schoolType || '')
     localStorage.setItem('org-logo-url', data.organization?.logoUrl || '')
 
-    // Prefetch modules so add-ons render instantly on first page load
-    fetch('/api/modules', { credentials: 'include' })
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.ok && Array.isArray(json.data)) {
-          localStorage.setItem('cached-modules', JSON.stringify(json.data))
-        }
-      })
-      .catch(() => {})
+    // F-010: dropped the redundant /api/modules prefetch here — the
+    // AuthBridge in providers.tsx fetches modules and primes the TanStack
+    // Query cache the moment the dashboard mounts, so doing it from the
+    // login form just guaranteed two simultaneous fetches on first paint.
 
     const onboardingStatus = data.organization?.onboardingStatus
     const isOnboarding = onboardingStatus === 'SIGNED_UP' || onboardingStatus === 'ONBOARDING'
