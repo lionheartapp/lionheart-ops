@@ -132,7 +132,7 @@ function ContactFormInner() {
       {/* Hero */}
       <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-8 text-center">
         <motion.p
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-600 mb-4"
@@ -140,7 +140,7 @@ function ContactFormInner() {
           {copy.eyebrow}
         </motion.p>
         <motion.h1
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05 }}
           className="text-3xl sm:text-4xl lg:text-[44px] font-bold text-slate-900 tracking-tight mb-4"
@@ -148,7 +148,7 @@ function ContactFormInner() {
           {copy.heading}
         </motion.h1>
         <motion.p
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-base sm:text-lg text-slate-600 leading-relaxed"
@@ -161,7 +161,7 @@ function ContactFormInner() {
       <section className="pb-20 sm:pb-28">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 1, y: 0 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5 }}

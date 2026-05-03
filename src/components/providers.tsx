@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect, useRef } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { usePrefetchOnAuth } from '@/lib/hooks/usePrefetchOnAuth'
 import { ToastProvider } from '@/components/Toast'
 import dynamic from 'next/dynamic'
@@ -245,11 +246,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthBridge>
-          <PrefetchGate>{children}</PrefetchGate>
-        </AuthBridge>
-      </ToastProvider>
+      {/*
+        F-013: globally honor prefers-reduced-motion. With reducedMotion="user"
+        Framer Motion skips ALL animations for users with the OS-level
+        accessibility preference enabled — public marketing pages no longer
+        render at low opacity for 2-3 seconds, and `motion.div` consumers
+        across the app stop violating WCAG 2.3.3 (Animation from Interactions).
+        Individual pages can still opt back into motion explicitly.
+      */}
+      <MotionConfig reducedMotion="user">
+        <ToastProvider>
+          <AuthBridge>
+            <PrefetchGate>{children}</PrefetchGate>
+          </AuthBridge>
+        </ToastProvider>
+      </MotionConfig>
     </QueryClientProvider>
   )
 }

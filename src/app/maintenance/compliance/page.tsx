@@ -17,6 +17,7 @@ import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 import type { ComplianceDomainCardData } from '@/components/maintenance/compliance/ComplianceDomainCard'
 import type { ComplianceDomain } from '@prisma/client'
 import type { ComplianceDomainMeta } from '@/lib/types/compliance'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 // ─── Compliance record type (shared between Calendar and Drawer) ──────────────
 interface ComplianceRecord {
@@ -139,11 +140,26 @@ function ComplianceContent() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
+  // F-003: previously this state rendered a bare spinner on blank background
+  // with no DashboardLayout — the user saw "completely blank page". Render
+  // the layout shell with a content-area skeleton so the shell stays
+  // consistent across navigation and the user always knows where they are.
   if (!isClient || !orgId) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
-      </div>
+      <DashboardLayout {...layoutProps}>
+        <div className="space-y-4">
+          <div className="h-8 w-40 bg-slate-100 rounded animate-pulse" />
+          <div className="h-4 w-72 bg-slate-100 rounded animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            <DomainCardSkeleton />
+            <DomainCardSkeleton />
+            <DomainCardSkeleton />
+            <DomainCardSkeleton />
+            <DomainCardSkeleton />
+            <DomainCardSkeleton />
+          </div>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -280,6 +296,7 @@ function ComplianceContent() {
 }
 
 export default function CompliancePage() {
+  usePageTitle('Compliance')
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

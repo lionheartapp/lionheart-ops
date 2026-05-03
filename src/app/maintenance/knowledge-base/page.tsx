@@ -8,8 +8,10 @@ import KnowledgeBaseList from '@/components/maintenance/KnowledgeBaseList'
 import KnowledgeBaseSearchBar from '@/components/maintenance/KnowledgeBaseSearchBar'
 import KnowledgeBaseArticleEditor from '@/components/maintenance/KnowledgeBaseArticleEditor'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function KnowledgeBasePage() {
+  usePageTitle('Knowledge Base')
   const [searchQuery, setSearchQuery] = useState('')
   const [editorOpen, setEditorOpen] = useState(false)
 
@@ -22,10 +24,11 @@ export default function KnowledgeBasePage() {
           className="space-y-6"
         >
           {/* Page header */}
-          <motion.div
-            variants={fadeInUp}
-            className="flex items-start justify-between gap-4 flex-wrap"
-          >
+          {/* F-026: removed fadeInUp on the header — the entrance animation
+              held the title at low opacity for the first 300-400ms which
+              made it look invisible to users on slower devices. The static
+              header reads as full contrast immediately. */}
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h1 className="text-2xl font-semibold text-slate-900">Knowledge Base</h1>
               <p className="text-sm text-slate-500">
@@ -40,7 +43,7 @@ export default function KnowledgeBasePage() {
               <Plus className="w-4 h-4" />
               New Article
             </button>
-          </motion.div>
+          </div>
 
           {/* Search bar */}
           <motion.div variants={fadeInUp}>

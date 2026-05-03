@@ -101,7 +101,7 @@ export default function SignupPage() {
       <motion.div
         className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20"
         style={{ backgroundColor: '#fdfcfb' }}
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
@@ -246,7 +246,7 @@ export default function SignupPage() {
           <motion.h2
             className="text-3xl xl:text-4xl font-semibold text-white mb-4"
             style={{ letterSpacing: '-0.03em' }}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
@@ -255,7 +255,7 @@ export default function SignupPage() {
           <motion.p
             className="text-lg mb-12"
             style={{ color: 'rgba(255,255,255,0.6)' }}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
@@ -325,7 +325,7 @@ export default function SignupPage() {
           {/* Social proof */}
           <motion.div
             className="mt-10 flex items-center justify-center gap-2"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.5 }}
           >

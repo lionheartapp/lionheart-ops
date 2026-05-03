@@ -9,6 +9,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function WorkOrdersContent() {
   const searchParams = useSearchParams()
@@ -64,6 +65,7 @@ function WorkOrdersContent() {
 }
 
 export default function WorkOrdersPage() {
+  usePageTitle('Work Orders')
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

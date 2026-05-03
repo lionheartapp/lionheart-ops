@@ -29,6 +29,7 @@ import StockBadge from './StockBadge'
 import TableSkeleton from './TableSkeleton'
 import ItemDetailContent from './ItemDetailContent'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 // Types, constants, utils, and sub-components are imported from co-located files:
 // - inventory-types.ts    (InventoryItem, StockFilter, inventoryKeys, STOCK_FILTER_OPTIONS)
@@ -39,6 +40,7 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
+  usePageTitle('Inventory')
   const router = useRouter()
   const searchParams = useSearchParams()
   const queryClient = useQueryClient()

@@ -399,7 +399,7 @@ export default function PricingPage() {
 
           {/* Trust line below cards */}
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
             className="text-center text-sm text-slate-400 mt-8"
@@ -412,7 +412,7 @@ export default function PricingPage() {
         <section className="bg-slate-50 border-t border-slate-200 py-20">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.5 }}
@@ -558,7 +558,7 @@ export default function PricingPage() {
         <section className="py-20 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.5 }}
@@ -585,7 +585,7 @@ export default function PricingPage() {
 
           <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.h2
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
@@ -594,7 +594,7 @@ export default function PricingPage() {
               Ready to simplify your school&apos;s operations?
             </motion.h2>
             <motion.p
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -603,7 +603,7 @@ export default function PricingPage() {
               Start your free 30-day trial today. No credit card required.
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
