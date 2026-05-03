@@ -12,6 +12,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { IntegrationCard, ScopeLabel } from './IntegrationCard'
 import { BrandLogo } from './BrandLogo'
 import { StatusPill } from './StatusPill'
@@ -38,6 +39,9 @@ export function GoogleCalendarCard({
   const { toast } = useToast()
   const [disconnecting, setDisconnecting] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  // UX-006: confirm before disconnecting Google Calendar — wipes the OAuth
+  // token and any saved calendar selections.
+  const [confirmDisconnectOpen, setConfirmDisconnectOpen] = useState(false)
 
   // Calendar picker state
   const [showCalendarPicker, setShowCalendarPicker] = useState(false)
@@ -147,6 +151,7 @@ export function GoogleCalendarCard({
   }
 
   const handleDisconnect = async () => {
+    setConfirmDisconnectOpen(false)
     setDisconnecting(true)
     try {
       const token = localStorage.getItem('auth-token')
@@ -288,7 +293,7 @@ export function GoogleCalendarCard({
               {syncing ? 'Syncing...' : 'Sync Now'}
             </button>
             <button
-              onClick={handleDisconnect}
+              onClick={() => setConfirmDisconnectOpen(true)}
               disabled={disconnecting}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
@@ -316,6 +321,18 @@ export function GoogleCalendarCard({
           <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
+      <ConfirmDialog
+        isOpen={confirmDisconnectOpen}
+        onClose={() => setConfirmDisconnectOpen(false)}
+        onConfirm={handleDisconnect}
+        title="Disconnect Google Calendar?"
+        message="You'll need to reauthorize to reconnect. Saved calendar selections will be lost and any in-progress sync will stop."
+        confirmText="Disconnect"
+        cancelText="Keep connected"
+        variant="danger"
+        isLoading={disconnecting}
+        loadingText="Disconnecting..."
+      />
     </IntegrationCard>
   )
 }

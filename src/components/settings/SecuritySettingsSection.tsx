@@ -4,6 +4,18 @@ import { useState, useEffect } from 'react'
 import { ShieldCheck, FileCheck, Check, AlertCircle } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
+
+/** Best-effort error message extractor — surfaces the API's human message
+ * if available, otherwise falls back to a stable user-facing string. */
+function errorMessage(payload: unknown, fallback: string): string {
+  if (payload && typeof payload === 'object' && 'error' in payload) {
+    const err = (payload as { error?: { message?: string } }).error
+    if (err?.message && typeof err.message === 'string') return err.message
+  }
+  return fallback
+}
 
 /**
  * Org-level security & compliance settings:
@@ -11,6 +23,7 @@ import { FloatingInput } from '@/components/ui/FloatingInput'
  * - Data Privacy Agreement (DPA) tracking
  */
 export default function SecuritySettingsSection() {
+  const { toast } = useToast()
   // MFA state
   const [mfaRequired, setMfaRequired] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -26,6 +39,9 @@ export default function SecuritySettingsSection() {
   const [dpaReviewDueAt, setDpaReviewDueAt] = useState('')
   const [dpaSaving, setDpaSaving] = useState(false)
   const [dpaEditing, setDpaEditing] = useState(false)
+  // UX-045: confirm before revoking the DPA. Until now the button was inline
+  // with Save and Cancel and revoked attestation immediately on click.
+  const [confirmRevokeOpen, setConfirmRevokeOpen] = useState(false)
 
   useEffect(() => {
     // Fetch security settings
@@ -54,6 +70,9 @@ export default function SecuritySettingsSection() {
       .finally(() => setDpaLoading(false))
   }, [])
 
+  // UX-001: previously this catch was empty ("// Revert on failure") so the
+  // admin saw nothing if the toggle failed to persist. Now we surface the
+  // server's error message via toast and don't update local state on failure.
   const handleMfaToggle = async () => {
     const newValue = !mfaRequired
     setSaving(true)
@@ -63,15 +82,24 @@ export default function SecuritySettingsSection() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ mfaRequired: newValue }),
       })
-      const data = await res.json()
-      if (data.ok) setMfaRequired(newValue)
-    } catch {
-      // Revert on failure
+      const data = await res.json().catch(() => null)
+      if (res.ok && data?.ok) {
+        setMfaRequired(newValue)
+        toast(newValue ? 'MFA enforcement enabled' : 'MFA enforcement disabled', 'success')
+      } else {
+        toast(errorMessage(data, 'Failed to update MFA enforcement. Please try again.'), 'error')
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to update MFA enforcement', 'error')
     } finally {
       setSaving(false)
     }
   }
 
+  // UX-002: Compliance attestation that silently fails to save is an audit/legal
+  // risk. The catch block was just `// Keep form open on failure` — the form
+  // stayed open but the user had no idea why. Now both save and revoke surface
+  // the API's error message via a toast.
   const handleDpaSave = async () => {
     setDpaSaving(true)
     try {
@@ -86,14 +114,17 @@ export default function SecuritySettingsSection() {
           dpaReviewDueAt: dpaReviewDueAt ? new Date(dpaReviewDueAt).toISOString() : null,
         }),
       })
-      const data = await res.json()
-      if (data.ok) {
+      const data = await res.json().catch(() => null)
+      if (res.ok && data?.ok) {
         setDpaSigned(!!data.data?.dpaSigned)
         setDpaSignedAt(data.data?.dpaSignedAt || null)
         setDpaEditing(false)
+        toast('Data Processing Agreement saved', 'success')
+      } else {
+        toast(errorMessage(data, 'Failed to save the Data Processing Agreement. Please try again.'), 'error')
       }
-    } catch {
-      // Keep form open on failure
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to save the Data Processing Agreement', 'error')
     } finally {
       setDpaSaving(false)
     }
@@ -107,8 +138,8 @@ export default function SecuritySettingsSection() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ revoke: true }),
       })
-      const data = await res.json()
-      if (data.ok) {
+      const data = await res.json().catch(() => null)
+      if (res.ok && data?.ok) {
         setDpaSigned(false)
         setDpaSignedAt(null)
         setDpaSignatoryName('')
@@ -116,9 +147,12 @@ export default function SecuritySettingsSection() {
         setDpaVersion('')
         setDpaReviewDueAt('')
         setDpaEditing(false)
+        toast('Data Processing Agreement removed', 'success')
+      } else {
+        toast(errorMessage(data, 'Failed to remove the Data Processing Agreement. Please try again.'), 'error')
       }
-    } catch {
-      // Keep state on failure
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to remove the Data Processing Agreement', 'error')
     } finally {
       setDpaSaving(false)
     }
@@ -290,7 +324,7 @@ export default function SecuritySettingsSection() {
                   <button
                     type="button"
                     disabled={dpaSaving}
-                    onClick={handleDpaRevoke}
+                    onClick={() => setConfirmRevokeOpen(true)}
                     className="ui-btn px-4 py-2.5 rounded-full text-red-600 text-sm font-medium hover:bg-red-50 transition disabled:opacity-50"
                   >
                     Remove DPA Record
@@ -301,6 +335,23 @@ export default function SecuritySettingsSection() {
           )}
         </div>
       </section>
+
+      {/* UX-045: confirm before revoking DPA attestation. */}
+      <ConfirmDialog
+        isOpen={confirmRevokeOpen}
+        onClose={() => setConfirmRevokeOpen(false)}
+        onConfirm={() => {
+          setConfirmRevokeOpen(false)
+          handleDpaRevoke()
+        }}
+        title="Remove the Data Processing Agreement?"
+        message="The signed-DPA record will be cleared from your compliance posture. The org will appear as having no DPA on file until a new one is recorded. This is reversible by re-recording the signing details."
+        confirmText="Remove DPA"
+        cancelText="Keep DPA on file"
+        variant="danger"
+        isLoading={dpaSaving}
+        loadingText="Removing..."
+      />
     </div>
   )
 }

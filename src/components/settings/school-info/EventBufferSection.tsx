@@ -9,6 +9,10 @@ export default function EventBufferSection() {
   const [savedValue, setSavedValue] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  // UX-004: surface server errors to the user instead of dropping them in
+  // console.error. The previous code logged the error and left the UI in a
+  // permanently-saving state, then reset to "looks unsaved" with no message.
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchApi<{ eventBufferMinutes: number }>('/api/settings/organization')
@@ -16,14 +20,16 @@ export default function EventBufferSection() {
         setBufferMinutes(data.eventBufferMinutes)
         setSavedValue(data.eventBufferMinutes)
       })
-      .catch((error: unknown) => {
-        console.error('Failed to fetch organization settings:', error)
+      .catch((err: unknown) => {
+        console.error('Failed to fetch organization settings:', err)
+        setError('Could not load event settings. Refresh to try again.')
       })
   }, [])
 
   const handleSave = async () => {
     if (bufferMinutes === null || bufferMinutes === savedValue) return
     setSaving(true)
+    setError('')
     try {
       const res = await fetch('/api/settings/organization', {
         method: 'PATCH',
@@ -31,16 +37,20 @@ export default function EventBufferSection() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ eventBufferMinutes: bufferMinutes }),
       })
-      const json = await res.json()
-      if (json.ok) {
+      const json = await res.json().catch(() => null)
+      if (res.ok && json?.ok) {
         setSavedValue(bufferMinutes)
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
+      } else {
+        setError(json?.error?.message || 'Failed to save the event buffer. Please try again.')
       }
-    } catch (error: unknown) {
-      console.error('Failed to save event buffer setting:', error)
+    } catch (err: unknown) {
+      console.error('Failed to save event buffer setting:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save the event buffer.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   if (bufferMinutes === null) return null
@@ -87,6 +97,11 @@ export default function EventBufferSection() {
               <span className="text-xs text-green-600 font-medium">Saved</span>
             )}
           </div>
+          {error && (
+            <p className="text-xs text-red-600 mt-2" role="alert">
+              {error}
+            </p>
+          )}
         </div>
       </div>
     </section>

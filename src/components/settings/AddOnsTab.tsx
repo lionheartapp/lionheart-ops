@@ -125,23 +125,26 @@ function CampusConfigModal({
         {/* Campus list */}
         <div className="px-6 py-4">
           {activeCampuses.length === 0 ? (
+            // UX-021: This is a campus-scoped module (mod.scope === 'campus').
+            // The previous flow showed an "Enable for entire organization"
+            // button that tried an org-wide enable for a feature that isn't
+            // actually meaningful org-wide — and if the API rejected, the modal
+            // closed before any error could be shown. Instead, disable the
+            // primary CTA and direct the admin to add a campus first.
             <div className="py-4 text-center space-y-3">
-              <p className="text-sm text-slate-400">
-                No campuses configured yet. You can enable Athletics for your entire organization, or add campuses first.
+              <p className="text-sm text-slate-700 font-medium">
+                Add a campus first
               </p>
-              <button
-                onClick={() => {
-                  onToggle(mod.id, false)
-                  onClose()
-                }}
+              <p className="text-sm text-slate-500">
+                {mod.name} is configured per campus. You'll need at least one
+                active campus before you can enable it.
+              </p>
+              <a
+                href="/settings?tab=campus"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors"
               >
-                Enable for entire organization
-              </button>
-              <p className="text-xs text-slate-400">
-                You can configure per-campus later in{' '}
-                <a href="/settings?tab=campus" className="text-primary-600 hover:text-primary-700 font-medium">Campus settings</a>.
-              </p>
+                Go to Facilities settings
+              </a>
             </div>
           ) : (
             <div className="space-y-1.5">

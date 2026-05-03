@@ -14,9 +14,15 @@ export interface ActionMenuItem {
 
 interface RowActionMenuProps {
   items: ActionMenuItem[]
+  /**
+   * F-047: optional descriptive label for screen readers — e.g. "Actions for
+   * Jane Doe". When omitted falls back to the generic "Row actions" so all
+   * existing call sites keep working.
+   */
+  ariaLabel?: string
 }
 
-export default function RowActionMenu({ items }: RowActionMenuProps) {
+export default function RowActionMenu({ items, ariaLabel = 'Row actions' }: RowActionMenuProps) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, right: 0 })
   const [mounted, setMounted] = useState(false)
@@ -87,7 +93,9 @@ export default function RowActionMenu({ items }: RowActionMenuProps) {
         type="button"
         onClick={openMenu}
         className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
-        aria-label="Row actions"
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         <MoreVertical className="w-4 h-4" />
       </button>

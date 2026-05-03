@@ -227,7 +227,12 @@ export default function OnboardingChecklistWidget() {
   if (completedVisible === totalVisible) return null
 
   const progressPct = totalVisible === 0 ? 0 : (completedVisible / totalVisible) * 100
-  const canDismissWidget = requiredAllComplete && data.canManageWorkspace
+  // F-030: surface the dismiss affordance once the user is 80% complete OR
+  // has finished all required items, whichever comes first. Previously it
+  // only appeared after every required item was done — long-tenured admins
+  // who'd skipped the optional steps were stuck with the widget forever.
+  const canDismissWidget =
+    (requiredAllComplete || progressPct >= 80) && data.canManageWorkspace
 
   // Split items into required vs optional for tabbed view
   const allItems = [...visibleOrgItems, ...visibleUserItems]

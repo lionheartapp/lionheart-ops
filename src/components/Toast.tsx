@@ -130,8 +130,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {/* Toast container */}
-      <div className="fixed bottom-6 right-6 z-toast flex flex-col gap-2 max-w-sm" aria-label="Notifications">
+      {/*
+        Toast container.
+        LIVE-004: added role="status" + aria-live="polite" so screen readers
+        announce success/error messages as they appear. Without this, every
+        save/delete/update was silent for AT users. We use polite (not
+        assertive) to avoid interrupting the user's current focus context;
+        for genuinely urgent system errors a future toast variant could
+        render into a separate aria-live="assertive" region.
+      */}
+      <div
+        className="fixed bottom-6 right-6 z-toast flex flex-col gap-2 max-w-sm"
+        aria-label="Notifications"
+        role="status"
+        aria-live="polite"
+        aria-atomic="false"
+      >
         <AnimatePresence mode="popLayout">
           {toasts.map((t) => (
             <ToastItem key={t.id} toast={t} onDismiss={dismiss} />

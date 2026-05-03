@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { getAuthHeaders as getCookieAuthHeaders, fetchApi } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
+import { useToast } from '@/components/Toast'
 import { Plus, Edit2, Trash2, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -43,6 +44,7 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
   { campusId: campusIdProp, hideTable = false, onSchoolsChanged }: SchoolsManagementProps,
   ref
 ) {
+  const { toast } = useToast()
   const [schools, setSchools] = useState<SchoolData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -93,10 +95,32 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
         )
         if (created?.id) {
           setResolvedCampusId(created.id)
+          // UX-029: surface the auto-created campus so the admin understands a
+          // record was created on their behalf. Without this, the auto-create
+          // silently puts a "Main Campus" record in the DB and the user has
+          // no idea it happened. The toast also points them to where they can
+          // rename it or add more.
+          toast(
+            'Created a default "Main Campus" for you. Rename or add more in Facilities settings.',
+            'info',
+            { duration: 6000 }
+          )
         }
-      } catch { /* silent */ }
+      } catch (err) {
+        // Surface the failure as a non-blocking warning instead of swallowing
+        // it silently — the rest of the schools UI will still render but the
+        // admin should know the campus auto-create didn't work.
+        toast(
+          err instanceof Error
+            ? `Could not create a default campus: ${err.message}`
+            : 'Could not create a default campus. You can add one manually in Facilities settings.',
+          'warning'
+        )
+      }
     }
     resolveOrCreateCampus()
+    // toast is stable from context but linter wants it; safely ignore.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campusIdProp])
 
   // Principal search/create

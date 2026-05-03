@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import AIWorkflowCreator from './AIWorkflowCreator'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
@@ -272,6 +273,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
   const [showAddStep, setShowAddStep] = useState(false)
   const [showAICreator, setShowAICreator] = useState(false)
   const [showAIDisclaimer, setShowAIDisclaimer] = useState(false)
+  // UX-007: confirm before deleting a rule. Rules carry approval steps,
+  // routing config, and downstream behavior — once deleted, in-flight events
+  // fall through to the next matching rule, which is rarely what the admin
+  // intends if they're "cleaning up".
+  const [confirmDeleteRuleId, setConfirmDeleteRuleId] = useState<string | null>(null)
 
   const allRules = data?.rules ?? []
   const schools = data?.schools ?? []
@@ -337,9 +343,17 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
     })
   }
 
+  // Public entrypoint used by the rule cards — opens the confirm dialog.
+  // Actual delete fires from confirmDeleteRule below.
   const deleteRule = (id: string) => {
-    if (selectedRuleId === id) setSelectedRuleId(null)
-    mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${id}` })
+    setConfirmDeleteRuleId(id)
+  }
+
+  const confirmDeleteRule = () => {
+    if (!confirmDeleteRuleId) return
+    if (selectedRuleId === confirmDeleteRuleId) setSelectedRuleId(null)
+    mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${confirmDeleteRuleId}` })
+    setConfirmDeleteRuleId(null)
   }
 
   const updateRule = (id: string, updates: Record<string, unknown>) => {
@@ -481,11 +495,19 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
         )}
       </AnimatePresence>
 
-      {/* Two-column builder */}
-      <div className="flex gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white" style={{ height: 'calc(100vh - 200px)' }}>
+      {/*
+        Two-column builder.
+        UX-023: at md and up, lay out as a side-by-side rule list + editor.
+        Below md, stack vertically — the rule list shrinks to a manageable
+        height and the editor flows below it. Without this, narrow viewports
+        had a 384px sidebar squeezing the editor down to nothing usable.
+      */}
+      <div
+        className="flex flex-col md:flex-row gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white md:h-[calc(100vh-200px)]"
+      >
 
         {/* ── Left panel: flat rule list ─────────────────────────────── */}
-        <div className="w-96 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col">
+        <div className="w-full md:w-96 flex-shrink-0 bg-slate-50 md:border-r border-b md:border-b-0 border-slate-200 flex flex-col max-h-[40vh] md:max-h-none">
           <div className="px-4 py-3 border-b border-slate-200 bg-slate-100/50 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
@@ -1003,6 +1025,16 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
           />
         )}
       </AnimatePresence>
+      <ConfirmDialog
+        isOpen={confirmDeleteRuleId !== null}
+        onClose={() => setConfirmDeleteRuleId(null)}
+        onConfirm={confirmDeleteRule}
+        title="Delete this approval rule?"
+        message="The rule and all its steps will be deleted. In-flight events that matched this rule will fall through to the next matching rule (or default), which may approve them faster than you intend."
+        confirmText="Delete rule"
+        cancelText="Keep rule"
+        variant="danger"
+      />
     </div>
   )
 }

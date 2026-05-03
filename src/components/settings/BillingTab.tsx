@@ -45,6 +45,9 @@ export default function BillingTab() {
   const [cancelLoading, setCancelLoading] = useState(false)
   const [cancelError, setCancelError] = useState('')
   const [reactivateLoading, setReactivateLoading] = useState(false)
+  // UX-003: previously the reactivate failure was silently swallowed
+  // ("// noop — button will re-enable on error"). Track the error for display.
+  const [reactivateError, setReactivateError] = useState('')
 
   // Delete organization state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -176,19 +179,30 @@ export default function BillingTab() {
   }
 
   // Reactivate a scheduled-to-cancel subscription
+  // UX-003: surface server errors instead of swallowing them. The previous
+  // catch was empty so a failed reactivation looked identical to a successful
+  // one (the spinner stopped and nothing else changed).
   const handleReactivate = async () => {
     setReactivateLoading(true)
+    setReactivateError('')
     try {
       const res = await fetch('/api/settings/billing/reactivate', {
         method: 'POST',
         headers: getHeaders(),
       })
-      const data = await res.json()
-      if (data.ok) {
+      const data = await res.json().catch(() => null)
+      if (res.ok && data?.ok) {
         setSubscription(data.data.subscription)
+      } else {
+        const msg =
+          data?.error?.message ||
+          'Failed to reactivate the subscription. Please try again or contact support.'
+        setReactivateError(msg)
       }
-    } catch {
-      // noop — button will re-enable on error
+    } catch (err) {
+      setReactivateError(
+        err instanceof Error ? err.message : 'Failed to reactivate the subscription.'
+      )
     } finally {
       setReactivateLoading(false)
     }
@@ -372,6 +386,7 @@ export default function BillingTab() {
         <CancelSubscriptionSection
           subscription={subscription}
           cancelError={cancelError}
+          reactivateError={reactivateError}
           reactivateLoading={reactivateLoading}
           onCancelClick={() => setCancelConfirmOpen(true)}
           onReactivate={handleReactivate}

@@ -7,6 +7,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { IntegrationCard, ScopeLabel } from './IntegrationCard'
 import { BrandLogo } from './BrandLogo'
 import { StatusPill } from './StatusPill'
@@ -24,6 +25,8 @@ export function MicrosoftCalendarCard({
   const { toast } = useToast()
   const [disconnecting, setDisconnecting] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  // UX-006: confirm before disconnecting Microsoft Calendar.
+  const [confirmDisconnectOpen, setConfirmDisconnectOpen] = useState(false)
 
   const handleConnect = async () => {
     try {
@@ -70,6 +73,7 @@ export function MicrosoftCalendarCard({
   }
 
   const handleDisconnect = async () => {
+    setConfirmDisconnectOpen(false)
     setDisconnecting(true)
     try {
       const token = localStorage.getItem('auth-token')
@@ -125,7 +129,7 @@ export function MicrosoftCalendarCard({
               {syncing ? 'Syncing...' : 'Sync Now'}
             </button>
             <button
-              onClick={handleDisconnect}
+              onClick={() => setConfirmDisconnectOpen(true)}
               disabled={disconnecting}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
@@ -143,6 +147,18 @@ export function MicrosoftCalendarCard({
           <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
+      <ConfirmDialog
+        isOpen={confirmDisconnectOpen}
+        onClose={() => setConfirmDisconnectOpen(false)}
+        onConfirm={handleDisconnect}
+        title="Disconnect Microsoft Calendar?"
+        message="You'll need to reauthorize to reconnect. Inbound sync will stop and any conflict-detection that depends on this calendar will no longer work."
+        confirmText="Disconnect"
+        cancelText="Keep connected"
+        variant="danger"
+        isLoading={disconnecting}
+        loadingText="Disconnecting..."
+      />
     </IntegrationCard>
   )
 }

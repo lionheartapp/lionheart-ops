@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { IntegrationCard, ScopeLabel } from './IntegrationCard'
 import { BrandLogo } from './BrandLogo'
 import { StatusPill } from './StatusPill'
@@ -31,6 +32,10 @@ export function TwilioCard({
   const [phoneNumber, setPhoneNumber] = useState('')
   const [testTo, setTestTo] = useState('')
   const [showTestForm, setShowTestForm] = useState(false)
+  // UX-005: removing Twilio destroys SMS credentials and silently breaks every
+  // notification flow that depends on it. Add a confirmation step before the
+  // destructive call.
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,6 +66,7 @@ export function TwilioCard({
   }
 
   const handleRemove = async () => {
+    setConfirmRemoveOpen(false)
     setRemoving(true)
     try {
       const token = localStorage.getItem('auth-token')
@@ -181,7 +187,7 @@ export function TwilioCard({
               Update
             </button>
             <button
-              onClick={handleRemove}
+              onClick={() => setConfirmRemoveOpen(true)}
               disabled={removing}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
             >
@@ -243,6 +249,18 @@ export function TwilioCard({
           <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
         </button>
       )}
+      <ConfirmDialog
+        isOpen={confirmRemoveOpen}
+        onClose={() => setConfirmRemoveOpen(false)}
+        onConfirm={handleRemove}
+        title="Remove Twilio configuration?"
+        message="Outbound SMS will stop immediately. Anyone relying on text notifications (low-attendance alerts, ticket escalations, etc.) will no longer receive them until Twilio is reconfigured."
+        confirmText="Remove Twilio"
+        cancelText="Keep configured"
+        variant="danger"
+        isLoading={removing}
+        loadingText="Removing..."
+      />
     </IntegrationCard>
   )
 }

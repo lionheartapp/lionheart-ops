@@ -7,6 +7,8 @@ import { formatDate } from './billing-types'
 interface CancelSubscriptionSectionProps {
   subscription: Subscription
   cancelError: string
+  // UX-003: surface reactivate failures alongside cancel failures.
+  reactivateError?: string
   reactivateLoading: boolean
   onCancelClick: () => void
   onReactivate: () => void
@@ -15,6 +17,7 @@ interface CancelSubscriptionSectionProps {
 export function CancelSubscriptionSection({
   subscription,
   cancelError,
+  reactivateError = '',
   reactivateLoading,
   onCancelClick,
   onReactivate,
@@ -65,6 +68,9 @@ export function CancelSubscriptionSection({
       </div>
       {cancelError && (
         <p className="mt-3 text-sm text-red-600">{cancelError}</p>
+      )}
+      {reactivateError && (
+        <p className="mt-3 text-sm text-red-600">{reactivateError}</p>
       )}
     </section>
   )
