@@ -131,6 +131,9 @@ export default function SetupPage() {
   const [complete, setComplete] = useState(false)
   const [schoolName, setSchoolName] = useState('Your School')
   const [progress, setProgress] = useState(0)
+  // F-034: surface real loading + error states so the user never sees a
+  // half-finished progress with no feedback.
+  const [setupError, setSetupError] = useState<string | null>(null)
 
   const fireConfetti = useCallback(() => {
     // Left burst
@@ -242,13 +245,53 @@ export default function SetupPage() {
         fireConfetti()
         setComplete(true)
       } catch (err) {
+        // F-034: previously this swallowed the error and forced "complete"
+        // state, so a stuck setup looked successful. Now we surface a real
+        // error message and offer a retry, while still letting the user
+        // skip ahead to the dashboard if they want.
         logger.error({ error: String(err) }, 'Setup error')
-        setComplete(true)
+        setSetupError(err instanceof Error ? err.message : 'Setup failed unexpectedly.')
       }
     }
 
     runSetup()
   }, [fireConfetti])
+
+  // F-034: error UI — visible state when something blew up during setup.
+  if (setupError) {
+    return (
+      <div className="space-y-6 py-8 max-w-xl mx-auto text-center">
+        <div className="w-12 h-12 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-bold text-slate-900">Setup hit a snag</h2>
+          <p className="text-sm text-slate-600">{setupError}</p>
+          <p className="text-xs text-slate-400 mt-2">
+            Your account is still good — you can continue to the dashboard and finish branding later.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+          >
+            Try again
+          </button>
+          <button
+            type="button"
+            onClick={handleGoToDashboard}
+            className="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
+          >
+            Skip to dashboard
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const handleGoToDashboard = () => {
     const slug = localStorage.getItem('org-slug')
