@@ -3,21 +3,58 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import DashboardLayout from '@/components/DashboardLayout'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import RolesTab from '@/components/settings/RolesTab'
-import TeamsTab from '@/components/settings/TeamsTab'
-import MembersTab from '@/components/settings/MembersTab'
-import FacilitiesTab from '@/components/settings/FacilitiesTab'
-import SchoolInfoTab from '@/components/settings/SchoolInfoTab'
-import SecuritySettingsSection from '@/components/settings/SecuritySettingsSection'
-import AcademicCalendarTab from '@/components/settings/AcademicCalendarTab'
-import AddOnsTab from '@/components/settings/AddOnsTab'
-import AuditLogTab from '@/components/settings/AuditLogTab'
-import BillingTab from '@/components/settings/BillingTab'
-import IntegrationsTab from '@/components/settings/IntegrationsTab'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
+
+/**
+ * F-018: lazy-load every workspace tab via next/dynamic.
+ *
+ * Before: all 12 tab components were statically imported at the top of this
+ * file, so opening /settings (even just the Profile tab) downloaded JS for
+ * RolesTab, TeamsTab, MembersTab, the campus map, billing/Stripe, the
+ * audit-log table, the approval-rules builder, and so on. Most users never
+ * touched most of those.
+ *
+ * After: each tab's chunk is only fetched the first time the user navigates
+ * to it. The `ssr: false` flag is fine here — the parent page is already
+ * 'use client' and we render a small `loading` placeholder during the chunk
+ * fetch. Profile and the layout stay statically imported because Profile is
+ * the default landing tab and the layout shell needs to paint immediately.
+ */
+function tabSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="h-8 w-40 bg-slate-100 rounded animate-pulse" />
+      <div className="h-4 w-72 bg-slate-100 rounded animate-pulse" />
+      <div className="h-32 bg-slate-100 rounded-xl animate-pulse mt-4" />
+    </div>
+  )
+}
+
+const dyn = <T,>(loader: () => Promise<{ default: T }>) =>
+  dynamic(loader as () => Promise<{ default: React.ComponentType<unknown> }>, {
+    ssr: false,
+    loading: tabSkeleton,
+  })
+
+const RolesTab = dyn(() => import('@/components/settings/RolesTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
+const TeamsTab = dyn(() => import('@/components/settings/TeamsTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
+const MembersTab = dyn(() => import('@/components/settings/MembersTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
+const FacilitiesTab = dyn(() => import('@/components/settings/FacilitiesTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
+const SchoolInfoTab = dyn(() => import('@/components/settings/SchoolInfoTab')) as React.ComponentType<{
+  onDirtyChange?: (d: boolean) => void
+  onRegisterSave?: (handler: () => Promise<boolean>) => void
+  onRegisterDiscard?: (handler: () => void) => void
+}>
+const SecuritySettingsSection = dyn(() => import('@/components/settings/SecuritySettingsSection')) as React.ComponentType
+const AcademicCalendarTab = dyn(() => import('@/components/settings/AcademicCalendarTab')) as React.ComponentType
+const AddOnsTab = dyn(() => import('@/components/settings/AddOnsTab')) as React.ComponentType
+const AuditLogTab = dyn(() => import('@/components/settings/AuditLogTab')) as React.ComponentType
+const BillingTab = dyn(() => import('@/components/settings/BillingTab')) as React.ComponentType
+const IntegrationsTab = dyn(() => import('@/components/settings/IntegrationsTab')) as React.ComponentType
 import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS, resolveTab } from './settings-types'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
