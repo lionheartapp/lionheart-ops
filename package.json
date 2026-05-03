@@ -50,6 +50,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:api": "playwright test --project=api",
+    "test:e2e:auth": "playwright test --project=api e2e/api/auth-hardening.spec.ts",
     "test:e2e:perms": "playwright test --project=permissions",
     "test:e2e:matrix": "playwright test --project=permissions e2e/permissions/permission-matrix.spec.ts",
     "test:e2e:isolation": "playwright test --project=permissions e2e/permissions/tenant-isolation.spec.ts",
