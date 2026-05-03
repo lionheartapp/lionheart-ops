@@ -52,6 +52,7 @@
     "test:e2e:api": "playwright test --project=api",
     "test:e2e:perms": "playwright test --project=permissions",
     "test:e2e:matrix": "playwright test --project=permissions e2e/permissions/permission-matrix.spec.ts",
+    "test:e2e:isolation": "playwright test --project=permissions e2e/permissions/tenant-isolation.spec.ts",
     "test:e2e:linkcheck": "playwright test --project=chromium e2e/ui/link-checker.spec.ts",
     "test:e2e:forms": "playwright test --project=chromium e2e/ui/forms-smoke.spec.ts",
     "test:e2e:flows": "playwright test --project=chromium e2e/ui/flows",
