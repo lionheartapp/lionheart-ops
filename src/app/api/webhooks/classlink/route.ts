@@ -11,26 +11,25 @@ import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest) {
   try {
+    // Check signature header before reading body or checking config
+    const signature =
+      req.headers.get('x-classlink-signature') || req.headers.get('classlink-signature')
+    if (!signature) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Missing webhook signature'), { status: 401 })
+    }
+
     const classLinkSecret = process.env.CLASSLINK_WEBHOOK_SECRET
+    if (!classLinkSecret) {
+      logger.error('CLASSLINK_WEBHOOK_SECRET not configured')
+      return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook endpoint not configured'), { status: 500 })
+    }
 
     // Read raw body before any parsing (body stream can only be consumed once)
     const rawBody = await req.text()
 
-    if (!classLinkSecret) {
-      logger.error('CLASSLINK_WEBHOOK_SECRET not configured')
-      return NextResponse.json(fail('INTERNAL_ERROR', 'Webhook endpoint not configured'), { status: 500 })
-    } else {
-      const signature =
-        req.headers.get('x-classlink-signature') || req.headers.get('classlink-signature')
-
-      if (!signature) {
-        return NextResponse.json(fail('UNAUTHORIZED', 'Missing webhook signature'), { status: 401 })
-      }
-
-      const isValid = verifyHmacSha256(rawBody, signature, classLinkSecret)
-      if (!isValid) {
-        return NextResponse.json(fail('UNAUTHORIZED', 'Invalid webhook signature'), { status: 401 })
-      }
+    const isValid = verifyHmacSha256(rawBody, signature, classLinkSecret)
+    if (!isValid) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Invalid webhook signature'), { status: 401 })
     }
 
     // Parse body from raw text (stream already consumed above)

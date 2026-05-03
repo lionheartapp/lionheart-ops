@@ -22,7 +22,7 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
 
   // Lazy-load to avoid including @supabase/supabase-js in all bundles
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line
     const { createClient } = require('@supabase/supabase-js')
     _client = createClient(url, anonKey, {
       realtime: {

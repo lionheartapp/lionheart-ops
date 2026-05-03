@@ -15,10 +15,10 @@ const UpdateCategoryConfigSchema = z.object({
 })
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const module = searchParams.get('module')
-  if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
+  const moduleParam = searchParams.get('module')
+  if (!moduleParam || !['MAINTENANCE', 'IT'].includes(moduleParam)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'module query param required (MAINTENANCE or IT)'),
+      fail('VALIDATION_ERROR', 'moduleParam query param required (MAINTENANCE or IT)'),
       { status: 400 }
     )
   }
@@ -26,7 +26,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const configs = await prisma.routingCategoryConfig.findMany({
     where: {
       organizationId: orgId,
-      module: module as 'MAINTENANCE' | 'IT',
+      module: moduleParam as 'MAINTENANCE' | 'IT',
     },
     include: {
       specialist: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -39,13 +39,13 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateCategoryConfigSchema>>(async ({ orgId, body }) => {
-  const { module, categoryKey, specialistUserId, fallbackUserId, slaResponseMins, slaResolveMins } = body
+  const { moduleParam, categoryKey, specialistUserId, fallbackUserId, slaResponseMins, slaResolveMins } = body
 
   const existing = await prisma.routingCategoryConfig.findUnique({
     where: {
       organizationId_module_categoryKey: {
         organizationId: orgId,
-        module,
+        moduleParam,
         categoryKey,
       },
     },

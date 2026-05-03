@@ -162,7 +162,7 @@ export const STANDARD_TICKET_FIELDS: StandardField[] = [
 
 // ─── Default Category Forms (seed data) ──────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 export const DEFAULT_CATEGORY_FIELDS: Record<string, any[]> = {
   hardware: [
     { key: 'device_type', label: 'Device Type', type: 'DROPDOWN', required: true,

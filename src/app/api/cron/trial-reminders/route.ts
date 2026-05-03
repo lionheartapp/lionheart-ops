@@ -132,8 +132,14 @@ async function sendEmail(to: string, subject: string, html: string, text: string
 export async function GET(req: NextRequest) {
   // Auth: cron secret
   const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET?.trim()
+  if (!authHeader) {
+    return NextResponse.json(
+      fail('UNAUTHORIZED', 'Missing cron secret'),
+      { status: 401 }
+    )
+  }
 
+  const cronSecret = process.env.CRON_SECRET?.trim()
   if (!cronSecret) {
     log.error('CRON_SECRET not configured')
     return NextResponse.json(

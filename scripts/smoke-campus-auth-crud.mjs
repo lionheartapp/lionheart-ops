@@ -5,8 +5,38 @@ const prisma = new PrismaClient()
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
 const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
 
+let csrfToken = null
+
+/** Extract csrf-token from set-cookie header */
+function extractCsrfCookie(res) {
+  const setCookie = res.headers.get('set-cookie') || ''
+  const match = setCookie.match(/csrf-token=([^;]+)/)
+  return match ? match[1] : null
+}
+
 async function req(path, options = {}) {
+  // Inject CSRF token if we have one
+  if (csrfToken && options.headers) {
+    options = { ...options, headers: { ...options.headers, 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } }
+  }
+
   const res = await fetch(`${baseUrl}${path}`, options)
+
+  // Handle CSRF double-submit: capture token on first 403 and retry
+  if (res.status === 403 && !csrfToken) {
+    const token = extractCsrfCookie(res)
+    if (token) {
+      csrfToken = token
+      if (options.headers) {
+        options = { ...options, headers: { ...options.headers, 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } }
+      }
+      const retry = await fetch(`${baseUrl}${path}`, options)
+      let json = null
+      try { json = await retry.json() } catch {}
+      return { res: retry, json }
+    }
+  }
+
   let json = null
   try {
     json = await res.json()
@@ -141,7 +171,7 @@ async function runCampusCrudSmoke(email, password, organizationId) {
   }
   const buildingId = createBuilding.json.data.id
 
-  const createArea = await req('/api/settings/campus/areas', {
+  const createArea = await req('/api/settings/campus/spaces', {
     method: 'POST',
     headers: authHeaders,
     body: JSON.stringify({ name: areaName, areaType: 'COMMON', buildingId }),
@@ -190,7 +220,7 @@ async function runCampusCrudSmoke(email, password, organizationId) {
     throw new Error('Soft delete verification failed for room')
   }
 
-  const deleteArea = await req(`/api/settings/campus/areas/${areaId}`, {
+  const deleteArea = await req(`/api/settings/campus/spaces/${areaId}`, {
     method: 'DELETE',
     headers: authHeaders,
   })

@@ -217,7 +217,7 @@ export async function getAthleticsCalendarEvents(
   if (teams.length === 0) return []
 
   const teamIds = teams.map((t: any) => t.id as string)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   const teamMap = new Map<string, any>(teams.map((t: any) => [t.id, t]))
 
   // 3. Fetch games and practices in parallel (both only depend on teamIds)

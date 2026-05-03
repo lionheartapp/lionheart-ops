@@ -1,15 +1,20 @@
 import { test, expect } from '../fixtures'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
 /**
  * Link crawler — BFS-walks every internal link reachable from /dashboard
- * (and a small seed list of "must-visit" routes) and asserts:
+ * (and the full page-inventory seed list) and asserts:
  *   1. Each navigation completes
  *   2. The final response is not 4xx / 5xx
  *   3. The page does not render a known error sentinel ("404", "Server error", etc.)
  *
+ * The seed list is auto-generated from src/app/**\/page.tsx by
+ * `scripts/inventory-pages.mjs`. Re-run that script after adding pages.
+ *
  * Configurable via env:
  *   E2E_CRAWLER_MAX_DEPTH  — link traversal depth (default 2)
- *   E2E_CRAWLER_MAX_PAGES  — total pages to visit (default 40, hard ceiling 200)
+ *   E2E_CRAWLER_MAX_PAGES  — total pages to visit (default 120, hard ceiling 300)
  *   E2E_CRAWLER_SCREENSHOT — "1" to save a screenshot per page (test-results/crawler/*.png)
  *
  * Notes:
@@ -21,18 +26,11 @@ import { test, expect } from '../fixtures'
  *    doesn't mask the rest. The test still fails if any page failed.
  */
 
-const SEED_PATHS = [
-  '/dashboard',
-  '/tickets',
-  '/events',
-  '/inventory',
-  '/settings',
-  '/settings/members',
-  '/settings/roles',
-  '/settings/teams',
-  '/settings/campus',
-  '/settings/schools',
-] as const
+const INVENTORY_PATH = path.resolve(__dirname, '..', 'fixtures', 'page-inventory.json')
+const inventory = JSON.parse(readFileSync(INVENTORY_PATH, 'utf8')) as {
+  crawlable: string[]
+}
+const SEED_PATHS: readonly string[] = inventory.crawlable
 
 const SKIP_PATH_PATTERNS = [
   /\/api\//i,
@@ -57,7 +55,7 @@ const ERROR_SENTINELS = [
 ] as const
 
 const MAX_DEPTH = Number(process.env.E2E_CRAWLER_MAX_DEPTH ?? '2')
-const MAX_PAGES = Math.min(Number(process.env.E2E_CRAWLER_MAX_PAGES ?? '40'), 200)
+const MAX_PAGES = Math.min(Number(process.env.E2E_CRAWLER_MAX_PAGES ?? '120'), 300)
 const TAKE_SCREENSHOTS = process.env.E2E_CRAWLER_SCREENSHOT === '1'
 
 interface CrawlFailure {

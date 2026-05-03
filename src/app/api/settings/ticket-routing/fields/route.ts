@@ -20,19 +20,19 @@ const BulkUpdateSchema = z.object({
 })
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const module = searchParams.get('module')
+  const moduleParam = searchParams.get('module')
   const categoryKey = searchParams.get('categoryKey')
 
-  if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
+  if (!moduleParam || !['MAINTENANCE', 'IT'].includes(moduleParam)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'module query param required'),
+      fail('VALIDATION_ERROR', 'moduleParam query param required'),
       { status: 400 }
     )
   }
 
   const where: Record<string, unknown> = {
     organizationId: orgId,
-    module,
+    moduleParam,
   }
   if (categoryKey) where.categoryKey = categoryKey
 
@@ -45,13 +45,13 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, body }) => {
-  const { module, categoryKey, fields } = body
+  const { moduleParam, categoryKey, fields } = body
 
   // Delete all existing field configs for this category, then recreate
   await rawPrisma.categoryFieldConfig.deleteMany({
     where: {
       organizationId: orgId,
-      module,
+      moduleParam,
       categoryKey,
     },
   })
@@ -60,7 +60,7 @@ export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, bo
     await rawPrisma.categoryFieldConfig.createMany({
       data: fields.map((f) => ({
         organizationId: orgId,
-        module,
+        moduleParam,
         categoryKey,
         fieldType: f.fieldType,
         required: f.required,
@@ -71,7 +71,7 @@ export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, bo
 
   // Fetch and return the new state
   const updated = await rawPrisma.categoryFieldConfig.findMany({
-    where: { organizationId: orgId, module, categoryKey },
+    where: { organizationId: orgId, moduleParam, categoryKey },
     orderBy: { sortOrder: 'asc' },
   })
 

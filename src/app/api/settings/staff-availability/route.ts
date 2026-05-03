@@ -17,23 +17,23 @@ const UpdateAvailabilitySchema = z.object({
   skillTags: z.array(z.string()).optional(),
 })
 
-// Team slugs that map to each module
+// Team slugs that map to each moduleParam
 const MODULE_TEAM_SLUGS: Record<string, string> = {
   MAINTENANCE: 'maintenance',
   IT: 'it-support',
 }
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const module = searchParams.get('module')
-  if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
+  const moduleParam = searchParams.get('module')
+  if (!moduleParam || !['MAINTENANCE', 'IT'].includes(moduleParam)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'module query param required (MAINTENANCE or IT)'),
+      fail('VALIDATION_ERROR', 'moduleParam query param required (MAINTENANCE or IT)'),
       { status: 400 }
     )
   }
 
-  // Find users who are on the relevant team for this module
-  const teamSlug = MODULE_TEAM_SLUGS[module]
+  // Find users who are on the relevant team for this moduleParam
+  const teamSlug = MODULE_TEAM_SLUGS[moduleParam]
   const eligibleUsers = await rawPrisma.user.findMany({
     where: {
       organizationId: orgId,
@@ -50,7 +50,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   // Auto-create StaffAvailability records for users who don't have one yet
   const existingRecords = await rawPrisma.staffAvailability.findMany({
-    where: { organizationId: orgId, module: module as 'MAINTENANCE' | 'IT' },
+    where: { organizationId: orgId, module: moduleParam as 'MAINTENANCE' | 'IT' },
     select: { userId: true },
   })
   const existingUserIds = new Set(existingRecords.map((r) => r.userId))
@@ -61,7 +61,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       data: newUsers.map((u) => ({
         organizationId: orgId,
         userId: u.id,
-        module: module as 'MAINTENANCE' | 'IT',
+        module: moduleParam as 'MAINTENANCE' | 'IT',
         status: 'AVAILABLE' as const,
         maxActiveTickets: 10,
       })),
@@ -73,7 +73,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   const availabilities = await rawPrisma.staffAvailability.findMany({
     where: {
       organizationId: orgId,
-      module: module as 'MAINTENANCE' | 'IT',
+      module: moduleParam as 'MAINTENANCE' | 'IT',
     },
     include: {
       user: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
@@ -85,7 +85,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   // Enrich with open ticket counts
   const enriched = await Promise.all(
     availabilities.map(async (avail) => {
-      const openTickets = module === 'MAINTENANCE'
+      const openTickets = moduleParam === 'MAINTENANCE'
         ? await rawPrisma.maintenanceTicket.count({
             where: {
               organizationId: orgId,
@@ -111,7 +111,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({ orgId, body }) => {
-  const { userId, module, status, outUntil, maxActiveTickets, delegateUserId, workingHours, skillTags } = body
+  const { userId, moduleParam, status, outUntil, maxActiveTickets, delegateUserId, workingHours, skillTags } = body
 
   // Upsert — create if doesn't exist
   const existing = await rawPrisma.staffAvailability.findUnique({
@@ -119,7 +119,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
       organizationId_userId_module: {
         organizationId: orgId,
         userId,
-        module,
+        moduleParam,
       },
     },
   })
@@ -144,7 +144,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateAvailabilitySchema>>(async ({
         data: {
           organizationId: orgId,
           userId,
-          module,
+          moduleParam,
           status: status ?? 'AVAILABLE',
           outUntil: outUntil ? new Date(outUntil) : null,
           maxActiveTickets: maxActiveTickets ?? 10,
@@ -163,13 +163,13 @@ const DeleteAvailabilitySchema = z.object({
 })
 
 export const DELETE = withAuth<z.infer<typeof DeleteAvailabilitySchema>>(async ({ orgId, body }) => {
-  const { userId, module } = body
+  const { userId, moduleParam } = body
 
   await rawPrisma.staffAvailability.deleteMany({
     where: {
       organizationId: orgId,
       userId,
-      module,
+      moduleParam,
     },
   })
 

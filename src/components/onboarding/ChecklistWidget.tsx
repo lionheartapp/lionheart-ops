@@ -305,7 +305,7 @@ export default function OnboardingChecklistWidget() {
       <div className="flex items-center gap-1 px-5 mt-3">
         <button
           onClick={() => setActiveTab('required')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer ${
+          className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
             activeTab === 'required'
               ? 'bg-slate-100 text-slate-900'
               : 'text-slate-400 hover:text-slate-600'
@@ -320,7 +320,7 @@ export default function OnboardingChecklistWidget() {
         </button>
         <button
           onClick={() => setActiveTab('optional')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition cursor-pointer ${
+          className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
             activeTab === 'optional'
               ? 'bg-slate-100 text-slate-900'
               : 'text-slate-400 hover:text-slate-600'

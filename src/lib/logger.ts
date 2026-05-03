@@ -49,7 +49,7 @@ export function createConsoleLogger(bindings: Record<string, unknown> = {}): Log
 
 function createPinoLogger(): Logger {
   // Dynamic require avoids Turbopack trying to resolve thread-stream at compile time
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line
   const pino = require('pino')
   return pino({ level: 'info' }) as Logger
 }

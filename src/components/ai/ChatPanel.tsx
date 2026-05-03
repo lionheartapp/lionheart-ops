@@ -602,11 +602,11 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowSidebar((prev) => !prev)}
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+            className="rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
             aria-label="Conversation history"
             title="Conversation history"
           >
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-4 w-4" />
           </button>
           {conversation.length > 0 && (
             <button

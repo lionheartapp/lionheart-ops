@@ -48,7 +48,7 @@ export function validateWebhookSignature(
 
 // ─── Payload Transformers ────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
+// eslint-disable-next-line -- external webhook payloads are untyped
 export function transformGoGuardianPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -73,7 +73,7 @@ export function transformGoGuardianPayload(payload: Record<string, any>): Normal
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
+// eslint-disable-next-line -- external webhook payloads are untyped
 export function transformSecurlyPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -99,7 +99,7 @@ export function transformSecurlyPayload(payload: Record<string, any>): Normalize
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
+// eslint-disable-next-line -- external webhook payloads are untyped
 export function transformLightspeedPayload(payload: Record<string, any>): NormalizedFilterEvent {
   let eventType: NormalizedFilterEvent['eventType'] = 'BLOCK_EVENT'
   let isAdminOnly = false
@@ -123,7 +123,7 @@ export function transformLightspeedPayload(payload: Record<string, any>): Normal
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- external webhook payloads are untyped
+// eslint-disable-next-line -- external webhook payloads are untyped
 export function transformBarkPayload(payload: Record<string, any>): NormalizedFilterEvent {
   return {
     eventType: 'SAFETY_ALERT',

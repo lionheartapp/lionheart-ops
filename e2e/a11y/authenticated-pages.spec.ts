@@ -1,19 +1,35 @@
 import { test, expect } from '../fixtures'
 import AxeBuilder from '@axe-core/playwright'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
 /**
- * WCAG 2.1 AA audits on the authenticated app shell + primary inner pages.
+ * WCAG 2.1 AA audits on every authenticated page in the app.
+ *
+ * The route list is auto-generated from src/app/**\/page.tsx by
+ * `scripts/inventory-pages.mjs`. Re-run that script after adding pages.
+ *
  * Skips color-contrast by default (brand theming is dynamic — revisit once tokens
  * are wired). Fails on any other violation.
+ *
+ * Configurable via env:
+ *   E2E_A11Y_MAX_PAGES — pages to scan (default: all crawlable, max 80)
  */
 
-const AUTH_ROUTES = [
-  { path: '/dashboard', name: 'dashboard' },
-  { path: '/settings', name: 'settings' },
-  { path: '/it', name: 'it-helpdesk' },
-  { path: '/av', name: 'events' },
-  { path: '/calendar', name: 'calendar' },
-] as const
+const INVENTORY_PATH = path.resolve(__dirname, '..', 'fixtures', 'page-inventory.json')
+const inventory = JSON.parse(readFileSync(INVENTORY_PATH, 'utf8')) as {
+  crawlable: string[]
+}
+
+const MAX_PAGES = Math.min(
+  Number(process.env.E2E_A11Y_MAX_PAGES ?? String(inventory.crawlable.length)),
+  80,
+)
+
+const AUTH_ROUTES = inventory.crawlable.slice(0, MAX_PAGES).map((p) => ({
+  path: p,
+  name: p.replace(/^\//, '').replace(/\//g, '-') || 'root',
+}))
 
 for (const route of AUTH_ROUTES) {
   test(`${route.name} (${route.path}) — WCAG 2.1 AA`, async ({ adminPage }) => {

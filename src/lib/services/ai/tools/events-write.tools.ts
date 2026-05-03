@@ -12,7 +12,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { getOrgTimezone, formatInTimezone } from '@/lib/utils/timezone'
 
 /** Loose record type that allows nested property access on dynamic Prisma results. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 type DynRecord = Record<string, any>
 
 const tools: Record<string, ToolRegistryEntry> = {

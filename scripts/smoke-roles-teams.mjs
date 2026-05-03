@@ -18,17 +18,30 @@ const TEST_ADMIN = {
 
 let authToken = null
 let orgId = null
+let csrfToken = null
+
+/** Extract csrf-token from set-cookie header */
+function extractCsrfCookie(res) {
+  const setCookie = res.headers.get('set-cookie') || ''
+  const match = setCookie.match(/csrf-token=([^;]+)/)
+  return match ? match[1] : null
+}
 
 async function resolveOrgId() {
+  if (process.env.TEST_ORG_ID) {
+    console.log(`   org: (from env TEST_ORG_ID: ${process.env.TEST_ORG_ID})`)
+    return process.env.TEST_ORG_ID
+  }
+
   const org = await prisma.organization.findFirst({
     where: { slug: 'demo' },
     select: { id: true },
   })
-  
+
   if (!org) {
     throw new Error('Demo organization not found')
   }
-  
+
   return org.id
 }
 
@@ -65,14 +78,29 @@ function getHeaders() {
     'Authorization': `Bearer ${authToken}`,
     'X-Organization-ID': orgId,
     'Content-Type': 'application/json',
+    ...(csrfToken ? { 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } : {}),
   }
+}
+
+/** Wrapper that handles CSRF double-submit on first state-changing request */
+async function csrfFetch(url, options = {}) {
+  const res = await fetch(url, options)
+  if (res.status === 403 && !csrfToken) {
+    const token = extractCsrfCookie(res)
+    if (token) {
+      csrfToken = token
+      options.headers = { ...options.headers, 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` }
+      return fetch(url, options)
+    }
+  }
+  return res
 }
 
 async function testRolesCreate() {
   console.log('\n📋 Testing Roles Create...')
   
   const roleName = `Test Role ${Date.now()}`
-  const response = await fetch(`${BASE_URL}/api/settings/roles`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/roles`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name: roleName }),
@@ -94,7 +122,7 @@ async function testRolesCreate() {
 async function testRolesDuplicateValidation(existingName) {
   console.log('\n🔍 Testing Roles Duplicate Detection...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/roles`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/roles`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name: existingName }),
@@ -114,7 +142,7 @@ async function testRolesDuplicateValidation(existingName) {
 async function testRolesDelete(roleId, roleName) {
   console.log('\n🗑️  Testing Roles Delete...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/roles/${roleId}`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/roles/${roleId}`, {
     method: 'DELETE',
     headers: getHeaders(),
   })
@@ -131,7 +159,7 @@ async function testRolesDeleteSystemRole() {
   console.log('\n🛡️  Testing System Role Delete Protection...')
   
   // Get system roles
-  const listResponse = await fetch(`${BASE_URL}/api/settings/roles`, {
+  const listResponse = await csrfFetch(`${BASE_URL}/api/settings/roles`, {
     headers: getHeaders(),
   })
   
@@ -143,7 +171,7 @@ async function testRolesDeleteSystemRole() {
     return
   }
 
-  const response = await fetch(`${BASE_URL}/api/settings/roles/${systemRole.id}`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/roles/${systemRole.id}`, {
     method: 'DELETE',
     headers: getHeaders(),
   })
@@ -165,7 +193,7 @@ async function testTeamsCreate() {
   const teamName = `Test Team ${Date.now()}`
   const teamDescription = 'Automated test team'
   
-  const response = await fetch(`${BASE_URL}/api/settings/teams`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/teams`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name: teamName, description: teamDescription }),
@@ -187,7 +215,7 @@ async function testTeamsCreate() {
 async function testTeamsDuplicateValidation(existingName) {
   console.log('\n🔍 Testing Teams Duplicate Detection...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/teams`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/teams`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name: existingName }),
@@ -207,7 +235,7 @@ async function testTeamsDuplicateValidation(existingName) {
 async function testTeamsDelete(teamId, teamName) {
   console.log('\n🗑️  Testing Teams Delete...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/teams/${teamId}`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/teams/${teamId}`, {
     method: 'DELETE',
     headers: getHeaders(),
   })
@@ -223,7 +251,7 @@ async function testTeamsDelete(teamId, teamName) {
 async function testRolesList() {
   console.log('\n📋 Testing Roles List...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/roles`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/roles`, {
     headers: getHeaders(),
   })
 
@@ -239,7 +267,7 @@ async function testRolesList() {
 async function testTeamsList() {
   console.log('\n👥 Testing Teams List...')
   
-  const response = await fetch(`${BASE_URL}/api/settings/teams`, {
+  const response = await csrfFetch(`${BASE_URL}/api/settings/teams`, {
     headers: getHeaders(),
   })
 

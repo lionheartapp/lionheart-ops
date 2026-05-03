@@ -39,8 +39,9 @@ export default function DiagnosticPage() {
         status: permRes.status,
         data: permRes.ok ? await permRes.json() : await permRes.text(),
       }
-    } catch (e: any) {
-      results.permissions = { error: e.message }
+    } catch (e: unknown) {
+      // F-022: prefer `unknown` over `any` for catch values; narrow before use.
+      results.permissions = { error: e instanceof Error ? e.message : String(e) }
     }
 
     if (orgId) {
@@ -55,8 +56,8 @@ export default function DiagnosticPage() {
           status: rolesRes.status,
           data: rolesRes.ok ? await rolesRes.json() : await rolesRes.text(),
         }
-      } catch (e: any) {
-        results.roles = { error: e.message }
+      } catch (e: unknown) {
+        results.roles = { error: e instanceof Error ? e.message : String(e) }
       }
 
       try {
@@ -70,8 +71,8 @@ export default function DiagnosticPage() {
           status: teamsRes.status,
           data: teamsRes.ok ? await teamsRes.json() : await teamsRes.text(),
         }
-      } catch (e: any) {
-        results.teams = { error: e.message }
+      } catch (e: unknown) {
+        results.teams = { error: e instanceof Error ? e.message : String(e) }
       }
     }
 

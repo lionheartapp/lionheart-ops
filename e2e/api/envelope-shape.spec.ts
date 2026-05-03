@@ -15,7 +15,7 @@ const READONLY_GET_ROUTES = [
   '/api/settings/permissions',
   '/api/settings/schools',
   '/api/settings/campus/buildings',
-  '/api/settings/campus/areas',
+  '/api/settings/campus/spaces',
   '/api/settings/campus/rooms',
   '/api/tickets',
   '/api/events',

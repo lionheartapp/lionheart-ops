@@ -7,16 +7,16 @@ import { getAtRiskTickets } from '@/lib/services/slaService'
 import type { TicketModule } from '@prisma/client'
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const module = searchParams.get('module') as TicketModule | null
-  if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
+  const moduleParam = searchParams.get('module') as TicketModule | null
+  if (!moduleParam || !['MAINTENANCE', 'IT'].includes(moduleParam)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'module query param required'),
+      fail('VALIDATION_ERROR', 'moduleParam query param required'),
       { status: 400 }
     )
   }
 
   // At-risk tickets
-  const atRiskTickets = await getAtRiskTickets(orgId, module, 5)
+  const atRiskTickets = await getAtRiskTickets(orgId, moduleParam, 5)
 
   const breachedCount = atRiskTickets.filter(
     (t) => t.slaStatus.responseStatus === 'BREACHED' || t.slaStatus.resolveStatus === 'BREACHED'
@@ -25,7 +25,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   // Staff workload
   const staffAvailabilities = await rawPrisma.staffAvailability.findMany({
-    where: { organizationId: orgId, module },
+    where: { organizationId: orgId, moduleParam },
     include: {
       user: { select: { id: true, firstName: true, lastName: true } },
     },
@@ -33,7 +33,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   const workload = await Promise.all(
     staffAvailabilities.map(async (sa) => {
-      const openTickets = module === 'MAINTENANCE'
+      const openTickets = moduleParam === 'MAINTENANCE'
         ? await rawPrisma.maintenanceTicket.count({
             where: {
               organizationId: orgId,
@@ -64,7 +64,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   // Category distribution
   let categoryDistribution: Array<{ category: string; count: number }>
-  if (module === 'MAINTENANCE') {
+  if (moduleParam === 'MAINTENANCE') {
     const raw = await rawPrisma.maintenanceTicket.groupBy({
       by: ['category'],
       where: {

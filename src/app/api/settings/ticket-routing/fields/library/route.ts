@@ -6,14 +6,14 @@ import { getFieldsForModule } from '@/lib/services/categoryFieldLibrary'
 import type { TicketModule } from '@prisma/client'
 
 export const GET = withAuth(async ({ searchParams }) => {
-  const module = searchParams.get('module')
-  if (!module || !['MAINTENANCE', 'IT'].includes(module)) {
+  const moduleParam = searchParams.get('module')
+  if (!moduleParam || !['MAINTENANCE', 'IT'].includes(moduleParam)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'module query param required'),
+      fail('VALIDATION_ERROR', 'moduleParam query param required'),
       { status: 400 }
     )
   }
 
-  const fields = getFieldsForModule(module as TicketModule)
+  const fields = getFieldsForModule(moduleParam as TicketModule)
   return NextResponse.json(ok(fields))
 }, { permission: PERMISSIONS.SETTINGS_READ })

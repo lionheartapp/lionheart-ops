@@ -332,7 +332,7 @@ export { orgScopedPrisma as prisma }
  * This replaces `const db = prisma as any` with a structured type that preserves
  * method signatures while allowing access to any model delegate.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 export type PrismaDelegate = {
 	findMany: (args?: Record<string, unknown>) => Promise<any[]>
 	findFirst: (args?: Record<string, unknown>) => Promise<any | null>

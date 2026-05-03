@@ -14,11 +14,11 @@ const CreateEscalationSchema = z.object({
 })
 
 export const GET = withAuth(async ({ orgId, searchParams }) => {
-  const module = searchParams.get('module')
+  const moduleParam = searchParams.get('module')
 
   const where: Record<string, unknown> = { organizationId: orgId }
-  if (module && ['MAINTENANCE', 'IT'].includes(module)) {
-    where.module = module
+  if (moduleParam && ['MAINTENANCE', 'IT'].includes(moduleParam)) {
+    where.module = moduleParam
   }
 
   const rules = await prisma.escalationRule.findMany({
@@ -33,7 +33,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof CreateEscalationSchema>>(async ({ orgId, body }) => {
-  const { module, triggerMins, action, targetPriority, targetUserId } = body
+  const { moduleParam, triggerMins, action, targetPriority, targetUserId } = body
 
   if (action === 'BUMP_PRIORITY' && !targetPriority) {
     return NextResponse.json(fail('VALIDATION_ERROR', 'Target priority required'), { status: 400 })
@@ -45,7 +45,7 @@ export const POST = withAuth<z.infer<typeof CreateEscalationSchema>>(async ({ or
   const rule = await prisma.escalationRule.create({
     data: {
       organizationId: orgId,
-      module,
+      moduleParam,
       triggerMins,
       action,
       targetPriority: action === 'BUMP_PRIORITY' ? targetPriority : null,

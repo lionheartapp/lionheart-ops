@@ -491,13 +491,16 @@ const ACTION_HANDLERS: Record<string, ActionHandler> = {
   create_ticket_from_intake: {
     requiredPermission: PERMISSIONS.MAINTENANCE_SUBMIT,
     execute: async (payload, ctx) => {
-      const module = String(payload.module || 'MAINTENANCE')
+      // F-020: renamed `module` → `ticketModule` to avoid shadowing Node's
+      // global `module` variable, which Next.js's eslint plugin flags as a
+      // build-blocking error.
+      const ticketModule = String(payload.module || 'MAINTENANCE')
       const title = String(payload.title || 'Untitled')
       const category = String(payload.category || 'OTHER')
       const priority = String(payload.priority || 'MEDIUM')
       const description = String(payload.description || '')
 
-      if (module === 'IT') {
+      if (ticketModule === 'IT') {
         const { createITTicket } = await import('@/lib/services/it/ticketService')
         const ticket = await createITTicket(
           {

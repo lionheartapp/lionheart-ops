@@ -124,7 +124,7 @@ export default function CreateEventMenu({
     onSelect(mode)
   }
 
-  const buttonPadding = size === 'sm' ? 'px-4 py-2' : 'px-4 py-2.5'
+  const buttonPadding = size === 'sm' ? 'px-4 py-2.5' : 'px-4 py-2.5'
   const panelSideClass = align === 'right' ? 'right-0' : 'left-0'
 
   return (

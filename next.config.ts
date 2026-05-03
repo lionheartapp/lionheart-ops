@@ -10,6 +10,13 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   eslint: {
+    // F-020 (partial): the directives that referenced uninstalled
+    // @typescript-eslint rules + the obvious `module` shadowing in API
+    // routes are fixed. ~20 lint errors remain (mostly hooks-of-rules
+    // violations that need careful per-component investigation, plus a
+    // handful of unescaped JSX entities). See LINT_DEBT.md for the list.
+    // Once those are resolved this should flip to false and lint becomes
+    // a real CI gate.
     ignoreDuringBuilds: true,
   },
   serverExternalPackages: ['mjml', 'mjml-core', 'mjml-preset-core', 'pino', 'pino-pretty'],

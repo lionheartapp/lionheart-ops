@@ -27,8 +27,11 @@ import { sendBoardReportEmail } from '@/lib/services/emailService'
 export async function GET(req: NextRequest) {
   // Verify CRON_SECRET
   const authHeader = req.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET?.trim()
+  if (!authHeader) {
+    return NextResponse.json(fail('UNAUTHORIZED', 'Missing cron secret'), { status: 401 })
+  }
 
+  const cronSecret = process.env.CRON_SECRET?.trim()
   if (!cronSecret) {
     logger.error('CRON_SECRET not configured')
     return NextResponse.json(fail('CONFIGURATION_ERROR', 'Cron not configured'), { status: 500 })

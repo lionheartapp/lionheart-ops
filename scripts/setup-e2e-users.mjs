@@ -79,11 +79,13 @@ async function main() {
       passwordHash,
       roleId: superAdminRole.id,
       status: 'ACTIVE',
+      emailVerified: true,
     },
     update: {
       passwordHash,
       roleId: superAdminRole.id,
       status: 'ACTIVE',
+      emailVerified: true,
       deletedAt: null,
     },
     select: { id: true, email: true },
@@ -101,11 +103,13 @@ async function main() {
       passwordHash,
       roleId: memberRole.id,
       status: 'ACTIVE',
+      emailVerified: true,
     },
     update: {
       passwordHash,
       roleId: memberRole.id,
       status: 'ACTIVE',
+      emailVerified: true,
       deletedAt: null,
     },
     select: { id: true, email: true },
@@ -133,7 +137,6 @@ async function main() {
     // Seed default roles + permissions for Org B by copying from Org A
     const orgARoles = await prisma.role.findMany({
       where: { organizationId: orgA.id },
-      include: { permissions: { include: { permission: true } } },
       select: { id: true, name: true, slug: true, description: true, isSystem: true, permissions: { select: { permissionId: true } } },
     })
     for (const role of orgARoles) {
@@ -200,11 +203,13 @@ async function main() {
         passwordHash: orgBPasswordHash,
         roleId: orgBAdminRole.id,
         status: 'ACTIVE',
+        emailVerified: true,
       },
       update: {
         passwordHash: orgBPasswordHash,
         roleId: orgBAdminRole.id,
         status: 'ACTIVE',
+        emailVerified: true,
         deletedAt: null,
       },
       select: { id: true, email: true },

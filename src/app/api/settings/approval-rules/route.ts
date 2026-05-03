@@ -14,8 +14,8 @@ const db = prisma as unknown as OrgPrismaClient
  * Returns all approval rules with their steps, plus schools/teams for the builder.
  */
 export const GET = withAuth(async ({ searchParams }) => {
-  const module = searchParams.get('module') || undefined
-  const rules = await getApprovalRules(module)
+  const moduleParam = searchParams.get('module') || undefined
+  const rules = await getApprovalRules(moduleParam)
 
   // Fetch shared dropdowns: schools, campuses, teams
   const [schools, campuses, teams] = await Promise.all([
@@ -47,14 +47,14 @@ export const GET = withAuth(async ({ searchParams }) => {
   ])
 
   // Module-specific dropdowns
-  const categories = module === 'MAINTENANCE'
+  const categories = moduleParam === 'MAINTENANCE'
     ? [] // Maintenance categories are hardcoded enums, not DB records
     : await db.calendarCategory.findMany({
         select: { id: true, name: true, color: true },
         orderBy: { name: 'asc' },
       })
 
-  const buildings = module === 'MAINTENANCE'
+  const buildings = moduleParam === 'MAINTENANCE'
     ? await db.building.findMany({
         where: { deletedAt: null, isActive: true },
         select: { id: true, name: true },
