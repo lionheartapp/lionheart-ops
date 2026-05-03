@@ -27,7 +27,7 @@ export function ServiceWorkerRegistration() {
 
     navigator.serviceWorker.register('/sw.js').catch((err) => {
       // eslint-disable-next-line no-console
-      logger.error({ error: String(err) }, 'Service worker registration failed')
+      console.error('Service worker registration failed:', err)
     })
   }, [])
 
