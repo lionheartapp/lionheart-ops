@@ -138,6 +138,16 @@ export function useCalendars() {
   })
 }
 
+/**
+ * F-036: switch to POST-with-body when the calendarIds list exceeds this
+ * threshold. Multi-campus orgs with many calendars were generating URLs over
+ * 8KB which middleboxes and load balancers silently truncated.
+ *
+ * GET still works for the common 1-10 calendar case so it stays cacheable
+ * via standard HTTP caching layers.
+ */
+const POST_WITH_BODY_THRESHOLD = 5
+
 export function useCalendarEvents(
   calendarIds: string[],
   start: Date,
@@ -147,12 +157,25 @@ export function useCalendarEvents(
   return useQuery<CalendarEventData[]>({
     queryKey: ['calendar-events', calendarIds.join(','), start.toISOString(), end.toISOString()],
     queryFn: () => {
-      const params = new URLSearchParams({
-        calendarIds: calendarIds.join(','),
-        start: start.toISOString(),
-        end: end.toISOString(),
+      // Few calendars: stick with GET so the response is HTTP-cacheable.
+      if (calendarIds.length <= POST_WITH_BODY_THRESHOLD) {
+        const params = new URLSearchParams({
+          calendarIds: calendarIds.join(','),
+          start: start.toISOString(),
+          end: end.toISOString(),
+        })
+        return fetchApi(`/api/calendar-events?${params}`)
+      }
+      // Many calendars: avoid URL-length limits by sending the list in the
+      // body. The /query endpoint returns the same shape as the GET path.
+      return fetchApi('/api/calendar-events/query', {
+        method: 'POST',
+        body: JSON.stringify({
+          calendarIds,
+          start: start.toISOString(),
+          end: end.toISOString(),
+        }),
       })
-      return fetchApi(`/api/calendar-events?${params}`)
     },
     enabled,
     staleTime: 5 * 60_000,
