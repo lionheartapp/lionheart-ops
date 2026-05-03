@@ -103,6 +103,22 @@ export default function Sidebar({
   const selection = useSidebarSelectionState({ initialSettingsTab })
   const perms = useSidebarPermissionFlags()
 
+  // F-028: keep the sidebar's active settings tab in sync with the URL.
+  // Previously activeSettingsTab was set once at mount and only updated via
+  // user clicks — so navigating to /settings?tab=members directly (typed
+  // URL, browser back/forward, deep link) left the sidebar with no tab
+  // highlighted. Now we re-derive the active tab whenever pathname or the
+  // ?tab= param changes.
+  useEffect(() => {
+    if (!pathname.startsWith('/settings')) return
+    const tab = (pageSearchParams?.get('tab') as SettingsTab) || 'profile'
+    if (tab !== selection.activeSettingsTab) {
+      selection.setActiveSettingsTab(tab)
+    }
+    // selection is a stable hook return — only react to URL changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, pageSearchParams])
+
   // Auto-expand maintenance section for maintenance team members
   useEffect(() => {
     if (perms.isOnMaintenanceTeam) {
