@@ -257,6 +257,22 @@ export default function SetupPage() {
     runSetup()
   }, [fireConfetti])
 
+  const handleGoToDashboard = () => {
+    const slug = localStorage.getItem('org-slug')
+    if (slug) {
+      const host = window.location.hostname
+      const port = window.location.port ? `:${window.location.port}` : ''
+      const protocol = window.location.protocol
+      const isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(host)
+      const baseDomain = isLocal
+        ? `localhost${port}`
+        : `${host.replace(/^[^.]+\./, '')}${port}`
+      window.location.href = `${protocol}//${slug}.${baseDomain}/dashboard`
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
   // F-034: error UI — visible state when something blew up during setup.
   if (setupError) {
     return (
@@ -291,24 +307,6 @@ export default function SetupPage() {
         </div>
       </div>
     )
-  }
-
-  const handleGoToDashboard = () => {
-    const slug = localStorage.getItem('org-slug')
-    if (slug) {
-      // F-039: build the redirect URL from the current host so it works in
-      // dev (localhost), in production (lionheartapp.com), and on whitelabel.
-      const host = window.location.hostname
-      const port = window.location.port ? `:${window.location.port}` : ''
-      const protocol = window.location.protocol
-      const isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(host)
-      const baseDomain = isLocal
-        ? `localhost${port}`
-        : `${host.replace(/^[^.]+\./, '')}${port}`
-      window.location.href = `${protocol}//${slug}.${baseDomain}/dashboard`
-    } else {
-      router.push('/dashboard')
-    }
   }
 
   if (!complete) {
