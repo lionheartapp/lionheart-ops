@@ -39,13 +39,13 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PATCH = withAuth<z.infer<typeof UpdateCategoryConfigSchema>>(async ({ orgId, body }) => {
-  const { moduleParam, categoryKey, specialistUserId, fallbackUserId, slaResponseMins, slaResolveMins } = body
+  const { module, categoryKey, specialistUserId, fallbackUserId, slaResponseMins, slaResolveMins } = body
 
   const existing = await prisma.routingCategoryConfig.findUnique({
     where: {
       organizationId_module_categoryKey: {
         organizationId: orgId,
-        moduleParam,
+        module,
         categoryKey,
       },
     },

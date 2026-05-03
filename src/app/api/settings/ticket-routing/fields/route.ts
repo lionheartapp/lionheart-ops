@@ -32,7 +32,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   const where: Record<string, unknown> = {
     organizationId: orgId,
-    moduleParam,
+    module: moduleParam,
   }
   if (categoryKey) where.categoryKey = categoryKey
 
@@ -45,13 +45,13 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, body }) => {
-  const { moduleParam, categoryKey, fields } = body
+  const { module, categoryKey, fields } = body
 
   // Delete all existing field configs for this category, then recreate
   await rawPrisma.categoryFieldConfig.deleteMany({
     where: {
       organizationId: orgId,
-      moduleParam,
+      module,
       categoryKey,
     },
   })
@@ -60,7 +60,7 @@ export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, bo
     await rawPrisma.categoryFieldConfig.createMany({
       data: fields.map((f) => ({
         organizationId: orgId,
-        moduleParam,
+        module,
         categoryKey,
         fieldType: f.fieldType,
         required: f.required,
@@ -71,7 +71,7 @@ export const PUT = withAuth<z.infer<typeof BulkUpdateSchema>>(async ({ orgId, bo
 
   // Fetch and return the new state
   const updated = await rawPrisma.categoryFieldConfig.findMany({
-    where: { organizationId: orgId, moduleParam, categoryKey },
+    where: { organizationId: orgId, module, categoryKey },
     orderBy: { sortOrder: 'asc' },
   })
 

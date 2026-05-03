@@ -25,7 +25,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   // Staff workload
   const staffAvailabilities = await rawPrisma.staffAvailability.findMany({
-    where: { organizationId: orgId, moduleParam },
+    where: { organizationId: orgId, module: moduleParam },
     include: {
       user: { select: { id: true, firstName: true, lastName: true } },
     },
