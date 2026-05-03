@@ -132,9 +132,17 @@ export default function DashboardLayout({
 
   const contentBody = (
     <div className="flex w-full h-screen flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #f5f4f0 0%, #eae8e2 100%)' }}>
-      {/* Skip to main content link for keyboard users */}
+      {/*
+        Skip-links for keyboard users.
+        F-045: added a second skip-link that jumps over the main content
+        straight to the ~30-item module nav, since power users tabbing
+        through don't want to traverse every page heading first.
+      */}
       <a href="#main-content" className="skip-to-main">
         Skip to main content
+      </a>
+      <a href="#sidebar-nav" className="skip-to-main">
+        Skip to module navigation
       </a>
 
       {/* Impersonation Banner (fixed, overlays content) */}

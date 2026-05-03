@@ -37,6 +37,9 @@ export default function SidebarLayout({
         }}
       >
         <aside
+          // F-045: id matches the "Skip to module navigation" skip-link in
+          // DashboardLayout so keyboard users can jump here directly.
+          id="sidebar-nav"
           className="flex flex-col w-64 h-full relative z-10"
           style={{
             background: 'rgba(253, 252, 249, 0.82)',

@@ -518,10 +518,13 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
               <input
-                type="text"
+                // F-044: type="search" gives us the browser clear-X button
+                // and the right keyboard layout on mobile.
+                type="search"
                 value={ruleSearch}
                 onChange={(e) => setRuleSearch(e.target.value)}
                 placeholder="Search rules..."
+                aria-label="Search approval rules"
                 className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-400 transition-colors placeholder:text-slate-400"
               />
               {ruleSearch && (
