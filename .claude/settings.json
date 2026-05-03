@@ -1,96 +1,34 @@
 {
   "hooks": {
-    "SessionStart": [
+    "PreToolUse": [
       {
+        "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/gsd-check-update.js"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-session-state.sh"
-          }
+          { "type": "command", "command": "node .claude/hooks/gsd-prompt-guard.js" }
         ]
       }
     ],
     "PostToolUse": [
       {
+        "matcher": ".*",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/gsd-context-monitor.js",
-            "timeout": 10
-          }
-        ],
-        "matcher": "Bash|Edit|Write|MultiEdit|Agent|Task"
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-read-injection-scanner.js",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-phase-boundary.sh",
-            "timeout": 5
-          }
+          { "type": "command", "command": "node .claude/hooks/gsd-context-monitor.js" }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-prompt-guard.js",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-read-guard.js",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-workflow-guard.js",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gsd-validate-commit.sh",
-            "timeout": 5
-          }
-        ]
-      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/Users/mkerley/Desktop/Linfield Test\" && npx next *)",
+      "Bash(cd \"/Users/mkerley/Desktop/Linfield Test\" && npx tsc *)",
+      "Bash(cd \"/Users/mkerley/Desktop/Linfield Test\" && npx prisma *)",
+      "Bash(cd \"/Users/mkerley/Desktop/Linfield Test\" && npm run *)",
+      "Bash(cd \"/Users/mkerley/Desktop/Linfield Test\" && git *)",
+      "Bash(nc -z *)",
+      "Bash(nslookup *)",
+      "Bash(claude *)",
+      "mcp__claude_ai_Supabase__*",
+      "mcp__claude_ai_Vercel__*"
     ]
   },
   "statusLine": {
