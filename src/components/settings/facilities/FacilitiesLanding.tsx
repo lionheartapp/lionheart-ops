@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ChevronRight, Plus, Building2, Landmark, School as SchoolIcon } from 'lucide-react'
+import { ChevronRight, Plus, Building2, School as SchoolIcon } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 
 type CampusSummary = {
@@ -57,78 +57,18 @@ function getInitials(name: string): string {
     .join('')
 }
 
-type DistrictBuilding = {
-  id: string
-  name: string
-  buildingType: string
-}
-
 export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: FacilitiesLandingProps) {
   const [schools, setSchools] = useState<School[]>([])
-  const [districtBuildings, setDistrictBuildings] = useState<DistrictBuilding[]>([])
-  const [districtId, setDistrictId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // ─── Add District Building ────────────────────────────────────────────
-  const [addDistrictOpen, setAddDistrictOpen] = useState(false)
-  const [addDistrictName, setAddDistrictName] = useState('')
-  const [addDistrictSaving, setAddDistrictSaving] = useState(false)
-  const [addDistrictError, setAddDistrictError] = useState('')
-
-  const loadDistrictBuildings = async (dId: string) => {
-    try {
-      const buildings = await fetchApi<DistrictBuilding[]>(
-        `/api/settings/campus/buildings?districtId=${dId}`
-      )
-      setDistrictBuildings(Array.isArray(buildings) ? buildings : [])
-    } catch {
-      // silent
-    }
-  }
-
-  const handleAddDistrictBuilding = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const name = addDistrictName.trim()
-    if (!name) {
-      setAddDistrictError('Building name is required')
-      return
-    }
-    if (!districtId) {
-      setAddDistrictError('No district found')
-      return
-    }
-    setAddDistrictSaving(true)
-    setAddDistrictError('')
-    try {
-      await fetchApi('/api/settings/campus/buildings', {
-        method: 'POST',
-        body: JSON.stringify({ name, districtId }),
-      })
-      setAddDistrictOpen(false)
-      setAddDistrictName('')
-      await loadDistrictBuildings(districtId)
-    } catch (err) {
-      setAddDistrictError(err instanceof Error ? err.message : 'Failed to create building')
-    } finally {
-      setAddDistrictSaving(false)
-    }
-  }
 
   useEffect(() => {
     let cancelled = false
     const load = async () => {
       try {
-        const [schoolData, districtData] = await Promise.all([
-          fetchApi<School[]>('/api/settings/schools'),
-          fetchApi<{ id: string; name: string }>('/api/settings/campus/district').catch(() => null),
-        ])
+        const schoolData = await fetchApi<School[]>('/api/settings/schools')
         if (!cancelled) {
           setSchools(Array.isArray(schoolData) ? schoolData : [])
-          if (districtData?.id) {
-            setDistrictId(districtData.id)
-            await loadDistrictBuildings(districtData.id)
-          }
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load schools')
@@ -140,7 +80,6 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -258,98 +197,6 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
           })}
       </div>
 
-      {/* District facilities */}
-      <div className="pt-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <Landmark className="w-5 h-5 text-slate-400" />
-            <div>
-              <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">District Facilities</h3>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Buildings and spaces that belong to the district, not a specific school.
-              </p>
-            </div>
-          </div>
-          {districtId && (
-            <button
-              onClick={() => { setAddDistrictOpen(true); setAddDistrictError(''); setAddDistrictName('') }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add building
-            </button>
-          )}
-        </div>
-
-        {districtBuildings.length > 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
-            {districtBuildings.map((b) => (
-              <div key={b.id} className="flex items-center gap-3 px-5 py-3.5">
-                <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                <span className="text-sm font-medium text-slate-900">{b.name}</span>
-                <span className="text-xs text-slate-400 capitalize">{b.buildingType.toLowerCase().replace('_', ' ')}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 text-center">
-            <div className="text-sm text-slate-500">No district-level facilities yet.</div>
-            <div className="text-xs text-slate-400 mt-1">e.g. a district office, warehouse, or bus depot</div>
-            {districtId && (
-              <button
-                onClick={() => { setAddDistrictOpen(true); setAddDistrictError(''); setAddDistrictName('') }}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Add first building
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Add District Building drawer */}
-      {addDistrictOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Add District Building</h3>
-            <form onSubmit={handleAddDistrictBuilding} className="space-y-4">
-              {addDistrictError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{addDistrictError}</div>
-              )}
-              <div>
-                <label htmlFor="district-building-name" className="block text-sm font-medium text-slate-700 mb-1">Building name</label>
-                <input
-                  id="district-building-name"
-                  type="text"
-                  value={addDistrictName}
-                  onChange={(e) => setAddDistrictName(e.target.value)}
-                  className="w-full px-3.5 py-3 text-sm text-slate-900 border border-slate-300 rounded-lg bg-white focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 outline-none transition-colors"
-                  placeholder="e.g. District Office, Bus Depot"
-                  autoFocus
-                  required
-                />
-              </div>
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAddDistrictOpen(false)}
-                  disabled={addDistrictSaving}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={addDistrictSaving}
-                  className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition cursor-pointer"
-                >
-                  {addDistrictSaving ? 'Adding…' : 'Add Building'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
