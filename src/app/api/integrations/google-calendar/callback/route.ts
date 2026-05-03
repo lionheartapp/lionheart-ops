@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
+import { invalidateUserCache } from '@/lib/cache/route-cache'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
 
 /**
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    invalidateUserCache(userId, 'integrations')
     return NextResponse.redirect(`${settingsUrl}?tab=integrations&gcal_connected=1`)
   } catch {
     return NextResponse.redirect(`${settingsUrl}?tab=integrations&gcal_error=Internal+error`)

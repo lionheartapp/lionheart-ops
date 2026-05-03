@@ -150,10 +150,18 @@ export function GoogleCalendarCard({
     setDisconnecting(true)
     try {
       const token = localStorage.getItem('auth-token')
-      await fetch('/api/integrations/google-calendar/sync', {
+      const res = await fetch('/api/integrations/google-calendar/sync', {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
+      const data = await res.json()
+      if (!res.ok || !data.ok) {
+        toast(data.error?.message || 'Failed to disconnect', 'error')
+        return
+      }
+      // Reset local state so the UI immediately shows disconnected
+      setCalendars([])
+      setShowCalendarPicker(false)
       toast('Google Calendar disconnected', 'success')
       onRefresh()
     } catch {

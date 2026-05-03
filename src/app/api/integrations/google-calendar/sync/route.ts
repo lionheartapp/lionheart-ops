@@ -6,6 +6,7 @@ import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { invalidateUserCache } from '@/lib/cache/route-cache'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
 
 const SyncBodySchema = z.object({
@@ -79,6 +80,7 @@ export async function DELETE(req: NextRequest) {
     await assertCan(ctx.userId, PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR)
 
     await googleCalendarService.disconnect(ctx.userId, orgId)
+    invalidateUserCache(ctx.userId, 'integrations')
     return NextResponse.json(ok({ disconnected: true }))
   } catch (error) {
     if (error instanceof Error && error.message.includes('Insufficient permissions')) {

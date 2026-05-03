@@ -904,8 +904,6 @@ export default function CalendarView() {
           onClose={toggleFilterPanel}
           filter={calendarFilter}
           onFilterChange={setCalendarFilter}
-          schools={schools}
-          campuses={userCampuses}
           calendars={calendars}
           visibleCalendarIds={visibleCalendarIds}
           onToggleCalendar={toggleCalendar}

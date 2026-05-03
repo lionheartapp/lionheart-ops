@@ -7,12 +7,6 @@ import type { CalendarFilter } from './CalendarFilterPopover'
 
 // ── Shared types ────────────────────────────────────────────────────────
 
-interface SchoolItem {
-  id: string
-  name: string
-  color?: string | null
-}
-
 interface CampusItem {
   id: string
   name: string
@@ -62,12 +56,6 @@ const TEAM_LEVELS = [
   { value: 'CLUB', label: 'Club' },
   { value: 'INTRAMURAL', label: 'Intramural' },
   { value: 'UNIFIED', label: 'Unified' },
-]
-
-// Deterministic color palette for schools that don't have a color
-const SCHOOL_COLORS = [
-  '#3B82F6', '#8B5CF6', '#EC4899', '#F97316', '#10B981',
-  '#6366F1', '#14B8A6', '#F59E0B', '#EF4444', '#06B6D4',
 ]
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -166,12 +154,6 @@ interface CalendarFilterPanelProps {
   filter: CalendarFilter
   onFilterChange: (filter: CalendarFilter) => void
 
-  // Schools
-  schools: SchoolItem[]
-
-  // Campuses
-  campuses: CampusItem[]
-
   // My Calendars
   calendars: CalendarItem[]
   visibleCalendarIds: Set<string>
@@ -199,8 +181,6 @@ export default function CalendarFilterPanel({
   onClose,
   filter,
   onFilterChange,
-  schools,
-  campuses,
   calendars,
   visibleCalendarIds,
   onToggleCalendar,
@@ -233,17 +213,6 @@ export default function CalendarFilterPanel({
       hiddenExternalCalendarIds: new Set(),
     })
   }, [onFilterChange])
-
-  const allSchoolsSelected = schools.length > 0 && filter.schoolIds.size === 0
-  const handleToggleAllSchools = useCallback(() => {
-    if (allSchoolsSelected) {
-      // "All Schools" is effectively on (no filter) — clicking it should have no effect,
-      // unless we want to deselect all. But semantically, empty = all. So we do nothing.
-      return
-    }
-    // Clear school filter = show all
-    onFilterChange({ ...filter, schoolIds: new Set() })
-  }, [allSchoolsSelected, filter, onFilterChange])
 
   // Group external calendars by provider
   const groupedExternalCalendars = externalCalendars.reduce<Record<string, ExternalCalendarItem[]>>(
@@ -285,83 +254,6 @@ export default function CalendarFilterPanel({
 
       {/* Scrollable sections */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        {/* Schools */}
-        {schools.length > 0 && (
-          <FilterSection label="Schools" count={filter.schoolIds.size}>
-            <div className="space-y-0.5">
-              {/* All Schools toggle */}
-              <button
-                type="button"
-                onClick={handleToggleAllSchools}
-                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-              >
-                <FilterCheckbox
-                  checked={allSchoolsSelected}
-                  color="#374151"
-                  onChange={handleToggleAllSchools}
-                />
-                <span className={`text-sm font-medium ${allSchoolsSelected ? 'text-slate-700' : 'text-slate-400'}`}>
-                  All Schools
-                </span>
-              </button>
-
-              {schools.map((school, i) => {
-                const color = school.color || SCHOOL_COLORS[i % SCHOOL_COLORS.length]
-                const isActive = filter.schoolIds.has(school.id)
-                return (
-                  <button
-                    key={school.id}
-                    type="button"
-                    onClick={() => onFilterChange({ ...filter, schoolIds: toggleInSet(filter.schoolIds, school.id) })}
-                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                  >
-                    <FilterCheckbox
-                      checked={isActive}
-                      color={color}
-                      onChange={() => onFilterChange({ ...filter, schoolIds: toggleInSet(filter.schoolIds, school.id) })}
-                    />
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: color }}
-                    />
-                    <span className={`text-sm truncate ${isActive ? 'text-slate-700' : 'text-slate-500'}`}>
-                      {school.name}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </FilterSection>
-        )}
-
-        {/* Campuses */}
-        {campuses.length > 0 && (
-          <FilterSection label="Campuses" count={filter.campusIds.size}>
-            <div className="space-y-0.5">
-              {campuses.map((campus) => {
-                const isActive = filter.campusIds.has(campus.id)
-                return (
-                  <button
-                    key={campus.id}
-                    type="button"
-                    onClick={() => onFilterChange({ ...filter, campusIds: toggleInSet(filter.campusIds, campus.id) })}
-                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                  >
-                    <FilterCheckbox
-                      checked={isActive}
-                      color="#374151"
-                      onChange={() => onFilterChange({ ...filter, campusIds: toggleInSet(filter.campusIds, campus.id) })}
-                    />
-                    <span className={`text-sm truncate ${isActive ? 'text-slate-700' : 'text-slate-500'}`}>
-                      {campus.name}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </FilterSection>
-        )}
-
         {/* My Calendars */}
         {calendars.length > 0 && (
           <FilterSection label="My Calendars">
