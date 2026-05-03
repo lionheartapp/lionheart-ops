@@ -21,8 +21,9 @@ const SAFE_ATTRS = new Set(['href', 'title'])
  */
 export function stripAllHtml(input: string): string {
   if (typeof input !== 'string') return input
-  // Remove all tags
-  return input.replace(/<[^>]*>/g, '').trim()
+  // Remove null bytes (PostgreSQL rejects \x00 in text columns)
+  // then remove all HTML tags
+  return input.replace(/\0/g, '').replace(/<[^>]*>/g, '').trim()
 }
 
 /**
@@ -38,7 +39,8 @@ export function stripAllHtml(input: string): string {
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return input
 
-  let result = input
+  // Remove null bytes (PostgreSQL rejects \x00 in text columns)
+  let result = input.replace(/\0/g, '')
 
   // Remove script tags and their content (case-insensitive, greedy across newlines)
   result = result.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
