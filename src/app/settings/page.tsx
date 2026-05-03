@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MotionConfig } from 'framer-motion'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -18,12 +18,45 @@ import BillingTab from '@/components/settings/BillingTab'
 import IntegrationsTab from '@/components/settings/IntegrationsTab'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import ProfileTab from './ProfileTab'
-import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS } from './settings-types'
+import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS, resolveTab } from './settings-types'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAppEvent, AppEventName } from '@/lib/events/app-bus'
 import { queryKeys } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
+
+/**
+ * LIVE-003: TabPanel wraps each tab's content. When inactive, it applies the
+ * `hidden` class, sets aria-hidden, and imperatively sets the HTML `inert`
+ * attribute on its DOM node so the panel is removed from sequential keyboard
+ * navigation and from screen reader announcements.
+ *
+ * Why imperative? React 18 (the project's current version) doesn't pass the
+ * unknown `inert` HTML attribute through to the DOM during rendering — a
+ * `<div inert="">` JSX element gets stripped down to a plain `<div>`. React 19
+ * adds first-class support; until then, set it via ref.
+ */
+function TabPanel({ active, children }: { active: boolean; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (active) {
+      el.removeAttribute('inert')
+    } else {
+      el.setAttribute('inert', '')
+    }
+  }, [active])
+  return (
+    <div
+      ref={ref}
+      className={active ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
+      aria-hidden={!active}
+    >
+      {children}
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   usePageTitle('Settings')
@@ -38,23 +71,30 @@ export default function SettingsPage() {
     queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
   })
 
-  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab)
-  const initialTab = activeTab
-  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(() => new Set(['profile', initialTab]))
+  // F-002: derive activeTab from the URL directly via useMemo on the primitive
+  // ?tab= string value. The previous pattern used local state synced to the URL
+  // via a useEffect — combined with `window.history.replaceState` in
+  // switchToTab (which Next.js's router does not observe), this produced a
+  // "Maximum update depth exceeded" loop on deep links like ?tab=teams.
+  //
+  // By treating the URL as the single source of truth, there's nothing for
+  // React to fight with: the only setState path is the URL change via
+  // router.replace, which causes useSearchParams to update, which derives the
+  // new activeTab via useMemo. No extra round trips.
+  // F-008: resolveTab() accepts both canonical keys ("users", "campus") and
+  // sidebar-label aliases ("members", "facilities") so deep links from either
+  // form land on the right panel.
+  const tabParamStr = searchParams.get('tab')
+  const activeTab: Tab = useMemo(() => {
+    return resolveTab(tabParamStr) ?? 'profile'
+  }, [tabParamStr])
 
-  // Sync activeTab to the ?tab= URL param whenever it changes. Needed because
-  // useState(getInitialTab) runs once and — on SSR/prerender — sees
-  // `typeof window === 'undefined'` and falls back to 'profile', so deep links
-  // like /settings?tab=billing would otherwise land on profile. Also handles
-  // back/forward navigation without remounting.
+  // visitedTabs is still local state — it's a "stickier" structure (once a tab
+  // has been opened, it stays mounted) and isn't derivable from the URL alone.
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(() => new Set(['profile', activeTab]))
   useEffect(() => {
-    const tabParam = searchParams.get('tab') as Tab | null
-    if (tabParam && VALID_TABS.includes(tabParam) && tabParam !== activeTab) {
-      setActiveTab(tabParam)
-      setVisitedTabs((prev) => new Set(prev).add(tabParam))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams])
+    setVisitedTabs((prev) => (prev.has(activeTab) ? prev : new Set(prev).add(activeTab)))
+  }, [activeTab])
   const [canManageWorkspace, setCanManageWorkspace] = useState(false)
   const [permissionsLoaded, setPermissionsLoaded] = useState(false)
   const [schoolInfoDirty, setSchoolInfoDirty] = useState(false)
@@ -116,12 +156,15 @@ export default function SettingsPage() {
     }
   }, [orgLogoUrl, isReady])
 
-  // Update both state and URL when switching tabs
+  // F-037 + F-002: use Next.js's router.replace so URL and React state stay in
+  // sync — `window.history.replaceState` bypassed Next's router and left the
+  // searchParams hook stale, contributing to the infinite-loop bug.
+  // visitedTabs is still updated optimistically so we don't wait a tick for
+  // the URL to round-trip before mounting the destination panel.
   const switchToTab = (tab: Tab) => {
-    setActiveTab(tab)
-    setVisitedTabs((prev) => new Set(prev).add(tab))
+    setVisitedTabs((prev) => (prev.has(tab) ? prev : new Set(prev).add(tab)))
     const url = tab === 'profile' ? '/settings' : `/settings?tab=${tab}`
-    window.history.replaceState(null, '', url)
+    router.replace(url, { scroll: false })
   }
 
   // Keep a stable ref to requestTabChange so the event listener never goes stale
@@ -301,6 +344,31 @@ export default function SettingsPage() {
     >
       <MotionConfig reducedMotion="user">
       <div className="flex-1 min-h-0 overflow-y-auto -mr-4 sm:-mr-10 pr-4 sm:pr-10">
+              {/*
+                F-015: visually-hidden h1 establishes the page heading for
+                screen readers. The on-screen tab panels keep their existing
+                visual h3 hierarchy; this just gives AT users the missing
+                top-level landmark and announces the active tab on switch.
+              */}
+              <h1 className="sr-only" aria-live="polite">
+                {(() => {
+                  const labels: Record<Tab, string> = {
+                    profile: 'My Profile',
+                    'school-info': 'School Information',
+                    roles: 'Roles',
+                    teams: 'Teams',
+                    users: 'Members',
+                    campus: 'Facilities',
+                    'academic-calendar': 'Academic Calendar',
+                    'approval-config': 'Approval Configuration',
+                    'add-ons': 'Add-ons',
+                    integrations: 'Integrations',
+                    'activity-log': 'Activity Log',
+                    billing: 'Billing',
+                  }
+                  return labels[activeTab] || 'Settings'
+                })()}
+              </h1>
               {activeTab === 'profile' && (
                 <ProfileTab
                   userName={userName}
@@ -309,14 +377,27 @@ export default function SettingsPage() {
                 />
               )}
 
+              {/*
+                LIVE-003: each tab panel below remains mounted after first
+                visit so its state and queries don't get torn down on tab
+                switch. To avoid the a11y problem of 100+ focusable elements
+                living in the hidden DOM, the inactive panels get the inert
+                attribute — that removes them from sequential keyboard
+                navigation and from screen reader announcements while
+                preserving the React tree.
+
+                React 18 doesn't ship a typed `inert` prop (added in React 19),
+                so we spread it via a helper that emits the bare HTML attribute
+                when inactive.
+              */}
               {canManageWorkspace && visitedTabs.has('roles') && (
-                <div className={activeTab === 'roles' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'roles'}>
+                <TabPanel active={activeTab === 'roles'}>
                   <RolesTab onDirtyChange={setRolesDirty} />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('school-info') && (
-                <div className={activeTab === 'school-info' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'school-info'}>
+                <TabPanel active={activeTab === 'school-info'}>
                   <SchoolInfoTab
                     onDirtyChange={setSchoolInfoDirty}
                     onRegisterSave={(handler) => setSchoolInfoSaveHandler(() => handler)}
@@ -325,58 +406,58 @@ export default function SettingsPage() {
                   <div className="mt-6">
                     <SecuritySettingsSection />
                   </div>
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('teams') && (
-                <div className={activeTab === 'teams' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'teams'}>
+                <TabPanel active={activeTab === 'teams'}>
                   <TeamsTab onDirtyChange={setTeamsDirty} />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('users') && (
-                <div className={activeTab === 'users' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'users'}>
+                <TabPanel active={activeTab === 'users'}>
                   <MembersTab onDirtyChange={setUsersDirty} />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('campus') && (
-                <div className={activeTab === 'campus' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'campus'}>
+                <TabPanel active={activeTab === 'campus'}>
                   <FacilitiesTab onDirtyChange={setCampusDirty} />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('academic-calendar') && (
-                <div className={activeTab === 'academic-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'academic-calendar'}>
+                <TabPanel active={activeTab === 'academic-calendar'}>
                   <AcademicCalendarTab />
-                </div>
+                </TabPanel>
               )}
 
               {/* Approval Config moved to /events/approval-rules */}
 
               {canManageWorkspace && visitedTabs.has('add-ons') && (
-                <div className={activeTab === 'add-ons' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'add-ons'}>
+                <TabPanel active={activeTab === 'add-ons'}>
                   <AddOnsTab />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('integrations') && (
-                <div className={activeTab === 'integrations' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'integrations'}>
+                <TabPanel active={activeTab === 'integrations'}>
                   <IntegrationsTab />
-                </div>
+                </TabPanel>
               )}
 
 
               {canManageWorkspace && visitedTabs.has('activity-log') && (
-                <div className={activeTab === 'activity-log' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'activity-log'}>
+                <TabPanel active={activeTab === 'activity-log'}>
                   <AuditLogTab />
-                </div>
+                </TabPanel>
               )}
 
               {canManageWorkspace && visitedTabs.has('billing') && (
-                <div className={activeTab === 'billing' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'} aria-hidden={activeTab !== 'billing'}>
+                <TabPanel active={activeTab === 'billing'}>
                   <BillingTab />
-                </div>
+                </TabPanel>
               )}
       </div>
       </MotionConfig>

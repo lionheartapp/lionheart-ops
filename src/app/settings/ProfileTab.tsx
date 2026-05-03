@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cardEntrance, staggerContainer } from '@/lib/animations'
 import DetailDrawer from '@/components/DetailDrawer'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check, Fingerprint, KeyRound, Trash2, Pencil } from 'lucide-react'
@@ -76,6 +77,13 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  // UX-033: track which passkey is pending deletion so we can show a
+  // confirmation dialog (and block deletion of the last MFA method when MFA
+  // is required at the org level — that would lock the user out).
+  const [confirmDeletePasskey, setConfirmDeletePasskey] = useState<{ id: string; name: string } | null>(null)
+  // UX-032: avatar remove is reversible (just re-upload), but the action
+  // should still feel destructive. Track confirmation here.
+  const [confirmRemoveAvatarOpen, setConfirmRemoveAvatarOpen] = useState(false)
 
   // Change password drawer
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
@@ -430,7 +438,17 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
     }
   }
 
-  async function handleDeletePasskey(passkeyId: string) {
+  // Public entry point — opens the confirmation dialog. Actual deletion
+  // happens in confirmDeletePasskeyHandler after the user confirms.
+  function requestDeletePasskey(pk: { id: string; name: string }) {
+    setPasskeyError('')
+    setConfirmDeletePasskey(pk)
+  }
+
+  async function confirmDeletePasskeyHandler() {
+    if (!confirmDeletePasskey) return
+    const passkeyId = confirmDeletePasskey.id
+    setConfirmDeletePasskey(null)
     setPasskeyError('')
     setDeletingId(passkeyId)
     try {
@@ -517,9 +535,13 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
               </button>
               <button
                 type="button"
-                onClick={handleRemoveAvatar}
+                onClick={() => setConfirmRemoveAvatarOpen(true)}
                 disabled={avatarUpdating || !displayAvatar}
-                className="ui-btn px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                /* UX-032: Remove sits next to "Change Image"; mark it visually
+                   destructive (red text + red border) so the affordance is
+                   clear before the user clicks. Confirmation is mild because
+                   removing an avatar is reversible by re-uploading. */
+                className="ui-btn px-4 py-2 rounded-full bg-white border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
               >
                 Remove
               </button>
@@ -1071,9 +1093,11 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeletePasskey(pk.id)}
+                      onClick={() => requestDeletePasskey({ id: pk.id, name: pk.name })}
                       disabled={deletingId === pk.id}
                       className="p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-50"
+                      // UX-034: prefer aria-label for icon-only buttons.
+                      aria-label={`Delete passkey "${pk.name}"`}
                       title="Delete"
                     >
                       <Trash2 className={`w-3.5 h-3.5 ${deletingId === pk.id ? 'text-slate-400' : 'text-red-500'}`} />
@@ -1118,6 +1142,43 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
         </div>
         <NotificationPreferences />
       </motion.section>
+
+      {/* UX-032: confirm avatar removal (mild — reversible action). */}
+      <ConfirmDialog
+        isOpen={confirmRemoveAvatarOpen}
+        onClose={() => setConfirmRemoveAvatarOpen(false)}
+        onConfirm={() => {
+          setConfirmRemoveAvatarOpen(false)
+          handleRemoveAvatar()
+        }}
+        title="Remove your profile photo?"
+        message="Your initials will show in place of your photo. You can re-upload anytime."
+        confirmText="Remove photo"
+        cancelText="Keep photo"
+        variant="warning"
+      />
+
+      {/*
+        UX-033: confirm passkey deletion. If MFA is required at the org level
+        and this is the only passkey, warn that proceeding will lock the user
+        out of their own account.
+      */}
+      <ConfirmDialog
+        isOpen={confirmDeletePasskey !== null}
+        onClose={() => setConfirmDeletePasskey(null)}
+        onConfirm={confirmDeletePasskeyHandler}
+        title={`Remove passkey "${confirmDeletePasskey?.name ?? ''}"?`}
+        message={
+          mfaEnabled && passkeys.length === 1
+            ? "This is your only passkey AND multi-factor auth is enabled on your account. Removing it will lock you out the next time you sign in. Add another passkey first or disable MFA before removing this one."
+            : "You'll need another sign-in method to access your account. You can add a new passkey at any time."
+        }
+        confirmText={mfaEnabled && passkeys.length === 1 ? 'Remove anyway' : 'Remove passkey'}
+        cancelText="Keep passkey"
+        variant="danger"
+        // Lock-out scenario: require typing the passkey name to confirm.
+        requireText={mfaEnabled && passkeys.length === 1 ? confirmDeletePasskey?.name : undefined}
+      />
     </motion.div>
   )
 }

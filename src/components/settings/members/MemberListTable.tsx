@@ -86,7 +86,7 @@ export default function MemberListTable({
                 <StatusBadge status={u.status} />
               </div>
             </div>
-            <RowActionMenu items={actionItems(u)} />
+            <RowActionMenu items={actionItems(u)} ariaLabel={`Actions for ${u.name || u.email}`} />
           </div>
         ))}
       </div>
@@ -141,7 +141,7 @@ export default function MemberListTable({
               <td className="py-3 px-4 text-slate-600 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
               <td className="py-3 pl-4 pr-10">
                 <div className="flex justify-end">
-                  <RowActionMenu items={actionItems(u)} />
+                  <RowActionMenu items={actionItems(u)} ariaLabel={`Actions for ${u.name || u.email}`} />
                 </div>
               </td>
             </tr>

@@ -24,20 +24,28 @@ const STATUS_TABS = [
   { label: 'Inactive', value: 'INACTIVE' },
 ]
 
+// F-002: stable empty-array references. The previous `data ?? []` pattern
+// returned a new array on every render before the query resolved, churning
+// downstream useMemo/useEffect deps and triggering "Maximum update depth
+// exceeded" loops. See TeamsTab for the canonical writeup.
+const EMPTY_USERS: readonly ApiUser[] = []
+const EMPTY_ROLE_OPTIONS: readonly RoleOption[] = []
+const EMPTY_TEAM_OPTIONS: readonly TeamOption[] = []
+
 const MembersTab = (_props: MembersTabProps) => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
   // ─── Cached queries ─────────────────────────────────────────────────────
   const { data: usersData, isLoading: loading, error: usersError } = useQuery(queryOptions.members())
-  const users = (usersData ?? []) as ApiUser[]
+  const users = (usersData as ApiUser[] | undefined) ?? (EMPTY_USERS as ApiUser[])
   const error = usersError?.message ?? ''
 
   const { data: rolesData, isLoading: rolesLoading } = useQuery(queryOptions.roles())
-  const availableRoles = (rolesData ?? []) as RoleOption[]
+  const availableRoles = (rolesData as RoleOption[] | undefined) ?? (EMPTY_ROLE_OPTIONS as RoleOption[])
 
   const { data: teamsData } = useQuery(queryOptions.teams())
-  const availableTeams = (teamsData ?? []) as TeamOption[]
+  const availableTeams = (teamsData as TeamOption[] | undefined) ?? (EMPTY_TEAM_OPTIONS as TeamOption[])
 
   const invalidateMembers = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
@@ -209,7 +217,7 @@ const MembersTab = (_props: MembersTabProps) => {
       {/* Table */}
       <div className="ui-glass-table overflow-x-auto">
         <div className="flex items-center gap-2 p-4 border-b border-slate-100">
-          <input
+          <input type="search"
             className="flex-1 ui-input"
             placeholder="Search by name, email or role…"
             aria-label="Search members"

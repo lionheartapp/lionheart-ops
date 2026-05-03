@@ -23,6 +23,12 @@ interface Team {
   }
 }
 
+// F-002: stable empty-array reference. Without this, `teamsData ?? []` returns
+// a brand-new `[]` on every render before the query resolves, which churns
+// downstream useMemo/useEffect dependency arrays and triggers React's
+// "Maximum update depth exceeded" warning on /settings?tab=teams.
+const EMPTY_TEAMS: readonly Team[] = []
+
 interface TeamUserSummary {
   id: string
   firstName: string | null
@@ -39,7 +45,10 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
 
   // ─── Cached query ───────────────────────────────────────────────────────
   const { data: teamsData, isLoading: loading } = useQuery(queryOptions.teams())
-  const teams = (teamsData ?? []) as Team[]
+  // F-002: use the module-level EMPTY_TEAMS reference so that pre-fetch
+  // renders return the same array identity each time. See note next to
+  // EMPTY_TEAMS for the bug this prevents.
+  const teams = (teamsData as Team[] | undefined) ?? (EMPTY_TEAMS as Team[])
 
   const invalidateTeams = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.teams.all })

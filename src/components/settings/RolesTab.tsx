@@ -43,6 +43,10 @@ interface RoleUserSummary {
   } | null
 }
 
+// F-002: stable empty-array references — see TeamsTab for the bug they prevent.
+const EMPTY_ROLES: readonly Role[] = []
+const EMPTY_PERMISSIONS: readonly PermissionOption[] = []
+
 type RolesTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
 }
@@ -52,10 +56,10 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
 
   // ─── Cached queries ─────────────────────────────────────────────────────
   const { data: rolesData, isLoading: loading } = useQuery(queryOptions.roles())
-  const roles = (rolesData ?? []) as Role[]
+  const roles = (rolesData as Role[] | undefined) ?? (EMPTY_ROLES as Role[])
 
   const { data: permissionsData, isLoading: permissionsLoading, error: permissionsQueryError } = useQuery(queryOptions.settingsPermissions())
-  const permissions = (permissionsData ?? []) as PermissionOption[]
+  const permissions = (permissionsData as PermissionOption[] | undefined) ?? (EMPTY_PERMISSIONS as PermissionOption[])
   const permissionsError = permissionsQueryError?.message ?? null
 
   const invalidateRoles = () => {
