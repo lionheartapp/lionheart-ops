@@ -398,6 +398,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           </label>
           <input
             id="forgot-email"
+            name="email"
             type="email"
             value={forgotEmail}
             onChange={(e) => setForgotEmail(e.target.value)}
@@ -436,8 +437,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           <label htmlFor="email" className="block text-sm font-medium text-slate-700">
             Email address
           </label>
+          {/* F-046: name attribute lets password managers identify and autofill. */}
           <input
             id="email"
+            name="email"
             type="email"
             inputMode="email"
             value={email}
@@ -469,6 +472,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           <div className="relative mt-1">
             <input
               id="password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}

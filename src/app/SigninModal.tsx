@@ -35,8 +35,18 @@ export default function SigninModal({ onClose }: SigninModalProps) {
         throw new Error('School subdomain not found')
       }
 
-      // Redirect to the subdomain's login page
-      window.location.href = `https://${subdomain}.lionheartapp.com/login`
+      // F-039: Use the current host's base domain instead of hardcoded
+      // lionheartapp.com — this preserves localhost in dev and supports
+      // whitelabel customers on alternate domains. Falls back to the env
+      // platform URL if the runtime host can't be parsed.
+      const host = typeof window !== 'undefined' ? window.location.hostname : ''
+      const port = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : ''
+      const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:'
+      const isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(host)
+      const baseDomain = isLocal
+        ? `localhost${port}`
+        : `${host.replace(/^[^.]+\./, '')}${port}`
+      window.location.href = `${protocol}//${subdomain}.${baseDomain}/login`
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
       errorRef.current?.focus()

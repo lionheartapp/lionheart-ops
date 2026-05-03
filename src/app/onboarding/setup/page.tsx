@@ -253,7 +253,16 @@ export default function SetupPage() {
   const handleGoToDashboard = () => {
     const slug = localStorage.getItem('org-slug')
     if (slug) {
-      window.location.href = `https://${slug}.lionheartapp.com/dashboard`
+      // F-039: build the redirect URL from the current host so it works in
+      // dev (localhost), in production (lionheartapp.com), and on whitelabel.
+      const host = window.location.hostname
+      const port = window.location.port ? `:${window.location.port}` : ''
+      const protocol = window.location.protocol
+      const isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(host)
+      const baseDomain = isLocal
+        ? `localhost${port}`
+        : `${host.replace(/^[^.]+\./, '')}${port}`
+      window.location.href = `${protocol}//${slug}.${baseDomain}/dashboard`
     } else {
       router.push('/dashboard')
     }
@@ -268,7 +277,7 @@ export default function SetupPage() {
         {/* Title */}
         <motion.div
           className="text-center"
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
@@ -305,7 +314,7 @@ export default function SetupPage() {
                   ) : step.status === 'loading' ? (
                     <motion.div
                       key="loading"
-                      initial={{ opacity: 0 }}
+                      initial={{ opacity: 1 }}
                       animate={{ opacity: 1 }}
                     >
                       <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
@@ -352,7 +361,7 @@ export default function SetupPage() {
   return (
     <motion.div
       className="space-y-10 py-8 text-center"
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
@@ -363,7 +372,7 @@ export default function SetupPage() {
       <div>
         <motion.h2
           className="text-4xl font-bold text-slate-900 mb-2"
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         >
@@ -371,7 +380,7 @@ export default function SetupPage() {
         </motion.h2>
         <motion.p
           className="text-lg text-slate-600"
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
         >
@@ -404,7 +413,7 @@ export default function SetupPage() {
       {/* CTA Buttons */}
       <motion.div
         className="flex flex-col gap-3 max-w-sm mx-auto pt-4"
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9, duration: 0.4, ease: 'easeOut' }}
       >

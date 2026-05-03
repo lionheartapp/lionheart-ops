@@ -45,12 +45,20 @@ export default function SchoolLookup() {
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" aria-hidden="true" />
+          {/* F-014: visually-hidden label so screen readers announce purpose. */}
+          <label htmlFor="school-url-input" className="sr-only">
+            School URL
+          </label>
           <input
+            id="school-url-input"
+            name="schoolSlug"
             type="text"
             value={slug}
             onChange={(e) => { setSlug(e.target.value); setError('') }}
             placeholder="your-school"
+            aria-label="School URL"
+            autoComplete="organization"
             autoFocus
             className="w-full pl-10 pr-4 py-3.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus-visible:ring-1 focus-visible:ring-slate-500/30 transition-colors"
           />
@@ -70,10 +78,15 @@ export default function SchoolLookup() {
           </div>
         )}
 
+        {/*
+          F-025: clearer disabled affordance — when the input is empty the
+          button now goes flat-grey with reduced opacity AND a not-allowed
+          cursor, so the user can predict whether clicking will do something.
+        */}
         <button
           type="submit"
           disabled={!slug.trim() || checking}
-          className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white bg-slate-700 rounded-xl hover:bg-slate-600 transition-colors disabled:opacity-40 disabled:bg-slate-800 disabled:cursor-not-allowed disabled:hover:bg-slate-800"
         >
           {checking ? (
             <>
