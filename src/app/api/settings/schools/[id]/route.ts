@@ -19,12 +19,12 @@ const UpdateSchoolSchema = z.object({
   name: safeName({ max: 120 }).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   logoUrl: z.string().nullable().optional(),
-  institutionType: z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID', 'FAITH_BASED']).nullable().optional(),
+  institutionType: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID', 'FAITH_BASED']).nullable().optional()),
   address: z.string().trim().max(300).nullable().optional(),
-  principalName: z.string().trim().max(100).nullable().optional(),
-  principalEmail: z.string().email().nullable().optional(),
-  principalPhone: z.string().trim().max(20).nullable().optional(),
-  principalPhoneExt: z.string().trim().max(20).nullable().optional(),
+  principalName: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(100).nullable().optional()),
+  principalEmail: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().email().nullable().optional()),
+  principalPhone: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(20).nullable().optional()),
+  principalPhoneExt: z.preprocess(v => (typeof v === 'string' && v.trim() === '' ? null : v), z.string().trim().max(20).nullable().optional()),
 })
 
 export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }>(async ({ orgId, body: input, params }) => {
