@@ -263,6 +263,7 @@ export const POST = withAuth(async ({ req, orgId }) => {
       email: true,
       phone: true,
       jobTitle: true,
+      avatar: true,
     },
   })
 
