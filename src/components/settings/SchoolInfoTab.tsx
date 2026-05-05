@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Save, School, Users, Globe } from 'lucide-react'
+import { Save, School, Globe } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import BrandingSection from '@/components/settings/school-info/BrandingSection'
@@ -460,24 +460,6 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           <FloatingInput id="si-schoolName" label="Organization Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
           <FloatingInput id="si-website" label="Website" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
           <FloatingInput id="si-phone" label="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
-        </div>
-      </section>
-
-      {/* Enrollment & Staffing */}
-      <section className="ui-glass p-6">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-            <Users className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">Enrollment & Staffing</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Organization-wide student and staff counts</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-          <FloatingInput id="si-studentCount" label="Student Count" type="number" min={0} value={form.studentCount} onChange={(event) => setForm((prev) => ({ ...prev, studentCount: event.target.value }))} />
-          <FloatingInput id="si-staffCount" label="Staff Count" type="number" min={0} value={form.staffCount} onChange={(event) => setForm((prev) => ({ ...prev, staffCount: event.target.value }))} />
         </div>
       </section>
       </div>
