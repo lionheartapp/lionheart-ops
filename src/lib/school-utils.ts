@@ -19,6 +19,7 @@ export type PrincipalOption = {
   email: string
   phone: string | null
   jobTitle: string
+  avatar: string | null
 }
 
 export type SuccessModalData = {

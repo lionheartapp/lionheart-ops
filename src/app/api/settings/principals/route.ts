@@ -74,12 +74,14 @@ const toPrincipalResponse = (user: {
   email: string
   phone: string | null
   jobTitle: string | null
+  avatar: string | null
 }) => ({
   id: user.id,
   name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
   email: user.email,
   phone: user.phone,
   jobTitle: user.jobTitle || '',
+  avatar: user.avatar,
 })
 
 // GET - Search for principals by name
@@ -123,6 +125,7 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       email: true,
       phone: true,
       jobTitle: true,
+      avatar: true,
     },
     orderBy: [
       { firstName: 'asc' },
