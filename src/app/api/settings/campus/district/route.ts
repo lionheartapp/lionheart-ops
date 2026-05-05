@@ -8,7 +8,20 @@ export const GET = withAuth(async ({ orgId }) => {
   const district = await prisma.district.findFirst({
     where: { organizationId: orgId, deletedAt: null },
     orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
-    select: { id: true, name: true },
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      city: true,
+      state: true,
+      zip: true,
+      phone: true,
+      email: true,
+      contactName: true,
+      contactTitle: true,
+      logoUrl: true,
+      _count: { select: { users: true, buildings: true } },
+    },
   })
 
   if (!district) {
