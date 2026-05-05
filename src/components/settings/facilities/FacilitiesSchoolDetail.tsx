@@ -17,6 +17,8 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/queries'
 import { fetchApi } from '@/lib/api-client'
 import SchoolsManagement, {
   type SchoolsManagementHandle,
@@ -142,6 +144,7 @@ export default function FacilitiesSchoolDetail({
   onBack,
   onOpenCampus,
 }: FacilitiesSchoolDetailProps) {
+  const queryClient = useQueryClient()
   const [school, setSchool] = useState<School | null>(null)
   const [campuses, setCampuses] = useState<CampusRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -199,6 +202,7 @@ export default function FacilitiesSchoolDetail({
         }),
       })
       setAddOpen(false)
+      queryClient.invalidateQueries({ queryKey: queryKeys.campuses.all })
       await loadAll()
     } catch (err: unknown) {
       setAddError(err instanceof Error ? err.message : 'Failed to create campus')
@@ -275,6 +279,7 @@ export default function FacilitiesSchoolDetail({
         method: 'DELETE',
       })
       setDeleteConfirmId(null)
+      queryClient.invalidateQueries({ queryKey: queryKeys.campuses.all })
       await loadAll()
     } catch (err: unknown) {
       setEditError(err instanceof Error ? err.message : 'Failed to delete campus')
