@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { CreditCard } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import type { Subscription, SubscriptionPlan, InvoiceItem, TrialInfo } from './billing/billing-types'
@@ -13,9 +14,20 @@ import { InvoiceHistorySection } from './billing/InvoiceHistorySection'
 import { CancelSubscriptionSection } from './billing/CancelSubscriptionSection'
 import { DangerZoneSection } from './billing/DangerZoneSection'
 
+// ─── Tab definitions ──────────────────────────────────────────────────────────
+
+type BillingSubTab = 'plans' | 'payment' | 'invoices'
+
+const BILLING_TABS: { key: BillingSubTab; label: string }[] = [
+  { key: 'plans', label: 'Plans' },
+  { key: 'payment', label: 'Payment' },
+  { key: 'invoices', label: 'Invoices' },
+]
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BillingTab() {
+  const [billingTab, setBillingTab] = useState<BillingSubTab>('plans')
   const [loading, setLoading] = useState(true)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
@@ -355,68 +367,113 @@ export default function BillingTab() {
 
   return (
     <div className="space-y-8">
-      <CurrentPlanSection
-        subscription={subscription}
-        trial={trial}
-        checkoutError={checkoutError}
-      />
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Billing</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage your subscription, plans, and payment method</p>
+          </div>
+        </div>
 
-      <PlanComparisonSection
-        plans={plans}
-        currentPlanId={currentPlanId}
-        currentPlanOrder={currentPlanOrder}
-        subscription={subscription}
-        checkoutLoading={checkoutLoading}
-        onStartCheckout={handleStartCheckout}
-        onPlanSelect={handlePlanSelect}
-      />
+        {/* Tab bar */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60">
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+            {BILLING_TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setBillingTab(t.key)}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                  billingTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {billingTab === t.key && (
+                  <motion.div
+                    layoutId="billingTabPill"
+                    className="absolute inset-0 rounded-full bg-slate-900"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                  />
+                )}
+                <span className="relative z-10">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <PaymentMethodSection
-        portalLoading={portalLoading}
-        portalError={portalError}
-        onManagePayment={handleManagePayment}
-      />
+      {billingTab === 'plans' && (
+        <>
+          <CurrentPlanSection
+            subscription={subscription}
+            trial={trial}
+            checkoutError={checkoutError}
+          />
 
-      <InvoiceHistorySection
-        invoices={invoices}
-        invoicesLoading={invoicesLoading}
-      />
+          <PlanComparisonSection
+            plans={plans}
+            currentPlanId={currentPlanId}
+            currentPlanOrder={currentPlanOrder}
+            subscription={subscription}
+            checkoutLoading={checkoutLoading}
+            onStartCheckout={handleStartCheckout}
+            onPlanSelect={handlePlanSelect}
+          />
 
-      {subscription && (
-        <CancelSubscriptionSection
-          subscription={subscription}
-          cancelError={cancelError}
-          reactivateError={reactivateError}
-          reactivateLoading={reactivateLoading}
-          onCancelClick={() => setCancelConfirmOpen(true)}
-          onReactivate={handleReactivate}
+          {subscription && (
+            <CancelSubscriptionSection
+              subscription={subscription}
+              cancelError={cancelError}
+              reactivateError={reactivateError}
+              reactivateLoading={reactivateLoading}
+              onCancelClick={() => setCancelConfirmOpen(true)}
+              onReactivate={handleReactivate}
+            />
+          )}
+
+          <DangerZoneSection
+            orgName={orgName}
+            deleteDialogOpen={deleteDialogOpen}
+            deleteConfirmationText={deleteConfirmationText}
+            deleteLoading={deleteLoading}
+            deleteError={deleteError}
+            onOpenDialog={() => {
+              setDeleteDialogOpen(true)
+              setDeleteConfirmationText('')
+              setDeleteError('')
+            }}
+            onCloseDialog={() => {
+              if (!deleteLoading) {
+                setDeleteDialogOpen(false)
+                setDeleteConfirmationText('')
+                setDeleteError('')
+              }
+            }}
+            onConfirmationTextChange={(text) => {
+              setDeleteConfirmationText(text)
+              setDeleteError('')
+            }}
+            onDeleteOrganization={handleDeleteOrganization}
+          />
+        </>
+      )}
+
+      {billingTab === 'payment' && (
+        <PaymentMethodSection
+          portalLoading={portalLoading}
+          portalError={portalError}
+          onManagePayment={handleManagePayment}
         />
       )}
 
-      <DangerZoneSection
-        orgName={orgName}
-        deleteDialogOpen={deleteDialogOpen}
-        deleteConfirmationText={deleteConfirmationText}
-        deleteLoading={deleteLoading}
-        deleteError={deleteError}
-        onOpenDialog={() => {
-          setDeleteDialogOpen(true)
-          setDeleteConfirmationText('')
-          setDeleteError('')
-        }}
-        onCloseDialog={() => {
-          if (!deleteLoading) {
-            setDeleteDialogOpen(false)
-            setDeleteConfirmationText('')
-            setDeleteError('')
-          }
-        }}
-        onConfirmationTextChange={(text) => {
-          setDeleteConfirmationText(text)
-          setDeleteError('')
-        }}
-        onDeleteOrganization={handleDeleteOrganization}
-      />
+      {billingTab === 'invoices' && (
+        <InvoiceHistorySection
+          invoices={invoices}
+          invoicesLoading={invoicesLoading}
+        />
+      )}
 
       {/* ── Plan Change Confirmation Dialog ──────────────────────────────────── */}
       <ConfirmDialog

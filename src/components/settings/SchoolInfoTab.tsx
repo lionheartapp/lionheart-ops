@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Save, School, Users, Globe } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
-import EventBufferSection from '@/components/settings/school-info/EventBufferSection'
 import BrandingSection from '@/components/settings/school-info/BrandingSection'
 import {
   type SchoolInfo,
@@ -20,9 +20,19 @@ type SchoolInfoTabProps = {
   onDirtyChange?: (isDirty: boolean) => void
   onRegisterSave?: (handler: () => Promise<boolean>) => void
   onRegisterDiscard?: (handler: () => void) => void
+  securitySection?: React.ReactNode
 }
 
-export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard }: SchoolInfoTabProps) {
+type SchoolInfoSubTab = 'details' | 'branding' | 'settings'
+
+const SCHOOL_INFO_TABS: { key: SchoolInfoSubTab; label: string }[] = [
+  { key: 'details', label: 'Details' },
+  { key: 'branding', label: 'Branding' },
+  { key: 'settings', label: 'Settings' },
+]
+
+export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard, securitySection }: SchoolInfoTabProps) {
+  const [subTab, setSubTab] = useState<SchoolInfoSubTab>('details')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -390,10 +400,51 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
 
   return (
     <form onSubmit={handleSave} className="space-y-6 pb-24">
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+            <School className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">School Information</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage your institution details, branding, and settings</p>
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60">
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+            {SCHOOL_INFO_TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setSubTab(t.key)}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                  subTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {subTab === t.key && (
+                  <motion.div
+                    layoutId="schoolInfoTabPill"
+                    className="absolute inset-0 rounded-full bg-slate-900"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                  />
+                )}
+                <span className="relative z-10">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {success && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
 
-      {/* Section 1 — School Details */}
+      {/* ── Details tab ── */}
+      <div className={subTab !== 'details' ? 'hidden' : 'space-y-6'}>
+
+      {/* School Details */}
       <section className="ui-glass p-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
@@ -460,8 +511,10 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           <FloatingInput id="si-staffCount" label="Staff Count" type="number" min={0} value={form.staffCount} onChange={(event) => setForm((prev) => ({ ...prev, staffCount: event.target.value }))} />
         </div>
       </section>
+      </div>
 
-      {/* Section 3 — Branding */}
+      {/* ── Branding tab ── */}
+      <div className={subTab !== 'branding' ? 'hidden' : undefined}>
       <BrandingSection
         form={form}
         setForm={setForm}
@@ -478,8 +531,12 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         handleSlugInputChange={handleSlugInputChange}
         handleSlugSave={handleSlugSave}
       />
+      </div>
 
-      {/* Section 4 — Workspace Metadata */}
+      {/* ── Settings tab ── */}
+      <div className={subTab !== 'settings' ? 'hidden' : 'space-y-6'}>
+
+      {/* Workspace Metadata */}
       <section className="ui-glass p-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
@@ -516,8 +573,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         </div>
       </section>
 
-      {/* Event Buffer Settings — standalone, separate from school-info form */}
-      <EventBufferSection />
+      {securitySection && securitySection}
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <button

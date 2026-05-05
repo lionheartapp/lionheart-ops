@@ -13,7 +13,7 @@ import MemberListTable from './MemberListTable'
 import EditMemberDrawer from './EditMemberDrawer'
 import InviteMemberDrawer from './InviteMemberDrawer'
 import MemberPermissionsDrawer from './MemberPermissionsDrawer'
-import type { ApiUser, TeamOption, RoleOption } from './types'
+import type { ApiUser, TeamOption, RoleOption, CampusOption, SchoolOption } from './types'
 
 type MembersTabProps = { onDirtyChange?: (isDirty: boolean) => void }
 
@@ -31,6 +31,8 @@ const STATUS_TABS = [
 const EMPTY_USERS: readonly ApiUser[] = []
 const EMPTY_ROLE_OPTIONS: readonly RoleOption[] = []
 const EMPTY_TEAM_OPTIONS: readonly TeamOption[] = []
+const EMPTY_CAMPUS_OPTIONS: readonly CampusOption[] = []
+const EMPTY_SCHOOL_OPTIONS: readonly SchoolOption[] = []
 
 const MembersTab = (_props: MembersTabProps) => {
   const queryClient = useQueryClient()
@@ -46,6 +48,12 @@ const MembersTab = (_props: MembersTabProps) => {
 
   const { data: teamsData } = useQuery(queryOptions.teams())
   const availableTeams = (teamsData as TeamOption[] | undefined) ?? (EMPTY_TEAM_OPTIONS as TeamOption[])
+
+  const { data: campusesData } = useQuery(queryOptions.campuses())
+  const availableCampuses = (campusesData as CampusOption[] | undefined) ?? (EMPTY_CAMPUS_OPTIONS as CampusOption[])
+
+  const { data: schoolsData } = useQuery(queryOptions.schools())
+  const availableSchools = (schoolsData as SchoolOption[] | undefined) ?? (EMPTY_SCHOOL_OPTIONS as SchoolOption[])
 
   const invalidateMembers = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.members.all })
@@ -131,8 +139,8 @@ const MembersTab = (_props: MembersTabProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="ui-glass p-6">
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
@@ -165,7 +173,7 @@ const MembersTab = (_props: MembersTabProps) => {
         </div>
         </div>
 
-        {/* Status Tabs — inside header card with separator */}
+        {/* Status Tabs */}
         <div className="mt-5 pt-5 border-t border-slate-200/60">
           <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
         {STATUS_TABS.map((t) => (
@@ -244,6 +252,8 @@ const MembersTab = (_props: MembersTabProps) => {
         onSaved={() => { setEditUser(null); invalidateMembers() }}
         availableRoles={availableRoles}
         availableTeams={availableTeams}
+        availableCampuses={availableCampuses}
+        availableSchools={availableSchools}
         rolesLoading={rolesLoading}
         getAuthHeaders={getAuthHeaders}
       />

@@ -91,10 +91,18 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     avatar: true,
     jobTitle: true,
     campusScope: true,
+    campusId: true,
+    schoolId: true,
     employmentType: true,
     phone: true,
     status: true,
     createdAt: true,
+    campus: {
+      select: { id: true, name: true },
+    },
+    school: {
+      select: { id: true, name: true },
+    },
     teams: {
       select: {
         team: { select: { id: true, name: true, slug: true } },

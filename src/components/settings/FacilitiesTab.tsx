@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import FacilitiesLanding from './facilities/FacilitiesLanding'
 import FacilitiesSchoolDetail from './facilities/FacilitiesSchoolDetail'
@@ -9,6 +9,7 @@ import CampusTab from './CampusTab'
 
 interface FacilitiesTabProps {
   onDirtyChange?: (isDirty: boolean) => void
+  active?: boolean
 }
 
 type ViewMode =
@@ -16,14 +17,23 @@ type ViewMode =
   | { kind: 'school-detail'; schoolId: string }
   | { kind: 'campus-detail'; schoolId: string; campusId: string; schoolName: string; campusName: string }
 
-export default function FacilitiesTab({ onDirtyChange }: FacilitiesTabProps = {}) {
+export default function FacilitiesTab({ onDirtyChange, active }: FacilitiesTabProps = {}) {
   const [view, setView] = useState<ViewMode>({ kind: 'landing' })
   const schoolsRef = useRef<SchoolsManagementHandle>(null)
   const [landingKey, setLandingKey] = useState(0)
 
+  // Reset to landing when the tab becomes active again
+  const prevActive = useRef(active)
+  useEffect(() => {
+    if (active && !prevActive.current) {
+      setView({ kind: 'landing' })
+    }
+    prevActive.current = active
+  }, [active])
+
   if (view.kind === 'campus-detail') {
     return (
-      <div className="space-y-4">
+      <div className="px-4 sm:px-8 py-6 space-y-4">
         <nav className="flex items-center gap-2 text-sm text-slate-500">
           <button
             onClick={() => setView({ kind: 'landing' })}

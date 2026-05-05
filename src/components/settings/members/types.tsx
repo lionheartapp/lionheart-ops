@@ -6,6 +6,10 @@ export interface ApiUser {
   lastName: string | null
   avatar: string | null
   jobTitle: string | null
+  campusId: string | null
+  campus: { id: string; name: string } | null
+  schoolId: string | null
+  school: { id: string; name: string } | null
   status: string
   createdAt: string
   teams: { team: { id: string; name: string; slug: string } }[]
@@ -22,6 +26,16 @@ export interface RoleOption {
   id: string
   name: string
   slug: string
+}
+
+export interface CampusOption {
+  id: string
+  name: string
+}
+
+export interface SchoolOption {
+  id: string
+  name: string
 }
 
 export function getDisplayName(user: { firstName: string | null; lastName: string | null; name: string | null }): string | null {

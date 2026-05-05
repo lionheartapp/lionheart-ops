@@ -4,7 +4,7 @@ import { useState, useCallback, type FormEvent } from 'react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import TeamMultiSelect from './TeamMultiSelect'
-import type { ApiUser, TeamOption, RoleOption } from './types'
+import type { ApiUser, TeamOption, RoleOption, CampusOption, SchoolOption } from './types'
 
 interface EditMemberDrawerProps {
   user: ApiUser | null
@@ -12,6 +12,8 @@ interface EditMemberDrawerProps {
   onSaved: () => void
   availableRoles: RoleOption[]
   availableTeams: TeamOption[]
+  availableCampuses: CampusOption[]
+  availableSchools: SchoolOption[]
   rolesLoading: boolean
   getAuthHeaders: () => Record<string, string>
 }
@@ -22,6 +24,8 @@ export default function EditMemberDrawer({
   onSaved,
   availableRoles,
   availableTeams,
+  availableCampuses,
+  availableSchools,
   rolesLoading,
   getAuthHeaders,
 }: EditMemberDrawerProps) {
@@ -31,6 +35,8 @@ export default function EditMemberDrawer({
     jobTitle: '',
     status: 'ACTIVE',
     roleId: '',
+    campusId: '',
+    schoolId: '',
     teamIds: [] as string[],
   })
   const [saving, setSaving] = useState(false)
@@ -46,6 +52,8 @@ export default function EditMemberDrawer({
       jobTitle: user.jobTitle || '',
       status: user.status,
       roleId: user.userRole?.id || '',
+      campusId: user.campusId || '',
+      schoolId: user.schoolId || '',
       teamIds: user.teams.map((t) => t.team.id),
     })
     setError('')
@@ -75,6 +83,8 @@ export default function EditMemberDrawer({
           jobTitle: editForm.jobTitle.trim() || null,
           status: editForm.status,
           ...(editForm.roleId ? { roleId: editForm.roleId } : {}),
+          campusId: editForm.campusId || null,
+          schoolId: editForm.schoolId || null,
           teamIds: editForm.teamIds,
         }),
       })
@@ -169,6 +179,34 @@ export default function EditMemberDrawer({
               options={[
                 { value: '', label: 'No role assigned' },
                 ...availableRoles.map((role) => ({ value: role.id, label: role.name })),
+              ]}
+            />
+          )}
+
+          {availableSchools.length > 0 && (
+            <FloatingDropdown
+              id="edit-schoolId"
+              label="School"
+              value={editForm.schoolId}
+              onChange={(v) => setEditForm((p) => ({ ...p, schoolId: v }))}
+              disabled={saving}
+              options={[
+                { value: '', label: 'No school assigned' },
+                ...availableSchools.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+            />
+          )}
+
+          {availableCampuses.length > 0 && (
+            <FloatingDropdown
+              id="edit-campusId"
+              label="Campus"
+              value={editForm.campusId}
+              onChange={(v) => setEditForm((p) => ({ ...p, campusId: v }))}
+              disabled={saving}
+              options={[
+                { value: '', label: 'No campus assigned' },
+                ...availableCampuses.map((c) => ({ value: c.id, label: c.name })),
               ]}
             />
           )}

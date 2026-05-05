@@ -84,27 +84,31 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
 
   return (
     <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-white" />
+      {/* Header — full-width, flush top (matches other settings tabs) */}
+      <div className="px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900">Facilities</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Manage schools, campuses, buildings, and spaces</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">Facilities</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Manage schools, campuses, buildings, and spaces</p>
-          </div>
+          {onAddSchool && (
+            <button
+              onClick={onAddSchool}
+              className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Add School
+            </button>
+          )}
         </div>
-        {onAddSchool && (
-          <button
-            onClick={onAddSchool}
-            className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" /> Add School
-          </button>
-        )}
       </div>
 
+      {/* Content with padding */}
+      <div className="px-4 sm:px-8 pb-10 space-y-6">
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
@@ -195,6 +199,7 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
               </button>
             )
           })}
+      </div>
       </div>
 
     </div>

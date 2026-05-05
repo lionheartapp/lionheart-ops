@@ -43,7 +43,7 @@ const dyn = <T,>(loader: () => Promise<{ default: T }>) =>
 const RolesTab = dyn(() => import('@/components/settings/RolesTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
 const TeamsTab = dyn(() => import('@/components/settings/TeamsTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
 const MembersTab = dyn(() => import('@/components/settings/MembersTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
-const FacilitiesTab = dyn(() => import('@/components/settings/FacilitiesTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void }>
+const FacilitiesTab = dyn(() => import('@/components/settings/FacilitiesTab')) as React.ComponentType<{ onDirtyChange?: (d: boolean) => void; active?: boolean }>
 const SchoolInfoTab = dyn(() => import('@/components/settings/SchoolInfoTab')) as React.ComponentType<{
   onDirtyChange?: (d: boolean) => void
   onRegisterSave?: (handler: () => Promise<boolean>) => void
@@ -378,9 +378,10 @@ export default function SettingsPage() {
       schoolLabel={userSchoolScope || orgSchoolType || orgName || 'School'}
       teamLabel={userTeam || userRole || 'Team'}
       onLogout={handleLogout}
+      noPadding
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex-1 min-h-0 overflow-y-auto -mr-4 sm:-mr-10 pr-4 sm:pr-10">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 pb-6">
               {/*
                 F-015: visually-hidden h1 establishes the page heading for
                 screen readers. The on-screen tab panels keep their existing
@@ -439,10 +440,8 @@ export default function SettingsPage() {
                     onDirtyChange={setSchoolInfoDirty}
                     onRegisterSave={(handler) => setSchoolInfoSaveHandler(() => handler)}
                     onRegisterDiscard={(handler) => setSchoolInfoDiscardHandler(() => handler)}
+                    securitySection={<SecuritySettingsSection />}
                   />
-                  <div className="mt-6">
-                    <SecuritySettingsSection />
-                  </div>
                 </TabPanel>
               )}
 
@@ -460,7 +459,9 @@ export default function SettingsPage() {
 
               {canManageWorkspace && visitedTabs.has('campus') && (
                 <TabPanel active={activeTab === 'campus'}>
-                  <FacilitiesTab onDirtyChange={setCampusDirty} />
+                  <div className="-mx-4 sm:-mx-8 -mb-6">
+                    <FacilitiesTab onDirtyChange={setCampusDirty} active={activeTab === 'campus'} />
+                  </div>
                 </TabPanel>
               )}
 

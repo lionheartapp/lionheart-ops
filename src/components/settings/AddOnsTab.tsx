@@ -241,9 +241,10 @@ export default function AddOnsTab() {
   const configMod = MODULE_REGISTRY.find((m) => m.id === configModuleId)
 
   return (
-    <div>
-      <div className="ui-glass p-6">
-        <div className="flex items-center gap-4 mb-8">
+    <div className="space-y-6">
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
             <Settings2 className="w-5 h-5 text-white" />
           </div>
@@ -252,6 +253,7 @@ export default function AddOnsTab() {
             <p className="text-sm text-slate-500 mt-0.5">Enable optional modules to extend your workspace</p>
           </div>
         </div>
+      </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -376,8 +378,6 @@ export default function AddOnsTab() {
           })}
         </div>
       )}
-
-      </div>
 
       {mutation.isError && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

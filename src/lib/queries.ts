@@ -438,6 +438,12 @@ export const queryOptions = {
     staleTime: 5 * 60 * 1000,
   }),
 
+  schools: () => ({
+    queryKey: queryKeys.schools.all,
+    queryFn: () => fetchApi<unknown[]>('/api/settings/schools'),
+    staleTime: 5 * 60 * 1000,
+  }),
+
   modules: () => ({
     queryKey: queryKeys.modules.all,
     queryFn: () => fetchApi<unknown[]>('/api/modules'),

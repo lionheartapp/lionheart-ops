@@ -387,7 +387,7 @@ export default function FacilitiesSchoolDetail({
   // ─── Loading skeleton ────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="space-y-5">
+      <div className="px-4 sm:px-8 py-6 space-y-5">
         <button
           type="button"
           onClick={onBack}
@@ -430,7 +430,7 @@ export default function FacilitiesSchoolDetail({
 
   if (error || !school) {
     return (
-      <div className="space-y-5">
+      <div className="px-4 sm:px-8 py-6 space-y-5">
         <button
           type="button"
           onClick={onBack}
@@ -560,19 +560,6 @@ export default function FacilitiesSchoolDetail({
             value={totals.spaces}
             icon={<DoorOpen className="w-4 h-4" />}
             dim={totals.spaces === 0}
-            dark
-          />
-          <StatCard
-            label="Setup"
-            value={`${setupPct}%`}
-            icon={
-              setupComplete ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              ) : (
-                <Sparkles className="w-4 h-4 text-amber-400" />
-              )
-            }
-            accent={setupComplete ? 'success' : 'progress'}
             dark
           />
         </div>

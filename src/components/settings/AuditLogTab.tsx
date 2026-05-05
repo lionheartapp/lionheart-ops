@@ -308,8 +308,8 @@ export default function AuditLogTab() {
 
   return (
     <div className="animate-[fadeIn_200ms_ease-out]">
-      {/* Header + Filters */}
-      <div className="ui-glass p-6 mb-4">
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60 mb-4">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />

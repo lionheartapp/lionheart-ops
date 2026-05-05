@@ -100,14 +100,16 @@ export default function IntegrationsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
-          <Link2 className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Connect external services to sync data and send notifications</p>
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
+            <Link2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Integrations</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Connect external services to sync data and send notifications</p>
+          </div>
         </div>
       </div>
 
