@@ -83,7 +83,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateSchoolSchema>, { id: string }
       ...(input.name !== undefined && { name: input.name }),
       ...(input.color !== undefined && { color: input.color }),
       ...(input.logoUrl !== undefined && { logoUrl: input.logoUrl }),
-      ...(input.institutionType !== undefined && { institutionType: input.institutionType }),
+      ...(input.institutionType ? { institutionType: input.institutionType } : {}),
       ...(input.address !== undefined && { address: input.address }),
       ...(input.principalName !== undefined && { principalName: input.principalName }),
       ...(input.principalEmail !== undefined && { principalEmail: input.principalEmail }),
