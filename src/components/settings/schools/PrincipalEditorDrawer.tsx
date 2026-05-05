@@ -8,7 +8,7 @@ import type { PrincipalEditorData } from '@/lib/school-utils'
 import { formatPhoneInput, normalizeExtensionInput, isValidPhoneValue } from '@/lib/school-utils'
 import type { School } from '@prisma/client'
 
-type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
+type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'logoUrl' | 'institutionType' | 'address' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
 interface PrincipalEditorDrawerProps {
   isOpen: boolean
