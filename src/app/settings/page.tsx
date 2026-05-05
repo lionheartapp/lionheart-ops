@@ -48,6 +48,7 @@ const SchoolInfoTab = dyn(() => import('@/components/settings/SchoolInfoTab')) a
   onDirtyChange?: (d: boolean) => void
   onRegisterSave?: (handler: () => Promise<boolean>) => void
   onRegisterDiscard?: (handler: () => void) => void
+  securitySection?: React.ReactNode
 }>
 const SecuritySettingsSection = dyn(() => import('@/components/settings/SecuritySettingsSection')) as React.ComponentType
 const AcademicCalendarTab = dyn(() => import('@/components/settings/AcademicCalendarTab')) as React.ComponentType
