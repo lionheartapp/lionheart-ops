@@ -334,17 +334,19 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
                   Create a district to manage district-level offices and buildings.
                 </div>
                 <div className="flex items-center justify-center gap-2 max-w-sm mx-auto">
-                  <FloatingInput
-                    id="create-district-name"
-                    label="District name"
+                  {/* eslint-disable-next-line no-restricted-syntax -- inline create, not a form field */}
+                  <input
+                    type="text"
+                    placeholder="District name"
                     value={districtName}
                     onChange={(e) => setDistrictName(e.target.value)}
                     disabled={creatingDistrict}
+                    className="flex-1 h-11 px-4 text-sm rounded-full border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
                   />
                   <button
                     onClick={handleCreateDistrict}
                     disabled={creatingDistrict || !districtName.trim()}
-                    className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    className="h-11 px-5 bg-slate-900 text-white text-sm font-semibold rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                   >
                     {creatingDistrict ? 'Creating...' : 'Create'}
                   </button>
