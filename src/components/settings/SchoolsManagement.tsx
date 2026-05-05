@@ -8,6 +8,7 @@ import { Plus, Edit2, Trash2, Check } from 'lucide-react'
 import type { School } from '@prisma/client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { IllustrationCampus } from '@/components/illustrations'
 import PrincipalSearch from '@/components/settings/schools/PrincipalSearch'
 import PrincipalEditorDrawer from '@/components/settings/schools/PrincipalEditorDrawer'
@@ -22,7 +23,7 @@ import {
 } from '@/lib/school-utils'
 import type { SchoolFormData, SuccessModalData, PrincipalEditorData } from '@/lib/school-utils'
 
-type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
+type SchoolData = Pick<School, 'id' | 'name' | 'color' | 'logoUrl' | 'institutionType' | 'address' | 'principalName' | 'principalEmail' | 'principalPhone' | 'principalPhoneExt' | 'createdAt' | 'updatedAt'>
 
 export type SchoolsManagementHandle = {
   openNew: () => void
@@ -255,6 +256,8 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
                   ...s,
                   name: form.name,
                   color: form.color,
+                  institutionType: (form.institutionType || null) as School['institutionType'],
+                  address: form.address || null,
                   principalName: form.principalName || null,
                   principalEmail: form.principalEmail || null,
                   principalPhone: form.principalPhone || null,
@@ -336,6 +339,8 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
       name: school.name,
       gradeLevel: 'ELEMENTARY',
       color: school.color || '#3b82f6',
+      institutionType: school.institutionType || '',
+      address: school.address || '',
       principalName: school.principalName || '',
       principalEmail: school.principalEmail || '',
       principalPhone: school.principalPhone || '',
@@ -619,6 +624,28 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
                   </button>
                 ))}
               </div>
+            </div>
+            <FloatingDropdown
+              id="sm-institutionType"
+              label="Institution Type"
+              value={form.institutionType}
+              onChange={(v) => setForm((prev) => ({ ...prev, institutionType: v }))}
+              options={[
+                { value: '', label: '-- Select Type --' },
+                { value: 'PUBLIC', label: 'Public' },
+                { value: 'PRIVATE', label: 'Private' },
+                { value: 'CHARTER', label: 'Charter' },
+                { value: 'HYBRID', label: 'Hybrid' },
+                { value: 'FAITH_BASED', label: 'Faith-based' },
+              ]}
+            />
+
+            <div>
+              <label htmlFor="sm-address" className="block text-xs text-slate-500 font-medium mb-1.5">Address</label>
+              <AddressAutocomplete
+                value={form.address}
+                onChange={(value) => setForm((prev) => ({ ...prev, address: value }))}
+              />
             </div>
           </section>
 

@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Save, School, Users, Globe } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
-import AddressAutocomplete from '@/components/AddressAutocomplete'
-import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { FloatingInput } from '@/components/ui/FloatingInput'
 import BrandingSection from '@/components/settings/school-info/BrandingSection'
+import SchoolsManagement from '@/components/settings/SchoolsManagement'
 import {
   type SchoolInfo,
   type FormState,
@@ -23,16 +23,16 @@ type SchoolInfoTabProps = {
   securitySection?: React.ReactNode
 }
 
-type SchoolInfoSubTab = 'details' | 'branding' | 'settings'
+type SchoolInfoSubTab = 'organization' | 'schools' | 'branding-settings'
 
 const SCHOOL_INFO_TABS: { key: SchoolInfoSubTab; label: string }[] = [
-  { key: 'details', label: 'Details' },
-  { key: 'branding', label: 'Branding' },
-  { key: 'settings', label: 'Settings' },
+  { key: 'organization', label: 'Organization' },
+  { key: 'schools', label: 'Schools' },
+  { key: 'branding-settings', label: 'Branding & Settings' },
 ]
 
 export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegisterDiscard, securitySection }: SchoolInfoTabProps) {
-  const [subTab, setSubTab] = useState<SchoolInfoSubTab>('details')
+  const [subTab, setSubTab] = useState<SchoolInfoSubTab>('organization')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -441,60 +441,29 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {success && <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
 
-      {/* ── Details tab ── */}
-      <div className={subTab !== 'details' ? 'hidden' : 'space-y-6'}>
+      {/* ── Organization tab ── */}
+      <div className={subTab !== 'organization' ? 'hidden' : 'space-y-6'}>
 
-      {/* School Details */}
+      {/* Organization Details */}
       <section className="ui-glass p-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
             <School className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">School Details</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Basic information about your institution</p>
+            <h3 className="text-lg font-semibold text-slate-900">Organization Details</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Basic information about your organization</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
-          <FloatingInput id="si-schoolName" label="School Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
-
-          <FloatingDropdown id="si-institutionType" label="Institution Type" value={form.institutionType} onChange={(v) => setForm((prev) => ({ ...prev, institutionType: v as FormState['institutionType'] }))} options={[
-            { value: '', label: '-- Select Institution Type --' },
-            { value: 'PUBLIC', label: 'Public' },
-            { value: 'PRIVATE', label: 'Private' },
-            { value: 'CHARTER', label: 'Charter' },
-            { value: 'HYBRID', label: 'Hybrid' },
-          ]} />
-
-          <FloatingDropdown id="si-gradeLevel" label="Grade Level / Organization Type" value={form.gradeLevel} onChange={(v) => setForm((prev) => ({ ...prev, gradeLevel: v as FormState['gradeLevel'] }))} options={[
-            { value: '', label: '-- Select Type --' },
-            { value: 'ELEMENTARY', label: 'Elementary School' },
-            { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
-            { value: 'HIGH_SCHOOL', label: 'High School' },
-            { value: 'GLOBAL', label: 'Global' },
-            { value: 'MULTI_SCHOOL_CAMPUS', label: 'Multi-School Campus' },
-          ]} />
-
-          <FloatingInput id="si-district" label="District" value={form.district} onChange={(event) => setForm((prev) => ({ ...prev, district: event.target.value }))} />
-
+          <FloatingInput id="si-schoolName" label="Organization Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
           <FloatingInput id="si-website" label="Website" value={form.website} onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))} />
-
-          <FloatingInput id="si-phone" label="School Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
-
-          <FloatingInput id="si-gradeRange" label="Grade Range" value={form.gradeRange} onChange={(event) => setForm((prev) => ({ ...prev, gradeRange: event.target.value }))} />
-
-          <div className="md:col-span-2">
-            <label htmlFor="si-physicalAddress" className="block text-xs text-slate-500 font-medium mb-1.5">Physical Address</label>
-            <AddressAutocomplete
-              value={form.physicalAddress}
-              onChange={(value) => setForm((prev) => ({ ...prev, physicalAddress: value }))}
-            />
-          </div>
+          <FloatingInput id="si-phone" label="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
         </div>
       </section>
 
-      {/* Section 2 — Enrollment & Staffing */}
+      {/* Enrollment & Staffing */}
       <section className="ui-glass p-6">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
@@ -502,7 +471,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Enrollment & Staffing</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Student and staff counts</p>
+            <p className="text-sm text-slate-500 mt-0.5">Organization-wide student and staff counts</p>
           </div>
         </div>
 
@@ -513,8 +482,13 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
       </section>
       </div>
 
-      {/* ── Branding tab ── */}
-      <div className={subTab !== 'branding' ? 'hidden' : undefined}>
+      {/* ── Schools tab ── */}
+      <div className={subTab !== 'schools' ? 'hidden' : undefined}>
+        <SchoolsManagement />
+      </div>
+
+      {/* ── Branding & Settings tab ── */}
+      <div className={subTab !== 'branding-settings' ? 'hidden' : 'space-y-6'}>
       <BrandingSection
         form={form}
         setForm={setForm}
@@ -531,10 +505,6 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
         handleSlugInputChange={handleSlugInputChange}
         handleSlugSave={handleSlugSave}
       />
-      </div>
-
-      {/* ── Settings tab ── */}
-      <div className={subTab !== 'settings' ? 'hidden' : 'space-y-6'}>
 
       {/* Workspace Metadata */}
       <section className="ui-glass p-6">

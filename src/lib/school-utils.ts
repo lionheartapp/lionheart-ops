@@ -5,6 +5,8 @@ export type SchoolFormData = {
   name: string
   gradeLevel: 'ALL_GRADES' | 'ELEMENTARY' | 'MIDDLE_SCHOOL' | 'HIGH_SCHOOL'
   color: string
+  institutionType: string
+  address: string
   principalName: string
   principalEmail: string
   principalPhone: string
@@ -64,6 +66,8 @@ export const EMPTY_FORM: SchoolFormData = {
   name: '',
   gradeLevel: 'ALL_GRADES',
   color: '#3b82f6',
+  institutionType: '',
+  address: '',
   principalName: '',
   principalEmail: '',
   principalPhone: '',
