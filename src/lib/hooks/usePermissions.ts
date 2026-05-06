@@ -59,6 +59,7 @@ interface Permissions {
   canManageSecurityIncidents: boolean
   canReadInventory: boolean
   canWriteInventory: boolean
+  canViewMedical: boolean
   legacyRole: string | null
   userTeams: UserTeam[]
 }

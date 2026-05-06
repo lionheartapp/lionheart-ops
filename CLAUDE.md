@@ -469,6 +469,45 @@ When creating or editing ANY UI — components, pages, layouts, modals, drawers 
 - Sport color dots: `w-2.5 h-2.5 rounded-full` with inline `backgroundColor`
 - Campus filtering: always filter client-side by `activeCampusId` when in multi-campus views
 
+### Form Fields — single source of truth (non-negotiable)
+
+**Never write raw `<input>`, `<select>`, or `<textarea>` in product code.** Drift between fields (one with `rounded-lg` and `border-slate-200`, another with `rounded-xl` and `border-slate-300`) is exactly what this rule prevents. ESLint enforces this — `no-restricted-syntax` flags any raw form element outside `src/components/ui/`.
+
+Always use the primitives in `src/components/ui/`:
+
+- `<Input>` — single-line text inputs (text, date, time, email, password, etc.)
+- `<Textarea>` — multi-line text
+- `<Select>` — dropdowns with single-value options
+- `<Checkbox>` — boolean toggles, optionally with label/description
+- `<Radio>` + `<RadioGroup>` — mutually exclusive options
+- `<SearchInput>` — search box with built-in magnifying glass + optional clear button
+- `<FileInput>` — drag-and-drop + click-to-upload zone (handles selection only — parent decides what to do with the files)
+- `<AssigneePicker>` — person picker with avatars (specialized Select for users, lives in `src/components/events/`)
+
+All of these compose `src/components/ui/form-tokens.ts`, which in turn references theme tokens defined in `tailwind.config.ts`. **If you need a new field variant, build it on top of those tokens — do not fork the styles inline.** If a token is wrong, change the value in the right place and everything updates.
+
+**Where each token lives:**
+- **Numbers (radius, height)** → `tailwind.config.ts` under `theme.extend.borderRadius` and `theme.extend.height`
+  - `borderRadius.field` (8px) — change here to retune all field corners app-wide
+  - `borderRadius.field-panel` (12px) — dropdown panels
+  - `height.field` (52px) — single-line fields
+  - `height.field-sm` (36px) — compact / tabular fields
+- **Class strings (border, focus, padding)** → `src/components/ui/form-tokens.ts`
+  - `FIELD_BORDER` = `border border-slate-200` (resting)
+  - `FIELD_BORDER_HOVER` = `hover:border-slate-300`
+  - `FIELD_FOCUS` = focus state (indigo-400 border + indigo-100 ring)
+  - `FIELD_BG` = `bg-white`
+- **Composed presets** → also in `form-tokens.ts`
+  - `INPUT_CLASSES`, `INPUT_CLASSES_SM`, `TEXTAREA_CLASSES`, `FIELD_TRIGGER_CLASSES`, `PANEL_CLASSES`
+
+**Compact variant.** All single-line primitives accept `size="sm"` for dense / tabular contexts (table cells, inline editing rows). `size="default"` (52px) is for forms; `size="sm"` (36px) is for tables.
+
+**To change the field corner radius app-wide:** edit `borderRadius.field` in `tailwind.config.ts` from `'0.5rem'` to whatever you want. Every Input, Select, Textarea, AssigneePicker, SearchInput, FileInput, and the panels they open will rebuild with the new radius. Same for height — edit `height.field`.
+
+**ESLint enforcement.** `npx eslint <file>` will warn on every raw `<input>`, `<select>`, or `<textarea>`. The rule is set to `warn` (not `error`) until the existing ~640 violations are migrated. New code: prefer using the primitives directly. When touching an old file with violations, opportunistically convert them. For genuine exceptions, use `// eslint-disable-next-line no-restricted-syntax` with a one-line reason.
+
+**Migration plan.** As old files are touched for unrelated work, convert the form elements while you're there. Once the warning count is at or near zero, flip the rule from `warn` to `error` in `.eslintrc.json` to lock the codebase down.
+
 ### Marketing Skills (Available on Demand)
 
 34 marketing skills are installed in `.claude/skills/`. Use them when working on any marketing-related task:

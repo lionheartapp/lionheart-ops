@@ -10,6 +10,7 @@ import ErrorCard from '@/components/ErrorCard'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
+import { readResourceItems } from '@/lib/utils/resourceItems'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
@@ -801,7 +802,7 @@ export default function DashboardPage() {
                 ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
                 : project.createdBy?.email
               const meta = (project.metadata ?? {}) as Record<string, unknown>
-              const facilityNeeds = (meta.facilityNeeds ?? []) as string[]
+              const facilityNeeds = readResourceItems(meta, 'facilityNeeds').map((i) => i.name)
 
               return (
                 <div key={project.id} className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, RefreshCw, UserCog, Download } from 'lucide-react'
@@ -8,6 +8,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
 import { queryOptions, queryKeys } from '@/lib/queries'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import MemberListTable from './MemberListTable'
 import EditMemberDrawer from './EditMemberDrawer'
@@ -37,6 +38,11 @@ const EMPTY_SCHOOL_OPTIONS: readonly SchoolOption[] = []
 const MembersTab = (_props: MembersTabProps) => {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+
+  // Global "school viewpoint" — when set, narrow the list to members of that
+  // school. Users without a school (district-level admins) stay visible so
+  // org-wide owners aren't accidentally hidden.
+  const { activeSchoolId, activeSchoolLabel } = useActiveSchool()
 
   // ─── Cached queries ─────────────────────────────────────────────────────
   const { data: usersData, isLoading: loading, error: usersError } = useQuery(queryOptions.members())
@@ -126,16 +132,28 @@ const MembersTab = (_props: MembersTabProps) => {
     }
   }
 
-  const filtered = users.filter((u) => {
-    const matchesStatus = statusTab === 'all' || u.status === statusTab
+  // Status + search + school filter. School matches against either the
+  // user's campusId (typical assignment) or schoolId (institution-level
+  // assignment), since the active selection is one or the other depending
+  // on org structure. Users with neither field set are treated as
+  // district/org-wide and remain visible.
+  const filtered = useMemo(() => {
     const q = search.toLowerCase()
-    const matchesSearch =
-      !q ||
-      `${u.firstName ?? ''} ${u.lastName ?? ''}`.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      (u.userRole?.name ?? '').toLowerCase().includes(q)
-    return matchesStatus && matchesSearch
-  })
+    return users.filter((u) => {
+      const matchesStatus = statusTab === 'all' || u.status === statusTab
+      const matchesSearch =
+        !q ||
+        `${u.firstName ?? ''} ${u.lastName ?? ''}`.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.userRole?.name ?? '').toLowerCase().includes(q)
+      const matchesSchool =
+        !activeSchoolId ||
+        u.campusId === activeSchoolId ||
+        u.schoolId === activeSchoolId ||
+        (!u.campusId && !u.schoolId)
+      return matchesStatus && matchesSearch && matchesSchool
+    })
+  }, [users, statusTab, search, activeSchoolId])
 
   return (
     <div className="space-y-6">

@@ -264,12 +264,10 @@ input[type="datetime-local"] {
   cursor: pointer;
 }
 
-input[type="date"]:hover,
-input[type="time"]:hover,
-input[type="datetime-local"]:hover {
-  border-color: rgb(148 163 184); /* slate-400 */
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
+/* Hover state intentionally NOT styled here — date/time inputs inherit the
+   standard form-field hover via @/components/ui/Input + form-tokens.ts.
+   Adding a custom hover-darker rule here caused border drift between date
+   inputs and other fields. Don't add it back. */
 
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator,

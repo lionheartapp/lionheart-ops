@@ -6,6 +6,7 @@ import {
   Home,
   CalendarClock,
   Trophy,
+  CheckSquare,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
@@ -124,6 +125,7 @@ export default function MainNavContent({
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
+    { icon: CheckSquare, label: 'My tasks', href: '/my-tasks' },
   ]
 
   return (

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Building2, MapPin, DoorOpen, Plus } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { getAuthHeaders } from '@/lib/api-client'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import SchoolsManagement, { type SchoolsManagementHandle } from '@/components/settings/SchoolsManagement'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
@@ -36,8 +37,15 @@ type CampusTabProps = {
 
 export default function CampusTab({ onDirtyChange, embedded = false, initialCampusId }: CampusTabProps = {}) {
   // ─── Campus state ──────────────────────────────────────────────────────
+  // The sidebar's "active school" picks the default campus on first load.
+  // The per-page CampusSelector still lets admins jump between campuses
+  // without leaving Settings; switching the sidebar school later will
+  // re-sync this page so the two stay in lockstep.
+  const { activeSchoolId } = useActiveSchool()
   const [campuses, setCampuses] = useState<Campus[]>([])
-  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(initialCampusId ?? null)
+  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(
+    initialCampusId ?? activeSchoolId ?? null,
+  )
   const [campusesLoading, setCampusesLoading] = useState(true)
 
   // Add campus
@@ -130,6 +138,17 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
 
   useEffect(() => { onDirtyChange?.(hasUnsavedChanges) }, [hasUnsavedChanges, onDirtyChange])
 
+  // Keep the in-page selector in sync with the sidebar's active school.
+  // When the sidebar switches to a specific school AND that school exists
+  // as a campus in this org, follow it. Switching to "All Schools" leaves
+  // the user's current pick alone — that's their working context.
+  useEffect(() => {
+    if (!activeSchoolId) return
+    if (activeSchoolId === selectedCampusId) return
+    if (!campuses.some((c) => c.id === activeSchoolId)) return
+    setSelectedCampusId(activeSchoolId)
+  }, [activeSchoolId, campuses, selectedCampusId])
+
   useEffect(() => {
     if (!successMessage) return
     const delay = lastCreatedBuilding ? 6000 : 2500
@@ -155,8 +174,13 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
       const list = json.data || []
       setCampuses(list)
       if (list.length > 0 && !selectedCampusId) {
-        setSelectedCampusId(list[0].id)
-        if (andLoadData) loadDataForCampus(list[0].id)
+        // Prefer the sidebar's active school if it points to one of our
+        // campuses; fall back to the first campus otherwise.
+        const preferred = activeSchoolId && list.some((c: Campus) => c.id === activeSchoolId)
+          ? activeSchoolId
+          : list[0].id
+        setSelectedCampusId(preferred)
+        if (andLoadData) loadDataForCampus(preferred)
       }
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to load campuses') }
     finally { setCampusesLoading(false) }

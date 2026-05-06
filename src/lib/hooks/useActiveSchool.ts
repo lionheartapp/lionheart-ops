@@ -28,18 +28,21 @@
  *   - Returns `isMultiSchool: false` when the org has 0 or 1 schools, so
  *     consumers can hide the selector UI.
  *
- * Intentionally separate from `useCampusFilter`:
- *   - `useCampusFilter` is coupled to the facilities-enabled-campus notion
- *     (it intersects with active `tenant-modules`) and uses localStorage
- *     key `facilities-campus-filter`.
- *   - `useActiveSchool` is the app-wide viewpoint and is module-agnostic.
- *   - Planned consolidation: a future refactor collapses the two once the
- *     District → School → Campus hierarchy lands. Until then, both coexist.
+ * Module restriction:
+ *   - Pass `{ restrictToModule: 'maintenance' }` to scope the returned
+ *     `schools` list to only those with that tenant module enabled.
+ *   - When the global selection points to a school that does NOT have the
+ *     module enabled, the hook returns `activeSchoolId: null` (acts as
+ *     "All enabled schools"). The user's underlying selection is preserved
+ *     in localStorage so leaving the module page restores their pick.
+ *   - This replaces the legacy `useCampusFilter` hook — there is now ONE
+ *     source of truth for which school is active across every module.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
+import { useModules } from '@/lib/hooks/useModuleEnabled'
 
 export const ACTIVE_SCHOOL_STORAGE_KEY = 'active-school-id'
 export const ACTIVE_SCHOOL_EVENT = 'active-school-changed'
@@ -50,19 +53,29 @@ export const ACTIVE_SCHOOL_EVENT = 'active-school-changed'
  * list but not typed here.
  */
 export interface ActiveSchoolOption {
-  id: string
-  name: string
-  isActive: boolean
+  readonly id: string
+  readonly name: string
+  readonly isActive: boolean
+}
+
+export interface UseActiveSchoolOptions {
+  /**
+   * When set, returned `schools` is filtered to those with this tenant
+   * module enabled. If the global selection is not in the filtered set,
+   * `activeSchoolId` falls through to `null` for this consumer (the
+   * underlying localStorage value is left untouched).
+   */
+  readonly restrictToModule?: string
 }
 
 export interface UseActiveSchoolReturn {
-  /** All active schools the user can switch between. Stable reference while loading. */
-  schools: ActiveSchoolOption[]
+  /** All active schools the user can switch between (filtered by module if set). */
+  schools: ReadonlyArray<ActiveSchoolOption>
   /** `null` means "All Schools" (org-wide view). */
   activeSchoolId: string | null
   /** The resolved school record for `activeSchoolId`, or `null` when viewing all. */
   activeSchool: ActiveSchoolOption | null
-  /** `true` when the user can meaningfully pick a school (>= 2 schools in org). */
+  /** `true` when the user can meaningfully pick a school (>= 2 schools after filtering). */
   isMultiSchool: boolean
   /**
    * `true` when the user's role allows switching between schools.
@@ -78,10 +91,12 @@ export interface UseActiveSchoolReturn {
   setActiveSchoolId: (id: string | null) => void
   /** Shortcut for `setActiveSchoolId(null)`. */
   clearSelection: () => void
+  /** A friendly label for the current selection ('All Schools' or the school name). */
+  activeSchoolLabel: string
 }
 
 interface ActiveSchoolChangeDetail {
-  schoolId: string | null
+  readonly schoolId: string | null
 }
 
 /**
@@ -104,7 +119,13 @@ function readFromStorage(): string | null {
  * Reads the new `user-campus-scope` key first, then falls back to the legacy
  * `user-school-scope` key for sessions started before the rename.
  */
-function readRoleScope(): { isScoped: boolean; campusScope: string | null; homeSchoolId: string | null } {
+interface RoleScope {
+  readonly isScoped: boolean
+  readonly campusScope: string | null
+  readonly homeSchoolId: string | null
+}
+
+function readRoleScope(): RoleScope {
   if (typeof window === 'undefined') return { isScoped: false, campusScope: null, homeSchoolId: null }
   const role = (window.localStorage.getItem('user-role') || '').toLowerCase()
   const campusScope =
@@ -115,34 +136,61 @@ function readRoleScope(): { isScoped: boolean; campusScope: string | null; homeS
   return { isScoped, campusScope, homeSchoolId }
 }
 
-export function useActiveSchool(): UseActiveSchoolReturn {
-  const { data: rawSchools, isLoading: schoolsLoading } = useQuery(queryOptions.campuses())
+const ALL_SCHOOLS_LABEL = 'All Schools'
 
-  const schools = useMemo<ActiveSchoolOption[]>(() => {
+export function useActiveSchool(options: UseActiveSchoolOptions = {}): UseActiveSchoolReturn {
+  const { restrictToModule } = options
+  const { data: rawSchools, isLoading: schoolsLoading } = useQuery(queryOptions.campuses())
+  const { data: modulesData = [], isLoading: modulesLoading } = useModules()
+
+  const allSchools = useMemo<ActiveSchoolOption[]>(() => {
     const list = (rawSchools ?? []) as ActiveSchoolOption[]
     return list.filter((s) => s.isActive)
   }, [rawSchools])
+
+  // Build the set of school ids that have the requested module enabled. The
+  // module record may store this on either `schoolId` (current schema) or
+  // `campusId` (legacy field name) — accept both so we keep working through
+  // the rename.
+  const moduleEnabledIds = useMemo<Set<string> | null>(() => {
+    if (!restrictToModule) return null
+    const modules = (modulesData ?? []) as ReadonlyArray<{
+      moduleId: string
+      schoolId?: string | null
+      campusId?: string | null
+    }>
+    const ids = new Set<string>()
+    for (const m of modules) {
+      if (m.moduleId !== restrictToModule) continue
+      const id = m.schoolId ?? m.campusId
+      if (id) ids.add(id)
+    }
+    return ids
+  }, [modulesData, restrictToModule])
+
+  const schools = useMemo<ActiveSchoolOption[]>(() => {
+    if (!moduleEnabledIds) return allSchools
+    return allSchools.filter((s) => moduleEnabledIds.has(s.id))
+  }, [allSchools, moduleEnabledIds])
 
   const isMultiSchool = schools.length > 1
 
   // Hydrate from localStorage on mount, then stay in sync with other instances
   // via the custom event.
-  const [activeSchoolId, setActiveSchoolIdState] = useState<string | null>(() => readFromStorage())
+  const [storedSchoolId, setStoredSchoolIdState] = useState<string | null>(() => readFromStorage())
 
   // Track role-scope so the UI can render read-only when the user is pinned.
   // Re-read on `storage` events so logout/login flows stay current.
-  const [roleScope, setRoleScope] = useState<{ isScoped: boolean; campusScope: string | null; homeSchoolId: string | null }>(
-    () => readRoleScope(),
-  )
+  const [roleScope, setRoleScope] = useState<RoleScope>(() => readRoleScope())
 
   useEffect(() => {
     const handleChange = (event: Event) => {
       const detail = (event as CustomEvent<ActiveSchoolChangeDetail>).detail
-      setActiveSchoolIdState(detail?.schoolId ?? null)
+      setStoredSchoolIdState(detail?.schoolId ?? null)
     }
     const handleStorage = (event: StorageEvent) => {
       if (event.key === ACTIVE_SCHOOL_STORAGE_KEY) {
-        setActiveSchoolIdState(event.newValue || null)
+        setStoredSchoolIdState(event.newValue || null)
         return
       }
       if (
@@ -167,10 +215,10 @@ export function useActiveSchool(): UseActiveSchoolReturn {
   // Schools" (null).
   useEffect(() => {
     if (schoolsLoading) return
-    if (schools.length === 0) return
+    if (allSchools.length === 0) return
     if (!roleScope.isScoped || !roleScope.campusScope) return
 
-    const match = schools.find(
+    const match = allSchools.find(
       (s) => s.id === roleScope.campusScope || s.name === roleScope.campusScope,
     )
     if (!match) return
@@ -178,10 +226,10 @@ export function useActiveSchool(): UseActiveSchoolReturn {
     // Scoped users are pinned — if anything (stale localStorage, a rogue
     // setActiveSchoolId call, etc.) points them elsewhere, snap back to their
     // scope. This is the enforcement companion to the read-only selector.
-    if (activeSchoolId === match.id) return
+    if (storedSchoolId === match.id) return
     window.localStorage.setItem(ACTIVE_SCHOOL_STORAGE_KEY, match.id)
-    setActiveSchoolIdState(match.id)
-  }, [schools, schoolsLoading, activeSchoolId, roleScope])
+    setStoredSchoolIdState(match.id)
+  }, [allSchools, schoolsLoading, storedSchoolId, roleScope])
 
   // Auto-default to user's home school on first load. Every user with a
   // schoolId starts in their own school — admins can switch away, members
@@ -190,36 +238,36 @@ export function useActiveSchool(): UseActiveSchoolReturn {
   // stay on "All Schools".
   useEffect(() => {
     if (schoolsLoading) return
-    if (schools.length === 0) return
-    if (activeSchoolId) return // user already has a selection
+    if (allSchools.length === 0) return
+    if (storedSchoolId) return // user already has a selection
     if (!roleScope.homeSchoolId) return // district user → stay on "All Schools"
 
-    const match = schools.find((s) => s.id === roleScope.homeSchoolId)
+    const match = allSchools.find((s) => s.id === roleScope.homeSchoolId)
     if (!match) return
 
     window.localStorage.setItem(ACTIVE_SCHOOL_STORAGE_KEY, match.id)
-    setActiveSchoolIdState(match.id)
+    setStoredSchoolIdState(match.id)
     window.dispatchEvent(
       new CustomEvent<ActiveSchoolChangeDetail>(ACTIVE_SCHOOL_EVENT, {
         detail: { schoolId: match.id },
       }),
     )
-  }, [schools, schoolsLoading, activeSchoolId, roleScope.homeSchoolId])
+  }, [allSchools, schoolsLoading, storedSchoolId, roleScope.homeSchoolId])
 
   // If the currently-selected school disappears (deactivated, deleted), fall
   // back to "All Schools" to avoid a stale pointer.
   useEffect(() => {
     if (schoolsLoading) return
-    if (!activeSchoolId) return
-    if (schools.some((s) => s.id === activeSchoolId)) return
+    if (!storedSchoolId) return
+    if (allSchools.some((s) => s.id === storedSchoolId)) return
     window.localStorage.removeItem(ACTIVE_SCHOOL_STORAGE_KEY)
-    setActiveSchoolIdState(null)
+    setStoredSchoolIdState(null)
     window.dispatchEvent(
       new CustomEvent<ActiveSchoolChangeDetail>(ACTIVE_SCHOOL_EVENT, {
         detail: { schoolId: null },
       }),
     )
-  }, [schools, schoolsLoading, activeSchoolId])
+  }, [allSchools, schoolsLoading, storedSchoolId])
 
   const setActiveSchoolId = useCallback((id: string | null) => {
     if (typeof window === 'undefined') return
@@ -228,7 +276,7 @@ export function useActiveSchool(): UseActiveSchoolReturn {
     } else {
       window.localStorage.removeItem(ACTIVE_SCHOOL_STORAGE_KEY)
     }
-    setActiveSchoolIdState(id)
+    setStoredSchoolIdState(id)
     window.dispatchEvent(
       new CustomEvent<ActiveSchoolChangeDetail>(ACTIVE_SCHOOL_EVENT, {
         detail: { schoolId: id },
@@ -240,12 +288,24 @@ export function useActiveSchool(): UseActiveSchoolReturn {
     setActiveSchoolId(null)
   }, [setActiveSchoolId])
 
+  // Effective selection: when restricted to a module, fall through to null
+  // if the stored selection isn't enabled for that module. Don't mutate the
+  // underlying storage — the user's pick should survive cross-module
+  // navigation.
+  const activeSchoolId = useMemo<string | null>(() => {
+    if (!storedSchoolId) return null
+    if (!moduleEnabledIds) return storedSchoolId
+    return moduleEnabledIds.has(storedSchoolId) ? storedSchoolId : null
+  }, [storedSchoolId, moduleEnabledIds])
+
   const activeSchool = useMemo<ActiveSchoolOption | null>(() => {
     if (!activeSchoolId) return null
     return schools.find((s) => s.id === activeSchoolId) ?? null
   }, [activeSchoolId, schools])
 
+  const activeSchoolLabel = activeSchool?.name ?? ALL_SCHOOLS_LABEL
   const canSwitchSchools = !roleScope.isScoped
+  const isLoading = schoolsLoading || (Boolean(restrictToModule) && modulesLoading)
 
   return {
     schools,
@@ -253,8 +313,9 @@ export function useActiveSchool(): UseActiveSchoolReturn {
     activeSchool,
     isMultiSchool,
     canSwitchSchools,
-    isLoading: schoolsLoading,
+    isLoading,
     setActiveSchoolId,
     clearSelection,
+    activeSchoolLabel,
   }
 }

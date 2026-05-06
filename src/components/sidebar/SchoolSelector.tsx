@@ -10,13 +10,22 @@
  * - School headers are non-selectable group labels.
  * - Campuses are the selectable items.
  * - Keyboard nav: Up/Down moves focus, Enter/Space picks, Escape closes.
+ *
+ * Module-aware:
+ *   - Detects the current path. When on a module page (e.g. /maintenance,
+ *     /it, /athletics), the dropdown only lists schools where that module
+ *     is enabled. Schools without the module are skipped.
+ *   - The user's underlying global selection in localStorage is preserved
+ *     across navigation — leaving the module page restores it.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronDown, School } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
+import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 
@@ -42,9 +51,24 @@ interface FlatOption {
 
 const ALL_SCHOOLS_LABEL = 'All Schools'
 
+/**
+ * Map a pathname to the moduleId whose enabled-schools list should restrict
+ * the dropdown. Returns null when the path has no per-school module gate
+ * (settings, dashboard, calendar, etc.).
+ */
+function getModuleForPath(pathname: string | null): string | null {
+  if (!pathname) return null
+  if (pathname.startsWith('/maintenance')) return 'maintenance'
+  if (pathname.startsWith('/it')) return 'it-helpdesk'
+  if (pathname.startsWith('/athletics')) return 'athletics'
+  return null
+}
+
 export default function SchoolSelector(): JSX.Element | null {
+  const pathname = usePathname()
+  const restrictToModule = getModuleForPath(pathname)
+
   const {
-    schools,
     activeSchoolId,
     activeSchool,
     isMultiSchool,
@@ -55,22 +79,46 @@ export default function SchoolSelector(): JSX.Element | null {
 
   // Fetch full campus data with school relations for grouping
   const { data: rawCampuses } = useQuery(queryOptions.campuses())
+  const { data: modulesData = [] } = useModules()
+
+  // Compute the set of campus/school ids enabled for the current path's
+  // module. When `restrictToModule` is null (non-module page), this is
+  // null — meaning "no restriction".
+  const enabledIdsForModule = useMemo<Set<string> | null>(() => {
+    if (!restrictToModule) return null
+    const modules = (modulesData ?? []) as ReadonlyArray<{
+      moduleId: string
+      schoolId?: string | null
+      campusId?: string | null
+    }>
+    const ids = new Set<string>()
+    for (const m of modules) {
+      if (m.moduleId !== restrictToModule) continue
+      const id = m.schoolId ?? m.campusId
+      if (id) ids.add(id)
+    }
+    return ids
+  }, [modulesData, restrictToModule])
 
   const [isOpen, setIsOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState<number>(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Group campuses by school
-  const { groups, flatOptions } = useMemo(() => {
+  // Group campuses by school. When restricted to a module, drop campuses
+  // that don't have it enabled — and drop empty school groups that result.
+  const { flatOptions } = useMemo(() => {
     const campusList = (rawCampuses ?? []) as CampusWithSchool[]
     const active = campusList.filter(c => c.isActive)
+    const visible = enabledIdsForModule
+      ? active.filter((c) => enabledIdsForModule.has(c.id))
+      : active
 
     // Build school groups
     const groupMap = new Map<string, SchoolGroup>()
     const ungrouped: CampusWithSchool[] = []
 
-    for (const campus of active) {
+    for (const campus of visible) {
       if (campus.school) {
         const key = campus.school.id
         if (!groupMap.has(key)) {
@@ -100,7 +148,21 @@ export default function SchoolSelector(): JSX.Element | null {
     }
 
     return { groups: sortedGroups, flatOptions: flat }
-  }, [rawCampuses])
+  }, [rawCampuses, enabledIdsForModule])
+
+  // When restricted: count selectable campuses (excludes "All Schools" + headers)
+  const visibleCampusCount = useMemo(
+    () => flatOptions.filter((o) => o.type === 'campus').length,
+    [flatOptions],
+  )
+
+  // The trigger label needs to reflect the EFFECTIVE state. If the user's
+  // global selection isn't valid in this module, we say "All Schools" so
+  // the page subtitle and the selector label agree.
+  const effectiveActiveSchool =
+    enabledIdsForModule && activeSchoolId && !enabledIdsForModule.has(activeSchoolId)
+      ? null
+      : activeSchool
 
   // Selectable options only (skip headers)
   const selectableIndices = useMemo(() =>
@@ -114,9 +176,12 @@ export default function SchoolSelector(): JSX.Element | null {
       setFocusedIndex(-1)
       return
     }
-    const currentIdx = flatOptions.findIndex(o => o.id === activeSchoolId)
+    // Highlight the effective selection (which may differ from the stored
+    // selection on a module page where the stored school isn't enabled).
+    const targetId = effectiveActiveSchool?.id ?? null
+    const currentIdx = flatOptions.findIndex(o => o.id === targetId)
     setFocusedIndex(currentIdx >= 0 ? currentIdx : 0)
-  }, [isOpen, activeSchoolId, flatOptions])
+  }, [isOpen, effectiveActiveSchool, flatOptions])
 
   // Click-outside
   useEffect(() => {
@@ -185,9 +250,15 @@ export default function SchoolSelector(): JSX.Element | null {
     )
   }
 
-  if (!isMultiSchool) return null
+  // Hide selector when there's nothing meaningful to choose. On a module
+  // page with 0 or 1 enabled schools, the dropdown collapses; on a non-
+  // module page, the legacy single-school behavior kicks in.
+  const isMultiVisible = restrictToModule
+    ? visibleCampusCount > 1
+    : isMultiSchool
+  if (!isMultiVisible) return null
 
-  const triggerLabel = activeSchool?.name ?? ALL_SCHOOLS_LABEL
+  const triggerLabel = effectiveActiveSchool?.name ?? ALL_SCHOOLS_LABEL
 
   // Read-only for scoped users
   if (!canSwitchSchools) {
@@ -259,7 +330,7 @@ export default function SchoolSelector(): JSX.Element | null {
                     )
                   }
 
-                  const selected = option.id === activeSchoolId
+                  const selected = option.id === (effectiveActiveSchool?.id ?? null)
                   const focused = idx === focusedIndex
                   const isAll = option.type === 'all'
 
