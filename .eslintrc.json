@@ -1,3 +1,34 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "JSXOpeningElement[name.name='input']",
+        "message": "Don't use raw <input>. Use <Input>, <Checkbox>, <Radio>, or <SearchInput> from @/components/ui/ instead. For file uploads, see existing FileInput patterns. If you absolutely need a raw input, add an eslint-disable comment with a reason."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='select']",
+        "message": "Don't use raw <select>. Use <Select> from @/components/ui/Select instead."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='textarea']",
+        "message": "Don't use raw <textarea>. Use <Textarea> from @/components/ui/Textarea instead."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/components/ui/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/__tests__/**/*.{ts,tsx}", "e2e/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-syntax": "off"
+      }
+    }
+  ]
 }

@@ -13,6 +13,27 @@ export default {
         'safe-l': 'var(--safe-area-left)',
         'safe-r': 'var(--safe-area-right)',
       },
+      // ─────────────────────────────────────────────────────────────────────
+      // Form field design tokens — single source of truth.
+      //
+      // Every Input / Textarea / Select / Checkbox / Radio / SearchInput /
+      // FileInput primitive in src/components/ui/ derives its dimensions
+      // from these. Change a number here, every form field in the app
+      // updates. Never hard-code these values in component code.
+      //
+      //   rounded-field          → corner radius for fields and triggers
+      //   rounded-field-panel    → corner radius for dropdown panels
+      //   h-field                → height of single-line fields (default)
+      //   h-field-sm             → compact height for tabular / dense UIs
+      // ─────────────────────────────────────────────────────────────────────
+      borderRadius: {
+        field: '0.5rem',          // 8px — change here to retune all field corners
+        'field-panel': '0.75rem', // 12px — dropdown panels
+      },
+      height: {
+        field: '52px',     // change here to retune all field heights
+        'field-sm': '36px', // compact variant for tabular / dense UIs
+      },
       fontFamily: {
         heading: ['var(--font-heading)', 'Oswald', 'sans-serif'],
         body: ['var(--font-body)', 'Poppins', 'system-ui', 'sans-serif'],
