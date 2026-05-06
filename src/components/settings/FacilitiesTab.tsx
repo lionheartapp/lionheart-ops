@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import FacilitiesLanding from './facilities/FacilitiesLanding'
 import FacilitiesSchoolDetail from './facilities/FacilitiesSchoolDetail'
+import DistrictBuildingDetail from './facilities/DistrictBuildingDetail'
 import SchoolsManagement, { type SchoolsManagementHandle } from './SchoolsManagement'
 import CampusTab from './CampusTab'
 
@@ -16,6 +17,7 @@ type ViewMode =
   | { kind: 'landing' }
   | { kind: 'school-detail'; schoolId: string }
   | { kind: 'campus-detail'; schoolId: string; campusId: string; schoolName: string; campusName: string }
+  | { kind: 'district-building-detail'; buildingId: string; buildingName: string }
 
 export default function FacilitiesTab({ onDirtyChange, active }: FacilitiesTabProps = {}) {
   const [view, setView] = useState<ViewMode>({ kind: 'landing' })
@@ -60,6 +62,24 @@ export default function FacilitiesTab({ onDirtyChange, active }: FacilitiesTabPr
     )
   }
 
+  if (view.kind === 'district-building-detail') {
+    return (
+      <div className="px-4 sm:px-8 py-6 space-y-4">
+        <nav className="flex items-center gap-2 text-sm text-slate-500">
+          <button
+            onClick={() => setView({ kind: 'landing' })}
+            className="hover:text-slate-800 transition-colors cursor-pointer"
+          >
+            Facilities
+          </button>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="text-slate-900 font-medium truncate">{view.buildingName}</span>
+        </nav>
+        <DistrictBuildingDetail buildingId={view.buildingId} />
+      </div>
+    )
+  }
+
   if (view.kind === 'school-detail') {
     return (
       <FacilitiesSchoolDetail
@@ -77,6 +97,9 @@ export default function FacilitiesTab({ onDirtyChange, active }: FacilitiesTabPr
       <FacilitiesLanding
         key={landingKey}
         onSelectSchool={(schoolId) => setView({ kind: 'school-detail', schoolId })}
+        onSelectDistrictBuilding={(buildingId, buildingName) =>
+          setView({ kind: 'district-building-detail', buildingId, buildingName })
+        }
         onAddSchool={() => schoolsRef.current?.openNew()}
       />
       <div className="hidden">

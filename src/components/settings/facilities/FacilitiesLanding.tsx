@@ -57,6 +57,7 @@ type DistrictBuilding = {
 
 interface FacilitiesLandingProps {
   onSelectSchool: (schoolId: string) => void
+  onSelectDistrictBuilding?: (buildingId: string, buildingName: string) => void
   onAddSchool?: () => void
 }
 
@@ -123,7 +124,7 @@ function formatDistrictAddress(d: District): string | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: FacilitiesLandingProps) {
+export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuilding, onAddSchool }: FacilitiesLandingProps) {
   const [activeTab, setActiveTab] = useState<FacilitiesTab>('district')
 
   // Schools state
@@ -413,9 +414,10 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
                   )}
 
                   {districtBuildings.map((b) => (
-                    <div
+                    <button
                       key={b.id}
-                      className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all"
+                      onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
+                      className="w-full text-left bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer group"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
@@ -423,21 +425,29 @@ export default function FacilitiesLanding({ onSelectSchool, onAddSchool }: Facil
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-slate-900">{b.name}</span>
+                            <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
                             {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
                             <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
                               {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
                             </span>
                           </div>
-                          {b.address && (
-                            <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-0.5">
-                              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                              <span className="truncate">{b.address}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-3 mt-0.5">
+                            {b.address && (
+                              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span className="truncate">{b.address}</span>
+                              </div>
+                            )}
+                            {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
+                              <span className="text-xs text-slate-400">
+                                {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </>
