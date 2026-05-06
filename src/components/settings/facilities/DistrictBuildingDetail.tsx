@@ -266,6 +266,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       {/* Photo Lightbox */}
       {lightbox && (
         <PhotoLightbox
+          isOpen
           images={lightbox.images}
           initialIndex={lightbox.index}
           onClose={() => setLightbox(null)}
