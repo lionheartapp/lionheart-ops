@@ -21,6 +21,7 @@ import {
   type MatrixParticipant,
 } from '@/lib/hooks/useEventDocuments'
 import { useToast } from '@/components/Toast'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -314,14 +315,12 @@ export function DocumentMatrix({ eventProjectId, canReadMedical = false }: Docum
 
       {/* Filter bar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          <input
-            type="text"
+        <div className="flex-1 min-w-[180px] max-w-xs">
+          <SearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search participants…"
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
+            onClear={search ? () => setSearch('') : undefined}
           />
         </div>
 

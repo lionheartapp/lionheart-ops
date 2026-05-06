@@ -163,7 +163,7 @@ function RequirementsSubTab({ eventProjectId }: RequirementsTabProps) {
             <FileText className="w-6 h-6 text-indigo-400" />
           </div>
           <p className="text-sm text-slate-500 max-w-xs mx-auto">
-            Add document requirements like permission slips, waivers, and medical releases.
+            Add document requirements such as forms, agreements, and certifications.
           </p>
         </motion.div>
       ) : (

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, X } from 'lucide-react'
 import { PRESET_TEAM_ROLES } from '@/lib/types/event-project'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Textarea } from '@/components/ui/Textarea'
 import type { OrgUser, StagedMember } from './people-types'
 import { getUserName, getInitials } from './people-types'
 import { RolePicker } from './RolePicker'
@@ -188,12 +189,11 @@ export function AddMembersDrawer({
                           <label className="block text-xs font-medium text-slate-600 mb-1">
                             Notes <span className="text-slate-400 font-normal">(optional)</span>
                           </label>
-                          <textarea
+                          <Textarea
                             value={s.notes}
                             onChange={(e) => handleUpdateStaged(idx, { notes: e.target.value })}
                             placeholder="Responsibilities, notes..."
                             rows={2}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition-all resize-none"
                             maxLength={500}
                           />
                         </div>

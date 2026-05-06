@@ -300,6 +300,7 @@ export function EventChatDrawer({
               className="flex items-center gap-2 px-6 py-4 flex-shrink-0"
               style={{ borderTop: `1px solid ${HAIRLINE}` }}
             >
+              {/* eslint-disable-next-line no-restricted-syntax -- chat-style composer (rounded-full pill, warm color theme); intentionally distinct from form Input */}
               <input
                 ref={inputRef}
                 type="text"

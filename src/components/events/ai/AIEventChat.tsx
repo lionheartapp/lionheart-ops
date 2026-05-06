@@ -238,6 +238,7 @@ export function AIEventChat({ onSuggestionGenerated, onRefinement, isGenerating 
           </p>
         )}
         <div className="flex items-end gap-2">
+          {/* eslint-disable-next-line no-restricted-syntax -- chat-style composer input (rounded-2xl pill, slate-50 background, focus reveals white); intentionally distinct from form Textarea */}
           <textarea
             ref={inputRef}
             value={input}

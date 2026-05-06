@@ -5,6 +5,9 @@ import { motion } from 'framer-motion'
 import { X, Check, Calendar, ClipboardList, DollarSign, FileText, Users, Bell } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useTemplateMutations } from '@/lib/hooks/useEventTemplates'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import { useToast } from '@/components/Toast'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -151,13 +154,11 @@ export function SaveAsTemplateDialog({
                 <label htmlFor="template-name" className="block text-sm font-medium text-slate-700 mb-1">
                   Template Name
                 </label>
-                <input
+                <Input
                   id="template-name"
-                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Camp Big Bear Template"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
                 />
               </div>
 
@@ -166,18 +167,11 @@ export function SaveAsTemplateDialog({
                 <label htmlFor="template-type" className="block text-sm font-medium text-slate-700 mb-1">
                   Event Type
                 </label>
-                <select
-                  id="template-type"
+                <Select
                   value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 cursor-pointer"
-                >
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setSelectedType(value)}
+                  options={EVENT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+                />
               </div>
 
               {/* Description */}
@@ -186,13 +180,12 @@ export function SaveAsTemplateDialog({
                   Description{' '}
                   <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
-                <textarea
+                <Textarea
                   id="template-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe when to use this template..."
                   rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 resize-none"
                 />
               </div>
 

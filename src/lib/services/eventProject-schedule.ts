@@ -238,3 +238,61 @@ export async function updateEventTask(
 
   return updated
 }
+
+// ─── My Tasks (cross-event) ─────────────────────────────────────────────────
+
+/**
+ * Returns all tasks across all events in the org where the given user is the
+ * assignee. Each task is returned with the bare-minimum event context the UI
+ * needs to render outside the event page (title, dates, location label).
+ *
+ * Excludes tasks from soft-deleted events. Optionally filters by status.
+ */
+export async function getTasksForAssignee(
+  assigneeId: string,
+  options?: { status?: string },
+): Promise<Record<string, unknown>[]> {
+  return db.eventTask.findMany({
+    where: {
+      assigneeId,
+      ...(options?.status ? { status: options.status } : {}),
+      // Exclude tasks from soft-deleted events. The org-scoped client already
+      // filters EventProject.deletedAt = null on relation reads, but here we
+      // want the filter on the parent before we even pull the row.
+      eventProject: { deletedAt: null },
+    },
+    orderBy: [
+      { dueDate: 'asc' },
+      { priority: 'desc' },
+    ],
+    include: {
+      eventProject: {
+        select: {
+          id: true,
+          title: true,
+          startsAt: true,
+          endsAt: true,
+          status: true,
+          building: { select: { id: true, name: true } },
+          room: { select: { id: true, displayName: true, roomNumber: true } },
+        },
+      },
+      createdBy: { select: { id: true, firstName: true, lastName: true } },
+    },
+  })
+}
+
+/**
+ * Lookup helper for the task PATCH route to authorize an assignee acting on
+ * their own task. Returns the task if the user is the assignee, otherwise null.
+ */
+export async function findTaskIfAssignee(
+  taskId: string,
+  userId: string,
+): Promise<{ id: string; assigneeId: string | null; eventProjectId: string } | null> {
+  const task = await db.eventTask.findFirst({
+    where: { id: taskId, assigneeId: userId },
+    select: { id: true, assigneeId: true, eventProjectId: true },
+  })
+  return task
+}

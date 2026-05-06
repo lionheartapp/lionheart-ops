@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, X, UserPlus, Info } from 'lucide-react'
+import { X, UserPlus, Info } from 'lucide-react'
 import { queryOptions } from '@/lib/queries'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -123,17 +124,13 @@ export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: 
 
       {/* Search input */}
       <div ref={containerRef} className="relative">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setIsOpen(true) }}
-            onFocus={() => setIsOpen(true)}
-            placeholder="Search by name or email..."
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setIsOpen(true) }}
+          onFocus={() => setIsOpen(true)}
+          placeholder="Search by name or email..."
+          onClear={search ? () => setSearch('') : undefined}
+        />
 
         {/* Dropdown */}
         {isOpen && (

@@ -208,7 +208,7 @@ export async function getEventsInRange(
   const events = await prisma.calendarEvent.findMany({
     where,
     include: {
-      calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } } } },
+      calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } }, school: { select: { id: true, name: true } } } },
       category: true,
       building: { select: { id: true, name: true } },
       space: { select: { id: true, name: true } },

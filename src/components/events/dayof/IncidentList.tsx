@@ -227,6 +227,7 @@ function FilterBar({ typeFilter, severityFilter, onTypeChange, onSeverityChange 
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {/* Type filter */}
+      {/* eslint-disable-next-line no-restricted-syntax -- pill-style filter (rounded-full, compact); needs PillSelect primitive */}
       <select
         value={typeFilter}
         onChange={(e) => onTypeChange(e.target.value as EventIncidentType | 'ALL')}
@@ -239,6 +240,7 @@ function FilterBar({ typeFilter, severityFilter, onTypeChange, onSeverityChange 
       </select>
 
       {/* Severity filter */}
+      {/* eslint-disable-next-line no-restricted-syntax -- pill-style filter (rounded-full, compact); needs PillSelect primitive */}
       <select
         value={severityFilter}
         onChange={(e) => onSeverityChange(e.target.value as EventIncidentSeverity | 'ALL')}

@@ -22,6 +22,7 @@ import {
 } from '@/lib/hooks/useEventComms'
 import { useRegistrationForm } from '@/lib/hooks/useRegistrationForm'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
 import { listItem, staggerContainer } from '@/lib/animations'
 import type { EventSurveyWithStats, SurveyStatus } from '@/lib/types/events-phase21'
 import type { SurveyResults } from '@/lib/services/eventSurveyService'
@@ -391,22 +392,20 @@ function CreateSurveyModal({ formId, formTitle, onSubmit, onClose, isPending }: 
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Opens (optional)
               </label>
-              <input
+              <Input
                 type="datetime-local"
                 value={opensAt}
                 onChange={(e) => setOpensAt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Closes (optional)
               </label>
-              <input
+              <Input
                 type="datetime-local"
                 value={closesAt}
                 onChange={(e) => setClosesAt(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
               />
             </div>
           </div>

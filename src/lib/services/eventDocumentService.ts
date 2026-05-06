@@ -2,7 +2,7 @@
  * Event Document Service
  *
  * Manages document requirements, per-participant completion tracking,
- * reminder emails, and off-campus compliance checklist items.
+ * reminder emails, and compliance checklist items.
  *
  * Uses org-scoped `prisma` client — always called from within runWithOrgContext.
  */
@@ -598,7 +598,7 @@ export async function deleteComplianceItem(id: string) {
 }
 
 /**
- * Returns a static list of common off-campus compliance checklist items
+ * Returns a static list of common compliance checklist items
  * that staff can import as defaults.
  */
 export function getDefaultComplianceChecklist(): DefaultComplianceItem[] {

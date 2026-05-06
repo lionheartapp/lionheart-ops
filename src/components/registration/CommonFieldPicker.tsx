@@ -16,7 +16,7 @@ interface CommonFieldDef {
 export const COMMON_FIELDS: CommonFieldDef[] = [
   { key: 'first_name', label: 'First Name', inputType: 'TEXT', required: true, alwaysOn: true },
   { key: 'last_name', label: 'Last Name', inputType: 'TEXT', required: true, alwaysOn: true },
-  { key: 'email', label: 'Parent Email', inputType: 'TEXT', required: true, alwaysOn: true },
+  { key: 'email', label: 'Contact Email', inputType: 'TEXT', required: true, alwaysOn: true },
   { key: 'phone', label: 'Phone Number', inputType: 'TEXT', required: false },
   { key: 'grade', label: 'Grade Level', inputType: 'DROPDOWN', required: false },
   { key: 'emergency_contact_name', label: 'Emergency Contact Name', inputType: 'TEXT', required: false, isMedical: true },

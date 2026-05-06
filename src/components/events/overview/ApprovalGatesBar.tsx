@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion'
 import {
-  Shield, Monitor, Wrench, Sparkles, ShieldAlert, Trophy, Users,
-  CheckCircle2, XCircle, Clock3, Minus,
+  CheckCircle2, XCircle, Clock3, AlertCircle,
 } from 'lucide-react'
 import { fadeInUp } from '@/lib/animations'
 
@@ -24,6 +23,7 @@ export interface GateStateV2 {
   resourceType?: string | null
   sortOrder?: number
   respondedById?: string | null
+  respondedByName?: string | null
   respondedAt?: string | null
   reason?: string | null
   mode?: 'REQUIRED' | 'NOTIFICATION'
@@ -53,23 +53,68 @@ function isV2Gates(gates: Record<string, unknown>): boolean {
 
 // ─── V1 Config ──────────────────────────────────────────────────────────────
 
-/** All supported V1 gate types in display order */
 const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security', 'athletic_director'] as const
 
-const GATE_CONFIG: Record<string, { label: string; icon: React.ElementType }> = {
-  admin: { label: 'Admin', icon: Shield },
-  av: { label: 'A/V Production', icon: Monitor },
-  facilities: { label: 'Facilities', icon: Wrench },
-  custodial: { label: 'Custodial', icon: Sparkles },
-  security: { label: 'Security', icon: ShieldAlert },
-  athletic_director: { label: 'Athletic Director', icon: Trophy },
+const V1_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  av: 'A/V Production',
+  facilities: 'Facilities',
+  custodial: 'Custodial',
+  security: 'Security',
+  athletic_director: 'Athletic Director',
 }
 
-const GATE_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ElementType; label: string }> = {
-  PENDING: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', icon: Clock3, label: 'Pending' },
-  APPROVED: { bg: 'bg-green-50 border-green-200', text: 'text-green-700', icon: CheckCircle2, label: 'Approved' },
-  REJECTED: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', icon: XCircle, label: 'Rejected' },
-  SKIPPED: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-400', icon: Minus, label: 'Skipped' },
+// ─── Status styling ─────────────────────────────────────────────────────────
+
+type GateStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
+
+interface StatusStyle {
+  iconBg: string
+  iconColor: string
+  pillBg: string
+  pillText: string
+  rowBorder: string
+  Icon: typeof CheckCircle2
+  label: string
+}
+
+const STATUS_STYLES: Record<GateStatus, StatusStyle> = {
+  APPROVED: {
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-700',
+    pillBg: 'bg-green-100',
+    pillText: 'text-green-700',
+    rowBorder: 'border-transparent',
+    Icon: CheckCircle2,
+    label: 'Approved',
+  },
+  PENDING: {
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-700',
+    pillBg: 'bg-amber-100',
+    pillText: 'text-amber-700',
+    rowBorder: 'border-amber-200',
+    Icon: Clock3,
+    label: 'Pending',
+  },
+  REJECTED: {
+    iconBg: 'bg-red-100',
+    iconColor: 'text-red-700',
+    pillBg: 'bg-red-100',
+    pillText: 'text-red-700',
+    rowBorder: 'border-red-200',
+    Icon: XCircle,
+    label: 'Changes requested',
+  },
+  SKIPPED: {
+    iconBg: 'bg-slate-100',
+    iconColor: 'text-slate-400',
+    pillBg: 'bg-slate-100',
+    pillText: 'text-slate-500',
+    rowBorder: 'border-transparent',
+    Icon: Clock3,
+    label: 'Skipped',
+  },
 }
 
 // ─── Normalized gate entry for rendering ────────────────────────────────────
@@ -77,46 +122,213 @@ const GATE_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React
 interface NormalizedGate {
   key: string
   label: string
-  icon: React.ElementType
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SKIPPED'
+  status: GateStatus
   reason?: string | null
+  respondedAt?: string | null
+  respondedById?: string | null
+  respondedByName?: string | null
+  sortOrder: number
 }
 
 function normalizeGates(gates: ApprovalGates): NormalizedGate[] {
   const raw = gates as Record<string, unknown>
   if (isV2Gates(raw)) {
-    // V2: iterate entries, sorted by sortOrder then key
     const v2Gates = gates as Record<string, GateStateV2>
     return Object.entries(v2Gates)
       .filter(([, gate]) => gate && gate.status !== 'SKIPPED')
-      .sort((a, b) => (a[1].sortOrder ?? 0) - (b[1].sortOrder ?? 0))
-      .map(([key, gate]) => ({
+      .map(([key, gate], idx) => ({
         key,
         label: gate.teamName || 'Unknown Team',
-        icon: Users,
         status: gate.status,
         reason: gate.reason,
+        respondedAt: gate.respondedAt,
+        respondedById: gate.respondedById,
+        respondedByName: gate.respondedByName,
+        sortOrder: gate.sortOrder ?? idx,
       }))
+      .sort((a, b) => a.sortOrder - b.sortOrder)
   }
 
-  // V1: use hardcoded keys
   const v1Gates = gates as ApprovalGatesV1
   return ALL_GATE_KEYS
     .filter((key) => {
       const gate = v1Gates[key]
       return gate && gate.status !== 'SKIPPED'
     })
-    .map((key) => {
+    .map((key, idx) => {
       const gate = v1Gates[key]!
-      const config = GATE_CONFIG[key] ?? { label: key, icon: Shield }
+      const extended = gate as GateState & { respondedByName?: string | null }
       return {
         key,
-        label: config.label,
-        icon: config.icon,
+        label: V1_LABELS[key] ?? key,
         status: gate.status,
         reason: gate.reason,
+        respondedAt: gate.respondedAt,
+        respondedById: gate.respondedById,
+        respondedByName: extended.respondedByName,
+        sortOrder: idx,
       }
     })
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function formatTimestamp(iso?: string | null): string | null {
+  if (!iso) return null
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function relativeTime(iso?: string | null): string | null {
+  if (!iso) return null
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  const diffMs = Date.now() - date.getTime()
+  const minutes = Math.round(diffMs / 60_000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.round(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return null
+}
+
+// ─── Header ─────────────────────────────────────────────────────────────────
+
+interface HeaderState {
+  title: string
+  subtitle: string
+  pillBg: string
+  pillText: string
+  pillLabel: string
+  iconBg: string
+  iconColor: string
+  Icon: typeof CheckCircle2
+}
+
+function buildHeaderState(gates: NormalizedGate[]): HeaderState {
+  const total = gates.length
+  const approved = gates.filter((g) => g.status === 'APPROVED').length
+  const rejected = gates.some((g) => g.status === 'REJECTED')
+
+  if (rejected) {
+    return {
+      title: 'Changes requested',
+      subtitle: 'Review feedback below and resubmit',
+      pillBg: 'bg-red-100',
+      pillText: 'text-red-700',
+      pillLabel: 'Action needed',
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-700',
+      Icon: AlertCircle,
+    }
+  }
+
+  if (approved === total) {
+    return {
+      title: 'All approvals granted',
+      subtitle: `${total} of ${total} teams approved`,
+      pillBg: 'bg-green-100',
+      pillText: 'text-green-700',
+      pillLabel: 'Approved',
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-700',
+      Icon: CheckCircle2,
+    }
+  }
+
+  return {
+    title: 'Awaiting approvals',
+    subtitle: `${approved} of ${total} ${total === 1 ? 'team' : 'teams'} approved`,
+    pillBg: 'bg-amber-100',
+    pillText: 'text-amber-700',
+    pillLabel: 'Pending',
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-700',
+    Icon: Clock3,
+  }
+}
+
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+interface ProgressBarProps {
+  gates: NormalizedGate[]
+}
+
+function ProgressBar({ gates }: ProgressBarProps) {
+  return (
+    <div className="flex gap-1 h-1 mb-4" aria-hidden="true">
+      {gates.map((gate) => {
+        const segmentColor =
+          gate.status === 'APPROVED'
+            ? 'bg-green-500'
+            : gate.status === 'REJECTED'
+            ? 'bg-red-400'
+            : 'bg-gray-200'
+        return (
+          <div
+            key={gate.key}
+            className={`flex-1 rounded-full transition-colors duration-300 ${segmentColor}`}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+interface GateRowProps {
+  gate: NormalizedGate
+  hint?: string | null
+}
+
+function buildSubtitle(gate: NormalizedGate, hint?: string | null): string {
+  const stamp = formatTimestamp(gate.respondedAt)
+  const rel = relativeTime(gate.respondedAt)
+  const by = gate.respondedByName ? ` by ${gate.respondedByName}` : ''
+
+  if (gate.status === 'APPROVED' && stamp) return `Approved${by} · ${stamp}`
+  if (gate.status === 'REJECTED' && stamp) return `Reviewed${by} · ${stamp}`
+  if (gate.status === 'PENDING' && rel) return `Requested ${rel}`
+  return hint ?? 'Awaiting response'
+}
+
+function GateRow({ gate, hint }: GateRowProps) {
+  const style = STATUS_STYLES[gate.status]
+  const StatusIcon = style.Icon
+
+  return (
+    <div
+      className={`flex items-start gap-3 px-3.5 py-3 rounded-xl bg-gray-50 border ${style.rowBorder} transition-colors duration-200`}
+    >
+      <div
+        className={`w-8 h-8 rounded-full ${style.iconBg} flex items-center justify-center flex-shrink-0`}
+      >
+        <StatusIcon className={`w-4 h-4 ${style.iconColor}`} />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-gray-900">{gate.label}</span>
+          <span
+            className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${style.pillBg} ${style.pillText}`}
+          >
+            {style.label}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 mt-0.5">{buildSubtitle(gate, hint)}</p>
+        {gate.status === 'REJECTED' && gate.reason && (
+          <p className="text-xs text-red-700 mt-1.5 leading-relaxed">{gate.reason}</p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -126,75 +338,61 @@ export function ApprovalGatesBar({ gates }: { gates: ApprovalGates }) {
 
   if (activeGates.length === 0) return null
 
-  const allApproved = activeGates.every((g) => g.status === 'APPROVED')
-  const anyRejected = activeGates.some((g) => g.status === 'REJECTED')
+  const header = buildHeaderState(activeGates)
+  const HeaderIcon = header.Icon
 
-  // Responsive grid: 2 cols for ≤3 gates, 3 cols for 4+
-  const gridCols = activeGates.length <= 3
-    ? 'grid-cols-1 sm:grid-cols-3'
-    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+  // Find the first non-approved gate — used for "waiting on X first" hints
+  const firstUnresolvedIdx = activeGates.findIndex((g) => g.status !== 'APPROVED')
 
   return (
-    <motion.div variants={fadeInUp} className="space-y-3">
-      {/* Summary banner */}
-      <div
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${
-          allApproved
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : anyRejected
-            ? 'bg-red-50 border border-red-200 text-red-800'
-            : 'bg-amber-50 border border-amber-200 text-amber-800'
-        }`}
-      >
-        {allApproved ? (
-          <><CheckCircle2 className="w-4 h-4" /> All approvals granted</>
-        ) : anyRejected ? (
-          <><XCircle className="w-4 h-4" /> Changes requested — revise and resubmit</>
-        ) : (
-          <><Clock3 className="w-4 h-4" /> Awaiting approvals — event cannot be confirmed until all teams approve</>
-        )}
+    <motion.div
+      variants={fadeInUp}
+      className="bg-white border border-gray-200 rounded-xl p-5"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3.5">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={`w-7 h-7 rounded-full ${header.iconBg} flex items-center justify-center`}
+          >
+            <HeaderIcon className={`w-3.5 h-3.5 ${header.iconColor}`} />
+          </div>
+          <div>
+            <p className="text-[15px] font-medium text-gray-900 leading-tight">
+              {header.title}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">{header.subtitle}</p>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-medium px-2.5 py-1 rounded-full ${header.pillBg} ${header.pillText} whitespace-nowrap`}
+        >
+          {header.pillLabel}
+        </span>
       </div>
 
-      {/* Individual gate pills */}
-      <div className={`grid ${gridCols} gap-2`}>
-        {activeGates.map((gate) => {
-          const statusStyle = GATE_STATUS_STYLES[gate.status]
-          const GateIcon = gate.icon
-          const StatusIcon = statusStyle.icon
+      {/* Segmented progress bar */}
+      <ProgressBar gates={activeGates} />
 
-          return (
-            <div
-              key={gate.key}
-              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border ${statusStyle.bg}`}
-            >
-              <GateIcon className={`w-4 h-4 ${statusStyle.text} flex-shrink-0`} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900">{gate.label}</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <StatusIcon className={`w-3 h-3 ${statusStyle.text}`} />
-                  <span className={`text-[10px] font-medium ${statusStyle.text}`}>{statusStyle.label}</span>
-                </div>
-              </div>
-            </div>
-          )
+      {/* Per-team rows */}
+      <div className="flex flex-col gap-2">
+        {activeGates.map((gate, idx) => {
+          const isWaitingOnEarlier =
+            gate.status === 'PENDING' &&
+            firstUnresolvedIdx !== -1 &&
+            idx > firstUnresolvedIdx
+          const earlierLabels = isWaitingOnEarlier
+            ? activeGates
+                .slice(0, idx)
+                .filter((g) => g.status !== 'APPROVED')
+                .map((g) => g.label)
+                .join(' + ')
+            : null
+          const hint = earlierLabels ? `Waiting on ${earlierLabels} first` : null
+
+          return <GateRow key={gate.key} gate={gate} hint={hint} />
         })}
       </div>
-
-      {/* Show rejection reasons */}
-      {anyRejected && (
-        <div className="space-y-1.5">
-          {activeGates
-            .filter((g) => g.status === 'REJECTED' && g.reason)
-            .map((gate) => (
-              <div key={gate.key} className="flex items-start gap-2 px-3 py-2 bg-red-50 rounded-lg">
-                <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-red-700">
-                  <span className="font-semibold">{gate.label}:</span> {gate.reason}
-                </p>
-              </div>
-            ))}
-        </div>
-      )}
     </motion.div>
   )
 }

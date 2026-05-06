@@ -6,6 +6,9 @@ import { fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { useToast } from '@/components/Toast'
 import { Loader2, Monitor, Wrench } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Radio, RadioGroup } from '@/components/ui/Radio'
 import type { CreateEventSeriesInput } from '@/lib/types/event-project'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -270,14 +273,11 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Series Title <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
+          <Input
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
             placeholder="e.g. Weekly Staff Meeting, Monthly Leadership Roundtable"
-            className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-              errors.title ? 'border-red-300' : 'border-slate-200'
-            }`}
+            hasError={!!errors.title}
           />
           {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
         </div>
@@ -285,12 +285,11 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
-          <textarea
+          <Textarea
             value={form.description}
             onChange={(e) => update('description', e.target.value)}
             rows={3}
             placeholder="Optional description..."
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 resize-none"
           />
         </div>
 
@@ -349,59 +348,52 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
           {form.frequency === 'MONTHLY' && (
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-2">Day of Month</label>
-              <input
-                type="number"
-                min="1"
-                max="28"
-                value={form.monthDay}
-                onChange={(e) => update('monthDay', e.target.value)}
-                className="w-24 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
-              />
+              <div className="w-24">
+                <Input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={form.monthDay}
+                  onChange={(e) => update('monthDay', e.target.value)}
+                />
+              </div>
             </div>
           )}
 
           {/* End condition */}
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-2">End Condition</label>
-            <div className="flex gap-3 mb-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  checked={form.endType === 'count'}
-                  onChange={() => update('endType', 'count')}
-                  className="text-indigo-500"
-                />
-                <span className="text-sm text-slate-700">After N occurrences</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  checked={form.endType === 'until'}
-                  onChange={() => update('endType', 'until')}
-                  className="text-indigo-500"
-                />
-                <span className="text-sm text-slate-700">Until date</span>
-              </label>
+            <div className="mb-3">
+              <RadioGroup
+                value={form.endType}
+                onChange={(v) => update('endType', v as 'count' | 'until')}
+                className="flex flex-row gap-4"
+              >
+                <Radio value="count" label="After N occurrences" />
+                <Radio value="until" label="Until date" />
+              </RadioGroup>
             </div>
             {form.endType === 'count' ? (
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={form.endCount}
-                  onChange={(e) => update('endCount', e.target.value)}
-                  className="w-24 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
-                />
+                <div className="w-24">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={form.endCount}
+                    onChange={(e) => update('endCount', e.target.value)}
+                  />
+                </div>
                 <span className="text-sm text-slate-500">occurrences</span>
               </div>
             ) : (
-              <input
-                type="date"
-                value={form.endUntil}
-                onChange={(e) => update('endUntil', e.target.value)}
-                className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
-              />
+              <div className="w-48">
+                <Input
+                  type="date"
+                  value={form.endUntil}
+                  onChange={(e) => update('endUntil', e.target.value)}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -414,21 +406,19 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Default Start Time</label>
-              <input
+              <Input
                 type="time"
                 value={form.defaultStartTime}
                 onChange={(e) => update('defaultStartTime', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1.5">Duration (minutes)</label>
-              <input
+              <Input
                 type="number"
-                min="1"
+                min={1}
                 value={form.defaultDuration}
                 onChange={(e) => update('defaultDuration', parseInt(e.target.value) || 60)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
               />
               {/* Duration presets */}
               <div className="flex gap-1.5 mt-1.5">
@@ -453,12 +443,10 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
           {/* Default location */}
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1.5">Default Location</label>
-            <input
-              type="text"
+            <Input
               value={form.defaultLocationText}
               onChange={(e) => update('defaultLocationText', e.target.value)}
               placeholder="e.g. Main Hall, Room 201"
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
             />
           </div>
         </div>
@@ -516,12 +504,11 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
                     )
                   })}
                 </div>
-                <textarea
+                <Textarea
                   value={form.avNotes}
                   onChange={(e) => update('avNotes', e.target.value)}
                   rows={2}
                   placeholder="Any other A/V details — specific equipment, setup timing, etc."
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none bg-white"
                 />
               </div>
             )}
@@ -575,12 +562,11 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
                     )
                   })}
                 </div>
-                <textarea
+                <Textarea
                   value={form.facilityNotes}
                   onChange={(e) => update('facilityNotes', e.target.value)}
                   rows={2}
                   placeholder="Any other details — seating layout, special equipment, timing, etc."
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-amber-400 resize-none bg-white"
                 />
               </div>
             )}

@@ -148,8 +148,20 @@ export function ScheduleTimelineView({
           })
         })
       } else {
-        // Sequential blocks — chain them
-        let cursor = sectionStartMin
+        // Sequential blocks — handle pre-items before section start (match Order view logic)
+        let preTotalMins = 0
+        for (const b of sectionBlocks) {
+          const meta = (b.metadata as Record<string, unknown>) || {}
+          if (meta.servicePosition !== 'pre' && meta.pcoServicePosition !== 'pre') break
+          const s = parseISO(b.startsAt).getTime()
+          const e = parseISO(b.endsAt).getTime()
+          preTotalMins += Math.max(Math.round((e - s) / 60000), 1)
+        }
+
+        let cursor = preTotalMins > 0
+          ? sectionStartMin - preTotalMins
+          : sectionStartMin
+
         for (const block of sectionBlocks) {
           const startMs = parseISO(block.startsAt).getTime()
           const endMs = parseISO(block.endsAt).getTime()

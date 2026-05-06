@@ -27,6 +27,8 @@ import { FeedbackAnalysisSection } from './overview/FeedbackAnalysisSection'
 import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBar'
 import { ConflictBanner } from './overview/ConflictBanner'
 import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import { EventInvitationsSection } from './EventInvitationsSection'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -194,6 +196,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
   const [editEndsAt, setEditEndsAt] = useState(format(new Date(project.endsAt), 'yyyy-MM-dd'))
   const [editEndTime, setEditEndTime] = useState(format(new Date(project.endsAt), 'HH:mm'))
   const [editAttendance, setEditAttendance] = useState(project.expectedAttendance?.toString() || '')
+  const [editLocation, setEditLocation] = useState(project.locationText || '')
 
   function startEditing() {
     setEditTitle(project.title)
@@ -203,6 +206,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
     setEditEndsAt(format(new Date(project.endsAt), 'yyyy-MM-dd'))
     setEditEndTime(format(new Date(project.endsAt), 'HH:mm'))
     setEditAttendance(project.expectedAttendance?.toString() || '')
+    setEditLocation(project.locationText || '')
     setIsEditing(true)
   }
 
@@ -228,6 +232,7 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         startsAt: new Date(startDateTime),
         endsAt: new Date(endDateTime),
         expectedAttendance: editAttendance ? parseInt(editAttendance, 10) : null,
+        locationText: editLocation.trim() || null,
       })
       toast('Event updated', 'success')
       setIsEditing(false)
@@ -247,9 +252,9 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       ? 'Today'
       : `${daysUntil} day${daysUntil === 1 ? '' : 's'} away`
 
-  const totalTasks = project._count?.tasks ?? 0
+  const totalTasks = project.tasks?.length ?? project._count?.tasks ?? 0
   const completedTasks = project.tasks?.filter((t) => t.status === 'DONE').length ?? 0
-  const scheduleBlocks = project._count?.scheduleBlocks ?? 0
+  const scheduleBlocks = project.scheduleBlocks?.length ?? project._count?.scheduleBlocks ?? 0
   const initialCompletionPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
   const isCompleted = project.status === 'COMPLETED'
@@ -262,6 +267,19 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
       animate="visible"
       className="space-y-6"
     >
+      {/* Past-date warning — event already happened but status hasn't advanced */}
+      {daysUntil < 0 && (project.status === 'PENDING_APPROVAL' || project.status === 'DRAFT') && (
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50"
+        >
+          <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            This event&apos;s date has passed ({Math.abs(daysUntil)} days ago). Consider updating the status or archiving it.
+          </p>
+        </motion.div>
+      )}
+
       {/* Approval Gates — shown when event is pending approval */}
       {project.approvalGates && (project.status === 'PENDING_APPROVAL' || project.status === 'DRAFT') && (
         <ApprovalGatesBar gates={project.approvalGates as unknown as ApprovalGates} />
@@ -277,17 +295,6 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
           />
         ) : null
       })()}
-
-      {/* Resource Requirements — A/V and Facilities needs */}
-      <ResourceRequirementsSection project={project} />
-
-      {/* Invitations & RSVP */}
-      {user?.id && (
-        <EventInvitationsSection
-          eventProjectId={project.id}
-          currentUserId={user.id}
-        />
-      )}
 
       {/* Event Details — inline editable */}
       <motion.div variants={listItem} className="ui-glass p-6 space-y-4">
@@ -334,23 +341,20 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
             {/* Title */}
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Title</label>
-              <input
-                type="text"
+              <Input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
               />
             </div>
 
             {/* Description */}
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
-              <textarea
+              <Textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={3}
                 placeholder="Brief overview of this event..."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
               />
             </div>
 
@@ -359,21 +363,19 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">Start Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={editStartsAt}
                     onChange={(e) => setEditStartsAt(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">End Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={editEndsAt}
                     onChange={(e) => setEditEndsAt(e.target.value)}
                     min={editStartsAt}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                   />
                 </div>
               </div>
@@ -381,46 +383,52 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
               <>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={editStartsAt}
                     onChange={(e) => { setEditStartsAt(e.target.value); setEditEndsAt(e.target.value) }}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">Start Time</label>
-                    <input
+                    <Input
                       type="time"
                       value={editStartTime}
                       onChange={(e) => setEditStartTime(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1">End Time</label>
-                    <input
+                    <Input
                       type="time"
                       value={editEndTime}
                       onChange={(e) => setEditEndTime(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                     />
                   </div>
                 </div>
               </>
             )}
 
+            {/* Location */}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Location</label>
+              <Input
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                placeholder="e.g. Conference Room A, Main Auditorium"
+              />
+            </div>
+
             {/* Expected Attendance */}
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Expected Attendance</label>
-              <input
+              <Input
                 type="number"
-                min="1"
+                min={1}
                 value={editAttendance}
                 onChange={(e) => setEditAttendance(e.target.value)}
                 placeholder="e.g. 120"
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
               />
             </div>
           </div>
@@ -509,6 +517,17 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
           </>
         )}
       </motion.div>
+
+      {/* Resource Requirements — A/V and Facilities needs */}
+      <ResourceRequirementsSection project={project} />
+
+      {/* Invitations & RSVP */}
+      {user?.id && (
+        <EventInvitationsSection
+          eventProjectId={project.id}
+          currentUserId={user.id}
+        />
+      )}
 
       {/* Quick Stats */}
       <motion.div variants={listItem}>

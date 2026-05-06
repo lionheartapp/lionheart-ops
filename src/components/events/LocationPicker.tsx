@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, Building2, DoorOpen, Search, Loader2, Navigation } from 'lucide-react'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
 import { logger } from '@/lib/logger'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -332,17 +334,13 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
               <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-hidden">
                 {/* Search */}
                 <div className="px-3 py-2 border-b border-slate-100">
-                  <div className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded-lg">
-                    <Search className="w-3.5 h-3.5 text-slate-400" />
-                    <input
-                      type="text"
-                      value={buildingSearch}
-                      onChange={(e) => setBuildingSearch(e.target.value)}
-                      placeholder="Search buildings..."
-                      className="bg-transparent text-sm text-slate-700 outline-none flex-1 placeholder:text-slate-400"
-                      autoFocus
-                    />
-                  </div>
+                  <SearchInput
+                    size="sm"
+                    value={buildingSearch}
+                    onChange={(e) => setBuildingSearch(e.target.value)}
+                    placeholder="Search buildings..."
+                    autoFocus
+                  />
                 </div>
                 {/* Options */}
                 <div className="overflow-y-auto max-h-44">
@@ -396,17 +394,13 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                 <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-hidden">
                   {availableRooms.length > 5 && (
                     <div className="px-3 py-2 border-b border-slate-100">
-                      <div className="flex items-center gap-2 px-2 py-1.5 bg-slate-50 rounded-lg">
-                        <Search className="w-3.5 h-3.5 text-slate-400" />
-                        <input
-                          type="text"
-                          value={roomSearch}
-                          onChange={(e) => setRoomSearch(e.target.value)}
-                          placeholder="Search rooms..."
-                          className="bg-transparent text-sm text-slate-700 outline-none flex-1 placeholder:text-slate-400"
-                          autoFocus
-                        />
-                      </div>
+                      <SearchInput
+                        size="sm"
+                        value={roomSearch}
+                        onChange={(e) => setRoomSearch(e.target.value)}
+                        placeholder="Search rooms..."
+                        autoFocus
+                      />
                     </div>
                   )}
                   <div className="overflow-y-auto max-h-44">
@@ -465,6 +459,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
               }`}
             >
               <Navigation className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {/* eslint-disable-next-line no-restricted-syntax -- bare typing surface inside a custom-styled wrapper with autocomplete suggestions; SearchInput's magnifying-glass icon doesn't fit (we use Navigation here for an address picker) */}
               <input
                 type="text"
                 value={addressQuery}
@@ -504,12 +499,10 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
           {(value.venuePlaceId || addressQuery.length >= 3) && (
             <div>
               <label className="text-xs font-medium text-slate-600 mb-1 block">Venue / Location Name</label>
-              <input
-                type="text"
+              <Input
                 value={value.venueName}
                 onChange={(e) => onChange({ ...value, venueName: e.target.value })}
                 placeholder="e.g. City Convention Center"
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
               />
             </div>
           )}

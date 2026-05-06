@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { FileText, Tag, AlignLeft, Calendar, ToggleLeft } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import {
   useCreateDocumentRequirement,
   useUpdateDocumentRequirement,
@@ -150,12 +153,10 @@ export function DocumentRequirementDrawer({
             <FileText className="w-3.5 h-3.5" />
             Label <span className="text-red-400">*</span>
           </label>
-          <input
-            type="text"
+          <Input
             value={form.label}
             onChange={(e) => handleChange('label', e.target.value)}
             placeholder="e.g. Signed Permission Slip"
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
           />
         </div>
 
@@ -165,17 +166,11 @@ export function DocumentRequirementDrawer({
             <Tag className="w-3.5 h-3.5" />
             Document Type
           </label>
-          <select
+          <Select
             value={form.documentType}
-            onChange={(e) => handleChange('documentType', e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer bg-white"
-          >
-            {DOCUMENT_TYPES.map((dt) => (
-              <option key={dt.value} value={dt.value}>
-                {dt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleChange('documentType', value)}
+            options={DOCUMENT_TYPES.map((dt) => ({ value: dt.value, label: dt.label }))}
+          />
         </div>
 
         {/* Description */}
@@ -184,12 +179,11 @@ export function DocumentRequirementDrawer({
             <AlignLeft className="w-3.5 h-3.5" />
             Description <span className="text-slate-300 font-normal">(optional)</span>
           </label>
-          <textarea
+          <Textarea
             value={form.description}
             onChange={(e) => handleChange('description', e.target.value)}
             placeholder="Brief instructions for families…"
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
           />
         </div>
 
@@ -199,11 +193,10 @@ export function DocumentRequirementDrawer({
             <Calendar className="w-3.5 h-3.5" />
             Due Date <span className="text-slate-300 font-normal">(optional)</span>
           </label>
-          <input
+          <Input
             type="date"
             value={form.dueDate}
             onChange={(e) => handleChange('dueDate', e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors cursor-pointer"
           />
         </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
 import {
   Link2,
   Copy,
@@ -303,11 +304,10 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
               <Clock className="w-3 h-3 inline mr-1" />
               Opens
             </label>
-            <input
+            <Input
               type="datetime-local"
               value={openAt}
               onChange={(e) => setOpenAt(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <div>
@@ -315,11 +315,10 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
               <Clock className="w-3 h-3 inline mr-1" />
               Closes
             </label>
-            <input
+            <Input
               type="datetime-local"
               value={closeAt}
               onChange={(e) => setCloseAt(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
         </div>
@@ -366,13 +365,12 @@ export function ShareHub({ eventProjectId }: ShareHubProps) {
         <div className="flex items-end gap-3 mb-3">
           <div className="flex-1">
             <label className="block text-xs font-medium text-slate-600 mb-1">Max Capacity</label>
-            <input
+            <Input
               type="number"
               value={maxCapacity}
               onChange={(e) => setMaxCapacity(e.target.value)}
               min={1}
               placeholder="Unlimited"
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
             />
           </div>
           <div className="flex items-center gap-2 pb-2">

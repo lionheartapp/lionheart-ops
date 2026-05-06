@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Check } from 'lucide-react'
 import { PRESET_TEAM_ROLES } from '@/lib/types/event-project'
+import { Input } from '@/components/ui/Input'
 
 interface RolePickerProps {
   value: string
@@ -83,13 +84,12 @@ export function RolePicker({ value, onChange, eventCustomRoles }: RolePickerProp
       </div>
       {showCustomInput && (
         <div className="flex gap-2 mt-2">
-          <input
-            type="text"
+          <Input
             value={customText}
             onChange={(e) => setCustomText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCustomConfirm() } }}
             placeholder="Enter custom role..."
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition-all"
+            className="flex-1"
             maxLength={100}
             autoFocus
           />

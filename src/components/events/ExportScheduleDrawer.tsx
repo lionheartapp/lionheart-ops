@@ -295,6 +295,7 @@ export function ExportScheduleDrawer({
                           key={type.value}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
                         >
+                          {/* eslint-disable-next-line no-restricted-syntax -- inline checkbox with custom decorator (colored dot + label); standard <Checkbox> doesn't support this layout */}
                           <input
                             type="checkbox"
                             checked={isIncluded}

@@ -17,6 +17,9 @@
 import { useState, useEffect } from 'react'
 import { Sparkles, Clock, Filter, Zap, Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import { useNotificationMutations, useAIDraft } from '@/lib/hooks/useNotificationRules'
 import {
   CONDITION_TYPES,
@@ -432,16 +435,18 @@ export function NotificationRuleDrawer({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600 whitespace-nowrap">Send</span>
-                <input
-                  type="number"
-                  id="offsetDays"
-                  min={0}
-                  max={365}
-                  value={offsetDays}
-                  onChange={(e) => setOffsetDays(Number(e.target.value))}
-                  disabled={isReadOnly}
-                  className="w-16 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
-                />
+                <div className="w-16">
+                  <Input
+                    size="sm"
+                    type="number"
+                    id="offsetDays"
+                    min={0}
+                    max={365}
+                    value={offsetDays}
+                    onChange={(e) => setOffsetDays(Number(e.target.value))}
+                    disabled={isReadOnly}
+                  />
+                </div>
                 <span className="text-sm text-slate-600">days</span>
                 <div className="flex bg-slate-100 rounded-full p-0.5">
                   {(['before', 'after'] as const).map((opt) => (
@@ -472,31 +477,31 @@ export function NotificationRuleDrawer({
           {/* Condition-based config */}
           {triggerType === 'CONDITION_BASED' && (
             <div className="space-y-3">
-              <div className="flex items-start gap-2 flex-wrap">
-                <span className="text-sm text-slate-600 whitespace-nowrap pt-2">If</span>
-                <select
-                  id="conditionType"
-                  value={conditionType}
-                  onChange={(e) => setConditionType(e.target.value)}
-                  disabled={isReadOnly}
-                  className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
-                >
-                  {CONDITION_TYPES.map((c) => (
-                    <option key={c.key} value={c.key}>{c.label}</option>
-                  ))}
-                </select>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-slate-600 whitespace-nowrap">If</span>
+                <div className="flex-1 min-w-[200px]">
+                  <Select
+                    size="sm"
+                    value={conditionType}
+                    onChange={(value) => setConditionType(value)}
+                    disabled={isReadOnly}
+                    options={CONDITION_TYPES.map((c) => ({ value: c.key, label: c.label }))}
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600 whitespace-nowrap">is true</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={conditionThresholdDays}
-                  onChange={(e) => setConditionThresholdDays(Number(e.target.value))}
-                  disabled={isReadOnly}
-                  className="w-16 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
-                />
+                <div className="w-16">
+                  <Input
+                    size="sm"
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={conditionThresholdDays}
+                    onChange={(e) => setConditionThresholdDays(Number(e.target.value))}
+                    disabled={isReadOnly}
+                  />
+                </div>
                 <span className="text-sm text-slate-600">days before event, send notification</span>
               </div>
             </div>
@@ -506,17 +511,15 @@ export function NotificationRuleDrawer({
           {triggerType === 'ACTION_TRIGGERED' && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-600 whitespace-nowrap">Send immediately when</span>
-              <select
-                id="actionType"
-                value={actionType}
-                onChange={(e) => setActionType(e.target.value)}
-                disabled={isReadOnly}
-                className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
-              >
-                {ACTION_TYPES.map((a) => (
-                  <option key={a.key} value={a.key}>{a.label}</option>
-                ))}
-              </select>
+              <div className="flex-1 min-w-[200px]">
+                <Select
+                  size="sm"
+                  value={actionType}
+                  onChange={(value) => setActionType(value)}
+                  disabled={isReadOnly}
+                  options={ACTION_TYPES.map((a) => ({ value: a.key, label: a.label }))}
+                />
+              </div>
             </div>
           )}
         </section>
@@ -525,17 +528,12 @@ export function NotificationRuleDrawer({
         <section>
           <SectionLabel>Audience</SectionLabel>
           <Field label="Target Audience" htmlFor="targetAudience">
-            <select
-              id="targetAudience"
+            <Select
               value={targetAudience}
-              onChange={(e) => setTargetAudience(e.target.value as TargetAudience)}
+              onChange={(value) => setTargetAudience(value as TargetAudience)}
               disabled={isReadOnly}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white disabled:bg-slate-50 cursor-pointer"
-            >
-              {AUDIENCE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              options={AUDIENCE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+            />
           </Field>
         </section>
 
@@ -562,29 +560,26 @@ export function NotificationRuleDrawer({
 
           <div className="space-y-3">
             <Field label="Rule Label" htmlFor="label" hint="Short name shown on the timeline">
-              <input
+              <Input
                 id="label"
-                type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 disabled={isReadOnly}
                 placeholder="e.g. 7-day reminder"
                 maxLength={200}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50"
               />
             </Field>
 
             <Field label="Subject" htmlFor="subject">
               <div className="relative">
-                <input
+                <Input
                   id="subject"
-                  type="text"
                   value={subject}
                   onChange={(e) => handleSubjectChange(e.target.value)}
                   disabled={isReadOnly}
                   placeholder="Notification subject line"
                   maxLength={500}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 pr-24"
+                  className="pr-24"
                 />
                 {isAIDrafted && (
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-indigo-700 whitespace-nowrap">
@@ -595,14 +590,13 @@ export function NotificationRuleDrawer({
             </Field>
 
             <Field label="Message Body" htmlFor="messageBody">
-              <textarea
+              <Textarea
                 id="messageBody"
                 value={messageBody}
                 onChange={(e) => handleBodyChange(e.target.value)}
                 disabled={isReadOnly}
                 placeholder="Write your message here, or click AI Draft to generate one..."
                 rows={6}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 resize-none"
               />
             </Field>
           </div>

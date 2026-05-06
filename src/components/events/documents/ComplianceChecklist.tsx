@@ -24,6 +24,9 @@ import {
 } from '@/lib/hooks/useEventDocuments'
 import { fetchApi } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -103,7 +106,7 @@ function ComplianceEmpty({ onImport, isImporting }: { onImport: () => void; isIm
       </div>
       <h3 className="text-base font-semibold text-slate-900 mb-2">No compliance items yet</h3>
       <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">
-        Import a set of standard off-campus compliance items or add custom ones.
+        Import a set of standard compliance items or add custom ones.
       </p>
       <button
         onClick={onImport}
@@ -160,48 +163,45 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 mt-2">
       {/* Label */}
       <div>
-        <input
-          type="text"
+        <Input
           value={label}
           onChange={(e) => { setLabel(e.target.value); setLabelError('') }}
           placeholder="Compliance item label *"
-          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+          hasError={!!labelError}
         />
         {labelError && <p className="text-xs text-red-500 mt-1">{labelError}</p>}
       </div>
 
       {/* Description */}
-      <textarea
+      <Textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
         rows={2}
-        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors resize-none"
       />
 
       <div className="grid grid-cols-2 gap-3">
         {/* Status */}
         <div>
           <label className="text-xs text-slate-500 mb-1 block">Status</label>
-          <select
+          <Select
             value={status}
-            onChange={(e) => setStatus(e.target.value as ComplianceStatus)}
-            className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
-          >
-            <option value="NOT_STARTED">Not Started</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETE">Complete</option>
-          </select>
+            onChange={(value) => setStatus(value as ComplianceStatus)}
+            options={[
+              { value: 'NOT_STARTED', label: 'Not Started' },
+              { value: 'IN_PROGRESS', label: 'In Progress' },
+              { value: 'COMPLETE', label: 'Complete' },
+            ]}
+          />
         </div>
 
         {/* Due date */}
         <div>
           <label className="text-xs text-slate-500 mb-1 block">Due Date</label>
-          <input
+          <Input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer"
           />
         </div>
       </div>
@@ -209,31 +209,28 @@ function InlineEditor({ item, eventProjectId, users, onSave, onCancel, isSaving 
       {/* Assignee */}
       <div>
         <label className="text-xs text-slate-500 mb-1 block">Assignee</label>
-        <select
+        <Select
           value={assigneeId}
-          onChange={(e) => setAssigneeId(e.target.value)}
-          className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer bg-white"
-        >
-          <option value="">Unassigned</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {userDisplayName(u)}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setAssigneeId(value)}
+          placeholder="Unassigned"
+          options={[
+            { value: '', label: 'Unassigned' },
+            ...users.map((u) => ({ value: u.id, label: userDisplayName(u) })),
+          ]}
+        />
       </div>
 
       {/* File URL */}
       <div>
         <label className="text-xs text-slate-500 mb-1 block">File URL (optional)</label>
         <div className="relative">
-          <Paperclip className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <input
+          <Paperclip className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
+          <Input
             type="url"
             value={fileUrl}
             onChange={(e) => setFileUrl(e.target.value)}
             placeholder="https://…"
-            className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors"
+            className="pl-9"
           />
         </div>
       </div>

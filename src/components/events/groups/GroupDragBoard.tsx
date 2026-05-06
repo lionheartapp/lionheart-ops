@@ -13,10 +13,12 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { Search, Plus, Wand2, Filter } from 'lucide-react'
+import { Plus, Wand2, Filter } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
 import {
   useGroups,
   useGroupAssignments,
@@ -99,20 +101,18 @@ function AddGroupInlineForm({
       className="ui-glass p-4 rounded-2xl border border-blue-200 space-y-3"
     >
       <h4 className="text-sm font-semibold text-slate-800">New {defaultName}</h4>
-      <input
+      <Input
         autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder={`${defaultName} name`}
-        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
-      <input
+      <Input
         type="number"
         value={capacity}
         onChange={(e) => setCapacity(e.target.value)}
         placeholder="Capacity (optional)"
         min={1}
-        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <div className="flex gap-2">
         <button
@@ -204,15 +204,12 @@ function UnassignedPool({
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search participants..."
-          className="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search participants..."
+        onClear={search ? () => setSearch('') : undefined}
+      />
 
       {/* Grade filter */}
       {grades.length > 1 && (

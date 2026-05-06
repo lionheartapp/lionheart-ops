@@ -12,6 +12,9 @@ import { useState, useEffect, useRef } from 'react'
 import { z } from 'zod'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import { useToast } from '@/components/Toast'
 import { useGetReceiptUploadUrl } from '@/lib/hooks/useBudget'
 import type { BudgetCategoryRow, BudgetLineItemRow, BudgetLineItemInput } from '@/lib/types/budget'
@@ -269,18 +272,12 @@ export function BudgetExpenseDrawer({
           <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Category <span className="text-red-500">*</span>
           </label>
-          <select
+          <Select
             value={form.categoryId}
-            onChange={(e) => updateField('categoryId', e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
-          >
-            <option value="">Select a category</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => updateField('categoryId', value)}
+            placeholder="Select a category"
+            options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+          />
           {errors.categoryId && (
             <p className="mt-1 text-xs text-red-500">{errors.categoryId}</p>
           )}
@@ -291,12 +288,11 @@ export function BudgetExpenseDrawer({
           <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Description <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
+          <Input
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             placeholder="e.g. Bus rental for field trip"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+            hasError={!!errors.description}
           />
           {errors.description && (
             <p className="mt-1 text-xs text-red-500">{errors.description}</p>
@@ -310,17 +306,18 @@ export function BudgetExpenseDrawer({
               Budgeted Amount <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm z-10 pointer-events-none">
                 $
               </span>
-              <input
+              <Input
                 type="number"
-                min="0"
+                min={0}
                 step="0.01"
                 value={form.budgetedAmount}
                 onChange={(e) => updateField('budgetedAmount', e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                hasError={!!errors.budgetedAmount}
+                className="pl-6"
               />
             </div>
             {errors.budgetedAmount && (
@@ -332,17 +329,18 @@ export function BudgetExpenseDrawer({
               Actual Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm z-10 pointer-events-none">
                 $
               </span>
-              <input
+              <Input
                 type="number"
-                min="0"
+                min={0}
                 step="0.01"
                 value={form.actualAmount}
                 onChange={(e) => updateField('actualAmount', e.target.value)}
                 placeholder="0.00"
-                className="w-full rounded-xl border border-slate-200 bg-white pl-7 pr-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                hasError={!!errors.actualAmount}
+                className="pl-6"
               />
             </div>
             {errors.actualAmount && (
@@ -354,35 +352,31 @@ export function BudgetExpenseDrawer({
         {/* Vendor */}
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Vendor</label>
-          <input
-            type="text"
+          <Input
             value={form.vendor}
             onChange={(e) => updateField('vendor', e.target.value)}
             placeholder="e.g. Acme Transportation Co."
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
           />
         </div>
 
         {/* Expense Date */}
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Expense Date</label>
-          <input
+          <Input
             type="date"
             value={form.expenseDate}
             onChange={(e) => updateField('expenseDate', e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           />
         </div>
 
         {/* Notes */}
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
-          <textarea
+          <Textarea
             value={form.notes}
             onChange={(e) => updateField('notes', e.target.value)}
             placeholder="Any additional notes about this expense…"
             rows={3}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition resize-none"
           />
         </div>
 
@@ -426,6 +420,7 @@ export function BudgetExpenseDrawer({
             </button>
           )}
 
+          {/* eslint-disable-next-line no-restricted-syntax -- hidden native picker triggered by the styled button above; <FileInput> would replace the entire receipt-preview UX */}
           <input
             ref={fileInputRef}
             type="file"

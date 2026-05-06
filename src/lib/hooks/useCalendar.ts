@@ -57,6 +57,7 @@ export interface CalendarEventData {
     color: string
     calendarType: string
     campus?: { id: string; name: string } | null
+    school?: { id: string; name: string } | null
   }
   category?: {
     id: string

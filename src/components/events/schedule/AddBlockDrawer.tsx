@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import type { BlockTypeConfig } from '@/lib/types/event-project'
 import {
   TYPE_COLORS,
@@ -193,14 +195,11 @@ export function AddBlockDrawer({
         {/* Block title */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Title</label>
-          <input
-            type="text"
+          <Input
             value={form.title}
             onChange={(e) => update('title', e.target.value)}
             placeholder="e.g. Morning Assembly, Lunch..."
-            className={`w-full px-4 py-3 text-sm bg-white border rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all ${
-              errors.title ? 'border-red-300' : 'border-slate-200'
-            }`}
+            hasError={!!errors.title}
           />
           {errors.title && <p className="text-xs text-red-500 mt-1.5">{errors.title}</p>}
         </div>
@@ -275,12 +274,10 @@ export function AddBlockDrawer({
               <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">Label</label>
-                  <input
-                    type="text"
+                  <Input
                     value={newTypeLabel}
                     onChange={(e) => setNewTypeLabel(e.target.value)}
                     placeholder="e.g. Workshop, Keynote, Panel"
-                    className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200"
                   />
                 </div>
                 <div>
@@ -380,23 +377,23 @@ export function AddBlockDrawer({
           </div>
           {/* Custom duration input */}
           <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={1}
-              max={720}
-              value={customDuration}
-              onChange={(e) => setCustomDuration(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleCustomDurationApply()
-                }
-              }}
-              placeholder="Custom minutes"
-              className={`w-36 px-3 py-2 text-sm bg-white border rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all ${
-                !isPresetSelected && form.durationMinutes > 0 ? 'border-slate-400' : 'border-slate-200'
-              }`}
-            />
+            <div className="w-36">
+              <Input
+                size="sm"
+                type="number"
+                min={1}
+                max={720}
+                value={customDuration}
+                onChange={(e) => setCustomDuration(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleCustomDurationApply()
+                  }
+                }}
+                placeholder="Custom minutes"
+              />
+            </div>
             <button
               type="button"
               onClick={handleCustomDurationApply}
@@ -415,24 +412,21 @@ export function AddBlockDrawer({
         {/* Location */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Location (optional)</label>
-          <input
-            type="text"
+          <Input
             value={form.locationText}
             onChange={(e) => update('locationText', e.target.value)}
             placeholder="e.g. Main Hall, Beach Pavilion"
-            className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all"
           />
         </div>
 
         {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Notes (optional)</label>
-          <textarea
+          <Textarea
             value={form.description}
             onChange={(e) => update('description', e.target.value)}
             rows={3}
             placeholder="Instructions, details, leaders..."
-            className="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 resize-y transition-all"
           />
         </div>
       </form>

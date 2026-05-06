@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
 import {
   useActivities,
   useActivitySignups,
@@ -100,41 +101,36 @@ function ActivityForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <input
+      <Input
         autoFocus
         value={values.name}
         onChange={(e) => set('name', e.target.value)}
         placeholder="Activity name *"
-        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         required
       />
-      <input
+      <Input
         value={values.description}
         onChange={(e) => set('description', e.target.value)}
         placeholder="Description (optional)"
-        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <div className="grid grid-cols-2 gap-3">
-        <input
+        <Input
           type="number"
           value={values.capacity}
           onChange={(e) => set('capacity', e.target.value)}
           placeholder="Max capacity"
           min={1}
-          className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <input
+        <Input
           type="datetime-local"
           value={values.scheduledAt}
           onChange={(e) => set('scheduledAt', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
-      <input
+      <Input
         value={values.location}
         onChange={(e) => set('location', e.target.value)}
         placeholder="Location (optional)"
-        className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
       <div className="flex gap-2">
         <button

@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Sparkles, Plus, X, Loader2, CalendarDays, MapPin, Users, Clock } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Select } from '@/components/ui/Select'
 import type { AIEventSuggestion, AIBudgetLineItem } from '@/lib/types/event-ai'
 import type { ScheduleBlockTemplate, TaskTemplate } from '@/lib/types/event-template'
 
@@ -70,12 +74,10 @@ function TextInput({
   return (
     <div>
       <label className="block text-xs text-slate-500 mb-1">{label}</label>
-      <input
-        type="text"
+      <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
       />
     </div>
   )
@@ -93,11 +95,10 @@ function TextArea({
   return (
     <div>
       <label className="block text-xs text-slate-500 mb-1">{label}</label>
-      <textarea
+      <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors"
       />
     </div>
   )
@@ -325,22 +326,20 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                 <label className="block text-xs text-slate-500 mb-1">
                   <CalendarDays className="inline w-3 h-3 mr-1" />Start Date
                 </label>
-                <input
+                <Input
                   type="date"
                   value={local.startsAt}
                   onChange={(e) => updateField('startsAt', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
               <div>
                 <label className="block text-xs text-slate-500 mb-1">
                   <CalendarDays className="inline w-3 h-3 mr-1" />End Date
                 </label>
-                <input
+                <Input
                   type="date"
                   value={local.endsAt}
                   onChange={(e) => updateField('endsAt', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
             </div>
@@ -349,24 +348,21 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                 <label className="block text-xs text-slate-500 mb-1">
                   <MapPin className="inline w-3 h-3 mr-1" />Location
                 </label>
-                <input
-                  type="text"
+                <Input
                   value={local.locationText}
                   onChange={(e) => updateField('locationText', e.target.value)}
                   placeholder="Event location"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
               <div>
                 <label className="block text-xs text-slate-500 mb-1">
                   <Users className="inline w-3 h-3 mr-1" />Expected Attendance
                 </label>
-                <input
+                <Input
                   type="number"
                   min={0}
                   value={local.expectedAttendance}
                   onChange={(e) => updateField('expectedAttendance', parseInt(e.target.value, 10) || 0)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
                 />
               </div>
             </div>
@@ -395,46 +391,45 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   {local.scheduleBlocks.map((block, i) => (
                     <tr key={i} className="group">
                       <td className="py-1.5 pr-2">
-                        <input
-                          type="number"
-                          min={0}
-                          value={block.dayOffset}
-                          onChange={(e) =>
-                            updateScheduleBlock(i, 'dayOffset', parseInt(e.target.value, 10) || 0)
-                          }
-                          className="w-12 rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
-                        />
-                      </td>
-                      <td className="py-1.5 pr-2">
-                        <div className="flex items-center gap-0.5">
-                          <input
-                            type="time"
-                            value={block.startTime}
-                            onChange={(e) => updateScheduleBlock(i, 'startTime', e.target.value)}
-                            className="w-20 rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                        <div className="w-14">
+                          <Input
+                            size="sm"
+                            type="number"
+                            min={0}
+                            value={block.dayOffset}
+                            onChange={(e) =>
+                              updateScheduleBlock(i, 'dayOffset', parseInt(e.target.value, 10) || 0)
+                            }
                           />
                         </div>
                       </td>
                       <td className="py-1.5 pr-2">
-                        <input
-                          type="text"
+                        <div className="w-24">
+                          <Input
+                            size="sm"
+                            type="time"
+                            value={block.startTime}
+                            onChange={(e) => updateScheduleBlock(i, 'startTime', e.target.value)}
+                          />
+                        </div>
+                      </td>
+                      <td className="py-1.5 pr-2">
+                        <Input
+                          size="sm"
                           value={block.title}
                           onChange={(e) => updateScheduleBlock(i, 'title', e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
-                        <select
+                        <Select
+                          size="sm"
                           value={block.type}
-                          onChange={(e) => updateScheduleBlock(i, 'type', e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300 bg-white cursor-pointer"
-                        >
-                          {BLOCK_TYPES.map((t) => (
-                            <option key={t} value={t}>
-                              {t.charAt(0) + t.slice(1).toLowerCase().replace('_', ' ')}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(value) => updateScheduleBlock(i, 'type', value)}
+                          options={BLOCK_TYPES.map((t) => ({
+                            value: t,
+                            label: t.charAt(0) + t.slice(1).toLowerCase().replace('_', ' '),
+                          }))}
+                        />
                       </td>
                       <td className="py-1.5">
                         <button
@@ -467,29 +462,23 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
               <p className="text-xs text-slate-400">No documents suggested.</p>
             )}
             {local.suggestedDocs.map((doc) => (
-              <label key={doc} className="flex items-center gap-2.5 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={true}
-                  onChange={() => toggleDoc(doc)}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer"
-                />
-                <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
-                  {doc}
-                </span>
-              </label>
+              <Checkbox
+                key={doc}
+                checked={true}
+                onChange={() => toggleDoc(doc)}
+                label={doc}
+              />
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <input
-              type="text"
+            <Input
               value={newDoc}
               onChange={(e) => setNewDoc(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') addDoc()
               }}
               placeholder="Add document type..."
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              className="flex-1"
             />
             <button
               onClick={addDoc}
@@ -510,18 +499,17 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
             )}
             {local.suggestedTasks.map((task, i) => (
               <div key={i} className="flex items-center gap-2.5">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={includedTasks.has(i)}
                   onChange={() => toggleTask(i)}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 cursor-pointer flex-shrink-0"
                 />
-                <input
-                  type="text"
+                <Input
+                  size="sm"
                   value={task.title}
                   onChange={(e) => updateTask(i, 'title', e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-300 min-w-0"
+                  className="flex-1 min-w-0"
                 />
+                {/* eslint-disable-next-line no-restricted-syntax -- inline pill-style select; needs custom dropdown to match design */}
                 <select
                   value={task.priority ?? 'NORMAL'}
                   onChange={(e) => updateTask(i, 'priority', e.target.value)}
@@ -539,15 +527,14 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <input
-              type="text"
+            <Input
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') addTask()
               }}
               placeholder="Add task..."
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              className="flex-1"
             />
             <button
               onClick={addTask}
@@ -579,33 +566,34 @@ export function AIEventPreview({ suggestion, onEdit, onConfirm, isCreating }: AI
                   {local.budgetEstimate.map((item, i) => (
                     <tr key={i} className="group">
                       <td className="py-1.5 pr-2">
-                        <input
-                          type="text"
+                        <Input
+                          size="sm"
                           value={item.category}
                           onChange={(e) => updateBudgetItem(i, 'category', e.target.value)}
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
-                        <input
+                        <Input
+                          size="sm"
                           type="number"
                           min={0}
                           value={item.estimatedMin}
                           onChange={(e) =>
                             updateBudgetItem(i, 'estimatedMin', parseFloat(e.target.value) || 0)
                           }
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="text-right"
                         />
                       </td>
                       <td className="py-1.5 pr-2">
-                        <input
+                        <Input
+                          size="sm"
                           type="number"
                           min={0}
                           value={item.estimatedMax}
                           onChange={(e) =>
                             updateBudgetItem(i, 'estimatedMax', parseFloat(e.target.value) || 0)
                           }
-                          className="w-full rounded-lg border border-slate-200 px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-blue-300"
+                          className="text-right"
                         />
                       </td>
                       <td className="py-1.5">

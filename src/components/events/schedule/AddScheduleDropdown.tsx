@@ -9,6 +9,7 @@ import {
   LayoutGrid,
 } from 'lucide-react'
 import { BlockIllustration, SectionIllustration, BreakoutIllustration } from './ScheduleIllustrations'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -126,9 +127,9 @@ export function AddScheduleDropdown({ onAddBlock, onAddSection, onAddBreakout }:
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     ref={inputRef}
-                    type="text"
+                    size="sm"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onKeyDown={(e) => {
@@ -136,7 +137,7 @@ export function AddScheduleDropdown({ onAddBlock, onAddSection, onAddBreakout }:
                       if (e.key === 'Escape') { setNaming(null); setTitle('') }
                     }}
                     placeholder={naming === 'breakout' ? 'Breakout name...' : 'Section name...'}
-                    className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all"
+                    className="flex-1"
                   />
                   <button
                     onClick={handleSubmitName}

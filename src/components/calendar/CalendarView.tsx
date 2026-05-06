@@ -313,9 +313,18 @@ export default function CalendarView() {
   const calendarFiltered = activeCalendarIds.length > 0
     ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
     : []
-  // Apply campus filter from the global school/campus picker
+  // Apply school/campus filter from the global sidebar selector. We match
+  // either the calendar's campus (typical for grade-division scoping) or
+  // its school (institution-level scoping). Calendars with neither stay
+  // visible — they're org-wide and should appear in every school view.
   const events = activeSchoolId
-    ? calendarFiltered.filter((e) => !e.calendar.campus || e.calendar.campus.id === activeSchoolId)
+    ? calendarFiltered.filter((e) => {
+        const cal = e.calendar
+        if (!cal.campus && !cal.school) return true // org-wide
+        if (cal.campus?.id === activeSchoolId) return true
+        if (cal.school?.id === activeSchoolId) return true
+        return false
+      })
     : calendarFiltered
 
   // ── Athletics calendar overlay ──────────────────────────────────────

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useToast } from '@/components/Toast'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
 import {
   Search,
   Shield,
@@ -578,26 +580,26 @@ export function RegistrationManagement({ eventProjectId }: RegistrationManagemen
 
         {/* Filters */}
         <motion.div variants={fadeInUp} className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
+          <div className="flex-1 min-w-[180px]">
+            <SearchInput
               placeholder="Search by name or email..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:border-indigo-300 transition-all"
+              onClear={search ? () => { setSearch(''); setPage(1) } : undefined}
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-            className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/40 transition-all cursor-pointer"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="REGISTERED">Registered</option>
-            <option value="WAITLISTED">Waitlisted</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+          <div className="min-w-[180px]">
+            <Select
+              value={statusFilter}
+              onChange={(value) => { setStatusFilter(value); setPage(1) }}
+              options={[
+                { value: 'ALL', label: 'All Statuses' },
+                { value: 'REGISTERED', label: 'Registered' },
+                { value: 'WAITLISTED', label: 'Waitlisted' },
+                { value: 'CANCELLED', label: 'Cancelled' },
+              ]}
+            />
+          </div>
         </motion.div>
 
         {/* Empty state */}

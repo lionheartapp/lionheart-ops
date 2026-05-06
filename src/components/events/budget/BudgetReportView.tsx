@@ -110,9 +110,9 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
         <StatCard
           label="Variance"
           value={formatCurrency(Math.abs(variance))}
-          sub={isOverBudget ? 'over budget' : 'under budget'}
+          sub={variance === 0 ? 'balanced' : isOverBudget ? 'over budget' : 'under budget'}
           icon={isOverBudget ? TrendingUp : TrendingDown}
-          variant={isOverBudget ? 'negative' : 'positive'}
+          variant={variance === 0 ? 'neutral' : isOverBudget ? 'negative' : 'positive'}
         />
         <StatCard
           label="Total Revenue"
@@ -123,9 +123,9 @@ export function BudgetReportView({ report }: BudgetReportViewProps) {
         <StatCard
           label="Net Position"
           value={formatCurrency(Math.abs(report.netPosition))}
-          sub={netPositive ? 'revenue exceeds costs' : 'costs exceed revenue'}
+          sub={report.netPosition === 0 ? 'balanced' : netPositive ? 'revenue exceeds costs' : 'costs exceed revenue'}
           icon={netPositive ? TrendingDown : TrendingUp}
-          variant={netPositive ? 'positive' : 'negative'}
+          variant={report.netPosition === 0 ? 'neutral' : netPositive ? 'positive' : 'negative'}
         />
         <StatCard
           label="Cost Per Participant"

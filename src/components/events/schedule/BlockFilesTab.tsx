@@ -147,6 +147,7 @@ export function BlockFilesTab({ eventProjectId, blockId }: BlockFilesTabProps) {
             : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
         }`}
       >
+        {/* eslint-disable-next-line no-restricted-syntax -- hidden native file picker triggered by the styled drop zone above */}
         <input
           ref={fileInputRef}
           type="file"

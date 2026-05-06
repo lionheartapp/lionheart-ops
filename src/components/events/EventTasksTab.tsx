@@ -25,7 +25,13 @@ import {
   useDeleteEventTask,
 } from '@/lib/hooks/useEventTasks'
 import { type EventTask } from '@/lib/hooks/useEventProject'
+import { useEventTeam } from '@/lib/hooks/useEventTeam'
+import { useOrgMembers, formatMemberLabel } from '@/lib/hooks/useOrgMembers'
 import { useToast } from '@/components/Toast'
+import { AssigneePicker } from './AssigneePicker'
+import { Select } from '@/components/ui/Select'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import type { CreateEventTaskInput, UpdateEventTaskInput } from '@/lib/types/event-project'
 
 // ─── Priority config ─────────────────────────────────────────────────────────
@@ -107,6 +113,7 @@ interface TaskFormData {
   priority: PriorityValue
   category: string
   dueDate: string
+  assigneeId: string
 }
 
 const defaultTaskForm: TaskFormData = {
@@ -115,6 +122,17 @@ const defaultTaskForm: TaskFormData = {
   priority: 'NORMAL',
   category: '',
   dueDate: '',
+  assigneeId: '',
+}
+
+interface TeamMemberOption {
+  userId: string
+  label: string
+  /** Smaller line under the name in the picker — usually team or job title */
+  subtitle?: string
+  avatar?: string | null
+  /** true = on this event's team, false = elsewhere in the org */
+  onEventTeam: boolean
 }
 
 interface TaskFormProps {
@@ -123,9 +141,10 @@ interface TaskFormProps {
   onCancel: () => void
   isSubmitting?: boolean
   submitLabel?: string
+  teamMembers?: TeamMemberOption[]
 }
 
-function TaskForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel = 'Add Task' }: TaskFormProps) {
+function TaskForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel = 'Add Task', teamMembers = [] }: TaskFormProps) {
   const [form, setForm] = useState<TaskFormData>({ ...defaultTaskForm, ...initialData })
   const [errors, setErrors] = useState<Partial<Record<keyof TaskFormData, string>>>({})
 
@@ -152,15 +171,12 @@ function TaskForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel =
         <label className="block text-xs font-medium text-slate-700 mb-1">
           Title <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <Input
           value={form.title}
           onChange={(e) => update('title', e.target.value)}
           placeholder="Task title"
           autoFocus
-          className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-            errors.title ? 'border-red-300' : 'border-slate-200'
-          }`}
+          hasError={!!errors.title}
         />
         {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
       </div>
@@ -169,51 +185,60 @@ function TaskForm({ initialData, onSubmit, onCancel, isSubmitting, submitLabel =
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">Priority</label>
-          <select
+          <Select<PriorityValue>
             value={form.priority}
-            onChange={(e) => update('priority', e.target.value as PriorityValue)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 bg-white"
-          >
-            {PRIORITIES.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
+            onChange={(value) => update('priority', value)}
+            options={PRIORITIES.map((p) => ({ value: p.value, label: p.label }))}
+            placeholder="Select priority"
+          />
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">Category</label>
-          <select
+          <Select
             value={form.category}
-            onChange={(e) => update('category', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 bg-white"
-          >
-            <option value="">None</option>
-            {TASK_CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+            onChange={(value) => update('category', value)}
+            options={[
+              { value: '', label: 'None' },
+              ...TASK_CATEGORIES.map((c) => ({ value: c, label: c })),
+            ]}
+            placeholder="Select category"
+          />
         </div>
       </div>
 
-      {/* Due date */}
-      <div>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Due Date (optional)</label>
-        <input
-          type="date"
-          value={form.dueDate}
-          onChange={(e) => update('dueDate', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 bg-white"
-        />
+      {/* Due date + Assignee row */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-700 mb-1">Due Date (optional)</label>
+          <Input
+            type="date"
+            value={form.dueDate}
+            onChange={(e) => update('dueDate', e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-700 mb-1">Assignee (optional)</label>
+          <AssigneePicker
+            value={form.assigneeId}
+            onChange={(userId) => update('assigneeId', userId)}
+            options={teamMembers.map((m) => ({
+              userId: m.userId,
+              name: m.label,
+              subtitle: m.subtitle,
+              avatar: m.avatar,
+              onEventTeam: m.onEventTeam,
+            }))}
+          />
+        </div>
       </div>
 
       {/* Description */}
       <div>
         <label className="block text-xs font-medium text-slate-700 mb-1">Description (optional)</label>
-        <textarea
+        <Textarea
           value={form.description}
           onChange={(e) => update('description', e.target.value)}
-          rows={2}
           placeholder="Add details..."
-          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
         />
       </div>
 
@@ -256,9 +281,10 @@ interface TaskRowProps {
   isTogglingStatus?: boolean
   isUpdating?: boolean
   isDeleting?: boolean
+  teamMembers?: TeamMemberOption[]
 }
 
-function TaskRow({ task, onStatusToggle, onUpdate, onDelete, isTogglingStatus, isUpdating, isDeleting }: TaskRowProps) {
+function TaskRow({ task, onStatusToggle, onUpdate, onDelete, isTogglingStatus, isUpdating, isDeleting, teamMembers = [] }: TaskRowProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const priorityConfig = getPriorityConfig(task.priority)
@@ -274,6 +300,7 @@ function TaskRow({ task, onStatusToggle, onUpdate, onDelete, isTogglingStatus, i
     priority: task.priority as PriorityValue,
     category: task.category || '',
     dueDate: task.dueDate ? format(parseISO(task.dueDate), 'yyyy-MM-dd') : '',
+    assigneeId: task.assignee?.id || '',
   }
 
   async function handleUpdate(data: TaskFormData) {
@@ -282,6 +309,7 @@ function TaskRow({ task, onStatusToggle, onUpdate, onDelete, isTogglingStatus, i
       description: data.description || undefined,
       priority: data.priority,
       category: data.category || undefined,
+      assigneeId: data.assigneeId || null,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
     })
     setIsEditing(false)
@@ -297,6 +325,7 @@ function TaskRow({ task, onStatusToggle, onUpdate, onDelete, isTogglingStatus, i
             onCancel={() => setIsEditing(false)}
             isSubmitting={isUpdating}
             submitLabel="Save Changes"
+            teamMembers={teamMembers}
           />
         </div>
       ) : (
@@ -444,10 +473,38 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const { data: tasks, isLoading } = useEventTasks(eventProjectId)
+  const { data: teamMembers } = useEventTeam(eventProjectId)
+  const { data: orgMembers } = useOrgMembers()
   const createTask = useCreateEventTask(eventProjectId)
   const updateTask = useUpdateEventTask(eventProjectId)
   const deleteTask = useDeleteEventTask(eventProjectId)
   const { toast } = useToast()
+
+  // Build the assignee list: event team members first, then everyone else in
+  // the org. Org members already on the event team are deduped out of the
+  // second group so they don't appear twice.
+  const teamMemberOptions: TeamMemberOption[] = (() => {
+    const fromEventTeam: TeamMemberOption[] = (teamMembers || []).map((m) => ({
+      userId: m.userId,
+      label: formatMemberLabel(m.user),
+      subtitle: m.user.jobTitle ?? undefined,
+      avatar: m.user.avatar,
+      onEventTeam: true,
+    }))
+
+    const eventTeamIds = new Set(fromEventTeam.map((m) => m.userId))
+    const fromOrg: TeamMemberOption[] = (orgMembers || [])
+      .filter((u) => !eventTeamIds.has(u.id))
+      .map((u) => ({
+        userId: u.id,
+        label: formatMemberLabel(u),
+        subtitle: u.jobTitle ?? undefined,
+        avatar: u.avatar,
+        onEventTeam: false,
+      }))
+
+    return [...fromEventTeam, ...fromOrg]
+  })()
 
   async function handleCreate(data: TaskFormData) {
     const payload: CreateEventTaskInput = {
@@ -456,6 +513,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
       status: 'TODO',
       priority: data.priority,
       category: data.category || undefined,
+      assigneeId: data.assigneeId || undefined,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
     }
     try {
@@ -566,6 +624,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
               onSubmit={handleCreate}
               onCancel={() => setShowAddForm(false)}
               isSubmitting={createTask.isPending}
+              teamMembers={teamMemberOptions}
             />
           </motion.div>
         )}
@@ -635,6 +694,7 @@ export function EventTasksTab({ eventProjectId }: EventTasksTabProps) {
               isTogglingStatus={togglingId === task.id}
               isUpdating={updatingId === task.id}
               isDeleting={deletingId === task.id}
+              teamMembers={teamMemberOptions}
             />
           ))}
           {hasMoreTasks && !showAllTasks && (

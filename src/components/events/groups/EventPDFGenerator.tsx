@@ -436,7 +436,7 @@ export default function EventPDFGenerator({
       <div>
         <h3 className="text-sm font-semibold text-slate-900">Print & Download</h3>
         <p className="text-xs text-slate-500 mt-0.5">
-          Generate professional PDFs for bus drivers, counselors, and day-of staff.
+          Generate professional PDFs for coordinators, facilitators, and event staff.
         </p>
       </div>
 

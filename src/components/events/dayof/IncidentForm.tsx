@@ -22,6 +22,9 @@ import {
 import type { CreateIncidentData } from '@/lib/hooks/useIncidents'
 import type { ParticipantStatusEntry } from '@/lib/hooks/useCheckIn'
 import type { EventIncidentType, EventIncidentSeverity } from '@/lib/types/events-phase21'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Textarea } from '@/components/ui/Textarea'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -296,20 +299,16 @@ export default function IncidentForm({
 
         {/* Searchable dropdown */}
         <div className="relative">
-          <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400">
-            <input
-              type="text"
-              value={participantSearch}
-              onChange={(e) => {
-                setParticipantSearch(e.target.value)
-                setShowParticipantDropdown(true)
-              }}
-              onFocus={() => setShowParticipantDropdown(true)}
-              placeholder="Search participants..."
-              className="flex-1 px-3 py-2 text-sm outline-none bg-transparent"
-            />
-            <ChevronDown className="w-4 h-4 text-slate-400 mr-2" />
-          </div>
+          <SearchInput
+            value={participantSearch}
+            onChange={(e) => {
+              setParticipantSearch(e.target.value)
+              setShowParticipantDropdown(true)
+            }}
+            onFocus={() => setShowParticipantDropdown(true)}
+            placeholder="Search participants..."
+            onClear={participantSearch ? () => setParticipantSearch('') : undefined}
+          />
 
           {showParticipantDropdown && filteredParticipants.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-auto max-h-48">
@@ -342,13 +341,12 @@ export default function IncidentForm({
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
           Description <span className="text-red-500">*</span>
         </label>
-        <textarea
+        <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
           rows={3}
           placeholder="Describe what happened..."
-          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
         />
       </div>
 
@@ -357,35 +355,31 @@ export default function IncidentForm({
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
           Actions Taken
         </label>
-        <textarea
+        <Textarea
           value={actionsTaken}
           onChange={(e) => setActionsTaken(e.target.value)}
           rows={2}
           placeholder="What was done in response? (optional)"
-          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
         />
       </div>
 
       {/* Follow-up */}
       <div>
-        <label className="flex items-center gap-2.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={followUpNeeded}
-            onChange={(e) => setFollowUpNeeded(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer"
-          />
-          <span className="text-sm font-medium text-slate-700">Follow-up needed</span>
-        </label>
+        <Checkbox
+          checked={followUpNeeded}
+          onChange={(e) => setFollowUpNeeded(e.target.checked)}
+          label="Follow-up needed"
+        />
 
         {followUpNeeded && (
-          <textarea
-            value={followUpNotes}
-            onChange={(e) => setFollowUpNotes(e.target.value)}
-            rows={2}
-            placeholder="Describe required follow-up..."
-            className="mt-2 w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-          />
+          <div className="mt-2">
+            <Textarea
+              value={followUpNotes}
+              onChange={(e) => setFollowUpNotes(e.target.value)}
+              rows={2}
+              placeholder="Describe required follow-up..."
+            />
+          </div>
         )}
       </div>
 
@@ -421,6 +415,7 @@ export default function IncidentForm({
           )}
         </div>
 
+        {/* eslint-disable-next-line no-restricted-syntax -- hidden native picker triggered by the styled button above; preserves capture="environment" for mobile camera UX */}
         <input
           ref={photoInputRef}
           type="file"

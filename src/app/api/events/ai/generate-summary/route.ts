@@ -13,20 +13,21 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 import { generateStatusSummary } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.object({
   eventProjectId: z.string().min(1, 'eventProjectId is required'),
 })
 
-export const POST = withAuth(async ({ body, searchParams }) => {
+export const POST = withAuth(async ({ body, searchParams, orgId }) => {
   const { eventProjectId } = body
   const skipAI = searchParams.get('skipAI') === 'true'
 
-  // Load event with metrics
-  const project = await (prisma as unknown as OrgPrismaClient).eventProject.findFirst({
-    where: { id: eventProjectId },
+  // EventProject is NOT in the org-scoped model list, so use rawPrisma
+  // and manually scope by organizationId for tenant isolation.
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId },
     include: {
       tasks: {
         select: { id: true, status: true },

@@ -221,6 +221,7 @@ function RosterView({ participants }: RosterViewProps) {
       <div className="px-4 pt-4 pb-3 flex-shrink-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          {/* eslint-disable-next-line no-restricted-syntax -- pill-style search (rounded-full, slate-50 bg); SearchInput uses rounded-field instead */}
           <input
             type="search"
             value={search}

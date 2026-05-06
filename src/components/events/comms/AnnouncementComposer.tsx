@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, ChevronDown, AlertCircle, Loader2 } from 'lucide-react'
+import { Send, AlertCircle, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/Toast'
 import { useCreateAnnouncement } from '@/lib/hooks/useEventComms'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import type { EventGroupWithAssignments } from '@/lib/types/events-phase21'
@@ -110,7 +113,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
 
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [audience, setAudience] = useState<AnnouncementAudience>('ALL')
+  const [audience, setAudience] = useState<AnnouncementAudience>('TEAM')
   const [targetGroupId, setTargetGroupId] = useState<string>('')
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -178,13 +181,11 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
             Subject
           </label>
-          <input
-            type="text"
+          <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Important schedule update"
             maxLength={200}
-            className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors"
             required
           />
         </div>
@@ -194,12 +195,11 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
             Message
           </label>
-          <textarea
+          <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Write your announcement here..."
             rows={4}
-            className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors resize-none"
             required
           />
         </div>
@@ -219,6 +219,7 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
+                {/* eslint-disable-next-line no-restricted-syntax -- radio-card pattern (label-wrapped clickable card with custom styling); standard <Radio> doesn't support this layout */}
                 <input
                   type="radio"
                   name="audience"
@@ -252,22 +253,18 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
                 Select Group
               </label>
-              <div className="relative">
-                <select
-                  value={targetGroupId}
-                  onChange={(e) => setTargetGroupId(e.target.value)}
-                  className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-colors cursor-pointer"
-                  required={audience === 'GROUP'}
-                >
-                  <option value="">Choose a group...</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name} ({g.type.replace('_', ' ')}) — {g.assignmentCount} member{g.assignmentCount !== 1 ? 's' : ''}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
+              <Select
+                value={targetGroupId}
+                onChange={(value) => setTargetGroupId(value)}
+                placeholder="Choose a group..."
+                options={[
+                  { value: '', label: 'Choose a group...' },
+                  ...groups.map((g) => ({
+                    value: g.id,
+                    label: `${g.name} (${g.type.replace('_', ' ')}) — ${g.assignmentCount} member${g.assignmentCount !== 1 ? 's' : ''}`,
+                  })),
+                ]}
+              />
               {groups.length === 0 && (
                 <p className="text-xs text-amber-600 mt-1.5">
                   No groups found. Create groups in the People tab first.

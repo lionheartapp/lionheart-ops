@@ -140,6 +140,8 @@ export interface GateStateV2 {
   resourceType: string | null
   sortOrder: number
   respondedById?: string | null
+  /** Populated at read-time by getEventProject — not stored in JSON */
+  respondedByName?: string | null
   respondedAt?: string | null
   reason?: string | null
 }

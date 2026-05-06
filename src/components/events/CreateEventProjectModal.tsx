@@ -15,6 +15,9 @@ import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useToast } from '@/components/Toast'
 import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
 import { PeoplePicker } from '@/components/events/PeoplePicker'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Select } from '@/components/ui/Select'
 import type { CreateEventProjectInput } from '@/lib/types/event-project'
 
 type EventMode = 'single' | 'multiday'
@@ -241,6 +244,9 @@ function DateTimeBlock({
               <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">From</span>
               {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick start date'}
             </button>
+            {/* eslint-disable-next-line no-restricted-syntax -- sr-only date input is the
+                native picker target for the styled button above; <Input> would render a
+                visible field and break this UX */}
             <input
               ref={startDateRef}
               type="date"
@@ -264,6 +270,7 @@ function DateTimeBlock({
               <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">To</span>
               {form.endsAt ? formatDateDisplay(form.endsAt) : 'Pick end date'}
             </button>
+            {/* eslint-disable-next-line no-restricted-syntax -- sr-only native picker target */}
             <input
               ref={endDateRef}
               type="date"
@@ -298,6 +305,7 @@ function DateTimeBlock({
           <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
           {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick a date'}
         </button>
+        {/* eslint-disable-next-line no-restricted-syntax -- sr-only native picker target */}
         <input
           ref={startDateRef}
           type="date"
@@ -591,15 +599,12 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Title <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <Input
                 value={form.title}
                 onChange={(e) => update('title', e.target.value)}
                 placeholder={config.placeholder}
                 autoFocus
-                className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 ${
-                  errors.title ? 'border-red-300' : 'border-slate-200'
-                }`}
+                hasError={!!errors.title}
               />
               {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title}</p>}
             </div>
@@ -609,12 +614,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Description
               </label>
-              <textarea
+              <Textarea
                 value={form.description}
                 onChange={(e) => update('description', e.target.value)}
                 rows={3}
                 placeholder="Brief overview of this event..."
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 resize-none"
               />
             </div>
 
@@ -626,20 +630,16 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                   <SchoolIcon className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
                   School
                 </label>
-                <select
+                <Select
                   value={form.schoolId ?? ALL_SCHOOLS_VALUE}
-                  onChange={(e) =>
-                    update('schoolId', e.target.value === ALL_SCHOOLS_VALUE ? null : e.target.value)
+                  onChange={(value) =>
+                    update('schoolId', value === ALL_SCHOOLS_VALUE ? null : value)
                   }
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 bg-white"
-                >
-                  <option value={ALL_SCHOOLS_VALUE}>All Schools (district-wide)</option>
-                  {schools.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: ALL_SCHOOLS_VALUE, label: 'All Schools (district-wide)' },
+                    ...schools.map((s) => ({ value: s.id, label: s.name })),
+                  ]}
+                />
                 <p className="text-xs text-slate-500 mt-1">
                   {form.schoolId
                     ? 'Visible only when this school is selected.'
@@ -669,13 +669,12 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                 <Users className="inline w-3.5 h-3.5 mr-1 text-slate-400" />
                 Expected Attendance
               </label>
-              <input
+              <Input
                 type="number"
-                min="1"
+                min={1}
                 value={form.expectedAttendance}
                 onChange={(e) => update('expectedAttendance', e.target.value)}
                 placeholder="e.g. 120"
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400"
               />
             </div>
           </div>
@@ -738,12 +737,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                         )
                       })}
                     </div>
-                    <textarea
+                    <Textarea
                       value={form.avNotes}
                       onChange={(e) => update('avNotes', e.target.value)}
                       rows={2}
                       placeholder="Any other A/V details — specific equipment, setup timing, etc."
-                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none bg-white"
                     />
                   </div>
                 )}
@@ -798,12 +796,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                         )
                       })}
                     </div>
-                    <textarea
+                    <Textarea
                       value={form.facilityNotes}
                       onChange={(e) => update('facilityNotes', e.target.value)}
                       rows={2}
                       placeholder="Any other details — seating layout, special equipment, timing, etc."
-                      className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-amber-400 resize-none bg-white"
                     />
                   </div>
                 )}
@@ -876,12 +873,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                     onChange={setRequestedAttendees}
                     hideHeader
                   />
-                  <textarea
+                  <Textarea
                     value={peopleNote}
                     onChange={(e) => setPeopleNote(e.target.value)}
                     rows={2}
                     placeholder="Note for requested people — role, instructions, etc."
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 resize-none bg-white"
                   />
                 </div>
               )}

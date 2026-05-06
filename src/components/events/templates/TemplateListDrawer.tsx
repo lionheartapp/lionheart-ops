@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { LayoutTemplate, Search, Trash2 } from 'lucide-react'
+import { LayoutTemplate, Trash2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import DetailDrawer from '@/components/DetailDrawer'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { useTemplates, useTemplateMutations } from '@/lib/hooks/useEventTemplates'
 import { useToast } from '@/components/Toast'
@@ -184,29 +186,19 @@ export function TemplateListDrawer({ isOpen, onClose, onSelect }: TemplateListDr
         {/* Filters */}
         <div className="space-y-3 mb-5">
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Search templates..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search templates..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={search ? () => setSearch('') : undefined}
+          />
 
           {/* Event type filter */}
-          <select
+          <Select
             value={eventType}
-            onChange={(e) => setEventType(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 cursor-pointer"
-          >
-            {EVENT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setEventType(value)}
+            options={EVENT_TYPE_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))}
+          />
         </div>
 
         {/* Template list */}

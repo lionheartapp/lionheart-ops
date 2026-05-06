@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ClipboardList, Users, Share2, Loader2, Sparkles, X } from 'lucide-react'
 import { fadeInUp, tabContent } from '@/lib/animations'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import {
   useRegistrationForm,
   useCreateRegistrationForm,
@@ -161,12 +163,10 @@ function AIGenerateModal({
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Event type
             </label>
-            <input
-              type="text"
+            <Input
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
               placeholder="e.g. Summer Camp, Field Trip, Retreat"
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors"
             />
           </div>
 
@@ -175,12 +175,11 @@ function AIGenerateModal({
               Special requirements{' '}
               <span className="text-slate-400 font-normal">(optional)</span>
             </label>
-            <textarea
+            <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g. Overnight event requiring medical forms, dietary needs collection"
               rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-colors resize-none"
             />
           </div>
         </div>
@@ -309,7 +308,7 @@ export function RegistrationTab({
           </div>
           <h3 className="text-base font-semibold text-slate-900 mb-2">No Registration Form Yet</h3>
           <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
-            Set up a registration form so parents and participants can sign up for this event. You
+            Set up a registration form so attendees and registrants can sign up for this event. You
             can configure fields, capacity, payments, and more.
           </p>
           <div className="flex flex-col items-center gap-3">

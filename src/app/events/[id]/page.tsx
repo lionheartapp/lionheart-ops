@@ -283,9 +283,14 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   const { data: myPermissions } = useMyEventPermissions(id)
   const approveProject = useApproveEventProject(id)
 
-  // Tab state — reads initial from ?tab= URL param
-  const initialTab = (searchParams.get('tab') as TabId) || 'overview'
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab)
+  // Tab state — synced with ?tab= URL param
+  const tabFromUrl = (searchParams.get('tab') as TabId) || 'overview'
+  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl)
+
+  // Keep activeTab in sync when URL changes externally (back/forward, other navigations)
+  useEffect(() => {
+    setActiveTab(tabFromUrl)
+  }, [tabFromUrl])
 
   // Auth state — provides user ID, org branding, and readiness
   const { user: authUser, org: authOrg } = useAuth({ redirectTo: '' })

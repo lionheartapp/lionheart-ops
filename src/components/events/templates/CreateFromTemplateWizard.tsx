@@ -16,6 +16,7 @@ import {
   Bell,
 } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { Input } from '@/components/ui/Input'
 import { useTemplate, useTemplateMutations } from '@/lib/hooks/useEventTemplates'
 import { useToast } from '@/components/Toast'
 import { tabContent } from '@/lib/animations'
@@ -95,13 +96,11 @@ function Step1({ details, onChange }: Step1Props) {
         <label htmlFor="new-event-title" className="block text-sm font-medium text-slate-700 mb-1">
           Event Title <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           id="new-event-title"
-          type="text"
           value={details.title}
           onChange={(e) => onChange({ ...details, title: e.target.value })}
           placeholder="e.g. Camp Big Bear 2026"
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
         />
       </div>
 
@@ -110,24 +109,22 @@ function Step1({ details, onChange }: Step1Props) {
           <label htmlFor="new-event-starts" className="block text-sm font-medium text-slate-700 mb-1">
             Start Date & Time <span className="text-red-500">*</span>
           </label>
-          <input
+          <Input
             id="new-event-starts"
             type="datetime-local"
             value={details.startsAt}
             onChange={(e) => onChange({ ...details, startsAt: e.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
           />
         </div>
         <div>
           <label htmlFor="new-event-ends" className="block text-sm font-medium text-slate-700 mb-1">
             End Date & Time <span className="text-red-500">*</span>
           </label>
-          <input
+          <Input
             id="new-event-ends"
             type="datetime-local"
             value={details.endsAt}
             onChange={(e) => onChange({ ...details, endsAt: e.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
           />
         </div>
       </div>
@@ -136,13 +133,11 @@ function Step1({ details, onChange }: Step1Props) {
         <label htmlFor="new-event-location" className="block text-sm font-medium text-slate-700 mb-1">
           Location <span className="text-slate-400 font-normal">(optional)</span>
         </label>
-        <input
+        <Input
           id="new-event-location"
-          type="text"
           value={details.locationText}
           onChange={(e) => onChange({ ...details, locationText: e.target.value })}
           placeholder="e.g. Camp Sherwood, Malibu CA"
-          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
         />
       </div>
     </div>

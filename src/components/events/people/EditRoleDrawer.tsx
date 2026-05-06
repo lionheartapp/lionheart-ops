@@ -5,6 +5,7 @@ import { Check } from 'lucide-react'
 import { EVENT_MEMBER_PERMISSION_KEYS, EVENT_MEMBER_PERMISSION_META } from '@/lib/types/event-project'
 import type { EventMemberPermissionKey, UpdateEventTeamMemberInput } from '@/lib/types/event-project'
 import type { EventTeamMember } from '@/lib/hooks/useEventTeam'
+import { Textarea } from '@/components/ui/Textarea'
 import DetailDrawer from '@/components/DetailDrawer'
 import { getUserName } from './people-types'
 import { RolePicker } from './RolePicker'
@@ -89,12 +90,11 @@ export function EditRoleDrawer({ isOpen, onClose, member, eventCustomRoles, onSa
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Notes <span className="text-slate-400 font-normal">(optional)</span>
           </label>
-          <textarea
+          <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Any specific responsibilities or notes..."
             rows={3}
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition-all resize-none"
             maxLength={500}
           />
         </div>

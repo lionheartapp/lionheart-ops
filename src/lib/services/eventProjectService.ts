@@ -282,7 +282,7 @@ export async function createEventProject(
  * Fetches a single EventProject with full nested data.
  */
 export async function getEventProject(id: string): Promise<Record<string, unknown> | null> {
-  return db.eventProject.findFirst({
+  const project = await db.eventProject.findFirst({
     where: { id },
     include: {
       createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -320,6 +320,57 @@ export async function getEventProject(id: string): Promise<Record<string, unknow
       room: { select: { id: true, displayName: true, roomNumber: true } },
     },
   })
+
+  if (!project) return null
+
+  // Enrich approvalGates entries with respondedByName for display.
+  // We don't store names in the JSON to avoid stale data on rename.
+  const enrichedGates = await enrichGatesWithApproverNames(
+    project.approvalGates as Record<string, Record<string, unknown>> | null,
+  )
+
+  return enrichedGates
+    ? { ...project, approvalGates: enrichedGates }
+    : project
+}
+
+/**
+ * Look up approver names for any gate entries that have a respondedById.
+ * Returns a new gates object with `respondedByName` populated, or null if
+ * the input was null. Safe for both V1 (channel-keyed) and V2 (UUID-keyed) shapes.
+ */
+async function enrichGatesWithApproverNames(
+  gates: Record<string, Record<string, unknown>> | null,
+): Promise<Record<string, Record<string, unknown>> | null> {
+  if (!gates) return null
+
+  const userIds = new Set<string>()
+  for (const gate of Object.values(gates)) {
+    const id = gate?.respondedById
+    if (typeof id === 'string' && id.length > 0) userIds.add(id)
+  }
+
+  if (userIds.size === 0) return gates
+
+  const users = await db.user.findMany({
+    where: { id: { in: Array.from(userIds) } },
+    select: { id: true, firstName: true, lastName: true },
+  })
+
+  const nameById = new Map<string, string>()
+  for (const u of users) {
+    const full = `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim()
+    if (full) nameById.set(u.id, full)
+  }
+
+  const next: Record<string, Record<string, unknown>> = {}
+  for (const [key, gate] of Object.entries(gates)) {
+    const id = typeof gate?.respondedById === 'string' ? gate.respondedById : null
+    next[key] = id && nameById.has(id)
+      ? { ...gate, respondedByName: nameById.get(id) }
+      : gate
+  }
+  return next
 }
 
 /**

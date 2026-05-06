@@ -8,6 +8,7 @@ import { format } from 'date-fns'
 import { useEventInvitations, useRespondToInvitation } from '@/lib/hooks/useEventInvitations'
 import type { EventInvitation } from '@/lib/hooks/useEventInvitations'
 import { fetchApi } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -208,13 +209,12 @@ function RSVPBanner({
             className="overflow-hidden"
           >
             <div className="flex gap-2 pt-1">
-              <input
-                type="text"
+              <Input
                 value={declineReason}
                 onChange={(e) => setDeclineReason(e.target.value)}
                 placeholder="Reason (optional)..."
                 autoFocus
-                className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
+                className="flex-1"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     respond.mutate({ status: 'DECLINED', responseNote: declineReason })

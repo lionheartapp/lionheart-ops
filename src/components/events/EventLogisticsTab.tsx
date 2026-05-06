@@ -43,9 +43,9 @@ const LOGISTICS_TABS: Array<{
   icon: React.ElementType
   medical?: boolean
 }> = [
-  { id: 'buses', label: 'Buses', icon: Bus },
-  { id: 'cabins', label: 'Cabins', icon: Home },
-  { id: 'small-groups', label: 'Small Groups', icon: Users },
+  { id: 'buses', label: 'Transportation', icon: Bus },
+  { id: 'cabins', label: 'Accommodations', icon: Home },
+  { id: 'small-groups', label: 'Groups', icon: Users },
   { id: 'activities', label: 'Activities', icon: Activity },
   { id: 'dietary', label: 'Dietary/Medical', icon: HeartPulse, medical: true },
   { id: 'print', label: 'Print', icon: Printer },
@@ -350,8 +350,7 @@ export function EventLogisticsTab({ eventProjectId, project }: EventLogisticsTab
   const [failedAssignments, setFailedAssignments] = useState<Array<{ participantId: string; groupId: string; error: string }>>([])
   const [retryingFailed, setRetryingFailed] = useState(false)
 
-  const canViewMedical =
-    perms?.legacyRole === 'super-admin' || perms?.legacyRole === 'admin'
+  const canViewMedical = perms?.canViewMedical ?? false
 
   // Event info for PDFs
   const eventName = project?.title ?? 'Event'

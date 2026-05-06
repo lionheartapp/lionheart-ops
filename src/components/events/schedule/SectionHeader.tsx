@@ -83,6 +83,7 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
         </button>
         <FolderOpen className="w-4 h-4 text-slate-400" />
         {isEditing ? (
+          /* eslint-disable-next-line no-restricted-syntax -- inline rename: borderless underline-style edit field, must look like the heading it replaces */
           <input
             ref={inputRef}
             type="text"
@@ -106,6 +107,7 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
         )}
         {/* Time span — clickable to edit start time */}
         {isEditingTime ? (
+          /* eslint-disable-next-line no-restricted-syntax -- inline pill-style time edit (indigo-tinted) that replaces a small time chip */
           <input
             ref={timeInputRef}
             type="time"

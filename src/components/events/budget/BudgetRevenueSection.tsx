@@ -19,6 +19,8 @@ import {
   X,
 } from 'lucide-react'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { listItem, staggerContainer } from '@/lib/animations'
 import type { BudgetRevenueRow, BudgetRevenueInput, BudgetRevenueSource } from '@/lib/types/budget'
 import { BUDGET_REVENUE_SOURCES } from '@/lib/types/budget'
@@ -155,17 +157,11 @@ function InlineRevenueForm({
           <label className="block text-xs font-medium text-slate-600 mb-1.5">
             Source <span className="text-red-500">*</span>
           </label>
-          <select
+          <Select
             value={form.source}
-            onChange={(e) => updateField('source', e.target.value as BudgetRevenueSource)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
-          >
-            {manualSources.map((s) => (
-              <option key={s} value={s}>
-                {SOURCE_LABELS[s]}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => updateField('source', value as BudgetRevenueSource)}
+            options={manualSources.map((s) => ({ value: s, label: SOURCE_LABELS[s] }))}
+          />
         </div>
         {/* Amount */}
         <div>
@@ -173,15 +169,16 @@ function InlineRevenueForm({
             Amount <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-            <input
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm z-10 pointer-events-none">$</span>
+            <Input
               type="number"
-              min="0"
+              min={0}
               step="0.01"
               value={form.amount}
               onChange={(e) => updateField('amount', e.target.value)}
               placeholder="0.00"
-              className="w-full rounded-xl border border-slate-200 bg-white pl-6 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+              hasError={!!errors.amount}
+              className="pl-6"
             />
           </div>
           {errors.amount && <p className="mt-1 text-xs text-red-500">{errors.amount}</p>}
@@ -193,12 +190,11 @@ function InlineRevenueForm({
         <label className="block text-xs font-medium text-slate-600 mb-1.5">
           Description <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <Input
           value={form.description}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="e.g. Spring Gala sponsorship from ABC Corp"
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+          hasError={!!errors.description}
         />
         {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
       </div>
@@ -207,21 +203,18 @@ function InlineRevenueForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Received Date</label>
-          <input
+          <Input
             type="date"
             value={form.receivedDate}
             onChange={(e) => updateField('receivedDate', e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition cursor-pointer"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
-          <input
-            type="text"
+          <Input
             value={form.notes}
             onChange={(e) => updateField('notes', e.target.value)}
             placeholder="Optional notes"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
           />
         </div>
       </div>

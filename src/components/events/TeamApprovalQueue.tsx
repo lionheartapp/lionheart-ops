@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import {
@@ -17,6 +17,9 @@ import {
 import { usePendingGateApprovals, useApproveGate, useRejectGate, type EventProject } from '@/lib/hooks/useEventProject'
 import { staggerContainer, cardEntrance, fadeInUp } from '@/lib/animations'
 import { useToast } from '@/components/Toast'
+import { readResourceItems } from '@/lib/utils/resourceItems'
+import { Textarea } from '@/components/ui/Textarea'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 
 // ─── V2 Detection ───────────────────────────────────────────────────────────
 
@@ -60,9 +63,11 @@ function ResourceRequirements({
   const isFacilities = gateType === 'facilities' || isV2
   const isAdmin = gateType === 'admin'
 
-  const avNeeds = (meta.avNeeds ?? []) as string[]
+  const avItems = readResourceItems(meta, 'avNeeds')
+  const avNeeds = avItems.map((i) => i.name)
   const avNotes = (meta.avNotes ?? '') as string
-  const facilityNeeds = (meta.facilityNeeds ?? []) as string[]
+  const facilityItems = readResourceItems(meta, 'facilityNeeds')
+  const facilityNeeds = facilityItems.map((i) => i.name)
   const facilityNotes = (meta.facilityNotes ?? '') as string
 
   const hasAV = project.requiresAV && (avNeeds.length > 0 || avNotes)
@@ -265,11 +270,10 @@ function ApprovalCard({
         </div>
       ) : (
         <div className="space-y-2">
-          <textarea
+          <Textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="Reason for rejection (required)..."
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"
             rows={2}
             autoFocus
           />
@@ -318,6 +322,22 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
   const { data: projects, isLoading, isError } = usePendingGateApprovals(gateType)
   const { toast } = useToast()
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
+
+  // Filter the queue to the active school. Off-campus events stay visible
+  // (they don't belong to a single school). Events whose campus/school
+  // matches the active selection pass through; everything else is hidden
+  // when a school is selected.
+  const { activeSchoolId } = useActiveSchool()
+  const filteredProjects = useMemo(() => {
+    if (!projects) return projects
+    if (!activeSchoolId) return projects
+    return projects.filter((p) => {
+      if (p.isOffCampus) return true
+      if (p.campusId === activeSchoolId) return true
+      if (p.schoolId === activeSchoolId) return true
+      return false
+    })
+  }, [projects, activeSchoolId])
 
   // We need to create a temporary wrapper for the mutation since the hook
   // requires an ID upfront but we need it per-card
@@ -383,7 +403,7 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
     )
   }
 
-  if (!projects || projects.length === 0) {
+  if (!filteredProjects || filteredProjects.length === 0) {
     return (
       <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="ui-glass p-8 text-center">
         <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -403,7 +423,7 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
       className="space-y-3"
     >
       <AnimatePresence mode="popLayout">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <ApprovalCard
             key={project.id}
             project={project}

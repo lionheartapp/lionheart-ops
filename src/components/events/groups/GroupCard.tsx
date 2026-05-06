@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { Users, Edit2, Trash2, Check, X } from 'lucide-react'
 import type { EventGroup, GroupParticipant } from '@/lib/hooks/useEventGroups'
 import ParticipantCard from './ParticipantCard'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -76,26 +77,26 @@ function EditForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2 p-1">
-      <input
+      <Input
+        size="sm"
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Group name"
-        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
         autoFocus
       />
-      <input
+      <Input
+        size="sm"
         type="number"
         value={capacity}
         onChange={(e) => setCapacity(e.target.value)}
         placeholder="Capacity (optional)"
         min={1}
-        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
-      <input
+      <Input
+        size="sm"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Description (optional)"
-        className="w-full px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
       />
       <div className="flex gap-2 justify-end">
         <button
