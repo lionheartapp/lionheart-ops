@@ -1,12 +1,24 @@
 'use client'
 
-import React, { useState } from 'react'
-import { DoorOpen, Plus, Save, XCircle, Edit2, Camera, Trash2 } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { DoorOpen, Plus, Save, XCircle, Edit2, Camera, Trash2, UserPlus, X, Search } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ImageUpload from '@/components/settings/ImageUpload'
-import { type Building, type Room, renderStatusBadge } from './types'
+import { getAuthHeaders } from '@/lib/api-client'
+import { type Building, type Room, type RoomAssignmentUser, renderStatusBadge } from './types'
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+type MemberOption = {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  avatar: string | null
+  jobTitle: string | null
+}
 
 type RoomsDrawerProps = {
   building: Building | null
@@ -17,7 +29,187 @@ type RoomsDrawerProps = {
   onDeactivateRoom: (id: string, name: string) => void
   onRoomImagesChange: (roomId: string, images: string[]) => void
   onImageClick: (images: string[], index: number) => void
+  onAssignPerson?: (roomId: string, userId: string) => Promise<void>
+  onUnassignPerson?: (assignmentId: string) => Promise<void>
 }
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function userName(u: RoomAssignmentUser | MemberOption): string {
+  if (u.firstName || u.lastName) {
+    return [u.firstName, u.lastName].filter(Boolean).join(' ')
+  }
+  return u.email
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
+const AVATAR_COLORS = [
+  'bg-blue-100 text-blue-700',
+  'bg-amber-100 text-amber-700',
+  'bg-violet-100 text-violet-700',
+  'bg-green-100 text-green-700',
+  'bg-pink-100 text-pink-700',
+  'bg-teal-100 text-teal-700',
+]
+
+function avatarColor(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length]
+}
+
+// ─── Inline Person Picker ───────────────────────────────────────────────────
+
+function PersonSearchPicker({
+  onSelect,
+  onCancel,
+  excludeUserIds,
+}: {
+  onSelect: (user: MemberOption) => void
+  onCancel: () => void
+  excludeUserIds: string[]
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<MemberOption[]>([])
+  const [loading, setLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        onCancel()
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [onCancel])
+
+  // Search members
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([])
+      return
+    }
+    const controller = new AbortController()
+    setLoading(true)
+    fetch(`/api/settings/users?search=${encodeURIComponent(query.trim())}&limit=8`, {
+      headers: getAuthHeaders(),
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) {
+          const filtered = (data.data?.users || data.data || []).filter(
+            (u: MemberOption) => !excludeUserIds.includes(u.id),
+          )
+          setResults(filtered.slice(0, 6))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+    return () => controller.abort()
+  }, [query, excludeUserIds])
+
+  return (
+    <div ref={containerRef} className="absolute z-50 top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+      <div className="p-2 border-b border-slate-100">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search members..."
+            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            onKeyDown={(e) => { if (e.key === 'Escape') onCancel() }}
+          />
+        </div>
+      </div>
+      <div className="max-h-48 overflow-y-auto">
+        {loading && (
+          <div className="px-3 py-4 text-center text-xs text-slate-400">Searching...</div>
+        )}
+        {!loading && query.trim() && results.length === 0 && (
+          <div className="px-3 py-4 text-center text-xs text-slate-400">No members found</div>
+        )}
+        {!loading && !query.trim() && (
+          <div className="px-3 py-4 text-center text-xs text-slate-400">Type a name to search</div>
+        )}
+        {results.map((u) => {
+          const name = userName(u)
+          return (
+            <button
+              key={u.id}
+              onClick={() => onSelect(u)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+            >
+              {u.avatar ? (
+                <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${avatarColor(name)}`}>
+                  {getInitials(name)}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-slate-800 truncate">{name}</div>
+                {u.jobTitle && <div className="text-xs text-slate-400 truncate">{u.jobTitle}</div>}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Assigned Person Chip ───────────────────────────────────────────────────
+
+function AssignedChip({
+  user,
+  assignmentId,
+  onRemove,
+}: {
+  user: RoomAssignmentUser
+  assignmentId: string
+  onRemove: (id: string) => void
+}) {
+  const name = userName(user)
+  return (
+    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-sm group">
+      {user.avatar ? (
+        <img src={user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+      ) : (
+        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${avatarColor(name)}`}>
+          {getInitials(name)}
+        </div>
+      )}
+      <span className="text-slate-700 truncate max-w-[120px]">{name}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onRemove(assignmentId) }}
+        className="p-0.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+        title="Unassign"
+        aria-label={`Unassign ${name}`}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  )
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function RoomsDrawer({
   building,
@@ -28,6 +220,8 @@ export default function RoomsDrawer({
   onDeactivateRoom,
   onRoomImagesChange,
   onImageClick,
+  onAssignPerson,
+  onUnassignPerson,
 }: RoomsDrawerProps) {
   // Add form state
   const [addForm, setAddForm] = useState({ roomNumber: '', displayName: '', floor: '' })
@@ -42,6 +236,9 @@ export default function RoomsDrawer({
 
   // Image expand state
   const [imagesId, setImagesId] = useState<string | null>(null)
+
+  // Person picker state
+  const [assigningRoomId, setAssigningRoomId] = useState<string | null>(null)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,9 +284,25 @@ export default function RoomsDrawer({
   const handleClose = () => {
     if (addSaving || editSaving) return
     setEditingId(null)
+    setAssigningRoomId(null)
     setAddForm({ roomNumber: '', displayName: '', floor: '' })
     onClose()
   }
+
+  const handleAssign = useCallback(async (roomId: string, user: MemberOption) => {
+    setAssigningRoomId(null)
+    if (onAssignPerson) {
+      await onAssignPerson(roomId, user.id)
+    }
+  }, [onAssignPerson])
+
+  const handleUnassign = useCallback(async (assignmentId: string) => {
+    if (onUnassignPerson) {
+      await onUnassignPerson(assignmentId)
+    }
+  }, [onUnassignPerson])
+
+  const hasAssignmentSupport = !!onAssignPerson && !!onUnassignPerson
 
   return (
     <DetailDrawer
@@ -141,14 +354,20 @@ export default function RoomsDrawer({
                 <tr className="text-slate-500 border-b bg-slate-50">
                   <th className="py-2.5 px-3 text-left font-medium">Room</th>
                   <th className="py-2.5 px-3 text-left font-medium">Display name</th>
+                  {hasAssignmentSupport && (
+                    <th className="py-2.5 px-3 text-left font-medium">Assigned to</th>
+                  )}
                   <th className="py-2.5 px-3 text-left font-medium">Floor</th>
                   <th className="py-2.5 px-3 text-left font-medium">Status</th>
                   <th className="py-2.5 pl-3 pr-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {rooms.map((r) =>
-                  editingId === r.id ? (
+                {rooms.map((r) => {
+                  const assignments = r.assignments || []
+                  const assignedUserIds = assignments.map((a) => a.userId)
+
+                  return editingId === r.id ? (
                     <tr key={r.id} className="border-b last:border-b-0 bg-primary-50">
                       <td className="py-2 px-3">
                         <input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} autoFocus />
@@ -156,6 +375,7 @@ export default function RoomsDrawer({
                       <td className="py-2 px-3">
                         <input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
                       </td>
+                      {hasAssignmentSupport && <td className="py-2 px-3" />}
                       <td className="py-2 px-3">
                         <input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
                       </td>
@@ -176,6 +396,35 @@ export default function RoomsDrawer({
                       <tr className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
                         <td className="py-2.5 px-3 font-medium text-slate-900">{r.roomNumber}</td>
                         <td className="py-2.5 px-3 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
+                        {hasAssignmentSupport && (
+                          <td className="py-2.5 px-3">
+                            <div className="relative flex items-center gap-1.5 flex-wrap">
+                              {assignments.map((a) => (
+                                <AssignedChip
+                                  key={a.id}
+                                  user={a.user}
+                                  assignmentId={a.id}
+                                  onRemove={handleUnassign}
+                                />
+                              ))}
+                              <button
+                                onClick={() => setAssigningRoomId(assigningRoomId === r.id ? null : r.id)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-full transition cursor-pointer"
+                                title="Assign person"
+                              >
+                                <UserPlus className="w-3.5 h-3.5" />
+                                {assignments.length === 0 && 'Assign'}
+                              </button>
+                              {assigningRoomId === r.id && (
+                                <PersonSearchPicker
+                                  onSelect={(user) => handleAssign(r.id, user)}
+                                  onCancel={() => setAssigningRoomId(null)}
+                                  excludeUserIds={assignedUserIds}
+                                />
+                              )}
+                            </div>
+                          </td>
+                        )}
                         <td className="py-2.5 px-3 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
                         <td className="py-2.5 px-3">{renderStatusBadge(r.isActive)}</td>
                         <td className="py-2.5 pl-3 pr-3">
@@ -192,7 +441,7 @@ export default function RoomsDrawer({
                       </tr>
                       {imagesId === r.id && (
                         <tr className="border-b last:border-b-0 bg-slate-50">
-                          <td colSpan={5} className="px-4 py-4">
+                          <td colSpan={hasAssignmentSupport ? 6 : 5} className="px-4 py-4">
                             <ImageUpload
                               entityType="room"
                               entityId={r.id}
@@ -204,8 +453,8 @@ export default function RoomsDrawer({
                         </tr>
                       )}
                     </React.Fragment>
-                  ),
-                )}
+                  )
+                })}
               </tbody>
             </table>
           </div>

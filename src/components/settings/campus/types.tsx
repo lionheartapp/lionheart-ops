@@ -34,6 +34,24 @@ export type Area = {
   schools?: SchoolLink[]
 }
 
+export type RoomAssignmentUser = {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  avatar: string | null
+  jobTitle: string | null
+}
+
+export type RoomAssignment = {
+  id: string
+  userId: string
+  roomId: string
+  isPrimary: boolean
+  isActive: boolean
+  user: RoomAssignmentUser
+}
+
 export type Room = {
   id: string
   buildingId: string
@@ -46,6 +64,7 @@ export type Room = {
   isActive: boolean
   building?: { id: string; name: string; code: string | null } | null
   area?: { id: string; name: string; areaType: string } | null
+  assignments?: RoomAssignment[]
 }
 
 export type Campus = {

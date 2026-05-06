@@ -37,6 +37,22 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
     include: {
       building: { select: { id: true, name: true, code: true } },
       space: { select: { id: true, name: true, spaceType: true } },
+      assignments: {
+        where: { isActive: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true,
+              jobTitle: true,
+            },
+          },
+        },
+        orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+      },
     },
     orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
   })

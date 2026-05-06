@@ -131,6 +131,26 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     await loadData()
   }
 
+  // ── Room assignment handlers ───────────────────────────────────────────────
+  const handleAssignPerson = async (roomId: string, userId: string) => {
+    const res = await fetch('/api/settings/campus/room-assignments', {
+      method: 'POST',
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomId, userId }),
+    })
+    const data = await res.json()
+    if (!data.ok) throw new Error(data.error?.message || 'Failed to assign person')
+    await loadData()
+  }
+
+  const handleUnassignPerson = async (assignmentId: string) => {
+    await fetch(`/api/settings/campus/room-assignments/${assignmentId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    })
+    await loadData()
+  }
+
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -238,15 +258,33 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {rooms.map((r) => (
-              <div
-                key={r.id}
-                className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-              >
-                <div className="font-medium text-slate-800">{r.roomNumber}</div>
-                {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
-              </div>
-            ))}
+            {rooms.map((r) => {
+              const assigned = r.assignments?.[0]
+              const assignedName = assigned
+                ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
+                : null
+              return (
+                <div
+                  key={r.id}
+                  className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                >
+                  <div className="font-medium text-slate-800">{r.roomNumber}</div>
+                  {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
+                  {assigned && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      {assigned.user.avatar ? (
+                        <img src={assigned.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[8px] font-bold">
+                          {assignedName?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-xs text-slate-500 truncate">{assignedName}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -261,6 +299,8 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
         onDeactivateRoom={(id) => handleDeactivateRoom(id)}
         onRoomImagesChange={handleRoomImagesChange}
         onImageClick={(images, index) => setLightbox({ images, index })}
+        onAssignPerson={handleAssignPerson}
+        onUnassignPerson={handleUnassignPerson}
       />
 
       {/* Photo Lightbox */}
