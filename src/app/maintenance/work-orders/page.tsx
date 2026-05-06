@@ -3,10 +3,9 @@
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
-import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
-import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import WorkOrdersView from '@/components/maintenance/WorkOrdersView'
 import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -14,7 +13,9 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 function WorkOrdersContent() {
   const searchParams = useSearchParams()
   const { layoutProps, isReady, orgId } = useDashboardLayoutProps()
-  const campusFilter = useCampusFilter()
+  // Active school is sourced from the global sidebar selector, restricted
+  // to maintenance-enabled schools.
+  const { activeSchoolId, activeSchoolLabel } = useActiveSchool({ restrictToModule: 'maintenance' })
 
   if (!isReady || !orgId) {
     return (
@@ -39,18 +40,17 @@ function WorkOrdersContent() {
                 <h1 className="text-2xl font-semibold text-slate-900">
                   Work Orders
                 </h1>
-                <CampusFilterChip campusFilter={campusFilter} />
               </motion.div>
               <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
-                {campusFilter.selectedCampusName === 'All Campuses'
-                  ? 'Manage and track maintenance work orders'
-                  : campusFilter.selectedCampusName}
+                {activeSchoolId
+                  ? activeSchoolLabel
+                  : 'Manage and track maintenance work orders'}
               </motion.p>
             </motion.div>
 
             {/* Work Orders content */}
             <WorkOrdersView
-              schoolIdFilter={campusFilter.selectedCampusId}
+              schoolIdFilter={activeSchoolId ?? ''}
               initialStatus={searchParams.get('status') || undefined}
               initialPriority={searchParams.get('priority') || undefined}
               initialUnassigned={searchParams.get('unassigned') === 'true'}

@@ -4,10 +4,9 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, MotionConfig, AnimatePresence } from 'framer-motion'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
-import { useCampusFilter } from '@/lib/hooks/useCampusFilter'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import DashboardLayout from '@/components/DashboardLayout'
-import CampusFilterChip from '@/components/maintenance/CampusFilterChip'
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
 import MyRequestsView from '@/components/maintenance/MyRequestsView'
 import PmCalendarView from '@/components/maintenance/PmCalendarView'
@@ -90,7 +89,10 @@ function MaintenanceContent() {
   const isOnMaintenanceTeam = isOnTeam(perms, 'maintenance')
   // Show full dashboard + tabs for team members, admins, and technicians; My Requests only for submit-only users
   const showDashboardTabs = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
-  const campusFilter = useCampusFilter()
+  // Active school is sourced from the global sidebar selector. When the
+  // user's stored selection isn't a maintenance-enabled school, the hook
+  // returns null here (treated as "All maintenance-enabled schools").
+  const { activeSchoolId, activeSchoolLabel } = useActiveSchool({ restrictToModule: 'maintenance' })
   const queryClient = useQueryClient()
 
   // Determine default tab based on URL param then permissions
@@ -180,7 +182,6 @@ function MaintenanceContent() {
                 <h1 className="text-2xl font-semibold text-slate-900">
                   Maintenance
                 </h1>
-                <CampusFilterChip campusFilter={campusFilter} />
                 <div className="ml-auto flex items-center gap-2">
                   {canManageMaintenance && (
                     <Link
@@ -229,9 +230,9 @@ function MaintenanceContent() {
                 </div>
               </motion.div>
               <motion.p variants={fadeInUp} className="text-sm text-slate-500 mt-1">
-                {campusFilter.selectedCampusName === 'All Campuses'
-                  ? 'Work orders, assets, and facility operations'
-                  : campusFilter.selectedCampusName}
+                {activeSchoolId
+                  ? activeSchoolLabel
+                  : 'Work orders, assets, and facility operations'}
               </motion.p>
             </motion.div>
 
@@ -270,7 +271,7 @@ function MaintenanceContent() {
                       className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
                       aria-hidden={activeTab !== 'dashboard'}
                     >
-                      <MaintenanceDashboard activeCampusId={campusFilter.selectedCampusId || null} />
+                      <MaintenanceDashboard activeCampusId={activeSchoolId} />
                     </div>
 
                     <div

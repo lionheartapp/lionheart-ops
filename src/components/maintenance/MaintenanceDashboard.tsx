@@ -31,6 +31,7 @@ import TechnicianWorkloadWidget from './TechnicianWorkloadWidget'
 import { fetchApi } from '@/lib/api-client'
 import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
 import { useToast } from '@/components/Toast'
+import { readResourceItems } from '@/lib/utils/resourceItems'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -194,9 +195,9 @@ function FacilityRequestCard({
     : project.createdBy?.email
 
   const meta = (project.metadata ?? {}) as Record<string, unknown>
-  const facilityNeeds = (meta.facilityNeeds ?? []) as string[]
+  const facilityNeeds = readResourceItems(meta, 'facilityNeeds').map((i) => i.name)
   const facilityNotes = (meta.facilityNotes ?? '') as string
-  const avNeeds = (meta.avNeeds ?? []) as string[]
+  const avNeeds = readResourceItems(meta, 'avNeeds').map((i) => i.name)
   const avNotes = (meta.avNotes ?? '') as string
 
   const handleReject = () => {
