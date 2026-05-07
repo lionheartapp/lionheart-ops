@@ -1,18 +1,20 @@
 'use client'
 
 /**
- * MessageArea — orchestrates message display, realtime delivery, and typing indicators.
- *
- * Combines useMessages (paginated API data) with useRealtimeChannel (live broadcasts)
- * into a single deduplicated message stream rendered by MessageList.
+ * MessageArea -- orchestrates message display, realtime delivery, typing indicators,
+ * reactions, pin/unpin, and channel header with mute toggle.
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMessages, useMarkChannelRead } from '@/lib/hooks/useMessages'
 import { useRealtimeChannel, type BroadcastMessage } from '@/lib/hooks/useRealtimeChannel'
+import { useReactions, useToggleReaction } from '@/lib/hooks/useReactions'
+import { useChannel } from '@/lib/hooks/useChannels'
 import { useAuth } from '@/lib/hooks/useAuth'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 import MessageList from './MessageList'
+import ChannelHeader from './ChannelHeader'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -71,6 +73,7 @@ function TypingIndicator({ names }: { names: string[] }) {
 
 export default function MessageArea({ channelId, onThreadClick }: MessageAreaProps) {
   const { user, orgId } = useAuth()
+  const queryClient = useQueryClient()
   const currentUserId = user.id
   const currentDisplayName = user.name
 
@@ -133,6 +136,65 @@ export default function MessageArea({ channelId, onThreadClick }: MessageAreaPro
     return [...apiMessages, ...uniqueRealtime]
   }, [apiMessages, realtimeMessages])
 
+  // Reactions for visible messages
+  const messageIds = useMemo(
+    () => combinedMessages.map((m) => m.id),
+    [combinedMessages],
+  )
+  const { data: reactionsMap } = useReactions(channelId, messageIds, currentUserId)
+  const toggleReaction = useToggleReaction(channelId)
+
+  const handleReactionToggle = useCallback(
+    (messageId: string, emoji: string) => {
+      toggleReaction.mutate({ messageId, emoji })
+    },
+    [toggleReaction],
+  )
+
+  // Pin/unpin handler
+  const handlePin = useCallback(
+    async (messageId: string) => {
+      const message = combinedMessages.find((m) => m.id === messageId)
+      const isPinned = !!message?.pinnedAt
+      try {
+        await fetch(`/api/messaging/messages/${messageId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ pinnedAt: isPinned ? null : 'now' }),
+        })
+        // Invalidate messages and pinned messages queries
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] })
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'pinned-messages', channelId] })
+      } catch {
+        // Silently fail -- could add toast notification here
+      }
+    },
+    [combinedMessages, channelId, queryClient],
+  )
+
+  // Mute toggle
+  const { data: channel } = useChannel(channelId)
+  const isMuted = useMemo(() => {
+    if (!channel?.members || !currentUserId) return false
+    return channel.members.some(
+      (m) => m.userId === currentUserId && !!m.mutedAt,
+    )
+  }, [channel, currentUserId])
+
+  const handleMuteToggle = useCallback(async () => {
+    try {
+      await fetch(`/api/messaging/channels/${channelId}/mute`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+      queryClient.invalidateQueries({ queryKey: ['messaging', 'channels', channelId] })
+    } catch {
+      // Silently fail
+    }
+  }, [channelId, queryClient])
+
   // Typing user display names
   const typingNames = useMemo(
     () => typingUsers.map((u) => u.displayName),
@@ -144,7 +206,13 @@ export default function MessageArea({ channelId, onThreadClick }: MessageAreaPro
   }, [fetchNextPage])
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full relative">
+      <ChannelHeader
+        channelId={channelId}
+        currentUserId={currentUserId}
+        onMuteToggle={handleMuteToggle}
+        isMuted={isMuted}
+      />
       <MessageList
         messages={combinedMessages}
         isLoading={isLoading}
@@ -153,6 +221,9 @@ export default function MessageArea({ channelId, onThreadClick }: MessageAreaPro
         onLoadMore={handleLoadMore}
         onThreadClick={onThreadClick}
         currentUserId={currentUserId}
+        reactionsMap={reactionsMap}
+        onReactionToggle={handleReactionToggle}
+        onPin={handlePin}
       />
       <TypingIndicator names={typingNames} />
     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Hash, Lock } from 'lucide-react'
+import { Hash, Lock, BellOff } from 'lucide-react'
 import type { ShapedChannel } from '@/lib/hooks/useChannels'
 
 interface ChannelListItemProps {
@@ -47,6 +47,12 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
   const isDM = channel.type === 'DM' || channel.type === 'GROUP_DM'
   const displayName = isDM ? getDMDisplayName(channel) : channel.name
 
+  // Check if channel is muted for current user
+  const isMuted = useMemo(() => {
+    if (!channel.members) return false
+    return channel.members.some((m) => !!m.mutedAt)
+  }, [channel.members])
+
   // Compute unread count from the current user's membership
   const unreadCount = useMemo(() => {
     if (!channel.members) return 0
@@ -79,7 +85,7 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
         isActive
           ? 'bg-primary-50 border-l-2 border-primary-500'
           : 'border-l-2 border-transparent hover:bg-white/50'
-      }`}
+      } ${isMuted ? 'opacity-50' : ''}`}
     >
       {/* Icon / Avatar */}
       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
@@ -127,8 +133,13 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
         )}
       </div>
 
+      {/* Muted indicator */}
+      {isMuted && (
+        <BellOff className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+      )}
+
       {/* Unread badge */}
-      {unreadCount > 0 && (
+      {unreadCount > 0 && !isMuted && (
         <span className="flex items-center justify-center bg-primary-500 text-white text-xs font-medium rounded-full min-w-[20px] h-5 px-1.5 flex-shrink-0">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>

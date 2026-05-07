@@ -3,13 +3,15 @@
 /**
  * MessageBubble — renders a single message in the message list.
  *
- * Own messages get a subtle bg-primary-50 tint (not right-aligned — Slack-style).
+ * Own messages get a subtle bg-primary-50 tint (not right-aligned -- Slack-style).
  * Consecutive messages from the same author within 5 min collapse avatar/name.
- * Content is plain text only (markdown deferred to Phase 27).
+ * Shows reaction pills below message and pin/reaction actions on hover.
  */
 
-import { MessageSquareText } from 'lucide-react'
+import { MessageSquareText, Pin } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
+import type { ReactionGroup } from '@/lib/hooks/useReactions'
+import ReactionBar from './ReactionBar'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -20,6 +22,10 @@ interface MessageBubbleProps {
   isOwn: boolean
   showAvatar: boolean
   onThreadClick?: (messageId: string, message?: MessageWithAuthor) => void
+  reactions?: ReactionGroup[]
+  onReactionToggle?: (emoji: string) => void
+  onPin?: (messageId: string) => void
+  isPinned?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -65,41 +71,83 @@ export default function MessageBubble({
   isOwn,
   showAvatar,
   onThreadClick,
+  reactions = [],
+  onReactionToggle,
+  onPin,
+  isPinned = false,
 }: MessageBubbleProps) {
   const bgClass = isOwn
     ? 'bg-primary-50 rounded-xl px-3 py-2'
     : 'bg-white rounded-xl px-3 py-2'
 
-  // Hover action: "Reply in thread"
-  const threadAction = onThreadClick ? (
-    <div className="absolute right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-      <button
-        type="button"
-        onClick={() => onThreadClick(message.id, message)}
-        className="flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
-        title="Reply in thread"
-      >
-        <MessageSquareText className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Thread</span>
-      </button>
+  const pinnedFromData = !!message.pinnedAt
+  const showPinIcon = isPinned || pinnedFromData
+
+  // Hover action bar: thread + pin + reaction
+  const actionBar = (
+    <div className="absolute right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
+      {onPin && (
+        <button
+          type="button"
+          onClick={() => onPin(message.id)}
+          className={`flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs cursor-pointer transition-colors duration-200 ${
+            showPinIcon
+              ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+          }`}
+          title={showPinIcon ? 'Unpin message' : 'Pin message'}
+        >
+          <Pin className="w-3.5 h-3.5" />
+        </button>
+      )}
+      {onThreadClick && (
+        <button
+          type="button"
+          onClick={() => onThreadClick(message.id, message)}
+          className="flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
+          title="Reply in thread"
+        >
+          <MessageSquareText className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Thread</span>
+        </button>
+      )}
     </div>
+  )
+
+  // Reaction bar
+  const reactionSection = onReactionToggle ? (
+    <ReactionBar
+      reactions={reactions}
+      messageId={message.id}
+      onToggle={onReactionToggle}
+      showAddButton
+    />
+  ) : reactions.length > 0 ? (
+    <ReactionBar
+      reactions={reactions}
+      messageId={message.id}
+      onToggle={() => {}}
+    />
   ) : null
 
-  // Collapsed message (same author, within 5 min) — reduced top margin, no avatar/name
+  // Collapsed message (same author, within 5 min) -- reduced top margin, no avatar/name
   if (!showAvatar) {
     return (
       <div className="group relative flex gap-3 mt-0.5">
         {/* Spacer matching avatar width */}
         <div className="w-8 flex-shrink-0" />
-        <div className={bgClass}>
-          <p className="text-sm text-slate-800 whitespace-pre-wrap">
-            {message.content}
-          </p>
-          {message.editedAt && (
-            <span className="text-xs text-slate-400 ml-1">(edited)</span>
-          )}
+        <div className="min-w-0 flex-1">
+          <div className={bgClass}>
+            <p className="text-sm text-slate-800 whitespace-pre-wrap">
+              {message.content}
+            </p>
+            {message.editedAt && (
+              <span className="text-xs text-slate-400 ml-1">(edited)</span>
+            )}
+          </div>
+          {reactionSection}
         </div>
-        {threadAction}
+        {actionBar}
       </div>
     )
   }
@@ -123,7 +171,7 @@ export default function MessageBubble({
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        {/* Author name + timestamp */}
+        {/* Author name + timestamp + pin icon */}
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-medium text-slate-600">
             {message.authorName}
@@ -134,6 +182,9 @@ export default function MessageBubble({
           {message.editedAt && (
             <span className="text-xs text-slate-400">(edited)</span>
           )}
+          {showPinIcon && (
+            <Pin className="w-3 h-3 text-amber-400 flex-shrink-0" />
+          )}
         </div>
 
         {/* Message body */}
@@ -142,6 +193,9 @@ export default function MessageBubble({
             {message.content}
           </p>
         </div>
+
+        {/* Reaction pills */}
+        {reactionSection}
 
         {/* Thread link (shows reply count when replies exist) */}
         {message.replyCount > 0 && (
@@ -155,7 +209,7 @@ export default function MessageBubble({
         )}
       </div>
 
-      {threadAction}
+      {actionBar}
     </div>
   )
 }
