@@ -283,20 +283,24 @@ export default function CalendarFilterPanel({
                     </button>
                   )
                 })()}
-                {otherCals.map((cal) => {
-                  const isVisible = visibleCalendarIds.has(cal.id)
-                  return (
-                    <button
-                      key={cal.id}
-                      type="button"
-                      onClick={() => onToggleCalendar(cal.id)}
-                      className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                    >
-                      <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
-                      <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
-                    </button>
-                  )
-                })}
+                {otherCals.length > 0 && (
+                  <div className="ml-5 pl-3 border-l border-slate-200 space-y-0.5">
+                    {otherCals.map((cal) => {
+                      const isVisible = visibleCalendarIds.has(cal.id)
+                      return (
+                        <button
+                          key={cal.id}
+                          type="button"
+                          onClick={() => onToggleCalendar(cal.id)}
+                          className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
+                        >
+                          <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
+                          <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </FilterSection>
           )
