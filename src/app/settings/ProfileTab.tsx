@@ -9,7 +9,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { cardEntrance, staggerContainer } from '@/lib/animations'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import NotificationPreferences from '@/components/NotificationPreferences'
@@ -19,6 +18,14 @@ import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 import { getAuthHeaders } from '@/lib/api-client'
 import { startRegistration } from '@simplewebauthn/browser'
 
+type ProfileSubTab = 'profile' | 'security' | 'notifications'
+
+const PROFILE_TABS: { key: ProfileSubTab; label: string }[] = [
+  { key: 'profile', label: 'Profile' },
+  { key: 'security', label: 'Security' },
+  { key: 'notifications', label: 'Notifications' },
+]
+
 interface ProfileTabProps {
   userName: string | null
   userEmail: string | null
@@ -27,6 +34,7 @@ interface ProfileTabProps {
 }
 
 export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileTabProps) {
+  const [subTab, setSubTab] = useState<ProfileSubTab>('profile')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Avatar state
@@ -474,22 +482,56 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <motion.div
-      className="space-y-6"
-      initial="hidden"
-      animate="visible"
-      variants={staggerContainer(0.08, 0.05)}
-    >
-
-      {/* My Profile */}
-      <motion.section variants={cardEntrance} className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-sm">
+    <div className="space-y-6">
+      {/* Header — full-width, flush top */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
             <User className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">My Profile</h2>
-            <p className="text-sm text-slate-500">Manage your personal information</p>
+            <h3 className="text-lg font-semibold text-slate-900">My Profile</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage your personal information and security</p>
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60">
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+            {PROFILE_TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setSubTab(t.key)}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                  subTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {subTab === t.key && (
+                  <motion.div
+                    layoutId="profileTabPill"
+                    className="absolute inset-0 rounded-full bg-slate-900"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                  />
+                )}
+                <span className="relative z-10">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Profile tab ── */}
+      <div className={subTab !== 'profile' ? 'hidden' : 'space-y-6'}>
+
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Personal Information</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Your name and profile photo</p>
           </div>
         </div>
 
@@ -589,10 +631,15 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             </button>
           </div>
         </form>
-      </motion.section>
+      </section>
+
+      </div>
+
+      {/* ── Security tab ── */}
+      <div className={subTab !== 'security' ? 'hidden' : 'space-y-6'}>
 
       {/* Account Security */}
-      <motion.section variants={cardEntrance} className="ui-glass p-6">
+      <section className="ui-glass p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm">
             <Shield className="w-5 h-5 text-white" />
@@ -638,7 +685,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             </div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Change Password Drawer */}
       <DetailDrawer
@@ -717,7 +764,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
       </DetailDrawer>
 
       {/* Two-Factor Authentication */}
-      <motion.section variants={cardEntrance} className="ui-glass p-6">
+      <section className="ui-glass p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
             <ShieldCheck className="w-5 h-5 text-white" />
@@ -1001,10 +1048,10 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             )}
           </div>
         )}
-      </motion.section>
+      </section>
 
       {/* Passkeys */}
-      <motion.section variants={cardEntrance} className="ui-glass p-6">
+      <section className="ui-glass p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
             <Fingerprint className="w-5 h-5 text-white" />
@@ -1127,21 +1174,27 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
             </span>
           )}
         </button>
-      </motion.section>
+      </section>
 
-      {/* Notification Preferences */}
-      <motion.section variants={cardEntrance} className="ui-glass p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-sm">
+      </div>
+
+      {/* ── Notifications tab ── */}
+      <div className={subTab !== 'notifications' ? 'hidden' : 'space-y-6'}>
+
+      <section className="ui-glass p-6">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
             <Bell className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Notification Preferences</h3>
-            <p className="text-sm text-slate-500">Choose how you want to be notified</p>
+            <p className="text-sm text-slate-500 mt-0.5">Choose how you want to be notified</p>
           </div>
         </div>
         <NotificationPreferences />
-      </motion.section>
+      </section>
+
+      </div>
 
       {/* UX-032: confirm avatar removal (mild — reversible action). */}
       <ConfirmDialog
@@ -1179,6 +1232,6 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
         // Lock-out scenario: require typing the passkey name to confirm.
         requireText={mfaEnabled && passkeys.length === 1 ? confirmDeletePasskey?.name : undefined}
       />
-    </motion.div>
+    </div>
   )
 }

@@ -4,16 +4,31 @@ import { useState, useCallback, type FormEvent } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
+import TeamMultiSelect from './TeamMultiSelect'
 import { handleAuthResponse } from '@/lib/client-auth'
-import type { RoleOption } from './types'
+import type { RoleOption, TeamOption, CampusOption, SchoolOption } from './types'
 
 interface InviteMemberDrawerProps {
   isOpen: boolean
   onClose: () => void
   onInvited: () => void
   availableRoles: RoleOption[]
+  availableTeams: TeamOption[]
+  availableCampuses: CampusOption[]
+  availableSchools: SchoolOption[]
   rolesLoading: boolean
   getAuthHeaders: () => Record<string, string>
+}
+
+const EMPTY_FORM = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  jobTitle: '',
+  roleId: '',
+  schoolId: '',
+  campusId: '',
+  teamIds: [] as string[],
 }
 
 export default function InviteMemberDrawer({
@@ -21,15 +36,18 @@ export default function InviteMemberDrawer({
   onClose,
   onInvited,
   availableRoles,
+  availableTeams,
+  availableCampuses,
+  availableSchools,
   rolesLoading,
   getAuthHeaders,
 }: InviteMemberDrawerProps) {
-  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', roleId: '' })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const resetForm = useCallback(() => {
-    setForm({ email: '', firstName: '', lastName: '', roleId: '' })
+    setForm(EMPTY_FORM)
     setError('')
   }, [])
 
@@ -51,7 +69,11 @@ export default function InviteMemberDrawer({
           email: form.email.trim(),
           firstName: form.firstName.trim() || undefined,
           lastName: form.lastName.trim() || undefined,
+          jobTitle: form.jobTitle.trim() || undefined,
           roleId: form.roleId || undefined,
+          schoolId: form.schoolId || undefined,
+          campusId: form.campusId || undefined,
+          teamIds: form.teamIds.length > 0 ? form.teamIds : undefined,
         }),
       })
       if (handleAuthResponse(res)) return
@@ -73,7 +95,7 @@ export default function InviteMemberDrawer({
       isOpen={isOpen}
       onClose={handleClose}
       title="Invite Member"
-      width="md"
+      width="lg"
       footer={
         <div className="space-y-3">
           <button
@@ -95,51 +117,108 @@ export default function InviteMemberDrawer({
         </div>
       }
     >
-      <form id="invite-member-form" onSubmit={handleSubmit} className="space-y-5">
-        <FloatingInput
-          id="invite-email"
-          label="Email address"
-          type="email"
-          required
-          value={form.email}
-          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-          autoFocus
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FloatingInput
-            id="invite-firstName"
-            label="First name"
-            value={form.firstName}
-            onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
-          />
-          <FloatingInput
-            id="invite-lastName"
-            label="Last name"
-            value={form.lastName}
-            onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
-          />
-        </div>
-        <FloatingDropdown
-          id="invite-roleId"
-          label="Role"
-          value={form.roleId}
-          onChange={(v) => setForm((p) => ({ ...p, roleId: v }))}
-          options={
-            rolesLoading
-              ? [{ value: '', label: 'Loading roles...' }]
-              : [
-                  { value: '', label: 'Default role' },
-                  ...availableRoles.map((r) => ({ value: r.id, label: r.name })),
-                ]
-          }
-          disabled={rolesLoading}
-        />
-
+      <form id="invite-member-form" onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
+
+        <section className="space-y-5">
+          <p className="text-sm text-slate-500">Set up how this member appears across the platform.</p>
+
+          <FloatingInput
+            id="invite-email"
+            label="Email address"
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            autoFocus
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FloatingInput
+              id="invite-firstName"
+              label="First name"
+              value={form.firstName}
+              onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
+            />
+            <FloatingInput
+              id="invite-lastName"
+              label="Last name"
+              value={form.lastName}
+              onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
+            />
+          </div>
+
+          <FloatingInput
+            id="invite-jobTitle"
+            label="Job title (optional)"
+            value={form.jobTitle}
+            onChange={(e) => setForm((p) => ({ ...p, jobTitle: e.target.value }))}
+          />
+        </section>
+
+        <section className="space-y-5">
+          <p className="text-sm text-slate-500">Control this member&apos;s role and account status.</p>
+
+          {rolesLoading ? (
+            <div className="h-12 rounded-lg border border-slate-200 bg-slate-50 animate-pulse" />
+          ) : (
+            <FloatingDropdown
+              id="invite-roleId"
+              label="Role"
+              value={form.roleId}
+              onChange={(v) => setForm((p) => ({ ...p, roleId: v }))}
+              options={[
+                { value: '', label: 'Default role' },
+                ...availableRoles.map((r) => ({ value: r.id, label: r.name })),
+              ]}
+            />
+          )}
+
+          {availableSchools.length > 0 && (
+            <FloatingDropdown
+              id="invite-schoolId"
+              label="School"
+              value={form.schoolId}
+              onChange={(v) => setForm((p) => ({ ...p, schoolId: v }))}
+              options={[
+                { value: '', label: 'No school assigned' },
+                ...availableSchools.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+            />
+          )}
+
+          {availableCampuses.length > 0 && (
+            <FloatingDropdown
+              id="invite-campusId"
+              label="Campus"
+              value={form.campusId}
+              onChange={(v) => setForm((p) => ({ ...p, campusId: v }))}
+              options={[
+                { value: '', label: 'No campus assigned' },
+                ...availableCampuses.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+            />
+          )}
+
+          <div>
+            <label htmlFor="invite-teamIds" className="block text-xs text-slate-500 font-medium mb-1.5">Teams</label>
+            {rolesLoading ? (
+              <div className="h-12 rounded-lg border border-slate-200 bg-slate-50 animate-pulse" />
+            ) : availableTeams.length === 0 ? (
+              <p className="text-sm text-slate-400">No teams available</p>
+            ) : (
+              <TeamMultiSelect
+                teams={availableTeams}
+                selectedIds={form.teamIds}
+                onChange={(ids) => setForm((p) => ({ ...p, teamIds: ids }))}
+              />
+            )}
+          </div>
+        </section>
       </form>
     </DetailDrawer>
   )

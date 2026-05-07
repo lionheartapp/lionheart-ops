@@ -27,6 +27,8 @@ const InviteUserSchema = z.object({
   teamIds: z.array(z.string().min(1)).max(50).optional(),
   phone: z.string().trim().max(40).optional().nullable(),
   jobTitle: z.string().trim().max(120).optional().nullable(),
+  schoolId: z.string().min(1).optional().nullable(),
+  campusId: z.string().min(1).optional().nullable(),
   employmentType: z
     .enum(['FULL_TIME', 'PART_TIME', 'CONTRACTOR', 'INTERN', 'VOLUNTEER'])
     .optional()
@@ -174,6 +176,8 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
     roleId,
     phone = null,
     jobTitle = null,
+    schoolId = null,
+    campusId = null,
     employmentType = null,
   } = parsed.data
   const teamIds = parsed.data.teamIds ?? []
@@ -246,6 +250,8 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
       name: `${firstName} ${lastName}`.trim(),
       phone,
       jobTitle,
+      schoolId,
+      campusId,
       campusScope,
       employmentType,
       passwordHash,

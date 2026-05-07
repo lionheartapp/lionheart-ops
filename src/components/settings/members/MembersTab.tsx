@@ -310,6 +310,9 @@ const MembersTab = (_props: MembersTabProps) => {
         onClose={() => setShowInvite(false)}
         onInvited={invalidateMembers}
         availableRoles={availableRoles}
+        availableTeams={availableTeams}
+        availableCampuses={availableCampuses}
+        availableSchools={availableSchools}
         rolesLoading={rolesLoading}
         getAuthHeaders={getAuthHeaders}
       />
