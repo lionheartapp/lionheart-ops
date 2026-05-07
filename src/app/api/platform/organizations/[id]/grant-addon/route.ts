@@ -70,16 +70,16 @@ export async function POST(
       for (const campus of campuses) {
         await rawPrisma.tenantModule.upsert({
           where: {
-            organizationId_moduleId_schoolId: {
+            organizationId_moduleId_campusId: {
               organizationId: id,
               moduleId,
-              schoolId: campus.id,
+              campusId: campus.id,
             },
           },
           create: {
             organizationId: id,
             moduleId,
-            schoolId: campus.id,
+            campusId: campus.id,
             planTier: tierLabel,
           },
           update: {
@@ -93,16 +93,16 @@ export async function POST(
       // No campuses — enable at org level
       await rawPrisma.tenantModule.upsert({
         where: {
-          organizationId_moduleId_schoolId: {
+          organizationId_moduleId_campusId: {
             organizationId: id,
             moduleId,
-            schoolId: '',
+            campusId: '',
           },
         },
         create: {
           organizationId: id,
           moduleId,
-          schoolId: null,
+          campusId: null,
           planTier: tierLabel,
         },
         update: {
