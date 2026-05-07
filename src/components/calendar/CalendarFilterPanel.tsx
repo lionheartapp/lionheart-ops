@@ -30,6 +30,7 @@ interface CalendarItem {
   color: string
   calendarType: string
   isActive: boolean
+  campus?: { id: string; name: string } | null
 }
 
 interface ExternalCalendarItem {
@@ -146,6 +147,75 @@ function FilterSection({
   )
 }
 
+// ── Campus calendar sub-group (collapsible) ────────────────────────────
+
+function CampusCalendarGroup({
+  label,
+  calendars,
+  visibleCalendarIds,
+  onToggleCalendar,
+}: {
+  label: string
+  calendars: CalendarItem[]
+  visibleCalendarIds: Set<string>
+  onToggleCalendar: (id: string) => void
+}) {
+  const visibleCount = calendars.filter((c) => visibleCalendarIds.has(c.id)).length
+  const [open, setOpen] = useState(visibleCount > 0)
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between py-1.5 cursor-pointer group"
+      >
+        <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition-colors">
+          {label}
+          {visibleCount > 0 && (
+            <span className="ml-1.5 text-[10px] font-medium text-slate-400">
+              {visibleCount}/{calendars.length}
+            </span>
+          )}
+        </span>
+        {open ? (
+          <ChevronDown className="w-3 h-3 text-slate-400" />
+        ) : (
+          <ChevronRight className="w-3 h-3 text-slate-400" />
+        )}
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-0.5 pl-1">
+              {calendars.map((cal) => {
+                const isVisible = visibleCalendarIds.has(cal.id)
+                return (
+                  <button
+                    key={cal.id}
+                    type="button"
+                    onClick={() => onToggleCalendar(cal.id)}
+                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
+                  >
+                    <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
+                    <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ── Props ───────────────────────────────────────────────────────────────
 
 interface CalendarFilterPanelProps {
@@ -254,35 +324,63 @@ export default function CalendarFilterPanel({
 
       {/* Scrollable sections */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        {/* School Calendars (non-personal) */}
-        {calendars.filter((c) => c.isActive && c.calendarType !== 'PERSONAL').length > 0 && (
-          <FilterSection label="School Calendars">
-            <div className="space-y-0.5">
-              {calendars
-                .filter((c) => c.isActive && c.calendarType !== 'PERSONAL')
-                .map((cal) => {
-                  const isVisible = visibleCalendarIds.has(cal.id)
-                  return (
-                    <button
-                      key={cal.id}
-                      type="button"
-                      onClick={() => onToggleCalendar(cal.id)}
-                      className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                    >
-                      <FilterCheckbox
-                        checked={isVisible}
-                        color={cal.color}
-                        onChange={() => onToggleCalendar(cal.id)}
-                      />
-                      <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>
-                        {cal.name}
-                      </span>
-                    </button>
-                  )
-                })}
-            </div>
-          </FilterSection>
-        )}
+        {/* School Calendars — grouped by campus */}
+        {(() => {
+          const schoolCals = calendars.filter((c) => c.isActive && c.calendarType !== 'PERSONAL')
+          if (schoolCals.length === 0) return null
+
+          // Group by campus (calendars without a campus go under "General")
+          const groups = new Map<string, { label: string; cals: CalendarItem[] }>()
+          for (const cal of schoolCals) {
+            const key = cal.campus?.id ?? '_general'
+            const label = cal.campus?.name ?? 'General'
+            const group = groups.get(key) ?? { label, cals: [] }
+            group.cals.push(cal)
+            groups.set(key, group)
+          }
+          const sortedGroups = [...groups.values()].sort((a, b) => a.label.localeCompare(b.label))
+
+          // Single campus — flat list, no sub-headings needed
+          if (sortedGroups.length === 1) {
+            return (
+              <FilterSection label="School Calendars">
+                <div className="space-y-0.5">
+                  {sortedGroups[0].cals.map((cal) => {
+                    const isVisible = visibleCalendarIds.has(cal.id)
+                    return (
+                      <button
+                        key={cal.id}
+                        type="button"
+                        onClick={() => onToggleCalendar(cal.id)}
+                        className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
+                      >
+                        <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
+                        <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </FilterSection>
+            )
+          }
+
+          // Multiple campuses — collapsible sub-section per campus
+          return (
+            <FilterSection label="School Calendars">
+              <div className="space-y-2">
+                {sortedGroups.map(({ label, cals }) => (
+                  <CampusCalendarGroup
+                    key={label}
+                    label={label}
+                    calendars={cals}
+                    visibleCalendarIds={visibleCalendarIds}
+                    onToggleCalendar={onToggleCalendar}
+                  />
+                ))}
+              </div>
+            </FilterSection>
+          )
+        })()}
 
         {/* My Calendars (personal) */}
         {calendars.filter((c) => c.isActive && c.calendarType === 'PERSONAL').length > 0 && (
