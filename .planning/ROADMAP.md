@@ -49,7 +49,7 @@
 
 </details>
 
-### 🚧 v4.0 Messaging (Phases 23-29)
+### v4.0 Messaging (Phases 23-29)
 
 **Milestone Goal:** Build a Slack-like staff communication system tightly integrated with Lionheart's tickets, events, schools, and teams — powered by Supabase Realtime.
 
@@ -138,7 +138,11 @@ Plans:
   2. User can open a thread panel from any message and reply without disrupting the main channel view
   3. User can attach an image or PDF and see an inline preview in the message; 25MB limit is enforced
   4. User can search for a keyword and get results showing channel, sender, and date, scoped to their accessible channels
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 27-01-PLAN.md — Reactions API + UI, pin messages, channel mute
+- [ ] 27-02-PLAN.md — File attachments (upload, preview, composer wiring)
+- [ ] 27-03-PLAN.md — Search UI panel + end-to-end human verification
 **UI hint**: yes
 
 ### Phase 28: Notifications and Read State
@@ -178,7 +182,7 @@ Plans:
 | 24. Core Messaging API | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 25. Realtime Bridge and JWT Integration | v4.0 | 2/2 | Complete | 2026-05-07 |
 | 26. Core Messaging UI | v4.0 | 4/4 | Complete | 2026-05-07 |
-| 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
+| 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/3 | Not started | - |
 | 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
 | 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
 
