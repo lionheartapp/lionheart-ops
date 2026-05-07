@@ -6,7 +6,7 @@ import { queryOptions, queryKeys } from '@/lib/queries'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Dribbble, CalendarDays, Users, CalendarPlus,
-  Check, ChevronDown, Loader2, ArrowRight,
+  Check, Loader2, ArrowRight, MapPin,
 } from 'lucide-react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -39,6 +39,12 @@ interface Team {
   level: string
 }
 
+interface Campus {
+  id: string
+  name: string
+  isActive: boolean
+}
+
 interface OnboardingProps {
   activeCampusId: string | null
   canWrite: boolean
@@ -68,11 +74,11 @@ const LEVELS = [
   { value: 'CLUB', label: 'Club' },
 ]
 
-const STEPS_META: { key: Step; label: string; description: string; icon: typeof Dribbble; optional?: boolean }[] = [
-  { key: 'sport', label: 'Add your first sport', description: 'What sports does your school play?', icon: Dribbble },
-  { key: 'season', label: 'Create a season', description: 'Set up the current season for your sport', icon: CalendarDays },
-  { key: 'team', label: 'Create a team', description: 'Build your first team', icon: Users },
-  { key: 'schedule', label: 'Schedule a game', description: 'Add your first game or do this later', icon: CalendarPlus, optional: true },
+const STEPS_META: { key: Step; label: string; icon: typeof Dribbble; optional?: boolean }[] = [
+  { key: 'sport', label: 'Add Sport', icon: Dribbble },
+  { key: 'season', label: 'Create Season', icon: CalendarDays },
+  { key: 'team', label: 'Create Team', icon: Users },
+  { key: 'schedule', label: 'Schedule Game', icon: CalendarPlus, optional: true },
 ]
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -80,6 +86,29 @@ const STEPS_META: { key: Step; label: string; description: string; icon: typeof 
 export default function AthleticsOnboarding({ activeCampusId, canWrite, onComplete }: OnboardingProps) {
   const queryClient = useQueryClient()
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+
+  // ── Campus selector ──────────────────────────────────────────────
+  const { data: campusesRaw } = useQuery({
+    queryKey: ['campuses-for-athletics'],
+    queryFn: async () => {
+      const res = await fetch('/api/settings/campus/campuses', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return []
+      const data = await res.json()
+      return data.ok ? data.data : []
+    },
+    staleTime: 5 * 60_000,
+  })
+  const campuses = ((campusesRaw ?? []) as Campus[]).filter((c) => c.isActive)
+  const [selectedCampusId, setSelectedCampusId] = useState<string | null>(activeCampusId)
+
+  // Default to first campus if none selected
+  useEffect(() => {
+    if (!selectedCampusId && campuses.length > 0) {
+      setSelectedCampusId(campuses[0].id)
+    }
+  }, [campuses, selectedCampusId])
 
   // ── Fetched data to track progress ────────────────────────────────
   const { data: sportsData } = useQuery(queryOptions.athleticsSports())
@@ -105,16 +134,13 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
   }, [hasSport, hasSeason, hasTeam])
 
   const firstIncomplete: Step = !hasSport ? 'sport' : !hasSeason ? 'season' : !hasTeam ? 'team' : 'schedule'
-
-  const [expandedStep, setExpandedStep] = useState<Step | null>(null)
+  const [activeStep, setActiveStep] = useState<Step>(firstIncomplete)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!expandedStep || completedSteps.has(expandedStep)) {
-      setExpandedStep(firstIncomplete)
-    }
-  }, [firstIncomplete]) // eslint-disable-line react-hooks/exhaustive-deps
+    setActiveStep(firstIncomplete)
+  }, [firstIncomplete])
 
   // ── Form state ────────────────────────────────────────────────────
   const [sportName, setSportName] = useState('')
@@ -162,7 +188,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
       })
       queryClient.invalidateQueries({ queryKey: queryKeys.athleticsSports.all })
       setSportName('')
-      setTimeout(() => setExpandedStep('season'), 400)
+      setTimeout(() => setActiveStep('season'), 400)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create sport')
     } finally {
@@ -186,7 +212,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
       setSeasonName('')
       setSeasonStart('')
       setSeasonEnd('')
-      setTimeout(() => setExpandedStep('team'), 400)
+      setTimeout(() => setActiveStep('team'), 400)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create season')
     } finally {
@@ -204,17 +230,17 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
         sportId: sports[0].id,
         seasonId: allSeasons[0].id,
         level: teamLevel,
-        ...(activeCampusId ? { campusId: activeCampusId } : {}),
+        ...(selectedCampusId ? { campusId: selectedCampusId } : {}),
       })
       queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTeams.all })
       setTeamName('')
-      setTimeout(() => setExpandedStep('schedule'), 400)
+      setTimeout(() => setActiveStep('schedule'), 400)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create team')
     } finally {
       setSaving(false)
     }
-  }, [teamName, sports, allSeasons, teamLevel, activeCampusId, apiPost, queryClient])
+  }, [teamName, sports, allSeasons, teamLevel, selectedCampusId, apiPost, queryClient])
 
   const handleCreateGame = useCallback(async () => {
     if (!opponentName.trim() || !gameStart || !gameEnd || !teams[0]?.id) return
@@ -237,18 +263,13 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
     }
   }, [opponentName, gameHomeAway, gameStart, gameEnd, teams, apiPost, queryClient, onComplete])
 
-  // ── Progress (based on 3 required steps — game scheduling is optional) ──
-  const requiredSteps = 3
-  const completedCount = completedSteps.size
-  const progressPercent = Math.min(100, Math.round((completedCount / requiredSteps) * 100))
-
   // ── Render ────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-xl mx-auto pt-6 pb-12">
+    <div className="max-w-2xl mx-auto pt-6 pb-12">
 
       {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50 mb-5">
           <Dribbble className="w-7 h-7 text-white" />
         </div>
@@ -258,19 +279,94 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
         </p>
       </div>
 
-      {/* ── Progress bar ────────────────────────────────────────── */}
-      <div className="mb-10 px-1">
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="text-xs font-medium text-stone-500">{Math.min(completedCount, requiredSteps)} of {requiredSteps} steps</span>
-          <span className="text-xs font-semibold text-slate-900">{progressPercent}%</span>
+      {/* ── Campus selector ─────────────────────────────────────── */}
+      {campuses.length > 1 && (
+        <div className="mb-8 flex items-center justify-center gap-2">
+          <MapPin className="w-4 h-4 text-stone-400" />
+          <span className="text-sm text-stone-500">Setting up for</span>
+          <select
+            value={selectedCampusId ?? ''}
+            onChange={(e) => setSelectedCampusId(e.target.value)}
+            className="text-sm font-semibold text-slate-900 bg-transparent border-b border-stone-300 focus:border-slate-900 focus:outline-none pb-0.5 cursor-pointer"
+          >
+            {campuses.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
         </div>
-        <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          />
+      )}
+
+      {/* ── Horizontal stepper ──────────────────────────────────── */}
+      <div className="mb-10 px-2">
+        <div className="flex items-start">
+          {STEPS_META.map((step, index) => {
+            const isCompleted = completedSteps.has(step.key)
+            const isActive = activeStep === step.key
+            const isLocked = (step.key === 'season' && !hasSport)
+              || (step.key === 'team' && (!hasSport || !hasSeason))
+              || (step.key === 'schedule' && (!hasSport || !hasSeason || !hasTeam))
+            const StepIcon = step.icon
+
+            return (
+              <div key={step.key} className="flex-1 flex flex-col items-center relative">
+                {/* Connector line (before this step) */}
+                {index > 0 && (
+                  <div className="absolute top-5 -left-1/2 w-full h-0.5 -translate-y-1/2">
+                    <div className={`h-full transition-colors duration-300 ${
+                      completedSteps.has(STEPS_META[index - 1].key)
+                        ? 'bg-emerald-400'
+                        : 'bg-stone-200'
+                    }`} />
+                  </div>
+                )}
+
+                {/* Circle */}
+                <button
+                  type="button"
+                  disabled={isLocked && !isCompleted}
+                  onClick={() => {
+                    if (!isLocked || isCompleted) {
+                      setActiveStep(step.key)
+                      setError(null)
+                    }
+                  }}
+                  className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    isCompleted
+                      ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200/60'
+                      : isActive
+                        ? 'bg-slate-900 text-white shadow-md shadow-slate-300/60 ring-4 ring-slate-900/10'
+                        : isLocked
+                          ? 'bg-stone-100 text-stone-300 cursor-not-allowed'
+                          : 'bg-white border-2 border-stone-200 text-stone-400 hover:border-stone-300 cursor-pointer'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <Check className="w-5 h-5" strokeWidth={2.5} />
+                  ) : (
+                    <StepIcon className="w-4 h-4" />
+                  )}
+                </button>
+
+                {/* Label */}
+                <span className={`mt-2.5 text-[11px] font-semibold text-center leading-tight ${
+                  isActive ? 'text-slate-900' : isCompleted ? 'text-emerald-600' : 'text-stone-400'
+                }`}>
+                  {step.label}
+                </span>
+
+                {/* Status badge */}
+                <span className={`mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                  isCompleted
+                    ? 'bg-emerald-50 text-emerald-600'
+                    : isActive
+                      ? 'bg-slate-100 text-slate-600'
+                      : 'bg-transparent text-stone-300'
+                }`}>
+                  {isCompleted ? 'Done' : isActive ? 'Current' : step.optional ? 'Optional' : 'Pending'}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -288,138 +384,83 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
         )}
       </AnimatePresence>
 
-      {/* ── Checklist ───────────────────────────────────────────── */}
-      <div className="space-y-4">
-        {STEPS_META.map((step, index) => {
-          const isCompleted = completedSteps.has(step.key)
-          const isExpanded = expandedStep === step.key
-          const isLocked = (step.key === 'season' && !hasSport)
-            || (step.key === 'team' && (!hasSport || !hasSeason))
-            || (step.key === 'schedule' && (!hasSport || !hasSeason || !hasTeam))
-          const StepIcon = step.icon
-
-          return (
-            <div key={step.key}>
-              {/* Step card */}
-              <button
-                type="button"
-                disabled={isLocked && !isCompleted}
-                onClick={() => {
-                  if (isLocked && !isCompleted) return
-                  setExpandedStep(isExpanded ? null : step.key)
-                  setError(null)
-                }}
-                className={`w-full flex items-center gap-5 px-5 py-4 rounded-2xl text-left transition-all duration-200 ${
-                  isExpanded
-                    ? 'bg-white border border-stone-200 shadow-md shadow-slate-200/60'
-                    : isCompleted
-                      ? 'bg-white border border-stone-100 hover:border-stone-200'
-                      : isLocked
-                        ? 'bg-stone-50/60 border border-transparent opacity-40 cursor-not-allowed'
-                        : 'bg-white border border-stone-100 hover:border-stone-200 hover:shadow-md hover:shadow-slate-200/40 cursor-pointer'
-                }`}
-              >
-                {/* Step icon circle */}
-                <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                  isCompleted
-                    ? 'bg-emerald-50 text-emerald-500'
-                    : isExpanded
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'bg-stone-100 text-stone-400'
-                }`}>
-                  {isCompleted ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <StepIcon className="w-5 h-5" />}
-                </div>
-
-                {/* Label + meta */}
-                <div className="flex-1 min-w-0">
-                  <div className={`text-sm font-semibold leading-tight flex items-center gap-2 ${
-                    isCompleted ? 'text-stone-400' : 'text-slate-900'
-                  }`}>
-                    {step.label}
-                    {step.optional && (
-                      <span className="text-[10px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-md uppercase tracking-wide">
-                        Optional
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-stone-400 mt-1 leading-snug">
-                    {isCompleted && step.key === 'sport' && sports[0] ? (
-                      <span className="flex items-center gap-1.5">
-                        <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: sports[0].color }} />
-                        {sports[0].name}{sports.length > 1 && ` + ${sports.length - 1} more`}
-                      </span>
-                    ) : isCompleted && step.key === 'season' && allSeasons[0] ? (
-                      allSeasons[0].name
-                    ) : isCompleted && step.key === 'team' && teams[0] ? (
-                      <span>{teams[0].name}{teams.length > 1 && ` + ${teams.length - 1} more`}</span>
-                    ) : (
-                      step.description
-                    )}
-                  </div>
-                </div>
-
-                {/* Expand indicator */}
-                {!isLocked && (
-                  <div className={`flex-shrink-0 transition-transform duration-200 text-stone-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                    <ChevronDown className="w-5 h-5" />
-                  </div>
-                )}
-              </button>
-
-              {/* Expanded form */}
-              <AnimatePresence>
-                {isExpanded && !isLocked && !isCompleted && (
-                  <motion.div
-                    key={`form-${step.key}`}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } }}
-                    exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
-                  >
-                    <div className="pt-3 pb-1 pl-20 pr-5">
-                      {step.key === 'sport' && (
-                        <SportForm
-                          name={sportName} setName={setSportName}
-                          color={sportColor} setColor={setSportColor}
-                          seasonType={sportSeasonType} setSeasonType={setSportSeasonType}
-                          saving={saving} onSubmit={handleCreateSport}
-                        />
-                      )}
-                      {step.key === 'season' && (
-                        <SeasonForm
-                          name={seasonName} setName={setSeasonName}
-                          start={seasonStart} setStart={setSeasonStart}
-                          end={seasonEnd} setEnd={setSeasonEnd}
-                          sportName={sports[0]?.name ?? 'Sport'}
-                          saving={saving} onSubmit={handleCreateSeason}
-                        />
-                      )}
-                      {step.key === 'team' && (
-                        <TeamForm
-                          name={teamName} setName={setTeamName}
-                          level={teamLevel} setLevel={setTeamLevel}
-                          sportName={sports[0]?.name ?? 'Sport'}
-                          seasonName={allSeasons[0]?.name ?? 'Season'}
-                          saving={saving} onSubmit={handleCreateTeam}
-                        />
-                      )}
-                      {step.key === 'schedule' && (
-                        <GameForm
-                          opponent={opponentName} setOpponent={setOpponentName}
-                          homeAway={gameHomeAway} setHomeAway={setGameHomeAway}
-                          start={gameStart} setStart={setGameStart}
-                          end={gameEnd} setEnd={setGameEnd}
-                          teamName={teams[0]?.name ?? 'Team'}
-                          saving={saving} onSubmit={handleCreateGame}
-                        />
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )
-        })}
-      </div>
+      {/* ── Active step form ────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeStep}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm"
+        >
+          {activeStep === 'sport' && (
+            completedSteps.has('sport') ? (
+              <StepComplete
+                label="Sport created"
+                detail={
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sports[0]?.color }} />
+                    {sports[0]?.name}{sports.length > 1 && ` + ${sports.length - 1} more`}
+                  </span>
+                }
+                onNext={() => setActiveStep('season')}
+              />
+            ) : (
+              <SportForm
+                name={sportName} setName={setSportName}
+                color={sportColor} setColor={setSportColor}
+                seasonType={sportSeasonType} setSeasonType={setSportSeasonType}
+                saving={saving} onSubmit={handleCreateSport}
+              />
+            )
+          )}
+          {activeStep === 'season' && (
+            completedSteps.has('season') ? (
+              <StepComplete
+                label="Season created"
+                detail={allSeasons[0]?.name}
+                onNext={() => setActiveStep('team')}
+              />
+            ) : (
+              <SeasonForm
+                name={seasonName} setName={setSeasonName}
+                start={seasonStart} setStart={setSeasonStart}
+                end={seasonEnd} setEnd={setSeasonEnd}
+                sportName={sports[0]?.name ?? 'Sport'}
+                saving={saving} onSubmit={handleCreateSeason}
+              />
+            )
+          )}
+          {activeStep === 'team' && (
+            completedSteps.has('team') ? (
+              <StepComplete
+                label="Team created"
+                detail={<span>{teams[0]?.name}{teams.length > 1 && ` + ${teams.length - 1} more`}</span>}
+                onNext={() => setActiveStep('schedule')}
+              />
+            ) : (
+              <TeamForm
+                name={teamName} setName={setTeamName}
+                level={teamLevel} setLevel={setTeamLevel}
+                sportName={sports[0]?.name ?? 'Sport'}
+                seasonName={allSeasons[0]?.name ?? 'Season'}
+                saving={saving} onSubmit={handleCreateTeam}
+              />
+            )
+          )}
+          {activeStep === 'schedule' && (
+            <GameForm
+              opponent={opponentName} setOpponent={setOpponentName}
+              homeAway={gameHomeAway} setHomeAway={setGameHomeAway}
+              start={gameStart} setStart={setGameStart}
+              end={gameEnd} setEnd={setGameEnd}
+              teamName={teams[0]?.name ?? 'Team'}
+              saving={saving} onSubmit={handleCreateGame}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* ── Finish / Skip ──────────────────────────────────────── */}
       {hasSport && hasSeason && hasTeam ? (
@@ -427,7 +468,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-10 text-center space-y-3"
+          className="mt-8 text-center space-y-3"
         >
           <button
             type="button"
@@ -441,12 +482,12 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
             You can schedule games, add roster players, and more from there.
           </p>
         </motion.div>
-      ) : completedCount >= 1 ? (
+      ) : completedSteps.size >= 1 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mt-10 text-center"
+          className="mt-8 text-center"
         >
           <button
             type="button"
@@ -462,6 +503,36 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
   )
 }
 
+// ─── Step Complete Card ─────────────────────────────────────────────
+
+function StepComplete({ label, detail, onNext }: {
+  label: string
+  detail: React.ReactNode
+  onNext: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between py-2">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+            <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />
+          </div>
+          <span className="text-sm font-semibold text-slate-900">{label}</span>
+        </div>
+        <div className="text-sm text-stone-500 ml-8">{detail}</div>
+      </div>
+      <button
+        type="button"
+        onClick={onNext}
+        className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors"
+      >
+        Next step
+        <ArrowRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )
+}
+
 // ─── Inline Forms ───────────────────────────────────────────────────
 
 function SportForm({ name, setName, color, setColor, seasonType, setSeasonType, saving, onSubmit }: {
@@ -472,6 +543,10 @@ function SportForm({ name, setName, color, setColor, seasonType, setSeasonType, 
 }) {
   return (
     <div className="space-y-4">
+      <div className="mb-1">
+        <h3 className="text-sm font-semibold text-slate-900">Add your first sport</h3>
+        <p className="text-xs text-stone-400 mt-0.5">What sports does your school play?</p>
+      </div>
       <FloatingInput
         id="onboard-sport-name"
         label="Sport name (e.g. Basketball)"
@@ -520,9 +595,12 @@ function SeasonForm({ name, setName, start, setStart, end, setEnd, sportName, sa
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-stone-500">
-        For <span className="font-semibold text-stone-700">{sportName}</span>
-      </p>
+      <div className="mb-1">
+        <h3 className="text-sm font-semibold text-slate-900">Create a season</h3>
+        <p className="text-xs text-stone-400 mt-0.5">
+          For <span className="font-semibold text-stone-600">{sportName}</span>
+        </p>
+      </div>
       <FloatingInput
         id="onboard-season-name"
         label="Season name (e.g. Spring 2026)"
@@ -561,9 +639,12 @@ function TeamForm({ name, setName, level, setLevel, sportName, seasonName, savin
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-stone-500">
-        For <span className="font-semibold text-stone-700">{sportName}</span> · <span className="font-semibold text-stone-700">{seasonName}</span>
-      </p>
+      <div className="mb-1">
+        <h3 className="text-sm font-semibold text-slate-900">Create a team</h3>
+        <p className="text-xs text-stone-400 mt-0.5">
+          For <span className="font-semibold text-stone-600">{sportName}</span> · <span className="font-semibold text-stone-600">{seasonName}</span>
+        </p>
+      </div>
       <FloatingInput
         id="onboard-team-name"
         label="Team name (e.g. Varsity Boys Basketball)"
@@ -595,9 +676,13 @@ function GameForm({ opponent, setOpponent, homeAway, setHomeAway, start, setStar
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-stone-500">
-        For <span className="font-semibold text-stone-700">{teamName}</span>
-      </p>
+      <div className="mb-1">
+        <h3 className="text-sm font-semibold text-slate-900">Schedule a game</h3>
+        <p className="text-xs text-stone-400 mt-0.5">
+          For <span className="font-semibold text-stone-600">{teamName}</span>
+          <span className="ml-2 text-[10px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Optional</span>
+        </p>
+      </div>
       <FloatingInput
         id="onboard-opponent"
         label="Opponent name"
