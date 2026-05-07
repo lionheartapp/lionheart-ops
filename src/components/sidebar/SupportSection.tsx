@@ -106,8 +106,8 @@ export default function SupportSection({
   const canExpandIT = isOnITTeam || canManageIT
   const canExpandFacilities = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
   useEffect(() => {
-    if (itOpen && !canExpandIT) setItOpen(false)
-    if (facilitiesOpen && !canExpandFacilities) setFacilitiesOpen(false)
+    if (itOpen && !canExpandIT) setItOpen(() => false)
+    if (facilitiesOpen && !canExpandFacilities) setFacilitiesOpen(() => false)
   }, [canExpandIT, canExpandFacilities, itOpen, facilitiesOpen, setItOpen, setFacilitiesOpen])
 
   if (!showFacilities && !showIT && !showAV) return null
