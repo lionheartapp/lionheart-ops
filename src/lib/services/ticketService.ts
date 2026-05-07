@@ -4,6 +4,8 @@ import { Ticket, TicketStatus, TicketSource } from '@prisma/client'
 import { assertCan, can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
+import { postTicketStatusChange } from '@/lib/services/systemBotService'
+import { getOrgContextId } from '@/lib/org-context'
 
 // ============= Validation Schemas =============
 
@@ -333,6 +335,21 @@ export async function updateTicket(
     where: { id },
     data: updateData,
   })
+
+  // Phase 29: Post bot message on status change
+  if (validated.status && validated.status !== existing.status) {
+    const orgId = getOrgContextId()
+    if (orgId) {
+      const assignee = existing.assignedToId
+        ? await prisma.user.findUnique({
+            where: { id: existing.assignedToId },
+            select: { teams: { select: { teamId: true }, take: 1 } },
+          })
+        : null
+      const teamId = assignee?.teams?.[0]?.teamId ?? null
+      postTicketStatusChange(existing.id, existing.title, existing.status, validated.status, teamId, orgId).catch(() => {})
+    }
+  }
 
   return ticket
 }
