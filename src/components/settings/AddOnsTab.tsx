@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useToast } from '@/components/Toast'
-import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users } from 'lucide-react'
+import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users, MessageSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -31,6 +31,25 @@ interface Campus {
 // Facilities Management and IT Help Desk are now core features (no longer add-ons).
 // Only Athletics remains as a toggleable add-on module.
 const MODULE_REGISTRY: ModuleDefinition[] = [
+  {
+    id: 'messaging',
+    name: 'Staff Messaging',
+    description: 'Slack-like channels, DMs, threads, and real-time messaging for your staff — integrated with tickets, events, and teams.',
+    icon: MessageSquare,
+    color: '#6366f1',
+    gradient: 'from-indigo-500 to-blue-500',
+    scope: 'org',
+    price: 99,
+    trialDays: 30,
+    features: [
+      'Public & private channels',
+      'Direct messages & group DMs',
+      'Threads, reactions, & file sharing',
+      'Full-text message search',
+      'Real-time typing & presence',
+      'Team & school auto-channels',
+    ],
+  },
   {
     id: 'athletics',
     name: 'Athletics',
