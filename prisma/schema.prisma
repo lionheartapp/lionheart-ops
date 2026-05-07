@@ -42,6 +42,8 @@ model Organization {
   aiMonthlyLimit    Int           @default(50)    // Max AI calls per billing cycle (plan-dependent)
   aiCallsUsed       Int           @default(0)     // Current cycle usage counter
   aiCycleResetAt    DateTime?                     // When the counter resets (start of next billing month)
+  // Phase 23: Messaging feature gate
+  messagingEnabled  Boolean       @default(false)  // Paid feature; default off for trial orgs
   // Data Privacy Agreement (DPA) tracking
   dpaSignedAt        DateTime?    // When the DPA was signed
   dpaSignatoryName   String?      // Name of person who signed the DPA
@@ -220,6 +222,14 @@ model Organization {
   aiTicketIntakes             AiTicketIntake[]
   // Personal tasks
   personalTasks               Task[]
+  // Phase 23: Messaging module
+  channels                    Channel[]
+  messages                    Message[]
+  messageReactions            MessageReaction[]
+  messageAttachments          MessageAttachment[]
+  messageMentions             MessageMention[]
+  messagingNotificationPreferences MessagingNotificationPreference[]
+  pushSubscriptions           PushSubscription[]
 
   @@index([onboardingStatus])
 }
@@ -377,6 +387,14 @@ model User {
   passkeys                  UserPasskey[]
   // Personal tasks
   personalTasks             Task[]           @relation("PersonalTasks")
+  // Phase 23: Messaging
+  channelMemberships        ChannelMember[]
+  authoredMessages          Message[]        @relation("MessageAuthor")
+  messageReactions          MessageReaction[]
+  messageMentions           MessageMention[]
+  messagingNotificationPreferences MessagingNotificationPreference[]
+  pushSubscriptions         PushSubscription[]
+  channelsCreated           Channel[]        @relation("ChannelCreator")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -5988,4 +6006,161 @@ model PasskeyChallenge {
   createdAt  DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+// ─── Phase 23: Messaging Module ─────────────────────────────────────────────────
+
+enum ChannelType {
+  PUBLIC
+  PRIVATE
+  DM
+  GROUP_DM
+}
+
+model Channel {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  type           ChannelType  @default(PUBLIC)
+  description    String?
+  topic          String?
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  createdById    String
+  createdBy      User         @relation("ChannelCreator", fields: [createdById], references: [id])
+  members        ChannelMember[]
+  messages       Message[]
+  messagingNotificationPreferences MessagingNotificationPreference[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+}
+
+model ChannelMember {
+  id             String    @id @default(cuid())
+  organizationId String
+  channelId      String
+  channel        Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  role           String    @default("member") // "owner" | "admin" | "member"
+  unreadCount    Int       @default(0)        // Maintained by database trigger (SCHEMA-05)
+  lastReadAt     DateTime?
+  mutedAt        DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@unique([channelId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Message {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  channelId      String
+  channel        Channel               @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User                  @relation("MessageAuthor", fields: [authorId], references: [id])
+  content        String
+  searchVector   Unsupported("tsvector")?  // SCHEMA-06: populated by Postgres trigger
+  parentId       String?               // Thread reply FK (D-08)
+  parent         Message?              @relation("ThreadReplies", fields: [parentId], references: [id])
+  replies        Message[]             @relation("ThreadReplies")
+  replyCount     Int                   @default(0)
+  editedAt       DateTime?
+  pinnedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  reactions      MessageReaction[]
+  attachments    MessageAttachment[]
+  mentions       MessageMention[]
+
+  @@index([organizationId])
+  @@index([channelId])
+  @@index([parentId])
+}
+
+model MessageReaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messageId      String
+  message        Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  emoji          String
+  createdAt      DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+  @@index([organizationId])
+}
+
+model MessageAttachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messageId      String
+  message        Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  storageUrl     String
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([messageId])
+}
+
+model MessageMention {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messageId       String
+  message         Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mentionedUserId String?
+  mentionedUser   User?    @relation(fields: [mentionedUserId], references: [id])
+  mentionType     String   // "user" | "channel" | "here" | "team"
+  teamId          String?
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([messageId])
+}
+
+model MessagingNotificationPreference {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  channelId      String?
+  channel        Channel? @relation(fields: [channelId], references: [id])
+  level          String   @default("all") // "all" | "mentions" | "none"
+  emailDigest    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, channelId])
+  @@index([organizationId])
+}
+
+model PushSubscription {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  endpoint       String
+  p256dh         String   // VAPID public key
+  auth           String   // VAPID auth secret
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, endpoint])
+  @@index([organizationId])
 }
