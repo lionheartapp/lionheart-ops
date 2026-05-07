@@ -1,11 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Building2, DoorOpen, MapPin, Pencil } from 'lucide-react'
+import { Building2, DoorOpen, MapPin, Pencil, X, Check } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import RoomsDrawer from '@/components/settings/campus/RoomsDrawer'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import type { Room } from '@/components/settings/campus/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +52,9 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const [loading, setLoading] = useState(true)
   const [roomsDrawerOpen, setRoomsDrawerOpen] = useState(false)
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', code: '', buildingType: 'GENERAL', address: '' })
+  const [saving, setSaving] = useState(false)
 
   // ── Load building + rooms ─────────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -151,6 +156,46 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     await loadData()
   }
 
+  // ── Building edit handlers ──────────────────────────────────────────────────
+  const startEditing = () => {
+    if (!building) return
+    setEditForm({
+      name: building.name,
+      code: building.code || '',
+      buildingType: building.buildingType,
+      address: building.address || '',
+    })
+    setEditing(true)
+  }
+
+  const cancelEditing = () => {
+    setEditing(false)
+  }
+
+  const saveBuilding = async () => {
+    if (!building || !editForm.name.trim()) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/settings/campus/buildings/${building.id}`, {
+        method: 'PATCH',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          code: editForm.code.trim() || null,
+          buildingType: editForm.buildingType,
+          address: editForm.address.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setEditing(false)
+        await loadData()
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -176,42 +221,112 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     <div className="space-y-6">
       {/* Building info card */}
       <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-6 h-6 text-slate-500" />
+        {editing ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-700">Edit Building</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={cancelEditing}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Cancel
+                </button>
+                <button
+                  onClick={saveBuilding}
+                  disabled={saving || !editForm.name.trim()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Building name"
+                  size="sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Short Code</label>
+                <Input
+                  value={editForm.code}
+                  onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
+                  placeholder="e.g. ADMIN"
+                  size="sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                <Select
+                  value={editForm.buildingType}
+                  onChange={(val) => setEditForm({ ...editForm, buildingType: val })}
+                  options={Object.entries(BUILDING_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+                  size="sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                <Input
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  placeholder="Street address"
+                  size="sm"
+                />
+              </div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-xl font-bold text-slate-900">{building.name}</h2>
-              {building.code && (
-                <span className="text-sm text-slate-400 font-mono">({building.code})</span>
+        ) : (
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-6 h-6 text-slate-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-xl font-bold text-slate-900">{building.name}</h2>
+                {building.code && (
+                  <span className="text-sm text-slate-400 font-mono">({building.code})</span>
+                )}
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                  {BUILDING_TYPE_LABELS[building.buildingType] || building.buildingType}
+                </span>
+              </div>
+              {building.address && (
+                <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{building.address}</span>
+                </div>
               )}
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
-                {BUILDING_TYPE_LABELS[building.buildingType] || building.buildingType}
-              </span>
-            </div>
-            {building.address && (
-              <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{building.address}</span>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                  <DoorOpen className="w-4 h-4 text-slate-400" />
+                  <span className="font-medium">{rooms.length}</span>
+                  <span className="text-slate-400">{rooms.length === 1 ? 'room' : 'rooms'}</span>
+                </div>
+                <button
+                  onClick={startEditing}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit Building
+                </button>
+                <button
+                  onClick={() => setRoomsDrawerOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                >
+                  <DoorOpen className="w-3.5 h-3.5" />
+                  Manage Rooms
+                </button>
               </div>
-            )}
-            <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                <DoorOpen className="w-4 h-4 text-slate-400" />
-                <span className="font-medium">{rooms.length}</span>
-                <span className="text-slate-400">{rooms.length === 1 ? 'room' : 'rooms'}</span>
-              </div>
-              <button
-                onClick={() => setRoomsDrawerOpen(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                Manage Rooms
-              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Map */}
