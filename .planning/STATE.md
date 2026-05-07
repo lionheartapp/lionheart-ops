@@ -83,7 +83,7 @@ See PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: Phase 23 execution
-Stopped at: Phase 23 complete — ready for Phase 24
-Resume file: --resume-file
-Next action: Run /gsd-discuss-phase 24 or /gsd-plan-phase 24
+Last session: Phase 24 context discussion
+Stopped at: Phase 24 context gathered
+Resume file: .planning/phases/24-core-messaging-api/24-CONTEXT.md
+Next action: Run /gsd-plan-phase 24
