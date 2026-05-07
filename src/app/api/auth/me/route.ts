@@ -81,9 +81,11 @@ export async function GET(req: NextRequest) {
 
     const { user, teamName, teamSlugs } = cached
 
-    // Compute dashboard mode based on role slug + team membership
+    // Compute dashboard mode based on role slug + team membership.
+    // Members and viewers always get the calendar view regardless of team.
+    // Only specialized ops roles get the ticket/request dashboard.
     const roleSlug = user.userRole?.slug ?? ''
-    const isAdminRole = ['admin', 'super-admin'].includes(roleSlug)
+    const isMemberOrViewer = ['member', 'viewer'].includes(roleSlug)
     const isMaintenanceRole = ['maintenance-head', 'maintenance-technician'].includes(roleSlug)
     const isITRole = ['it-coordinator', 'student-technician'].includes(roleSlug)
     const isOnMaintenanceTeam = teamSlugs.includes('maintenance')
@@ -91,11 +93,12 @@ export async function GET(req: NextRequest) {
     const isOnAVTeam = teamSlugs.includes('av-production')
 
     type DashboardMode = 'admin' | 'maintenance' | 'it' | 'av' | 'default'
-    let dashboardMode: DashboardMode = 'default'
-    if (isMaintenanceRole || isOnMaintenanceTeam) dashboardMode = 'maintenance'
-    else if (isITRole || isOnITTeam) dashboardMode = 'it'
-    else if (isOnAVTeam) dashboardMode = 'av'
-    else dashboardMode = 'admin' // Everyone else (admins, members, teachers) gets the calendar view
+    let dashboardMode: DashboardMode = 'admin'
+    if (!isMemberOrViewer) {
+      if (isMaintenanceRole || isOnMaintenanceTeam) dashboardMode = 'maintenance'
+      else if (isITRole || isOnITTeam) dashboardMode = 'it'
+      else if (isOnAVTeam) dashboardMode = 'av'
+    }
 
     // Check if currently impersonating (admin-token cookie present)
     const adminToken = req.cookies.get('admin-token')?.value
