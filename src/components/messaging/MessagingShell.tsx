@@ -239,7 +239,7 @@ export default function MessagingShell() {
   // Desktop layout — full-width message area (channels live in sidebar panel)
   // -------------------------------------------------------------------------
   return (
-    <div className="ui-glass flex h-[calc(100vh-64px)] rounded-xl overflow-hidden relative">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden relative bg-white">
       {/* Message area — full width */}
       <div className="flex-1 flex flex-col min-w-0">
         {activeChannelId ? (
