@@ -155,6 +155,15 @@ const orgScopedModels = new Set([
 	'FormQrCode',
 	// Personal tasks
 	'Task',
+	// Phase 23: Messaging module
+	'Channel',
+	'ChannelMember',
+	'Message',
+	'MessageReaction',
+	'MessageAttachment',
+	'MessageMention',
+	'MessagingNotificationPreference',
+	'PushSubscription',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -199,6 +208,9 @@ const softDeleteModels = new Set([
 	'EventRegistration',
 	// Personal tasks
 	'Task',
+	// Phase 23: Messaging module
+	'Channel',
+	'Message',
 ])
 
 /**
