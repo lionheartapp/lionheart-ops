@@ -106,8 +106,11 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
-    log.error({ err: error }, 'Failed to toggle module')
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errStack = error instanceof Error ? error.stack : undefined
+    log.error({ err: error, errMsg, errStack }, 'Failed to toggle module')
+    console.error('[modules POST] Failed to toggle module:', errMsg, errStack)
     Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to toggle module'), { status: 500 })
+    return NextResponse.json(fail('INTERNAL_ERROR', `Failed to toggle module: ${errMsg}`), { status: 500 })
   }
 }
