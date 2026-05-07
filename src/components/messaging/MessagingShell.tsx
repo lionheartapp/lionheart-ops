@@ -14,6 +14,7 @@ import type { MessageWithAuthor } from '@/lib/services/messageService'
 import ChannelList from './ChannelList'
 import MessageArea from './MessageArea'
 import ThreadPanel from './ThreadPanel'
+import SearchPanel from './SearchPanel'
 
 // ---------------------------------------------------------------------------
 // Mobile detection hook
@@ -52,6 +53,19 @@ export default function MessagingShell() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageWithAuthor | null>(null)
   const [mobileView, setMobileView] = useState<MobileView>('channels')
+  const [showSearch, setShowSearch] = useState(false)
+
+  // Cmd+K / Ctrl+K keyboard shortcut to toggle search
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setShowSearch((prev) => !prev)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Handle channel selection
   const handleSelectChannel = useCallback(
@@ -94,6 +108,23 @@ export default function MessagingShell() {
     setActiveThreadMessage(null)
     setMobileView('messages')
   }, [])
+
+  // Handle search result navigation
+  const handleSearchNavigate = useCallback(
+    (channelId: string) => {
+      handleSelectChannel(channelId)
+      setShowSearch(false)
+    },
+    [handleSelectChannel],
+  )
+
+  // Shared search panel (rendered in both mobile and desktop)
+  const searchPanel = showSearch ? (
+    <SearchPanel
+      onClose={() => setShowSearch(false)}
+      onNavigate={handleSearchNavigate}
+    />
+  ) : null
 
   // -------------------------------------------------------------------------
   // Mobile layout
@@ -151,6 +182,7 @@ export default function MessagingShell() {
                 <MessageArea
                   channelId={activeChannelId}
                   onThreadClick={handleThreadClick}
+                  onSearchClick={() => setShowSearch(true)}
                 />
               </div>
             </motion.div>
@@ -189,6 +221,7 @@ export default function MessagingShell() {
             </motion.div>
           )}
         </AnimatePresence>
+        {searchPanel}
       </div>
     )
   }
@@ -212,6 +245,7 @@ export default function MessagingShell() {
           <MessageArea
             channelId={activeChannelId}
             onThreadClick={handleThreadClick}
+            onSearchClick={() => setShowSearch(true)}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
@@ -234,6 +268,8 @@ export default function MessagingShell() {
           </div>
         )}
       </AnimatePresence>
+
+      {searchPanel}
     </div>
   )
 }
