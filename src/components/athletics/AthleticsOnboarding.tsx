@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { useModules } from '@/lib/hooks/useModuleEnabled'
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
   const queryClient = useQueryClient()
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
 
-  // ── Campus selector ──────────────────────────────────────────────
+  // ── Campus selector (only campuses with athletics enabled) ────────
   const { data: campusesRaw } = useQuery({
     queryKey: ['campuses-for-athletics'],
     queryFn: async () => {
@@ -100,12 +101,23 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
     },
     staleTime: 5 * 60_000,
   })
-  const campuses = ((campusesRaw ?? []) as Campus[]).filter((c) => c.isActive)
+  const allCampuses = ((campusesRaw ?? []) as Campus[]).filter((c) => c.isActive)
+  const { data: enabledModules } = useModules()
+  const athleticsCampusIds = useMemo(() => {
+    if (!enabledModules) return new Set<string>()
+    return new Set(
+      enabledModules
+        .filter((m) => m.moduleId === 'athletics' && m.campusId)
+        .map((m) => m.campusId as string)
+    )
+  }, [enabledModules])
+  const campuses = allCampuses.filter((c) => athleticsCampusIds.has(c.id))
+
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(activeCampusId)
 
-  // Default to first campus if none selected
+  // Default to first athletics-enabled campus if none selected or current selection isn't valid
   useEffect(() => {
-    if (!selectedCampusId && campuses.length > 0) {
+    if (campuses.length > 0 && (!selectedCampusId || !campuses.some((c) => c.id === selectedCampusId))) {
       setSelectedCampusId(campuses[0].id)
     }
   }, [campuses, selectedCampusId])
@@ -281,18 +293,20 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
 
       {/* ── Campus selector ─────────────────────────────────────── */}
       {campuses.length > 1 && (
-        <div className="mb-8 flex items-center justify-center gap-2">
-          <MapPin className="w-4 h-4 text-stone-400" />
-          <span className="text-sm text-stone-500">Setting up for</span>
-          <select
-            value={selectedCampusId ?? ''}
-            onChange={(e) => setSelectedCampusId(e.target.value)}
-            className="text-sm font-semibold text-slate-900 bg-transparent border-b border-stone-300 focus:border-slate-900 focus:outline-none pb-0.5 cursor-pointer"
-          >
-            {campuses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex items-center gap-2.5 bg-white border border-stone-200 rounded-full px-4 py-2 shadow-sm">
+            <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="text-sm text-stone-500">Setting up for</span>
+            <select
+              value={selectedCampusId ?? ''}
+              onChange={(e) => setSelectedCampusId(e.target.value)}
+              className="text-sm font-semibold text-slate-900 bg-transparent focus:outline-none cursor-pointer appearance-none pr-5 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0_center]"
+            >
+              {campuses.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
