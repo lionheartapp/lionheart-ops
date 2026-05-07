@@ -106,7 +106,10 @@ Plans:
   3. A client subscribed to Org A's channel does not receive Org B's messages
   4. Typing indicators and presence status (online/away/offline) update in real time for all channel members
   5. The Postgres broadcast trigger fires on Message INSERT using realtime.send(), not Postgres Changes
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 25-01-PLAN.md — Token endpoint + broadcast trigger SQL
+- [ ] 25-02-PLAN.md — RealtimeProvider context + useRealtimeChannel hook
 
 ### Phase 26: Core Messaging UI
 **Goal**: Staff can open a messaging page, see their channels, send and receive messages in real time, and reach messaging from the sidebar — with nothing requiring a page refresh
@@ -168,7 +171,7 @@ Plans:
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
 | 23. Schema, Permissions, and RLS Foundation | v4.0 | 3/3 | Complete | 2026-05-07 |
 | 24. Core Messaging API | v4.0 | 4/4 | Complete | 2026-05-07 |
-| 25. Realtime Bridge and JWT Integration | v4.0 | 0/TBD | Not started | - |
+| 25. Realtime Bridge and JWT Integration | v4.0 | 0/2 | Not started | - |
 | 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
 | 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
