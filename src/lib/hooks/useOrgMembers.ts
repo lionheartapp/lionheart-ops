@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 
@@ -34,4 +35,26 @@ export function useOrgMembers(options?: { enabled?: boolean }) {
 export function formatMemberLabel(member: { firstName: string | null; lastName: string | null; email: string }): string {
   const name = `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
   return name || member.email
+}
+
+/**
+ * Filtered subset of org members matching a search query (by name or email).
+ * Returns at most 6 results for use in autocomplete dropdowns.
+ */
+export function useFilteredMembers(query: string): OrgMember[] {
+  const { data: members } = useOrgMembers()
+
+  return useMemo(() => {
+    if (!members) return []
+    if (!query) return members.slice(0, 6)
+
+    const lower = query.toLowerCase()
+    return members
+      .filter((m) => {
+        const name = formatMemberLabel(m).toLowerCase()
+        const email = m.email.toLowerCase()
+        return name.includes(lower) || email.includes(lower)
+      })
+      .slice(0, 6)
+  }, [members, query])
 }
