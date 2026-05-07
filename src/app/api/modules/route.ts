@@ -63,10 +63,19 @@ export async function POST(req: NextRequest) {
       const input = ToggleModuleSchema.parse(body)
       const db = prisma as unknown as OrgPrismaClient
 
+      // Frontend sends a Campus ID — resolve it to the campus's schoolId for the FK
+      let resolvedSchoolId: string | null = null
+      if (input.campusId) {
+        const campus = await db.campus.findFirst({
+          where: { id: input.campusId, organizationId: orgId },
+        })
+        resolvedSchoolId = campus?.schoolId ?? null
+      }
+
       const whereFilter = {
         organizationId: orgId,
         moduleId: input.moduleId,
-        ...(input.campusId ? { schoolId: input.campusId } : { schoolId: null }),
+        ...(resolvedSchoolId ? { schoolId: resolvedSchoolId } : { schoolId: null }),
       }
 
       if (input.enabled) {
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
           data: {
             organizationId: orgId,
             moduleId: input.moduleId,
-            schoolId: input.campusId ?? null,
+            schoolId: resolvedSchoolId,
             planTier: 'trial',
           },
         })
@@ -106,11 +115,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
-    const errMsg = error instanceof Error ? error.message : String(error)
-    const errStack = error instanceof Error ? error.stack : undefined
-    log.error({ err: error, errMsg, errStack }, 'Failed to toggle module')
-    console.error('[modules POST] Failed to toggle module:', errMsg, errStack)
+    log.error({ err: error }, 'Failed to toggle module')
     Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', `Failed to toggle module: ${errMsg}`), { status: 500 })
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to toggle module'), { status: 500 })
   }
 }
