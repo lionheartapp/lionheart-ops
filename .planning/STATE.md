@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 24 (not started)
+Phase: 24 (planned)
 Plan: —
-Status: Ready to plan
-Last activity: 2026-05-07 -- Phase 23 execution complete
+Status: Ready to execute
+Last activity: 2026-05-07 -- Phase 24 planning complete
 
 Progress: [█░░░░░░░░░] 14%
 
@@ -83,7 +83,7 @@ See PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: Phase 24 context discussion
-Stopped at: Phase 24 context gathered
-Resume file: .planning/phases/24-core-messaging-api/24-CONTEXT.md
-Next action: Run /gsd-plan-phase 24
+Last session: Phase 24 planning
+Stopped at: Phase 24 planning complete
+Resume file: .planning/phases/24-core-messaging-api/24-01-PLAN.md
+Next action: Run /gsd-execute-phase 24
