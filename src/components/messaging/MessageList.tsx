@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * MessageList — virtual-scrolled message list using react-virtuoso.
+ * MessageList -- virtual-scrolled message list using react-virtuoso.
  *
  * Renders messages newest-at-bottom with prepend-on-scroll-up for history loading.
  * Uses firstItemIndex pattern for stable scroll position during prepends.
@@ -10,6 +10,7 @@
 import { useCallback, useRef } from 'react'
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
+import type { ReactionGroup } from '@/lib/hooks/useReactions'
 import MessageBubble from './MessageBubble'
 import { MessageSquare } from 'lucide-react'
 
@@ -25,13 +26,16 @@ interface MessageListProps {
   onLoadMore: () => void
   onThreadClick: (messageId: string, message?: MessageWithAuthor) => void
   currentUserId: string | null
+  reactionsMap?: Record<string, ReactionGroup[]>
+  onReactionToggle?: (messageId: string, emoji: string) => void
+  onPin?: (messageId: string) => void
 }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Large base index for prepend support — Virtuoso needs this for stable prepend scrolling. */
+/** Large base index for prepend support -- Virtuoso needs this for stable prepend scrolling. */
 const START_INDEX = 100_000
 
 // ---------------------------------------------------------------------------
@@ -113,6 +117,9 @@ export default function MessageList({
   onLoadMore,
   onThreadClick,
   currentUserId,
+  reactionsMap,
+  onReactionToggle,
+  onPin,
 }: MessageListProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null)
 
@@ -161,6 +168,8 @@ export default function MessageList({
           const isOwn = message.authorId === currentUserId
           const showAvatar = !shouldCollapse(message, prevMessage)
 
+          const messageReactions = reactionsMap?.[message.id] ?? []
+
           return (
             <div className="px-4">
               <MessageBubble
@@ -168,6 +177,14 @@ export default function MessageList({
                 isOwn={isOwn}
                 showAvatar={showAvatar}
                 onThreadClick={onThreadClick}
+                reactions={messageReactions}
+                onReactionToggle={
+                  onReactionToggle
+                    ? (emoji: string) => onReactionToggle(message.id, emoji)
+                    : undefined
+                }
+                onPin={onPin}
+                isPinned={!!message.pinnedAt}
               />
             </div>
           )
