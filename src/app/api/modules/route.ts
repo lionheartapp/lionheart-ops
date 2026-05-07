@@ -25,8 +25,34 @@ export async function GET(req: NextRequest) {
           orderBy: { enabledAt: 'asc' },
         })
       )
-      // Map schoolId → campusId for frontend compatibility
-      const modules = rows.map(({ schoolId, ...rest }) => ({ ...rest, campusId: schoolId }))
+      // Map schoolId → campusId(s) for frontend compatibility.
+      // TenantModule stores a schoolId FK, but the frontend expects campusId.
+      // Expand each school-scoped row into one entry per campus belonging to that school.
+      const schoolIds = [...new Set(rows.filter((r) => r.schoolId).map((r) => r.schoolId as string))]
+      let schoolToCampusIds: Record<string, string[]> = {}
+      if (schoolIds.length > 0) {
+        const campuses = await (prisma as unknown as OrgPrismaClient).campus.findMany({
+          where: { organizationId: orgId, schoolId: { in: schoolIds }, isActive: true },
+        })
+        for (const c of campuses) {
+          const sid = c.schoolId as string
+          if (!schoolToCampusIds[sid]) schoolToCampusIds[sid] = []
+          schoolToCampusIds[sid].push(c.id as string)
+        }
+      }
+
+      const modules: Record<string, unknown>[] = []
+      for (const { schoolId, ...rest } of rows) {
+        if (schoolId && schoolToCampusIds[schoolId]) {
+          // Expand into one entry per campus
+          for (const campusId of schoolToCampusIds[schoolId]) {
+            modules.push({ ...rest, campusId })
+          }
+        } else {
+          // Org-wide (no school) — keep as-is
+          modules.push({ ...rest, campusId: null })
+        }
+      }
       return NextResponse.json(ok(modules))
     })
   } catch (error) {
