@@ -44,7 +44,7 @@ import NotifyAttendeesDialog from './NotifyAttendeesDialog'
 import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
-import { useModules } from '@/lib/hooks/useModuleEnabled'
+import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import CalendarFilterPanel from './CalendarFilterPanel'
@@ -328,6 +328,8 @@ export default function CalendarView() {
     : calendarFiltered
 
   // ── Athletics calendar overlay ──────────────────────────────────────
+  const { enabled: athleticsEnabled } = useModuleEnabled('athletics')
+
   // Fetch user's assigned campuses (scoped — falls back to all for admins)
   const { data: userCampuses = [] } = useQuery<Array<{ id: string; name: string; isPrimary: boolean }>>({
     queryKey: ['my-campuses'],
@@ -856,7 +858,7 @@ export default function CalendarView() {
           calendarFilter={calendarFilter}
           onCalendarFilterChange={setCalendarFilter}
           athleticsVisible={anyAthleticsVisible}
-          userCampuses={userCampuses}
+          userCampuses={athleticsEnabled ? userCampuses : []}
           visibleAthleticsCampusIds={visibleAthleticsCampusIds}
           onToggleAthleticsCampus={(campusId: string) => {
             setVisibleAthleticsCampusIds((prev) => {
@@ -919,7 +921,7 @@ export default function CalendarView() {
           categories={categories}
           externalCalendars={externalCalendarList}
           athleticsVisible={anyAthleticsVisible}
-          userCampuses={userCampuses}
+          userCampuses={athleticsEnabled ? userCampuses : []}
           visibleAthleticsCampusIds={visibleAthleticsCampusIds}
           onToggleAthleticsCampus={(campusId: string) => {
             setVisibleAthleticsCampusIds((prev) => {
