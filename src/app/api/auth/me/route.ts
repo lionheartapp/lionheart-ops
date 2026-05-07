@@ -92,10 +92,10 @@ export async function GET(req: NextRequest) {
 
     type DashboardMode = 'admin' | 'maintenance' | 'it' | 'av' | 'default'
     let dashboardMode: DashboardMode = 'default'
-    if (isAdminRole) dashboardMode = 'admin'
-    else if (isMaintenanceRole || isOnMaintenanceTeam) dashboardMode = 'maintenance'
+    if (isMaintenanceRole || isOnMaintenanceTeam) dashboardMode = 'maintenance'
     else if (isITRole || isOnITTeam) dashboardMode = 'it'
     else if (isOnAVTeam) dashboardMode = 'av'
+    else dashboardMode = 'admin' // Everyone else (admins, members, teachers) gets the calendar view
 
     // Check if currently impersonating (admin-token cookie present)
     const adminToken = req.cookies.get('admin-token')?.value
