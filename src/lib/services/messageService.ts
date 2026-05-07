@@ -9,12 +9,19 @@ import { z } from 'zod'
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
 import { Prisma } from '@prisma/client'
+import type { AttachmentData } from '@/lib/services/attachmentService'
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
 export const SendMessageSchema = z.object({
   content: z.string().min(1).max(4000).trim(),
   parentId: z.string().optional(),
+  attachments: z.array(z.object({
+    fileName: z.string(),
+    fileSize: z.number(),
+    mimeType: z.string(),
+    storageUrl: z.string(),
+  })).optional(),
 })
 
 export const EditMessageSchema = z.object({
@@ -42,6 +49,7 @@ export interface MessageWithAuthor {
   editedAt: string | null
   pinnedAt: string | null
   createdAt: string
+  attachments?: AttachmentData[]
 }
 
 export interface SearchResult {
@@ -65,6 +73,16 @@ function shapeMessage(row: Record<string, unknown>): MessageWithAuthor {
     avatar?: string | null
   } | null
 
+  // Shape attachments if present in the include
+  const rawAttachments = row.attachments as Array<Record<string, unknown>> | undefined
+  const attachments: AttachmentData[] | undefined = rawAttachments?.map((a) => ({
+    id: a.id as string,
+    fileName: a.fileName as string,
+    fileSize: a.fileSize as number,
+    mimeType: a.mimeType as string,
+    storageUrl: a.storageUrl as string,
+  }))
+
   return {
     id: row.id as string,
     channelId: row.channelId as string,
@@ -79,6 +97,7 @@ function shapeMessage(row: Record<string, unknown>): MessageWithAuthor {
     editedAt: row.editedAt ? (row.editedAt as Date).toISOString() : null,
     pinnedAt: row.pinnedAt ? (row.pinnedAt as Date).toISOString() : null,
     createdAt: (row.createdAt as Date).toISOString(),
+    ...(attachments && attachments.length > 0 ? { attachments } : {}),
   }
 }
 
@@ -119,8 +138,41 @@ export async function sendMessage(
       content: input.content,
       parentId: input.parentId ?? null,
     },
-    include: { author: { select: AUTHOR_SELECT } },
+    include: { author: { select: AUTHOR_SELECT }, attachments: true },
   })
+
+  // Create attachment records if any
+  if (input.attachments && input.attachments.length > 0) {
+    const orgId = getOrgContextId()
+    for (const att of input.attachments) {
+      await db.messageAttachment.create({
+        data: {
+          messageId: row.id as string,
+          organizationId: orgId,
+          fileName: att.fileName,
+          fileSize: att.fileSize,
+          mimeType: att.mimeType,
+          storageUrl: att.storageUrl,
+        },
+      })
+    }
+    // Re-fetch to include newly created attachments
+    const updated = await db.message.findUnique({
+      where: { id: row.id as string },
+      include: { author: { select: AUTHOR_SELECT }, attachments: true },
+    })
+    if (updated) {
+      // Increment parent's reply count for thread replies
+      if (input.parentId) {
+        await db.message.update({
+          where: { id: input.parentId },
+          data: { replyCount: { increment: 1 } },
+        })
+      }
+      await parseMentions(input.content, row.id as string)
+      return shapeMessage(updated as unknown as Record<string, unknown>)
+    }
+  }
 
   // Increment parent's reply count for thread replies
   if (input.parentId) {
@@ -339,7 +391,7 @@ export async function getMessages(
     where: { channelId, deletedAt: null, ...parentFilter, ...cursorCondition },
     orderBy: { createdAt: opts.before ? 'desc' : 'asc' },
     take: opts.limit + 1,
-    include: { author: { select: AUTHOR_SELECT } },
+    include: { author: { select: AUTHOR_SELECT }, attachments: true },
   })
 
   const hasMore = messages.length > opts.limit
