@@ -8,10 +8,10 @@
  */
 
 import { useState, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MessageSquare, ChevronLeft, Menu } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
-import ChannelList from './ChannelList'
 import MessageArea from './MessageArea'
 import ThreadPanel from './ThreadPanel'
 import SearchPanel from './SearchPanel'
@@ -49,7 +49,16 @@ type MobileView = 'channels' | 'messages' | 'thread'
 
 export default function MessagingShell() {
   const isMobile = useIsMobile()
-  const [activeChannelId, setActiveChannelId] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const channelFromUrl = searchParams.get('channel')
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(channelFromUrl)
+
+  // Sync with URL when query param changes (e.g. sidebar panel navigates)
+  useEffect(() => {
+    if (channelFromUrl && channelFromUrl !== activeChannelId) {
+      setActiveChannelId(channelFromUrl)
+    }
+  }, [channelFromUrl]) // eslint-disable-line react-hooks/exhaustive-deps
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageWithAuthor | null>(null)
   const [mobileView, setMobileView] = useState<MobileView>('channels')
@@ -227,19 +236,11 @@ export default function MessagingShell() {
   }
 
   // -------------------------------------------------------------------------
-  // Desktop layout
+  // Desktop layout — full-width message area (channels live in sidebar panel)
   // -------------------------------------------------------------------------
   return (
     <div className="ui-glass flex h-[calc(100vh-64px)] rounded-xl overflow-hidden relative">
-      {/* Channel list sidebar */}
-      <div className="w-[280px] flex-shrink-0 border-r border-slate-200/60 overflow-y-auto">
-        <ChannelList
-          activeChannelId={activeChannelId}
-          onSelectChannel={handleSelectChannel}
-        />
-      </div>
-
-      {/* Message area */}
+      {/* Message area — full width */}
       <div className="flex-1 flex flex-col min-w-0">
         {activeChannelId ? (
           <MessageArea
@@ -250,7 +251,7 @@ export default function MessagingShell() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
             <MessageSquare className="w-10 h-10" />
-            <p className="text-sm">Select a channel to start messaging</p>
+            <p className="text-sm">Select a channel from the sidebar to start messaging</p>
           </div>
         )}
       </div>
