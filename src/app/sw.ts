@@ -97,12 +97,14 @@ const serwist = new Serwist({
         plugins: [new ExpirationPlugin({ maxAgeSeconds: 30 * 24 * 60 * 60 })],
       }),
     },
-    // Next.js static chunks — CacheFirst (immutable hashed filenames)
+    // Next.js static chunks — StaleWhileRevalidate so new deploys
+    // always update cached bundles in the background. CacheFirst was
+    // causing stale sidebar/page code to persist across deployments.
     {
       matcher: /\/_next\/static\//,
-      handler: new CacheFirst({
+      handler: new StaleWhileRevalidate({
         cacheName: 'next-static',
-        plugins: [new ExpirationPlugin({ maxAgeSeconds: 365 * 24 * 60 * 60 })],
+        plugins: [new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 })],
       }),
     },
     // Pages — StaleWhileRevalidate (maintenance pages load fast from cache)
