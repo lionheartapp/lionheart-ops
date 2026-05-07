@@ -19,12 +19,14 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const modules = await cacheOrgWide(orgId, 'modules:list', () =>
+      const rows = await cacheOrgWide(orgId, 'modules:list', () =>
         (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
           where: { organizationId: orgId },
           orderBy: { enabledAt: 'asc' },
         })
       )
+      // Map schoolId → campusId for frontend compatibility
+      const modules = rows.map(({ schoolId, ...rest }) => ({ ...rest, campusId: schoolId }))
       return NextResponse.json(ok(modules))
     })
   } catch (error) {
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
       const whereFilter = {
         organizationId: orgId,
         moduleId: input.moduleId,
-        ...(input.campusId ? { campusId: input.campusId } : { campusId: null }),
+        ...(input.campusId ? { schoolId: input.campusId } : { schoolId: null }),
       }
 
       if (input.enabled) {
@@ -72,15 +74,11 @@ export async function POST(req: NextRequest) {
         if (existing) {
           return NextResponse.json(ok(existing), { status: 200 })
         }
-        // Set 30-day trial period for paid add-ons
-        const trialEndsAt = new Date()
-        trialEndsAt.setDate(trialEndsAt.getDate() + 30)
-
         const mod = await db.tenantModule.create({
           data: {
             organizationId: orgId,
             moduleId: input.moduleId,
-            campusId: input.campusId ?? null,
+            schoolId: input.campusId ?? null,
             planTier: 'trial',
           },
         })
