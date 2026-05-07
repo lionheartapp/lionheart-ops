@@ -131,9 +131,21 @@ function InlineNewDM({
   onCreated: (ch: ShapedChannel) => void
   onCancel: () => void
 }) {
+  interface UserResult {
+    id: string
+    firstName: string | null
+    lastName: string | null
+    email: string
+    avatar: string | null
+    jobTitle: string | null
+    userRole?: { name: string; slug: string } | null
+    teams?: { team: { name: string } }[]
+    school?: { name: string } | null
+  }
+
   const [search, setSearch] = useState('')
   const [members, setMembers] = useState<{ id: string; name: string }[]>([])
-  const [results, setResults] = useState<{ id: string; firstName: string; lastName: string; email: string }[]>([])
+  const [results, setResults] = useState<UserResult[]>([])
   const [searching, setSearching] = useState(false)
   const queryClient = useQueryClient()
 
@@ -150,17 +162,31 @@ function InlineNewDM({
     if (query.length < 2) { setResults([]); return }
     setSearching(true)
     try {
-      const res = await fetch(`/api/settings/users?search=${encodeURIComponent(query)}&limit=5`, {
+      const res = await fetch(`/api/settings/users?search=${encodeURIComponent(query)}&limit=8`, {
         credentials: 'include',
       })
       const json = await res.json()
       if (json.ok) {
         const selected = new Set(members.map((m) => m.id))
-        setResults((json.data?.users ?? json.data ?? []).filter((u: { id: string }) => !selected.has(u.id)))
+        const users = json.data?.users ?? json.data ?? []
+        setResults(users.filter((u: UserResult) => !selected.has(u.id)))
       }
     } finally {
       setSearching(false)
     }
+  }
+
+  function getUserName(u: UserResult): string {
+    return `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+  }
+
+  function getUserMeta(u: UserResult): string {
+    const parts: string[] = []
+    if (u.jobTitle) parts.push(u.jobTitle)
+    if (u.userRole?.name) parts.push(u.userRole.name)
+    if (u.teams?.length) parts.push(u.teams.map((t) => t.team.name).join(', '))
+    if (u.school?.name) parts.push(u.school.name)
+    return parts.join(' · ')
   }
 
   return (
@@ -207,21 +233,38 @@ function InlineNewDM({
       {searching && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin mt-1.5" />}
 
       {results.length > 0 && (
-        <div className="mt-1.5 space-y-0.5">
-          {results.map((u) => (
-            <button
-              key={u.id}
-              type="button"
-              onClick={() => {
-                setMembers([...members, { id: u.id, name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email }])
-                setSearch('')
-                setResults([])
-              }}
-              className="w-full text-left px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-100 rounded cursor-pointer transition-colors"
-            >
-              {u.firstName} {u.lastName} <span className="text-slate-400 text-xs">{u.email}</span>
-            </button>
-          ))}
+        <div className="mt-1.5 max-h-52 overflow-y-auto space-y-0.5 border-t border-slate-100 pt-1.5">
+          {results.map((u) => {
+            const name = getUserName(u)
+            const meta = getUserMeta(u)
+            const initials = `${(u.firstName || '')[0] || ''}${(u.lastName || '')[0] || ''}`.toUpperCase() || '?'
+            return (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => {
+                  setMembers([...members, { id: u.id, name }])
+                  setSearch('')
+                  setResults([])
+                }}
+                className="w-full flex items-center gap-2.5 px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-left"
+              >
+                {u.avatar ? (
+                  <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[11px] font-medium text-white">{initials}</span>
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-slate-800 truncate">{name}</div>
+                  {meta && (
+                    <div className="text-xs text-slate-400 truncate">{meta}</div>
+                  )}
+                </div>
+              </button>
+            )
+          })}
         </div>
       )}
 
