@@ -111,6 +111,19 @@ export default function MessageArea({ channelId, onThreadClick, onSearchClick }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId])
 
+  // Re-mark as read when tab regains focus (handles tab-switching scenarios)
+  useEffect(() => {
+    if (!channelId) return
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        markRead.mutate()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelId])
+
   // Clear realtime messages when channel changes
   useEffect(() => {
     if (prevChannelRef.current !== channelId) {

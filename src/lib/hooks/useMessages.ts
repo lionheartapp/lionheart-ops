@@ -92,9 +92,9 @@ export function useMarkChannelRead(channelId: string | null) {
     mutationFn: async () => {
       if (!channelId) return
       const res = await fetch(
-        `/api/messaging/channels/${channelId}/mark-read`,
+        `/api/messaging/channels/${channelId}/read`,
         {
-          method: 'POST',
+          method: 'PATCH',
           credentials: 'include',
         },
       )
