@@ -155,7 +155,12 @@ Plans:
   3. A web push notification arrives on a closed browser tab when a DM or @mention is received (VAPID via existing PWA service worker)
   4. A batched email digest of unread messages is sent via Resend at the user's configured frequency
   5. User can set each channel to "all messages", "mentions only", or "none", and toggle email digest on/off
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 28-01-PLAN.md — Mark-as-read API + messaging notification service
+- [ ] 28-02-PLAN.md — Per-channel preferences API + push subscription API
+- [ ] 28-03-PLAN.md — Web push delivery service + email digest cron
+- [ ] 28-04-PLAN.md — Realtime toast notifications + UI wiring + human verification
 
 ### Phase 29: Auto-Channels, System Bot, and Integrations
 **Goal**: Messaging is woven into the rest of Lionheart — teams and schools get their own channels automatically, and the system bot keeps channels informed of ticket and event activity
@@ -183,7 +188,7 @@ Plans:
 | 25. Realtime Bridge and JWT Integration | v4.0 | 2/2 | Complete | 2026-05-07 |
 | 26. Core Messaging UI | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 3/3 | Complete | 2026-05-07 |
-| 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
+| 28. Notifications and Read State | v4.0 | 0/4 | Not started | - |
 | 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
 
 **Total: 29 phases, 7 v4.0 phases planned**
