@@ -54,7 +54,7 @@
 **Milestone Goal:** Build a Slack-like staff communication system tightly integrated with Lionheart's tickets, events, schools, and teams — powered by Supabase Realtime.
 
 - [x] **Phase 23: Schema, Permissions, and RLS Foundation** — All messaging data models, org-scoped Prisma registration, RLS policies, and permission seeds (completed 2026-05-07)
-- [ ] **Phase 24: Core Messaging API** — Channel and message CRUD routes, DM routes, search endpoint, and service layer
+- [x] **Phase 24: Core Messaging API** — Channel and message CRUD routes, DM routes, search endpoint, and service layer (completed 2026-05-07)
 - [ ] **Phase 25: Realtime Bridge and JWT Integration** — Supabase Realtime singleton with custom JWT, Postgres broadcast trigger, and cross-org isolation validation
 - [ ] **Phase 26: Core Messaging UI** — Full messaging page with channel list, message area, composer, and sidebar nav item
 - [ ] **Phase 27: Reactions, Threads, Attachments, and Search** — Emoji reactions, thread panel, file uploads, full-text search panel
@@ -167,7 +167,7 @@ Plans:
 | 21. Documents, Groups, Communication, Day-Of | v3.0 | 10/10 | Complete | 2026-03-16 |
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
 | 23. Schema, Permissions, and RLS Foundation | v4.0 | 3/3 | Complete | 2026-05-07 |
-| 24. Core Messaging API | v4.0 | 0/4 | Not started | - |
+| 24. Core Messaging API | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 25. Realtime Bridge and JWT Integration | v4.0 | 0/TBD | Not started | - |
 | 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
