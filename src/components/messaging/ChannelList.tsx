@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useChannels, type ShapedChannel } from '@/lib/hooks/useChannels'
 import ChannelListItem from './ChannelListItem'
-import { Plus, Hash, X, Loader2 } from 'lucide-react'
+import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react'
 
 interface ChannelListProps {
   activeChannelId: string | null
@@ -13,43 +13,290 @@ interface ChannelListProps {
 
 function SkeletonItem() {
   return (
-    <div className="flex items-center gap-3 px-3 py-3 animate-pulse">
-      <div className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0" />
-      <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="h-3.5 w-24 rounded bg-slate-200" />
-        <div className="h-3 w-36 rounded bg-slate-100" />
-      </div>
+    <div className="flex items-center gap-2 px-3 py-1.5 animate-pulse">
+      <div className="w-4 h-4 rounded bg-slate-200 flex-shrink-0" />
+      <div className="h-3 w-24 rounded bg-slate-200" />
     </div>
   )
 }
 
-async function createChannel(name: string): Promise<ShapedChannel> {
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+async function apiCreateChannel(name: string, type: 'PUBLIC' | 'PRIVATE'): Promise<ShapedChannel> {
   const res = await fetch('/api/messaging/channels', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, type: 'PUBLIC' }),
+    body: JSON.stringify({ name, type }),
   })
   const json = await res.json()
   if (!json.ok) throw new Error(json.error?.message || 'Failed to create channel')
   return json.data
 }
 
-export default function ChannelList({ activeChannelId, onSelectChannel }: ChannelListProps) {
-  const { data: channels, isLoading } = useChannels()
-  const [showCreate, setShowCreate] = useState(false)
-  const [newName, setNewName] = useState('')
+async function apiCreateDM(userIds: string[]): Promise<ShapedChannel> {
+  const res = await fetch('/api/messaging/dms', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userIds }),
+  })
+  const json = await res.json()
+  if (!json.ok) throw new Error(json.error?.message || 'Failed to start DM')
+  return json.data
+}
+
+// ---------------------------------------------------------------------------
+// Inline create forms
+// ---------------------------------------------------------------------------
+
+function InlineCreateChannel({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (ch: ShapedChannel) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState('')
+  const [isPrivate, setIsPrivate] = useState(false)
   const queryClient = useQueryClient()
 
-  const createMutation = useMutation({
-    mutationFn: (name: string) => createChannel(name),
-    onSuccess: (channel) => {
+  const mutation = useMutation({
+    mutationFn: () => apiCreateChannel(name.trim(), isPrivate ? 'PRIVATE' : 'PUBLIC'),
+    onSuccess: (ch) => {
       queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
-      onSelectChannel(channel.id)
-      setShowCreate(false)
-      setNewName('')
+      onCreated(ch)
     },
   })
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); if (name.trim()) mutation.mutate() }}
+      className="mx-2 mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200"
+    >
+      <div className="flex items-center gap-2">
+        {isPrivate
+          ? <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          : <Hash className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+        }
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="channel-name"
+          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+        />
+        <button
+          type="button"
+          onClick={onCancel}
+          className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between mt-2">
+        <button
+          type="button"
+          onClick={() => setIsPrivate(!isPrivate)}
+          className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+        >
+          {isPrivate ? <Lock className="w-3 h-3" /> : <Hash className="w-3 h-3" />}
+          {isPrivate ? 'Private' : 'Public'}
+        </button>
+        <button
+          type="submit"
+          disabled={!name.trim() || mutation.isPending}
+          className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+        >
+          {mutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Create'}
+        </button>
+      </div>
+
+      {mutation.isError && (
+        <p className="text-xs text-red-500 mt-1.5">
+          {mutation.error instanceof Error ? mutation.error.message : 'Failed'}
+        </p>
+      )}
+    </form>
+  )
+}
+
+function InlineNewDM({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (ch: ShapedChannel) => void
+  onCancel: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const [members, setMembers] = useState<{ id: string; name: string }[]>([])
+  const [results, setResults] = useState<{ id: string; firstName: string; lastName: string; email: string }[]>([])
+  const [searching, setSearching] = useState(false)
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: () => apiCreateDM(members.map((m) => m.id)),
+    onSuccess: (ch) => {
+      queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+      onCreated(ch)
+    },
+  })
+
+  async function handleSearch(query: string) {
+    setSearch(query)
+    if (query.length < 2) { setResults([]); return }
+    setSearching(true)
+    try {
+      const res = await fetch(`/api/settings/users?search=${encodeURIComponent(query)}&limit=5`, {
+        credentials: 'include',
+      })
+      const json = await res.json()
+      if (json.ok) {
+        const selected = new Set(members.map((m) => m.id))
+        setResults((json.data?.users ?? json.data ?? []).filter((u: { id: string }) => !selected.has(u.id)))
+      }
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  return (
+    <div className="mx-2 mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium text-slate-600">New message to:</span>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {members.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {members.map((m) => (
+            <span
+              key={m.id}
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-primary-50 text-primary-700 rounded-full"
+            >
+              {m.name}
+              <button
+                type="button"
+                onClick={() => setMembers(members.filter((x) => x.id !== m.id))}
+                className="hover:text-primary-900 cursor-pointer"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <input
+        autoFocus
+        value={search}
+        onChange={(e) => handleSearch(e.target.value)}
+        placeholder="Search people..."
+        className="w-full text-sm bg-transparent outline-none placeholder:text-slate-400"
+      />
+
+      {searching && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin mt-1.5" />}
+
+      {results.length > 0 && (
+        <div className="mt-1.5 space-y-0.5">
+          {results.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => {
+                setMembers([...members, { id: u.id, name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email }])
+                setSearch('')
+                setResults([])
+              }}
+              className="w-full text-left px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-100 rounded cursor-pointer transition-colors"
+            >
+              {u.firstName} {u.lastName} <span className="text-slate-400 text-xs">{u.email}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {members.length > 0 && (
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+          >
+            {mutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Go'}
+          </button>
+        </div>
+      )}
+
+      {mutation.isError && (
+        <p className="text-xs text-red-500 mt-1.5">
+          {mutation.error instanceof Error ? mutation.error.message : 'Failed'}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Collapsible section header (Slack-style)
+// ---------------------------------------------------------------------------
+
+function SectionHeader({
+  label,
+  collapsed,
+  onToggle,
+  onAdd,
+  addTitle,
+}: {
+  label: string
+  collapsed: boolean
+  onToggle: () => void
+  onAdd: () => void
+  addTitle: string
+}) {
+  return (
+    <div className="flex items-center justify-between px-3 py-1.5 group">
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+      >
+        {collapsed
+          ? <ChevronRight className="w-3 h-3" />
+          : <ChevronDown className="w-3 h-3" />
+        }
+        {label}
+      </button>
+      <button
+        onClick={onAdd}
+        className="p-0.5 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 cursor-pointer rounded transition-all"
+        title={addTitle}
+      >
+        <Plus className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export default function ChannelList({ activeChannelId, onSelectChannel }: ChannelListProps) {
+  const { data: channels, isLoading } = useChannels()
+  const [showCreateChannel, setShowCreateChannel] = useState(false)
+  const [showNewDM, setShowNewDM] = useState(false)
+  const [channelsCollapsed, setChannelsCollapsed] = useState(false)
+  const [dmsCollapsed, setDmsCollapsed] = useState(false)
 
   const grouped = useMemo(() => {
     if (!channels?.length) return { channels: [], dms: [] }
@@ -68,6 +315,12 @@ export default function ChannelList({ activeChannelId, onSelectChannel }: Channe
     return { channels: channelGroup, dms: dmGroup }
   }, [channels])
 
+  function handleCreated(ch: ShapedChannel) {
+    onSelectChannel(ch.id)
+    setShowCreateChannel(false)
+    setShowNewDM(false)
+  }
+
   if (isLoading) {
     return (
       <div className="py-2">
@@ -78,114 +331,98 @@ export default function ChannelList({ activeChannelId, onSelectChannel }: Channe
     )
   }
 
-  const hasChannels = grouped.channels.length > 0
-  const hasDMs = grouped.dms.length > 0
+  return (
+    <div className="flex flex-col h-full">
+      {/* Top bar with compose button */}
+      <div className="flex items-center justify-between px-3 py-3 border-b border-slate-100">
+        <span className="text-sm font-semibold text-slate-800">Messaging</span>
+        <button
+          onClick={() => { setShowNewDM(true); setShowCreateChannel(false) }}
+          className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md cursor-pointer transition-colors"
+          title="New message"
+        >
+          <PenSquare className="w-4 h-4" />
+        </button>
+      </div>
 
-  const createForm = showCreate ? (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        if (newName.trim()) createMutation.mutate(newName.trim())
-      }}
-      className="px-3 py-2 border-b border-slate-100"
-    >
-      <div className="flex items-center gap-2">
-        <Hash className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        <input
-          autoFocus
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="channel-name"
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-300"
+      {/* Scrollable list */}
+      <div className="flex-1 overflow-y-auto py-1">
+        {/* Channels section */}
+        <SectionHeader
+          label="Channels"
+          collapsed={channelsCollapsed}
+          onToggle={() => setChannelsCollapsed(!channelsCollapsed)}
+          onAdd={() => { setShowCreateChannel(true); setShowNewDM(false); setChannelsCollapsed(false) }}
+          addTitle="Create channel"
         />
-        <button
-          type="button"
-          onClick={() => { setShowCreate(false); setNewName('') }}
-          className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </div>
-      {createMutation.isError && (
-        <p className="text-xs text-red-500 mt-1 px-6">
-          {createMutation.error instanceof Error ? createMutation.error.message : 'Failed'}
-        </p>
-      )}
-      <div className="flex justify-end mt-2">
-        <button
-          type="submit"
-          disabled={!newName.trim() || createMutation.isPending}
-          className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
-        >
-          {createMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Create'}
-        </button>
-      </div>
-    </form>
-  ) : null
 
-  if (!hasChannels && !hasDMs) {
-    return (
-      <div className="py-2">
-        {createForm}
-        <div className="flex flex-col items-center justify-center h-32 gap-3">
-          <p className="text-sm text-slate-400">No channels yet</p>
-          {!showCreate && (
+        {showCreateChannel && (
+          <InlineCreateChannel
+            onCreated={handleCreated}
+            onCancel={() => setShowCreateChannel(false)}
+          />
+        )}
+
+        {!channelsCollapsed && (
+          grouped.channels.length > 0 ? (
+            grouped.channels.map((ch) => (
+              <ChannelListItem
+                key={ch.id}
+                channel={ch}
+                isActive={ch.id === activeChannelId}
+                onSelect={onSelectChannel}
+              />
+            ))
+          ) : !showCreateChannel ? (
             <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 cursor-pointer transition-colors"
+              onClick={() => setShowCreateChannel(true)}
+              className="flex items-center gap-2 px-3 py-1.5 mx-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded cursor-pointer transition-colors w-[calc(100%-1rem)]"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Create channel
+              <Plus className="w-3 h-3" />
+              Add a channel
             </button>
+          ) : null
+        )}
+
+        {/* Direct Messages section */}
+        <div className="mt-2">
+          <SectionHeader
+            label="Direct messages"
+            collapsed={dmsCollapsed}
+            onToggle={() => setDmsCollapsed(!dmsCollapsed)}
+            onAdd={() => { setShowNewDM(true); setShowCreateChannel(false); setDmsCollapsed(false) }}
+            addTitle="New message"
+          />
+
+          {showNewDM && (
+            <InlineNewDM
+              onCreated={handleCreated}
+              onCancel={() => setShowNewDM(false)}
+            />
+          )}
+
+          {!dmsCollapsed && (
+            grouped.dms.length > 0 ? (
+              grouped.dms.map((ch) => (
+                <ChannelListItem
+                  key={ch.id}
+                  channel={ch}
+                  isActive={ch.id === activeChannelId}
+                  onSelect={onSelectChannel}
+                />
+              ))
+            ) : !showNewDM ? (
+              <button
+                onClick={() => setShowNewDM(true)}
+                className="flex items-center gap-2 px-3 py-1.5 mx-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded cursor-pointer transition-colors w-[calc(100%-1rem)]"
+              >
+                <Plus className="w-3 h-3" />
+                Start a conversation
+              </button>
+            ) : null
           )}
         </div>
       </div>
-    )
-  }
-
-  return (
-    <div className="py-2">
-      {createForm}
-      {hasChannels && (
-        <div>
-          <div className="flex items-center justify-between px-3 py-2">
-            <h3 className="text-xs font-semibold uppercase text-slate-500 tracking-wide">
-              Channels
-            </h3>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer rounded transition-colors"
-              title="Create channel"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          {grouped.channels.map((ch) => (
-            <ChannelListItem
-              key={ch.id}
-              channel={ch}
-              isActive={ch.id === activeChannelId}
-              onSelect={onSelectChannel}
-            />
-          ))}
-        </div>
-      )}
-
-      {hasDMs && (
-        <div>
-          <h3 className="text-xs font-semibold uppercase text-slate-500 px-3 py-2 tracking-wide mt-2">
-            Direct Messages
-          </h3>
-          {grouped.dms.map((ch) => (
-            <ChannelListItem
-              key={ch.id}
-              channel={ch}
-              isActive={ch.id === activeChannelId}
-              onSelect={onSelectChannel}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }
