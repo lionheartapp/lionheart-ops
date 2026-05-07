@@ -5,7 +5,7 @@
 - ✅ **v1.0 Maintenance & Facilities** — Phases 1-7 (shipped 2026-03-06)
 - ✅ **v2.0 Launch Readiness** — Phases 8-18 (completed 2026-03-14)
 - ✅ **v3.0 Events Are the Product** — Phases 19-22 (shipped 2026-03-16)
-- 🚧 **v4.0 Messaging** — Phases 23-29 (in progress)
+- ✅ **v4.0 Messaging** — Phases 23-29 (shipped 2026-05-07)
 
 ## Phases
 
@@ -59,7 +59,7 @@
 - [x] **Phase 26: Core Messaging UI** — Full messaging page with channel list, message area, composer, and sidebar nav item (completed 2026-05-07)
 - [x] **Phase 27: Reactions, Threads, Attachments, and Search** — Emoji reactions, thread panel, file uploads, full-text search panel (completed 2026-05-07)
 - [x] **Phase 28: Notifications and Read State** — Unread badges, in-app mention alerts, web push, email digest, per-channel preferences (completed 2026-05-07)
-- [ ] **Phase 29: Auto-Channels, System Bot, and Integrations** — Team and school auto-channels, system bot alerts, source context display
+- [x] **Phase 29: Auto-Channels, System Bot, and Integrations** — Team and school auto-channels, system bot alerts, source context display (completed 2026-05-07)
 
 ## Phase Details
 
@@ -193,7 +193,7 @@ Plans:
 | 26. Core Messaging UI | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 3/3 | Complete | 2026-05-07 |
 | 28. Notifications and Read State | v4.0 | 4/4 | Complete | 2026-05-07 |
-| 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/3 | Not started | - |
+| 29. Auto-Channels, System Bot, and Integrations | v4.0 | 3/3 | Complete | 2026-05-07 |
 
 **Total: 29 phases, 7 v4.0 phases planned**
 
