@@ -513,7 +513,7 @@ export default function AIWorkflowCreator({
                     onKeyDown={handleTextareaKeyDown}
                     placeholder={isMaintenance
                       ? 'Describe how maintenance approvals should work... Use @ to mention people or teams.\n\nExample: "HVAC tickets need approval from @David Garcia. Any ticket over $500 needs admin sign-off. Urgent tickets should notify the facilities director."'
-                      : 'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "For River Springs, any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
+                      : 'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "Any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
                     className="w-full h-40 px-4 py-3 text-sm bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none resize-none placeholder:text-slate-400 transition-colors"
                   />
                   {isListening && (
