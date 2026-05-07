@@ -28,6 +28,7 @@ import SidebarLayout from './sidebar/SidebarLayout'
 import MainNavContent from './sidebar/MainNavContent'
 import SettingsPanel from './sidebar/SettingsPanel'
 import EventsPanel from './sidebar/EventsPanel'
+import MessagingPanel from './sidebar/MessagingPanel'
 import CalendarPanel from './sidebar/CalendarPanel'
 import AthleticsPanel from './sidebar/AthleticsPanel'
 import { DEFAULT_CAMPUS_COLORS } from './sidebar/constants'
@@ -62,6 +63,7 @@ export default function Sidebar({
   )
   const [athleticsOpen, setAthleticsOpen] = useState(() => pathname.startsWith('/athletics'))
   const [calendarOpen, setCalendarOpen] = useState(() => pathname.startsWith('/calendar'))
+  const [messagingOpen, setMessagingOpen] = useState(() => pathname.startsWith('/messaging'))
   const [bugDialogOpen, setBugDialogOpen] = useState(false)
   const [isViewAsOpen, setIsViewAsOpen] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
@@ -193,12 +195,21 @@ export default function Sidebar({
   // ── Navigation handlers ──
   const handleEventsClick = useCallback(() => {
     if (!eventsOpen) {
-      setEventsOpen(true); setSettingsOpen(false); setAthleticsOpen(false); setCalendarOpen(false)
+      setEventsOpen(true); setSettingsOpen(false); setAthleticsOpen(false); setCalendarOpen(false); setMessagingOpen(false)
       router.push('/events')
     } else {
       setEventsOpen(false)
     }
   }, [eventsOpen, router])
+
+  const handleMessagingClick = useCallback(() => {
+    if (!messagingOpen) {
+      setMessagingOpen(true); setSettingsOpen(false); setAthleticsOpen(false); setCalendarOpen(false); setEventsOpen(false)
+      router.push('/messaging')
+    } else {
+      setMessagingOpen(false)
+    }
+  }, [messagingOpen, router])
 
   const handleAthleticsClick = useCallback(() => {
     if (!athleticsOpen) {
@@ -220,16 +231,20 @@ export default function Sidebar({
 
   // ── Determine secondary panel ──
   const athleticsSecondaryNeeded = athleticsOpen && selection.athleticsHasSports
-  const secondaryOpen = settingsOpen || calendarOpen || athleticsSecondaryNeeded || eventsOpen
-  const secondaryLabel = eventsOpen
-    ? 'Events navigation'
-    : athleticsSecondaryNeeded
-      ? 'Athletics navigation'
-      : calendarOpen
-        ? 'Calendar navigation'
-        : 'Settings navigation'
+  const secondaryOpen = settingsOpen || calendarOpen || athleticsSecondaryNeeded || eventsOpen || messagingOpen
+  const secondaryLabel = messagingOpen
+    ? 'Messaging navigation'
+    : eventsOpen
+      ? 'Events navigation'
+      : athleticsSecondaryNeeded
+        ? 'Athletics navigation'
+        : calendarOpen
+          ? 'Calendar navigation'
+          : 'Settings navigation'
 
-  const secondaryContent = eventsOpen ? (
+  const secondaryContent = messagingOpen ? (
+    <MessagingPanel setIsOpen={setIsOpen} />
+  ) : eventsOpen ? (
     <EventsPanel pathname={pathname} setIsOpen={setIsOpen} />
   ) : athleticsSecondaryNeeded ? (
     <AthleticsPanel
@@ -281,14 +296,17 @@ export default function Sidebar({
       onViewAsOpen={() => setIsViewAsOpen(true)}
       onSettingsClick={handleSettingsClick}
       onEventsClick={handleEventsClick}
+      onMessagingClick={handleMessagingClick}
       onAthleticsClick={handleAthleticsClick}
       setIsOpen={setIsOpen}
       setSettingsOpen={setSettingsOpen}
       setAthleticsOpen={setAthleticsOpen}
       setEventsOpen={setEventsOpen}
+      setMessagingOpen={setMessagingOpen}
       settingsOpen={settingsOpen}
       athleticsOpen={athleticsOpen}
       eventsOpen={eventsOpen}
+      messagingOpen={messagingOpen}
       messagingEnabled={messagingEnabled}
       messagingModuleLoading={messagingModuleLoading}
       athleticsEnabled={athleticsEnabled}

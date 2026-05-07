@@ -42,6 +42,9 @@ interface MainNavContentProps {
   athleticsOpen: boolean
   eventsOpen: boolean
   // Messaging
+  onMessagingClick: () => void
+  setMessagingOpen: (open: boolean) => void
+  messagingOpen: boolean
   messagingEnabled: boolean
   messagingModuleLoading: boolean
   // Athletics
@@ -90,14 +93,17 @@ export default function MainNavContent({
   onViewAsOpen,
   onSettingsClick,
   onEventsClick,
+  onMessagingClick,
   onAthleticsClick,
   setIsOpen,
   setSettingsOpen,
   setAthleticsOpen,
   setEventsOpen,
+  setMessagingOpen,
   settingsOpen,
   athleticsOpen,
   eventsOpen,
+  messagingOpen,
   messagingEnabled,
   messagingModuleLoading,
   athleticsEnabled,
@@ -254,29 +260,23 @@ export default function MainNavContent({
             </li>
           ) : messagingEnabled ? (
             <li>
-              <PrefetchLink
-                href="/messaging"
-                onClick={() => {
-                  setSettingsOpen(false)
-                  setAthleticsOpen(false)
-                  setEventsOpen(false)
-                  setIsOpen(false)
-                }}
-                className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                  isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen
+              <button
+                onClick={onMessagingClick}
+                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl cursor-pointer ${
+                  messagingOpen
                     ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
                     : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                 }`}
-                aria-current={isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen ? 'page' : undefined}
+                aria-current={messagingOpen ? 'page' : undefined}
               >
-                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${messagingOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
                 <span className="text-sm">Messaging</span>
                 {messagingUnread > 0 && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-red-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] px-1">
                     {messagingUnread > 9 ? '9+' : messagingUnread}
                   </span>
                 )}
-              </PrefetchLink>
+              </button>
             </li>
           ) : null}
           {/* Athletics */}
