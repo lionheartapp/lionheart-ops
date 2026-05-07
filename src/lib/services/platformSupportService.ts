@@ -89,7 +89,7 @@ export async function addSupportMessage(params: {
  * Get ticket with all messages
  */
 export async function getTicketWithMessages(ticketId: string) {
-  return rawPrisma.platformSupportTicket.findUnique({
+  const ticket = await rawPrisma.platformSupportTicket.findUnique({
     where: { id: ticketId },
     include: {
       organization: { select: { id: true, name: true, slug: true } },
@@ -99,6 +99,16 @@ export async function getTicketWithMessages(ticketId: string) {
       },
     },
   })
+  if (!ticket) return null
+
+  const submittedBy = ticket.submittedByUserId
+    ? await rawPrisma.user.findUnique({
+        where: { id: ticket.submittedByUserId },
+        select: { id: true, email: true, firstName: true, lastName: true, name: true },
+      })
+    : null
+
+  return { ...ticket, submittedBy }
 }
 
 /**
@@ -137,7 +147,22 @@ export async function listSupportTickets(params: {
     rawPrisma.platformSupportTicket.count({ where }),
   ])
 
-  return { tickets, total, page, perPage }
+  // Batch-fetch submitter info for all tickets
+  const submitterIds = [...new Set(tickets.map((t) => t.submittedByUserId).filter(Boolean))] as string[]
+  const submitters = submitterIds.length > 0
+    ? await rawPrisma.user.findMany({
+        where: { id: { in: submitterIds } },
+        select: { id: true, email: true, firstName: true, lastName: true, name: true },
+      })
+    : []
+  const submitterMap = new Map(submitters.map((u) => [u.id, u]))
+
+  const ticketsWithSubmitter = tickets.map((t) => ({
+    ...t,
+    submittedBy: t.submittedByUserId ? submitterMap.get(t.submittedByUserId) ?? null : null,
+  }))
+
+  return { tickets: ticketsWithSubmitter, total, page, perPage }
 }
 
 /**

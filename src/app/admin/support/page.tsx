@@ -95,7 +95,12 @@ export default function SupportPage() {
             ) : (
               tickets.map((t) => (
                 <tr key={t.id} onClick={() => router.push(`/admin/support/${t.id}`)} className="hover:bg-slate-800/50 cursor-pointer transition-colors">
-                  <td className="px-5 py-3 font-medium">{t.subject}</td>
+                  <td className="px-5 py-3">
+                    <div className="font-medium">{t.subject}</div>
+                    {t.submittedBy && (
+                      <div className="text-xs text-slate-500 mt-0.5">{t.submittedBy.name || [t.submittedBy.firstName, t.submittedBy.lastName].filter(Boolean).join(' ')} &middot; {t.submittedBy.email}</div>
+                    )}
+                  </td>
                   <td className="px-5 py-3 hidden sm:table-cell text-slate-400">{t.organization?.name || '—'}</td>
                   <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor(t.status)}`}>{t.status}</span></td>
                   <td className="px-5 py-3 hidden md:table-cell"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColor(t.priority)}`}>{t.priority}</span></td>

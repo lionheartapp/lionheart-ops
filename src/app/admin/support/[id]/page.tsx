@@ -63,6 +63,11 @@ export default function TicketDetailPage() {
         <div>
           <h2 className="text-xl font-bold">{ticket.subject}</h2>
           <p className="text-sm text-slate-400">{ticket.organization?.name || 'Internal'} &middot; {ticket.category}</p>
+          {ticket.submittedBy && (
+            <p className="text-sm text-slate-500 mt-1">
+              Submitted by {ticket.submittedBy.name || [ticket.submittedBy.firstName, ticket.submittedBy.lastName].filter(Boolean).join(' ')} ({ticket.submittedBy.email})
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <FloatingDropdown
