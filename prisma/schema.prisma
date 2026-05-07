@@ -262,6 +262,7 @@ model User {
   mfaBackupCodes String?          // JSON array of hashed backup codes
   mfaEnabledAt   DateTime?
   pauseAllNotifications Boolean   @default(false)
+  isBot              Boolean      @default(false)
   // Onboarding checklist: items this user has explicitly dismissed. Only
   // applies to dismissable items (user-level tasks, not org-level essentials).
   onboardingDismissedItems String[] @default([])
@@ -6026,6 +6027,8 @@ model Channel {
   type           ChannelType  @default(PUBLIC)
   description    String?
   topic          String?
+  sourceType     String?      // e.g. "team", "school" — null for user-created channels
+  sourceId       String?      // UUID of the source entity (team, school, etc.)
   archivedAt     DateTime?
   deletedAt      DateTime?
   createdAt      DateTime     @default(now())
