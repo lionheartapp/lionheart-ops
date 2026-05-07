@@ -533,12 +533,20 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
             </label>
             {isPersonal ? (
               <Input
+                key={`date-${task.id}-${task.dueDate}`}
                 type="date"
                 size="sm"
                 defaultValue={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                onBlur={(e) => {
+                  const v = e.target.value
+                  const current = task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''
+                  if (v !== current) {
+                    onUpdate({ dueDate: v ? `${v}T12:00:00.000Z` : null })
+                  }
+                }}
                 onChange={(e) => {
                   const v = e.target.value
-                  onUpdate({ dueDate: v ? new Date(v).toISOString() : null })
+                  onUpdate({ dueDate: v ? `${v}T12:00:00.000Z` : null })
                 }}
               />
             ) : (
