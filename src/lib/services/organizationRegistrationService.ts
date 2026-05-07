@@ -358,6 +358,10 @@ export async function seedOrgDefaults(
     },
   })
 
+  // ── Step 7: Create system bot user for auto-channel messaging (Phase 29) ──
+  const { getOrCreateBotUser } = await import('@/lib/services/systemBotService')
+  await getOrCreateBotUser(orgId)
+
   return { superAdminRoleId, defaultCampusId: defaultCampus.id }
 }
 
