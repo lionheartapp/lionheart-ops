@@ -58,7 +58,7 @@
 - [x] **Phase 25: Realtime Bridge and JWT Integration** — Supabase Realtime singleton with custom JWT, Postgres broadcast trigger, and cross-org isolation validation (completed 2026-05-07)
 - [x] **Phase 26: Core Messaging UI** — Full messaging page with channel list, message area, composer, and sidebar nav item (completed 2026-05-07)
 - [x] **Phase 27: Reactions, Threads, Attachments, and Search** — Emoji reactions, thread panel, file uploads, full-text search panel (completed 2026-05-07)
-- [ ] **Phase 28: Notifications and Read State** — Unread badges, in-app mention alerts, web push, email digest, per-channel preferences
+- [x] **Phase 28: Notifications and Read State** — Unread badges, in-app mention alerts, web push, email digest, per-channel preferences (completed 2026-05-07)
 - [ ] **Phase 29: Auto-Channels, System Bot, and Integrations** — Team and school auto-channels, system bot alerts, source context display
 
 ## Phase Details
@@ -188,7 +188,7 @@ Plans:
 | 25. Realtime Bridge and JWT Integration | v4.0 | 2/2 | Complete | 2026-05-07 |
 | 26. Core Messaging UI | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 3/3 | Complete | 2026-05-07 |
-| 28. Notifications and Read State | v4.0 | 0/4 | Not started | - |
+| 28. Notifications and Read State | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
 
 **Total: 29 phases, 7 v4.0 phases planned**
