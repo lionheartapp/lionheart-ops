@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 25 (not started)
+Phase: 25 (planned)
 Plan: —
-Status: Ready to plan
-Last activity: 2026-05-07 -- Phase 24 execution complete
+Status: Ready to execute
+Last activity: 2026-05-07 -- Phase 25 planning complete
 
 Progress: [█░░░░░░░░░] 14%
 
@@ -83,7 +83,7 @@ See PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: Phase 24 execution
-Stopped at: Phase 24 complete — ready for Phase 25
-Resume file: --
-Next action: Run /gsd-discuss-phase 25 or /gsd-plan-phase 25
+Last session: Phase 25 planning
+Stopped at: Phase 25 planning complete
+Resume file: .planning/phases/25-realtime-bridge-and-jwt-integration/25-01-PLAN.md
+Next action: Run /gsd-execute-phase 25
