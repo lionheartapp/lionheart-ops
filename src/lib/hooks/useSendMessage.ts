@@ -5,6 +5,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 interface SendMessageInput {
   content: string
   parentId?: string
+  attachments?: Array<{
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storageUrl: string
+  }>
 }
 
 interface MessageWithAuthor {
@@ -19,6 +25,13 @@ interface MessageWithAuthor {
   editedAt: string | null
   pinnedAt: string | null
   createdAt: string
+  attachments?: Array<{
+    id: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storageUrl: string
+  }>
 }
 
 async function postMessage(

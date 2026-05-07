@@ -10,6 +10,7 @@
 
 import { MessageSquareText } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
+import AttachmentPreview from './AttachmentPreview'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -98,6 +99,9 @@ export default function MessageBubble({
           {message.editedAt && (
             <span className="text-xs text-slate-400 ml-1">(edited)</span>
           )}
+          {message.attachments?.map((att) => (
+            <AttachmentPreview key={att.id} attachment={att} />
+          ))}
         </div>
         {threadAction}
       </div>
@@ -141,6 +145,9 @@ export default function MessageBubble({
           <p className="text-sm text-slate-800 whitespace-pre-wrap">
             {message.content}
           </p>
+          {message.attachments?.map((att) => (
+            <AttachmentPreview key={att.id} attachment={att} />
+          ))}
         </div>
 
         {/* Thread link (shows reply count when replies exist) */}

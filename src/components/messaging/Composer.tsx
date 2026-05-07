@@ -3,9 +3,11 @@
 import { useCallback, useRef, useState } from 'react'
 import { Smile, Paperclip, SendHorizonal } from 'lucide-react'
 import { useSendMessage } from '@/lib/hooks/useSendMessage'
+import { useFileUpload } from '@/lib/hooks/useFileUpload'
 import { TEXTAREA_CLASSES } from '@/components/ui/form-tokens'
 import EmojiPicker from './EmojiPicker'
 import MentionAutocomplete from './MentionAutocomplete'
+import FileUploadProgress from './FileUploadProgress'
 
 interface ComposerProps {
   channelId: string
@@ -23,20 +25,51 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
   }>({ active: false, query: '', position: { top: 0, left: 0 } })
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { sendMessage, isPending } = useSendMessage(channelId)
+  const { upload, isUploading, progress, error: uploadError, reset: resetUpload } = useFileUpload(channelId)
+
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storageUrl: string
+  } | null>(null)
+
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input so re-selecting same file works
+    if (fileInputRef.current) fileInputRef.current.value = ''
+
+    const result = await upload(file)
+    if (result) {
+      setPendingAttachment(result)
+    }
+  }, [upload])
 
   const handleSend = useCallback(() => {
     const trimmed = content.trim()
-    if (!trimmed || isPending) return
+    const hasContent = trimmed.length > 0
+    const hasAttachment = !!pendingAttachment
 
-    sendMessage({ content: trimmed, parentId })
+    if ((!hasContent && !hasAttachment) || isPending || isUploading) return
+
+    sendMessage({
+      content: trimmed || ' ', // API requires content, send space if only attachment
+      parentId,
+      attachments: pendingAttachment ? [pendingAttachment] : undefined,
+    })
     setContent('')
+    setPendingAttachment(null)
+    resetUpload()
 
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
-  }, [content, isPending, sendMessage, parentId])
+  }, [content, isPending, isUploading, sendMessage, parentId, pendingAttachment, resetUpload])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -141,7 +174,7 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
     setMentionState({ active: false, query: '', position: { top: 0, left: 0 } })
   }, [])
 
-  const canSend = content.trim().length > 0 && !isPending
+  const canSend = (content.trim().length > 0 || !!pendingAttachment) && !isPending && !isUploading
 
   return (
     <div className="bg-white border-t border-slate-200 px-4 py-3">
@@ -166,16 +199,58 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
 
         <button
           type="button"
+          onClick={() => fileInputRef.current?.click()}
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-          title="Coming soon"
-          aria-label="Attach file (coming soon)"
-          disabled
+          aria-label="Attach file"
         >
           <Paperclip className="w-5 h-5" />
         </button>
+        {/* eslint-disable-next-line no-restricted-syntax -- Hidden file input cannot use UI Input component */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          accept="image/*,.pdf,.doc,.docx,.txt"
+          className="hidden"
+        />
 
         <span className="text-xs text-slate-400 ml-auto">Markdown supported</span>
       </div>
+
+      {/* Upload progress / error / pending attachment */}
+      {isUploading && (
+        <FileUploadProgress
+          fileName="Uploading..."
+          progress={progress}
+          onCancel={resetUpload}
+        />
+      )}
+      {uploadError && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-2">
+          <p className="text-xs text-red-600 flex-1">{uploadError}</p>
+          <button
+            type="button"
+            onClick={resetUpload}
+            className="text-xs text-red-400 hover:text-red-600 cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+      {pendingAttachment && !isUploading && (
+        <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 mb-2">
+          <p className="text-xs text-indigo-700 truncate flex-1">
+            {pendingAttachment.fileName}
+          </p>
+          <button
+            type="button"
+            onClick={() => setPendingAttachment(null)}
+            className="text-xs text-indigo-400 hover:text-indigo-600 cursor-pointer"
+          >
+            Remove
+          </button>
+        </div>
+      )}
 
       {/* Textarea + Send */}
       <div className="relative">
