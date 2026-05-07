@@ -121,7 +121,12 @@ Plans:
   3. Composer accepts markdown, emoji, file uploads, and @mention autocomplete in a single input
   4. The sidebar shows a "Messaging" nav item with an unread badge; the item is hidden when messagingEnabled is false
   5. On mobile, the channel list collapses to an overlay; message area fills the screen
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 26-01-PLAN.md — Sidebar nav item, messaging page shell, and channel list
+- [ ] 26-02-PLAN.md — Virtual-scrolled message list with realtime integration
+- [ ] 26-03-PLAN.md — Composer with emoji, @mentions, and send
+- [ ] 26-04-PLAN.md — Thread panel and mobile responsive layout
 **UI hint**: yes
 
 ### Phase 27: Reactions, Threads, Attachments, and Search
@@ -172,7 +177,7 @@ Plans:
 | 23. Schema, Permissions, and RLS Foundation | v4.0 | 3/3 | Complete | 2026-05-07 |
 | 24. Core Messaging API | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 25. Realtime Bridge and JWT Integration | v4.0 | 2/2 | Complete | 2026-05-07 |
-| 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
+| 26. Core Messaging UI | v4.0 | 0/4 | Not started | - |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
 | 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
 | 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
