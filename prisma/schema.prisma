@@ -574,7 +574,6 @@ model School {
   eventSeries            EventSeries[]
   dayScheduleAssignments DayScheduleAssignment[]
   routingConfigs         ModuleRoutingConfig[]
-  tenantModules          TenantModule[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -628,6 +627,7 @@ model Campus {
   erateEntities           ITERateEntity[]
   securityIncidents       SecurityIncident[]
   eventProjects           EventProject[]
+  tenantModules           TenantModule[]
 
   @@unique([organizationId, schoolId, name])
   @@index([organizationId, isActive])
@@ -1969,15 +1969,15 @@ model EventResourceRequest {
 model TenantModule {
   id             String   @id @default(cuid())
   organizationId String
-  schoolId       String?   // renamed from campusId (old physical-Campus FK → new School/institution FK)
+  campusId       String?  // per-campus module enablement
   moduleId       String   // 'athletics', 'planning-season', etc.
   enabledAt      DateTime @default(now())
   planTier       String?  // Which subscription tier enabled this
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  school       School?      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  campus       Campus?      @relation(fields: [campusId], references: [id], onDelete: Cascade)
 
-  @@unique([organizationId, moduleId, schoolId])
+  @@unique([organizationId, moduleId, campusId])
   @@index([organizationId])
 }
 

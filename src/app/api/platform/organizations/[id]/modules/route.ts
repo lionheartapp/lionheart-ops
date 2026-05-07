@@ -23,7 +23,7 @@ export async function GET(
     const [modules, campuses] = await Promise.all([
       rawPrisma.tenantModule.findMany({
         where: { organizationId: id },
-        select: { id: true, moduleId: true, schoolId: true, enabledAt: true, planTier: true },
+        select: { id: true, moduleId: true, campusId: true, enabledAt: true, planTier: true },
       }),
       rawPrisma.campus.findMany({
         where: { organizationId: id },
@@ -80,16 +80,16 @@ export async function POST(
       // Enable: upsert the module
       await rawPrisma.tenantModule.upsert({
         where: {
-          organizationId_moduleId_schoolId: {
+          organizationId_moduleId_campusId: {
             organizationId: id,
             moduleId,
-            schoolId: campusId ?? '',
+            campusId: campusId ?? '',
           },
         },
         create: {
           organizationId: id,
           moduleId,
-          schoolId: campusId || null,
+          campusId: campusId || null,
           planTier: 'platform-granted',
         },
         update: {
@@ -103,7 +103,7 @@ export async function POST(
         where: {
           organizationId: id,
           moduleId,
-          ...(campusId ? { schoolId: campusId } : {}),
+          ...(campusId ? { campusId: campusId } : {}),
         },
       })
     }

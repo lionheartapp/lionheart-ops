@@ -19,40 +19,12 @@ export async function GET(req: NextRequest) {
     await getUserContext(req)
 
     return await runWithOrgContext(orgId, async () => {
-      const rows = await cacheOrgWide(orgId, 'modules:list', () =>
+      const modules = await cacheOrgWide(orgId, 'modules:list', () =>
         (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
           where: { organizationId: orgId },
           orderBy: { enabledAt: 'asc' },
         })
       )
-      // Map schoolId → campusId(s) for frontend compatibility.
-      // TenantModule stores a schoolId FK, but the frontend expects campusId.
-      // Expand each school-scoped row into one entry per campus belonging to that school.
-      const schoolIds = [...new Set(rows.filter((r) => r.schoolId).map((r) => r.schoolId as string))]
-      let schoolToCampusIds: Record<string, string[]> = {}
-      if (schoolIds.length > 0) {
-        const campuses = await (prisma as unknown as OrgPrismaClient).campus.findMany({
-          where: { organizationId: orgId, schoolId: { in: schoolIds }, isActive: true },
-        })
-        for (const c of campuses) {
-          const sid = c.schoolId as string
-          if (!schoolToCampusIds[sid]) schoolToCampusIds[sid] = []
-          schoolToCampusIds[sid].push(c.id as string)
-        }
-      }
-
-      const modules: Record<string, unknown>[] = []
-      for (const { schoolId, ...rest } of rows) {
-        if (schoolId && schoolToCampusIds[schoolId]) {
-          // Expand into one entry per campus
-          for (const campusId of schoolToCampusIds[schoolId]) {
-            modules.push({ ...rest, campusId })
-          }
-        } else {
-          // Org-wide (no school) — keep as-is
-          modules.push({ ...rest, campusId: null })
-        }
-      }
       return NextResponse.json(ok(modules))
     })
   } catch (error) {
@@ -89,19 +61,10 @@ export async function POST(req: NextRequest) {
       const input = ToggleModuleSchema.parse(body)
       const db = prisma as unknown as OrgPrismaClient
 
-      // Frontend sends a Campus ID — resolve it to the campus's schoolId for the FK
-      let resolvedSchoolId: string | null = null
-      if (input.campusId) {
-        const campus = await db.campus.findFirst({
-          where: { id: input.campusId, organizationId: orgId },
-        })
-        resolvedSchoolId = campus?.schoolId ?? null
-      }
-
       const whereFilter = {
         organizationId: orgId,
         moduleId: input.moduleId,
-        ...(resolvedSchoolId ? { schoolId: resolvedSchoolId } : { schoolId: null }),
+        ...(input.campusId ? { campusId: input.campusId } : { campusId: null }),
       }
 
       if (input.enabled) {
@@ -113,7 +76,7 @@ export async function POST(req: NextRequest) {
           data: {
             organizationId: orgId,
             moduleId: input.moduleId,
-            schoolId: resolvedSchoolId,
+            campusId: input.campusId ?? null,
             planTier: 'trial',
           },
         })
