@@ -205,7 +205,7 @@ export default function EditMemberDrawer({
               onChange={(v) => setEditForm((p) => ({ ...p, campusId: v }))}
               disabled={saving}
               options={[
-                { value: '', label: 'No campus assigned' },
+                { value: '', label: 'District / All Campuses' },
                 ...availableCampuses.map((c) => ({ value: c.id, label: c.name })),
               ]}
             />

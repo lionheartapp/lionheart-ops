@@ -198,7 +198,7 @@ export default function InviteMemberDrawer({
               value={form.campusId}
               onChange={(v) => setForm((p) => ({ ...p, campusId: v }))}
               options={[
-                { value: '', label: 'No campus assigned' },
+                { value: '', label: 'District / All Campuses' },
                 ...availableCampuses.map((c) => ({ value: c.id, label: c.name })),
               ]}
             />
