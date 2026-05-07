@@ -73,7 +73,11 @@
   3. Messaging permission strings appear in DEFAULT_ROLES and survive a fresh org seed
   4. A token from Org A cannot read or subscribe to Org B's messages at the database layer (RLS verified)
   5. Full-text search tsvector column and GIN index exist on Message; denormalized unread counter exists on ChannelMember
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 23-01-PLAN.md — Schema models, org-scoped registration, messagingEnabled, and db push
+- [ ] 23-02-PLAN.md — Messaging permission constants and DEFAULT_ROLES mappings
+- [ ] 23-03-PLAN.md — RLS policies, unread counter triggers, and tsvector search
 
 ### Phase 24: Core Messaging API
 **Goal**: Every channel and message operation has a working, permissioned REST API that can be smoke-tested independently before any UI or Realtime code touches it
@@ -158,7 +162,7 @@
 | 20. Registration and Public Pages | v3.0 | 7/7 | Complete | 2026-03-15 |
 | 21. Documents, Groups, Communication, Day-Of | v3.0 | 10/10 | Complete | 2026-03-16 |
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
-| 23. Schema, Permissions, and RLS Foundation | v4.0 | 0/TBD | Not started | - |
+| 23. Schema, Permissions, and RLS Foundation | v4.0 | 0/3 | Planning complete | - |
 | 24. Core Messaging API | v4.0 | 0/TBD | Not started | - |
 | 25. Realtime Bridge and JWT Integration | v4.0 | 0/TBD | Not started | - |
 | 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
