@@ -15,3 +15,4 @@ export { sendEventUpdateEmails, sendEventApprovedEmail, sendEventRejectedEmail, 
 export { sendMaintenanceSubmittedEmail, sendMaintenanceAssignedEmail, sendMaintenanceClaimedEmail, sendMaintenanceInProgressEmail, sendMaintenanceOnHoldEmail, sendMaintenanceQAReadyEmail, sendMaintenanceDoneEmail, sendMaintenanceUrgentEmail, sendMaintenanceStaleEmail, sendMaintenanceQARejectedEmail, sendRepeatRepairAlertEmail, sendCostThresholdAlertEmail, sendEndOfLifeAlertEmail } from './maintenance-emails'
 export { sendITTicketSubmittedEmail, sendITTicketAssignedEmail, sendITTicketInProgressEmail, sendITTicketOnHoldEmail, sendITTicketDoneEmail, sendITTicketUrgentEmail } from './it-emails'
 export { sendBoardReportEmail, sendContactFormEmail, sendComplianceReminderEmail } from './report-emails'
+export { sendMessagingDigest } from './messaging-emails'
