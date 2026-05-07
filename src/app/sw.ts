@@ -120,4 +120,48 @@ const serwist = new Serwist({
   },
 })
 
+// ─── Web Push Handler (NOTIF-03) ───────────────────────────────────────
+self.addEventListener('push', (event: PushEvent) => {
+  if (!event.data) return
+
+  const data = event.data.json() as {
+    title: string
+    body: string
+    url?: string
+    icon?: string
+  }
+
+  const options: NotificationOptions = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    data: { url: data.url || '/messaging' },
+    tag: 'messaging-notification',
+    renotify: true,
+  }
+
+  event.waitUntil(self.registration.showNotification(data.title, options))
+})
+
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close()
+  const url =
+    (event.notification.data as { url?: string })?.url || '/messaging'
+
+  event.waitUntil(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (self as any).clients
+      .matchAll({ type: 'window' })
+      .then((windowClients: WindowClient[]) => {
+        for (const client of windowClients) {
+          if (client.url.includes(url) && 'focus' in client) {
+            return client.focus()
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (self as any).clients.openWindow(url)
+      })
+  )
+})
+
 serwist.addEventListeners()
