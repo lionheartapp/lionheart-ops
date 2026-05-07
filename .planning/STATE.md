@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Messaging
-status: roadmap_ready
-stopped_at: null
-last_updated: "2026-05-07T00:00:00.000Z"
-last_activity: 2026-05-07 — Roadmap created for v4.0 Messaging (Phases 23-29)
+status: planning
+stopped_at: Phase 23 context gathered
+last_updated: "2026-05-07T17:19:37.600Z"
+last_activity: 2026-05-07 — Roadmap created, 7 phases defined (23-29), 43 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 0
@@ -35,15 +35,18 @@ Progress: [░░░░░░░░░░] 0%
 ## Performance Metrics
 
 **Velocity (v1.0):**
+
 - Total plans completed: 21
 - Average duration: ~12min/plan
 - Total execution time: ~4.5 hours
 
 **Velocity (v2.0):**
+
 - Total phases completed: 11
 - Total plans completed: 57
 
 **Velocity (v3.0):**
+
 - Total phases completed: 4
 - Total plans completed: 34
 - Commits: 75
@@ -59,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 See PROJECT.md Key Decisions table for full history.
 
 **v4.0 Decisions made during roadmap creation:**
+
 - Broadcast-from-Database pattern chosen over Postgres Changes (avoids N auth queries per subscriber)
 - /api/auth/token endpoint needed to expose JWT to browser Supabase client (httpOnly cookie is not readable by browser JS)
 - Denormalized unread counter on ChannelMember (not runtime COUNT(*)) — designed into schema upfront
@@ -79,7 +83,7 @@ See PROJECT.md Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-05-07
-Stopped at: Roadmap created
-Resume file: None
+Last session: --stopped-at
+Stopped at: Phase 23 context gathered
+Resume file: --resume-file
 Next action: Run /gsd-plan-phase 23
