@@ -257,6 +257,14 @@ export const PERMISSIONS = {
   // Forms
   FORMS_MANAGE: 'forms:manage',
 
+  // Messaging — Phase 23
+  MESSAGING_CHANNELS_CREATE:     'channels:create',
+  MESSAGING_CHANNELS_MANAGE:     'channels:manage',
+  MESSAGING_CHANNELS_MODERATE:   'channels:moderate',
+  MESSAGING_MESSAGES_DELETE_ANY: 'messages:delete:any',
+  MESSAGING_DMS_SEND:            'dms:send',
+  // Note: integrations:manage for messaging reuses PERMISSIONS.INTEGRATIONS_MANAGE (line 254)
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
