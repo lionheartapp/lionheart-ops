@@ -272,7 +272,7 @@ async function seedModules(organizationId: string) {
     // campusId is null for org-wide modules. Prisma can't upsert on nullable unique fields,
     // so check for existence first.
     const existing = await prisma.tenantModule.findFirst({
-      where: { organizationId, moduleId, schoolId: null },
+      where: { organizationId, moduleId, campusId: null },
     })
     if (!existing) {
       await prisma.tenantModule.create({
