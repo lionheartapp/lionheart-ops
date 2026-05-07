@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
-import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
-import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { syncRolePermissions } from '@/lib/services/organizationRegistrationService'
@@ -18,15 +18,13 @@ export async function GET(req: NextRequest) {
     Sentry.setTag('org_id', orgId)
     await getUserContext(req)
 
-    return await runWithOrgContext(orgId, async () => {
-      const modules = await cacheOrgWide(orgId, 'modules:list', () =>
-        (prisma as unknown as OrgPrismaClient).tenantModule.findMany({
-          where: { organizationId: orgId },
-          orderBy: { enabledAt: 'asc' },
-        })
-      )
-      return NextResponse.json(ok(modules))
-    })
+    const modules = await cacheOrgWide(orgId, 'modules:list', () =>
+      rawPrisma.tenantModule.findMany({
+        where: { organizationId: orgId },
+        orderBy: { enabledAt: 'asc' },
+      })
+    )
+    return NextResponse.json(ok(modules))
   } catch (error) {
     const msg = error instanceof Error ? error.message : ''
     if ((msg.includes('Insufficient permissions') || msg.includes('Permission denied'))) {
@@ -57,46 +55,43 @@ export async function POST(req: NextRequest) {
 
     await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
-    return await runWithOrgContext(orgId, async () => {
-      const input = ToggleModuleSchema.parse(body)
-      const db = prisma as unknown as OrgPrismaClient
+    const input = ToggleModuleSchema.parse(body)
 
-      const whereFilter = {
-        organizationId: orgId,
-        moduleId: input.moduleId,
-        ...(input.campusId ? { campusId: input.campusId } : { campusId: null }),
+    const whereFilter = {
+      organizationId: orgId,
+      moduleId: input.moduleId,
+      ...(input.campusId ? { campusId: input.campusId } : { campusId: null }),
+    }
+
+    if (input.enabled) {
+      const existing = await rawPrisma.tenantModule.findFirst({ where: whereFilter })
+      if (existing) {
+        return NextResponse.json(ok(existing), { status: 200 })
       }
+      const mod = await rawPrisma.tenantModule.create({
+        data: {
+          organizationId: orgId,
+          moduleId: input.moduleId,
+          campusId: input.campusId ?? null,
+          planTier: 'trial',
+        },
+      })
 
-      if (input.enabled) {
-        const existing = await db.tenantModule.findFirst({ where: whereFilter })
-        if (existing) {
-          return NextResponse.json(ok(existing), { status: 200 })
-        }
-        const mod = await db.tenantModule.create({
-          data: {
-            organizationId: orgId,
-            moduleId: input.moduleId,
-            campusId: input.campusId ?? null,
-            planTier: 'trial',
-          },
-        })
+      invalidateOrgCache(orgId, 'modules')
 
-        invalidateOrgCache(orgId, 'modules')
+      // Sync role permissions in the background — don't block the UI
+      // (this upserts ~200+ permission rows which takes several seconds)
+      syncRolePermissions(orgId).catch((err) => {
+        log.error({ err }, 'Background role permission sync failed')
+        Sentry.captureException(err)
+      })
 
-        // Sync role permissions in the background — don't block the UI
-        // (this upserts ~200+ permission rows which takes several seconds)
-        syncRolePermissions(orgId).catch((err) => {
-          log.error({ err }, 'Background role permission sync failed')
-          Sentry.captureException(err)
-        })
-
-        return NextResponse.json(ok(mod), { status: 200 })
-      } else {
-        await db.tenantModule.deleteMany({ where: whereFilter })
-        invalidateOrgCache(orgId, 'modules')
-        return NextResponse.json(ok({ moduleId: input.moduleId, campusId: input.campusId ?? null, enabled: false }))
-      }
-    })
+      return NextResponse.json(ok(mod), { status: 200 })
+    } else {
+      await rawPrisma.tenantModule.deleteMany({ where: whereFilter })
+      invalidateOrgCache(orgId, 'modules')
+      return NextResponse.json(ok({ moduleId: input.moduleId, campusId: input.campusId ?? null, enabled: false }))
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
