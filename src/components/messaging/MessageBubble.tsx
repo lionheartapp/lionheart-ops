@@ -12,6 +12,7 @@ import { MessageSquareText, Pin } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 import type { ReactionGroup } from '@/lib/hooks/useReactions'
 import ReactionBar from './ReactionBar'
+import AttachmentPreview from './AttachmentPreview'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -144,6 +145,9 @@ export default function MessageBubble({
             {message.editedAt && (
               <span className="text-xs text-slate-400 ml-1">(edited)</span>
             )}
+            {message.attachments?.map((att) => (
+              <AttachmentPreview key={att.id} attachment={att} />
+            ))}
           </div>
           {reactionSection}
         </div>
@@ -192,6 +196,9 @@ export default function MessageBubble({
           <p className="text-sm text-slate-800 whitespace-pre-wrap">
             {message.content}
           </p>
+          {message.attachments?.map((att) => (
+            <AttachmentPreview key={att.id} attachment={att} />
+          ))}
         </div>
 
         {/* Reaction pills */}
