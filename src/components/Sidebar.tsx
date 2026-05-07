@@ -143,6 +143,7 @@ export default function Sidebar({
     enabled: athleticsOpen,
   })
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
+  const { enabled: messagingEnabled, loading: messagingModuleLoading } = useModuleEnabled('messaging')
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -288,6 +289,8 @@ export default function Sidebar({
       settingsOpen={settingsOpen}
       athleticsOpen={athleticsOpen}
       eventsOpen={eventsOpen}
+      messagingEnabled={messagingEnabled}
+      messagingModuleLoading={messagingModuleLoading}
       athleticsEnabled={athleticsEnabled}
       athleticsModuleLoading={athleticsModuleLoading}
       canWriteAthletics={perms.canWriteAthletics}

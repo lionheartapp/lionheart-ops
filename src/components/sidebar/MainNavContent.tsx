@@ -8,7 +8,9 @@ import {
   CalendarClock,
   Trophy,
   CheckSquare,
+  MessageSquare,
 } from 'lucide-react'
+import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
 import SupportSection from './SupportSection'
@@ -39,6 +41,9 @@ interface MainNavContentProps {
   settingsOpen: boolean
   athleticsOpen: boolean
   eventsOpen: boolean
+  // Messaging
+  messagingEnabled: boolean
+  messagingModuleLoading: boolean
   // Athletics
   athleticsEnabled: boolean
   athleticsModuleLoading: boolean
@@ -93,6 +98,8 @@ export default function MainNavContent({
   settingsOpen,
   athleticsOpen,
   eventsOpen,
+  messagingEnabled,
+  messagingModuleLoading,
   athleticsEnabled,
   athleticsModuleLoading,
   canWriteAthletics,
@@ -121,6 +128,7 @@ export default function MainNavContent({
 }: MainNavContentProps) {
   const queryClient = useQueryClient()
   const athleticsPrefetched = useRef(false)
+  const messagingUnread = useMessagingUnread()
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
@@ -236,6 +244,41 @@ export default function MainNavContent({
               <span className="text-sm">Events</span>
             </button>
           </li>
+          {/* Messaging */}
+          {messagingModuleLoading ? (
+            <li>
+              <div className="flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-lg animate-pulse">
+                <div className="w-5 h-5 rounded bg-white/10 flex-shrink-0" />
+                <div className="h-3.5 w-20 rounded bg-white/10" />
+              </div>
+            </li>
+          ) : messagingEnabled ? (
+            <li>
+              <PrefetchLink
+                href="/messaging"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  setAthleticsOpen(false)
+                  setEventsOpen(false)
+                  setIsOpen(false)
+                }}
+                className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                  isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen
+                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                }`}
+                aria-current={isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen ? 'page' : undefined}
+              >
+                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${isActive('/messaging') && !settingsOpen && !athleticsOpen && !eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                <span className="text-sm">Messaging</span>
+                {messagingUnread > 0 && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-red-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] px-1">
+                    {messagingUnread > 9 ? '9+' : messagingUnread}
+                  </span>
+                )}
+              </PrefetchLink>
+            </li>
+          ) : null}
           {/* Athletics */}
           {athleticsModuleLoading ? (
             <li>
