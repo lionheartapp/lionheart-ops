@@ -67,6 +67,8 @@ interface ChannelRow {
   type: string
   description: string | null
   topic: string | null
+  sourceType: string | null
+  sourceId: string | null
   archivedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -110,6 +112,8 @@ function shapeChannel(row: ChannelRow) {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     createdById: row.createdById,
+    sourceType: row.sourceType ?? null,
+    sourceId: row.sourceId ?? null,
     memberCount: row._count?.members ?? row.members?.length ?? 0,
     members: row.members?.map(shapeMember),
     lastMessage: lastMessage

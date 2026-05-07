@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Hash, Lock, Pin, BellOff, Bell, Users, Search } from 'lucide-react'
+import { Hash, Lock, Pin, BellOff, Bell, Users, Search, GraduationCap } from 'lucide-react'
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
 import { useChannel } from '@/lib/hooks/useChannels'
 import PinnedMessagesPanel from './PinnedMessagesPanel'
@@ -114,6 +114,32 @@ export default function ChannelHeader({
           </button>
         </div>
       </div>
+
+      {/* Source context banner for auto-channels */}
+      {channel?.sourceType && (
+        <div className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50/60 border-b border-indigo-100/60 text-xs text-indigo-600">
+          {channel.sourceType === 'team' ? (
+            <Users className="w-3.5 h-3.5 flex-shrink-0" />
+          ) : (
+            <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
+          )}
+          <span className="font-medium">
+            {channel.sourceType === 'team' ? 'Team' : 'School'}:
+          </span>
+          <a
+            href={channel.sourceType === 'team'
+              ? `/settings?tab=teams&id=${channel.sourceId}`
+              : `/settings?tab=schools&id=${channel.sourceId}`}
+            className="hover:underline font-medium text-indigo-700 cursor-pointer transition-colors duration-200"
+          >
+            {channel.sourceType === 'school' && channel.name.endsWith(' Staff')
+              ? channel.name.slice(0, -6)
+              : channel.name}
+          </a>
+          <span className="text-indigo-400">·</span>
+          <span className="text-indigo-400">Auto-managed channel</span>
+        </div>
+      )}
 
       {/* Pinned messages panel overlay */}
       {showPinned && (

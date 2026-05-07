@@ -32,6 +32,8 @@ export interface ShapedChannel {
   createdAt: string
   updatedAt: string
   createdById: string
+  sourceType: string | null
+  sourceId: string | null
   memberCount: number
   members?: ShapedMember[]
   lastMessage: {
