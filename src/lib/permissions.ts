@@ -257,6 +257,14 @@ export const PERMISSIONS = {
   // Forms
   FORMS_MANAGE: 'forms:manage',
 
+  // Messaging — Phase 23
+  MESSAGING_CHANNELS_CREATE:     'channels:create',
+  MESSAGING_CHANNELS_MANAGE:     'channels:manage',
+  MESSAGING_CHANNELS_MODERATE:   'channels:moderate',
+  MESSAGING_MESSAGES_DELETE_ANY: 'messages:delete:any',
+  MESSAGING_DMS_SEND:            'dms:send',
+  // Note: integrations:manage for messaging reuses PERMISSIONS.INTEGRATIONS_MANAGE (line 254)
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
@@ -452,6 +460,12 @@ export const DEFAULT_ROLES = {
       // Phase 22: External Integrations
       PERMISSIONS.INTEGRATIONS_MANAGE,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
+      PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
+      PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -541,6 +555,12 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STUDENTS_READ,
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
+      PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
+      PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -631,6 +651,12 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STUDENTS_READ,
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
+      PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
+      PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -689,6 +715,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENTS_BUDGET_READ,
       // Phase 22: External Integrations (members can connect personal Google Calendar)
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -729,6 +758,9 @@ export const DEFAULT_ROLES = {
       // MDM + Students
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.IT_DEVICE_READ,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -788,6 +820,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.SETTINGS_READ,
       PERMISSIONS.USERS_READ,
       PERMISSIONS.TEAMS_READ,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -812,6 +847,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.RESOURCE_REQUESTS_CREATE,
       PERMISSIONS.RESOURCE_REQUESTS_READ_OWN,
       PERMISSIONS.SETTINGS_READ,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -854,6 +892,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ACADEMIC_READ,
       // Forms
       PERMISSIONS.FORMS_MANAGE,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -879,6 +920,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.CALENDARS_READ,
       PERMISSIONS.CALENDAR_EVENTS_READ,
       PERMISSIONS.ACADEMIC_READ,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -950,6 +994,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.KB_READ,
       // Forms
       PERMISSIONS.FORMS_MANAGE,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
@@ -995,6 +1042,9 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.MAINTENANCE_READ_OWN,
       // Knowledge Base
       PERMISSIONS.KB_READ,
+      // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
+      PERMISSIONS.MESSAGING_DMS_SEND,
     ],
     isSystem: true,
   },
