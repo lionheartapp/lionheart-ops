@@ -20,6 +20,7 @@ const MessagesQuerySchema = z.object({
   before: z.string().optional(),
   after: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
+  parentId: z.string().optional(),
 })
 
 // GET /api/messaging/channels/[id]/messages — paginated message history
@@ -30,6 +31,7 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
     before: searchParams.get('before') ?? undefined,
     after: searchParams.get('after') ?? undefined,
     limit: searchParams.get('limit') ?? undefined,
+    parentId: searchParams.get('parentId') ?? undefined,
   })
   const result = await getMessages(params.id, ctx.userId, query)
   return NextResponse.json(ok(result.messages, {

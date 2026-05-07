@@ -23,7 +23,7 @@ interface MessageListProps {
   hasMore: boolean
   isFetchingMore: boolean
   onLoadMore: () => void
-  onThreadClick: (messageId: string) => void
+  onThreadClick: (messageId: string, message?: MessageWithAuthor) => void
   currentUserId: string | null
 }
 

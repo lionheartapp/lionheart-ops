@@ -299,7 +299,7 @@ export async function parseMentions(
 export async function getMessages(
   channelId: string,
   userId: string,
-  opts: { before?: string; after?: string; limit: number },
+  opts: { before?: string; after?: string; limit: number; parentId?: string },
 ): Promise<{ messages: MessageWithAuthor[]; hasMore: boolean; cursor: string | null }> {
   const db = prisma as unknown as OrgPrismaClient
 
@@ -329,9 +329,14 @@ export async function getMessages(
     }
   }
 
+  // Optional parentId filter for thread replies
+  const parentFilter = opts.parentId !== undefined
+    ? { parentId: opts.parentId }
+    : {}
+
   // Query with +1 for hasMore detection
   const messages = await db.message.findMany({
-    where: { channelId, deletedAt: null, ...cursorCondition },
+    where: { channelId, deletedAt: null, ...parentFilter, ...cursorCondition },
     orderBy: { createdAt: opts.before ? 'desc' : 'asc' },
     take: opts.limit + 1,
     include: { author: { select: AUTHOR_SELECT } },
