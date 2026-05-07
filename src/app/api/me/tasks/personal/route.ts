@@ -27,9 +27,10 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
  *
  * Create a personal task for the current user.
  */
-export const POST = withAuth(async ({ ctx, body }) => {
+export const POST = withAuth(async ({ ctx, orgId, body }) => {
   const task = await prisma.task.create({
     data: {
+      organizationId: orgId,
       userId: ctx.userId,
       title: body.title,
       description: body.description,
