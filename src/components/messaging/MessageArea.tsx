@@ -20,7 +20,7 @@ import MessageList from './MessageList'
 
 interface MessageAreaProps {
   channelId: string
-  onThreadClick: (messageId: string) => void
+  onThreadClick: (messageId: string, message?: MessageWithAuthor) => void
 }
 
 // ---------------------------------------------------------------------------

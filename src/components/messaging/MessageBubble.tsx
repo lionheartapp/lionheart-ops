@@ -8,6 +8,7 @@
  * Content is plain text only (markdown deferred to Phase 27).
  */
 
+import { MessageSquareText } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 
 // ---------------------------------------------------------------------------
@@ -18,7 +19,7 @@ interface MessageBubbleProps {
   message: MessageWithAuthor
   isOwn: boolean
   showAvatar: boolean
-  onThreadClick?: (messageId: string) => void
+  onThreadClick?: (messageId: string, message?: MessageWithAuthor) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -69,10 +70,25 @@ export default function MessageBubble({
     ? 'bg-primary-50 rounded-xl px-3 py-2'
     : 'bg-white rounded-xl px-3 py-2'
 
+  // Hover action: "Reply in thread"
+  const threadAction = onThreadClick ? (
+    <div className="absolute right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+      <button
+        type="button"
+        onClick={() => onThreadClick(message.id, message)}
+        className="flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
+        title="Reply in thread"
+      >
+        <MessageSquareText className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">Thread</span>
+      </button>
+    </div>
+  ) : null
+
   // Collapsed message (same author, within 5 min) — reduced top margin, no avatar/name
   if (!showAvatar) {
     return (
-      <div className="flex gap-3 mt-0.5">
+      <div className="group relative flex gap-3 mt-0.5">
         {/* Spacer matching avatar width */}
         <div className="w-8 flex-shrink-0" />
         <div className={bgClass}>
@@ -83,12 +99,13 @@ export default function MessageBubble({
             <span className="text-xs text-slate-400 ml-1">(edited)</span>
           )}
         </div>
+        {threadAction}
       </div>
     )
   }
 
   return (
-    <div className="flex gap-3 mt-3">
+    <div className="group relative flex gap-3 mt-3">
       {/* Avatar */}
       <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-slate-200 flex items-center justify-center">
         {message.authorAvatar ? (
@@ -126,17 +143,19 @@ export default function MessageBubble({
           </p>
         </div>
 
-        {/* Thread link */}
+        {/* Thread link (shows reply count when replies exist) */}
         {message.replyCount > 0 && (
           <button
             type="button"
             className="text-xs text-primary-500 cursor-pointer mt-0.5 transition-colors duration-200 hover:text-primary-600"
-            onClick={() => onThreadClick?.(message.id)}
+            onClick={() => onThreadClick?.(message.id, message)}
           >
             {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
           </button>
         )}
       </div>
+
+      {threadAction}
     </div>
   )
 }
