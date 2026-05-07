@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import {
@@ -99,6 +100,15 @@ export default function SupportSection({
   const showFacilities = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance || canSubmitMaintenance
   const showIT = isOnITTeam || canManageIT || canSubmitIT
   const showAV = isOnAVTeam || canManageWorkspace
+
+  // Close expandable sections when user doesn't have sub-link access
+  // (prevents stale open state from impersonation or permission changes)
+  const canExpandIT = isOnITTeam || canManageIT
+  const canExpandFacilities = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance
+  useEffect(() => {
+    if (itOpen && !canExpandIT) setItOpen(false)
+    if (facilitiesOpen && !canExpandFacilities) setFacilitiesOpen(false)
+  }, [canExpandIT, canExpandFacilities, itOpen, facilitiesOpen, setItOpen, setFacilitiesOpen])
 
   if (!showFacilities && !showIT && !showAV) return null
 
