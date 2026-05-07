@@ -55,7 +55,7 @@
 
 - [x] **Phase 23: Schema, Permissions, and RLS Foundation** — All messaging data models, org-scoped Prisma registration, RLS policies, and permission seeds (completed 2026-05-07)
 - [x] **Phase 24: Core Messaging API** — Channel and message CRUD routes, DM routes, search endpoint, and service layer (completed 2026-05-07)
-- [ ] **Phase 25: Realtime Bridge and JWT Integration** — Supabase Realtime singleton with custom JWT, Postgres broadcast trigger, and cross-org isolation validation
+- [x] **Phase 25: Realtime Bridge and JWT Integration** — Supabase Realtime singleton with custom JWT, Postgres broadcast trigger, and cross-org isolation validation (completed 2026-05-07)
 - [ ] **Phase 26: Core Messaging UI** — Full messaging page with channel list, message area, composer, and sidebar nav item
 - [ ] **Phase 27: Reactions, Threads, Attachments, and Search** — Emoji reactions, thread panel, file uploads, full-text search panel
 - [ ] **Phase 28: Notifications and Read State** — Unread badges, in-app mention alerts, web push, email digest, per-channel preferences
@@ -171,7 +171,7 @@ Plans:
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
 | 23. Schema, Permissions, and RLS Foundation | v4.0 | 3/3 | Complete | 2026-05-07 |
 | 24. Core Messaging API | v4.0 | 4/4 | Complete | 2026-05-07 |
-| 25. Realtime Bridge and JWT Integration | v4.0 | 0/2 | Not started | - |
+| 25. Realtime Bridge and JWT Integration | v4.0 | 2/2 | Complete | 2026-05-07 |
 | 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
 | 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
