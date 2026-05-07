@@ -23,6 +23,7 @@ import ChannelHeader from './ChannelHeader'
 interface MessageAreaProps {
   channelId: string
   onThreadClick: (messageId: string, message?: MessageWithAuthor) => void
+  onSearchClick?: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +72,7 @@ function TypingIndicator({ names }: { names: string[] }) {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function MessageArea({ channelId, onThreadClick }: MessageAreaProps) {
+export default function MessageArea({ channelId, onThreadClick, onSearchClick }: MessageAreaProps) {
   const { user, orgId } = useAuth()
   const queryClient = useQueryClient()
   const currentUserId = user.id
@@ -212,6 +213,7 @@ export default function MessageArea({ channelId, onThreadClick }: MessageAreaPro
         currentUserId={currentUserId}
         onMuteToggle={handleMuteToggle}
         isMuted={isMuted}
+        onSearchClick={onSearchClick}
       />
       <MessageList
         messages={combinedMessages}

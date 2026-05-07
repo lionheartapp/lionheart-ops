@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Hash, Lock, Pin, BellOff, Bell, Users } from 'lucide-react'
+import { Hash, Lock, Pin, BellOff, Bell, Users, Search } from 'lucide-react'
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
 import { useChannel } from '@/lib/hooks/useChannels'
 import PinnedMessagesPanel from './PinnedMessagesPanel'
@@ -16,6 +16,7 @@ interface ChannelHeaderProps {
   currentUserId: string | null
   onMuteToggle: () => void
   isMuted: boolean
+  onSearchClick?: () => void
 }
 
 export default function ChannelHeader({
@@ -23,6 +24,7 @@ export default function ChannelHeader({
   currentUserId,
   onMuteToggle,
   isMuted,
+  onSearchClick,
 }: ChannelHeaderProps) {
   const [showPinned, setShowPinned] = useState(false)
   const { data: pinnedMessages } = usePinnedMessages(channelId)
@@ -58,6 +60,18 @@ export default function ChannelHeader({
 
         {/* Right: actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Search */}
+          {onSearchClick && (
+            <button
+              type="button"
+              onClick={onSearchClick}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
+              title="Search messages (Cmd+K)"
+            >
+              <Search className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {/* Member count */}
           {channel && (
             <span className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400">
