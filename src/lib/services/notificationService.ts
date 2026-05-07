@@ -54,6 +54,9 @@ export type NotificationType =
   // Task notifications
   | 'task_assigned'
   | 'task_due_soon'
+  // Messaging notifications
+  | 'messaging_mention'
+  | 'messaging_dm'
 
 /** Exported array of all valid notification type strings (for validation). */
 export const NOTIFICATION_TYPES: NotificationType[] = [
@@ -71,6 +74,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   'security_incident_status', 'security_incident_closed',
   'inventory_low_stock',
   'task_assigned', 'task_due_soon',
+  'messaging_mention', 'messaging_dm',
 ]
 
 export interface CreateNotificationInput {

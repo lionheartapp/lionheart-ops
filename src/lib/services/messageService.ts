@@ -10,6 +10,7 @@ import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
 import { Prisma } from '@prisma/client'
 import type { AttachmentData } from '@/lib/services/attachmentService'
+import { notifyMentionedUsers, notifyDMRecipients } from '@/lib/services/messagingNotificationService'
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
@@ -108,6 +109,35 @@ const AUTHOR_SELECT = {
   avatar: true,
 } as const
 
+// ─── Notification Helper ────────────────────────────────────────────────────
+
+/**
+ * Fire-and-forget: look up channel type and author name, then dispatch
+ * the appropriate notification (DM vs mention). Failures are swallowed
+ * so they never break message sending.
+ */
+function fireMessageNotifications(
+  channelId: string,
+  messageId: string,
+  userId: string,
+  content: string,
+  db: OrgPrismaClient,
+): void {
+  ;(async () => {
+    const [channel, author] = await Promise.all([
+      db.channel.findUnique({ where: { id: channelId }, select: { name: true, type: true } }),
+      db.user.findUnique({ where: { id: userId }, select: { firstName: true, lastName: true } }),
+    ])
+    const authorName = [author?.firstName, author?.lastName].filter(Boolean).join(' ') || 'Someone'
+
+    if (channel?.type === 'DM' || channel?.type === 'GROUP_DM') {
+      await notifyDMRecipients(channelId, userId, authorName, content.slice(0, 100))
+    } else {
+      await notifyMentionedUsers(messageId, channelId, userId, authorName)
+    }
+  })().catch(() => {})
+}
+
 // ─── Send Message ───────────────────────────────────────────────────────────
 
 export async function sendMessage(
@@ -170,6 +200,8 @@ export async function sendMessage(
         })
       }
       await parseMentions(input.content, row.id as string)
+      // Fire-and-forget notification creation (D-05)
+      fireMessageNotifications(channelId, row.id as string, userId, input.content, db)
       return shapeMessage(updated as unknown as Record<string, unknown>)
     }
   }
@@ -184,6 +216,9 @@ export async function sendMessage(
 
   // Parse @mentions and create MessageMention rows
   await parseMentions(input.content, row.id as string)
+
+  // Fire-and-forget notification creation (D-05)
+  fireMessageNotifications(channelId, row.id as string, userId, input.content, db)
 
   return shapeMessage(row as unknown as Record<string, unknown>)
 }
