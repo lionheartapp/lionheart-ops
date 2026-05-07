@@ -401,6 +401,11 @@ export async function POST(req: NextRequest) {
 
                 geminiContents.push({ role: 'user', parts: functionResponses })
 
+                // Reset the frontend's streamed content before the follow-up call.
+                // The first call often emits an intro ("Here are the events…") that
+                // Gemini repeats in the follow-up, causing doubled text.
+                write({ type: 'content_reset' })
+
                 // Continue loop — next iteration will stream the follow-up
               } else {
                 // Subsequent calls after tool execution — stream them too
@@ -521,6 +526,9 @@ export async function POST(req: NextRequest) {
                 }
 
                 geminiContents.push({ role: 'user', parts: functionResponses })
+
+                // Reset frontend content before next follow-up to avoid doubled text
+                write({ type: 'content_reset' })
               }
             }
           }

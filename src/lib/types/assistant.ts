@@ -119,5 +119,6 @@ export type StreamEvent =
   | { type: 'workflow_step_failed'; stepNumber: number; error: string }
   | { type: 'workflow_complete'; summary: string }
   | { type: 'conversation_id'; conversationId: string }
+  | { type: 'content_reset' }
   | { type: 'done'; conversationHistory: ConversationTurn[] }
   | { type: 'error'; message: string }

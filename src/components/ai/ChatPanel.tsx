@@ -193,6 +193,20 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
                   })
                   break
 
+                case 'content_reset':
+                  // Server is about to stream a fresh follow-up after tool execution.
+                  // Clear accumulated text so the first call's intro isn't doubled.
+                  streamedContent = ''
+                  setConversation((prev) => {
+                    const updated = [...prev]
+                    const last = updated[updated.length - 1]
+                    if (last?.role === 'assistant') {
+                      updated[updated.length - 1] = { ...last, content: '' }
+                    }
+                    return updated
+                  })
+                  break
+
                 case 'tool_start':
                   setActiveTools((prev) => [...prev, event.tool])
                   break

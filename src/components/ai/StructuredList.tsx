@@ -497,6 +497,30 @@ function cleanListArtifacts(text: string): string {
 }
 
 /**
+ * Try to parse a JSON string as StructuredListData. Handles common LLM quirks:
+ * trailing commas, single quotes, extra whitespace. Returns the data or null.
+ */
+function tryParseListJson(jsonStr: string): StructuredListData | null {
+  const trimmed = jsonStr.trim()
+  // Try direct parse first
+  try {
+    const data = JSON.parse(trimmed) as StructuredListData
+    if (data && data.type && Array.isArray(data.items)) return data
+  } catch {
+    // Fall through to repair attempts
+  }
+  // Repair: strip trailing commas before ] or }
+  try {
+    const repaired = trimmed.replace(/,\s*([}\]])/g, '$1')
+    const data = JSON.parse(repaired) as StructuredListData
+    if (data && data.type && Array.isArray(data.items)) return data
+  } catch {
+    // Give up
+  }
+  return null
+}
+
+/**
  * Parse structured list blocks from assistant message text.
  * Format: :::list{"type":"events","items":[...]}:::
  *
@@ -524,16 +548,11 @@ export function parseStructuredLists(
       if (before) segments.push({ text: before })
     }
 
-    // Parse the JSON block
-    try {
-      const jsonStr = match[1].trim()
-      const data = JSON.parse(jsonStr) as StructuredListData
-      if (data && data.type && Array.isArray(data.items)) {
-        segments.push({ listData: data })
-      } else {
-        segments.push({ text: match[0] })
-      }
-    } catch {
+    // Parse the JSON block (with repair fallback for LLM quirks)
+    const parsed = tryParseListJson(match[1])
+    if (parsed) {
+      segments.push({ listData: parsed })
+    } else {
       segments.push({ text: match[0] })
     }
 
@@ -566,18 +585,29 @@ export function parseStructuredLists(
           const beforeBlock = unterminatedMatch[1].trim()
           const jsonBody = unterminatedMatch[2].trim()
           if (beforeBlock) segments.push({ text: beforeBlock })
-          try {
-            const data = JSON.parse(jsonBody) as StructuredListData
-            if (data && data.type && Array.isArray(data.items)) {
-              segments.push({ listData: data })
-            } else {
-              segments.push({ text: remaining })
-            }
-          } catch {
+          const parsed = tryParseListJson(jsonBody)
+          if (parsed) {
+            segments.push({ listData: parsed })
+          } else {
             segments.push({ text: remaining })
           }
         } else {
-          segments.push({ text: remaining })
+          // Last resort: look for raw JSON with "type" + "items" even without :::list wrapper
+          const rawJsonMatch = remaining.match(/^([\s\S]*?)(\{"type"\s*:\s*"[^"]+"\s*,\s*"items"\s*:\s*\[[\s\S]*\]\s*\})(.*)$/)
+          if (rawJsonMatch) {
+            const before = rawJsonMatch[1].trim()
+            const after = rawJsonMatch[3].trim()
+            if (before) segments.push({ text: before })
+            const parsed = tryParseListJson(rawJsonMatch[2])
+            if (parsed) {
+              segments.push({ listData: parsed })
+              if (after) segments.push({ text: after })
+            } else {
+              segments.push({ text: remaining })
+            }
+          } else {
+            segments.push({ text: remaining })
+          }
         }
       }
     }
