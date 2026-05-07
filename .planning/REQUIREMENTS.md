@@ -106,13 +106,55 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| SCHEMA-01 | Phase 23 | Pending |
+| SCHEMA-02 | Phase 23 | Pending |
+| SCHEMA-03 | Phase 23 | Pending |
+| SCHEMA-04 | Phase 23 | Pending |
+| SCHEMA-05 | Phase 23 | Pending |
+| SCHEMA-06 | Phase 23 | Pending |
+| CHAN-01 | Phase 24 | Pending |
+| CHAN-02 | Phase 24 | Pending |
+| CHAN-03 | Phase 24 | Pending |
+| CHAN-04 | Phase 24 | Pending |
+| CHAN-05 | Phase 24 | Pending |
+| CHAN-06 | Phase 24 | Pending |
+| CHAN-07 | Phase 24 | Pending |
+| MSG-01 | Phase 24 | Pending |
+| MSG-02 | Phase 24 | Pending |
+| MSG-03 | Phase 24 | Pending |
+| MSG-04 | Phase 27 | Pending |
+| MSG-05 | Phase 27 | Pending |
+| MSG-06 | Phase 27 | Pending |
+| MSG-07 | Phase 24 | Pending |
+| MSG-08 | Phase 27 | Pending |
+| RT-01 | Phase 25 | Pending |
+| RT-02 | Phase 25 | Pending |
+| RT-03 | Phase 25 | Pending |
+| RT-04 | Phase 25 | Pending |
+| RT-05 | Phase 25 | Pending |
+| NOTIF-01 | Phase 28 | Pending |
+| NOTIF-02 | Phase 28 | Pending |
+| NOTIF-03 | Phase 28 | Pending |
+| NOTIF-04 | Phase 28 | Pending |
+| NOTIF-05 | Phase 28 | Pending |
+| SRCH-01 | Phase 24 | Pending |
+| SRCH-02 | Phase 24 | Pending |
+| INT-01 | Phase 29 | Pending |
+| INT-02 | Phase 29 | Pending |
+| INT-03 | Phase 29 | Pending |
+| INT-04 | Phase 29 | Pending |
+| UI-01 | Phase 26 | Pending |
+| UI-02 | Phase 26 | Pending |
+| UI-03 | Phase 26 | Pending |
+| UI-04 | Phase 26 | Pending |
+| UI-05 | Phase 26 | Pending |
+| UI-06 | Phase 26 | Pending |
 
 **Coverage:**
-- v4.0 requirements: 37 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 37
+- v4.0 requirements: 43 total (note: original count of 37 was a typo in initial definition)
+- Mapped to phases: 43
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-07*
-*Last updated: 2026-05-07 after initial definition*
+*Last updated: 2026-05-07 — traceability populated during roadmap creation*

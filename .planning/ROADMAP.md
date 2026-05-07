@@ -5,6 +5,7 @@
 - ✅ **v1.0 Maintenance & Facilities** — Phases 1-7 (shipped 2026-03-06)
 - ✅ **v2.0 Launch Readiness** — Phases 8-18 (completed 2026-03-14)
 - ✅ **v3.0 Events Are the Product** — Phases 19-22 (shipped 2026-03-16)
+- 🚧 **v4.0 Messaging** — Phases 23-29 (in progress)
 
 ## Phases
 
@@ -48,6 +49,105 @@
 
 </details>
 
+### 🚧 v4.0 Messaging (Phases 23-29)
+
+**Milestone Goal:** Build a Slack-like staff communication system tightly integrated with Lionheart's tickets, events, schools, and teams — powered by Supabase Realtime.
+
+- [ ] **Phase 23: Schema, Permissions, and RLS Foundation** — All messaging data models, org-scoped Prisma registration, RLS policies, and permission seeds
+- [ ] **Phase 24: Core Messaging API** — Channel and message CRUD routes, DM routes, search endpoint, and service layer
+- [ ] **Phase 25: Realtime Bridge and JWT Integration** — Supabase Realtime singleton with custom JWT, Postgres broadcast trigger, and cross-org isolation validation
+- [ ] **Phase 26: Core Messaging UI** — Full messaging page with channel list, message area, composer, and sidebar nav item
+- [ ] **Phase 27: Reactions, Threads, Attachments, and Search** — Emoji reactions, thread panel, file uploads, full-text search panel
+- [ ] **Phase 28: Notifications and Read State** — Unread badges, in-app mention alerts, web push, email digest, per-channel preferences
+- [ ] **Phase 29: Auto-Channels, System Bot, and Integrations** — Team and school auto-channels, system bot alerts, source context display
+
+## Phase Details
+
+### Phase 23: Schema, Permissions, and RLS Foundation
+**Goal**: The data model, security policies, and permission entries exist so that all subsequent messaging work has a safe, org-isolated foundation to build on
+**Depends on**: Phase 22
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, SCHEMA-06
+**Success Criteria** (what must be TRUE):
+  1. All 8 messaging Prisma models exist in the schema and migrate cleanly
+  2. Org-scoped Prisma client treats messaging models the same as tickets and events (auto-inject, soft-delete)
+  3. Messaging permission strings appear in DEFAULT_ROLES and survive a fresh org seed
+  4. A token from Org A cannot read or subscribe to Org B's messages at the database layer (RLS verified)
+  5. Full-text search tsvector column and GIN index exist on Message; denormalized unread counter exists on ChannelMember
+**Plans**: TBD
+
+### Phase 24: Core Messaging API
+**Goal**: Every channel and message operation has a working, permissioned REST API that can be smoke-tested independently before any UI or Realtime code touches it
+**Depends on**: Phase 23
+**Requirements**: CHAN-01, CHAN-02, CHAN-03, CHAN-04, CHAN-05, CHAN-06, CHAN-07, MSG-01, MSG-02, MSG-03, MSG-04, MSG-05, MSG-06, MSG-07, MSG-08, SRCH-01, SRCH-02
+**Success Criteria** (what must be TRUE):
+  1. User can create, rename, archive, and manage membership for public and private channels via API
+  2. User can start a 1:1 DM and a group DM via API
+  3. User can send, edit, soft-delete, pin, react, thread-reply, and @mention via API
+  4. User can attach a file to a message and the URL resolves to Supabase Storage
+  5. Message search returns results scoped strictly to the requesting user's org and accessible channels
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 25: Realtime Bridge and JWT Integration
+**Goal**: The custom HS256 JWT works with Supabase Realtime's accessToken option, Postgres broadcasts messages to subscribers without per-subscriber RLS queries, and a cross-org isolation test passes
+**Depends on**: Phase 24
+**Requirements**: RT-01, RT-02, RT-03, RT-04, RT-05
+**Success Criteria** (what must be TRUE):
+  1. A message written via Prisma appears on all subscribed clients in the same channel within 1 second, without a page refresh
+  2. The browser's Supabase Realtime client authenticates using the custom JWT retrieved from /api/auth/token (not the httpOnly cookie)
+  3. A client subscribed to Org A's channel does not receive Org B's messages
+  4. Typing indicators and presence status (online/away/offline) update in real time for all channel members
+  5. The Postgres broadcast trigger fires on Message INSERT using realtime.send(), not Postgres Changes
+**Plans**: TBD
+
+### Phase 26: Core Messaging UI
+**Goal**: Staff can open a messaging page, see their channels, send and receive messages in real time, and reach messaging from the sidebar — with nothing requiring a page refresh
+**Depends on**: Phase 25
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06
+**Success Criteria** (what must be TRUE):
+  1. Messaging page renders with a ~280px channel list on the left and a full-height message area on the right, matching the glassmorphism design system
+  2. Message list uses virtual scroll — loading 500 older messages does not degrade scroll performance
+  3. Composer accepts markdown, emoji, file uploads, and @mention autocomplete in a single input
+  4. The sidebar shows a "Messaging" nav item with an unread badge; the item is hidden when messagingEnabled is false
+  5. On mobile, the channel list collapses to an overlay; message area fills the screen
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 27: Reactions, Threads, Attachments, and Search
+**Goal**: The messaging experience is feature-complete at launch bar — staff can react, reply in threads, attach files, search history, pin messages, and mute channels
+**Depends on**: Phase 26
+**Requirements**: MSG-04, MSG-05, MSG-06, MSG-08
+**Success Criteria** (what must be TRUE):
+  1. User can click a reaction button and add/remove an emoji reaction; reaction counts update in real time
+  2. User can open a thread panel from any message and reply without disrupting the main channel view
+  3. User can attach an image or PDF and see an inline preview in the message; 25MB limit is enforced
+  4. User can search for a keyword and get results showing channel, sender, and date, scoped to their accessible channels
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 28: Notifications and Read State
+**Goal**: Staff are notified of relevant messages through their preferred channel — in-app badge, push, or email digest — and unread state is accurate across sessions
+**Depends on**: Phase 27
+**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05
+**Success Criteria** (what must be TRUE):
+  1. Channel unread badge in the sidebar shows the correct count and clears when the channel is opened
+  2. An @mention or new DM triggers an in-app notification in real time
+  3. A web push notification arrives on a closed browser tab when a DM or @mention is received (VAPID via existing PWA service worker)
+  4. A batched email digest of unread messages is sent via Resend at the user's configured frequency
+  5. User can set each channel to "all messages", "mentions only", or "none", and toggle email digest on/off
+**Plans**: TBD
+
+### Phase 29: Auto-Channels, System Bot, and Integrations
+**Goal**: Messaging is woven into the rest of Lionheart — teams and schools get their own channels automatically, and the system bot keeps channels informed of ticket and event activity
+**Depends on**: Phase 28
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Success Criteria** (what must be TRUE):
+  1. Each Team has an auto-created channel; adding or removing a team member syncs their channel membership
+  2. Each School in a multi-school org has an auto-created staff channel; membership tracks school assignment
+  3. The system bot posts a message when a ticket changes status, an event is approved, or a maintenance alert fires
+  4. Auto-channel headers display source context ("Team: IT Support") with a link back to the source entity
+**Plans**: TBD
+
 ## Progress Table
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -58,8 +158,15 @@
 | 20. Registration and Public Pages | v3.0 | 7/7 | Complete | 2026-03-15 |
 | 21. Documents, Groups, Communication, Day-Of | v3.0 | 10/10 | Complete | 2026-03-16 |
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
+| 23. Schema, Permissions, and RLS Foundation | v4.0 | 0/TBD | Not started | - |
+| 24. Core Messaging API | v4.0 | 0/TBD | Not started | - |
+| 25. Realtime Bridge and JWT Integration | v4.0 | 0/TBD | Not started | - |
+| 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
+| 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
+| 28. Notifications and Read State | v4.0 | 0/TBD | Not started | - |
+| 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
 
-**Total: 22 phases, 112 plans, 3 milestones shipped**
+**Total: 29 phases, 7 v4.0 phases planned**
 
 ---
-*For full phase details, see `.planning/milestones/v[X.Y]-ROADMAP.md` archives.*
+*For full phase details of shipped milestones, see `.planning/milestones/v[X.Y]-ROADMAP.md` archives.*
