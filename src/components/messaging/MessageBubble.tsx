@@ -77,15 +77,19 @@ export default function MessageBubble({
   onPin,
   isPinned = false,
 }: MessageBubbleProps) {
-  const bgClass = isOwn
-    ? 'bg-primary-50 rounded-xl px-3 py-2'
-    : 'bg-white rounded-xl px-3 py-2'
+  const isBot = message.authorIsBot ?? false
+
+  const bgClass = isBot
+    ? 'bg-slate-50/80 rounded-xl px-3 py-2'
+    : isOwn
+      ? 'bg-primary-50 rounded-xl px-3 py-2'
+      : 'bg-white rounded-xl px-3 py-2'
 
   const pinnedFromData = !!message.pinnedAt
   const showPinIcon = isPinned || pinnedFromData
 
-  // Hover action bar: thread + pin + reaction
-  const actionBar = (
+  // Hover action bar: thread + pin + reaction (suppressed for bot messages per D-09)
+  const actionBar = isBot ? null : (
     <div className="absolute right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
       {onPin && (
         <button
@@ -175,11 +179,16 @@ export default function MessageBubble({
 
       {/* Content */}
       <div className="min-w-0 flex-1">
-        {/* Author name + timestamp + pin icon */}
+        {/* Author name + BOT badge + timestamp + pin icon */}
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-medium text-slate-600">
             {message.authorName}
           </span>
+          {isBot && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-indigo-100 text-indigo-600">
+              BOT
+            </span>
+          )}
           <span className="text-xs text-slate-400">
             {timeAgo(message.createdAt)}
           </span>

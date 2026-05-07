@@ -38,6 +38,7 @@ function broadcastToMessage(msg: BroadcastMessage): MessageWithAuthor {
     authorId: msg.authorId,
     authorName: (msg.authorName as string) || 'Unknown',
     authorAvatar: (msg.authorAvatar as string) || null,
+    authorIsBot: (msg as Record<string, unknown>).authorIsBot === true,
     content: msg.content,
     parentId: (msg.parentId as string) || null,
     replyCount: 0,

@@ -44,6 +44,7 @@ export interface MessageWithAuthor {
   authorId: string
   authorName: string
   authorAvatar: string | null
+  authorIsBot: boolean
   content: string
   parentId: string | null
   replyCount: number
@@ -72,6 +73,7 @@ function shapeMessage(row: Record<string, unknown>): MessageWithAuthor {
     firstName?: string | null
     lastName?: string | null
     avatar?: string | null
+    isBot?: boolean
   } | null
 
   // Shape attachments if present in the include
@@ -92,6 +94,7 @@ function shapeMessage(row: Record<string, unknown>): MessageWithAuthor {
       ? `${author.firstName ?? ''} ${author.lastName ?? ''}`.trim() || 'Unknown'
       : 'Unknown',
     authorAvatar: author?.avatar ?? null,
+    authorIsBot: author?.isBot ?? false,
     content: row.content as string,
     parentId: (row.parentId as string | null) ?? null,
     replyCount: (row.replyCount as number) ?? 0,
@@ -107,6 +110,7 @@ const AUTHOR_SELECT = {
   firstName: true,
   lastName: true,
   avatar: true,
+  isBot: true,
 } as const
 
 // ─── Notification Helper ────────────────────────────────────────────────────
