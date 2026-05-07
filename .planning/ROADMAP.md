@@ -82,13 +82,12 @@ Plans:
 ### Phase 24: Core Messaging API
 **Goal**: Every channel and message operation has a working, permissioned REST API that can be smoke-tested independently before any UI or Realtime code touches it
 **Depends on**: Phase 23
-**Requirements**: CHAN-01, CHAN-02, CHAN-03, CHAN-04, CHAN-05, CHAN-06, CHAN-07, MSG-01, MSG-02, MSG-03, MSG-04, MSG-05, MSG-06, MSG-07, MSG-08, SRCH-01, SRCH-02
+**Requirements**: CHAN-01, CHAN-02, CHAN-03, CHAN-04, CHAN-05, CHAN-06, CHAN-07, MSG-01, MSG-02, MSG-03, MSG-07, SRCH-01, SRCH-02
 **Success Criteria** (what must be TRUE):
   1. User can create, rename, archive, and manage membership for public and private channels via API
   2. User can start a 1:1 DM and a group DM via API
-  3. User can send, edit, soft-delete, pin, react, thread-reply, and @mention via API
-  4. User can attach a file to a message and the URL resolves to Supabase Storage
-  5. Message search returns results scoped strictly to the requesting user's org and accessible channels
+  3. User can send, edit, soft-delete, and @mention via API
+  4. Message search returns results scoped strictly to the requesting user's org and accessible channels
 **Plans**: 4 plans
 Plans:
 - [ ] 24-01-PLAN.md — Channel service layer + middleware messagingEnabled gate
