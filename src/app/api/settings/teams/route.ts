@@ -7,6 +7,8 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { audit, getIp } from '@/lib/services/auditService'
 import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { safeName } from '@/lib/sanitize'
+import { createTeamChannel } from '@/lib/services/autoChannelService'
+import { getOrCreateBotUser } from '@/lib/services/systemBotService'
 
 const CreateTeamSchema = z.object({
   // LIVE-001: HTML-strip name and description on the way in.
@@ -78,6 +80,14 @@ export const POST = withAuth<z.infer<typeof CreateTeamSchema>>(async ({ orgId, c
     changes:        { name: team.name, slug },
     ipAddress:      getIp(req),
   })
+
+  // Phase 29: Create auto-channel for new team
+  try {
+    const botUserId = await getOrCreateBotUser(orgId)
+    await createTeamChannel(team.id, team.name, botUserId)
+  } catch (err) {
+    console.error('Failed to create team auto-channel:', err)
+  }
 
   return NextResponse.json(
     ok({

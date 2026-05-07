@@ -201,6 +201,16 @@ export async function createMaintenanceTicket(
   )
   } // end if (!needsApproval)
 
+  // Phase 29: Post maintenance alert to the Facility Maintenance team auto-channel
+  import('@/lib/services/systemBotService').then(({ postMaintenanceAlert }) => {
+    prisma.team.findFirst({
+      where: { organizationId: orgId, slug: 'maintenance' },
+      select: { id: true },
+    }).then((maintenanceTeam) => {
+      postMaintenanceAlert(ticket.id, ticket.title, maintenanceTeam?.id ?? null, orgId).catch(() => {})
+    }).catch(() => {})
+  }).catch(() => {})
+
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyTicketSubmitted, notifyUrgentTicket }) => {
     notifyTicketSubmitted(ticket as unknown as TicketSnapshot, orgId).catch((err: unknown) =>
@@ -365,6 +375,16 @@ export async function transitionTicketStatus(
       content: activityContent,
     },
   })
+
+  // Phase 29: Post bot message on maintenance status change
+  import('@/lib/services/systemBotService').then(({ postMaintenanceAlert }) => {
+    prisma.team.findFirst({
+      where: { organizationId: ctx.organizationId, slug: 'maintenance' },
+      select: { id: true },
+    }).then((maintenanceTeam) => {
+      postMaintenanceAlert(ticketId, ticket.title, maintenanceTeam?.id ?? null, ctx.organizationId).catch(() => {})
+    }).catch(() => {})
+  }).catch(() => {})
 
   // Fire-and-forget notifications
   import('@/lib/services/maintenanceNotificationService').then(({ notifyStatusChange, notifyQARejected }) => {

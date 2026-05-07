@@ -6,6 +6,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { stripAllHtml } from '@/lib/sanitize'
 import { formatInTimezone, getOrgTimezone } from '@/lib/utils/timezone'
 import { getOrgContextId } from '@/lib/org-context'
+import { postEventApproval } from '@/lib/services/systemBotService'
 
 // ============= Validation Schemas =============
 
@@ -193,6 +194,15 @@ export async function createEvent(
       avRequirements: validated.avRequirements ?? null,
     },
   })
+
+  // Phase 29: Post bot message on event creation (events are CONFIRMED on creation)
+  {
+    const orgId = getOrgContextId()
+    if (orgId) {
+      // Event model has no schoolId — pass null; bot post will be a no-op until schoolId is added
+      postEventApproval(event.id, event.title, null, orgId).catch(() => {})
+    }
+  }
 
   // Create attendee records (EventAttendee is not org-scoped, linked via eventId)
   if (validated.attendeeIds && validated.attendeeIds.length > 0) {
