@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
+import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import {
   getMessages,
@@ -22,7 +23,9 @@ const MessagesQuerySchema = z.object({
 })
 
 // GET /api/messaging/channels/[id]/messages — paginated message history
-export const GET = withAuth<unknown, { id: string }>(async ({ ctx, params, searchParams }) => {
+export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params, searchParams }) => {
+  const blocked = await assertMessagingEnabled(orgId)
+  if (blocked) return blocked
   const query = MessagesQuerySchema.parse({
     before: searchParams.get('before') ?? undefined,
     after: searchParams.get('after') ?? undefined,
@@ -37,7 +40,9 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, params, searc
 
 // POST /api/messaging/channels/[id]/messages — send a message
 export const POST = withAuth<z.infer<typeof SendMessageSchema>, { id: string }>(
-  async ({ ctx, params, body }) => {
+  async ({ ctx, orgId, params, body }) => {
+    const blocked = await assertMessagingEnabled(orgId)
+    if (blocked) return blocked
     const message = await sendMessage(params.id, ctx.userId, body)
     return NextResponse.json(ok(message), { status: 201 })
   },

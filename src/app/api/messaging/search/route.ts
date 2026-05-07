@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
+import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import {
   searchMessages,
@@ -14,7 +15,9 @@ import {
 } from '@/lib/services/messageService'
 
 // GET /api/messaging/search — full-text search scoped to user's channels
-export const GET = withAuth(async ({ ctx, searchParams }) => {
+export const GET = withAuth(async ({ ctx, orgId, searchParams }) => {
+  const blocked = await assertMessagingEnabled(orgId)
+  if (blocked) return blocked
   const query = SearchQuerySchema.parse({
     q: searchParams.get('q') ?? '',
     channelId: searchParams.get('channelId') ?? undefined,

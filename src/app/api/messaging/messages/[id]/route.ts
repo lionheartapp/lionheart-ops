@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
+import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import { PERMISSIONS } from '@/lib/permissions'
 import {
@@ -20,7 +21,9 @@ import {
 
 // PATCH /api/messaging/messages/[id] — edit own message
 export const PATCH = withAuth<z.infer<typeof EditMessageSchema>, { id: string }>(
-  async ({ ctx, params, body }) => {
+  async ({ ctx, orgId, params, body }) => {
+    const blocked = await assertMessagingEnabled(orgId)
+    if (blocked) return blocked
     const updated = await editMessage(params.id, ctx.userId, body)
     return NextResponse.json(ok(updated))
   },
@@ -29,7 +32,9 @@ export const PATCH = withAuth<z.infer<typeof EditMessageSchema>, { id: string }>
 
 // DELETE /api/messaging/messages/[id] — soft-delete message
 // Own messages: always allowed. Others' messages: requires MESSAGING_MESSAGES_DELETE_ANY
-export const DELETE = withAuth<unknown, { id: string }>(async ({ ctx, params, permissions }) => {
+export const DELETE = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params, permissions }) => {
+  const blocked = await assertMessagingEnabled(orgId)
+  if (blocked) return blocked
   const canDeleteAny = await permissions.can(PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY)
   const result = await deleteMessage(params.id, ctx.userId, canDeleteAny)
   return NextResponse.json(ok(result))
