@@ -1,35 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Events Are the Product
-status: shipped
-stopped_at: Milestone v3.0 archived
-last_updated: "2026-03-16T04:00:00.000Z"
-last_activity: 2026-03-16 — v3.0 milestone completed and archived
+milestone: v4.0
+milestone_name: Messaging
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-05-07T00:00:00.000Z"
+last_activity: 2026-05-07 — Milestone v4.0 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 34
-  completed_plans: 34
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** Lionheart helps schools plan and run everything that happens — from weekly staff meetings to week-long camps — with registration, forms, signatures, logistics, communication, budget tracking, and day-of execution, all in one place, all branded as the school.
-**Current focus:** v3.0 shipped. Planning next milestone.
+**Current focus:** v4.0 Messaging — Slack-like staff communication integrated with tickets, events, schools, and teams.
 
 ## Current Position
 
-Milestone: v3.0 Events Are the Product — SHIPPED
-Status: All 4 phases (19-22), 34 plans, 56 requirements complete and archived
-Last activity: 2026-03-16 — Milestone archived to .planning/milestones/
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-07 — Milestone v4.0 started
 
-Progress: [██████████] 100% — SHIPPED
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -59,15 +60,15 @@ See PROJECT.md Key Decisions table for full history.
 
 ### Pending Todos
 
-(Cleared for next milestone)
+(None — fresh milestone)
 
 ### Blockers/Concerns
 
-(Cleared for next milestone — see MILESTONES.md Known Tech Debt for v3.0 carryover items)
+- v3.0 tech debt carryover: see MILESTONES.md Known Tech Debt
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Milestone v3.0 archived
+Last session: 2026-05-07
+Stopped at: Defining v4.0 requirements
 Resume file: None
-Next action: `/gsd:new-milestone`
+Next action: Complete research and requirements definition

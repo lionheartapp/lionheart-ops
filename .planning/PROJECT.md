@@ -62,7 +62,7 @@ Lionheart helps schools plan and run everything that happens — from weekly sta
 
 ### Active
 
-(No active requirements — define with `/gsd:new-milestone`)
+(Defining requirements for v4.0 Messaging — see REQUIREMENTS.md)
 
 ### Out of Scope
 
@@ -79,6 +79,22 @@ Lionheart helps schools plan and run everything that happens — from weekly sta
 - Participant-to-participant social features — COPPA risk for under-13; group announcements suffice
 - Automated payment reconciliation — future milestone
 - Public event discovery / school-wide event calendar — future milestone
+
+## Current Milestone: v4.0 Messaging
+
+**Goal:** Build a Slack-like staff communication system tightly integrated with Lionheart's tickets, events, schools, and teams — powered by Supabase Realtime.
+
+**Target features:**
+- Channels (public, private, DMs, group DMs) with org-scoped membership
+- Real-time messaging with threads, reactions, mentions, pins, edit/delete
+- File attachments via Supabase Storage
+- Presence indicators and read state with unread badges
+- Full-text search across messages
+- Notifications (in-app, email digest, web push)
+- Auto-channels from tickets, events, schools, teams, buildings
+- System bot for ticket/event/maintenance alerts
+- Slash commands and inline Lionheart URL previews
+- Add-on billing via Stripe (messagingEnabled flag)
 
 ## Context
 
@@ -124,5 +140,22 @@ Total: 22 phases, 112 plans across all milestones.
 | Dynamic imports for cross-service calls | Prevents circular deps in event ecosystem | ✓ Good |
 | Two-phase AI fetch (?skipAI=true) | Show data instantly, enhance with AI asynchronously — prevents slow AI from blocking UI | ✓ Good |
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? Move to Out of Scope with reason
+2. Requirements validated? Move to Validated with phase reference
+3. New requirements emerged? Add to Active
+4. Decisions to log? Add to Key Decisions
+5. "What This Is" still accurate? Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-16 after v3.0 milestone*
+*Last updated: 2026-05-07 — v4.0 Messaging milestone started*
