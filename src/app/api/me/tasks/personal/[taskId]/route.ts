@@ -28,6 +28,11 @@ export const PATCH = withAuth(async ({ ctx, params, body }) => {
   const updated = await prisma.task.update({
     where: { id: params.taskId },
     data,
+    include: {
+      subtasks: {
+        orderBy: { createdAt: 'asc' },
+      },
+    },
   })
   return NextResponse.json(ok(updated))
 }, { schema: UpdatePersonalTaskSchema })
@@ -36,6 +41,7 @@ export const PATCH = withAuth(async ({ ctx, params, body }) => {
  * DELETE /api/me/tasks/personal/:taskId
  *
  * Soft-delete a personal task. Only the owner can delete their own tasks.
+ * Cascade deletes subtasks via the Prisma relation.
  */
 export const DELETE = withAuth(async ({ ctx, params }) => {
   const existing = await prisma.task.findFirst({

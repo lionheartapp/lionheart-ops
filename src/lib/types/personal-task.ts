@@ -5,6 +5,7 @@ export const CreatePersonalTaskSchema = z.object({
   description: z.string().max(2000).optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']).default('NORMAL'),
   dueDate: z.coerce.date().optional(),
+  parentId: z.string().optional(),
 })
 
 export const UpdatePersonalTaskSchema = z.object({

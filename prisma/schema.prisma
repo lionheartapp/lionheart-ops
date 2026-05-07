@@ -4715,10 +4715,12 @@ model EventTask {
 }
 
 /// Standalone personal task — not tied to any event.
+/// Subtasks use parentId to form a self-referential tree.
 model Task {
   id             String            @id @default(cuid())
   organizationId String
   userId         String            // owner — always the creating user
+  parentId       String?           // null = top-level task, set = subtask
   title          String
   description    String?
   status         EventTaskStatus   @default(TODO)
@@ -4731,9 +4733,12 @@ model Task {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation("PersonalTasks", fields: [userId], references: [id], onDelete: Cascade)
+  parent       Task?        @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks     Task[]       @relation("TaskSubtasks")
 
   @@index([organizationId, userId, status])
   @@index([organizationId, userId, dueDate])
+  @@index([parentId])
 }
 
 model EventActivityLog {

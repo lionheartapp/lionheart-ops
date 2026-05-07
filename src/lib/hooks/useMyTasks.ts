@@ -78,6 +78,14 @@ export function useUpdateMyTaskStatus() {
 
 // ─── Personal Tasks ──────────────────────────────────────────────────────────
 
+export interface PersonalSubtask {
+  id: string
+  title: string
+  status: MyTaskStatus
+  completedAt: string | null
+  createdAt: string
+}
+
 export interface PersonalTask {
   id: string
   title: string
@@ -87,6 +95,7 @@ export interface PersonalTask {
   dueDate: string | null
   completedAt: string | null
   createdAt: string
+  subtasks: PersonalSubtask[]
 }
 
 export function usePersonalTasks(filters?: { status?: MyTaskStatus }) {
@@ -105,7 +114,7 @@ export function usePersonalTasks(filters?: { status?: MyTaskStatus }) {
 export function useCreatePersonalTask() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; description?: string; priority?: string; dueDate?: string }) =>
+    mutationFn: (data: { title: string; description?: string; priority?: string; dueDate?: string; parentId?: string }) =>
       fetchApi<PersonalTask>('/api/me/tasks/personal', {
         method: 'POST',
         body: JSON.stringify(data),

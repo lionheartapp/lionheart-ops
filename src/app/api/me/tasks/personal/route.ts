@@ -7,7 +7,8 @@ import { CreatePersonalTaskSchema } from '@/lib/types/personal-task'
 /**
  * GET /api/me/tasks/personal
  *
- * List the current user's personal tasks (not event tasks).
+ * List the current user's top-level personal tasks (not subtasks).
+ * Includes subtasks nested in each task.
  * Optional query: ?status=TODO|IN_PROGRESS|BLOCKED|DONE
  */
 export const GET = withAuth(async ({ ctx, searchParams }) => {
@@ -15,7 +16,13 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
   const tasks = await prisma.task.findMany({
     where: {
       userId: ctx.userId,
+      parentId: null,
       ...(status ? { status: status as 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'DONE' } : {}),
+    },
+    include: {
+      subtasks: {
+        orderBy: { createdAt: 'asc' },
+      },
     },
     orderBy: [{ dueDate: 'asc' }, { priority: 'desc' }, { createdAt: 'desc' }],
   })
@@ -25,7 +32,7 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
 /**
  * POST /api/me/tasks/personal
  *
- * Create a personal task for the current user.
+ * Create a personal task (or subtask if parentId is provided).
  */
 export const POST = withAuth(async ({ ctx, orgId, body }) => {
   const task = await prisma.task.create({
@@ -36,6 +43,12 @@ export const POST = withAuth(async ({ ctx, orgId, body }) => {
       description: body.description,
       priority: body.priority,
       dueDate: body.dueDate,
+      parentId: body.parentId,
+    },
+    include: {
+      subtasks: {
+        orderBy: { createdAt: 'asc' },
+      },
     },
   })
   return NextResponse.json(ok(task), { status: 201 })
