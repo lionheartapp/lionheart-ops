@@ -1043,10 +1043,8 @@ export default function EventsPage() {
     }
   }
 
-  // Mobile (< 768px) always uses the list view — board is desktop-only.
-  const effectiveView: EventsView = !isDesktop ? 'list' : view
-  // Only admins see the board at all.
-  const useBoard = isAdmin && effectiveView === 'board'
+  // Desktop always uses board view; mobile falls back to list (board is too wide).
+  const useBoard = isAdmin && isDesktop
 
   // For the board, fetch ALL admin-visible events in one query (no status
   // filter, no createdBy filter). The board groups them into columns itself.
@@ -1091,7 +1089,7 @@ export default function EventsPage() {
         <EventsPageHeader
           isAdmin={isAdmin}
           onOpenCreate={handleOpenCreate}
-          showViewToggle={isAdmin && isDesktop}
+          showViewToggle={false}
           view={view}
           onViewChange={handleViewChange}
           onOpenArchive={useBoard ? () => setArchiveDrawerOpen(true) : undefined}
