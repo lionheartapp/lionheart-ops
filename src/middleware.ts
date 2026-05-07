@@ -3,6 +3,7 @@ import { verifyAuthToken, signAuthToken } from '@/lib/auth'
 import { verifyPlatformAuthToken } from '@/lib/auth/platform-auth'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { publicApiRateLimiter, signupRateLimiter, eventRegistrationRateLimiter, aiChatRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { rawPrisma } from '@/lib/db'
 
 const PUBLIC_PATHS = new Set(['/', '/login', '/set-password', '/signup', '/signin', '/app', '/dashboard', '/settings', '/verify-email'])
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'platform', 'admin'])
@@ -353,6 +354,24 @@ export async function middleware(req: NextRequest) {
   }
 
   requestHeaders.set('x-org-id', claims.organizationId)
+
+  // ─── Messaging Feature Gate (D-02) ──────────────────────────────────
+  // Block /api/messaging/* when the org hasn't enabled messaging.
+  // Uses rawPrisma (correct for middleware — runs outside runWithOrgContext).
+  // T-24-06: Gate returns 403 before any data access.
+  if (pathname.startsWith('/api/messaging/')) {
+    const org = await rawPrisma.organization.findUnique({
+      where: { id: claims.organizationId },
+      select: { messagingEnabled: true },
+    })
+    if (!org?.messagingEnabled) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'FEATURE_DISABLED', message: 'Messaging is not enabled for this organization' } },
+        { status: 403 }
+      )
+    }
+  }
+
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
   // ─── Sliding window: refresh token when past halfway (3.5 days) ──
