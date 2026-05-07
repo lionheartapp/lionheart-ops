@@ -153,6 +153,8 @@ const orgScopedModels = new Set([
 	// Forms module
 	'FormDefinition',
 	'FormQrCode',
+	// Personal tasks
+	'Task',
 ])
 
 // Models that use soft-delete (deletedAt) instead of hard-delete
@@ -195,6 +197,8 @@ const softDeleteModels = new Set([
 	'EventProject',
 	// Registration module (Phase 20)
 	'EventRegistration',
+	// Personal tasks
+	'Task',
 ])
 
 /**

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken, signAuthToken } from '@/lib/auth'
-import { authCookieOptions } from '@/lib/auth/cookie-options'
+import { authCookieOptions, clearCookieOptions } from '@/lib/auth/cookie-options'
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { audit, getIp } from '@/lib/services/auditService'
@@ -204,7 +204,7 @@ export async function DELETE(req: NextRequest) {
 
     // Restore admin's token and clear admin-token
     response.cookies.set('auth-token', adminToken, COOKIE_OPTS)
-    response.cookies.delete('admin-token')
+    response.cookies.set('admin-token', '', clearCookieOptions())
 
     return response
   } catch (error) {

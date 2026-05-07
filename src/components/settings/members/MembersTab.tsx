@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, RefreshCw, UserCog, Download } from 'lucide-react'
+import { Plus, RefreshCw, UserCog, Download, Info } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
@@ -237,6 +237,17 @@ const MembersTab = (_props: MembersTabProps) => {
           >
             <RefreshCw className="w-4 h-4" /> Retry
           </button>
+        </div>
+      )}
+
+      {/* School filter notice */}
+      {activeSchoolId && (
+        <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            Showing members for <span className="font-medium">{activeSchoolLabel}</span> only.
+            Switch to &ldquo;All Schools&rdquo; to see everyone.
+          </p>
         </div>
       )}
 

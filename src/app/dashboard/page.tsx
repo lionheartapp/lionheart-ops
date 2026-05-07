@@ -12,7 +12,7 @@ import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { readResourceItems } from '@/lib/utils/resourceItems'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote } from 'lucide-react'
+import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote, CheckSquare } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -41,6 +41,8 @@ import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { useToast } from '@/components/Toast'
+import { useMyTasks, usePersonalTasks } from '@/lib/hooks/useMyTasks'
+import MyTasksDrawer from '@/components/dashboard/MyTasksDrawer'
 import { format } from 'date-fns'
 
 interface TicketData {
@@ -201,6 +203,14 @@ export default function DashboardPage() {
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
   const createDropdownRef = useRef<HTMLDivElement>(null)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false)
+  const { data: myTasks } = useMyTasks()
+  const { data: personalTasks } = usePersonalTasks()
+  const openTaskCount = useMemo(() => {
+    const eventOpen = myTasks?.filter((t) => t.status !== 'DONE').length ?? 0
+    const personalOpen = personalTasks?.filter((t) => t.status !== 'DONE').length ?? 0
+    return eventOpen + personalOpen
+  }, [myTasks, personalTasks])
   const [eventsScrolled, setEventsScrolled] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
   const unreadCount = useUnreadCount()
@@ -304,6 +314,20 @@ export default function DashboardPage() {
       })
     }
   }
+
+  // Open tasks drawer via custom event (from sidebar) or query param (from navigation)
+  useEffect(() => {
+    const handleOpen = () => setIsTasksDrawerOpen(true)
+    window.addEventListener('open-my-tasks-drawer', handleOpen)
+    return () => window.removeEventListener('open-my-tasks-drawer', handleOpen)
+  }, [])
+
+  useEffect(() => {
+    if (searchParams.get('openTasks') === 'true') {
+      setIsTasksDrawerOpen(true)
+      router.replace('/dashboard', { scroll: false })
+    }
+  }, [searchParams, router])
 
   // Listen for leo-item-click events from the StructuredList in Leo
   useEffect(() => {
@@ -634,6 +658,24 @@ export default function DashboardPage() {
           )}
         </motion.div>
         <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-end overflow-visible">
+          {/* My Tasks button — matches bell style */}
+          <motion.button
+            onClick={() => setIsTasksDrawerOpen(true)}
+            className="group/tasks relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
+            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            aria-label={`My tasks${openTaskCount > 0 ? ` (${openTaskCount} open)` : ''}`}
+            whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CheckSquare className="w-5 h-5 text-slate-800" />
+            {openTaskCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1 ring-2 ring-white">
+                {openTaskCount > 99 ? '99+' : openTaskCount}
+              </span>
+            )}
+          </motion.button>
+
           {/* Notification Bell — aurora glow + bell ring on hover */}
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
@@ -1481,6 +1523,9 @@ export default function DashboardPage() {
 
       {/* Notification Drawer */}
       <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+
+      {/* My Tasks Drawer */}
+      <MyTasksDrawer isOpen={isTasksDrawerOpen} onClose={() => setIsTasksDrawerOpen(false)} />
     </DashboardLayout>
   )
 }

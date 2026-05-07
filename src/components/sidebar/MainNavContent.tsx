@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import PrefetchLink from '@/components/PrefetchLink'
 import {
   Home,
@@ -123,9 +124,22 @@ export default function MainNavContent({
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
+  const router = useRouter()
+
+  const openTasksDrawer = useCallback(() => {
+    setSettingsOpen(false)
+    setAthleticsOpen(false)
+    setEventsOpen(false)
+    setIsOpen(false)
+    if (pathname === '/dashboard') {
+      window.dispatchEvent(new Event('open-my-tasks-drawer'))
+    } else {
+      router.push('/dashboard?openTasks=true')
+    }
+  }, [pathname, router, setSettingsOpen, setAthleticsOpen, setEventsOpen, setIsOpen])
+
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    { icon: CheckSquare, label: 'My tasks', href: '/my-tasks' },
   ]
 
   return (
@@ -192,6 +206,18 @@ export default function MainNavContent({
               </li>
             )
           })}
+          {/* My Tasks — opens drawer on dashboard */}
+          <li>
+            <button
+              onClick={openTasksDrawer}
+              className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+              }`}
+            >
+              <CheckSquare className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm">My tasks</span>
+            </button>
+          </li>
           {/* Events */}
           <li>
             <button

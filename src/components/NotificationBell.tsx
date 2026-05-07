@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X } from 'lucide-react'
+import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X, CheckSquare, Clock } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { badgePop } from '@/lib/animations'
@@ -32,6 +32,10 @@ function getNotificationIcon(type: string) {
       return <CheckCircle className="w-4 h-4 text-emerald-500" />
     case 'event_rejected':
       return <XCircle className="w-4 h-4 text-red-500" />
+    case 'task_assigned':
+      return <CheckSquare className="w-4 h-4 text-blue-500" />
+    case 'task_due_soon':
+      return <Clock className="w-4 h-4 text-amber-500" />
     default:
       return <Bell className="w-4 h-4 text-slate-500" />
   }

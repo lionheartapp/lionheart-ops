@@ -218,6 +218,8 @@ model Organization {
   formQrCodes                 FormQrCode[]
   // AI ticket intake sessions
   aiTicketIntakes             AiTicketIntake[]
+  // Personal tasks
+  personalTasks               Task[]
 
   @@index([onboardingStatus])
 }
@@ -373,6 +375,8 @@ model User {
   escalationTargets         EscalationRule[]          @relation("EscalationTarget")
   // Passkey (WebAuthn) credentials
   passkeys                  UserPasskey[]
+  // Personal tasks
+  personalTasks             Task[]           @relation("PersonalTasks")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -4708,6 +4712,28 @@ model EventTask {
   @@index([eventProjectId, status])
   @@index([eventProjectId, dueDate])
   @@index([organizationId, assigneeId])
+}
+
+/// Standalone personal task — not tied to any event.
+model Task {
+  id             String            @id @default(cuid())
+  organizationId String
+  userId         String            // owner — always the creating user
+  title          String
+  description    String?
+  status         EventTaskStatus   @default(TODO)
+  priority       EventTaskPriority @default(NORMAL)
+  dueDate        DateTime?
+  completedAt    DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("PersonalTasks", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId, status])
+  @@index([organizationId, userId, dueDate])
 }
 
 model EventActivityLog {

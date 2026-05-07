@@ -7,6 +7,7 @@
 
 import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { appendActivityLog } from './eventProjectService'
+import { notifyTaskAssigned } from './taskNotificationService'
 import type {
   CreateScheduleBlockInput,
   UpdateScheduleBlockInput,
@@ -174,6 +175,22 @@ export async function createEventTask(
     assigneeId: task.assigneeId,
   })
 
+  // Notify assignee (fire-and-forget)
+  if (task.assigneeId && task.assigneeId !== actorId) {
+    const project = await db.eventProject.findUnique({
+      where: { id: eventProjectId },
+      select: { title: true },
+    })
+    const actor = task.createdBy
+    const assignerName = actor ? `${actor.firstName ?? ''} ${actor.lastName ?? ''}`.trim() || 'Someone' : 'Someone'
+    void notifyTaskAssigned({
+      assigneeId: task.assigneeId,
+      assignerName,
+      taskTitle: task.title,
+      eventTitle: project?.title ?? 'an event',
+    })
+  }
+
   return task
 }
 
@@ -233,6 +250,26 @@ export async function updateEventTask(
       taskId,
       title: updated.title,
       changes: Object.keys(updateData),
+    })
+  }
+
+  // Notify new assignee when assignment changes (fire-and-forget)
+  const assigneeChanged = 'assigneeId' in data && data.assigneeId !== existing.assigneeId
+  if (assigneeChanged && data.assigneeId && data.assigneeId !== actorId) {
+    const project = await db.eventProject.findUnique({
+      where: { id: eventProjectId },
+      select: { title: true },
+    })
+    const actor = await db.user.findUnique({
+      where: { id: actorId },
+      select: { firstName: true, lastName: true },
+    })
+    const assignerName = actor ? `${actor.firstName ?? ''} ${actor.lastName ?? ''}`.trim() || 'Someone' : 'Someone'
+    void notifyTaskAssigned({
+      assigneeId: data.assigneeId,
+      assignerName,
+      taskTitle: updated.title as string,
+      eventTitle: project?.title ?? 'an event',
     })
   }
 

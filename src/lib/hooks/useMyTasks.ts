@@ -75,3 +75,68 @@ export function useUpdateMyTaskStatus() {
     },
   })
 }
+
+// ─── Personal Tasks ──────────────────────────────────────────────────────────
+
+export interface PersonalTask {
+  id: string
+  title: string
+  description: string | null
+  status: MyTaskStatus
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL'
+  dueDate: string | null
+  completedAt: string | null
+  createdAt: string
+}
+
+export function usePersonalTasks(filters?: { status?: MyTaskStatus }) {
+  const params = new URLSearchParams()
+  if (filters?.status) params.set('status', filters.status)
+  const qs = params.toString()
+  const url = qs ? `/api/me/tasks/personal?${qs}` : '/api/me/tasks/personal'
+
+  return useQuery<PersonalTask[]>({
+    queryKey: ['personal-tasks', filters ?? {}],
+    queryFn: () => fetchApi<PersonalTask[]>(url),
+    staleTime: 60_000,
+  })
+}
+
+export function useCreatePersonalTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { title: string; description?: string; priority?: string; dueDate?: string }) =>
+      fetchApi<PersonalTask>('/api/me/tasks/personal', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal-tasks'] })
+    },
+  })
+}
+
+export function useUpdatePersonalTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ taskId, ...data }: { taskId: string; title?: string; description?: string | null; status?: MyTaskStatus; priority?: string; dueDate?: string | null }) =>
+      fetchApi<PersonalTask>(`/api/me/tasks/personal/${taskId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal-tasks'] })
+    },
+  })
+}
+
+export function useDeletePersonalTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      fetchApi(`/api/me/tasks/personal/${taskId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal-tasks'] })
+    },
+  })
+}
