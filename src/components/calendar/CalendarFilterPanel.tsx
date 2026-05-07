@@ -254,12 +254,42 @@ export default function CalendarFilterPanel({
 
       {/* Scrollable sections */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        {/* My Calendars */}
-        {calendars.length > 0 && (
+        {/* School Calendars (non-personal) */}
+        {calendars.filter((c) => c.isActive && c.calendarType !== 'PERSONAL').length > 0 && (
+          <FilterSection label="School Calendars">
+            <div className="space-y-0.5">
+              {calendars
+                .filter((c) => c.isActive && c.calendarType !== 'PERSONAL')
+                .map((cal) => {
+                  const isVisible = visibleCalendarIds.has(cal.id)
+                  return (
+                    <button
+                      key={cal.id}
+                      type="button"
+                      onClick={() => onToggleCalendar(cal.id)}
+                      className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
+                    >
+                      <FilterCheckbox
+                        checked={isVisible}
+                        color={cal.color}
+                        onChange={() => onToggleCalendar(cal.id)}
+                      />
+                      <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>
+                        {cal.name}
+                      </span>
+                    </button>
+                  )
+                })}
+            </div>
+          </FilterSection>
+        )}
+
+        {/* My Calendars (personal) */}
+        {calendars.filter((c) => c.isActive && c.calendarType === 'PERSONAL').length > 0 && (
           <FilterSection label="My Calendars">
             <div className="space-y-0.5">
               {calendars
-                .filter((c) => c.isActive)
+                .filter((c) => c.isActive && c.calendarType === 'PERSONAL')
                 .map((cal) => {
                   const isVisible = visibleCalendarIds.has(cal.id)
                   return (
