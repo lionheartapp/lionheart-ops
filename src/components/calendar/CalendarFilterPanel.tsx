@@ -261,9 +261,13 @@ export default function CalendarFilterPanel({
           const schoolCals = calendars.filter((c) => c.isActive && c.calendarType !== 'PERSONAL')
           if (schoolCals.length === 0) return null
 
-          // The org-level master calendar is the isDefault calendar on the HQ campus.
-          // Show it first as "Master Calendar", then list the rest.
-          const masterCal = schoolCals.find((c) => c.isDefault) ?? null
+          // The org-level master calendar: named "Master Calendar", or the one
+          // whose campus no longer exists (orphaned from the original HQ campus).
+          // Falls back to the first isDefault calendar if neither match.
+          const masterCal =
+            schoolCals.find((c) => c.name === 'Master Calendar') ??
+            schoolCals.find((c) => c.isDefault && !c.campus) ??
+            null
           const otherCals = schoolCals.filter((c) => c !== masterCal)
 
           return (
@@ -279,7 +283,7 @@ export default function CalendarFilterPanel({
                       className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
                     >
                       <FilterCheckbox checked={isVisible} color={masterCal.color} onChange={() => onToggleCalendar(masterCal.id)} />
-                      <span className={`text-sm truncate font-medium ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>Master Calendar</span>
+                      <span className={`text-sm truncate font-medium ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{masterCal.name}</span>
                     </button>
                   )
                 })()}
