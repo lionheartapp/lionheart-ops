@@ -89,7 +89,12 @@ Plans:
   3. User can send, edit, soft-delete, pin, react, thread-reply, and @mention via API
   4. User can attach a file to a message and the URL resolves to Supabase Storage
   5. Message search returns results scoped strictly to the requesting user's org and accessible channels
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 24-01-PLAN.md — Channel service layer + middleware messagingEnabled gate
+- [ ] 24-02-PLAN.md — Message service layer (send, edit, delete, pagination, search)
+- [ ] 24-03-PLAN.md — Channel and DM API routes
+- [ ] 24-04-PLAN.md — Message and search API routes
 **UI hint**: yes
 
 ### Phase 25: Realtime Bridge and JWT Integration
@@ -163,7 +168,7 @@ Plans:
 | 21. Documents, Groups, Communication, Day-Of | v3.0 | 10/10 | Complete | 2026-03-16 |
 | 22. AI, Budget, Notifications, Integrations | v3.0 | 11/11 | Complete | 2026-03-16 |
 | 23. Schema, Permissions, and RLS Foundation | v4.0 | 3/3 | Complete | 2026-05-07 |
-| 24. Core Messaging API | v4.0 | 0/TBD | Not started | - |
+| 24. Core Messaging API | v4.0 | 0/4 | Not started | - |
 | 25. Realtime Bridge and JWT Integration | v4.0 | 0/TBD | Not started | - |
 | 26. Core Messaging UI | v4.0 | 0/TBD | Not started | - |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 0/TBD | Not started | - |
