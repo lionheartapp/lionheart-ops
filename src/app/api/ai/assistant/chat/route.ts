@@ -256,6 +256,8 @@ export async function POST(req: NextRequest) {
           let iterations = 0
           let actionConfirmation: ActionConfirmation | undefined
           let richCard: ConfirmationCardData | undefined
+          let retriedWithForcedTools = false
+          let forceFunctionCalling = false
 
           // Outer loop: handle tool calls iteratively
           // First call is streaming; subsequent calls after tool execution are non-streaming
@@ -301,7 +303,31 @@ export async function POST(req: NextRequest) {
                 isFirstCall = false
 
                 if (functionCalls.length === 0) {
-                  // No tool calls — we're done
+                  // Gemini skipped tool calls. If it fabricated list-like data
+                  // (:::list blocks, or JSON with "items"), retry once with
+                  // forced function calling so it uses real data.
+                  const looksLikeFabricatedList =
+                    tools.length > 0 &&
+                    !retriedWithForcedTools &&
+                    (accumulatedText.includes(':::list') ||
+                     /\{"type"\s*:\s*"(events|tickets|users|inventory)"/.test(accumulatedText))
+
+                  if (looksLikeFabricatedList) {
+                    routeLog.warn(
+                      { message: body.message.slice(0, 80) },
+                      'Gemini fabricated list data without calling tools — retrying with forced function calling'
+                    )
+                    retriedWithForcedTools = true
+                    // Discard the fabricated response — clear deltas already sent
+                    write({ type: 'content_reset' })
+                    // Don't add the fabricated response to geminiContents —
+                    // it stays as [user messages only], so the retry starts clean.
+                    forceFunctionCalling = true
+                    isFirstCall = false
+                    iterations = 1 // trigger the else branch
+                    continue
+                  }
+
                   finalText = accumulatedText
                   if (tools.length > 0) {
                     routeLog.warn(
@@ -408,14 +434,20 @@ export async function POST(req: NextRequest) {
 
                 // Continue loop — next iteration will stream the follow-up
               } else {
-                // Subsequent calls after tool execution — stream them too
+                // Subsequent calls after tool execution (or forced-retry) — stream them
+                const followUpConfig: Record<string, unknown> = {
+                  systemInstruction: systemPrompt,
+                  tools: geminiTools as unknown as import('@google/genai').Tool[],
+                }
+                // When retrying after fabrication, force the model to call a tool
+                if (forceFunctionCalling) {
+                  followUpConfig.toolConfig = { functionCallingConfig: { mode: 'ANY' } }
+                  forceFunctionCalling = false
+                }
                 const streamResponse = await client.models.generateContentStream({
                   model: MODEL,
                   contents: geminiContents as unknown as import('@google/genai').Content[],
-                  config: {
-                    systemInstruction: systemPrompt,
-                    tools: geminiTools as unknown as import('@google/genai').Tool[],
-                  },
+                  config: followUpConfig as import('@google/genai').GenerateContentConfig,
                 })
 
                 let accumulatedText = ''
