@@ -262,6 +262,11 @@ export default function MyTasksDrawer({ isOpen, onClose }: MyTasksDrawerProps) {
                     await updatePersonal.mutateAsync({ taskId: subtaskId, status: done ? 'DONE' : 'TODO' })
                   } catch { toast('Failed to update subtask', 'error') }
                 }}
+                onUpdateSubtask={async (subtaskId, title) => {
+                  try {
+                    await updatePersonal.mutateAsync({ taskId: subtaskId, title })
+                  } catch { toast('Failed to update subtask', 'error') }
+                }}
                 onDeleteSubtask={async (subtaskId) => {
                   try {
                     await deletePersonal.mutateAsync(subtaskId)
@@ -461,7 +466,7 @@ function TaskRow({ task, onToggle, onOpen, isUpdating }: {
 
 // ─── Task detail screen ─────────────────────────────────────────────────────
 
-function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSubtask, onToggleSubtask, onDeleteSubtask, isUpdating }: {
+function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSubtask, onToggleSubtask, onUpdateSubtask, onDeleteSubtask, isUpdating }: {
   task: UnifiedTask
   onBack: () => void
   onToggle: () => void
@@ -469,6 +474,7 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
   onDelete?: () => void
   onAddSubtask: (title: string) => Promise<void>
   onToggleSubtask: (id: string, done: boolean) => Promise<void>
+  onUpdateSubtask: (id: string, title: string) => Promise<void>
   onDeleteSubtask: (id: string) => Promise<void>
   isUpdating: boolean
 }) {
@@ -612,7 +618,16 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
                             aria-label={subDone ? 'Mark subtask incomplete' : 'Mark subtask complete'}>
                             {subDone ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Circle className="w-4 h-4 text-slate-300 hover:text-indigo-500 transition-colors" />}
                           </button>
-                          <span className={`flex-1 text-sm ${subDone ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{sub.title}</span>
+                          <input
+                            type="text"
+                            defaultValue={sub.title}
+                            onBlur={(e) => {
+                              const v = e.target.value.trim()
+                              if (v && v !== sub.title) onUpdateSubtask(sub.id, v)
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+                            className={`flex-1 text-sm bg-transparent border-none outline-none ${subDone ? 'text-slate-400 line-through' : 'text-slate-800'}`}
+                          />
                           <button type="button" onClick={() => onDeleteSubtask(sub.id)}
                             className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded"
                             aria-label={`Delete subtask: ${sub.title}`}>
