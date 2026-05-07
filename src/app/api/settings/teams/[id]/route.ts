@@ -215,6 +215,24 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ orgId, ctx, par
 
   await prisma.team.delete({ where: { id: params.id } })
 
+  // Phase 29: Archive auto-channel for deleted team
+  try {
+    const autoChannel = await (prisma.channel as unknown as {
+      findFirst(args: Record<string, unknown>): Promise<{ id: string } | null>
+    }).findFirst({
+      where: { sourceType: 'team', sourceId: params.id },
+      select: { id: true },
+    })
+    if (autoChannel) {
+      await prisma.channel.update({
+        where: { id: autoChannel.id },
+        data: { archivedAt: new Date() },
+      })
+    }
+  } catch (err) {
+    console.error('Failed to archive team auto-channel:', err)
+  }
+
   invalidateOrgCache(orgId, 'teams')
 
   await audit({

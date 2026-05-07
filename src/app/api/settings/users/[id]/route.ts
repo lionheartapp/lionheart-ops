@@ -7,6 +7,8 @@ import { audit, getIp, sanitize } from '@/lib/services/auditService'
 import { invalidateUserContext } from '@/lib/cache/request-context-cache'
 import { invalidateOrgCache } from '@/lib/cache/route-cache'
 import { clearPermissionCache } from '@/lib/auth/permissions'
+import { syncTeamMembers, syncSchoolMembers } from '@/lib/services/autoChannelService'
+import { getOrCreateBotUser } from '@/lib/services/systemBotService'
 
 export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
   const user = await prisma.user.findFirst({
@@ -67,6 +69,7 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
     select: {
       id: true,
       organizationId: true,
+      schoolId: true,
     },
   })
 
@@ -123,6 +126,13 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
 
   // If teams are being updated, replace memberships atomically
   if (body.teamIds !== undefined) {
+    // Phase 29: Capture old team IDs before replacing memberships
+    const oldMemberships = await prisma.userTeam.findMany({
+      where: { userId: params.id },
+      select: { teamId: true },
+    })
+    const oldTeamIds = oldMemberships.map((m: { teamId: string }) => m.teamId)
+
     const newTeamIds: string[] = Array.isArray(body.teamIds) ? body.teamIds.map(String) : []
     await prisma.$transaction([
       prisma.userTeam.deleteMany({ where: { userId: params.id } }),
@@ -135,6 +145,17 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
 
     // Team membership changes flip the cached teams-list _count.members.
     invalidateOrgCache(orgId, 'teams')
+
+    // Phase 29: Sync auto-channel membership for affected teams
+    try {
+      const botUserId = await getOrCreateBotUser(orgId)
+      const allAffectedTeamIds = [...new Set([...oldTeamIds, ...newTeamIds])]
+      for (const tid of allAffectedTeamIds) {
+        await syncTeamMembers(tid, botUserId)
+      }
+    } catch (err) {
+      console.error('Failed to sync team auto-channels:', err)
+    }
   }
 
   const updated = await prisma.user.update({
@@ -211,6 +232,17 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ req, orgId, ctx,
     changes:        sanitize(body as Record<string, unknown>),
     ipAddress:      getIp(req),
   })
+
+  // Phase 29: Sync school auto-channel membership on schoolId change
+  if (body.schoolId !== undefined) {
+    try {
+      const botUserId = await getOrCreateBotUser(orgId)
+      if (targetUser.schoolId) await syncSchoolMembers(targetUser.schoolId, botUserId)
+      if (body.schoolId && body.schoolId !== targetUser.schoolId) await syncSchoolMembers(body.schoolId as string, botUserId)
+    } catch (err) {
+      console.error('Failed to sync school auto-channels:', err)
+    }
+  }
 
   return NextResponse.json(ok(updatedWithCompat))
 }, { permission: PERMISSIONS.USERS_UPDATE })
