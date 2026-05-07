@@ -171,7 +171,11 @@ Plans:
   2. Each School in a multi-school org has an auto-created staff channel; membership tracks school assignment
   3. The system bot posts a message when a ticket changes status, an event is approved, or a maintenance alert fires
   4. Auto-channel headers display source context ("Team: IT Support") with a link back to the source entity
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 29-01-PLAN.md — Schema changes, auto-channel service, system bot service, seedOrgDefaults
+- [ ] 29-02-PLAN.md — Integration hooks in team/user routes and ticket/event/maintenance services
+- [ ] 29-03-PLAN.md — Source context banner UI, bot message styling, human verification
 
 ## Progress Table
 
@@ -189,7 +193,7 @@ Plans:
 | 26. Core Messaging UI | v4.0 | 4/4 | Complete | 2026-05-07 |
 | 27. Reactions, Threads, Attachments, and Search | v4.0 | 3/3 | Complete | 2026-05-07 |
 | 28. Notifications and Read State | v4.0 | 4/4 | Complete | 2026-05-07 |
-| 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/TBD | Not started | - |
+| 29. Auto-Channels, System Bot, and Integrations | v4.0 | 0/3 | Not started | - |
 
 **Total: 29 phases, 7 v4.0 phases planned**
 
