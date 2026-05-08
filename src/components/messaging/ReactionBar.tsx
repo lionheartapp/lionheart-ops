@@ -3,37 +3,30 @@
 /**
  * ReactionBar — displays emoji reaction pills below a message.
  *
- * Each pill shows emoji + count. If the current user has reacted, the pill
- * gets a highlighted border. Clicking a pill toggles that reaction.
- * A "+" button at the end opens the ReactionPicker for adding new reactions.
+ * Each pill shows emoji + count. Clicking toggles that reaction.
+ * Add-reaction button is in the hover toolbar (MessageBubble), not here.
  */
 
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
 import type { ReactionGroup } from '@/lib/hooks/useReactions'
-import ReactionPicker from './ReactionPicker'
 
 interface ReactionBarProps {
   reactions: ReactionGroup[]
   messageId: string
   onToggle: (emoji: string) => void
-  showAddButton?: boolean
 }
 
 export default function ReactionBar({
   reactions,
   messageId,
   onToggle,
-  showAddButton = false,
 }: ReactionBarProps) {
-  const [showPicker, setShowPicker] = useState(false)
-
-  const hasReactions = reactions.length > 0
-  if (!hasReactions && !showAddButton) return null
+  // Only show reactions that look like actual emoji (not raw IDs)
+  const validReactions = reactions.filter((g) => g.emoji.length <= 4)
+  if (validReactions.length === 0) return null
 
   return (
-    <div className="flex items-center gap-1 flex-wrap mt-1 relative">
-      {reactions.map((group) => (
+    <div className="flex items-center gap-1 flex-wrap mt-1">
+      {validReactions.map((group) => (
         <button
           key={`${messageId}-${group.emoji}`}
           type="button"
@@ -49,30 +42,6 @@ export default function ReactionBar({
           <span className="font-medium">{group.count}</span>
         </button>
       ))}
-
-      {/* Add reaction button */}
-      {(showAddButton || hasReactions) && (
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowPicker((prev) => !prev)}
-            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer transition-colors duration-200"
-            title="Add reaction"
-          >
-            <Plus className="w-3 h-3" />
-          </button>
-
-          {showPicker && (
-            <ReactionPicker
-              onSelect={(emoji) => {
-                onToggle(emoji)
-                setShowPicker(false)
-              }}
-              onClose={() => setShowPicker(false)}
-            />
-          )}
-        </div>
-      )}
     </div>
   )
 }
