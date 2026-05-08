@@ -2,7 +2,7 @@
  * GET  /api/messaging/channels/[id]/messages — paginated message history
  * POST /api/messaging/channels/[id]/messages — send a message
  *
- * Membership is verified in the service layer (T-24-07, T-24-23).
+ * Membership is verified in the service layer.
  */
 
 import { NextResponse } from 'next/server'
