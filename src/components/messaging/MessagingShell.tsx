@@ -16,6 +16,7 @@ import ChannelList from './ChannelList'
 import MessageArea from './MessageArea'
 import ThreadPanel from './ThreadPanel'
 import SearchPanel from './SearchPanel'
+import NewMessageView from './NewMessageView'
 
 // ---------------------------------------------------------------------------
 // Mobile detection hook
@@ -52,10 +53,18 @@ export default function MessagingShell() {
   const isMobile = useIsMobile()
   const searchParams = useSearchParams()
   const channelFromUrl = searchParams.get('channel')
+  const composeFromUrl = searchParams.get('compose') === 'true'
   const [activeChannelId, setActiveChannelId] = useState<string | null>(channelFromUrl)
+  const [composeMode, setComposeMode] = useState(composeFromUrl)
 
   // Sync with URL when query param changes (e.g. sidebar panel navigates)
   useEffect(() => {
+    if (searchParams.get('compose') === 'true') {
+      setComposeMode(true)
+      setActiveChannelId(null)
+      return
+    }
+    setComposeMode(false)
     if (channelFromUrl && channelFromUrl !== activeChannelId) {
       setActiveChannelId(channelFromUrl)
     }
@@ -243,7 +252,19 @@ export default function MessagingShell() {
     <div className="flex h-screen overflow-hidden relative bg-white">
       {/* Message area — full width */}
       <div className="flex-1 flex flex-col min-w-0">
-        {activeChannelId ? (
+        {composeMode ? (
+          <NewMessageView
+            onChannelSelected={(channelId) => {
+              setComposeMode(false)
+              setActiveChannelId(channelId)
+              window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
+            }}
+            onClose={() => {
+              setComposeMode(false)
+              window.history.replaceState(null, '', '/messaging')
+            }}
+          />
+        ) : activeChannelId ? (
           <MessageArea
             channelId={activeChannelId}
             onThreadClick={handleThreadClick}

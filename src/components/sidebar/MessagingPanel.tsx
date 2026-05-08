@@ -15,11 +15,17 @@ export default function MessagingPanel({ setIsOpen }: MessagingPanelProps) {
     setIsOpen(false)
   }
 
+  function handleCompose() {
+    router.push('/messaging?compose=true')
+    setIsOpen(false)
+  }
+
   return (
     <div className="flex flex-col h-full pt-6">
       <ChannelList
         activeChannelId={null}
         onSelectChannel={handleSelectChannel}
+        onCompose={handleCompose}
       />
     </div>
   )

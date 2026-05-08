@@ -9,6 +9,7 @@ import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, Mes
 interface ChannelListProps {
   activeChannelId: string | null
   onSelectChannel: (channelId: string) => void
+  onCompose?: () => void
 }
 
 function SkeletonItem() {
@@ -334,7 +335,7 @@ function SectionHeader({
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function ChannelList({ activeChannelId, onSelectChannel }: ChannelListProps) {
+export default function ChannelList({ activeChannelId, onSelectChannel, onCompose }: ChannelListProps) {
   const { data: channels, isLoading } = useChannels()
   const [showCreateChannel, setShowCreateChannel] = useState(false)
   const [showNewDM, setShowNewDM] = useState(false)
@@ -380,7 +381,7 @@ export default function ChannelList({ activeChannelId, onSelectChannel }: Channe
       <div className="flex items-center justify-between px-3 py-3 border-b border-slate-100">
         <span className="text-sm font-semibold text-slate-800">Messaging</span>
         <button
-          onClick={() => { setShowNewDM(true); setShowCreateChannel(false) }}
+          onClick={() => { onCompose ? onCompose() : setShowNewDM(true); setShowCreateChannel(false) }}
           className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md cursor-pointer transition-colors"
           title="New message"
         >
@@ -433,7 +434,7 @@ export default function ChannelList({ activeChannelId, onSelectChannel }: Channe
             label="Direct messages"
             collapsed={dmsCollapsed}
             onToggle={() => setDmsCollapsed(!dmsCollapsed)}
-            onAdd={() => { setShowNewDM(true); setShowCreateChannel(false); setDmsCollapsed(false) }}
+            onAdd={() => { onCompose ? onCompose() : (setShowNewDM(true), setShowCreateChannel(false), setDmsCollapsed(false)) }}
             addTitle="New message"
           />
 
@@ -456,7 +457,7 @@ export default function ChannelList({ activeChannelId, onSelectChannel }: Channe
               ))
             ) : !showNewDM ? (
               <button
-                onClick={() => setShowNewDM(true)}
+                onClick={() => onCompose ? onCompose() : setShowNewDM(true)}
                 className="flex items-center gap-2 px-3 py-1.5 mx-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded cursor-pointer transition-colors w-[calc(100%-1rem)]"
               >
                 <Plus className="w-3 h-3" />
