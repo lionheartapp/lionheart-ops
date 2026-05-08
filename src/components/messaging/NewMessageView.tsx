@@ -13,7 +13,7 @@
 
 import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { X, UserPlus, Loader2 } from 'lucide-react'
+import { X, UserPlus, Loader2, Paperclip, Smile, ImagePlay } from 'lucide-react'
 import PersonSearchPanel from './PersonSearchPanel'
 import type { PersonSearchUser } from './PersonSearchPanel'
 import RichTextEditor, { htmlToPlainText } from './RichTextEditor'
@@ -185,7 +185,30 @@ export default function NewMessageView({ onChannelSelected, onClose }: NewMessag
                 onSubmit={handleSend}
                 placeholder="Type a message..."
               />
-              <div className="flex items-center justify-end mt-2">
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    aria-label="Attach file"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    aria-label="Add emoji"
+                  >
+                    <Smile className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    aria-label="Send GIF"
+                  >
+                    <ImagePlay className="w-5 h-5" />
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={handleSend}
