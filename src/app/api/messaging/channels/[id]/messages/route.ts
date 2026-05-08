@@ -49,8 +49,14 @@ export const POST = withAuth<z.infer<typeof SendMessageSchema>, { id: string }>(
       console.log('[MSG-POST] messaging disabled for org %s', orgId)
       return blocked
     }
-    const message = await sendMessage(params.id, ctx.userId, body)
-    return NextResponse.json(ok(message), { status: 201 })
+    try {
+      const message = await sendMessage(params.id, ctx.userId, body)
+      console.log('[MSG-POST] success messageId=%s', message.id)
+      return NextResponse.json(ok(message), { status: 201 })
+    } catch (err) {
+      console.error('[MSG-POST] sendMessage error:', err instanceof Error ? err.message : err)
+      throw err
+    }
   },
   { schema: SendMessageSchema }
 )
