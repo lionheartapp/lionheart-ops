@@ -126,12 +126,14 @@ select:focus {
 }
 
 /* Color contrast improvements — links inherit color by default so Tailwind text classes take full control */
-a {
-  color: inherit;
-}
+@layer base {
+  a {
+    color: inherit;
+  }
 
-a:visited {
-  color: inherit;
+  a:visited {
+    color: inherit;
+  }
 }
 
 /* Leaflet popup overrides — reduce default padding for tighter popups */
@@ -660,4 +662,109 @@ select:focus {
 }
 .dashboard-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(17, 15, 10, 0.2);
+}
+/* ─────────────────────────────────────────────────────────
+   Dashboard widget effects (WeatherWidget, TasksFocusWidget)
+───────────────────────────────────────────────────────── */
+@keyframes shineAccent {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.accent-shine {
+  background: linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #3b82f6 100%);
+  background-size: 200% 100%;
+  animation: shineAccent 6s linear infinite;
+}
+.card-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -16px rgba(15, 23, 42, 0.18);
+}
+/* ─────────────────────────────────────────────────────────
+   Tiptap rich text editor
+───────────────────────────────────────────────────────── */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94a3b8;
+  pointer-events: none;
+  height: 0;
+}
+.tiptap {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.tiptap p { margin: 0.25em 0; }
+.tiptap ul { padding-left: 1.5em; margin: 0.25em 0; list-style-type: disc; }
+.tiptap ol { padding-left: 1.5em; margin: 0.25em 0; list-style-type: decimal; }
+.tiptap li { margin: 0.1em 0; }
+.tiptap blockquote {
+  border-left: 3px solid #e2e8f0;
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: #64748b;
+}
+.tiptap code {
+  background: #f1f5f9;
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  font-family: ui-monospace, monospace;
+}
+.tiptap pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75em 1em;
+  margin: 0.5em 0;
+  overflow-x: auto;
+}
+.tiptap pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.tiptap a {
+  color: #6366f1;
+  text-decoration: underline;
+}
+.tiptap strong { font-weight: 600; }
+.tiptap s { text-decoration: line-through; }
+.tiptap .mention,
+.mention {
+  background-color: #ede9fe;
+  color: #6366f1;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+.tiptap .reference-chip,
+.reference-chip {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.reference-chip:hover {
+  background-color: #e0f2fe;
+  text-decoration: none;
+}
+.tiptap .inline-gif,
+.inline-gif {
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 8px;
+  margin: 4px 0;
+  display: block;
 }

@@ -1,15 +1,18 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useChannels, type ShapedChannel } from '@/lib/hooks/useChannels'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { useSidebarTyping } from '@/lib/hooks/useSidebarTyping'
 import ChannelListItem from './ChannelListItem'
-import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, MessageCircle } from 'lucide-react'
+import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, MessageCircle, Compass } from 'lucide-react'
 
 interface ChannelListProps {
   activeChannelId: string | null
   onSelectChannel: (channelId: string) => void
   onCompose?: () => void
+  onBrowseChannels?: () => void
 }
 
 function SkeletonItem() {
@@ -125,6 +128,18 @@ function InlineCreateChannel({
   )
 }
 
+interface InlineUserResult {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  email: string
+  avatar: string | null
+  jobTitle: string | null
+  userRole?: { name: string; slug: string } | null
+  teams?: { team: { name: string } }[]
+  school?: { name: string } | null
+}
+
 function InlineNewDM({
   onCreated,
   onCancel,
@@ -132,22 +147,13 @@ function InlineNewDM({
   onCreated: (ch: ShapedChannel) => void
   onCancel: () => void
 }) {
-  interface UserResult {
-    id: string
-    firstName: string | null
-    lastName: string | null
-    email: string
-    avatar: string | null
-    jobTitle: string | null
-    userRole?: { name: string; slug: string } | null
-    teams?: { team: { name: string } }[]
-    school?: { name: string } | null
-  }
-
   const [search, setSearch] = useState('')
   const [members, setMembers] = useState<{ id: string; name: string }[]>([])
-  const [results, setResults] = useState<UserResult[]>([])
+  const [results, setResults] = useState<InlineUserResult[]>([])
   const [searching, setSearching] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const membersRef = useRef(members)
+  membersRef.current = members
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -158,30 +164,41 @@ function InlineNewDM({
     },
   })
 
-  async function handleSearch(query: string) {
-    setSearch(query)
-    if (query.length < 2) { setResults([]); return }
+  // Load users immediately on mount
+  useEffect(() => {
+    fetchUsers('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function fetchUsers(query: string) {
     setSearching(true)
     try {
-      const res = await fetch(`/api/settings/users?search=${encodeURIComponent(query)}&limit=8`, {
-        credentials: 'include',
-      })
+      const url = query.length >= 2
+        ? `/api/messaging/users?search=${encodeURIComponent(query)}&limit=20`
+        : '/api/messaging/users?limit=20'
+      const res = await fetch(url, { credentials: 'include' })
       const json = await res.json()
       if (json.ok) {
-        const selected = new Set(members.map((m) => m.id))
+        const selected = new Set(membersRef.current.map((m) => m.id))
         const users = json.data?.users ?? json.data ?? []
-        setResults(users.filter((u: UserResult) => !selected.has(u.id)))
+        setResults(users.filter((u: InlineUserResult) => !selected.has(u.id)))
       }
     } finally {
       setSearching(false)
     }
   }
 
-  function getUserName(u: UserResult): string {
+  function handleSearch(query: string) {
+    setSearch(query)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => fetchUsers(query), 200)
+  }
+
+  function getUserName(u: InlineUserResult): string {
     return `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
   }
 
-  function getUserMeta(u: UserResult): string {
+  function getUserMeta(u: InlineUserResult): string {
     const parts: string[] = []
     if (u.jobTitle) parts.push(u.jobTitle)
     if (u.userRole?.name) parts.push(u.userRole.name)
@@ -311,6 +328,7 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between px-3 py-1.5 group">
       <button
+        type="button"
         onClick={onToggle}
         className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
       >
@@ -321,6 +339,7 @@ function SectionHeader({
         {label}
       </button>
       <button
+        type="button"
         onClick={onAdd}
         className="p-0.5 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 cursor-pointer rounded transition-all"
         title={addTitle}
@@ -335,8 +354,10 @@ function SectionHeader({
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function ChannelList({ activeChannelId, onSelectChannel, onCompose }: ChannelListProps) {
+export default function ChannelList({ activeChannelId, onSelectChannel, onCompose, onBrowseChannels }: ChannelListProps) {
   const { data: channels, isLoading } = useChannels()
+  const { user, orgId } = useAuth()
+  const typingMap = useSidebarTyping(orgId || '', user?.id || '')
   const [showCreateChannel, setShowCreateChannel] = useState(false)
   const [showNewDM, setShowNewDM] = useState(false)
   const [channelsCollapsed, setChannelsCollapsed] = useState(false)
@@ -359,10 +380,23 @@ export default function ChannelList({ activeChannelId, onSelectChannel, onCompos
     return { channels: channelGroup, dms: dmGroup }
   }, [channels])
 
+  const queryClient = useQueryClient()
+
   function handleCreated(ch: ShapedChannel) {
     onSelectChannel(ch.id)
     setShowCreateChannel(false)
     setShowNewDM(false)
+  }
+
+  function handleCloseDM(closedId: string) {
+    queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+    // If we're viewing the closed chat, navigate to the next DM (or clear)
+    if (closedId === activeChannelId) {
+      const remaining = grouped.dms.filter((ch) => ch.id !== closedId)
+      const nextId = remaining[0]?.id ?? ''
+      onSelectChannel(nextId)
+      window.history.replaceState(null, '', nextId ? `/messaging?channel=${nextId}` : '/messaging')
+    }
   }
 
   if (isLoading) {
@@ -415,17 +449,29 @@ export default function ChannelList({ activeChannelId, onSelectChannel, onCompos
                 channel={ch}
                 isActive={ch.id === activeChannelId}
                 onSelect={onSelectChannel}
+                typingNames={typingMap.get(ch.id)}
               />
             ))
           ) : !showCreateChannel ? (
             <button
               onClick={() => setShowCreateChannel(true)}
-              className="flex items-center gap-2 px-3 py-1.5 mx-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded cursor-pointer transition-colors w-[calc(100%-1rem)]"
+              className="flex items-center gap-2.5 px-3 py-2 mx-2 text-[13px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors w-[calc(100%-1rem)]"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-4 h-4" />
               Add a channel
             </button>
           ) : null
+        )}
+
+        {/* Browse channels */}
+        {!channelsCollapsed && onBrowseChannels && (
+          <button
+            onClick={onBrowseChannels}
+            className="flex items-center gap-2.5 px-3 py-2 mx-2 text-[13px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors w-[calc(100%-1rem)]"
+          >
+            <Compass className="w-4 h-4" />
+            Browse channels
+          </button>
         )}
 
         {/* Direct Messages section */}
@@ -453,14 +499,16 @@ export default function ChannelList({ activeChannelId, onSelectChannel, onCompos
                   channel={ch}
                   isActive={ch.id === activeChannelId}
                   onSelect={onSelectChannel}
+                  onClose={handleCloseDM}
+                  typingNames={typingMap.get(ch.id)}
                 />
               ))
             ) : !showNewDM ? (
               <button
                 onClick={() => onCompose ? onCompose() : setShowNewDM(true)}
-                className="flex items-center gap-2 px-3 py-1.5 mx-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded cursor-pointer transition-colors w-[calc(100%-1rem)]"
+                className="flex items-center gap-2.5 px-3 py-2 mx-2 text-[13px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors w-[calc(100%-1rem)]"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-4 h-4" />
                 Start a conversation
               </button>
             ) : null

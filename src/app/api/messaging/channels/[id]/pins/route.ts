@@ -45,11 +45,15 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
 
   const db = prisma as unknown as OrgPrismaClient
 
-  // T-27-04: Verify requesting user is a channel member
+  // T-27-04: Verify requesting user is a channel member (or auto-join public)
   const membership = await db.channelMember.findUnique({
     where: { channelId_userId: { channelId: params.id, userId: ctx.userId } },
   })
-  if (!membership) throw new Error('Channel not found')
+  if (!membership) {
+    // Allow public channels — return empty pins rather than blocking
+    const ch = await db.channel.findUnique({ where: { id: params.id }, select: { type: true } } as Record<string, unknown>) as { type: string } | null
+    if (ch?.type !== 'PUBLIC') throw new Error('Channel not found')
+  }
 
   const messages = await db.message.findMany({
     where: {

@@ -60,7 +60,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-full right-0 mb-2 z-50 ui-glass-dropdown rounded-xl shadow-lg"
+      className="ui-glass-dropdown rounded-xl shadow-lg"
     >
       {PickerComponent && emojiData ? (
         <PickerComponent

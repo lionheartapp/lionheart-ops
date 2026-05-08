@@ -91,11 +91,32 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
         body: JSON.stringify({ userId: user.id }),
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        const data = await res.json()
         alert(data.error?.message || 'Failed to impersonate')
         setImpersonating(null)
         return
+      }
+
+      // Write target user's data to localStorage BEFORE reload so the
+      // optimistic sidebar rendering uses the impersonated user's role/team
+      // instead of the admin's stale values.
+      const targetUser = data.data?.user
+      if (targetUser) {
+        // Save admin name before overwriting
+        localStorage.setItem('admin-name', localStorage.getItem('user-name') || '')
+        localStorage.setItem('is-impersonating', 'true')
+        // Overwrite with target user's data
+        localStorage.setItem('user-name', targetUser.name || '')
+        localStorage.setItem('user-email', targetUser.email || '')
+        localStorage.setItem('user-avatar', targetUser.avatar || '')
+        localStorage.setItem('user-role', targetUser.role || '')
+        localStorage.setItem('user-team', targetUser.team || '')
+        localStorage.setItem('user-team-slugs', JSON.stringify(targetUser.teamSlugs || []))
+        const campusScope = targetUser.campusScope ?? targetUser.schoolScope ?? ''
+        localStorage.setItem('user-campus-scope', campusScope)
+        localStorage.setItem('user-school-scope', campusScope)
       }
 
       // Reload page to re-hydrate as the target user

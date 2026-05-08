@@ -288,6 +288,11 @@ export const POST = withAuth(async ({ req, orgId, ctx }) => {
     },
   })
 
+  // Auto-add to the General messaging channel (non-blocking)
+  import('@/lib/services/autoChannelService')
+    .then(({ addUserToGeneralChannel }) => addUserToGeneralChannel(user.id, orgId))
+    .catch(() => {}) // Non-fatal
+
   await passwordSetupTokenModel.create({
     data: {
       userId: user.id,

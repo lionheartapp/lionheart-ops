@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X, CheckSquare, Clock } from 'lucide-react'
+import { Bell, Calendar, UserPlus, CheckCircle, XCircle, Trash2, X, CheckSquare, Clock, MessageSquare, AtSign } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { badgePop } from '@/lib/animations'
@@ -20,8 +20,18 @@ interface NotificationData {
   createdAt: string
 }
 
+const MESSAGE_TYPES = new Set(['messaging_dm', 'messaging_mention'])
+
+function isMessageNotification(type: string): boolean {
+  return MESSAGE_TYPES.has(type)
+}
+
 function getNotificationIcon(type: string) {
   switch (type) {
+    case 'messaging_dm':
+      return <MessageSquare className="w-4 h-4 text-primary-500" />
+    case 'messaging_mention':
+      return <AtSign className="w-4 h-4 text-primary-500" />
     case 'event_updated':
       return <Calendar className="w-4 h-4 text-blue-500" />
     case 'event_deleted':
@@ -40,6 +50,8 @@ function getNotificationIcon(type: string) {
       return <Bell className="w-4 h-4 text-slate-500" />
   }
 }
+
+type NotificationFilter = 'all' | 'messages' | 'system'
 
 function timeAgo(dateStr: string): string {
   const now = Date.now()
@@ -68,6 +80,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
   const queryClient = useQueryClient()
   const [shouldShow, setShouldShow] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [filter, setFilter] = useState<NotificationFilter>('all')
 
   // Notification list — only fetch when drawer is open
   const { data: listData } = useQuery<{ notifications: NotificationData[]; nextCursor: string | null }>({
@@ -98,7 +111,15 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
     },
   })
 
-  const unreadInList = notifications.filter(n => !n.isRead).length
+  const filteredNotifications = notifications.filter((n) => {
+    if (filter === 'messages') return isMessageNotification(n.type)
+    if (filter === 'system') return !isMessageNotification(n.type)
+    return true
+  })
+
+  const messageUnread = notifications.filter((n) => !n.isRead && isMessageNotification(n.type)).length
+  const systemUnread = notifications.filter((n) => !n.isRead && !isMessageNotification(n.type)).length
+  const unreadInList = messageUnread + systemUnread
 
   const handleClose = useCallback(() => {
     setShouldShow(false)
@@ -186,15 +207,45 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
           </div>
         </div>
 
+        {/* Filter tabs */}
+        <div className="flex gap-1 px-6 pb-3 flex-shrink-0">
+          {([
+            { key: 'all' as const, label: 'All', count: unreadInList },
+            { key: 'messages' as const, label: 'Messages', count: messageUnread },
+            { key: 'system' as const, label: 'System', count: systemUnread },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                filter === tab.key
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold rounded-full ${
+                  filter === tab.key ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {tab.count > 9 ? '9+' : tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Notification list — scrollable */}
         <div className="flex-1 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {filteredNotifications.length === 0 ? (
             <div className="py-16 text-center">
               <Bell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-400">No notifications</p>
+              <p className="text-sm text-slate-400">
+                {filter === 'messages' ? 'No messages' : filter === 'system' ? 'No system notifications' : 'No notifications'}
+              </p>
             </div>
           ) : (
-            notifications.map((n) => (
+            filteredNotifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => handleNotificationClick(n)}
@@ -230,7 +281,7 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
         {/* Footer */}
         <div className="flex-shrink-0 border-t border-slate-100 px-6 py-3">
           <span className="text-xs text-slate-400">
-            {notifications.length === 0 ? "You're all caught up" : `${notifications.length} notification${notifications.length !== 1 ? 's' : ''}`}
+            {filteredNotifications.length === 0 ? "You're all caught up" : `${filteredNotifications.length} notification${filteredNotifications.length !== 1 ? 's' : ''}`}
           </span>
         </div>
       </div>
@@ -244,7 +295,8 @@ export function useUnreadCount() {
   const { data } = useQuery<{ count: number }>({
     queryKey: queryKeys.notifications.unreadCount,
     queryFn: () => fetchApi('/api/notifications/unread-count'),
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   })
   return data?.count ?? 0
 }

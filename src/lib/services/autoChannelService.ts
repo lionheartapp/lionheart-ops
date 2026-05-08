@@ -12,6 +12,9 @@
 
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { getOrgContextId } from '@/lib/org-context'
+import { logger } from '@/lib/logger'
+
+const log = logger.child({ service: 'autoChannelService' })
 
 const db = prisma as unknown as OrgPrismaClient
 
@@ -277,5 +280,104 @@ export async function syncSchoolMembers(
     }).delete({
       where: { id: member.id },
     })
+  }
+}
+
+// ─── General Channel ───────────────────────────────────────────────────────
+
+const GENERAL_SLUG = 'general'
+const GENERAL_NAME = 'General'
+const GENERAL_DESC = 'Company-wide announcements'
+
+/**
+ * Ensure the "General" channel exists for an org and all active users are members.
+ * Called when the messaging module is first enabled. Idempotent.
+ */
+export async function ensureGeneralChannel(orgId: string): Promise<string> {
+  try {
+    const { getOrCreateBotUser } = await import('@/lib/services/systemBotService')
+    const botUserId = await getOrCreateBotUser(orgId)
+
+    // Find or create the General channel
+    let channel = await rawPrisma.channel.findFirst({
+      where: { organizationId: orgId, slug: GENERAL_SLUG, deletedAt: null },
+      select: { id: true, name: true },
+    })
+
+    if (!channel) {
+      channel = await rawPrisma.channel.create({
+        data: {
+          organizationId: orgId,
+          name: GENERAL_NAME,
+          slug: GENERAL_SLUG,
+          type: 'PUBLIC',
+          description: GENERAL_DESC,
+          createdById: botUserId,
+        },
+        select: { id: true, name: true },
+      })
+    } else if (channel.name !== GENERAL_NAME) {
+      // Fix casing if it was created as lowercase "general"
+      await rawPrisma.channel.update({
+        where: { id: channel.id },
+        data: { name: GENERAL_NAME },
+      })
+    }
+
+    // Get all active users in the org
+    const activeUsers = await rawPrisma.user.findMany({
+      where: { organizationId: orgId, status: 'ACTIVE', deletedAt: null },
+      select: { id: true },
+    })
+
+    // Get existing channel members
+    const existingMembers = await rawPrisma.channelMember.findMany({
+      where: { channelId: channel.id },
+      select: { userId: true },
+    })
+    const existingIds = new Set(existingMembers.map((m) => m.userId))
+
+    // Add missing users (including bot)
+    const allUserIds = [...activeUsers.map((u) => u.id), botUserId]
+    const toAdd = allUserIds.filter((id) => !existingIds.has(id))
+
+    if (toAdd.length > 0) {
+      await rawPrisma.channelMember.createMany({
+        data: toAdd.map((userId) => ({
+          organizationId: orgId,
+          channelId: channel!.id,
+          userId,
+          role: 'member',
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    return channel.id
+  } catch (error) {
+    log.error({ err: String(error), orgId }, 'Failed to ensure General channel')
+    throw error
+  }
+}
+
+/**
+ * Add a single user to the General channel. Called when a new user is created.
+ * Non-fatal: errors are logged but never thrown.
+ */
+export async function addUserToGeneralChannel(userId: string, orgId: string): Promise<void> {
+  try {
+    const channel = await rawPrisma.channel.findFirst({
+      where: { organizationId: orgId, slug: GENERAL_SLUG, deletedAt: null },
+      select: { id: true },
+    })
+    if (!channel) return // General channel doesn't exist yet — will be added on next sync
+
+    await rawPrisma.channelMember.upsert({
+      where: { channelId_userId: { channelId: channel.id, userId } },
+      create: { organizationId: orgId, channelId: channel.id, userId, role: 'member' },
+      update: {},
+    })
+  } catch (error) {
+    log.error({ err: String(error), userId, orgId }, 'Failed to add user to General channel')
   }
 }

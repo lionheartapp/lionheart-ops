@@ -16,6 +16,8 @@ import type { MessageWithAuthor } from '@/lib/services/messageService'
 import MessageList from './MessageList'
 import ChannelHeader from './ChannelHeader'
 import Composer from './Composer'
+import MembersPanel from './MembersPanel'
+import PinnedMessagesPanel from './PinnedMessagesPanel'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -25,6 +27,7 @@ interface MessageAreaProps {
   channelId: string
   onThreadClick: (messageId: string, message?: MessageWithAuthor) => void
   onSearchClick?: () => void
+  onAddPerson?: (userId: string) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -74,9 +77,11 @@ function TypingIndicator({ names }: { names: string[] }) {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function MessageArea({ channelId, onThreadClick, onSearchClick }: MessageAreaProps) {
+export default function MessageArea({ channelId, onThreadClick, onSearchClick, onAddPerson }: MessageAreaProps) {
   const { user, orgId } = useAuth()
   const queryClient = useQueryClient()
+  const [showMembers, setShowMembers] = useState(false)
+  const [showPinned, setShowPinned] = useState(false)
   const currentUserId = user.id
   const currentDisplayName = user.name
 
@@ -189,6 +194,48 @@ export default function MessageArea({ channelId, onThreadClick, onSearchClick }:
     [combinedMessages, channelId, queryClient],
   )
 
+  // Edit message — sets editingId, the MessageBubble renders inline editor
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  const handleEdit = useCallback((messageId: string) => {
+    setEditingId(messageId)
+  }, [])
+
+  const handleEditSave = useCallback(
+    async (messageId: string, newContent: string) => {
+      try {
+        await fetch(`/api/messaging/messages/${messageId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ content: newContent }),
+        })
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] })
+      } catch { /* silent */ }
+      setEditingId(null)
+    },
+    [channelId, queryClient],
+  )
+
+  const handleEditCancel = useCallback(() => {
+    setEditingId(null)
+  }, [])
+
+  // Delete message
+  const handleDelete = useCallback(
+    async (messageId: string) => {
+      // Confirmation is handled in the MessageBubble dropdown
+      try {
+        await fetch(`/api/messaging/messages/${messageId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] })
+      } catch { /* silent */ }
+    },
+    [channelId, queryClient],
+  )
+
   // Mute toggle
   const { data: channel } = useChannel(channelId)
   const isMuted = useMemo(() => {
@@ -222,30 +269,60 @@ export default function MessageArea({ channelId, onThreadClick, onSearchClick }:
   }, [fetchNextPage])
 
   return (
-    <div className="flex-1 flex flex-col h-full relative">
-      <ChannelHeader
-        channelId={channelId}
-        currentUserId={currentUserId}
-        onMuteToggle={handleMuteToggle}
-        isMuted={isMuted}
-        onSearchClick={onSearchClick}
-      />
-      <MessageList
-        messages={combinedMessages}
-        isLoading={isLoading}
-        hasMore={hasNextPage}
-        isFetchingMore={isFetchingNextPage}
-        onLoadMore={handleLoadMore}
-        onThreadClick={onThreadClick}
-        currentUserId={currentUserId}
-        reactionsMap={reactionsMap}
-        onReactionToggle={handleReactionToggle}
-        onPin={handlePin}
-        channelName={channel?.name}
-        channelType={channel?.type}
-      />
-      <TypingIndicator names={typingNames} />
-      <Composer channelId={channelId} />
+    <div className="flex-1 flex min-h-0 h-full relative">
+      {/* Main message column */}
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+        <ChannelHeader
+          channelId={channelId}
+          currentUserId={currentUserId}
+          onMuteToggle={handleMuteToggle}
+          isMuted={isMuted}
+          onSearchClick={onSearchClick}
+          onAddPerson={onAddPerson}
+          onToggleMembers={() => setShowMembers((prev) => !prev)}
+          showMembers={showMembers}
+          onTogglePinned={() => setShowPinned((prev) => !prev)}
+          showPinnedPanel={showPinned}
+        />
+        <MessageList
+          messages={combinedMessages}
+          isLoading={isLoading}
+          hasMore={hasNextPage}
+          isFetchingMore={isFetchingNextPage}
+          onLoadMore={handleLoadMore}
+          onThreadClick={onThreadClick}
+          currentUserId={currentUserId}
+          reactionsMap={reactionsMap}
+          onReactionToggle={handleReactionToggle}
+          onPin={handlePin}
+          onEdit={handleEdit}
+          onEditSave={handleEditSave}
+          onEditCancel={handleEditCancel}
+          editingId={editingId}
+          onDelete={handleDelete}
+          channelName={channel?.name}
+          channelType={channel?.type}
+        />
+        <TypingIndicator names={typingNames} />
+        <Composer channelId={channelId} />
+      </div>
+
+      {/* Side panels — only one at a time */}
+      {showMembers && (
+        <MembersPanel
+          channelId={channelId}
+          onClose={() => setShowMembers(false)}
+          onLeave={() => {
+            queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+          }}
+        />
+      )}
+      {showPinned && !showMembers && (
+        <PinnedMessagesPanel
+          channelId={channelId}
+          onClose={() => setShowPinned(false)}
+        />
+      )}
     </div>
   )
 }

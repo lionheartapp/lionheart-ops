@@ -38,7 +38,7 @@ export default function PinnedMessagesPanel({ channelId, onClose }: PinnedMessag
   const { data: pinnedMessages, isLoading } = usePinnedMessages(channelId)
 
   return (
-    <div className="w-80 bg-white border-l border-slate-200 flex flex-col h-full">
+    <div className="w-80 bg-white border-l border-slate-200 flex flex-col h-full shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 flex-shrink-0">
         <div className="flex items-center gap-2">

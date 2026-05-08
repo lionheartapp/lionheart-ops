@@ -641,7 +641,7 @@ function EventsEmptyState({ onCreateEvent, onClearFilter, filterLabel }: EventsE
 // ─── Stats Row (2 cards, role-aware) ─────────────────────────────────────────
 
 function StatsRow({ isAdmin }: { isAdmin: boolean }) {
-  const { stats, isLoadingRaw } = useEventDashboard()
+  const { stats, isLoadingRaw } = useEventDashboard(isAdmin)
 
   if (isLoadingRaw) return <StatsSkeleton />
 

@@ -402,13 +402,23 @@ export interface DashboardStats {
  * Derives summary stats from a list of action items.
  * Also fetches the total active event count separately.
  */
-export async function getDashboardStats(items: RawActionItem[]): Promise<DashboardStats> {
+export async function getDashboardStats(items: RawActionItem[], userId?: string): Promise<DashboardStats> {
   const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   const now = new Date()
 
   const totalActiveEvents = await db.eventProject.count({
-    where: { status: { in: ['CONFIRMED', 'IN_PROGRESS', 'PENDING_APPROVAL'] } },
+    where: {
+      status: { in: ['CONFIRMED', 'IN_PROGRESS', 'PENDING_APPROVAL'] },
+      ...(userId ? { createdById: userId } : {}),
+    },
   })
+
+  // When scoped to a user, count their own pending-approval events directly
+  const pendingApprovals = userId
+    ? await db.eventProject.count({
+        where: { status: 'PENDING_APPROVAL', createdById: userId },
+      })
+    : items.filter((i) => i.type === 'pending_approval').length
 
   return {
     totalActiveEvents,
@@ -420,6 +430,6 @@ export async function getDashboardStats(items: RawActionItem[]): Promise<Dashboa
         i.dueDate >= now &&
         i.dueDate <= sevenDaysFromNow,
     ).length,
-    pendingApprovals: items.filter((i) => i.type === 'pending_approval').length,
+    pendingApprovals,
   }
 }

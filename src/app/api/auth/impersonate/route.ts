@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         campusScope: true,
         userRole: { select: { name: true } },
         teams: {
-          select: { team: { select: { name: true } } },
+          select: { team: { select: { name: true, slug: true } } },
         },
       },
     })
@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
     })
 
     const teamNames = target.teams?.map((t: any) => t.team.name).filter(Boolean) || []
+    const teamSlugs = target.teams?.map((t: any) => t.team.slug).filter(Boolean) || []
 
     // Audit log
     void audit({
@@ -113,6 +114,7 @@ export async function POST(req: NextRequest) {
         avatar: target.avatar ?? null,
         role: target.userRole?.name ?? null,
         team: teamNames[0] ?? null,
+        teamSlugs,
         campusScope: target.campusScope ?? null,
         // Backward-compat alias — remove once clients are migrated
         schoolScope: target.campusScope ?? null,
@@ -183,9 +185,9 @@ export async function DELETE(req: NextRequest) {
 
     log.info({ adminId: admin.id }, 'Impersonation ended')
 
-    const firstMembership = await rawPrisma.userTeam.findFirst({
+    const teamMemberships = await rawPrisma.userTeam.findMany({
       where: { userId: admin.id },
-      select: { team: { select: { name: true } } },
+      select: { team: { select: { name: true, slug: true } } },
     })
 
     const response = NextResponse.json(ok({
@@ -195,7 +197,8 @@ export async function DELETE(req: NextRequest) {
         name: admin.name || 'User',
         avatar: admin.avatar ?? null,
         role: admin.userRole?.name ?? null,
-        team: firstMembership?.team?.name ?? null,
+        team: teamMemberships[0]?.team?.name ?? null,
+        teamSlugs: teamMemberships.map((m) => m.team.slug),
         campusScope: admin.campusScope ?? null,
         // Backward-compat alias — remove once clients are migrated
         schoolScope: admin.campusScope ?? null,

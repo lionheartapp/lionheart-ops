@@ -59,9 +59,13 @@ export function useSendMessage(channelId: string) {
 
   const mutation = useMutation({
     mutationFn: (input: SendMessageInput) => postMessage(channelId, input),
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
       queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] })
       queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+      // Also invalidate thread queries if this was a thread reply
+      if (input.parentId) {
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'thread', channelId, input.parentId] })
+      }
     },
   })
 

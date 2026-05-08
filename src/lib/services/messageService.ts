@@ -151,11 +151,18 @@ export async function sendMessage(
 ): Promise<MessageWithAuthor> {
   const db = prisma as unknown as OrgPrismaClient
 
-  // T-24-07: Verify user is a member of this channel
-  const membership = await db.channelMember.findUnique({
+  // T-24-07: Verify membership — auto-join PUBLIC channels on first access
+  let membership = await db.channelMember.findUnique({
     where: { channelId_userId: { channelId, userId } },
   })
-  if (!membership) throw new Error('Not a member of this channel')
+  if (!membership) {
+    const ch = await db.channel.findUnique({ where: { id: channelId }, select: { type: true } } as Record<string, unknown>) as { type: string } | null
+    if (ch?.type === 'PUBLIC') {
+      membership = await db.channelMember.create({ data: { channelId, userId, role: 'member' } } as Record<string, unknown>) as typeof membership
+    } else {
+      throw new Error('Not a member of this channel')
+    }
+  }
 
   // T-24-12: If replying to a thread, verify parent exists in same channel
   if (input.parentId) {
@@ -394,11 +401,18 @@ export async function getMessages(
 ): Promise<{ messages: MessageWithAuthor[]; hasMore: boolean; cursor: string | null }> {
   const db = prisma as unknown as OrgPrismaClient
 
-  // T-24-07: Verify user is a member of this channel
-  const membership = await db.channelMember.findUnique({
+  // T-24-07: Verify membership — auto-join PUBLIC channels on first access
+  let membership = await db.channelMember.findUnique({
     where: { channelId_userId: { channelId, userId } },
   })
-  if (!membership) throw new Error('Not a member of this channel')
+  if (!membership) {
+    const ch = await db.channel.findUnique({ where: { id: channelId }, select: { type: true } } as Record<string, unknown>) as { type: string } | null
+    if (ch?.type === 'PUBLIC') {
+      membership = await db.channelMember.create({ data: { channelId, userId, role: 'member' } } as Record<string, unknown>) as typeof membership
+    } else {
+      throw new Error('Not a member of this channel')
+    }
+  }
 
   // Build cursor condition based on before/after
   let cursorCondition: Record<string, unknown> = {}

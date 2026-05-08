@@ -31,11 +31,25 @@ export default function ImpersonationBanner() {
         headers,
       })
 
+      const data = await res.json()
       if (!res.ok) {
         throw new Error('Failed to end impersonation')
       }
 
-      // Clear impersonation state and reload to re-hydrate as admin
+      // Write admin's data to localStorage before reload so the
+      // optimistic sidebar uses the correct role/team immediately
+      const adminUser = data.data?.user
+      if (adminUser) {
+        localStorage.setItem('user-name', adminUser.name || '')
+        localStorage.setItem('user-email', adminUser.email || '')
+        localStorage.setItem('user-avatar', adminUser.avatar || '')
+        localStorage.setItem('user-role', adminUser.role || '')
+        localStorage.setItem('user-team', adminUser.team || '')
+        localStorage.setItem('user-team-slugs', JSON.stringify(adminUser.teamSlugs || []))
+        const campusScope = adminUser.campusScope ?? adminUser.schoolScope ?? ''
+        localStorage.setItem('user-campus-scope', campusScope)
+        localStorage.setItem('user-school-scope', campusScope)
+      }
       localStorage.removeItem('is-impersonating')
       localStorage.removeItem('admin-name')
       window.location.reload()

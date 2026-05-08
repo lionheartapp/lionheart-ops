@@ -86,6 +86,16 @@ export async function POST(req: NextRequest) {
         Sentry.captureException(err)
       })
 
+      // When messaging is enabled, ensure the General channel exists with all users
+      if (input.moduleId === 'messaging') {
+        import('@/lib/services/autoChannelService')
+          .then(({ ensureGeneralChannel }) => ensureGeneralChannel(orgId))
+          .catch((err) => {
+            log.error({ err }, 'Failed to ensure General channel')
+            Sentry.captureException(err)
+          })
+      }
+
       return NextResponse.json(ok(mod), { status: 200 })
     } else {
       await rawPrisma.tenantModule.deleteMany({ where: whereFilter })
@@ -99,8 +109,10 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && (error.message.includes('Insufficient permissions') || error.message.includes('Permission denied'))) {
       return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to perform this action'), { status: 403 })
     }
+    console.error('[modules POST] Full error:', error)
     log.error({ err: error }, 'Failed to toggle module')
     Sentry.captureException(error)
-    return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to toggle module'), { status: 500 })
+    const msg = error instanceof Error ? error.message : String(error)
+    return NextResponse.json(fail('INTERNAL_ERROR', `Failed to toggle module: ${msg}`), { status: 500 })
   }
 }

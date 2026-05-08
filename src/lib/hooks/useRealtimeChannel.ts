@@ -80,6 +80,7 @@ export function useRealtimeChannel(
   const [error, setError] = useState<string | null>(null)
 
   const channelRef = useRef<RealtimeChannel | null>(null)
+  const sidebarChannelRef = useRef<RealtimeChannel | null>(null)
   const cleanedUpRef = useRef(false)
   const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const lastTypingSentRef = useRef(0)
@@ -88,6 +89,8 @@ export function useRealtimeChannel(
 
   // -----------------------------------------------------------------------
   // sendTypingIndicator — debounced to once every 3 seconds (D-10)
+  // Also broadcasts to org-wide sidebar typing topic so the channel list
+  // can show "typing…" beneath conversations.
   // -----------------------------------------------------------------------
   const sendTypingIndicator = useCallback(() => {
     const now = Date.now()
@@ -97,16 +100,22 @@ export function useRealtimeChannel(
     lastTypingSentRef.current = now
     lastActivityRef.current = now
 
+    const typingPayload = { userId: currentUserId, displayName: currentDisplayName }
+
+    // Broadcast to the per-channel topic (for MessageArea)
     channelRef.current
-      .send({
+      .send({ type: 'broadcast', event: 'typing', payload: typingPayload })
+      .catch(() => { /* Non-fatal */ })
+
+    // Broadcast to the org-wide sidebar topic (for ChannelList)
+    sidebarChannelRef.current
+      ?.send({
         type: 'broadcast',
         event: 'typing',
-        payload: { userId: currentUserId, displayName: currentDisplayName },
+        payload: { ...typingPayload, channelId },
       })
-      .catch(() => {
-        // Non-fatal: typing is ephemeral
-      })
-  }, [currentUserId, currentDisplayName])
+      .catch(() => { /* Non-fatal */ })
+  }, [currentUserId, currentDisplayName, channelId])
 
   // -----------------------------------------------------------------------
   // Channel subscription effect
@@ -234,6 +243,9 @@ export function useRealtimeChannel(
     })
 
     channelRef.current = channel
+
+    // Grab the sidebar typing channel (may already be subscribed by useSidebarTyping)
+    sidebarChannelRef.current = supabaseClient.channel(`sidebar-typing:${orgId}`)
 
     // ------------------------------------------------------------------
     // Heartbeat: update lastActive every 60s for away detection

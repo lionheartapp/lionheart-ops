@@ -37,6 +37,8 @@ import { TemplateListDrawer } from '@/components/events/templates/TemplateListDr
 import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import PlanningSeasonWidget from '@/components/dashboard/PlanningSeasonWidget'
+import WeatherWidget from '@/components/dashboard/WeatherWidget'
+import TasksFocusWidget from '@/components/dashboard/TasksFocusWidget'
 import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
@@ -917,6 +919,11 @@ export default function DashboardPage() {
                 squeezing it from above. */}
             <OnboardingChecklistWidget />
             <PlanningSeasonWidget />
+            {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <WeatherWidget contextLabel={activeSchool?.name} />
+              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} />
+            </div>
             <div className="flex-1 min-h-0">
               <UpcomingEventsPanel
                 items={upcomingItems}
@@ -940,6 +947,11 @@ export default function DashboardPage() {
         <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
           <OnboardingChecklistWidget />
           <PlanningSeasonWidget />
+          {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <WeatherWidget contextLabel={activeSchool?.name} />
+            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} />
+          </div>
           <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
           {/* Sticky header — stays pinned while events scroll */}
           <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>

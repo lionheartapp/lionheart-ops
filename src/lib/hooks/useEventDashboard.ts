@@ -35,17 +35,19 @@ export const EVENT_DASHBOARD_KEYS = {
  *
  * UI renders rawItems first, then swaps to scoredItems when available.
  */
-export function useEventDashboard() {
+export function useEventDashboard(isAdmin = true) {
+  const createdByParam = isAdmin ? '' : '&createdBy=me'
+
   const rawQuery = useQuery<DashboardResponse>({
-    queryKey: EVENT_DASHBOARD_KEYS.raw,
-    queryFn: () => fetchApi<DashboardResponse>('/api/events/dashboard?skipAI=true'),
+    queryKey: [...EVENT_DASHBOARD_KEYS.raw, isAdmin ? 'all' : 'mine'],
+    queryFn: () => fetchApi<DashboardResponse>(`/api/events/dashboard?skipAI=true${createdByParam}`),
     staleTime: 0,
     gcTime: 5 * 60_000,
   })
 
   const scoredQuery = useQuery<DashboardResponse>({
-    queryKey: EVENT_DASHBOARD_KEYS.scored,
-    queryFn: () => fetchApi<DashboardResponse>('/api/events/dashboard'),
+    queryKey: [...EVENT_DASHBOARD_KEYS.scored, isAdmin ? 'all' : 'mine'],
+    queryFn: () => fetchApi<DashboardResponse>(isAdmin ? '/api/events/dashboard' : '/api/events/dashboard?createdBy=me'),
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     enabled: rawQuery.isSuccess,

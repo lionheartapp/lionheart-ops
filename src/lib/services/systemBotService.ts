@@ -67,6 +67,14 @@ export async function postToChannel(
 ): Promise<void> {
   try {
     const botUserId = await getOrCreateBotUser(orgId)
+
+    // Ensure bot is a member of the channel (upsert to avoid duplicates)
+    await rawPrisma.channelMember.upsert({
+      where: { channelId_userId: { channelId, userId: botUserId } },
+      create: { channelId, userId: botUserId, organizationId: orgId, role: 'member' },
+      update: {},
+    })
+
     await runWithOrgContext(orgId, async () => {
       await sendMessage(channelId, botUserId, { content })
     })

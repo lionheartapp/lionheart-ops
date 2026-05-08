@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Hash, Lock, BellOff, X } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import type { ShapedChannel } from '@/lib/hooks/useChannels'
@@ -9,6 +9,8 @@ interface ChannelListItemProps {
   channel: ShapedChannel
   isActive: boolean
   onSelect: (channelId: string) => void
+  onClose?: (channelId: string) => void
+  typingNames?: string[]
 }
 
 /**
@@ -54,8 +56,9 @@ function getDMDisplayName(channel: ShapedChannel, currentUserId: string | null):
   return `${names.slice(0, 4).join(', ')}, ...`
 }
 
-export default function ChannelListItem({ channel, isActive, onSelect }: ChannelListItemProps) {
+export default function ChannelListItem({ channel, isActive, onSelect, onClose, typingNames }: ChannelListItemProps) {
   const { user } = useAuth()
+  const [hidden, setHidden] = useState(false)
   const currentUserId = user?.id ?? null
   const isDM = channel.type === 'DM' || channel.type === 'GROUP_DM'
   const displayName = isDM ? getDMDisplayName(channel, currentUserId) : channel.name
@@ -66,17 +69,12 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
     return channel.members.some((m) => !!m.mutedAt)
   }, [channel.members])
 
-  // Compute unread count from the current user's membership
+  // Compute unread count — suppress for the active channel
   const unreadCount = useMemo(() => {
-    if (!channel.members) return 0
-    return channel.members.reduce((sum, m) => sum + (m.unreadCount ?? 0), 0)
-  }, [channel.members])
-
-  const lastMessagePreview = channel.lastMessage?.content
-    ? channel.lastMessage.content.length > 50
-      ? channel.lastMessage.content.slice(0, 50) + '...'
-      : channel.lastMessage.content
-    : null
+    if (isActive || !channel.members || !currentUserId) return 0
+    const self = channel.members.find((m) => m.userId === currentUserId)
+    return self?.unreadCount ?? 0
+  }, [isActive, channel.members, currentUserId])
 
   const timestamp = channel.lastMessage?.createdAt
     ? relativeTime(channel.lastMessage.createdAt)
@@ -93,34 +91,45 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
     return initial
   }, [isDM, channel.members, currentUserId])
 
+  if (hidden) return null
+
   return (
-    <div className="group/item relative">
-    <button
-      onClick={() => onSelect(channel.id)}
-      className={`w-full flex items-center gap-3 px-3 py-3 min-h-[56px] cursor-pointer transition-colors duration-200 ${
+    <div
+      className={`group/item relative flex items-center gap-3 px-3 py-3 min-h-[56px] cursor-pointer transition-colors duration-200 ${
         isActive
           ? 'bg-primary-50 border-l-2 border-primary-500'
           : 'border-l-2 border-transparent hover:bg-white/50'
       } ${isMuted ? 'opacity-50' : ''}`}
+      onClick={() => onSelect(channel.id)}
+      role="button"
+      tabIndex={0}
+      aria-selected={isActive}
+      aria-label={displayName}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(channel.id) } }}
     >
       {/* Icon / Avatar */}
-      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-        {isDM ? (
-          typeof dmAvatar === 'string' && dmAvatar.length > 1 ? (
-            <img
-              src={dmAvatar}
-              alt=""
-              className="w-8 h-8 rounded-full object-cover"
-            />
+      <div className="relative w-8 h-8 flex-shrink-0">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center">
+          {isDM ? (
+            typeof dmAvatar === 'string' && dmAvatar.length > 1 ? (
+              <img
+                src={dmAvatar}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-xs font-semibold text-primary-700">
+                {dmAvatar || 'U'}
+              </div>
+            )
+          ) : channel.type === 'PRIVATE' ? (
+            <Lock className="w-4 h-4 text-slate-400" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-xs font-semibold text-primary-700">
-              {dmAvatar || 'U'}
-            </div>
-          )
-        ) : channel.type === 'PRIVATE' ? (
-          <Lock className="w-4 h-4 text-slate-400" />
-        ) : (
-          <Hash className="w-4 h-4 text-slate-400" />
+            <Hash className="w-4 h-4 text-slate-400" />
+          )}
+        </div>
+        {unreadCount > 0 && !isMuted && (
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary-500 border-2 border-white rounded-full" />
         )}
       </div>
 
@@ -134,48 +143,52 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
           >
             {displayName}
           </span>
-          {timestamp && (
-            <span className="text-xs text-slate-400 flex-shrink-0">{timestamp}</span>
-          )}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Timestamp — hidden on hover when close button shows */}
+            {timestamp && (
+              <span className={`text-xs text-slate-400 ${isDM ? 'group-hover/item:hidden' : ''}`}>{timestamp}</span>
+            )}
+            {/* Close DM — replaces timestamp on hover */}
+            {isDM && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setHidden(true)
+                  fetch(`/api/messaging/channels/${channel.id}/hide`, {
+                    method: 'POST',
+                    credentials: 'include',
+                  }).then((res) => {
+                    if (!res.ok) setHidden(false) // rollback on failure
+                  }).catch(() => setHidden(false))
+                  onClose?.(channel.id)
+                }}
+                className="hidden group-hover/item:flex w-5 h-5 rounded-full items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 cursor-pointer transition-all"
+                title="Close conversation"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+            {/* Unread badge */}
+            {unreadCount > 0 && !isMuted && (
+              <span className="flex items-center justify-center bg-primary-500 text-white text-xs font-medium rounded-full min-w-[20px] h-5 px-1.5">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+            {/* Muted indicator */}
+            {isMuted && (
+              <BellOff className="w-3.5 h-3.5 text-slate-400" />
+            )}
+          </div>
         </div>
+        {typingNames && typingNames.length > 0 && (
+          <p className="text-[11px] text-primary-500 italic truncate animate-pulse">
+            {typingNames.length === 1
+              ? `${typingNames[0]} is typing…`
+              : `${typingNames[0]} and ${typingNames.length - 1} other${typingNames.length > 2 ? 's' : ''} typing…`}
+          </p>
+        )}
       </div>
-
-      {/* Muted indicator */}
-      {isMuted && (
-        <BellOff className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-      )}
-
-      {/* Unread badge */}
-      {unreadCount > 0 && !isMuted && (
-        <span className="flex items-center justify-center bg-primary-500 text-white text-xs font-medium rounded-full min-w-[20px] h-5 px-1.5 flex-shrink-0">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </button>
-
-    {/* Close/leave button on hover */}
-    {isDM && (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          // Hide immediately (optimistic)
-          const el = e.currentTarget.closest('.group\\/item') as HTMLElement
-          if (el) el.style.display = 'none'
-          // Archive the DM channel so it disappears from the list
-          fetch(`/api/messaging/channels/${channel.id}`, {
-            method: 'PATCH',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ archived: true }),
-          })
-        }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 opacity-0 group-hover/item:opacity-100 cursor-pointer transition-all z-10"
-        title="Close conversation"
-      >
-        <X className="w-3 h-3" />
-      </button>
-    )}
     </div>
   )
 }

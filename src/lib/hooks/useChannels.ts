@@ -71,6 +71,8 @@ export function useChannels() {
     queryKey: ['messaging', 'channels'],
     queryFn: fetchChannels,
     staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
   })
 }
 

@@ -70,7 +70,7 @@ export default function ReactionPicker({ onSelect, onClose }: ReactionPickerProp
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-full left-0 mb-2 z-50 bg-white border border-slate-200 rounded-xl shadow-lg p-2"
+      className="bg-white border border-slate-200 rounded-xl shadow-lg p-2 w-[276px]"
     >
       <div className="grid grid-cols-8 gap-1">
         {COMMON_EMOJIS.map((emoji) => (

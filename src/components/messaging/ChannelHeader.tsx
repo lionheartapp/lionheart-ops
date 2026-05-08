@@ -6,10 +6,11 @@
  */
 
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Hash, Lock, Pin, BellOff, Bell, Users, Search, GraduationCap, UserPlus } from 'lucide-react'
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
 import { useChannel } from '@/lib/hooks/useChannels'
-import PinnedMessagesPanel from './PinnedMessagesPanel'
+import PersonSearchPanel from './PersonSearchPanel'
 
 interface ChannelHeaderProps {
   channelId: string
@@ -17,7 +18,20 @@ interface ChannelHeaderProps {
   onMuteToggle: () => void
   isMuted: boolean
   onSearchClick?: () => void
+  onAddPerson?: (userId: string) => void
+  onToggleMembers?: () => void
+  showMembers?: boolean
+  onTogglePinned?: () => void
+  showPinnedPanel?: boolean
 }
+
+// ---------------------------------------------------------------------------
+// Inline user search for add-person
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
 
 export default function ChannelHeader({
   channelId,
@@ -25,8 +39,14 @@ export default function ChannelHeader({
   onMuteToggle,
   isMuted,
   onSearchClick,
+  onAddPerson,
+  onToggleMembers,
+  showMembers,
+  onTogglePinned,
+  showPinnedPanel,
 }: ChannelHeaderProps) {
-  const [showPinned, setShowPinned] = useState(false)
+  const queryClient = useQueryClient()
+  const [showAddPerson, setShowAddPerson] = useState(false)
   const { data: pinnedMessages } = usePinnedMessages(channelId)
   const { data: channel } = useChannel(channelId)
 
@@ -34,11 +54,13 @@ export default function ChannelHeader({
   const isPrivate = channel?.type === 'PRIVATE'
   const isDM = channel?.type === 'DM' || channel?.type === 'GROUP_DM'
 
+  const existingMemberIds = new Set(channel?.members?.map((m) => m.userId) ?? [])
+
   return (
-    <>
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 flex-shrink-0 bg-white/50 backdrop-blur-sm">
+    <div className="relative flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 bg-white/50 backdrop-blur-sm">
         {/* Left: channel info */}
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="relative flex items-center gap-2 min-w-0">
           {isDM && channel?.members ? (
             <>
               <span className="text-xs text-slate-400 flex-shrink-0 font-medium">To:</span>
@@ -67,7 +89,10 @@ export default function ChannelHeader({
               </div>
               <button
                 type="button"
-                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer rounded transition-colors"
+                onClick={() => setShowAddPerson((prev) => !prev)}
+                className={`p-1 cursor-pointer rounded transition-colors ${
+                  showAddPerson ? 'text-primary-600 bg-primary-50' : 'text-slate-400 hover:text-slate-600'
+                }`}
                 title="Add people"
               >
                 <UserPlus className="w-4 h-4" />
@@ -93,55 +118,61 @@ export default function ChannelHeader({
         </div>
 
         {/* Right: actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           {/* Search */}
           {onSearchClick && (
             <button
               type="button"
               onClick={onSearchClick}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
+              className="flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
               title="Search messages (Cmd+K)"
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-[18px] h-[18px]" />
             </button>
           )}
 
-          {/* Member count */}
+          {/* Member count — toggles member panel */}
           {channel && (
-            <span className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400">
-              <Users className="w-3.5 h-3.5" />
+            <button
+              type="button"
+              onClick={onToggleMembers}
+              className={`flex items-center gap-1.5 min-h-[36px] px-2.5 py-1.5 rounded-lg text-sm cursor-pointer transition-colors duration-200 ${
+                showMembers
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+              }`}
+              title="View members"
+              aria-label={`View members (${channel.memberCount})`}
+            >
+              <Users className="w-[18px] h-[18px]" />
               {channel.memberCount}
-            </span>
+            </button>
           )}
 
-          {/* Add people */}
+          {/* Add people (non-DM channels) */}
           {channel && !isDM && (
             <button
               type="button"
-              onClick={() => {
-                // TODO: open add-members modal
-                const name = prompt('Enter email or name to invite:')
-                if (name) alert(`Invite flow for "${name}" coming soon`)
-              }}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
+              onClick={() => setShowAddPerson((prev) => !prev)}
+              className="flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
               title="Add people to channel"
             >
-              <UserPlus className="w-3.5 h-3.5" />
+              <UserPlus className="w-[18px] h-[18px]" />
             </button>
           )}
 
           {/* Pinned messages */}
           <button
             type="button"
-            onClick={() => setShowPinned((prev) => !prev)}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs cursor-pointer transition-colors duration-200 ${
-              showPinned
+            onClick={onTogglePinned}
+            className={`flex items-center gap-1.5 min-h-[36px] px-2.5 py-1.5 rounded-lg text-sm cursor-pointer transition-colors duration-200 ${
+              showPinnedPanel
                 ? 'bg-indigo-50 text-indigo-600'
                 : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
             }`}
             title="Pinned messages"
           >
-            <Pin className="w-3.5 h-3.5" />
+            <Pin className="w-[18px] h-[18px]" />
             {pinCount > 0 && <span>{pinCount}</span>}
           </button>
 
@@ -149,7 +180,7 @@ export default function ChannelHeader({
           <button
             type="button"
             onClick={onMuteToggle}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs cursor-pointer transition-colors duration-200 ${
+            className={`flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-lg cursor-pointer transition-colors duration-200 ${
               isMuted
                 ? 'bg-amber-50 text-amber-600'
                 : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
@@ -157,13 +188,43 @@ export default function ChannelHeader({
             title={isMuted ? 'Unmute channel' : 'Mute channel'}
           >
             {isMuted ? (
-              <BellOff className="w-3.5 h-3.5" />
+              <BellOff className="w-[18px] h-[18px]" />
             ) : (
-              <Bell className="w-3.5 h-3.5" />
+              <Bell className="w-[18px] h-[18px]" />
             )}
           </button>
         </div>
       </div>
+
+      {/* Add person panel — full width below header */}
+      {showAddPerson && onAddPerson && (
+        <PersonSearchPanel
+          excludeIds={existingMemberIds}
+          onSelect={(user) => {
+            if (!isDM) {
+              // For channels: add member directly via API
+              fetch(`/api/messaging/channels/${channelId}/members`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id }),
+              }).then((res) => {
+                if (!res.ok) return
+                queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+                queryClient.invalidateQueries({ queryKey: ['messaging', 'channels', channelId] })
+                setTimeout(() => {
+                  queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] })
+                }, 1000)
+              }).catch(() => {})
+              setShowAddPerson(false)
+            } else {
+              onAddPerson(user.id)
+              setShowAddPerson(false)
+            }
+          }}
+          onClose={() => setShowAddPerson(false)}
+        />
+      )}
 
       {/* Source context banner for auto-channels */}
       {channel?.sourceType && (
@@ -191,15 +252,6 @@ export default function ChannelHeader({
         </div>
       )}
 
-      {/* Pinned messages panel overlay */}
-      {showPinned && (
-        <div className="absolute right-0 top-0 bottom-0 z-30">
-          <PinnedMessagesPanel
-            channelId={channelId}
-            onClose={() => setShowPinned(false)}
-          />
-        </div>
-      )}
-    </>
+    </div>
   )
 }

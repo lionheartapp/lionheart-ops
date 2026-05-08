@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { getOrgContextId } from '@/lib/org-context'
 
 // ─── Zod Schemas ────────────────────────────────────────────────────────────
 
@@ -228,13 +229,7 @@ export async function getChannels(userId: string, orgId: string) {
       organizationId: orgId,
       deletedAt: null,
       archivedAt: null,
-      OR: [
-        { type: 'PUBLIC' },
-        {
-          type: { in: ['PRIVATE', 'DM', 'GROUP_DM'] },
-          members: { some: { userId } },
-        },
-      ],
+      members: { some: { userId, hiddenAt: null } },
     },
     include: {
       _count: { select: { members: true } },
@@ -256,6 +251,66 @@ export async function getChannels(userId: string, orgId: string) {
   }) as unknown as ChannelRow[]
 
   return channels.map(shapeChannel)
+}
+
+/**
+ * Browse all PUBLIC and PRIVATE channels in the org.
+ * Returns a `joined` flag so the UI can show Join / Ask to Join / Leave.
+ * For private channels the user hasn't joined, includes a `pendingRequest` flag.
+ */
+export async function browsePublicChannels(userId: string, orgId: string, search?: string) {
+  const where: Record<string, unknown> = {
+    organizationId: orgId,
+    type: { in: ['PUBLIC', 'PRIVATE'] },
+    deletedAt: null,
+    archivedAt: null,
+  }
+  if (search) {
+    where.name = { contains: search, mode: 'insensitive' }
+  }
+
+  const channels = await rawPrisma.channel.findMany({
+    where,
+    include: {
+      _count: { select: { members: true } },
+      members: {
+        where: { userId },
+        select: { userId: true },
+        take: 1,
+      },
+    },
+    orderBy: { name: 'asc' },
+    take: 50,
+  })
+
+  // Fetch pending join requests (non-fatal if table doesn't exist yet)
+  let pendingChannelIds = new Set<string>()
+  try {
+    const pendingRequests = await rawPrisma.channelJoinRequest.findMany({
+      where: {
+        organizationId: orgId,
+        userId,
+        status: 'PENDING',
+      },
+      select: { channelId: true },
+    })
+    pendingChannelIds = new Set(pendingRequests.map((r) => r.channelId))
+  } catch {
+    // Table may not exist yet — gracefully degrade
+  }
+
+  return channels.map((ch) => {
+    const isMember = (ch as unknown as { members: { userId: string }[] }).members.length > 0
+    return {
+      id: ch.id,
+      name: ch.name,
+      type: ch.type,
+      description: ch.description,
+      memberCount: (ch as unknown as { _count: { members: number } })._count.members,
+      joined: isMember,
+      pendingRequest: !isMember && pendingChannelIds.has(ch.id),
+    }
+  })
 }
 
 /**
@@ -451,6 +506,23 @@ export async function addMember(
     },
   } as Record<string, unknown>) as unknown as MemberRow
 
+  // Fire-and-forget: post system message about the new member
+  const orgId = getOrgContextId()
+  if (orgId) {
+    const addedName = `${member.user.firstName || ''} ${member.user.lastName || ''}`.trim() || 'Someone'
+    const actingUser = await db.user.findUnique({
+      where: { id: actingUserId },
+      select: { firstName: true, lastName: true },
+    } as Record<string, unknown>) as { firstName: string | null; lastName: string | null } | null
+    const actorName = actingUser
+      ? `${actingUser.firstName || ''} ${actingUser.lastName || ''}`.trim() || 'Someone'
+      : 'Someone'
+
+    import('@/lib/services/systemBotService').then(({ postToChannel }) => {
+      postToChannel(channelId, orgId, `${actorName} added ${addedName} to the channel`)
+    }).catch(() => {})
+  }
+
   return shapeMember(member)
 }
 
@@ -566,7 +638,12 @@ export async function findOrCreateDM(
         memberIds.length === allUserIds.length &&
         memberIds.every((id, i) => id === allUserIds[i])
       ) {
-        // Found existing channel — return it
+        // Found existing channel — unhide for the caller if it was hidden
+        await rawPrisma.channelMember.updateMany({
+          where: { channelId: ch.id, userId: callerUserId, hiddenAt: { not: null } },
+          data: { hiddenAt: null },
+        })
+        // Return full channel
         const full = await db.channel.findUnique({
           where: { id: ch.id },
           include: {

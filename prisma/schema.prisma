@@ -396,6 +396,8 @@ model User {
   messagingNotificationPreferences MessagingNotificationPreference[]
   pushSubscriptions         PushSubscription[]
   channelsCreated           Channel[]        @relation("ChannelCreator")
+  channelJoinRequests       ChannelJoinRequest[] @relation("ChannelJoinRequester")
+  channelJoinResolutions    ChannelJoinRequest[] @relation("ChannelJoinResolver")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -6039,8 +6041,28 @@ model Channel {
   messages       Message[]
   messagingNotificationPreferences MessagingNotificationPreference[]
 
+  joinRequests   ChannelJoinRequest[]
+
   @@unique([organizationId, slug])
   @@index([organizationId])
+}
+
+model ChannelJoinRequest {
+  id             String    @id @default(cuid())
+  organizationId String
+  channelId      String
+  channel        Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation("ChannelJoinRequester", fields: [userId], references: [id])
+  status         String    @default("PENDING") // "PENDING" | "APPROVED" | "DENIED"
+  resolvedById   String?
+  resolvedBy     User?     @relation("ChannelJoinResolver", fields: [resolvedById], references: [id])
+  createdAt      DateTime  @default(now())
+  resolvedAt     DateTime?
+
+  @@unique([channelId, userId, status])
+  @@index([organizationId])
+  @@index([channelId, status])
 }
 
 model ChannelMember {
@@ -6054,6 +6076,7 @@ model ChannelMember {
   unreadCount    Int       @default(0)        // Maintained by database trigger (SCHEMA-05)
   lastReadAt     DateTime?
   mutedAt        DateTime?
+  hiddenAt       DateTime?                    // Set when user "closes" a DM — hides from sidebar without leaving
   createdAt      DateTime  @default(now())
 
   @@unique([channelId, userId])

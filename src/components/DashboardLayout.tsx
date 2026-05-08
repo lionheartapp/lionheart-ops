@@ -189,7 +189,7 @@ export default function DashboardLayout({
               </MobileShell>
             </Suspense>
           ) : (
-            <div className={`relative flex flex-col min-h-full ${noPadding ? '' : 'pl-4 pr-4 sm:px-10 pt-6 lg:pt-8 pb-10'}`}>
+            <div className={`relative flex flex-col ${noPadding ? 'h-full' : 'min-h-full pl-4 pr-4 sm:px-10 pt-6 lg:pt-8 pb-10'}`}>
               {children}
             </div>
           )}

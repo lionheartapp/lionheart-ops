@@ -100,7 +100,6 @@ export function useMarkChannelRead(channelId: string | null) {
       )
       if (!res.ok) {
         // Non-fatal: mark-read failing shouldn't block messaging
-        console.warn('Failed to mark channel as read:', res.status)
       }
     },
     onSuccess: () => {

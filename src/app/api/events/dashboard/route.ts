@@ -10,8 +10,10 @@ import {
 } from '@/lib/services/eventDashboardService'
 import { updateEventTask, approveEventProject } from '@/lib/services/eventProjectService'
 
-export const GET = withAuth(async ({ orgId, searchParams }) => {
+export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const skipAI = searchParams.get('skipAI') === 'true'
+  const createdBy = searchParams.get('createdBy')
+  const scopeUserId = createdBy === 'me' ? ctx.userId : undefined
 
   if (skipAI) {
     const rawItems = await collectRawActionItems(orgId)
@@ -25,12 +27,12 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
       urgencyScore: 5,
       aiReason: '',
     }))
-    const stats = await getDashboardStats(rawItems)
+    const stats = await getDashboardStats(rawItems, scopeUserId)
     return NextResponse.json(ok({ items, stats, aiScored: false }))
   }
 
   const items = await getAIPrioritizedActions(orgId)
-  const stats = await getDashboardStats(items)
+  const stats = await getDashboardStats(items, scopeUserId)
   return NextResponse.json(ok({ items, stats, aiScored: true }))
 }, { permission: PERMISSIONS.EVENT_PROJECT_READ })
 

@@ -9,13 +9,16 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { MessageSquare, ChevronLeft, Menu } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
+import { useChannels } from '@/lib/hooks/useChannels'
 import ChannelList from './ChannelList'
 import MessageArea from './MessageArea'
 import ThreadPanel from './ThreadPanel'
 import SearchPanel from './SearchPanel'
+import BrowseChannelsPanel from './BrowseChannelsPanel'
 import NewMessageView from './NewMessageView'
 
 // ---------------------------------------------------------------------------
@@ -51,14 +54,24 @@ type MobileView = 'channels' | 'messages' | 'thread'
 
 export default function MessagingShell() {
   const isMobile = useIsMobile()
+  const queryClient = useQueryClient()
   const searchParams = useSearchParams()
   const channelFromUrl = searchParams.get('channel')
   const composeFromUrl = searchParams.get('compose') === 'true'
+  const browseFromUrl = searchParams.get('browse') === 'true'
   const [activeChannelId, setActiveChannelId] = useState<string | null>(channelFromUrl)
   const [composeMode, setComposeMode] = useState(composeFromUrl)
+  const [browseMode, setBrowseMode] = useState(browseFromUrl)
 
   // Sync with URL when query param changes (e.g. sidebar panel navigates)
   useEffect(() => {
+    if (searchParams.get('browse') === 'true') {
+      setBrowseMode(true)
+      setComposeMode(false)
+      setActiveChannelId(null)
+      return
+    }
+    setBrowseMode(false)
     if (searchParams.get('compose') === 'true') {
       setComposeMode(true)
       setActiveChannelId(null)
@@ -68,7 +81,19 @@ export default function MessagingShell() {
     if (channelFromUrl && channelFromUrl !== activeChannelId) {
       setActiveChannelId(channelFromUrl)
     }
-  }, [channelFromUrl]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelFromUrl, searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear activeChannelId if the user isn't a member of that channel
+  // (e.g. URL from a previous session, impersonating a different user)
+  const { data: userChannels } = useChannels()
+  useEffect(() => {
+    if (!activeChannelId || !userChannels) return
+    const isMember = userChannels.some((ch) => ch.id === activeChannelId)
+    if (!isMember) {
+      setActiveChannelId(null)
+    }
+  }, [activeChannelId, userChannels])
+
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageWithAuthor | null>(null)
   const [mobileView, setMobileView] = useState<MobileView>('channels')
@@ -137,6 +162,38 @@ export default function MessagingShell() {
     [handleSelectChannel],
   )
 
+  // Handle add person to DM — creates a new group DM with existing + new member
+  const handleAddPerson = useCallback(
+    async (newUserId: string) => {
+      if (!activeChannelId) return
+      try {
+        // Get current channel members
+        const chRes = await fetch(`/api/messaging/channels/${activeChannelId}`, { credentials: 'include' })
+        const chJson = await chRes.json()
+        if (!chJson.ok) return
+        const currentMemberIds: string[] = chJson.data.members?.map((m: { userId: string }) => m.userId) ?? []
+
+        // Create group DM with all existing members + new person
+        const otherIds = [...new Set([...currentMemberIds, newUserId])].filter(Boolean)
+        const res = await fetch('/api/messaging/dms', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: otherIds }),
+        })
+        const json = await res.json()
+        if (json.ok) {
+          queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+          handleSelectChannel(json.data.id)
+          window.history.replaceState(null, '', `/messaging?channel=${json.data.id}`)
+        }
+      } catch {
+        // Non-fatal
+      }
+    },
+    [activeChannelId, queryClient, handleSelectChannel],
+  )
+
   // Shared search panel (rendered in both mobile and desktop)
   const searchPanel = showSearch ? (
     <SearchPanel
@@ -170,6 +227,7 @@ export default function MessagingShell() {
                 <ChannelList
                   activeChannelId={activeChannelId}
                   onSelectChannel={handleSelectChannel}
+                  onBrowseChannels={() => setBrowseMode(true)}
                 />
               </div>
             </motion.div>
@@ -202,6 +260,7 @@ export default function MessagingShell() {
                   channelId={activeChannelId}
                   onThreadClick={handleThreadClick}
                   onSearchClick={() => setShowSearch(true)}
+                  onAddPerson={handleAddPerson}
                 />
               </div>
             </motion.div>
@@ -249,33 +308,77 @@ export default function MessagingShell() {
   // Desktop layout — full-width message area (channels live in sidebar panel)
   // -------------------------------------------------------------------------
   return (
-    <div className="flex h-screen overflow-hidden relative bg-white">
-      {/* Message area — full width */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {composeMode ? (
-          <NewMessageView
-            onChannelSelected={(channelId) => {
-              setComposeMode(false)
-              setActiveChannelId(channelId)
-              window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
-            }}
-            onClose={() => {
-              setComposeMode(false)
-              window.history.replaceState(null, '', '/messaging')
-            }}
-          />
-        ) : activeChannelId ? (
-          <MessageArea
-            channelId={activeChannelId}
-            onThreadClick={handleThreadClick}
-            onSearchClick={() => setShowSearch(true)}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
-            <MessageSquare className="w-10 h-10" />
-            <p className="text-sm">Select a channel from the sidebar to start messaging</p>
-          </div>
-        )}
+    <div className="flex h-full overflow-hidden relative bg-white">
+      {/* Message area — full width, animated transitions */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {composeMode ? (
+            <motion.div
+              key="compose"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <NewMessageView
+                onChannelSelected={(channelId) => {
+                  setComposeMode(false)
+                  setActiveChannelId(channelId)
+                  window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
+                }}
+                onClose={() => {
+                  setComposeMode(false)
+                  window.history.replaceState(null, '', '/messaging')
+                }}
+              />
+            </motion.div>
+          ) : browseMode ? (
+            <motion.div
+              key="browse"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <BrowseChannelsPanel
+                onJoined={(channelId) => {
+                  setBrowseMode(false)
+                  handleSelectChannel(channelId)
+                  window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
+                }}
+                onClose={() => setBrowseMode(false)}
+              />
+            </motion.div>
+          ) : activeChannelId ? (
+            <motion.div
+              key={`channel-${activeChannelId}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <MessageArea
+                channelId={activeChannelId}
+                onThreadClick={handleThreadClick}
+                onSearchClick={() => setShowSearch(true)}
+                onAddPerson={handleAddPerson}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400"
+            >
+              <MessageSquare className="w-10 h-10" />
+              <p className="text-sm">Select a channel from the sidebar to start messaging</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Thread panel overlay (desktop) */}
