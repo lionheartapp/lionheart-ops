@@ -11,10 +11,15 @@ import {
 
 // GET /api/messaging/channels — list channels visible to the user
 export const GET = withAuth(async ({ ctx, orgId }) => {
-  const blocked = await assertMessagingEnabled(orgId)
-  if (blocked) return blocked
-  const channels = await getChannels(ctx.userId, orgId)
-  return NextResponse.json(ok(channels))
+  try {
+    const blocked = await assertMessagingEnabled(orgId)
+    if (blocked) return blocked
+    const channels = await getChannels(ctx.userId, orgId)
+    return NextResponse.json(ok(channels))
+  } catch (err) {
+    console.error('[GET /api/messaging/channels] ERROR:', err)
+    throw err
+  }
 })
 
 // POST /api/messaging/channels — create a new channel

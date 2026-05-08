@@ -7,7 +7,7 @@
  */
 
 import { z } from 'zod'
-import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { prisma, rawPrisma, type OrgPrismaClient } from '@/lib/db'
 import { can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -221,12 +221,7 @@ export async function createChannel(
  *
  * T-24-01: PRIVATE/DM channels filtered to membership only.
  */
-export async function getChannels(userId: string, orgId?: string) {
-  const { rawPrisma } = await import('@/lib/db')
-  if (!orgId) {
-    const { getOrgContextId } = await import('@/lib/org-context')
-    orgId = getOrgContextId()
-  }
+export async function getChannels(userId: string, orgId: string) {
 
   const channels = await rawPrisma.channel.findMany({
     where: {
@@ -264,10 +259,11 @@ export async function getChannels(userId: string, orgId?: string) {
  * Get a single channel with members.
  * T-24-03: For PRIVATE/DM/GROUP_DM, verify membership; throw 'not found' to avoid leaking existence.
  */
-export async function getChannel(channelId: string, userId: string) {
-  const { rawPrisma } = await import('@/lib/db')
-  const { getOrgContextId } = await import('@/lib/org-context')
-  const orgId = getOrgContextId()
+export async function getChannel(channelId: string, userId: string, orgId?: string) {
+  if (!orgId) {
+    const { getOrgContextId } = await import('@/lib/org-context')
+    orgId = getOrgContextId()
+  }
 
   const channel = await rawPrisma.channel.findFirst({
     where: { id: channelId, organizationId: orgId, deletedAt: null },
