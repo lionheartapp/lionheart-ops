@@ -156,13 +156,16 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
         type="button"
         onClick={(e) => {
           e.stopPropagation()
-          // Leave/hide the DM conversation
-          fetch(`/api/messaging/channels/${channel.id}/members`, {
-            method: 'DELETE',
+          // Hide immediately (optimistic)
+          const el = e.currentTarget.closest('.group\\/item') as HTMLElement
+          if (el) el.style.display = 'none'
+          // Archive the DM channel so it disappears from the list
+          fetch(`/api/messaging/channels/${channel.id}`, {
+            method: 'PATCH',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: 'self' }),
-          }).then(() => window.location.reload())
+            body: JSON.stringify({ archived: true }),
+          })
         }}
         className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 opacity-0 group-hover/item:opacity-100 cursor-pointer transition-all z-10"
         title="Close conversation"
