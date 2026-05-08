@@ -90,7 +90,7 @@ export default function MessageBubble({
 
   // Hover action bar — Slack-style floating toolbar: emoji, thread, bookmark, more
   const actionBar = isBot ? null : (
-    <div className="absolute -top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10">
+    <div className="absolute top-0 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10">
       <div className="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm">
         {/* Add reaction */}
         {onReactionToggle && (
@@ -141,19 +141,12 @@ export default function MessageBubble({
     </div>
   )
 
-  // Reaction bar
-  const reactionSection = onReactionToggle ? (
+  // Reaction pills — only show when reactions exist (add button is in hover toolbar)
+  const reactionSection = reactions.length > 0 ? (
     <ReactionBar
       reactions={reactions}
       messageId={message.id}
-      onToggle={onReactionToggle}
-      showAddButton
-    />
-  ) : reactions.length > 0 ? (
-    <ReactionBar
-      reactions={reactions}
-      messageId={message.id}
-      onToggle={() => {}}
+      onToggle={onReactionToggle ?? (() => {})}
     />
   ) : null
 
