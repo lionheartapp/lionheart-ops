@@ -11,7 +11,7 @@ import FileUploadProgress from './FileUploadProgress'
 
 interface ComposerProps {
   channelId: string
-  onSendTyping: () => void
+  onSendTyping?: () => void
   parentId?: string
 }
 
@@ -92,7 +92,7 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const value = e.target.value
       setContent(value)
-      onSendTyping()
+      onSendTyping?.()
 
       // Auto-resize
       const el = e.target
