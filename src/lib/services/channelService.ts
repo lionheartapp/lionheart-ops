@@ -115,7 +115,7 @@ function shapeChannel(row: ChannelRow) {
     sourceType: row.sourceType ?? null,
     sourceId: row.sourceId ?? null,
     memberCount: row._count?.members ?? row.members?.length ?? 0,
-    members: row.members?.map(shapeMember),
+    members: row.members?.map((m) => 'user' in m && m.user ? shapeMember(m as MemberRow) : m),
     lastMessage: lastMessage
       ? {
           id: lastMessage.id,
