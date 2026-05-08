@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { Hash, Lock, BellOff, X } from 'lucide-react'
+import { useAuth } from '@/lib/hooks/useAuth'
 import type { ShapedChannel } from '@/lib/hooks/useChannels'
 
 interface ChannelListItemProps {
@@ -29,25 +30,34 @@ function relativeTime(isoDate: string): string {
 }
 
 /**
- * Build display name for DMs. For DMs, show the other user's name.
- * For group DMs, comma-separate first names.
+ * Build display name for DMs — excludes the current user.
+ * 1:1 DM: "Michael Lee" (full name)
+ * Group DM: "anh, Caroline, chrissie, Eddie, ..."
  */
-function getDMDisplayName(channel: ShapedChannel): string {
+function getDMDisplayName(channel: ShapedChannel, currentUserId: string | null): string {
   if (!channel.members?.length) return channel.name
 
-  const names = channel.members
-    .filter((m) => m.user)
-    .map((m) => m.user.firstName || 'Unknown')
-    .slice(0, 4)
+  // Filter out current user and members without user data
+  const others = channel.members.filter((m) => m.user && m.userId !== currentUserId)
 
-  if (!names.length) return channel.name
-  if (names.length <= 3) return names.join(', ')
-  return `${names.slice(0, 3).join(', ')} +${channel.members.length - 3}`
+  if (!others.length) return channel.name
+
+  // 1:1 DM — show full name
+  if (others.length === 1) {
+    const u = others[0].user
+    return `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Unknown'
+  }
+
+  // Group DM — show first names, truncate after 4
+  const names = others.map((m) => m.user.firstName || 'Unknown')
+  if (names.length <= 4) return names.join(', ')
+  return `${names.slice(0, 4).join(', ')}, ...`
 }
 
 export default function ChannelListItem({ channel, isActive, onSelect }: ChannelListItemProps) {
+  const { userId } = useAuth()
   const isDM = channel.type === 'DM' || channel.type === 'GROUP_DM'
-  const displayName = isDM ? getDMDisplayName(channel) : channel.name
+  const displayName = isDM ? getDMDisplayName(channel, userId) : channel.name
 
   // Check if channel is muted for current user
   const isMuted = useMemo(() => {
@@ -74,12 +84,13 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
   // DM avatar: first letter of first member's name
   const dmAvatar = useMemo(() => {
     if (!isDM || !channel.members?.length) return null
-    const member = channel.members[0]
-    if (!member?.user) return null
-    if (member.user.avatar) return member.user.avatar
-    const initial = (member.user.firstName || 'U')[0].toUpperCase()
+    // Show the OTHER person's avatar, not the current user's
+    const other = channel.members.find((m) => m.user && m.userId !== userId) ?? channel.members.find((m) => m.user)
+    if (!other?.user) return null
+    if (other.user.avatar) return other.user.avatar
+    const initial = (other.user.firstName || 'U')[0].toUpperCase()
     return initial
-  }, [isDM, channel.members])
+  }, [isDM, channel.members, userId])
 
   return (
     <div className="group/item relative">
