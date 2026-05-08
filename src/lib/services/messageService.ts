@@ -420,10 +420,11 @@ export async function getMessages(
     }
   }
 
-  // Optional parentId filter for thread replies
+  // parentId filter: when set, show thread replies for that parent.
+  // When not set, show only top-level messages (parentId IS null).
   const parentFilter = opts.parentId !== undefined
     ? { parentId: opts.parentId }
-    : {}
+    : { parentId: null }
 
   // Query with +1 for hasMore detection
   const messages = await db.message.findMany({
