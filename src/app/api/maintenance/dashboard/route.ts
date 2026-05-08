@@ -186,4 +186,4 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   }, DASHBOARD_CACHE_TTL)
 
   return NextResponse.json(ok(stats))
-}, { permission: PERMISSIONS.MAINTENANCE_READ_ALL })
+}, { permissionAny: [PERMISSIONS.MAINTENANCE_READ_ALL, PERMISSIONS.MAINTENANCE_READ_OWN] })

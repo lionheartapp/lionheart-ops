@@ -38,4 +38,11 @@ export const GET = withAuth(async ({ searchParams }) => {
 
   const projects = await listPendingGateApprovals(gateType)
   return NextResponse.json(ok(projects))
-}, { permission: PERMISSIONS.EVENT_PROJECT_APPROVE })
+}, {
+  permissionAny: [
+    PERMISSIONS.EVENT_PROJECT_APPROVE,
+    PERMISSIONS.MAINTENANCE_READ_ALL,
+    PERMISSIONS.MAINTENANCE_READ_OWN,
+    PERMISSIONS.MAINTENANCE_CLAIM,
+  ],
+})

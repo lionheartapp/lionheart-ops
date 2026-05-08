@@ -1,13 +1,11 @@
 'use client'
 
-import { useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef } from 'react'
 import PrefetchLink from '@/components/PrefetchLink'
 import {
   Home,
   CalendarClock,
   Trophy,
-  CheckSquare,
   MessageSquare,
 } from 'lucide-react'
 import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
@@ -138,20 +136,6 @@ export default function MainNavContent({
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
-  const router = useRouter()
-
-  const openTasksDrawer = useCallback(() => {
-    setSettingsOpen(false)
-    setAthleticsOpen(false)
-    setEventsOpen(false)
-    setIsOpen(false)
-    if (pathname === '/dashboard') {
-      window.dispatchEvent(new Event('open-my-tasks-drawer'))
-    } else {
-      router.push('/dashboard?openTasks=true')
-    }
-  }, [pathname, router, setSettingsOpen, setAthleticsOpen, setEventsOpen, setIsOpen])
-
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
   ]
@@ -208,30 +192,18 @@ export default function MainNavContent({
                     setIsOpen(false)
                   }}
                   className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                    active && !settingsOpen && !athleticsOpen && !eventsOpen
+                    active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen
                       ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
                       : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
                   }`}
-                  aria-current={active && !settingsOpen && !athleticsOpen && !eventsOpen ? 'page' : undefined}
+                  aria-current={active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'page' : undefined}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen && !eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
             )
           })}
-          {/* My Tasks — opens drawer on dashboard */}
-          <li>
-            <button
-              onClick={openTasksDrawer}
-              className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
-              }`}
-            >
-              <CheckSquare className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-              <span className="text-sm">My tasks</span>
-            </button>
-          </li>
           {/* Events */}
           <li>
             <button
@@ -246,7 +218,7 @@ export default function MainNavContent({
               }`}
               aria-current={eventsOpen ? 'page' : undefined}
             >
-              <CalendarClock className={`w-5 h-5 flex-shrink-0 ${eventsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+              <CalendarClock className={`w-5 h-5 flex-shrink-0 ${eventsOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
               <span className="text-sm">Events</span>
             </button>
           </li>
@@ -269,10 +241,10 @@ export default function MainNavContent({
                 }`}
                 aria-current={messagingOpen ? 'page' : undefined}
               >
-                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${messagingOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${messagingOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Messaging</span>
                 {messagingUnread > 0 && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-red-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] px-1">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] px-1" style={{ backgroundColor: '#E8654A' }}>
                     {messagingUnread > 9 ? '9+' : messagingUnread}
                   </span>
                 )}
@@ -308,7 +280,7 @@ export default function MainNavContent({
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-primary-500' : ''}`} aria-hidden="true" />
+                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>

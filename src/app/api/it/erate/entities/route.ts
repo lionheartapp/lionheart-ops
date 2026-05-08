@@ -31,7 +31,7 @@ export const GET = withAuth(
     const entities = await (rawPrisma.iTERateEntity as unknown as PrismaDelegate).findMany({
       where: { organizationId: orgId },
       include: {
-        school: { select: { id: true, name: true } },
+        campus: { select: { id: true, name: true } },
       },
       orderBy: [{ isPrimary: 'desc' }, { ben: 'asc' }],
     })

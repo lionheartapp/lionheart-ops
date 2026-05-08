@@ -250,13 +250,11 @@ export default function SchoolSelector(): JSX.Element | null {
     )
   }
 
-  // Hide selector when there's nothing meaningful to choose. On a module
-  // page with 0 or 1 enabled schools, the dropdown collapses; on a non-
-  // module page, the legacy single-school behavior kicks in.
-  const isMultiVisible = restrictToModule
-    ? visibleCampusCount > 1
-    : isMultiSchool
-  if (!isMultiVisible) return null
+  // Hide selector when the org has fewer than 2 active campuses — nothing
+  // to switch between. Uses the raw (unfiltered) campus list so the selector
+  // stays visible on module pages even when no per-school module records exist.
+  const totalActiveCampuses = ((rawCampuses ?? []) as CampusWithSchool[]).filter(c => c.isActive).length
+  if (totalActiveCampuses < 2) return null
 
   const triggerLabel = effectiveActiveSchool?.name ?? ALL_SCHOOLS_LABEL
 

@@ -106,9 +106,11 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
   const [viewMode, setViewMode] = useState<'board' | 'table'>(hasInitialFilter ? 'table' : 'board')
 
   // Scope: mine (my tickets + unassigned) vs all
+  // Admins/managers default to "all" — they oversee the full board, not a personal queue.
+  const defaultScope = canManage ? 'all' : 'mine'
   const [scope, setScope] = useState<'mine' | 'all'>(() => {
-    if (typeof window === 'undefined') return 'mine'
-    return (localStorage.getItem(`maint-scope:${currentUserId}`) as 'mine' | 'all') || 'mine'
+    if (typeof window === 'undefined') return defaultScope
+    return (localStorage.getItem(`maint-scope:${currentUserId}`) as 'mine' | 'all') || defaultScope
   })
   const handleScopeChange = (s: 'mine' | 'all') => {
     setScope(s)
@@ -296,9 +298,12 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
     if (canClaim && !canManage && !showAll) {
       tickets = tickets.filter((t) => t.matchesSpecialty !== false)
     }
-    // Scope filter: "mine" shows my tickets + unassigned
+    // Scope filter: "mine" shows full backlog (so techs can self-assign)
+    // plus the tech's own assigned tickets in all other columns.
     if (scope === 'mine' && currentUserId) {
-      tickets = tickets.filter((t) => !t.assignedTo || t.assignedTo.id === currentUserId)
+      tickets = tickets.filter((t) =>
+        t.status === 'BACKLOG' || !t.assignedTo || t.assignedTo.id === currentUserId
+      )
     }
     return tickets
   }, [mainTickets, canClaim, canManage, showAll, scope, currentUserId])()

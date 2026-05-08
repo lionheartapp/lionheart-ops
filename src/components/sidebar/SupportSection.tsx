@@ -117,7 +117,7 @@ export default function SupportSection({
       <div className="px-1 mt-4 mb-1">
         <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Operations</span>
       </div>
-      <ul className="space-y-1" role="list">
+      <ul className="space-y-2" role="list">
         {/* ── Facilities / Maintenance ── */}
         {showFacilities && (
           <li>
@@ -138,7 +138,7 @@ export default function SupportSection({
                   aria-expanded={facilitiesOpen}
                   aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                 >
-                  <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+                  <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">Maintenance</span>
                   {(facilitiesGateCount?.count ?? 0) > 0 && (
                     // F-041: badge previously had no label — users couldn't
@@ -287,7 +287,7 @@ export default function SupportSection({
                 style={isMaintenancePath ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={isMaintenancePath ? 'page' : undefined}
               >
-                <Wrench className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <Wrench className="w-5 h-5 flex-shrink-0 text-slate-400" strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Facilities</span>
               </PrefetchLink>
             )}
@@ -312,7 +312,7 @@ export default function SupportSection({
                   aria-expanded={itOpen}
                   aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                 >
-                  <Monitor className={`w-5 h-5 flex-shrink-0 ${itOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+                  <Monitor className={`w-5 h-5 flex-shrink-0 ${itOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">IT Help Desk</span>
                   <motion.span
                     className="ml-auto block"
@@ -433,7 +433,7 @@ export default function SupportSection({
                 style={isITPath ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={isITPath ? 'page' : undefined}
               >
-                <Monitor className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                <Monitor className="w-5 h-5 flex-shrink-0 text-slate-400" strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">IT Help Desk</span>
               </PrefetchLink>
             )}
@@ -456,7 +456,7 @@ export default function SupportSection({
               aria-expanded={avOpen}
               aria-label={avOpen ? 'Collapse A/V Production' : 'Expand A/V Production'}
             >
-              <Video className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-600'}`} aria-hidden="true" />
+              <Video className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
               <span className="text-sm">A/V Production</span>
               {!avOpen && (avGateCount?.count ?? 0) > 0 && (
                 // F-041: descriptive label so the count isn't ambiguous.
