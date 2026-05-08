@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Hash, Lock, BellOff } from 'lucide-react'
+import { Hash, Lock, BellOff, X } from 'lucide-react'
 import type { ShapedChannel } from '@/lib/hooks/useChannels'
 
 interface ChannelListItemProps {
@@ -82,6 +82,7 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
   }, [isDM, channel.members])
 
   return (
+    <div className="group/item relative">
     <button
       onClick={() => onSelect(channel.id)}
       className={`w-full flex items-center gap-3 px-3 py-3 min-h-[56px] cursor-pointer transition-colors duration-200 ${
@@ -148,5 +149,27 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
         </span>
       )}
     </button>
+
+    {/* Close/leave button on hover */}
+    {isDM && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          // Leave/hide the DM conversation
+          fetch(`/api/messaging/channels/${channel.id}/members`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'self' }),
+          }).then(() => window.location.reload())
+        }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 opacity-0 group-hover/item:opacity-100 cursor-pointer transition-all z-10"
+        title="Close conversation"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    )}
+    </div>
   )
 }
