@@ -43,8 +43,12 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
 // POST /api/messaging/channels/[id]/messages — send a message
 export const POST = withAuth<z.infer<typeof SendMessageSchema>, { id: string }>(
   async ({ ctx, orgId, params, body }) => {
+    console.log('[MSG-POST] channelId=%s userId=%s orgId=%s body=%j', params.id, ctx.userId, orgId, body)
     const blocked = await assertMessagingEnabled(orgId)
-    if (blocked) return blocked
+    if (blocked) {
+      console.log('[MSG-POST] messaging disabled for org %s', orgId)
+      return blocked
+    }
     const message = await sendMessage(params.id, ctx.userId, body)
     return NextResponse.json(ok(message), { status: 201 })
   },
