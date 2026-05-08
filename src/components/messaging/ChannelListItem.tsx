@@ -138,15 +138,6 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
             <span className="text-xs text-slate-400 flex-shrink-0">{timestamp}</span>
           )}
         </div>
-        {lastMessagePreview && (
-          <p
-            className={`text-xs truncate mt-0.5 ${
-              unreadCount > 0 ? 'text-slate-600' : 'text-slate-400'
-            }`}
-          >
-            {lastMessagePreview}
-          </p>
-        )}
       </div>
 
       {/* Muted indicator */}
