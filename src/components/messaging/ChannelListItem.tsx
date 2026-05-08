@@ -36,9 +36,11 @@ function getDMDisplayName(channel: ShapedChannel): string {
   if (!channel.members?.length) return channel.name
 
   const names = channel.members
+    .filter((m) => m.user)
     .map((m) => m.user.firstName || 'Unknown')
     .slice(0, 4)
 
+  if (!names.length) return channel.name
   if (names.length <= 3) return names.join(', ')
   return `${names.slice(0, 3).join(', ')} +${channel.members.length - 3}`
 }
