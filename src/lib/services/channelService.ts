@@ -222,8 +222,16 @@ export async function createChannel(
  * T-24-01: PRIVATE/DM channels filtered to membership only.
  */
 export async function getChannels(userId: string) {
-  const channels = await db.channel.findMany({
+  // Use rawPrisma to avoid org-scoped extension issues with complex includes.
+  // Org filtering is done explicitly via the orgId in runWithOrgContext.
+  const { rawPrisma } = await import('@/lib/db')
+  const { getOrgContextId } = await import('@/lib/org-context')
+  const orgId = getOrgContextId()
+
+  const channels = await rawPrisma.channel.findMany({
     where: {
+      organizationId: orgId,
+      deletedAt: null,
       archivedAt: null,
       OR: [
         { type: 'PUBLIC' },
@@ -247,7 +255,7 @@ export async function getChannels(userId: string) {
       },
     },
     orderBy: { updatedAt: 'desc' },
-  } as Record<string, unknown>) as unknown as ChannelRow[]
+  }) as unknown as ChannelRow[]
 
   return channels.map(shapeChannel)
 }

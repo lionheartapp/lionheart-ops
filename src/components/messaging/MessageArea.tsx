@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 import MessageList from './MessageList'
 import ChannelHeader from './ChannelHeader'
+import Composer from './Composer'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -242,6 +243,7 @@ export default function MessageArea({ channelId, onThreadClick, onSearchClick }:
         onPin={handlePin}
       />
       <TypingIndicator names={typingNames} />
+      <Composer channelId={channelId} />
     </div>
   )
 }
