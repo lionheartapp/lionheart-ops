@@ -55,9 +55,10 @@ function getDMDisplayName(channel: ShapedChannel, currentUserId: string | null):
 }
 
 export default function ChannelListItem({ channel, isActive, onSelect }: ChannelListItemProps) {
-  const { userId } = useAuth()
+  const { user } = useAuth()
+  const currentUserId = user?.id ?? null
   const isDM = channel.type === 'DM' || channel.type === 'GROUP_DM'
-  const displayName = isDM ? getDMDisplayName(channel, userId) : channel.name
+  const displayName = isDM ? getDMDisplayName(channel, currentUserId) : channel.name
 
   // Check if channel is muted for current user
   const isMuted = useMemo(() => {
@@ -85,12 +86,12 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
   const dmAvatar = useMemo(() => {
     if (!isDM || !channel.members?.length) return null
     // Show the OTHER person's avatar, not the current user's
-    const other = channel.members.find((m) => m.user && m.userId !== userId) ?? channel.members.find((m) => m.user)
+    const other = channel.members.find((m) => m.user && m.userId !== currentUserId) ?? channel.members.find((m) => m.user)
     if (!other?.user) return null
     if (other.user.avatar) return other.user.avatar
     const initial = (other.user.firstName || 'U')[0].toUpperCase()
     return initial
-  }, [isDM, channel.members, userId])
+  }, [isDM, channel.members, currentUserId])
 
   return (
     <div className="group/item relative">
