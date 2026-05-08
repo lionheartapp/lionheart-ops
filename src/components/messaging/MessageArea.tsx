@@ -241,6 +241,8 @@ export default function MessageArea({ channelId, onThreadClick, onSearchClick }:
         reactionsMap={reactionsMap}
         onReactionToggle={handleReactionToggle}
         onPin={handlePin}
+        channelName={channel?.name}
+        channelType={channel?.type}
       />
       <TypingIndicator names={typingNames} />
       <Composer channelId={channelId} />

@@ -29,6 +29,8 @@ interface MessageListProps {
   reactionsMap?: Record<string, ReactionGroup[]>
   onReactionToggle?: (messageId: string, emoji: string) => void
   onPin?: (messageId: string) => void
+  channelName?: string
+  channelType?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -93,14 +95,48 @@ function LoadingSkeletons() {
 // Empty state
 // ---------------------------------------------------------------------------
 
-function EmptyState() {
+import { Hash, Lock, UserPlus } from 'lucide-react'
+
+function EmptyState({ channelName, channelType }: { channelName?: string; channelType?: string }) {
+  const isDM = channelType === 'DM' || channelType === 'GROUP_DM'
+  const isPrivate = channelType === 'PRIVATE'
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400 p-8">
-      <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-        <MessageSquare className="w-8 h-8 text-slate-300" />
+    <div className="flex-1 flex flex-col items-start justify-end gap-2 px-6 pb-6">
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center mb-1">
+        {isDM ? (
+          <MessageSquare className="w-6 h-6 text-primary-500" />
+        ) : isPrivate ? (
+          <Lock className="w-6 h-6 text-primary-500" />
+        ) : (
+          <Hash className="w-6 h-6 text-primary-500" />
+        )}
       </div>
-      <p className="text-sm font-medium text-slate-500">No messages yet</p>
-      <p className="text-xs text-slate-400">Start the conversation!</p>
+      {channelName && !isDM ? (
+        <>
+          <h3 className="text-lg font-bold text-slate-800">
+            Welcome to #{channelName}
+          </h3>
+          <p className="text-sm text-slate-500 max-w-md">
+            This is the very beginning of the <span className="font-semibold">#{channelName}</span> channel.
+            Invite others to start collaborating.
+          </p>
+        </>
+      ) : isDM ? (
+        <>
+          <h3 className="text-lg font-bold text-slate-800">
+            New conversation
+          </h3>
+          <p className="text-sm text-slate-500">
+            This is the start of your direct message history.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="text-sm font-medium text-slate-500">No messages yet</p>
+          <p className="text-xs text-slate-400">Start the conversation!</p>
+        </>
+      )}
     </div>
   )
 }
@@ -120,6 +156,8 @@ export default function MessageList({
   reactionsMap,
   onReactionToggle,
   onPin,
+  channelName,
+  channelType,
 }: MessageListProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null)
 
@@ -138,7 +176,7 @@ export default function MessageList({
 
   // Empty state
   if (messages.length === 0) {
-    return <EmptyState />
+    return <EmptyState channelName={channelName} channelType={channelType} />
   }
 
   return (

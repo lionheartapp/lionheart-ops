@@ -114,6 +114,22 @@ export default function ChannelHeader({
             </span>
           )}
 
+          {/* Add people */}
+          {channel && !isDM && (
+            <button
+              type="button"
+              onClick={() => {
+                // TODO: open add-members modal
+                const name = prompt('Enter email or name to invite:')
+                if (name) alert(`Invite flow for "${name}" coming soon`)
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors duration-200"
+              title="Add people to channel"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {/* Pinned messages */}
           <button
             type="button"

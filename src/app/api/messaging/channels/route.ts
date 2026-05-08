@@ -13,7 +13,7 @@ import {
 export const GET = withAuth(async ({ ctx, orgId }) => {
   const blocked = await assertMessagingEnabled(orgId)
   if (blocked) return blocked
-  const channels = await getChannels(ctx.userId)
+  const channels = await getChannels(ctx.userId, orgId)
   return NextResponse.json(ok(channels))
 })
 

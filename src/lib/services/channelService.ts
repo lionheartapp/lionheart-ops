@@ -221,12 +221,12 @@ export async function createChannel(
  *
  * T-24-01: PRIVATE/DM channels filtered to membership only.
  */
-export async function getChannels(userId: string) {
-  // Use rawPrisma to avoid org-scoped extension issues with complex includes.
-  // Org filtering is done explicitly via the orgId in runWithOrgContext.
+export async function getChannels(userId: string, orgId?: string) {
   const { rawPrisma } = await import('@/lib/db')
-  const { getOrgContextId } = await import('@/lib/org-context')
-  const orgId = getOrgContextId()
+  if (!orgId) {
+    const { getOrgContextId } = await import('@/lib/org-context')
+    orgId = getOrgContextId()
+  }
 
   const channels = await rawPrisma.channel.findMany({
     where: {
