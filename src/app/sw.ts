@@ -121,7 +121,8 @@ const serwist = new Serwist({
 })
 
 // ─── Web Push Handler (NOTIF-03) ───────────────────────────────────────
-self.addEventListener('push', (event: PushEvent) => {
+// @ts-expect-error — SW global types incomplete in this tsconfig
+self.addEventListener('push', (event: any) => {
   if (!event.data) return
 
   const data = event.data.json() as {
@@ -131,7 +132,7 @@ self.addEventListener('push', (event: PushEvent) => {
     icon?: string
   }
 
-  const options: NotificationOptions = {
+  const options: Record<string, unknown> = {
     body: data.body,
     icon: data.icon || '/icons/icon-192x192.png',
     badge: '/icons/badge-72x72.png',
@@ -140,10 +141,11 @@ self.addEventListener('push', (event: PushEvent) => {
     renotify: true,
   }
 
-  event.waitUntil(self.registration.showNotification(data.title, options))
+  event.waitUntil((self as any).registration.showNotification(data.title, options))
 })
 
-self.addEventListener('notificationclick', (event: NotificationEvent) => {
+// @ts-expect-error — SW global types incomplete in this tsconfig
+self.addEventListener('notificationclick', (event: any) => {
   event.notification.close()
   const url =
     (event.notification.data as { url?: string })?.url || '/messaging'
@@ -152,7 +154,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (self as any).clients
       .matchAll({ type: 'window' })
-      .then((windowClients: WindowClient[]) => {
+      .then((windowClients: any[]) => {
         for (const client of windowClients) {
           if (client.url.includes(url) && 'focus' in client) {
             return client.focus()

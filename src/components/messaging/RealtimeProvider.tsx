@@ -163,7 +163,7 @@ export function RealtimeProvider({ children }: Props) {
         // don't render <RealtimeProvider>.
         const { createClient } = await import('@supabase/supabase-js')
 
-        const client = createClient(supabaseUrl, supabaseAnonKey, {
+        const client = createClient(supabaseUrl!, supabaseAnonKey!, {
           realtime: {
             params: { eventsPerSecond: 10 },
             accessToken: async () => {

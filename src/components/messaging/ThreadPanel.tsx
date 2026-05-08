@@ -46,6 +46,7 @@ function broadcastToMessage(msg: BroadcastMessage): MessageWithAuthor {
     editedAt: null,
     pinnedAt: null,
     createdAt: msg.createdAt,
+    authorIsBot: false,
   }
 }
 

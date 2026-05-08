@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
               select: {
                 content: true,
                 createdAt: true,
-                user: { select: { firstName: true, lastName: true } },
+                author: { select: { firstName: true, lastName: true } },
               },
             })
 
@@ -154,7 +154,7 @@ export async function GET(req: NextRequest) {
               name: ch.channelName,
               unreadCount: ch.unreadCount,
               previews: recentMessages.map((msg) => ({
-                author: [msg.user.firstName, msg.user.lastName]
+                author: [(msg as any).author?.firstName, (msg as any).author?.lastName]
                   .filter(Boolean)
                   .join(' ') || 'Unknown',
                 text: msg.content,

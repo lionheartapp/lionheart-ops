@@ -47,7 +47,7 @@ export const POST = withAuth<z.infer<typeof SubscribeSchema>>(
         endpoint,
         p256dh: keys.p256dh,
         auth: keys.auth,
-      },
+      } as any,
       update: {
         p256dh: keys.p256dh,
         auth: keys.auth,

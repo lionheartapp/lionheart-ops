@@ -47,7 +47,7 @@ export const PUT = withAuth<z.infer<typeof PreferenceSchema>, { id: string }>(
         channelId,
         level,
         emailDigest,
-      },
+      } as any,
       update: {
         level,
         emailDigest,

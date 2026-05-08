@@ -146,7 +146,7 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
         placeholder="Type a message..."
         onEditorReady={(e) => { editorRef.current = e }}
         channelId={channelId}
-        currentUserId={user?.id}
+        currentUserId={user?.id ?? undefined}
       />
 
       {/* Bottom toolbar: attach, emoji, send */}
