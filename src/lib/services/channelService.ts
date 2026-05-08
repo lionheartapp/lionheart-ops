@@ -243,10 +243,12 @@ export async function getChannels(userId: string, orgId: string) {
         take: 1,
         select: { id: true, content: true, authorId: true, createdAt: true },
       },
+      // For DMs: include all members with user info so sidebar shows names/avatars
+      // For channels: just include current user's unread state
       members: {
-        where: { userId },
-        select: { unreadCount: true, lastReadAt: true, mutedAt: true },
-        take: 1,
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+        },
       },
     },
     orderBy: { updatedAt: 'desc' },
