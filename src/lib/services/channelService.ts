@@ -239,6 +239,7 @@ export async function getChannels(userId: string, orgId: string) {
     include: {
       _count: { select: { members: true } },
       messages: {
+        where: { parentId: null },
         orderBy: { createdAt: 'desc' },
         take: 1,
         select: { id: true, content: true, authorId: true, createdAt: true },
