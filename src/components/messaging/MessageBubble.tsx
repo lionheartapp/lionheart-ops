@@ -8,7 +8,7 @@
  * Shows reaction pills below message and pin/reaction actions on hover.
  */
 
-import { MessageSquareText, Pin } from 'lucide-react'
+import { MessageSquareText, Pin, SmilePlus, Bookmark, MoreVertical } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 import type { ReactionGroup } from '@/lib/hooks/useReactions'
 import ReactionBar from './ReactionBar'
@@ -88,34 +88,56 @@ export default function MessageBubble({
   const pinnedFromData = !!message.pinnedAt
   const showPinIcon = isPinned || pinnedFromData
 
-  // Hover action bar: thread + pin + reaction (suppressed for bot messages per D-09)
+  // Hover action bar — Slack-style floating toolbar: emoji, thread, bookmark, more
   const actionBar = isBot ? null : (
-    <div className="absolute right-1 top-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
-      {onPin && (
+    <div className="absolute -top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10">
+      <div className="flex items-center bg-white border border-slate-200 rounded-lg shadow-sm">
+        {/* Add reaction */}
+        {onReactionToggle && (
+          <button
+            type="button"
+            onClick={() => onReactionToggle(message.id, '👍')}
+            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors rounded-l-lg"
+            title="Add reaction"
+          >
+            <SmilePlus className="w-4 h-4" />
+          </button>
+        )}
+        {/* Reply in thread */}
+        {onThreadClick && (
+          <button
+            type="button"
+            onClick={() => onThreadClick(message.id, message)}
+            className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
+            title="Reply in thread"
+          >
+            <MessageSquareText className="w-4 h-4" />
+          </button>
+        )}
+        {/* Pin / bookmark */}
+        {onPin && (
+          <button
+            type="button"
+            onClick={() => onPin(message.id)}
+            className={`w-8 h-8 flex items-center justify-center cursor-pointer transition-colors ${
+              showPinIcon
+                ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
+                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+            }`}
+            title={showPinIcon ? 'Unpin' : 'Pin'}
+          >
+            <Bookmark className="w-4 h-4" />
+          </button>
+        )}
+        {/* More actions */}
         <button
           type="button"
-          onClick={() => onPin(message.id)}
-          className={`flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs cursor-pointer transition-colors duration-200 ${
-            showPinIcon
-              ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-          }`}
-          title={showPinIcon ? 'Unpin message' : 'Pin message'}
+          className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors rounded-r-lg"
+          title="More actions"
         >
-          <Pin className="w-3.5 h-3.5" />
+          <MoreVertical className="w-4 h-4" />
         </button>
-      )}
-      {onThreadClick && (
-        <button
-          type="button"
-          onClick={() => onThreadClick(message.id, message)}
-          className="flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
-          title="Reply in thread"
-        >
-          <MessageSquareText className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Thread</span>
-        </button>
-      )}
+      </div>
     </div>
   )
 
@@ -213,14 +235,17 @@ export default function MessageBubble({
         {/* Reaction pills */}
         {reactionSection}
 
-        {/* Thread link (shows reply count when replies exist) */}
+        {/* Thread reply count — Slack-style inline link */}
         {message.replyCount > 0 && (
           <button
             type="button"
-            className="text-xs text-primary-500 cursor-pointer mt-0.5 transition-colors duration-200 hover:text-primary-600"
+            className="flex items-center gap-1.5 mt-1 px-1 py-0.5 -ml-1 rounded hover:bg-slate-50 cursor-pointer transition-colors duration-200 group/thread"
             onClick={() => onThreadClick?.(message.id, message)}
           >
-            {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
+            <MessageSquareText className="w-3.5 h-3.5 text-primary-500" />
+            <span className="text-xs font-medium text-primary-500 group-hover/thread:underline">
+              {message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}
+            </span>
           </button>
         )}
       </div>
