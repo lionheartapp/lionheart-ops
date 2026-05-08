@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react'
-import { Hash, Lock, Pin, BellOff, Bell, Users, Search, GraduationCap } from 'lucide-react'
+import { Hash, Lock, Pin, BellOff, Bell, Users, Search, GraduationCap, UserPlus } from 'lucide-react'
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
 import { useChannel } from '@/lib/hooks/useChannels'
 import PinnedMessagesPanel from './PinnedMessagesPanel'
@@ -39,22 +39,56 @@ export default function ChannelHeader({
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 flex-shrink-0 bg-white/50 backdrop-blur-sm">
         {/* Left: channel info */}
         <div className="flex items-center gap-2 min-w-0">
-          {!isDM && (
-            <span className="text-slate-400 flex-shrink-0">
-              {isPrivate ? (
-                <Lock className="w-4 h-4" />
-              ) : (
-                <Hash className="w-4 h-4" />
+          {isDM && channel?.members ? (
+            <>
+              <span className="text-xs text-slate-400 flex-shrink-0 font-medium">To:</span>
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                {channel.members
+                  .filter((m) => m.userId !== currentUserId)
+                  .map((m) => {
+                    const name = `${m.user.firstName || ''} ${m.user.lastName || ''}`.trim() || 'User'
+                    const initials = `${(m.user.firstName || '')[0] || ''}${(m.user.lastName || '')[0] || ''}`.toUpperCase() || '?'
+                    return (
+                      <span
+                        key={m.userId}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg text-sm"
+                      >
+                        {m.user.avatar ? (
+                          <img src={m.user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <span className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[9px] font-medium text-white">
+                            {initials}
+                          </span>
+                        )}
+                        <span className="font-medium text-slate-700">{name}</span>
+                      </span>
+                    )
+                  })}
+              </div>
+              <button
+                type="button"
+                className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer rounded transition-colors"
+                title="Add people"
+              >
+                <UserPlus className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              {!isDM && (
+                <span className="text-slate-400 flex-shrink-0">
+                  {isPrivate ? <Lock className="w-4 h-4" /> : <Hash className="w-4 h-4" />}
+                </span>
               )}
-            </span>
-          )}
-          <h2 className="text-sm font-semibold text-slate-700 truncate">
-            {channel?.name ?? 'Loading...'}
-          </h2>
-          {channel?.topic && (
-            <span className="text-xs text-slate-400 truncate hidden sm:inline">
-              {channel.topic}
-            </span>
+              <h2 className="text-sm font-semibold text-slate-700 truncate">
+                {channel?.name ?? 'Loading...'}
+              </h2>
+              {channel?.topic && (
+                <span className="text-xs text-slate-400 truncate hidden sm:inline">
+                  {channel.topic}
+                </span>
+              )}
+            </>
           )}
         </div>
 

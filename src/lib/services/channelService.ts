@@ -265,8 +265,12 @@ export async function getChannels(userId: string) {
  * T-24-03: For PRIVATE/DM/GROUP_DM, verify membership; throw 'not found' to avoid leaking existence.
  */
 export async function getChannel(channelId: string, userId: string) {
-  const channel = await db.channel.findUnique({
-    where: { id: channelId },
+  const { rawPrisma } = await import('@/lib/db')
+  const { getOrgContextId } = await import('@/lib/org-context')
+  const orgId = getOrgContextId()
+
+  const channel = await rawPrisma.channel.findFirst({
+    where: { id: channelId, organizationId: orgId, deletedAt: null },
     include: {
       members: {
         include: {
@@ -275,7 +279,7 @@ export async function getChannel(channelId: string, userId: string) {
       },
       _count: { select: { members: true } },
     },
-  } as Record<string, unknown>) as unknown as ChannelRow | null
+  }) as unknown as ChannelRow | null
 
   if (!channel) {
     throw new Error('Channel not found')
