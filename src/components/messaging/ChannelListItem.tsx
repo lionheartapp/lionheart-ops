@@ -75,6 +75,7 @@ export default function ChannelListItem({ channel, isActive, onSelect }: Channel
   const dmAvatar = useMemo(() => {
     if (!isDM || !channel.members?.length) return null
     const member = channel.members[0]
+    if (!member?.user) return null
     if (member.user.avatar) return member.user.avatar
     const initial = (member.user.firstName || 'U')[0].toUpperCase()
     return initial
