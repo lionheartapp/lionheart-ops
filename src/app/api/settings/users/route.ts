@@ -51,6 +51,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
 
   const where: Record<string, unknown> = {
     organizationId: orgId,
+    NOT: { email: { endsWith: '@lionheart.internal' } },
   }
 
   // Search by first name, last name, or email
