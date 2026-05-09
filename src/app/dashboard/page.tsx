@@ -922,7 +922,7 @@ export default function DashboardPage() {
             {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <WeatherWidget contextLabel={activeSchool?.name} />
-              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} />
+              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => setIsTasksDrawerOpen(true)} />
             </div>
             <div className="flex-1 min-h-0">
               <UpcomingEventsPanel
@@ -950,7 +950,7 @@ export default function DashboardPage() {
           {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <WeatherWidget contextLabel={activeSchool?.name} />
-            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} />
+            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => setIsTasksDrawerOpen(true)} />
           </div>
           <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
           {/* Sticky header — stays pinned while events scroll */}

@@ -30,8 +30,8 @@ import { cardEntrance } from '@/lib/animations'
 interface TasksFocusWidgetProps {
   /** Logged-in user's first name. */
   firstName: string
-  /** Optional href to deep-link into the My Tasks inbox when clicking "View all". */
-  viewAllHref?: string
+  /** Callback when "View all tasks" is clicked (opens drawer). */
+  onViewAll?: () => void
 }
 
 interface DisplayTask {
@@ -45,7 +45,7 @@ interface DisplayTask {
 
 export default function TasksFocusWidget({
   firstName,
-  viewAllHref = '/tasks',
+  onViewAll,
 }: TasksFocusWidgetProps) {
   const { data: eventTasks = [], isLoading: loadingEvent } = useMyTasks()
   const { data: personalTasks = [], isLoading: loadingPersonal } = usePersonalTasks()
@@ -118,14 +118,15 @@ export default function TasksFocusWidget({
         <span className="text-[11px] font-bold text-slate-600 tabular-nums">{progress}%</span>
       </div>
 
-      {/* View all link */}
-      <Link
-        href={viewAllHref}
+      {/* View all */}
+      <button
+        type="button"
+        onClick={onViewAll}
         className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
       >
         View all tasks
         <ArrowRight className="w-3 h-3" aria-hidden />
-      </Link>
+      </button>
     </motion.div>
   )
 }
