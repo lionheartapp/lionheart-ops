@@ -356,101 +356,97 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
             )}
 
             {!districtLoading && district && (
-              <>
-                {/* District info card */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                {/* District header — non-interactive context banner */}
+                <div className="px-6 py-4 bg-slate-50/80 border-b border-slate-200/60">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center flex-shrink-0">
-                        <Landmark className="w-5 h-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center flex-shrink-0">
+                        <Landmark className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-slate-900">{district.name}</h4>
-                        {formatDistrictAddress(district) && (
-                          <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-0.5">
-                            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                        <h4 className="text-sm font-semibold text-slate-900">{district.name}</h4>
+                        {formatDistrictAddress(district) ? (
+                          <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
                             {formatDistrictAddress(district)}
                           </div>
+                        ) : (
+                          <p className="text-xs text-slate-400 mt-0.5">District-level offices and facilities</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-500">
-                      <div className="flex items-center gap-1.5">
-                        <Building2 className="w-4 h-4" />
+                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5" />
                         {district._count.buildings} {district._count.buildings === 1 ? 'building' : 'buildings'}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4" />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5" />
                         {district._count.users} {district._count.users === 1 ? 'person' : 'people'}
-                      </div>
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Buildings section */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 mb-1">
-                    <Building2 className="w-5 h-5 text-slate-400" />
-                    <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">Buildings</h3>
-                    <span className="text-sm text-slate-400">District-level offices and facilities</span>
-                  </div>
-
-                  {districtBuildings.length === 0 && (
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-10 text-center">
-                      <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center mx-auto mb-3">
-                        <Building2 className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <div className="text-sm font-medium text-slate-700">No district buildings yet</div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        Add buildings like district offices, admin centers, or warehouses.
-                      </div>
-                      <button
-                        onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" /> Add your first building
-                      </button>
+                {/* Buildings list — inside the same card */}
+                {districtBuildings.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                      <Building2 className="w-5 h-5 text-slate-400" />
                     </div>
-                  )}
-
-                  {districtBuildings.map((b) => (
+                    <div className="text-sm font-medium text-slate-700">No buildings yet</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Add buildings like district offices, admin centers, or warehouses.
+                    </div>
                     <button
-                      key={b.id}
-                      onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
-                      className="w-full text-left bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer group"
+                      onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
+                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition cursor-pointer"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                          <Building2 className="w-5 h-5 text-slate-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
-                            {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                              {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3 mt-0.5">
-                            {b.address && (
-                              <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="truncate">{b.address}</span>
-                              </div>
-                            )}
-                            {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
-                              <span className="text-xs text-slate-400">
-                                {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
-                      </div>
+                      <Plus className="w-4 h-4" /> Add your first building
                     </button>
-                  ))}
-                </div>
-              </>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {districtBuildings.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
+                        className="w-full text-left px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="w-5 h-5 text-slate-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
+                              {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 mt-0.5">
+                              {b.address && (
+                                <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                                  <span className="truncate">{b.address}</span>
+                                </div>
+                              )}
+                              {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
+                                <span className="text-xs text-slate-400">
+                                  {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {districtError && (
