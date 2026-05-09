@@ -38,10 +38,9 @@ export async function GET(req: NextRequest) {
       return {
         id: g.id,
         title: g.title,
-        preview: images.fixed_height?.url,
-        // Use the permanent CDN URL — the API-returned URL contains a
-        // v1.* tracking token in the path that expires after a few hours,
-        // causing stored GIFs to show as broken images.
+        // Use permanent CDN URLs — the API-returned URLs contain v1.*
+        // tracking tokens in the path that expire after a few hours.
+        preview: `https://media.giphy.com/media/${g.id}/200.gif`,
         original: `https://media.giphy.com/media/${g.id}/giphy.gif`,
         width: Number(images.original?.width) || 0,
         height: Number(images.original?.height) || 0,
