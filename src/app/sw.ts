@@ -89,6 +89,13 @@ const serwist = new Serwist({
       matcher: /(?:tile\.openstreetmap\.org|server\.arcgisonline\.com)/,
       handler: new NetworkOnly(),
     },
+    // External media (GIPHY, etc.) — skip SW cache entirely.
+    // GIPHY CDN URLs end in .gif and were being caught by the static
+    // assets CacheFirst rule, causing stale/broken images on soft refresh.
+    {
+      matcher: /^https?:\/\/media[0-9]*\.giphy\.com\//,
+      handler: new NetworkOnly(),
+    },
     // Static assets (images, fonts, icons) — CacheFirst with 30-day expiry
     {
       matcher: /\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff|woff2|ttf|otf)$/,
