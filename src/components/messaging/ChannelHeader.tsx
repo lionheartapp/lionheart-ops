@@ -87,16 +87,18 @@ export default function ChannelHeader({
                     )
                   })}
               </div>
-              <button
-                type="button"
-                onClick={() => setShowAddPerson((prev) => !prev)}
-                className={`p-1 cursor-pointer rounded transition-colors ${
-                  showAddPerson ? 'text-primary-600 bg-primary-50' : 'text-slate-400 hover:text-slate-600'
-                }`}
-                title="Add people"
-              >
-                <UserPlus className="w-4 h-4" />
-              </button>
+              {channel?.type === 'GROUP_DM' && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddPerson((prev) => !prev)}
+                  className={`p-1 cursor-pointer rounded transition-colors ${
+                    showAddPerson ? 'text-primary-600 bg-primary-50' : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                  title="Add people"
+                >
+                  <UserPlus className="w-4 h-4" />
+                </button>
+              )}
             </>
           ) : (
             <>
