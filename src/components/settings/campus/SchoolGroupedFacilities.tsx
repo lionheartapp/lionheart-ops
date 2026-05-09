@@ -506,7 +506,7 @@ function BuildingsList({
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <Building2 className="w-4 h-4 text-slate-400" />
-        <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Buildings</h4>
+        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Buildings</h4>
         <span className="text-xs text-slate-400">({buildings.length})</span>
       </div>
       <div className="overflow-x-auto rounded-lg border border-slate-100">
@@ -620,7 +620,7 @@ function BuildingsList({
                             <div className="flex items-center justify-between mb-1.5">
                               <div className="flex items-center gap-1.5">
                                 <DoorOpen className="w-3.5 h-3.5 text-slate-400" />
-                                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                                   Rooms ({buildingRooms.length})
                                 </span>
                               </div>
@@ -711,7 +711,7 @@ function OutdoorList({
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <MapPin className="w-4 h-4 text-slate-400" />
-        <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Outdoor Spaces</h4>
+        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outdoor Spaces</h4>
         <span className="text-xs text-slate-400">({outdoorSpaces.length})</span>
       </div>
       <div className="overflow-x-auto rounded-lg border border-slate-100">

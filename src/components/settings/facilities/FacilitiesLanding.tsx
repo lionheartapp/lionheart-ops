@@ -452,10 +452,10 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
             )}
 
             <div className="space-y-3">
-              <div className="flex items-center gap-3 mb-1">
-                <SchoolIcon className="w-5 h-5 text-slate-400" />
-                <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">Schools</h3>
-                <span className="text-sm text-slate-400">Click a school to manage its campuses, buildings, and spaces</span>
+              <div className="flex items-center gap-2.5 mb-1 px-1">
+                <SchoolIcon className="w-4 h-4 text-slate-400" />
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Schools</h3>
+                <span className="text-xs text-slate-400 hidden sm:inline">&middot; Click a school to manage its campuses</span>
               </div>
 
               {schoolsLoading && (
