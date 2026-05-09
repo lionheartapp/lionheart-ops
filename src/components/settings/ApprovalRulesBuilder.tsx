@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Plus, X, Trash2, ClipboardCheck, ChevronRight, Shield, GripVertical,
+  Plus, X, Trash2, ChevronRight, Shield, GripVertical,
   Layers, ArrowDown, Users, Sparkles, Search,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
@@ -453,17 +453,10 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="ui-glass p-6">
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-            <ClipboardCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">Approval Workflow</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Define who must approve events using conditional rules</p>
-          </div>
-        </div>
+      {/* Header — matches Year Plans sibling page */}
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Approval Rules</h1>
+        <p className="text-sm text-slate-500 mt-1">Define who must approve events using conditional rules</p>
       </div>
 
       {/* AI disclaimer banner */}
