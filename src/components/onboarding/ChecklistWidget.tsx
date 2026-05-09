@@ -113,6 +113,7 @@ export default function OnboardingChecklistWidget() {
   const queryClient = useQueryClient()
   const [dismissingItem, setDismissingItem] = useState<string | null>(null)
   const [dismissingWidget, setDismissingWidget] = useState(false)
+  const [skippingAll, setSkippingAll] = useState(false)
   const [visitedModules, setVisitedModules] = useState<Module[]>([])
   const [activeTab, setActiveTab] = useState<ChecklistTab>('required')
 
@@ -157,6 +158,13 @@ export default function OnboardingChecklistWidget() {
     if (!data) return []
     return data.user.items
   }, [data])
+
+  // Map items to their scope for the dismiss handler — needs to be above
+  // handleSkipAllOptional so it can reference it.
+  const orgItemIds = useMemo(
+    () => new Set(visibleOrgItems.map((i) => i.id)),
+    [visibleOrgItems]
+  )
 
   // Aggregate progress across both sections.
   const { totalVisible, completedVisible, requiredAllComplete } = useMemo(() => {
@@ -212,6 +220,32 @@ export default function OnboardingChecklistWidget() {
     }
   }
 
+  const handleSkipAllOptional = async () => {
+    const allItems = [...visibleOrgItems, ...visibleUserItems]
+    const toDismiss = allItems.filter(
+      (i) => !i.required && !i.completed && i.dismissable
+    )
+    if (toDismiss.length === 0) return
+
+    setSkippingAll(true)
+    try {
+      await Promise.all(
+        toDismiss.map((item) => {
+          const scope = orgItemIds.has(item.id) ? 'org' : 'user'
+          return fetch('/api/onboarding/checklist/dismiss', {
+            method: 'POST',
+            credentials: 'include',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ scope, itemId: item.id }),
+          })
+        })
+      )
+      refetchChecklist()
+    } finally {
+      setSkippingAll(false)
+    }
+  }
+
   // ─── Skeleton while first load is in flight ───────────────────────────
   if (isLoading && !data) {
     return <ChecklistSkeleton />
@@ -241,8 +275,6 @@ export default function OnboardingChecklistWidget() {
   const requiredComplete = requiredItems.filter((i) => i.completed).length
   const optionalComplete = optionalItems.filter((i) => i.completed).length
   const displayItems = activeTab === 'required' ? requiredItems : optionalItems
-  // Map items to their scope for the dismiss handler
-  const orgItemIds = new Set(visibleOrgItems.map((i) => i.id))
 
   return (
     <motion.section
@@ -302,37 +334,55 @@ export default function OnboardingChecklistWidget() {
       </div>
 
       {/* Required / Optional tabs */}
-      <div className="flex items-center gap-1 px-5 mt-3">
-        <button
-          onClick={() => setActiveTab('required')}
-          className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
-            activeTab === 'required'
-              ? 'bg-slate-100 text-slate-900'
-              : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          Required
-          {requiredItems.length > 0 && (
-            <span className={`ml-1.5 text-[10px] tabular-nums ${activeTab === 'required' ? 'text-slate-500' : 'text-slate-300'}`}>
-              {requiredComplete}/{requiredItems.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('optional')}
-          className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
-            activeTab === 'optional'
-              ? 'bg-slate-100 text-slate-900'
-              : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          Optional
-          {optionalItems.length > 0 && (
-            <span className={`ml-1.5 text-[10px] tabular-nums ${activeTab === 'optional' ? 'text-slate-500' : 'text-slate-300'}`}>
-              {optionalComplete}/{optionalItems.length}
-            </span>
-          )}
-        </button>
+      <div className="flex items-center justify-between px-5 mt-3">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setActiveTab('required')}
+            className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
+              activeTab === 'required'
+                ? 'bg-slate-100 text-slate-900'
+                : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Required
+            {requiredItems.length > 0 && (
+              <span className={`ml-1.5 text-[10px] tabular-nums ${activeTab === 'required' ? 'text-slate-500' : 'text-slate-300'}`}>
+                {requiredComplete}/{requiredItems.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('optional')}
+            className={`px-3 py-2.5 text-xs font-medium rounded-md transition cursor-pointer ${
+              activeTab === 'optional'
+                ? 'bg-slate-100 text-slate-900'
+                : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Optional
+            {optionalItems.length > 0 && (
+              <span className={`ml-1.5 text-[10px] tabular-nums ${activeTab === 'optional' ? 'text-slate-500' : 'text-slate-300'}`}>
+                {optionalComplete}/{optionalItems.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeTab === 'optional' && optionalItems.filter((i) => !i.completed).length > 0 && (
+          <button
+            type="button"
+            onClick={handleSkipAllOptional}
+            disabled={skippingAll}
+            className="text-xs text-slate-400 hover:text-slate-600 transition-colors duration-200 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+          >
+            {skippingAll ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <CheckCircle2 className="w-3 h-3" />
+            )}
+            Skip all
+          </button>
+        )}
       </div>
 
       {/* Items */}
@@ -413,19 +463,37 @@ function ChecklistRow({ item, scope, dismissing, onDismiss }: ChecklistRowProps)
           item.completed ? 'bg-green-50/40' : 'hover:bg-slate-50'
         }`}
       >
-        {/* Status icon */}
-        <div
-          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200 ${
-            item.completed
-              ? 'bg-emerald-500 text-white'
-              : item.required
-                ? 'border-2 border-slate-300 bg-white'
-                : 'border-2 border-slate-200 bg-white'
-          }`}
-          aria-hidden="true"
-        >
-          {item.completed && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-        </div>
+        {/* Status icon — clickable on dismissable items to mark as skipped */}
+        {item.dismissable && !item.completed ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              onDismiss(item.id, scope)
+            }}
+            disabled={dismissing}
+            className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200 border-2 border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer group/check"
+            aria-label={`Mark "${item.title}" as done`}
+          >
+            {dismissing ? (
+              <Loader2 className="w-3 h-3 animate-spin text-slate-300" />
+            ) : (
+              <Check className="w-3.5 h-3.5 text-slate-200 group-hover/check:text-emerald-400 transition-colors duration-200" strokeWidth={3} />
+            )}
+          </button>
+        ) : (
+          <div
+            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200 ${
+              item.completed
+                ? 'bg-emerald-500 text-white'
+                : 'border-2 border-slate-300 bg-white'
+            }`}
+            aria-hidden="true"
+          >
+            {item.completed && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+          </div>
+        )}
 
         {/* Label + description */}
         <Link href={item.href} className="flex-1 min-w-0 cursor-pointer">
@@ -455,25 +523,6 @@ function ChecklistRow({ item, scope, dismissing, onDismiss }: ChecklistRowProps)
             >
               <ArrowRight className="w-4 h-4" />
             </Link>
-          )}
-          {item.dismissable && !item.completed && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                onDismiss(item.id, scope)
-              }}
-              disabled={dismissing}
-              className="p-1.5 rounded-full text-slate-300 hover:text-slate-500 transition-colors duration-200 cursor-pointer opacity-0 group-hover:opacity-100 disabled:opacity-50"
-              aria-label={`Dismiss ${item.title}`}
-            >
-              {dismissing ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <X className="w-3.5 h-3.5" />
-              )}
-            </button>
           )}
         </div>
       </div>
