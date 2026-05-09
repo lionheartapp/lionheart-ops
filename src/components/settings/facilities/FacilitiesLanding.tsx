@@ -356,42 +356,29 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
             )}
 
             {!districtLoading && district && (
-              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                {/* District header — non-interactive context banner */}
-                <div className="px-6 py-4 bg-slate-50/80 border-b border-slate-200/60">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center flex-shrink-0">
-                        <Landmark className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-900">{district.name}</h4>
-                        {formatDistrictAddress(district) ? (
-                          <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            {formatDistrictAddress(district)}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-slate-400 mt-0.5">District-level offices and facilities</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Building2 className="w-3.5 h-3.5" />
-                        {district._count.buildings} {district._count.buildings === 1 ? 'building' : 'buildings'}
+              <div className="space-y-1">
+                {/* District context — label-style header, not a card.
+                    Per Refactoring UI: section titles are supporting content,
+                    treat them small/subtle, emphasize the data below. */}
+                <div className="flex items-center justify-between gap-4 px-1 mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <Landmark className="w-4 h-4 text-slate-400" />
+                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{district.name}</h4>
+                    {formatDistrictAddress(district) && (
+                      <span className="text-xs text-slate-400 hidden sm:inline">
+                        &middot; {formatDistrictAddress(district)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5" />
-                        {district._count.users} {district._count.users === 1 ? 'person' : 'people'}
-                      </span>
-                    </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-400">
+                    <span>{district._count.buildings} {district._count.buildings === 1 ? 'building' : 'buildings'}</span>
+                    <span>{district._count.users} {district._count.users === 1 ? 'person' : 'people'}</span>
                   </div>
                 </div>
 
-                {/* Buildings list — inside the same card */}
+                {/* Buildings list — these are the real interactive elements */}
                 {districtBuildings.length === 0 ? (
-                  <div className="p-10 text-center">
+                  <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
                     <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">
                       <Building2 className="w-5 h-5 text-slate-400" />
                     </div>
@@ -407,38 +394,40 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                     </button>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="space-y-2">
                     {districtBuildings.map((b) => (
                       <button
                         key={b.id}
                         onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
-                        className="w-full text-left px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer group"
+                        className="w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer group"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                            <Building2 className="w-5 h-5 text-slate-500" />
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-50 transition-colors">
+                            <Building2 className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
-                              {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                              <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
+                              <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">
                                 {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
                               </span>
+                              {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
                             </div>
-                            <div className="flex items-center gap-3 mt-0.5">
-                              {b.address && (
-                                <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                                  <span className="truncate">{b.address}</span>
-                                </div>
-                              )}
-                              {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
-                                <span className="text-xs text-slate-400">
-                                  {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
-                                </span>
-                              )}
-                            </div>
+                            {(b.address || (b._count && (b._count.rooms > 0 || b._count.spaces > 0))) && (
+                              <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                                {b.address && (
+                                  <span className="flex items-center gap-1 truncate">
+                                    <MapPin className="w-3 h-3 flex-shrink-0" />
+                                    {b.address}
+                                  </span>
+                                )}
+                                {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
+                                  <span>
+                                    {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
                         </div>
