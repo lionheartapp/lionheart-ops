@@ -239,8 +239,8 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
 
   return (
     <div className="space-y-6">
-      {/* Header — full-width, flush top */}
-      <div className="px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+      {/* Header — full-width, flush top (matches all other settings tabs) */}
+      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
