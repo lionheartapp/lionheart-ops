@@ -19,6 +19,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     deletedAt: null,
     status: 'ACTIVE',
     id: { not: ctx.userId },
+    email: { not: { endsWith: '@lionheart.internal' } },
   }
 
   if (search) {
