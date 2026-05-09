@@ -140,16 +140,10 @@ export default function PlanningPage() {
       >
         <motion.div variants={fadeInUp} className="flex items-center justify-between">
           <div>
-            <h1
-              className="text-3xl font-semibold leading-[1.05]"
-              style={{ color: '#1a1915', letterSpacing: '-0.025em' }}
-            >
+            <h1 className="text-2xl font-semibold text-slate-900">
               Year Plans
             </h1>
-            <p
-              className="mt-2 text-[13.5px] font-medium"
-              style={{ color: '#6a6864' }}
-            >
+            <p className="mt-1 text-sm text-slate-500">
               Plan next year’s events. Collect proposals from staff, review them, and publish approved events to the calendar.
             </p>
           </div>

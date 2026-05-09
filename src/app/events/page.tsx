@@ -961,13 +961,13 @@ function EventsPageHeader({
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <h1
-          className="text-3xl font-semibold leading-[1.05]"
-          style={{ color: TEXT_PRIMARY, letterSpacing: '-0.025em' }}
+          className="text-2xl font-semibold"
+          style={{ color: TEXT_PRIMARY }}
         >
           Events Hub
         </h1>
         <p
-          className="mt-2 text-[13.5px] font-medium"
+          className="mt-1 text-sm"
           style={{ color: TEXT_SECONDARY }}
         >
           {isAdmin
