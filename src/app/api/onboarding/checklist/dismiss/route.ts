@@ -57,10 +57,14 @@ export const POST = withAuth<z.infer<typeof dismissSchema>>(
     }
 
     if (body.scope === 'widget') {
-      // Only allow widget dismissal once essentials are done — otherwise
-      // the user would lose the only nudge to finish setup.
+      // Allow widget dismissal once essentials are done OR the user is
+      // 80%+ complete — matches the client-side canDismissWidget logic.
       const checklist = await getOrgChecklist(orgId)
-      if (!checklist.essentialComplete) {
+      const progressPct =
+        checklist.totalCount > 0
+          ? (checklist.completedCount / checklist.totalCount) * 100
+          : 0
+      if (!checklist.essentialComplete && progressPct < 80) {
         return NextResponse.json(
           fail(
             'BAD_REQUEST',
