@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, UserCircle } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 
 type UserRow = {
   id: string
@@ -52,7 +52,9 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
   }, [users])
 
   const filtered = useMemo(() => {
-    let result = users.filter((u) => u.status === 'ACTIVE')
+    let result = users.filter(
+      (u) => u.status === 'ACTIVE' && !u.email.endsWith('@lionheart.internal')
+    )
     if (search) {
       const q = search.toLowerCase()
       result = result.filter(
@@ -201,6 +203,7 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
                   <div className="divide-y divide-slate-50">
                     {filtered.map((user) => {
                       const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+                      const initials = `${(user.firstName || '')[0] || ''}${(user.lastName || '')[0] || ''}`.toUpperCase() || '?'
                       const teamNames = user.teams?.map((t) => t.team.name).filter(Boolean) || []
 
                       return (
@@ -211,11 +214,11 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
                           className="w-full text-left px-5 py-3 hover:bg-slate-50 transition-colors flex items-center gap-3 disabled:opacity-50 cursor-pointer"
                         >
                           {/* Avatar */}
-                          <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {user.avatar ? (
                               <img src={user.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
                             ) : (
-                              <UserCircle className="w-6 h-6 text-slate-400" />
+                              <span className="text-[11px] font-medium text-slate-600">{initials}</span>
                             )}
                           </div>
 
