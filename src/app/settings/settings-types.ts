@@ -4,6 +4,7 @@
 
 export type Tab =
   | 'profile'
+  | 'notifications'
   | 'school-info'
   | 'roles'
   | 'teams'
@@ -18,6 +19,7 @@ export type Tab =
 
 export const VALID_TABS: Tab[] = [
   'profile',
+  'notifications',
   'school-info',
   'roles',
   'teams',

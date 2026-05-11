@@ -31,6 +31,11 @@ const toggleSchema = z.object({
   notifyOnNew: z.boolean(),
 })
 
+const updateSchema = z.object({
+  calendarId: z.string().min(1),
+  notifyBeforeMinutes: z.number().nullable(),
+})
+
 // POST — toggle notifyOnNew for a calendar
 export async function POST(req: NextRequest) {
   try {
@@ -43,6 +48,31 @@ export async function POST(req: NextRequest) {
 
     return await runWithOrgContext(orgId, async () => {
       const sub = await calendarService.toggleNotifyOnNew(ctx.userId, calendarId, notifyOnNew)
+      return NextResponse.json(ok(sub))
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
+    }
+    return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
+  }
+}
+
+// PATCH — update notifyBeforeMinutes for a calendar subscription
+export async function PATCH(req: NextRequest) {
+  try {
+    const orgId = getOrgIdFromRequest(req)
+    const ctx = await getUserContext(req)
+    await assertCan(ctx.userId, PERMISSIONS.CALENDARS_READ)
+
+    const body = await req.json()
+    const { calendarId, notifyBeforeMinutes } = updateSchema.parse(body)
+
+    return await runWithOrgContext(orgId, async () => {
+      const sub = await calendarService.updateSubscriptionPrefs(ctx.userId, calendarId, { notifyBeforeMinutes })
       return NextResponse.json(ok(sub))
     })
   } catch (error) {

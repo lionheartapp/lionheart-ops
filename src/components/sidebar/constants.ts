@@ -1,5 +1,6 @@
 import {
   User,
+  Bell,
   School,
   Shield,
   Users,
@@ -32,6 +33,7 @@ export const DEFAULT_CAMPUS_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#a855f7'
 
 export const GENERAL_TABS: SettingsTabDef[] = [
   { id: 'profile', label: 'My Profile', icon: User },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
 ]
 
 export const WORKSPACE_TABS: SettingsTabDef[] = [

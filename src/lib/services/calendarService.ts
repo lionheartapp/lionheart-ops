@@ -41,5 +41,6 @@ export {
   getUserSubscriptions,
   toggleSubscription,
   toggleNotifyOnNew,
+  updateSubscriptionPrefs,
   getCalendarNotifySubscribers,
 } from './calendar-users'

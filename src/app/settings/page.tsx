@@ -56,6 +56,7 @@ const AddOnsTab = dyn(() => import('@/components/settings/AddOnsTab')) as React.
 const AuditLogTab = dyn(() => import('@/components/settings/AuditLogTab')) as React.ComponentType
 const BillingTab = dyn(() => import('@/components/settings/BillingTab')) as React.ComponentType
 const IntegrationsTab = dyn(() => import('@/components/settings/IntegrationsTab')) as React.ComponentType
+const NotificationsTab = dyn(() => import('@/components/settings/NotificationsTab')) as React.ComponentType
 import { type Tab, type WorkspaceTab, getInitialTab, VALID_TABS, resolveTab } from './settings-types'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
@@ -405,6 +406,7 @@ export default function SettingsPage() {
                 {(() => {
                   const labels: Record<Tab, string> = {
                     profile: 'My Profile',
+                    notifications: 'Notifications',
                     'school-info': 'School Information',
                     roles: 'Roles',
                     teams: 'Teams',
@@ -426,6 +428,12 @@ export default function SettingsPage() {
                   userEmail={userEmail}
                   userAvatar={userAvatar}
                 />
+              )}
+
+              {visitedTabs.has('notifications') && (
+                <TabPanel active={activeTab === 'notifications'}>
+                  <NotificationsTab />
+                </TabPanel>
               )}
 
               {/*

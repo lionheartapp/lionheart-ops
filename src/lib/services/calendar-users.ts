@@ -211,6 +211,18 @@ export async function toggleNotifyOnNew(userId: string, calendarId: string, noti
   })
 }
 
+export async function updateSubscriptionPrefs(
+  userId: string,
+  calendarId: string,
+  data: { notifyBeforeMinutes?: number | null },
+) {
+  return prisma.calendarSubscription.upsert({
+    where: { userId_calendarId: { userId, calendarId } },
+    update: data,
+    create: { userId, calendarId, ...data },
+  })
+}
+
 /** Get all user IDs subscribed to a calendar with notifyOnNew enabled */
 export async function getCalendarNotifySubscribers(calendarId: string): Promise<string[]> {
   const subs = await prisma.calendarSubscription.findMany({
