@@ -27,6 +27,12 @@ interface EventDetailPanelProps {
   onDelete: (event: CalendarEventData) => void
 }
 
+function toLocalInput(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 function formatDateTime(dateStr: string, isAllDay: boolean): string {
   const d = new Date(dateStr)
   if (isAllDay) {
@@ -63,6 +69,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   const [titleDraft, setTitleDraft] = useState('')
   const [editingDescription, setEditingDescription] = useState(false)
   const [descriptionDraft, setDescriptionDraft] = useState('')
+  const [editingTime, setEditingTime] = useState(false)
+  const [startDraft, setStartDraft] = useState('')
+  const [endDraft, setEndDraft] = useState('')
+  const [editingLocation, setEditingLocation] = useState(false)
+  const [locationDraft, setLocationDraft] = useState('')
 
   // Attendee mutations
   const addAttendees = useAddAttendees()
@@ -103,6 +114,8 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
     setShowAddAttendee(false)
     setEditingTitle(false)
     setEditingDescription(false)
+    setEditingTime(false)
+    setEditingLocation(false)
   }, [event?.id])
 
   // RSVP: find current user's attendee record
@@ -378,27 +391,133 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
               )}
 
               <div className="space-y-1">
-                {/* Date/Time — icon row */}
+                {/* Date/Time — icon row, inline editable */}
                 <div className="flex items-start gap-4 py-3">
                   <Clock className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-slate-900">
-                      {formatDateTime(event.startTime, event.isAllDay)}
-                    </p>
-                    {!event.isAllDay && (
-                      <p className="text-sm text-slate-500">
-                        to {formatDateTime(event.endTime, false)}
+                  {editingTime ? (
+                    <div className="space-y-2 flex-1">
+                      <div className="space-y-1">
+                        <label className="text-xs text-slate-500">Start</label>
+                        <input
+                          type="datetime-local"
+                          value={startDraft}
+                          onChange={(e) => setStartDraft(e.target.value)}
+                          className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-slate-500">End</label>
+                        <input
+                          type="datetime-local"
+                          value={endDraft}
+                          onChange={(e) => setEndDraft(e.target.value)}
+                          className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await updateEvent.mutateAsync({
+                                id: event.id,
+                                startTime: new Date(startDraft).toISOString(),
+                                endTime: new Date(endDraft).toISOString(),
+                              })
+                              setEditingTime(false)
+                              toast('Time updated', 'success')
+                            } catch { toast('Failed to update', 'error') }
+                          }}
+                          disabled={updateEvent.isPending}
+                          className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+                        >
+                          {updateEvent.isPending ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => setEditingTime(false)}
+                          className="px-3 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className={`${(isAdmin || isCreator) && !isExternal && !isAthletics ? 'cursor-pointer hover:bg-slate-50 rounded-lg -mx-2 px-2 py-0.5 transition-colors' : ''}`}
+                      onClick={() => {
+                        if ((isAdmin || isCreator) && !isExternal && !isAthletics) {
+                          setStartDraft(toLocalInput(event.startTime))
+                          setEndDraft(toLocalInput(event.endTime))
+                          setEditingTime(true)
+                        }
+                      }}
+                    >
+                      <p className="text-sm text-slate-900">
+                        {formatDateTime(event.startTime, event.isAllDay)}
                       </p>
-                    )}
-                    {event.isAllDay && <p className="text-xs text-slate-400 mt-0.5">All-day event</p>}
-                  </div>
+                      {!event.isAllDay && (
+                        <p className="text-sm text-slate-500">
+                          to {formatDateTime(event.endTime, false)}
+                        </p>
+                      )}
+                      {event.isAllDay && <p className="text-xs text-slate-400 mt-0.5">All-day event</p>}
+                    </div>
+                  )}
                 </div>
 
-                {/* Location — icon row */}
-                {(event.locationText || event.building) && (
-                  <div className="flex items-start gap-4 py-3">
-                    <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
-                    <div>
+                {/* Location — icon row, inline editable */}
+                <div className="flex items-start gap-4 py-3">
+                  <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
+                  {editingLocation ? (
+                    <div className="space-y-2 flex-1">
+                      <input
+                        autoFocus
+                        value={locationDraft}
+                        onChange={(e) => setLocationDraft(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (e.key === 'Enter') {
+                            try {
+                              await updateEvent.mutateAsync({ id: event.id, locationText: locationDraft.trim() || '' })
+                              setEditingLocation(false)
+                              toast('Location updated', 'success')
+                            } catch { toast('Failed to update', 'error') }
+                          }
+                          if (e.key === 'Escape') setEditingLocation(false)
+                        }}
+                        placeholder="Enter location..."
+                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await updateEvent.mutateAsync({ id: event.id, locationText: locationDraft.trim() || '' })
+                              setEditingLocation(false)
+                              toast('Location updated', 'success')
+                            } catch { toast('Failed to update', 'error') }
+                          }}
+                          disabled={updateEvent.isPending}
+                          className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingLocation(false)}
+                          className="px-3 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (event.locationText || event.building) ? (
+                    <div
+                      className={`${(isAdmin || isCreator) && !isExternal && !isAthletics ? 'cursor-pointer hover:bg-slate-50 rounded-lg -mx-2 px-2 py-0.5 transition-colors' : ''}`}
+                      onClick={() => {
+                        if ((isAdmin || isCreator) && !isExternal && !isAthletics) {
+                          setLocationDraft(event.locationText || '')
+                          setEditingLocation(true)
+                        }
+                      }}
+                    >
                       {event.locationText && (
                         <p className="text-sm text-slate-900">{event.locationText}</p>
                       )}
@@ -409,8 +528,17 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                         </p>
                       )}
                     </div>
-                  </div>
-                )}
+                  ) : (isAdmin || isCreator) && !isExternal && !isAthletics ? (
+                    <button
+                      onClick={() => { setLocationDraft(''); setEditingLocation(true) }}
+                      className="text-sm text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    >
+                      Add location...
+                    </button>
+                  ) : (
+                    <p className="text-sm text-slate-400">No location</p>
+                  )}
+                </div>
 
                 {/* Calendar — icon row */}
                 <div className="flex items-center gap-4 py-3">
