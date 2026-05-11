@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, X, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, X, Pencil, Trash2, Bell, BellOff } from 'lucide-react'
 import type { CalendarFilter } from './CalendarFilterPopover'
 
 // ── Shared types ────────────────────────────────────────────────────────
@@ -172,6 +172,10 @@ interface CalendarFilterPanelProps {
   onUpdateCategory?: (id: string, data: { name?: string; color?: string }) => void
   onDeleteCategory?: (id: string) => void
 
+  // Calendar notifications
+  notifyCalendarIds?: Set<string>
+  onToggleCalendarNotify?: (calendarId: string, enabled: boolean) => void
+
   // External Calendars
   externalCalendars: ExternalCalendarItem[]
 
@@ -198,6 +202,8 @@ export default function CalendarFilterPanel({
   categories,
   onUpdateCategory,
   onDeleteCategory,
+  notifyCalendarIds,
+  onToggleCalendarNotify,
   externalCalendars,
   athleticsVisible,
   userCampuses,
@@ -300,32 +306,56 @@ export default function CalendarFilterPanel({
               <div className="space-y-0.5">
                 {masterCal && (() => {
                   const isVisible = visibleCalendarIds.has(masterCal.id)
+                  const isNotify = notifyCalendarIds?.has(masterCal.id)
                   return (
-                    <button
-                      key={masterCal.id}
-                      type="button"
-                      onClick={() => onToggleCalendar(masterCal.id)}
-                      className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                    >
-                      <FilterCheckbox checked={isVisible} color={masterCal.color} onChange={() => onToggleCalendar(masterCal.id)} />
-                      <span className={`text-sm truncate font-medium ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{masterCal.name}</span>
-                    </button>
+                    <div key={masterCal.id} className="group/cal flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150">
+                      <button
+                        type="button"
+                        onClick={() => onToggleCalendar(masterCal.id)}
+                        className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer text-left"
+                      >
+                        <FilterCheckbox checked={isVisible} color={masterCal.color} onChange={() => onToggleCalendar(masterCal.id)} />
+                        <span className={`text-sm truncate font-medium ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{masterCal.name}</span>
+                      </button>
+                      {onToggleCalendarNotify && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onToggleCalendarNotify(masterCal.id, !isNotify) }}
+                          className={`p-1 rounded-full transition-colors cursor-pointer flex-shrink-0 ${isNotify ? 'text-primary-500' : 'text-slate-300 opacity-0 group-hover/cal:opacity-100'}`}
+                          title={isNotify ? 'Notifications on' : 'Notify me of new events'}
+                        >
+                          {isNotify ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
+                    </div>
                   )
                 })()}
                 {otherCals.length > 0 && (
                   <div className="ml-5 pl-3 border-l border-slate-200 space-y-0.5">
                     {otherCals.map((cal) => {
                       const isVisible = visibleCalendarIds.has(cal.id)
+                      const isNotify = notifyCalendarIds?.has(cal.id)
                       return (
-                        <button
-                          key={cal.id}
-                          type="button"
-                          onClick={() => onToggleCalendar(cal.id)}
-                          className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150 cursor-pointer text-left group"
-                        >
-                          <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
-                          <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
-                        </button>
+                        <div key={cal.id} className="group/cal flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors duration-150">
+                          <button
+                            type="button"
+                            onClick={() => onToggleCalendar(cal.id)}
+                            className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer text-left"
+                          >
+                            <FilterCheckbox checked={isVisible} color={cal.color} onChange={() => onToggleCalendar(cal.id)} />
+                            <span className={`text-sm truncate ${isVisible ? 'text-slate-700' : 'text-slate-400'}`}>{cal.name}</span>
+                          </button>
+                          {onToggleCalendarNotify && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onToggleCalendarNotify(cal.id, !isNotify) }}
+                              className={`p-1 rounded-full transition-colors cursor-pointer flex-shrink-0 ${isNotify ? 'text-primary-500' : 'text-slate-300 opacity-0 group-hover/cal:opacity-100'}`}
+                              title={isNotify ? 'Notifications on' : 'Notify me of new events'}
+                            >
+                              {isNotify ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+                            </button>
+                          )}
+                        </div>
                       )
                     })}
                   </div>

@@ -139,6 +139,34 @@ export function useCalendars() {
   })
 }
 
+export interface CalendarSubscriptionData {
+  id: string
+  calendarId: string
+  notifyOnNew: boolean
+}
+
+export function useCalendarSubscriptions() {
+  return useQuery<CalendarSubscriptionData[]>({
+    queryKey: ['calendar-subscriptions'],
+    queryFn: () => fetchApi('/api/calendar-subscriptions'),
+    staleTime: 60_000,
+  })
+}
+
+export function useToggleCalendarNotify() {
+  const queryClient = useQueryClient()
+  return useMutation<unknown, Error, { calendarId: string; notifyOnNew: boolean }>({
+    mutationFn: (data) =>
+      fetchApi('/api/calendar-subscriptions', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar-subscriptions'] })
+    },
+  })
+}
+
 /**
  * F-036: switch to POST-with-body when the calendarIds list exceeds this
  * threshold. Multi-campus orgs with many calendars were generating URLs over

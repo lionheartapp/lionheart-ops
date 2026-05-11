@@ -280,6 +280,33 @@ export async function POST(req: NextRequest) {
         locationText: event.locationText,
       })
 
+      // Notify calendar subscribers (fire-and-forget)
+      ;(async () => {
+        try {
+          const subscribers = await calendarService.getCalendarNotifySubscribers(data.calendarId)
+          const attendeeSet = new Set(attendeeIds || [])
+          // Exclude the creator and anyone already notified as an attendee
+          const recipientIds = subscribers.filter((uid) => uid !== ctx.userId && !attendeeSet.has(uid))
+          if (recipientIds.length > 0) {
+            const creator = await prisma.user.findUnique({
+              where: { id: ctx.userId },
+              select: { firstName: true, name: true },
+            })
+            const creatorName = creator?.firstName || creator?.name || 'Someone'
+            const cal = await prisma.calendar.findUnique({ where: { id: data.calendarId }, select: { name: true } })
+            notificationService.createBulkNotifications(
+              recipientIds.map((uid) => ({
+                userId: uid,
+                type: 'event_updated' as const,
+                title: `New event on ${cal?.name || 'calendar'}: "${event.title}"`,
+                body: `${creatorName} created a new event.`,
+                linkUrl: `/calendar?eventId=${event.id}`,
+              }))
+            )
+          }
+        } catch { /* non-fatal */ }
+      })()
+
       return NextResponse.json(ok(event), { status: 201 })
     })
   } catch (error) {

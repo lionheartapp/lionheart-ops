@@ -40,4 +40,6 @@ export {
   updateRsvpStatus,
   getUserSubscriptions,
   toggleSubscription,
+  toggleNotifyOnNew,
+  getCalendarNotifySubscribers,
 } from './calendar-users'
