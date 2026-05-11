@@ -85,6 +85,13 @@ const viewLabels: Record<CalendarViewType, string> = {
   agenda: 'Agenda',
 }
 
+const viewShortcuts: Record<CalendarViewType, string> = {
+  month: 'M',
+  week: 'W',
+  day: 'D',
+  agenda: 'A',
+}
+
 function formatTitle(date: Date, view: CalendarViewType): string {
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -212,6 +219,7 @@ export default function CalendarToolbar({
                 role="tab"
                 aria-selected={view === v}
                 onClick={() => onViewChange(v)}
+                title={`${viewLabels[v]} view (${viewShortcuts[v]})`}
                 className={`relative z-10 px-5 py-1.5 text-sm font-semibold transition-colors duration-200 rounded-full cursor-pointer ${
                   view === v
                     ? 'text-white'
@@ -237,6 +245,7 @@ export default function CalendarToolbar({
             </button>
             <button
               onClick={onToday}
+              title="Go to today (T)"
               className="px-3 sm:px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-stone-50 transition-colors border-l border-r border-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <span className="hidden sm:inline">Today</span>
