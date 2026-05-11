@@ -1098,6 +1098,15 @@ export default function CalendarView() {
           setIsCreateOpen(true)
         }}
         onDelete={handleDeleteEvent}
+        onDuplicate={(evt) => {
+          setSelectedEvent(null)
+          setEditingEvent(null)
+          setCreateMode('event')
+          setFormError(null)
+          setCreateInitialStart(new Date(evt.startTime))
+          setCreateInitialEnd(new Date(evt.endTime))
+          setIsCreateOpen(true)
+        }}
       />
 
       <EventCreatePanel

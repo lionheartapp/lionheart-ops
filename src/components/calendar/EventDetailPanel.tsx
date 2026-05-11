@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video, Repeat, Download } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video, Repeat, Download, Copy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -25,6 +25,7 @@ interface EventDetailPanelProps {
   onClose: () => void
   onEdit: (event: CalendarEventData) => void
   onDelete: (event: CalendarEventData) => void
+  onDuplicate?: (event: CalendarEventData) => void
 }
 
 function downloadIcs(event: CalendarEventData) {
@@ -123,7 +124,7 @@ const statusStyles: Record<string, { bg: string; text: string; label: string }> 
   CANCELLED: { bg: 'bg-slate-100', text: 'text-slate-500', label: 'Cancelled' },
 }
 
-export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: EventDetailPanelProps) {
+export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onDuplicate }: EventDetailPanelProps) {
   const focusTrapRef = useFocusTrap(!!event)
   const { toast } = useToast()
 
@@ -252,6 +253,15 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                       aria-label="Edit event"
                     >
                       <Edit className="w-4 h-4 text-slate-400" />
+                    </button>
+                  )}
+                  {!isAthletics && !isExternal && onDuplicate && (isAdmin || isCreator) && (
+                    <button
+                      onClick={() => onDuplicate(event)}
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
+                      aria-label="Duplicate event"
+                    >
+                      <Copy className="w-4 h-4 text-slate-400" />
                     </button>
                   )}
                   {!isAthletics && !isExternal && isAdmin && (
