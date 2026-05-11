@@ -4,10 +4,14 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
-import { Trophy, X, Repeat } from 'lucide-react'
+import { Trophy, X, Repeat, Clock3 } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
+
+function isPendingEvent(event: CalendarEventData): boolean {
+  return event.calendarStatus === 'PENDING' || event.calendarStatus === 'DRAFT'
+}
 
 interface MonthViewProps {
   currentDate: Date
@@ -298,7 +302,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             onEventClick(event)
                           }}
                           aria-label={getEventAriaLabel(event)}
-                          className="w-full text-left flex items-center gap-1 px-1.5 py-[3px] rounded-md text-[11px] font-medium text-white truncate hover:brightness-90 transition-[filter]"
+                          className={`w-full text-left flex items-center gap-1 px-1.5 py-[3px] rounded-md text-[11px] font-medium truncate hover:brightness-90 transition-[filter] ${isPendingEvent(event) ? 'opacity-60 border border-dashed border-white/40 text-white' : 'text-white'}`}
                           style={{ backgroundColor: getEventColor(event) }}
                         >
                           <CampusShapeIndicator
@@ -306,6 +310,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             color="rgba(255,255,255,0.85)"
                             size={8}
                           />
+                          {isPendingEvent(event) && <Clock3 className="w-3 h-3 flex-shrink-0 opacity-80" />}
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-80" />}
                           {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           <span className="truncate">{event.title}</span>
@@ -318,14 +323,15 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             onEventClick(event)
                           }}
                           aria-label={getEventAriaLabel(event)}
-                          className="w-full text-left flex items-center gap-1.5 px-1.5 py-[3px] rounded-md text-[11px] truncate hover:brightness-95 transition-[filter]"
-                          style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event) }}
+                          className={`w-full text-left flex items-center gap-1.5 px-1.5 py-[3px] rounded-md text-[11px] truncate hover:brightness-95 transition-[filter] ${isPendingEvent(event) ? 'opacity-60 border border-dashed' : ''}`}
+                          style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event), ...(isPendingEvent(event) ? { borderColor: getEventColor(event) + '40' } : {}) }}
                         >
                           <CampusShapeIndicator
                             shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
                             color={getEventColor(event)}
                             size={8}
                           />
+                          {isPendingEvent(event) && <Clock3 className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-60" />}
                           <span className="truncate">
