@@ -95,6 +95,23 @@ function describeRecurrence(rrule: string): string {
   return base
 }
 
+function relativeEventTime(startIso: string): string | null {
+  const now = new Date()
+  const start = new Date(startIso)
+  now.setHours(0, 0, 0, 0)
+  const startDay = new Date(start)
+  startDay.setHours(0, 0, 0, 0)
+  const diffMs = startDay.getTime() - now.getTime()
+  const diffDays = Math.round(diffMs / 86_400_000)
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Tomorrow'
+  if (diffDays === -1) return 'Yesterday'
+  if (diffDays > 1 && diffDays <= 14) return `In ${diffDays} days`
+  if (diffDays < -1 && diffDays >= -14) return `${Math.abs(diffDays)} days ago`
+  return null
+}
+
 function toLocalInput(iso: string): string {
   const d = new Date(iso)
   const pad = (n: number) => n.toString().padStart(2, '0')
@@ -541,6 +558,10 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                     >
                       <p className="text-sm text-slate-900">
                         {formatDateTime(event.startTime, event.isAllDay)}
+                        {(() => {
+                          const rel = relativeEventTime(event.startTime)
+                          return rel ? <span className="ml-2 text-xs text-slate-400 font-normal">({rel})</span> : null
+                        })()}
                       </p>
                       {!event.isAllDay && (
                         <p className="text-sm text-slate-500">
