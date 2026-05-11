@@ -5,6 +5,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import * as calendarService from '@/lib/services/calendarService'
+import * as notificationService from '@/lib/services/notificationService'
 import type { CalendarEventStatus } from '@prisma/client'
 import { LocationConflictError } from '@/lib/services/calendarService'
 import { embedCalendarEvent } from '@/lib/services/ai/embeddingTriggers'
@@ -246,6 +247,25 @@ export async function POST(req: NextRequest) {
       // Create attendee records if provided
       if (attendeeIds && attendeeIds.length > 0) {
         await calendarService.addAttendees(event.id, attendeeIds)
+
+        // Notify attendees they've been added (fire-and-forget)
+        const recipientIds = attendeeIds.filter((uid: string) => uid !== ctx.userId)
+        if (recipientIds.length > 0) {
+          const creator = await prisma.user.findUnique({
+            where: { id: ctx.userId },
+            select: { firstName: true, name: true },
+          })
+          const creatorName = creator?.firstName || creator?.name || 'Someone'
+          notificationService.createBulkNotifications(
+            recipientIds.map((uid: string) => ({
+              userId: uid,
+              type: 'event_invite' as const,
+              title: `You were added to "${event.title}"`,
+              body: `${creatorName} added you as an attendee to this event.`,
+              linkUrl: `/calendar?eventId=${event.id}`,
+            }))
+          )
+        }
       }
 
       void embedCalendarEvent(event.id, {

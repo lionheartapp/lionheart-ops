@@ -143,46 +143,56 @@ export async function PUT(
         }
       }
 
-      // Fire-and-forget: send notifications to attendees if requested
-      if (notify && (startTime || endTime)) {
+      // Fire-and-forget: notify attendees about the update
+      {
         const attendees = await calendarService.getEventAttendees(eventId)
         const recipientIds = attendees
           .map((a: { userId: string }) => a.userId)
           .filter((uid: string) => uid !== ctx.userId)
 
         if (recipientIds.length > 0) {
+          const updater = await prisma.user.findUnique({
+            where: { id: ctx.userId },
+            select: { firstName: true, lastName: true },
+          })
+          const updaterName = [updater?.firstName, updater?.lastName].filter(Boolean).join(' ') || 'Someone'
+
+          // Describe what changed
+          const wasRescheduled = !!(startTime || endTime)
+          const notifBody = wasRescheduled
+            ? `${updaterName} updated the time for this event.`
+            : `${updaterName} updated this event.`
+
           // In-app notifications
           notificationService.createBulkNotifications(
             recipientIds.map((uid: string) => ({
               userId: uid,
               type: 'event_updated' as const,
-              title: `Event "${updated.title}" was rescheduled`,
-              body: `The event time has been updated.`,
+              title: `"${updated.title}" was updated`,
+              body: notifBody,
               linkUrl: `/calendar?eventId=${eventId}`,
             }))
           )
 
-          // Email notifications (fire-and-forget)
-          const [recipientUsers, updater, org] = await Promise.all([
-            prisma.user.findMany({
-              where: { id: { in: recipientIds }, status: 'ACTIVE' },
-              select: { email: true },
-            }),
-            prisma.user.findUnique({
-              where: { id: ctx.userId },
-              select: { firstName: true, lastName: true },
-            }),
-            prisma.organization.findFirst({ select: { name: true } }),
-          ])
-          sendEventUpdateEmails({
-            eventTitle: updated.title,
-            eventStart: updated.startTime.toISOString(),
-            eventEnd: updated.endTime.toISOString(),
-            attendeeEmails: recipientUsers.map((u: { email: string }) => u.email),
-            updatedByName: [updater?.firstName, updater?.lastName].filter(Boolean).join(' ') || 'A team member',
-            orgName: org?.name || 'your school',
-            eventLink: `/calendar?eventId=${eventId}`,
-          }).catch(() => {})
+          // Email notifications for time changes (fire-and-forget)
+          if (wasRescheduled && notify) {
+            const [recipientUsers, org] = await Promise.all([
+              prisma.user.findMany({
+                where: { id: { in: recipientIds }, status: 'ACTIVE' },
+                select: { email: true },
+              }),
+              prisma.organization.findFirst({ select: { name: true } }),
+            ])
+            sendEventUpdateEmails({
+              eventTitle: updated.title,
+              eventStart: updated.startTime.toISOString(),
+              eventEnd: updated.endTime.toISOString(),
+              attendeeEmails: recipientUsers.map((u: { email: string }) => u.email),
+              updatedByName: updaterName,
+              orgName: org?.name || 'your school',
+              eventLink: `/calendar?eventId=${eventId}`,
+            }).catch(() => {})
+          }
         }
       }
 
@@ -263,12 +273,17 @@ export async function DELETE(
         .map((a: { userId: string }) => a.userId)
         .filter((uid: string) => uid !== ctx.userId)
       if (recipientIds.length > 0) {
+        const deleter = await prisma.user.findUnique({
+          where: { id: ctx.userId },
+          select: { firstName: true, lastName: true },
+        })
+        const deleterName = [deleter?.firstName, deleter?.lastName].filter(Boolean).join(' ') || 'Someone'
         notificationService.createBulkNotifications(
           recipientIds.map((uid: string) => ({
             userId: uid,
             type: 'event_deleted' as const,
-            title: `Event "${event.title}" was cancelled`,
-            body: 'This event has been removed from the calendar.',
+            title: `"${event.title}" was cancelled`,
+            body: `${deleterName} removed this event from the calendar.`,
           }))
         )
       }
