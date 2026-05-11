@@ -379,6 +379,17 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
               {/* Event Project deep-link */}
               {event.sourceModule === 'event-project' && event.sourceId && (
                 <div className="mb-4 pb-4 border-b border-slate-100">
+                  {(event.calendarStatus === 'PENDING' || event.calendarStatus === 'PENDING_APPROVAL') && (
+                    <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+                      <p className="text-xs font-medium text-amber-800">This event is awaiting approval.</p>
+                      <p className="text-xs text-amber-600 mt-0.5">Review and approve from the event project page.</p>
+                    </div>
+                  )}
+                  {event.calendarStatus === 'DRAFT' && (
+                    <div className="mb-3 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <p className="text-xs font-medium text-slate-700">This event is a draft and not yet visible to others.</p>
+                    </div>
+                  )}
                   <Link href={`/events/${event.sourceId}`}>
                     <button className="w-full px-4 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer flex items-center justify-center gap-2">
                       <ExternalLink className="w-4 h-4" />
