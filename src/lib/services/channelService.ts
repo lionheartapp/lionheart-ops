@@ -47,6 +47,7 @@ interface UserSelect {
   lastName: string | null
   avatar: string | null
   email?: string | null
+  lastActiveAt?: Date | null
 }
 
 interface MemberRow {
@@ -144,6 +145,7 @@ function shapeMember(row: MemberRow) {
       lastName: row.user.lastName,
       avatar: row.user.avatar,
       email: row.user.email ?? null,
+      lastActiveAt: row.user.lastActiveAt?.toISOString() ?? null,
     },
   }
 }
@@ -243,7 +245,7 @@ export async function getChannels(userId: string, orgId: string) {
       // For channels: just include current user's unread state
       members: {
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          user: { select: { id: true, firstName: true, lastName: true, avatar: true, lastActiveAt: true } },
         },
       },
     },

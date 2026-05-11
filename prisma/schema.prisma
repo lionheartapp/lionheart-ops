@@ -230,6 +230,8 @@ model Organization {
   messageMentions             MessageMention[]
   messagingNotificationPreferences MessagingNotificationPreference[]
   pushSubscriptions           PushSubscription[]
+  // Since-Yesterday diff module
+  diffEvents                  DiffEvent[]
 
   @@index([onboardingStatus])
 }
@@ -266,6 +268,7 @@ model User {
   // Onboarding checklist: items this user has explicitly dismissed. Only
   // applies to dismissable items (user-level tasks, not org-level essentials).
   onboardingDismissedItems String[] @default([])
+  lastActiveAt   DateTime?        // Presence: updated on messaging heartbeat
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
@@ -6189,4 +6192,50 @@ model PushSubscription {
 
   @@unique([userId, endpoint])
   @@index([organizationId])
+}
+
+// ─── Since-Yesterday Diff Module ─────────────────────────────────────────────
+// Append-only log of meaningful changes. Not soft-deleted.
+
+model DiffEvent {
+  id              String   @id @default(cuid())
+  organizationId  String
+
+  // What changed
+  resourceType    String   // "ticket" | "event" | "draft_event" | "work_order" | "approval"
+  resourceId      String
+  changeType      String   // "created" | "status_changed" | "assigned" | "completed" | "approved" | "rejected" | "room_changed" | "rescheduled"
+
+  // Audience hints — read query uses these to determine who sees this event
+  actorUserId     String?  // who caused it (null = system)
+  targetUserId    String?  // who it's "for" (assignee, approver)
+  teamId          String?  // team that owns the resource
+  schoolId        String?
+  buildingId      String?
+
+  // Display
+  severity        String   // "critical" | "high" | "normal" | "good"
+  summary         String   // Fallback label if aggregation falls back to per-event
+  meta            Json?    // { from: "open", to: "resolved", priority: "high", ... }
+
+  occurredAt      DateTime @default(now())
+
+  handledBy       DiffEventHandled[]
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, occurredAt])
+  @@index([organizationId, targetUserId, occurredAt])
+  @@index([organizationId, teamId, occurredAt])
+}
+
+model DiffEventHandled {
+  diffEventId  String
+  userId       String
+  handledAt    DateTime @default(now())
+  method       String   // "dismissed" | "auto"
+
+  diffEvent    DiffEvent @relation(fields: [diffEventId], references: [id], onDelete: Cascade)
+
+  @@id([diffEventId, userId])
+  @@index([userId, handledAt])
 }

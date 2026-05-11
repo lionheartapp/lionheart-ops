@@ -179,8 +179,9 @@ export function useCalendarEvents(
       })
     },
     enabled,
-    staleTime: 5 * 60_000,
+    staleTime: 30_000,
     gcTime: 10 * 60_000,
+    refetchOnWindowFocus: true,
     placeholderData: keepPreviousData,
   })
 }

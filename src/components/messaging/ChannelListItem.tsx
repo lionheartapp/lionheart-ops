@@ -91,6 +91,15 @@ export default function ChannelListItem({ channel, isActive, onSelect, onClose, 
     return initial
   }, [isDM, channel.members, currentUserId])
 
+  // Online presence: other user active within last 5 minutes
+  const isOnline = useMemo(() => {
+    if (!isDM || !channel.members?.length) return false
+    const other = channel.members.find((m) => m.user && m.userId !== currentUserId)
+    const lastActive = other?.user?.lastActiveAt
+    if (!lastActive) return false
+    return Date.now() - new Date(lastActive).getTime() < 5 * 60 * 1000
+  }, [isDM, channel.members, currentUserId])
+
   if (hidden) return null
 
   return (
@@ -130,6 +139,9 @@ export default function ChannelListItem({ channel, isActive, onSelect, onClose, 
         </div>
         {unreadCount > 0 && !isMuted && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary-500 border-2 border-white rounded-full" />
+        )}
+        {isDM && isOnline && (
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
         )}
       </div>
 

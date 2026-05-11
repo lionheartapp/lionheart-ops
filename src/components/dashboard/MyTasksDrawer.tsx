@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { format, isToday, isPast, isFuture, startOfDay } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -60,6 +60,8 @@ type UnifiedTask = {
 interface MyTasksDrawerProps {
   isOpen: boolean
   onClose: () => void
+  /** When set, auto-open to this task's detail screen when the drawer opens. */
+  initialTaskId?: string | null
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -137,7 +139,7 @@ function groupIntoSections(tasks: UnifiedTask[]): TaskSection[] {
 
 // ─── Main component ─────────────────────────────────────────────────────────
 
-export default function MyTasksDrawer({ isOpen, onClose }: MyTasksDrawerProps) {
+export default function MyTasksDrawer({ isOpen, onClose, initialTaskId }: MyTasksDrawerProps) {
   const [screen, setScreen] = useState<Screen>('home')
   const [prevScreen, setPrevScreen] = useState<Screen>('home')
   const [slideDirection, setSlideDirection] = useState<'forward' | 'back'>('forward')
@@ -157,6 +159,21 @@ export default function MyTasksDrawer({ isOpen, onClose }: MyTasksDrawerProps) {
 
   const isLoading = eventLoading || personalLoading
   const allTasks = useMemo(() => unifyTasks(eventTasks, personalTasks), [eventTasks, personalTasks])
+
+  // When opened with a specific task, jump straight to its detail screen
+  useEffect(() => {
+    if (isOpen && initialTaskId && allTasks.length > 0) {
+      const target = allTasks.find((t) => t.id === initialTaskId)
+      if (target) {
+        setSelectedTask(target)
+        setScreen('detail')
+      }
+    }
+    if (!isOpen) {
+      setScreen('home')
+      setSelectedTask(null)
+    }
+  }, [isOpen, initialTaskId, allTasks])
 
   const counts = useMemo(() => {
     const active = allTasks.filter((t) => t.status !== 'DONE')

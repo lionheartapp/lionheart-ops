@@ -46,12 +46,19 @@ export async function POST(
       if (event) {
         const recipientIds = userIds.filter((uid: string) => uid !== ctx.userId)
         if (recipientIds.length > 0) {
+          // Look up who added them so the notification is personal
+          const adder = await prisma.user.findUnique({
+            where: { id: ctx.userId },
+            select: { name: true, firstName: true, email: true },
+          })
+          const adderName = adder?.firstName || adder?.name || adder?.email || 'Someone'
+
           notificationService.createBulkNotifications(
             recipientIds.map((uid: string) => ({
               userId: uid,
               type: 'event_invite' as const,
               title: `You were added to "${event.title}"`,
-              body: 'You have been added as an attendee to this event.',
+              body: `${adderName} added you as an attendee to this event.`,
               linkUrl: `/calendar?eventId=${eventId}`,
             }))
           )

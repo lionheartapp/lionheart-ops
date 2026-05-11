@@ -49,6 +49,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import CalendarFilterPanel from './CalendarFilterPanel'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
+import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
 import { useSmartSearch } from '@/lib/hooks/useSmartSearch'
 import { Download } from 'lucide-react'
 import { MotionConfig } from 'framer-motion'
@@ -63,6 +64,7 @@ import { useCalendarDragResize } from '@/lib/hooks/useCalendarDragResize'
 import { useAthleticsOverlay } from '@/lib/hooks/useAthleticsOverlay'
 
 export default function CalendarView() {
+  useCalendarRealtime()
   const { toast } = useToast()
   const router = useRouter()
   const { isAdmin, user: authUser } = useAuth()
@@ -669,6 +671,42 @@ export default function CalendarView() {
       setRsvpAutoTriggered(true)
     }
   }, [eventIdParam, rsvpParam, allEvents, rsvpAutoTriggered]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Deep-link: open event detail when navigated with ?eventId=X (no rsvp needed)
+  const [deepLinkHandled, setDeepLinkHandled] = useState(false)
+  useEffect(() => {
+    if (!eventIdParam || rsvpParam || deepLinkHandled || eventsLoading) return
+
+    // Try to find it in the already-loaded events first
+    const local = allEvents.find(e => e.id === eventIdParam)
+    if (local) {
+      setSelectedEvent(local)
+      setDeepLinkHandled(true)
+      window.history.replaceState({}, '', '/calendar')
+      return
+    }
+
+    // Not in current range — fetch directly from the API
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { fetchApi } = await import('@/lib/api-client')
+        const event = await fetchApi<CalendarEventData>(`/api/calendar-events/${eventIdParam}`)
+        if (!cancelled) {
+          setSelectedEvent(event)
+          setDeepLinkHandled(true)
+          window.history.replaceState({}, '', '/calendar')
+        }
+      } catch {
+        // Event not found or no access — just clear the param
+        if (!cancelled) {
+          setDeepLinkHandled(true)
+          window.history.replaceState({}, '', '/calendar')
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [eventIdParam, rsvpParam, deepLinkHandled, eventsLoading, allEvents]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Quick-create calendar state
   const [showCreateCalendar, setShowCreateCalendar] = useState(false)

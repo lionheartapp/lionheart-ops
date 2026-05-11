@@ -12,6 +12,7 @@ import ChatPanel from '@/components/ai/ChatPanel'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { readResourceItems } from '@/lib/utils/resourceItems'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
+import SinceYesterdayWidget from '@/components/dashboard/SinceYesterdayWidget'
 import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote, CheckSquare } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
@@ -22,6 +23,7 @@ import EventCreatePanel, { type EventFormData } from '@/components/calendar/Even
 import SubmitRequestWizard from '@/components/maintenance/SubmitRequestWizard'
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
+import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
@@ -78,6 +80,7 @@ interface EventData {
 
 export default function DashboardPage() {
   usePageTitle('Dashboard')
+  useCalendarRealtime()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, isAdmin, logout } = useAuth()
@@ -206,6 +209,7 @@ export default function DashboardPage() {
   const createDropdownRef = useRef<HTMLDivElement>(null)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false)
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null)
   const { data: myTasks } = useMyTasks()
   const { data: personalTasks } = usePersonalTasks()
   const openTaskCount = useMemo(() => {
@@ -903,6 +907,11 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
+      {/* Since Yesterday — the morning ritual centerpiece */}
+      <div className="mb-6 flex-shrink-0">
+        <SinceYesterdayWidget />
+      </div>
+
       {/* Dashboard Panels Grid */}
       <motion.div
         className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 lg:overflow-hidden overflow-y-auto mb-10"
@@ -922,7 +931,7 @@ export default function DashboardPage() {
             {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <WeatherWidget contextLabel={activeSchool?.name} />
-              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => setIsTasksDrawerOpen(true)} />
+              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => { setFocusedTaskId(null); setIsTasksDrawerOpen(true) }} onOpenTask={(id) => { setFocusedTaskId(id); setIsTasksDrawerOpen(true) }} />
             </div>
             <div className="flex-1 min-h-0">
               <UpcomingEventsPanel
@@ -950,7 +959,7 @@ export default function DashboardPage() {
           {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <WeatherWidget contextLabel={activeSchool?.name} />
-            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => setIsTasksDrawerOpen(true)} />
+            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => { setFocusedTaskId(null); setIsTasksDrawerOpen(true) }} onOpenTask={(id) => { setFocusedTaskId(id); setIsTasksDrawerOpen(true) }} />
           </div>
           <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
           {/* Sticky header — stays pinned while events scroll */}
@@ -1537,7 +1546,7 @@ export default function DashboardPage() {
       <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
 
       {/* My Tasks Drawer */}
-      <MyTasksDrawer isOpen={isTasksDrawerOpen} onClose={() => setIsTasksDrawerOpen(false)} />
+      <MyTasksDrawer isOpen={isTasksDrawerOpen} onClose={() => { setIsTasksDrawerOpen(false); setFocusedTaskId(null) }} initialTaskId={focusedTaskId} />
     </DashboardLayout>
   )
 }

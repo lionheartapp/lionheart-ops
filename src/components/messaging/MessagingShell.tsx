@@ -99,6 +99,16 @@ export default function MessagingShell() {
   const [mobileView, setMobileView] = useState<MobileView>('channels')
   const [showSearch, setShowSearch] = useState(false)
 
+  // Presence heartbeat — update lastActiveAt every 60s while messaging is open
+  useEffect(() => {
+    const ping = () => {
+      fetch('/api/messaging/presence', { method: 'POST', credentials: 'include' }).catch(() => {})
+    }
+    ping() // fire immediately on mount
+    const interval = setInterval(ping, 60_000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Cmd+K / Ctrl+K keyboard shortcut to toggle search
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

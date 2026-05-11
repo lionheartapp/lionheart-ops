@@ -14,7 +14,6 @@
  *   - Tone is supportive but professional — no emoji, no exclamation marks.
  */
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Sun, ArrowRight, CheckCircle2 } from 'lucide-react'
 import {
@@ -32,6 +31,8 @@ interface TasksFocusWidgetProps {
   firstName: string
   /** Callback when "View all tasks" is clicked (opens drawer). */
   onViewAll?: () => void
+  /** Callback when "Open" is clicked on a task (opens drawer to that task). */
+  onOpenTask?: (taskId: string) => void
 }
 
 interface DisplayTask {
@@ -46,6 +47,7 @@ interface DisplayTask {
 export default function TasksFocusWidget({
   firstName,
   onViewAll,
+  onOpenTask,
 }: TasksFocusWidgetProps) {
   const { data: eventTasks = [], isLoading: loadingEvent } = useMyTasks()
   const { data: personalTasks = [], isLoading: loadingPersonal } = usePersonalTasks()
@@ -97,7 +99,7 @@ export default function TasksFocusWidget({
       {/* Top task or empty state */}
       <div className="mt-4">
         {top ? (
-          <TopTaskRow task={top} />
+          <TopTaskRow task={top} onOpen={onOpenTask} />
         ) : (
           <EmptyTasksState />
         )}
@@ -133,17 +135,12 @@ export default function TasksFocusWidget({
 
 // ─── Subcomponents ────────────────────────────────────────────────────────────
 
-function TopTaskRow({ task }: { task: DisplayTask }) {
+function TopTaskRow({ task, onOpen }: { task: DisplayTask; onOpen?: (taskId: string) => void }) {
   const updateMyTask = useUpdateMyTaskStatus()
   const updatePersonal = useUpdatePersonalTask()
 
   const dueLabel = task.dueDate ? formatDueDate(task.dueDate) : null
   const priorityLabel = task.priority === 'CRITICAL' || task.priority === 'HIGH' ? task.priority : null
-
-  const href =
-    task.source === 'event' && task.eventProjectId
-      ? `/events/${task.eventProjectId}/tasks/${task.id}`
-      : '/tasks'
 
   function handleComplete(): void {
     if (task.source === 'event' && task.eventProjectId) {
@@ -181,12 +178,13 @@ function TopTaskRow({ task }: { task: DisplayTask }) {
           </p>
         </div>
       </div>
-      <Link
-        href={href}
+      <button
+        type="button"
+        onClick={() => onOpen?.(task.id)}
         className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors duration-200 flex-shrink-0 cursor-pointer"
       >
         Open
-      </Link>
+      </button>
     </div>
   )
 }

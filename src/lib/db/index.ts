@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { getOrgContextId } from '@/lib/org-context'
+import { emitDiffEvent, ticketPriorityToSeverity } from '@/lib/diff/emit'
 
 // Models that are automatically scoped to the current organization
 const orgScopedModels = new Set([
@@ -155,6 +156,8 @@ const orgScopedModels = new Set([
 	'FormQrCode',
 	// Personal tasks
 	'Task',
+	// Since-Yesterday diff module (append-only, not soft-deleted)
+	'DiffEvent',
 	// Phase 23: Messaging module
 	'Channel',
 	'ChannelMember',
@@ -256,13 +259,32 @@ const orgScopedPrisma = rawPrisma.$extends({
 				const orgId = isOrgScoped ? getOrgContextId() : null
 				const nextArgs = { ...(args ?? {}) } as Record<string, unknown>
 
-				// --- CREATE: inject organizationId ---
+				// --- CREATE: inject organizationId + emit DiffEvent ---
 				if (operation === 'create') {
 					if (isOrgScoped) {
 						const data = (nextArgs.data ?? {}) as Record<string, unknown>
 						nextArgs.data = { ...data, organizationId: orgId }
 					}
-					return query(nextArgs)
+					const result = await query(nextArgs)
+
+					// Ticket create → emit DiffEvent
+					if (modelName === 'Ticket' && orgId && result) {
+						const r = result as Record<string, unknown>
+						emitDiffEvent({
+							organizationId: orgId,
+							resourceType: 'ticket',
+							resourceId: r.id as string,
+							changeType: 'created',
+							severity: ticketPriorityToSeverity((r.priority as string) ?? 'NORMAL'),
+							summary: `New ${((r.category as string) ?? 'ticket').toLowerCase()} request: ${r.title as string}`,
+							actorUserId: (r.createdById as string) ?? null,
+							targetUserId: (r.assignedToId as string) ?? null,
+							schoolId: (r.schoolId as string) ?? null,
+							meta: { priority: r.priority, category: r.category, status: r.status },
+						})
+					}
+
+					return result
 				}
 
 				// --- CREATE MANY: inject organizationId into each row ---
@@ -310,6 +332,77 @@ const orgScopedPrisma = rawPrisma.$extends({
 						where: mergeWhere(nextArgs.where, orgId, false),
 						data: { deletedAt: new Date() },
 					})
+				}
+
+				// --- TICKET UPDATE: fetch before-state, run update, emit diffs ---
+				if (modelName === 'Ticket' && operation === 'update' && orgId) {
+					nextArgs.where = mergeWhere(nextArgs.where, orgId, isSoftDelete)
+
+					// Snapshot tracked fields before the update
+					let before: Record<string, unknown> | null = null
+					try {
+						before = await rawPrisma.ticket.findFirst({
+							where: nextArgs.where as Record<string, unknown>,
+							select: { id: true, status: true, assignedToId: true, priority: true, category: true, title: true, createdById: true, schoolId: true },
+						}) as Record<string, unknown> | null
+					} catch { /* best-effort */ }
+
+					const result = await query(nextArgs)
+					const after = result as Record<string, unknown> | null
+
+					if (before && after) {
+						const data = (nextArgs.data ?? {}) as Record<string, unknown>
+
+						// Status changed → completed
+						if (data.status && before.status !== after.status && after.status === 'RESOLVED') {
+							emitDiffEvent({
+								organizationId: orgId,
+								resourceType: 'ticket',
+								resourceId: before.id as string,
+								changeType: 'completed',
+								severity: 'good',
+								summary: `Ticket resolved: ${before.title as string}`,
+								actorUserId: null, // caller context not available here
+								targetUserId: (before.createdById as string) ?? null,
+								schoolId: (before.schoolId as string) ?? null,
+								meta: { from: before.status, to: after.status },
+							})
+						}
+
+						// Status changed → other transitions
+						if (data.status && before.status !== after.status && after.status !== 'RESOLVED') {
+							emitDiffEvent({
+								organizationId: orgId,
+								resourceType: 'ticket',
+								resourceId: before.id as string,
+								changeType: 'status_changed',
+								severity: 'normal',
+								summary: `Ticket status: ${before.status as string} → ${after.status as string}`,
+								actorUserId: null,
+								targetUserId: (before.createdById as string) ?? null,
+								schoolId: (before.schoolId as string) ?? null,
+								meta: { from: before.status, to: after.status },
+							})
+						}
+
+						// Assignee changed
+						if (data.assignedToId !== undefined && before.assignedToId !== after.assignedToId && after.assignedToId) {
+							emitDiffEvent({
+								organizationId: orgId,
+								resourceType: 'ticket',
+								resourceId: before.id as string,
+								changeType: 'assigned',
+								severity: 'normal',
+								summary: `Ticket assigned: ${before.title as string}`,
+								actorUserId: null,
+								targetUserId: after.assignedToId as string,
+								schoolId: (before.schoolId as string) ?? null,
+								meta: { previousAssignee: before.assignedToId, newAssignee: after.assignedToId },
+							})
+						}
+					}
+
+					return result
 				}
 
 				// --- ALL OTHER READS/WRITES: scope where clause ---
