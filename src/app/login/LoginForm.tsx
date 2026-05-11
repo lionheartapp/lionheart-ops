@@ -441,10 +441,12 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+            className={`mt-1 block w-full rounded-lg border px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-1 transition-colors ${error ? 'border-red-300 focus:border-red-500 focus-visible:ring-red-500/10' : 'border-slate-300 focus:border-slate-900 focus-visible:ring-slate-900/10'}`}
             required
             autoComplete="email"
             autoFocus
+            aria-invalid={!!error}
+            aria-describedby={error ? 'login-error' : undefined}
           />
         </div>
 
@@ -472,15 +474,18 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="block w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+              className={`block w-full rounded-lg border px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-1 transition-colors ${error ? 'border-red-300 focus:border-red-500 focus-visible:ring-red-500/10' : 'border-slate-300 focus:border-slate-900 focus-visible:ring-slate-900/10'}`}
               required
               autoComplete="current-password"
+              aria-invalid={!!error}
+              aria-describedby={error ? 'login-error' : undefined}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -489,7 +494,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       </div>
 
       {error && (
-        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div id="login-error" role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           <p className="font-medium">Sign in failed</p>
           <p className="mt-1">{error}</p>
         </div>

@@ -139,6 +139,14 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
           <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
           <p className="text-sm font-medium text-slate-600 mb-1">No tickets found</p>
           <p className="text-xs text-slate-400 mb-4">Try adjusting your filters or create a new request</p>
+          {onCreateTicket && (
+            <button
+              onClick={onCreateTicket}
+              className="px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Submit a request
+            </button>
+          )}
         </div>
       ) : (
         <>
