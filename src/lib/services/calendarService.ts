@@ -23,6 +23,7 @@ export {
   createEvent,
   countEventsInRange,
   getEventsInRange,
+  getEventsForAttendee,
   updateEvent,
   deleteEvent,
   getEventById,

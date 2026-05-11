@@ -250,6 +250,44 @@ export async function getEventsInRange(
 }
 
 /**
+ * Fetch events where the user is an attendee, regardless of calendar subscription.
+ * This ensures invited events always appear on the user's calendar.
+ */
+export async function getEventsForAttendee(
+  userId: string,
+  start: Date,
+  end: Date,
+) {
+  const events = await prisma.calendarEvent.findMany({
+    where: {
+      attendees: { some: { userId } },
+      parentEventId: null,
+      startTime: { lte: end },
+      endTime: { gte: start },
+    },
+    include: {
+      calendar: { select: { id: true, name: true, color: true, calendarType: true, campus: { select: { id: true, name: true } }, school: { select: { id: true, name: true } } } },
+      category: true,
+      building: { select: { id: true, name: true } },
+      space: { select: { id: true, name: true } },
+      createdBy: { select: { id: true, name: true, firstName: true, lastName: true, email: true } },
+      attendees: {
+        include: { user: { select: { id: true, name: true, firstName: true, lastName: true, avatar: true } } },
+      },
+      exceptions: true,
+    },
+    orderBy: { startTime: 'asc' },
+  })
+
+  // Return flat (no recurring expansion needed — attendee events are typically single instances)
+  return events.map((event) => ({
+    ...event,
+    parentEventId: null as string | null,
+    isException: false,
+  }))
+}
+
+/**
  * Update an event with three-mode editing for recurring events.
  */
 export async function updateEvent(

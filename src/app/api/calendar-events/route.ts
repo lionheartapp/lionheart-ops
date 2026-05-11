@@ -74,12 +74,24 @@ export async function GET(req: NextRequest) {
       const endDate = new Date(end)
 
       // Fetch legacy CalendarEvents in range
-      const events = await calendarService.getEventsInRange(
-        calendarIds,
-        startDate,
-        endDate,
-        { ...eventFilters, skip, take: limit }
-      )
+      const [events, attendeeEvents] = await Promise.all([
+        calendarService.getEventsInRange(
+          calendarIds,
+          startDate,
+          endDate,
+          { ...eventFilters, skip, take: limit }
+        ),
+        // Also fetch events where this user is an attendee but may not be
+        // subscribed to the calendar — ensures invites always appear.
+        calendarService.getEventsForAttendee(ctx.userId, startDate, endDate),
+      ])
+
+      // Merge attendee events that aren't already in the main set
+      const mainIds = new Set(events.map((e: { id: string }) => e.id))
+      const extraAttendee = attendeeEvents.filter((e: { id: string }) => !mainIds.has(e.id))
+      if (extraAttendee.length > 0) {
+        events.push(...extraAttendee)
+      }
 
       // ── Also fetch EventProjects in range and map them to the calendar
       // event shape so they render on the calendar alongside confirmed events.
