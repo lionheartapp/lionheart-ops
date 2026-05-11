@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video, Repeat } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -25,6 +25,43 @@ interface EventDetailPanelProps {
   onClose: () => void
   onEdit: (event: CalendarEventData) => void
   onDelete: (event: CalendarEventData) => void
+}
+
+function describeRecurrence(rrule: string): string {
+  // Simple parser for common RRULE patterns — avoids importing the full rrule lib client-side
+  const parts = rrule.replace('RRULE:', '').split(';').reduce<Record<string, string>>((acc, p) => {
+    const [k, v] = p.split('=')
+    if (k && v) acc[k] = v
+    return acc
+  }, {})
+
+  const freq = parts.FREQ
+  const interval = parseInt(parts.INTERVAL || '1', 10)
+  const count = parts.COUNT ? parseInt(parts.COUNT, 10) : null
+  const until = parts.UNTIL
+
+  let base = ''
+  switch (freq) {
+    case 'DAILY': base = interval === 1 ? 'Daily' : `Every ${interval} days`; break
+    case 'WEEKLY': base = interval === 1 ? 'Weekly' : `Every ${interval} weeks`; break
+    case 'MONTHLY': base = interval === 1 ? 'Monthly' : `Every ${interval} months`; break
+    case 'YEARLY': base = interval === 1 ? 'Yearly' : `Every ${interval} years`; break
+    default: return 'Repeats'
+  }
+
+  if (parts.BYDAY) {
+    const dayMap: Record<string, string> = { MO: 'Mon', TU: 'Tue', WE: 'Wed', TH: 'Thu', FR: 'Fri', SA: 'Sat', SU: 'Sun' }
+    const days = parts.BYDAY.split(',').map((d) => dayMap[d] || d).join(', ')
+    base += ` on ${days}`
+  }
+
+  if (count) base += `, ${count} times`
+  if (until) {
+    const d = new Date(until.replace(/(\d{4})(\d{2})(\d{2}).*/, '$1-$2-$3'))
+    base += ` until ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  }
+
+  return base
 }
 
 function toLocalInput(iso: string): string {
@@ -463,6 +500,16 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                     </div>
                   )}
                 </div>
+
+                {/* Recurrence info */}
+                {(event.rrule || event.parentEventId) && (
+                  <div className="flex items-center gap-4 py-3">
+                    <Repeat className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                    <p className="text-sm text-slate-600">
+                      {event.rrule ? describeRecurrence(event.rrule) : 'Part of a recurring series'}
+                    </p>
+                  </div>
+                )}
 
                 {/* Location — icon row, inline editable */}
                 <div className="flex items-start gap-4 py-3">
