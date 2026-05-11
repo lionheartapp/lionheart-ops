@@ -206,8 +206,21 @@ export default function CalendarView() {
     if (calendars.length > 0) {
       setVisibleCalendarIds((prev) => {
         if (prev.size === 0) {
-          // First load with no persisted state — show all active calendars
-          return new Set(calendars.filter((c) => c.isActive).map((c) => c.id))
+          // First load with no persisted state — auto-select:
+          //   1. The org master calendar (isDefault)
+          //   2. The user's own school/campus calendar (matching activeSchoolId)
+          //   3. The user's personal "My Schedule"
+          // Other school calendars stay unchecked until the user toggles them.
+          const auto = calendars.filter((c) => {
+            if (!c.isActive) return false
+            if (c.isDefault) return true
+            if (c.calendarType === 'PERSONAL') return true
+            if (activeSchoolId && (c.campus?.id === activeSchoolId || c.school?.id === activeSchoolId)) return true
+            // If no school selected (All Schools / org-wide user), show all school calendars
+            if (!activeSchoolId && c.calendarType !== 'PERSONAL') return true
+            return false
+          })
+          return new Set(auto.map((c) => c.id))
         }
         // Subsequent loads — add any new calendar IDs that weren't in the set before
         const knownIds = new Set([...prev, ...calendars.filter((c) => !c.isActive).map((c) => c.id)])
@@ -218,7 +231,7 @@ export default function CalendarView() {
         return next
       })
     }
-  }, [calendars, setVisibleCalendarIds])
+  }, [calendars, setVisibleCalendarIds, activeSchoolId])
 
   const toggleCalendar = useCallback((calendarId: string) => {
     setVisibleCalendarIds((prev) => {

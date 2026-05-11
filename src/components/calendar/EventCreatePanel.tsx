@@ -5,6 +5,7 @@ import { X, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/lib/hooks/useCalendar'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { FloatingInput, FloatingTextarea, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RecurrenceBuilder from './RecurrenceBuilder'
 import AttendeePicker, { type AttendeeSelection } from './AttendeePicker'
@@ -106,6 +107,7 @@ export default function EventCreatePanel({
 }: EventCreatePanelProps) {
   const isEditing = !!event
   const isMeeting = mode === 'meeting'
+  const { activeSchoolId } = useActiveSchool()
   const focusTrapRef = useFocusTrap(isOpen)
 
   useEffect(() => {
@@ -182,9 +184,13 @@ export default function EventCreatePanel({
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
         const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
-        // Meetings → personal calendar. Events → default/master calendar (never personal).
+        // Meetings → personal calendar.
+        // Events → user's school calendar > org master > first non-personal.
         const personalCalendar = calendars.find((c) => c.calendarType === 'PERSONAL')
-        const defaultCalendar = calendars.find((c) => c.isDefault) ?? calendars.find((c) => c.calendarType !== 'PERSONAL')
+        const schoolCalendar = activeSchoolId
+          ? calendars.find((c) => c.calendarType !== 'PERSONAL' && (c.campus?.id === activeSchoolId || c.school?.id === activeSchoolId))
+          : null
+        const defaultCalendar = schoolCalendar ?? calendars.find((c) => c.isDefault) ?? calendars.find((c) => c.calendarType !== 'PERSONAL')
         setForm({
           calendarId: (isMeeting ? personalCalendar?.id : defaultCalendar?.id) ?? calendars[0]?.id ?? '',
           categoryId: '',
