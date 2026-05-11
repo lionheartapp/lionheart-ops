@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Clock, MapPin, Trophy } from 'lucide-react'
+import { Clock, MapPin, Trophy, Repeat, Clock3 } from 'lucide-react'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
@@ -211,7 +211,11 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                 key={event.id}
                 onClick={() => onEventClick(event)}
                 aria-label={getEventAriaLabel(event)}
-                className="w-full text-left p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all bg-white"
+                className={`w-full text-left p-3 rounded-lg border hover:shadow-sm transition-all bg-white ${
+                  event.calendarStatus === 'PENDING' || event.calendarStatus === 'DRAFT'
+                    ? 'border-dashed border-slate-200 opacity-70'
+                    : 'border-slate-100 hover:border-slate-200'
+                }`}
               >
                 <div className="flex gap-3">
                   {/* Color bar */}
@@ -224,7 +228,9 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
                     {/* Title + calendar chip */}
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-slate-900 truncate flex items-center gap-1">
+                        {(event.calendarStatus === 'PENDING' || event.calendarStatus === 'DRAFT') && <Clock3 className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
                         {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
+                        {(event.rrule || event.parentEventId) && <Repeat className="w-3.5 h-3.5 flex-shrink-0 text-slate-400 opacity-60" />}
                         {event.title}
                       </h4>
                       <span

@@ -382,6 +382,11 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                       {evStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                   )}
+                                  {evHeight > 52 && event.attendees && event.attendees.length > 0 && (
+                                    <div className="text-[10px] mt-0.5 opacity-40" style={{ color: eventColor }}>
+                                      {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
+                                    </div>
+                                  )}
                                 </DraggableEvent>
                               )
                             }

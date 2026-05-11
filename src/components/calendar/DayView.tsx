@@ -424,6 +424,11 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
                               {event.locationText}
                             </div>
                           )}
+                          {evHeight > 72 && event.attendees && event.attendees.length > 0 && (
+                            <div className="text-xs mt-0.5 opacity-40" style={{ color: getEventColor(event) }}>
+                              {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
+                            </div>
+                          )}
                         </DraggableEvent>
                       )
                     }
