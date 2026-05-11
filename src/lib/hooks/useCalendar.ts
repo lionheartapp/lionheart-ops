@@ -329,6 +329,32 @@ export function useCreateCategory() {
   })
 }
 
+export function useUpdateCategory() {
+  const queryClient = useQueryClient()
+  return useMutation<CalendarCategoryData, Error, { id: string; name?: string; color?: string; icon?: string | null }>({
+    mutationFn: ({ id, ...data }) =>
+      fetchApi(`/api/calendar-categories/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+    },
+  })
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient()
+  return useMutation<{ deleted: boolean }, Error, string>({
+    mutationFn: (id) =>
+      fetchApi(`/api/calendar-categories/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] })
+    },
+  })
+}
+
 // ─── Event detail + approval hooks ──────────────────────────────────────
 
 export function useEventDetail(eventId: string | null) {

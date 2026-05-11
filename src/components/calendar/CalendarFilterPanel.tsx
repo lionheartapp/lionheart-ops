@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronRight, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, X, Pencil, Trash2 } from 'lucide-react'
 import type { CalendarFilter } from './CalendarFilterPopover'
 
 // ── Shared types ────────────────────────────────────────────────────────
@@ -169,6 +169,8 @@ interface CalendarFilterPanelProps {
 
   // Categories
   categories: CategoryChip[]
+  onUpdateCategory?: (id: string, data: { name?: string; color?: string }) => void
+  onDeleteCategory?: (id: string) => void
 
   // External Calendars
   externalCalendars: ExternalCalendarItem[]
@@ -194,6 +196,8 @@ export default function CalendarFilterPanel({
   onToggleCalendar,
   onBulkToggleCalendars,
   categories,
+  onUpdateCategory,
+  onDeleteCategory,
   externalCalendars,
   athleticsVisible,
   userCampuses,
@@ -403,22 +407,58 @@ export default function CalendarFilterPanel({
               {categories.map((cat) => {
                 const active = filter.categoryIds.has(cat.id)
                 return (
-                  <button
-                    key={cat.id}
-                    onClick={() => onFilterChange({ ...filter, categoryIds: toggleInSet(filter.categoryIds, cat.id) })}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-150 cursor-pointer ${
-                      active
-                        ? 'text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                    style={active ? { backgroundColor: cat.color } : undefined}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: active ? '#fff' : cat.color }}
-                    />
-                    {cat.name}
-                  </button>
+                  <div key={cat.id} className="group/cat relative inline-flex">
+                    <button
+                      onClick={() => onFilterChange({ ...filter, categoryIds: toggleInSet(filter.categoryIds, cat.id) })}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-150 cursor-pointer ${
+                        active
+                          ? 'text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                      style={active ? { backgroundColor: cat.color } : undefined}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: active ? '#fff' : cat.color }}
+                      />
+                      {cat.name}
+                    </button>
+                    {(onUpdateCategory || onDeleteCategory) && (
+                      <div className="absolute -top-1 -right-1 hidden group-hover/cat:flex items-center gap-0.5 bg-white border border-slate-200 rounded-full shadow-sm px-0.5 py-0.5">
+                        {onUpdateCategory && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newName = window.prompt('Rename category:', cat.name)
+                              if (newName && newName.trim() && newName.trim() !== cat.name) {
+                                onUpdateCategory(cat.id, { name: newName.trim() })
+                              }
+                            }}
+                            className="p-0.5 rounded-full hover:bg-slate-100 cursor-pointer transition-colors"
+                            title="Rename"
+                          >
+                            <Pencil className="w-2.5 h-2.5 text-slate-400" />
+                          </button>
+                        )}
+                        {onDeleteCategory && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (window.confirm(`Delete "${cat.name}" category? Events using it will be uncategorized.`)) {
+                                onDeleteCategory(cat.id)
+                              }
+                            }}
+                            className="p-0.5 rounded-full hover:bg-red-50 cursor-pointer transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-2.5 h-2.5 text-slate-400 hover:text-red-500" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>

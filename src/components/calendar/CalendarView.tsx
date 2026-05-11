@@ -20,6 +20,8 @@ import {
   useDeleteEvent,
   useCategories,
   useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
   useRsvp,
   type CalendarEventData,
 } from '@/lib/hooks/useCalendar'
@@ -245,6 +247,8 @@ export default function CalendarView() {
   // Category hooks
   const { data: categories = [] } = useCategories()
   const createCategory = useCreateCategory()
+  const updateCategory = useUpdateCategory()
+  const deleteCategory = useDeleteCategory()
 
   // Campus → shape index map (deterministic: sorted campus IDs → shape indices)
   const campusShapeMap = useMemo(() => buildCampusShapeMap(calendars), [calendars])
@@ -984,6 +988,8 @@ export default function CalendarView() {
             })
           }}
           categories={categories}
+          onUpdateCategory={(id, data) => updateCategory.mutate({ id, ...data })}
+          onDeleteCategory={(id) => deleteCategory.mutate(id)}
           externalCalendars={externalCalendarList}
           athleticsVisible={anyAthleticsVisible}
           userCampuses={athleticsEnabled ? userCampuses : []}
