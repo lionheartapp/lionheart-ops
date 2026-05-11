@@ -175,18 +175,24 @@ export async function GET(req: NextRequest) {
         }
       })
 
-      // Deduplicate: if a confirmed EventProject has already created a
-      // bridge CalendarEvent via `confirmEventProject`, we'd show it twice.
-      // Drop the bridge version when an EventProject shadow exists with the
-      // same (startTime, title).
-      const projectKey = new Set(
+      // Deduplicate: if a confirmed EventProject has a bridge CalendarEvent
+      // (created by confirmEventProject), drop the bridge so we don't show both.
+      // Match on sourceModule+sourceId (precise) and fall back to startTime+title.
+      const projectIds = new Set(eventProjects.map((p) => p.id))
+      const projectTitleKeys = new Set(
         projectEvents
           .filter((p) => p.calendarStatus === 'CONFIRMED')
           .map((p) => `${p.startTime}__${p.title}`),
       )
       const deduped = events.filter((e) => {
-        const key = `${(e as { startTime: string }).startTime}__${(e as { title: string }).title}`
-        return !projectKey.has(key)
+        const rec = e as Record<string, unknown>
+        // Drop bridge CalendarEvents that link to an EventProject we already have
+        if (rec.sourceModule === 'event-project' && typeof rec.sourceId === 'string' && projectIds.has(rec.sourceId)) {
+          return false
+        }
+        // Fallback: drop by title+time match
+        const key = `${rec.startTime}__${rec.title}`
+        return !projectTitleKeys.has(key)
       })
 
       const combined = [...deduped, ...projectEvents].sort((a, b) => {
