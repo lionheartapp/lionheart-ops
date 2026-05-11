@@ -197,17 +197,16 @@ function SetPasswordContent() {
                   required
                   autoComplete="new-password"
                 />
-                <div>
-                  <label htmlFor="sp-confirm" className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
-                  <input
-                    id="sp-confirm"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
-                  />
-                </div>
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  label="Confirm Password"
+                  placeholder="Re-enter your password"
+                  id="sp-confirm"
+                  required
+                  autoComplete="new-password"
+                  showRules={false}
+                />
 
                 {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
 
