@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -77,6 +78,7 @@ interface NotificationDrawerProps {
 /** Notification drawer — slides in from the right, controlled by parent */
 export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
   const queryClient = useQueryClient()
   const [shouldShow, setShouldShow] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -155,10 +157,15 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
     if (!notification.isRead) {
       markRead.mutate(notification.id)
     }
-    if (notification.linkUrl) {
-      window.location.href = notification.linkUrl
-    }
     handleClose()
+    if (notification.linkUrl) {
+      // Use client-side navigation for internal links (no full reload)
+      if (notification.linkUrl.startsWith('/')) {
+        router.push(notification.linkUrl)
+      } else {
+        window.location.href = notification.linkUrl
+      }
+    }
   }
 
   if (!isOpen && !isAnimating) return null
