@@ -182,6 +182,12 @@ export async function sendMessage(
     include: { author: { select: AUTHOR_SELECT }, attachments: true },
   })
 
+  // Unhide channel for all members so DMs reappear for recipients
+  rawPrisma.channelMember.updateMany({
+    where: { channelId, hiddenAt: { not: null } },
+    data: { hiddenAt: null },
+  }).catch(() => {})
+
   // Create attachment records if any
   if (input.attachments && input.attachments.length > 0) {
     const orgId = getOrgContextId()
