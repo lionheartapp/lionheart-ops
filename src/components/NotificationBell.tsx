@@ -10,6 +10,7 @@ import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { badgePop } from '@/lib/animations'
 import { formatDateTimeWithTz, formatDateWithTz } from '@/lib/utils/date-format'
+import { useNotificationRealtime } from '@/lib/hooks/useNotificationRealtime'
 
 interface NotificationData {
   id: string
@@ -297,8 +298,9 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
   )
 }
 
-/** Unread badge hook — returns the unread count, refreshes on window focus */
+/** Unread badge hook — returns the unread count, refreshes on window focus + real-time */
 export function useUnreadCount() {
+  useNotificationRealtime()
   const { data } = useQuery<{ count: number }>({
     queryKey: queryKeys.notifications.unreadCount,
     queryFn: () => fetchApi('/api/notifications/unread-count'),

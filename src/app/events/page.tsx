@@ -44,6 +44,7 @@ import CreateEventMenu, { type EventCreateMode } from '@/components/events/Creat
 import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
+import { useEventProjectRealtime } from '@/lib/hooks/useEventProjectRealtime'
 import {
   SURFACE,
   BORDER,
@@ -1013,6 +1014,7 @@ const VIEW_STORAGE_KEY = 'events-hub-view'
 export default function EventsPage() {
   usePageTitle('Events')
   useTrackModuleVisit('events')
+  useEventProjectRealtime()
   const router = useRouter()
   const { isAdmin, isReady, user } = useAuth()
   const { activeSchoolId } = useActiveSchool()

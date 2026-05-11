@@ -26,6 +26,7 @@ import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText, Laptop, Code, KeyRound, Wifi, Projector, HelpCircle, ChevronLeft, Pencil, Settings, BarChart3 } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
+import { useITTicketRealtime } from '@/lib/hooks/useITTicketRealtime'
 
 type HelpDeskTab = 'tickets' | 'insights' | 'settings'
 type SettingsSubTab = 'routing' | 'forms' | 'magic-links' | 'qr-codes'
@@ -74,6 +75,7 @@ const SETTINGS_SUB_TABS: { key: SettingsSubTab; label: string; icon: typeof Rout
 function ITContent() {
   usePageTitle('IT Help Desk')
   useTrackModuleVisit('it')
+  useITTicketRealtime()
   const router = useRouter()
   const searchParams = useSearchParams()
   const p = useITPermissions()
