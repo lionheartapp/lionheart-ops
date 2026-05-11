@@ -151,11 +151,11 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
       }
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setActiveIndex((prev) => Math.min(prev + 1, items.length - 1))
+        setActiveIndex((prev) => items.length === 0 ? 0 : (prev + 1) % items.length)
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setActiveIndex((prev) => Math.max(prev - 1, 0))
+        setActiveIndex((prev) => items.length === 0 ? 0 : (prev - 1 + items.length) % items.length)
       }
       if (e.key === 'Enter' && items[activeIndex]) {
         e.preventDefault()
@@ -245,8 +245,16 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
                 Type to search...
               </div>
             ) : isLoading ? (
-              <div className="py-10 text-center text-sm text-slate-400">
-                Searching...
+              <div className="space-y-2 px-4 py-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 animate-pulse flex-shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3.5 w-3/4 bg-slate-100 rounded animate-pulse" />
+                      <div className="h-2.5 w-1/2 bg-slate-50 rounded animate-pulse" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : items.length === 0 ? (
               <div className="py-10 text-center text-sm text-slate-400">

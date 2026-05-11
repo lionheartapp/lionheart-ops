@@ -46,9 +46,10 @@ export function getGreeting(options: GetGreetingOptions = {}): string {
     GREETINGS_BY_LOCALE[baseLocale] ||
     GREETINGS_BY_LOCALE['en-US']
 
-  if (hour < 12) return copy[0]
-  if (hour < 18) return copy[1]
-  return copy[2]
+  if (hour < 5) return copy[2]   // Late night (midnight–4:59 AM) → evening greeting
+  if (hour < 12) return copy[0]  // Morning (5 AM–11:59 AM)
+  if (hour < 18) return copy[1]  // Afternoon (12 PM–5:59 PM)
+  return copy[2]                 // Evening (6 PM–11:59 PM)
 }
 
 /** Maps a ticket status string to a status icon (lucide-react component). */

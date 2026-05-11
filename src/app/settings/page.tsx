@@ -363,8 +363,20 @@ export default function SettingsPage() {
 
   if (!isClient || !isReady || !orgId) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
+      <div className="min-h-screen bg-slate-50 p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="h-8 w-32 bg-slate-200 rounded animate-pulse mb-6" />
+          <div className="flex gap-2 mb-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-10 w-24 bg-slate-200 rounded-full animate-pulse" />
+            ))}
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
