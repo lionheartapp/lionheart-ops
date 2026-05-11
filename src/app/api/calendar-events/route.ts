@@ -87,8 +87,8 @@ export async function GET(req: NextRequest) {
       ])
 
       // Merge attendee events that aren't already in the main set
-      const mainIds = new Set(events.map((e: { id: string }) => e.id))
-      const extraAttendee = attendeeEvents.filter((e: { id: string }) => !mainIds.has(e.id))
+      const mainIds = new Set(events.map((e) => (e as Record<string, unknown>).id as string))
+      const extraAttendee = attendeeEvents.filter((e) => !mainIds.has(e.id as string))
       if (extraAttendee.length > 0) {
         events.push(...extraAttendee)
       }
