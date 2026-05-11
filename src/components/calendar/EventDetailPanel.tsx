@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video, Repeat } from 'lucide-react'
+import { X, Clock, MapPin, Calendar, User, UserPlus, Tag, Trash2, Edit, CheckCircle, XCircle, Loader2, Shield, Trophy, Swords, MapPinned, ThumbsUp, ThumbsDown, HelpCircle, ExternalLink, Video, Repeat, Download } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
@@ -25,6 +25,36 @@ interface EventDetailPanelProps {
   onClose: () => void
   onEdit: (event: CalendarEventData) => void
   onDelete: (event: CalendarEventData) => void
+}
+
+function downloadIcs(event: CalendarEventData) {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  const toIcsDate = (iso: string) => {
+    const d = new Date(iso)
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`
+  }
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Lionheart//Calendar//EN',
+    'BEGIN:VEVENT',
+    `DTSTART:${toIcsDate(event.startTime)}`,
+    `DTEND:${toIcsDate(event.endTime)}`,
+    `SUMMARY:${event.title.replace(/[,;\\]/g, '\\$&')}`,
+  ]
+  if (event.description) lines.push(`DESCRIPTION:${event.description.replace(/\n/g, '\\n').replace(/[,;\\]/g, '\\$&')}`)
+  if (event.locationText) lines.push(`LOCATION:${event.locationText.replace(/[,;\\]/g, '\\$&')}`)
+  lines.push(`UID:${event.id}@lionheartapp.com`)
+  lines.push('END:VEVENT', 'END:VCALENDAR')
+
+  const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${event.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').slice(0, 50)}.ics`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function describeRecurrence(rrule: string): string {
@@ -850,6 +880,19 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                       )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Add to personal calendar (ICS download) */}
+              {!isExternal && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => downloadIcs(event)}
+                    className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Add to personal calendar
+                  </button>
                 </div>
               )}
 
