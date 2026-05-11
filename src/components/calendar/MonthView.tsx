@@ -310,9 +310,9 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             color="rgba(255,255,255,0.85)"
                             size={8}
                           />
-                          {isPendingEvent(event) && <Clock3 className="w-3 h-3 flex-shrink-0 opacity-80" title="Pending approval" />}
+                          {isPendingEvent(event) && <span title="Pending approval"><Clock3 className="w-3 h-3 flex-shrink-0 opacity-80" /></span>}
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-80" />}
-                          {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-70" title="Recurring event" />}
+                          {(event.rrule || event.parentEventId) && <span title="Recurring event"><Repeat className="w-3 h-3 flex-shrink-0 opacity-70" /></span>}
                           <span className="truncate">{event.title}</span>
                         </button>
                       ) : (
@@ -331,9 +331,9 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             color={getEventColor(event)}
                             size={8}
                           />
-                          {isPendingEvent(event) && <Clock3 className="w-3 h-3 flex-shrink-0 opacity-70" title="Pending approval" />}
+                          {isPendingEvent(event) && <span title="Pending approval"><Clock3 className="w-3 h-3 flex-shrink-0 opacity-70" /></span>}
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
-                          {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-60" title="Recurring event" />}
+                          {(event.rrule || event.parentEventId) && <span title="Recurring event"><Repeat className="w-3 h-3 flex-shrink-0 opacity-60" /></span>}
                           <span className="truncate">
                             <span className="font-medium">{formatTime(event.startTime)} </span>
                             {event.title}
