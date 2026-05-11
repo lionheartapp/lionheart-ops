@@ -4,7 +4,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
-import { Trophy, X } from 'lucide-react'
+import { Trophy, X, Repeat } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
@@ -307,6 +307,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             size={8}
                           />
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-80" />}
+                          {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-70" />}
                           <span className="truncate">{event.title}</span>
                         </button>
                       ) : (
@@ -326,6 +327,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                             size={8}
                           />
                           {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                          {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-60" />}
                           <span className="truncate">
                             <span className="font-medium">{formatTime(event.startTime)} </span>
                             {event.title}

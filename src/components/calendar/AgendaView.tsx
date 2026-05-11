@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Clock, MapPin, Users as UsersIcon, Trophy } from 'lucide-react'
+import { Clock, MapPin, Users as UsersIcon, Trophy, Repeat } from 'lucide-react'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
@@ -108,6 +108,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-medium text-slate-900 truncate flex items-center gap-1">
                         {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3.5 h-3.5 flex-shrink-0 text-amber-500 opacity-70" />}
+                        {(event.rrule || event.parentEventId) && <Repeat className="w-3.5 h-3.5 flex-shrink-0 text-slate-400 opacity-60" />}
                         {event.title}
                       </h4>
                       <span

@@ -4,7 +4,7 @@ import { useMemo, useEffect, useRef, useState } from 'react'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useDragToCreate } from '@/lib/hooks/useDragToCreate'
 import { getEventAriaLabel } from './a11y-helpers'
-import { Trophy } from 'lucide-react'
+import { Trophy, Repeat } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import DraggableEvent from './DraggableEvent'
 import { computeSubColumns, getSubColumnStyle } from './MeetWithColumnLayout'
@@ -374,6 +374,7 @@ export default function WeekView({ currentDate, events, onEventClick, onSlotClic
                                 >
                                   <div className="font-semibold text-xs truncate flex items-center gap-1" style={{ color: eventColor }}>
                                     {!!getEventMetadata(event)?.athleticsType && <Trophy className="w-3 h-3 flex-shrink-0 opacity-70" />}
+                                    {(event.rrule || event.parentEventId) && <Repeat className="w-3 h-3 flex-shrink-0 opacity-60" />}
                                     {event.title}
                                   </div>
                                   {evHeight > 36 && (
