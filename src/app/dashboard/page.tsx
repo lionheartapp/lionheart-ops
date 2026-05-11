@@ -81,6 +81,8 @@ interface EventData {
 export default function DashboardPage() {
   usePageTitle('Dashboard')
   useCalendarRealtime()
+  // Always start at the top when navigating to the dashboard
+  useEffect(() => { window.scrollTo(0, 0) }, [])
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, isAdmin, logout } = useAuth()
