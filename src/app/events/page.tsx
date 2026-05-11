@@ -320,8 +320,8 @@ function EventCard({ project, onClick }: { project: EventProject; onClick: () =>
           </p>
         )}
 
-        {/* Approval gate indicators */}
-        {project.approvalGates && project.status === 'PENDING_APPROVAL' && (
+        {/* Approval gate indicators — show for any event with gates */}
+        {project.approvalGates && (
           <GateIndicators gates={project.approvalGates} />
         )}
 

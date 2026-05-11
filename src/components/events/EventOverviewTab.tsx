@@ -25,6 +25,7 @@ import { useToast } from '@/components/Toast'
 import { AIStatusSection } from './overview/AIStatusSection'
 import { FeedbackAnalysisSection } from './overview/FeedbackAnalysisSection'
 import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBar'
+import ApprovalTimeline from './overview/ApprovalTimeline'
 import { ConflictBanner } from './overview/ConflictBanner'
 import { ResourceRequirementsSection } from './overview/ResourceRequirementsSection'
 import { Input } from '@/components/ui/Input'
@@ -280,9 +281,12 @@ export function EventOverviewTab({ project }: EventOverviewTabProps) {
         </motion.div>
       )}
 
-      {/* Approval Gates — shown when event is pending approval */}
-      {project.approvalGates && (project.status === 'PENDING_APPROVAL' || project.status === 'DRAFT') && (
-        <ApprovalGatesBar gates={project.approvalGates as unknown as ApprovalGates} />
+      {/* Approval Gates — shown when event has gates */}
+      {project.approvalGates && (
+        <>
+          <ApprovalGatesBar gates={project.approvalGates as unknown as ApprovalGates} />
+          <ApprovalTimeline gates={project.approvalGates as unknown as ApprovalGates} />
+        </>
       )}
 
       {/* Conflict warnings — shown when conflicts detected */}

@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import { X, CheckCircle2, Loader2, MapPin, Calendar as CalendarIcon, User } from 'lucide-react'
 import { ApprovalGatesBar, type ApprovalGates } from './overview/ApprovalGatesBar'
+import ApprovalTimeline from './overview/ApprovalTimeline'
 import {
   SURFACE,
   BORDER,
@@ -224,6 +225,9 @@ export function ApprovalReviewDrawer({
                     Approval Gates
                   </p>
                   <ApprovalGatesBar gates={project.approvalGates as ApprovalGates} />
+                  <div className="mt-3">
+                    <ApprovalTimeline gates={project.approvalGates as ApprovalGates} compact />
+                  </div>
                 </div>
               ) : null}
 
