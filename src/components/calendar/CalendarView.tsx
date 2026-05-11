@@ -312,8 +312,12 @@ export default function CalendarView() {
     true
   )
   const activeCalendarIds = Array.from(visibleCalendarIds)
+  const currentUserId = authUser?.id
   const calendarFiltered = activeCalendarIds.length > 0
-    ? allEvents.filter((e) => activeCalendarIds.includes(e.calendarId))
+    ? allEvents.filter((e) =>
+        activeCalendarIds.includes(e.calendarId) ||
+        e.attendees?.some((a) => a.user.id === currentUserId)
+      )
     : []
   // Apply school/campus filter from the global sidebar selector. We match
   // either the calendar's campus (typical for grade-division scoping) or
