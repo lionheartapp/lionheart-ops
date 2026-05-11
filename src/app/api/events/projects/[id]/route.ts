@@ -19,6 +19,22 @@ export const GET = withAuth(async ({ params }) => {
 
 export const PATCH = withAuth(async ({ ctx, params, body }) => {
   const updated = await updateEventProject(params.id, body, ctx.userId)
+
+  // Sync bridged CalendarEvent if title/time changed (fire-and-forget)
+  if (body.title || body.startsAt || body.endsAt) {
+    const db = prisma as unknown as OrgPrismaClient
+    db.calendarEvent.updateMany({
+      where: { sourceModule: 'event-project', sourceId: params.id },
+      data: {
+        ...(body.title ? { title: body.title } : {}),
+        ...(body.startsAt ? { startTime: new Date(body.startsAt) } : {}),
+        ...(body.endsAt ? { endTime: new Date(body.endsAt) } : {}),
+        ...(body.locationText !== undefined ? { locationText: body.locationText } : {}),
+        ...(body.description !== undefined ? { description: body.description } : {}),
+      },
+    }).catch(() => {})
+  }
+
   return NextResponse.json(ok(updated))
 }, { permission: PERMISSIONS.EVENT_PROJECT_UPDATE_ALL, schema: UpdateEventProjectSchema })
 
@@ -29,6 +45,11 @@ export const DELETE = withAuth(async ({ params }) => {
   const project = await db.eventProject.findUnique({ where: { id: params.id } })
 
   await db.eventProject.delete({ where: { id: params.id } })
+
+  // Remove bridged CalendarEvent (fire-and-forget)
+  db.calendarEvent.deleteMany({
+    where: { sourceModule: 'event-project', sourceId: params.id },
+  }).catch(() => {})
 
   // Remove from all users' Google Calendars (fire-and-forget)
   if (project?.organizationId) {
