@@ -38,6 +38,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
       lastName: true,
       email: true,
       avatar: true,
+      lastActiveAt: true,
     },
     orderBy: { firstName: 'asc' },
     take: limit,

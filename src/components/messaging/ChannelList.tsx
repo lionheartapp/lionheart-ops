@@ -134,10 +134,16 @@ interface InlineUserResult {
   lastName: string | null
   email: string
   avatar: string | null
+  lastActiveAt?: string | null
   jobTitle: string | null
   userRole?: { name: string; slug: string } | null
   teams?: { team: { name: string } }[]
   school?: { name: string } | null
+}
+
+function isUserOnline(lastActiveAt?: string | null): boolean {
+  if (!lastActiveAt) return false
+  return Date.now() - new Date(lastActiveAt).getTime() < 5 * 60 * 1000
 }
 
 function InlineNewDM({
@@ -267,13 +273,18 @@ function InlineNewDM({
                 }}
                 className="w-full flex items-center gap-2.5 px-2 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors text-left"
               >
-                {u.avatar ? (
-                  <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[11px] font-medium text-white">{initials}</span>
-                  </div>
-                )}
+                <div className="relative w-8 h-8 flex-shrink-0">
+                  {u.avatar ? (
+                    <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                      <span className="text-[11px] font-medium text-white">{initials}</span>
+                    </div>
+                  )}
+                  {isUserOnline(u.lastActiveAt) && (
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-slate-800 truncate">{name}</div>
                   {meta && (
