@@ -182,10 +182,11 @@ export default function EventCreatePanel({
       } else {
         const start = initialStart || new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours() + 1, 0)
         const end = initialEnd || new Date(start.getTime() + 60 * 60 * 1000)
-        // In meeting mode, always use the personal calendar
+        // Meetings → personal calendar. Events → default/master calendar (never personal).
         const personalCalendar = calendars.find((c) => c.calendarType === 'PERSONAL')
+        const defaultCalendar = calendars.find((c) => c.isDefault) ?? calendars.find((c) => c.calendarType !== 'PERSONAL')
         setForm({
-          calendarId: (isMeeting ? personalCalendar?.id : undefined) ?? calendars[0]?.id ?? '',
+          calendarId: (isMeeting ? personalCalendar?.id : defaultCalendar?.id) ?? calendars[0]?.id ?? '',
           categoryId: '',
           title: '',
           description: '',
@@ -378,12 +379,13 @@ export default function EventCreatePanel({
                   value={form.calendarId}
                   onChange={(v) => setForm((p) => ({ ...p, calendarId: v }))}
                   required
-                  options={calendars.map((cal) => ({
-                    value: cal.id,
-                    label: cal.name,
-                    color: cal.color,
-                    group: cal.calendarType === 'PERSONAL' ? 'My Calendar' : 'Calendars',
-                  }))}
+                  options={calendars
+                    .filter((cal) => cal.calendarType !== 'PERSONAL')
+                    .map((cal) => ({
+                      value: cal.id,
+                      label: cal.name,
+                      color: cal.color,
+                    }))}
                 />
               )}
 
