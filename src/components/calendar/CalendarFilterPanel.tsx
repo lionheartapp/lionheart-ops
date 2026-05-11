@@ -102,33 +102,38 @@ function FilterSection({
   defaultOpen = true,
   children,
   count,
+  action,
 }: {
   label: string
   defaultOpen?: boolean
   children: React.ReactNode
   count?: number
+  action?: React.ReactNode
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
     <div className="border-t border-slate-100 first:border-t-0">
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
-      >
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-          {label}
-          {count !== undefined && count > 0 && (
-            <span className="ml-1.5 text-[10px] font-semibold text-slate-400">({count})</span>
+      <div className="flex items-center justify-between px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setIsOpen((o) => !o)}
+          className="flex items-center gap-1 hover:bg-slate-50 transition-colors duration-150 cursor-pointer"
+        >
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            {label}
+            {count !== undefined && count > 0 && (
+              <span className="ml-1.5 text-[10px] font-semibold text-slate-400">({count})</span>
+            )}
+          </span>
+          {isOpen ? (
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
           )}
-        </span>
-        {isOpen ? (
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-        ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        )}
-      </button>
+        </button>
+        {isOpen && action}
+      </div>
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
@@ -160,6 +165,7 @@ interface CalendarFilterPanelProps {
   calendars: CalendarItem[]
   visibleCalendarIds: Set<string>
   onToggleCalendar: (calendarId: string) => void
+  onBulkToggleCalendars?: (calendarIds: string[], visible: boolean) => void
 
   // Categories
   categories: CategoryChip[]
@@ -186,6 +192,7 @@ export default function CalendarFilterPanel({
   calendars,
   visibleCalendarIds,
   onToggleCalendar,
+  onBulkToggleCalendars,
   categories,
   externalCalendars,
   athleticsVisible,
@@ -270,8 +277,22 @@ export default function CalendarFilterPanel({
             null
           const otherCals = schoolCals.filter((c) => c !== masterCal)
 
+          const allSchoolIds = schoolCals.map((c) => c.id)
+          const allSchoolVisible = allSchoolIds.every((id) => visibleCalendarIds.has(id))
+
           return (
-            <FilterSection label="School Calendars">
+            <FilterSection
+              label="School Calendars"
+              action={onBulkToggleCalendars ? (
+                <button
+                  type="button"
+                  onClick={() => onBulkToggleCalendars(allSchoolIds, !allSchoolVisible)}
+                  className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                >
+                  {allSchoolVisible ? 'Hide all' : 'Show all'}
+                </button>
+              ) : undefined}
+            >
               <div className="space-y-0.5">
                 {masterCal && (() => {
                   const isVisible = visibleCalendarIds.has(masterCal.id)

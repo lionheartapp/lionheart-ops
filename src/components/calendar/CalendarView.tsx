@@ -973,6 +973,16 @@ export default function CalendarView() {
           calendars={calendars}
           visibleCalendarIds={visibleCalendarIds}
           onToggleCalendar={toggleCalendar}
+          onBulkToggleCalendars={(ids, visible) => {
+            setVisibleCalendarIds((prev) => {
+              const next = new Set(prev)
+              for (const id of ids) {
+                if (visible) next.add(id)
+                else next.delete(id)
+              }
+              return next
+            })
+          }}
           categories={categories}
           externalCalendars={externalCalendarList}
           athleticsVisible={anyAthleticsVisible}
