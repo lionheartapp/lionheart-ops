@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   getEventColor,
   useEventDetail,
+  useUpdateEvent,
   useAddAttendees,
   useRemoveAttendee,
   useRsvp,
@@ -56,6 +57,13 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   // Fetch full event detail
   const { data: eventDetail } = useEventDetail(event?.id ?? null)
 
+  // Inline editing
+  const updateEvent = useUpdateEvent()
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState('')
+  const [editingDescription, setEditingDescription] = useState(false)
+  const [descriptionDraft, setDescriptionDraft] = useState('')
+
   // Attendee mutations
   const addAttendees = useAddAttendees()
   const removeAttendee = useRemoveAttendee()
@@ -93,6 +101,8 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
   // Reset state when event changes
   useEffect(() => {
     setShowAddAttendee(false)
+    setEditingTitle(false)
+    setEditingDescription(false)
   }, [event?.id])
 
   // RSVP: find current user's attendee record
@@ -182,10 +192,54 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                   </button>
                 </div>
               </div>
-              <h2 id="detail-panel-title" className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                {isAthletics && <Trophy className="w-5 h-5 flex-shrink-0 text-amber-500" />}
-                {event.title}
-              </h2>
+              {editingTitle ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter' && titleDraft.trim()) {
+                        try {
+                          await updateEvent.mutateAsync({ id: event.id, title: titleDraft.trim() })
+                          setEditingTitle(false)
+                          toast('Title updated', 'success')
+                        } catch { toast('Failed to update', 'error') }
+                      }
+                      if (e.key === 'Escape') setEditingTitle(false)
+                    }}
+                    className="flex-1 text-xl font-semibold text-slate-900 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!titleDraft.trim()) return
+                      try {
+                        await updateEvent.mutateAsync({ id: event.id, title: titleDraft.trim() })
+                        setEditingTitle(false)
+                        toast('Title updated', 'success')
+                      } catch { toast('Failed to update', 'error') }
+                    }}
+                    disabled={updateEvent.isPending || !titleDraft.trim()}
+                    className="p-1.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <h2
+                  id="detail-panel-title"
+                  className={`text-xl font-semibold text-slate-900 flex items-center gap-2 ${(isAdmin || isCreator) && !isExternal && !isAthletics ? 'cursor-pointer hover:bg-slate-50 rounded-lg -mx-2 px-2 py-0.5 transition-colors' : ''}`}
+                  onClick={() => {
+                    if ((isAdmin || isCreator) && !isExternal && !isAthletics) {
+                      setTitleDraft(event.title)
+                      setEditingTitle(true)
+                    }
+                  }}
+                >
+                  {isAthletics && <Trophy className="w-5 h-5 flex-shrink-0 text-amber-500" />}
+                  {event.title}
+                </h2>
+              )}
             </div>
 
             {/* Content */}
@@ -410,12 +464,63 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete }: E
                 )}
               </div>
 
-              {/* Description */}
-              {event.description && (
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{event.description}</p>
-                </div>
-              )}
+              {/* Description — inline editable for admins/creators */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                {editingDescription ? (
+                  <div className="space-y-2">
+                    <textarea
+                      autoFocus
+                      value={descriptionDraft}
+                      onChange={(e) => setDescriptionDraft(e.target.value)}
+                      className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                      rows={4}
+                      placeholder="Add a description..."
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await updateEvent.mutateAsync({ id: event.id, description: descriptionDraft })
+                            setEditingDescription(false)
+                            toast('Description updated', 'success')
+                          } catch {
+                            toast('Failed to update', 'error')
+                          }
+                        }}
+                        disabled={updateEvent.isPending}
+                        className="px-3 py-1 text-xs font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer transition-colors"
+                      >
+                        {updateEvent.isPending ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => setEditingDescription(false)}
+                        className="px-3 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 cursor-pointer transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : event.description ? (
+                  <p
+                    className={`text-sm text-slate-700 whitespace-pre-wrap ${(isAdmin || isCreator) && !isExternal && !isAthletics ? 'cursor-pointer hover:bg-slate-50 rounded-lg -mx-2 px-2 py-1 transition-colors' : ''}`}
+                    onClick={() => {
+                      if ((isAdmin || isCreator) && !isExternal && !isAthletics) {
+                        setDescriptionDraft(event.description || '')
+                        setEditingDescription(true)
+                      }
+                    }}
+                  >
+                    {event.description}
+                  </p>
+                ) : (isAdmin || isCreator) && !isExternal && !isAthletics ? (
+                  <button
+                    onClick={() => { setDescriptionDraft(''); setEditingDescription(true) }}
+                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    Add a description...
+                  </button>
+                ) : null}
+              </div>
 
               {/* Attendees */}
               {(event.attendees && event.attendees.length > 0 || isAdmin || isCreator) && (
