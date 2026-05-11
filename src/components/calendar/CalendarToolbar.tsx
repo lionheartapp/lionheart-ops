@@ -239,7 +239,8 @@ export default function CalendarToolbar({
             <button
               onClick={onNavigateBack}
               className="px-2 sm:px-3 py-2 hover:bg-stone-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              aria-label="Previous"
+              aria-label="Previous period"
+              title="Previous (←)"
             >
               <ChevronLeft className="w-4 h-4 text-stone-600" />
             </button>
@@ -254,7 +255,8 @@ export default function CalendarToolbar({
             <button
               onClick={onNavigateForward}
               className="px-2 sm:px-3 py-2 hover:bg-stone-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              aria-label="Next"
+              aria-label="Next period"
+              title="Next (→)"
             >
               <ChevronRight className="w-4 h-4 text-stone-600" />
             </button>
@@ -265,8 +267,9 @@ export default function CalendarToolbar({
             <button
               onClick={() => setCreateDropdownOpen(o => !o)}
               className={`flex items-center gap-2 pl-3 sm:pl-4 pr-3 py-2 text-white text-sm font-semibold rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${createDropdownOpen ? 'bg-slate-800' : 'bg-slate-900 hover:bg-slate-800'}`}
-              aria-label="Create"
+              aria-label="Create new event"
               aria-expanded={createDropdownOpen}
+              title="Create (N)"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Create</span>
