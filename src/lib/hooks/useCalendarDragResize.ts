@@ -56,9 +56,11 @@ export function useCalendarDragResize({ reschedule }: UseCalendarDragResizeParam
       type: 'drag',
     }
     setPendingChange(change)
-    // Recurring -> RecurringEditDialog first, then notify dialog
-    // Non-recurring -> show notify dialog directly
-    if (!isRecurring(event)) {
+    if (isRecurring(event)) {
+      // Recurring → show RecurringEditDialog first, then notify dialog
+      setRecurringMode('all')
+    } else {
+      // Non-recurring → show notify dialog directly
       setPendingEditMode('all')
       setShowNotifyDialog(true)
     }
@@ -74,9 +76,9 @@ export function useCalendarDragResize({ reschedule }: UseCalendarDragResizeParam
       type: 'resize',
     }
     setPendingChange(change)
-    // Recurring -> RecurringEditDialog first, then notify dialog
-    // Non-recurring -> show notify dialog directly
-    if (!isRecurring(event)) {
+    if (isRecurring(event)) {
+      setRecurringMode('all')
+    } else {
       setPendingEditMode('all')
       setShowNotifyDialog(true)
     }
