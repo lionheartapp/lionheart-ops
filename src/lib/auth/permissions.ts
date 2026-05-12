@@ -8,9 +8,71 @@
 import { rawPrisma as prisma } from '@/lib/db'
 import { matchesPermission } from '../permissions'
 
-// Simple in-memory cache for permission checks (30 second TTL)
+// Permission cache — in-memory with short TTL for serverless.
+// On Vercel, each instance has its own cache. Short TTL (30s) keeps staleness
+// bounded after role changes. For proper distributed caching, configure
+// UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.
 const permissionCache = new Map<string, { permissions: string[]; expires: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 30 * 1000 // 30 seconds — short to limit staleness across serverless instances
+
+// ─── Upstash Redis helpers (optional distributed cache) ────────────────────
+
+function isRedisConfigured(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  )
+}
+
+async function redisGet(key: string): Promise<string[] | null> {
+  if (!isRedisConfigured()) return null
+  try {
+    const res = await fetch(
+      `${process.env.UPSTASH_REDIS_REST_URL}/get/${encodeURIComponent(key)}`,
+      {
+        headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
+        cache: 'no-store',
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data.result) return null
+    return JSON.parse(data.result)
+  } catch {
+    return null
+  }
+}
+
+async function redisSet(key: string, value: string[], ttlSeconds: number): Promise<void> {
+  if (!isRedisConfigured()) return
+  try {
+    await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        ['SET', `perms:${key}`, JSON.stringify(value), 'EX', ttlSeconds],
+      ]),
+      cache: 'no-store',
+    })
+  } catch {
+    // Non-fatal — fall back to in-memory
+  }
+}
+
+async function redisDel(key: string): Promise<void> {
+  if (!isRedisConfigured()) return
+  try {
+    await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/del/${encodeURIComponent(`perms:${key}`)}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
+      cache: 'no-store',
+    })
+  } catch {
+    // Non-fatal
+  }
+}
 
 /**
  * Convert a permission record to its string representation
@@ -31,10 +93,17 @@ function permissionToString(p: { resource: string; action: string; scope: string
  * 3. Apply user-level revokes (remove permissions the role has)
  */
 export async function getUserPermissions(userId: string): Promise<string[]> {
-  // Check cache
+  // Check in-memory cache first (fastest)
   const cached = permissionCache.get(userId)
   if (cached && cached.expires > Date.now()) {
     return cached.permissions
+  }
+
+  // Check Redis cache (shared across serverless instances)
+  const redisCached = await redisGet(`perms:${userId}`)
+  if (redisCached) {
+    permissionCache.set(userId, { permissions: redisCached, expires: Date.now() + CACHE_TTL })
+    return redisCached
   }
 
   // Fetch user with role permissions AND per-user overrides
@@ -105,11 +174,12 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
 
   const permissions = Array.from(effectivePermissions)
 
-  // Cache for next time
+  // Cache locally and in Redis (if configured)
   permissionCache.set(userId, {
     permissions,
     expires: Date.now() + CACHE_TTL,
   })
+  void redisSet(userId, permissions, Math.ceil(CACHE_TTL / 1000))
 
   return permissions
 }
@@ -119,6 +189,7 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
  */
 export function clearPermissionCache(userId: string): void {
   permissionCache.delete(userId)
+  void redisDel(userId)
 }
 
 /**
