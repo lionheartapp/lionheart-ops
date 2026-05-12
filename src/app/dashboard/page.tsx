@@ -47,6 +47,8 @@ import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { useToast } from '@/components/Toast'
 import { useMyTasks, usePersonalTasks } from '@/lib/hooks/useMyTasks'
 import MyTasksDrawer from '@/components/dashboard/MyTasksDrawer'
+import CreateDropdownMenu from '@/components/dashboard/CreateDropdownMenu'
+import FacilityRequestsBanner from '@/components/dashboard/FacilityRequestsBanner'
 import { format } from 'date-fns'
 
 interface TicketData {
@@ -207,7 +209,6 @@ export default function DashboardPage() {
   }, [createCalendarEvent])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
-  const createDropdownRef = useRef<HTMLDivElement>(null)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false)
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null)
@@ -270,32 +271,6 @@ export default function DashboardPage() {
   const { data: pendingFacilityRequests } = usePendingGateApprovals('facilities', !!canApproveFacilities)
   const facilityRequestCount = pendingFacilityRequests?.length ?? 0
   const { toast } = useToast()
-  const [facilityProcessingIds, setFacilityProcessingIds] = useState<Set<string>>(new Set())
-
-  const handleFacilityApprove = async (projectId: string) => {
-    setFacilityProcessingIds((prev) => new Set(prev).add(projectId))
-    try {
-      const res = await fetch(`/api/events/projects/${projectId}/approve-gate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gateType: 'facilities' }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err?.error?.message || 'Failed to approve')
-      }
-      toast('Facility request approved', 'success')
-      window.dispatchEvent(new Event('focus'))
-    } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to approve', 'error')
-    } finally {
-      setFacilityProcessingIds((prev) => {
-        const next = new Set(prev)
-        next.delete(projectId)
-        return next
-      })
-    }
-  }
 
   const handleFacilityReject = async (projectId: string, reason: string) => {
     setFacilityProcessingIds((prev) => new Set(prev).add(projectId))
@@ -698,214 +673,20 @@ export default function DashboardPage() {
             </span>
           </motion.button>
 
-          {/* Create button — opens dropdown on click */}
-          <div ref={createDropdownRef} className="relative">
-          <motion.button
-            onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
-            className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
-            style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)' }}
-            aria-label="Create new request"
-            aria-expanded={isCreateDropdownOpen}
-            animate={isCreateDropdownOpen
-              ? { background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }
-              : { background: 'rgba(255, 255, 255, 0.5)', color: '#1e293b', borderColor: 'rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }
-            }
-            whileHover={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          >
-            <Plus className={`w-5 h-5 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-90' : ''} group-hover/create:rotate-90`} aria-hidden="true" />
-            Create
-            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isCreateDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-          </motion.button>
-
-          {/* Create Dropdown Menu */}
-          <AnimatePresence>
-          {isCreateDropdownOpen && (
-            <motion.div
-              className="absolute right-0 pt-2 top-full w-64 z-mobilenav"
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <div className="ui-glass-dropdown">
-              {/* Meetings Section */}
-              <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">Meetings</p>
-                <button
-                  onClick={() => openMeetingPanel()}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                >
-                  <Users className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-slate-900">Schedule Meeting</p>
-                    <p className="text-xs text-slate-600">Informal — added instantly, no approval</p>
-                  </div>
-                </button>
-              </div>
-
-              {/* Divider */}
-              <div className="px-3">
-                <div className="h-px bg-slate-200" />
-              </div>
-
-              {/* Events Section — uses the same 5 modes as the Events Hub
-                  header dropdown. Previously the dashboard exposed only
-                  "Plan Event" + a disabled "AI Event Planner (Soon)", which
-                  meant AI / Recurring / Multi-day / Template were hidden
-                  from anyone starting from the dashboard. Sourcing the
-                  options from EVENT_CREATE_OPTIONS keeps parity automatic
-                  if we add or re-order modes in the future. */}
-              <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">School Events</p>
-                {EVENT_CREATE_OPTIONS.filter((o) => !o.adminOnly || isAdmin).map((opt) => {
-                  const Icon = opt.icon
-                  return (
-                    <button
-                      key={opt.mode}
-                      onClick={() => handleUpcomingCreate(opt.mode)}
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                    >
-                      <Icon className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                      <div>
-                        <p className="font-medium text-slate-900">{opt.label}</p>
-                        <p className="text-xs text-slate-600">{opt.description}</p>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Divider */}
-              <div className="px-3">
-                <div className="h-px bg-slate-200" />
-              </div>
-
-              {/* Support Section */}
-              <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">Support</p>
-                <button
-                  onClick={() => openCreateDrawer('MAINTENANCE')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                >
-                  <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-slate-900">Facilities Request</p>
-                    <p className="text-xs text-slate-600">Submit a facilities request</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => openCreateDrawer('IT')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                >
-                  <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-slate-900">IT Request</p>
-                    <p className="text-xs text-slate-600">Submit an IT support request</p>
-                  </div>
-                </button>
-              </div>
-              </div>
-            </motion.div>
-          )}
-          </AnimatePresence>
-          </div>
+          <CreateDropdownMenu
+            isOpen={isCreateDropdownOpen}
+            onToggle={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
+            onClose={() => setIsCreateDropdownOpen(false)}
+            isAdmin={isAdmin}
+            onScheduleMeeting={() => openMeetingPanel()}
+            onCreateEvent={handleUpcomingCreate}
+            onCreateTicket={openCreateDrawer}
+          />
         </motion.div>
       </motion.div>
 
-      {/* Facility Requests Banner — shown to maintenance team when events need approval */}
-      {canApproveFacilities && facilityRequestCount > 0 && (
-        <motion.div
-          className="mb-6 rounded-2xl p-4 shadow-sm backdrop-blur-sm border bg-gradient-to-br from-amber-50/80 to-amber-100/80 border-amber-200/30 flex-shrink-0"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Wrench className="w-4 h-4 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-slate-800">Facility Requests</h3>
-                <p className="text-xs text-amber-600">
-                  {facilityRequestCount} event{facilityRequestCount !== 1 ? 's' : ''} requesting facilities support
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push('/maintenance?tab=dashboard')}
-              className="text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors flex items-center gap-0.5 cursor-pointer"
-            >
-              View in Maintenance
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {pendingFacilityRequests!.slice(0, 2).map((project) => {
-              const startsAt = new Date(project.startsAt)
-              const dateDisplay = format(startsAt, 'MMM d, yyyy')
-              const creatorName = project.createdBy?.firstName
-                ? `${project.createdBy.firstName} ${project.createdBy.lastName || ''}`.trim()
-                : project.createdBy?.email
-              const meta = (project.metadata ?? {}) as Record<string, unknown>
-              const facilityNeeds = readResourceItems(meta, 'facilityNeeds').map((i) => i.name)
-
-              return (
-                <div key={project.id} className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{project.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
-                        <CalendarRange className="w-2.5 h-2.5" />
-                        {dateDisplay}
-                      </span>
-                      {creatorName && (
-                        <span className="text-[10px] text-slate-400">by {creatorName}</span>
-                      )}
-                      {facilityNeeds.slice(0, 2).map((need) => (
-                        <span key={need} className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-medium">
-                          {need}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button
-                      onClick={() => handleFacilityApprove(project.id)}
-                      disabled={facilityProcessingIds.has(project.id)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-medium hover:bg-green-700 active:scale-[0.97] transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      {facilityProcessingIds.has(project.id) ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="w-3 h-3" />
-                      )}
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => router.push('/maintenance?tab=dashboard')}
-                      className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
-                    >
-                      Details
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-            {facilityRequestCount > 2 && (
-              <button
-                onClick={() => router.push('/maintenance?tab=dashboard')}
-                className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors cursor-pointer"
-              >
-                +{facilityRequestCount - 2} more request{facilityRequestCount - 2 !== 1 ? 's' : ''}
-                <ChevronRight className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-        </motion.div>
+      {canApproveFacilities && pendingFacilityRequests && pendingFacilityRequests.length > 0 && (
+        <FacilityRequestsBanner requests={pendingFacilityRequests} />
       )}
 
       {/* Since Yesterday — the morning ritual centerpiece */}
