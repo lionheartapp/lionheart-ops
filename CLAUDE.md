@@ -115,7 +115,6 @@ Generate a secret: `npm run auth:secret`
 
 ```bash
 npm run db:push          # Push schema to local DB (no migration file)
-npm run db:push:remote   # Push schema to remote/production DB
 npm run db:migrate       # Create + apply migration locally
 npm run db:migrate:remote # Apply pending migrations to production
 npm run db:studio        # Open Prisma Studio (local)
@@ -125,7 +124,16 @@ npm run db:seed:remote   # Seed demo data (remote)
 
 **Always run these from the project root, not `~`.**
 
-When making schema changes, prefer `db:push` for quick iteration locally, then create a proper migration file before touching production.
+### Schema Change Workflow (mandatory since May 2026 baseline)
+
+Production now has a `_prisma_migrations` table. **Never use `db:push:remote` again.** The workflow is:
+
+1. **Local dev:** use `db:push` for quick iteration (no migration file, fine for local)
+2. **Ready to commit:** run `npm run db:migrate` — this creates a migration file in `prisma/migrations/`
+3. **Commit** the migration file with your code changes
+4. **Production deploy:** run `npm run db:migrate:remote` — this applies only new migrations, with rollback capability
+
+`db:push:remote` is removed from the workflow because it bypasses the migration table and makes rollback impossible.
 
 ---
 
@@ -431,7 +439,7 @@ Team slugs are stored only on the `Team` record. `UserTeam` references `teamId` 
 
 **`$transaction` with org-scoped client** — Prisma interactive transactions on the extended client can behave unexpectedly. Use `rawPrisma.$transaction([...])` for batch operations, or use sequential awaits inside `runWithOrgContext`.
 
-**DB migrations vs push** — This project currently uses `db push` (no `_prisma_migrations` table on remote). Use the Supabase MCP or `npm run db:push:remote` for schema changes. Do not run `migrate deploy` unless you've committed to that workflow.
+**DB migrations vs push** — Production uses `prisma migrate deploy` (the `_prisma_migrations` table was baselined in May 2026). **Never use `db:push:remote`** — it bypasses migration history and breaks rollback. Use `db:push` locally for quick iteration, then `db:migrate` to create the migration file before committing. See the "Schema Change Workflow" section above.
 
 **Supabase project** — Active project is `yvpbnzeycowtvuxiidbj` (lionheart Operations App). There is an old, unused project `zjiekwgindszxzmkawxc` (Lionheart_database) — do not run migrations against it.
 
