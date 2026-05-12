@@ -11,6 +11,7 @@ import { passwordSchema } from '@/lib/validation/password'
 import { isPasswordBreached } from '@/lib/validation/password-breach-check'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
+import { resetPasswordRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 
 const schema = z.object({
   token: z.string().min(1, 'token is required'),
@@ -20,6 +21,16 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/auth/reset-password', method: 'POST' })
   try {
+    // Rate limit: 5 attempts per 15 minutes per IP
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await resetPasswordRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many attempts. Please wait before trying again.'),
+        { status: 429, headers: getRateLimitHeaders(limitResult) }
+      )
+    }
+
     const body = await req.json()
     const parsed = schema.safeParse(body)
 

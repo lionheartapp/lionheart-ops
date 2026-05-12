@@ -270,6 +270,20 @@ export const loginRateLimiter = new RateLimiter({
   maxAttempts: 5,
 })
 
+/** MFA verify: 5 attempts per 5 minutes per IP (prevent TOTP brute-force) */
+export const mfaRateLimiter = new RateLimiter({
+  name: 'mfa',
+  windowMs: 5 * 60 * 1000,
+  maxAttempts: 5,
+})
+
+/** Password reset: 5 attempts per 15 minutes per IP */
+export const resetPasswordRateLimiter = new RateLimiter({
+  name: 'reset-password',
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 5,
+})
+
 /** Platform admin login: 5 attempts per minute per IP (strict — cross-org access) */
 export const platformLoginRateLimiter = new RateLimiter({
   name: 'platform-login',

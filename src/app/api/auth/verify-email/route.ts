@@ -5,6 +5,8 @@ import { signAuthToken } from '@/lib/auth'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
+import { publicApiRateLimiter } from '@/lib/rate-limit'
+import { getIp } from '@/lib/services/auditService'
 
 export async function GET(req: NextRequest) {
   const log = logger.child({ route: '/api/auth/verify-email', method: 'GET' })
@@ -14,6 +16,16 @@ export async function GET(req: NextRequest) {
     const url = req.nextUrl.clone()
     url.pathname = '/verify-email'
     url.search = '?error=invalid'
+    return NextResponse.redirect(url, 302)
+  }
+
+  // Light rate limit to prevent token enumeration
+  const ip = getIp(req) ?? 'unknown'
+  const limitResult = await publicApiRateLimiter.hit(ip)
+  if (!limitResult.allowed) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/verify-email'
+    url.search = '?error=rate-limited'
     return NextResponse.redirect(url, 302)
   }
 

@@ -14,6 +14,8 @@ import { rawPrisma } from '@/lib/db'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { mfaRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+import { getIp } from '@/lib/services/auditService'
 
 const schema = z.object({
   mfaToken: z.string().min(1, 'MFA token is required'),
@@ -22,6 +24,16 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 attempts per 5 minutes per IP (TOTP codes are 6 digits — brute-forceable)
+    const ip = getIp(req) ?? 'unknown'
+    const limitResult = await mfaRateLimiter.hit(ip)
+    if (!limitResult.allowed) {
+      return NextResponse.json(
+        fail('RATE_LIMITED', 'Too many verification attempts. Please wait a few minutes.'),
+        { status: 429, headers: getRateLimitHeaders(limitResult) }
+      )
+    }
+
     const body = await req.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
