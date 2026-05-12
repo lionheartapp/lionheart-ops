@@ -2,7 +2,7 @@
   "extends": ["next/core-web-vitals"],
   "rules": {
     "no-restricted-syntax": [
-      "warn",
+      "error",
       {
         "selector": "JSXOpeningElement[name.name='input']",
         "message": "Don't use raw <input>. Use <Input>, <Checkbox>, <Radio>, or <SearchInput> from @/components/ui/ instead. For file uploads, see existing FileInput patterns. If you absolutely need a raw input, add an eslint-disable comment with a reason."
@@ -34,7 +34,7 @@
       "files": ["src/app/api/**/*.ts"],
       "rules": {
         "no-restricted-imports": [
-          "warn",
+          "error",
           {
             "paths": [
               {
