@@ -61,6 +61,14 @@ export default function DashboardLayout({
   const initialUserAvatar = userAvatarProp || ls('user-avatar') || null
   const [userAvatar, setUserAvatar] = useState<string | null>(initialUserAvatar)
 
+  // Sync logo/name when the parent prop arrives (e.g. after useAuth background fetch)
+  useEffect(() => {
+    if (organizationLogoUrl) setOrgLogoUrl(organizationLogoUrl)
+  }, [organizationLogoUrl])
+  useEffect(() => {
+    if (orgNameProp) setOrganizationName(orgNameProp)
+  }, [orgNameProp])
+
   // Listen for branding changes from SchoolInfoTab so sidebar updates live
   useEffect(() => {
     const handler = (e: Event) => {
@@ -84,6 +92,14 @@ export default function DashboardLayout({
       router.push('/login')
     }
   }, [onLogoutProp, router])
+
+  // Prevent the browser from restoring scroll position on refresh —
+  // every page should load from the top, not mid-scroll.
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+  }, [])
 
   // Detect impersonation state
   useEffect(() => {

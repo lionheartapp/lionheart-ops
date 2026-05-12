@@ -81,11 +81,10 @@ interface EventData {
 export default function DashboardPage() {
   usePageTitle('Dashboard')
   useCalendarRealtime()
-  // Always start at the top when navigating to the dashboard
-  useEffect(() => { window.scrollTo(0, 0) }, [])
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, org, isReady, isAdmin, logout } = useAuth()
+
 
   // ── Global "active school" viewpoint ─────────────────────────────────
   // Reference consumer: reads the Sidebar SchoolSelector's current pick and
@@ -646,7 +645,7 @@ export default function DashboardPage() {
       onLogout={logout}
     >
       <MotionConfig reducedMotion="user">
-      <div className="flex flex-col lg:h-full lg:overflow-y-auto">
+      <div className="flex flex-col lg:h-full">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
         className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
