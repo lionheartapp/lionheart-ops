@@ -18,7 +18,7 @@ function sign(payload: string): string {
 }
 
 interface OAuthStatePayload {
-  userId: string
+  userId?: string
   orgId?: string
   origin?: string
 }
