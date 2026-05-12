@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, FormEvent } from 'react'
+import { useState, useRef, useEffect, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, ShieldCheck, Fingerprint } from 'lucide-react'
+import { Eye, EyeOff, ShieldCheck, Fingerprint, KeyRound } from 'lucide-react'
 import { startAuthentication } from '@simplewebauthn/browser'
 
 interface LoginFormProps {
@@ -35,6 +35,23 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   const [hasPasskeys, setHasPasskeys] = useState(false)
   const [hasTotp, setHasTotp] = useState(false)
   const [passkeyLoading, setPasskeyLoading] = useState(false)
+
+  // SAML SSO state
+  const [ssoEnabled, setSsoEnabled] = useState(false)
+
+  useEffect(() => {
+    if (!organizationId) return
+    let cancelled = false
+    fetch(`/api/auth/saml/status?organizationId=${encodeURIComponent(organizationId)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled && json?.data?.enabled) {
+          setSsoEnabled(true)
+        }
+      })
+      .catch(() => { /* SSO status is non-critical */ })
+    return () => { cancelled = true }
+  }, [organizationId])
 
   // ── Hydrate localStorage after successful login ──
   function hydrateSession(data: {
@@ -426,6 +443,26 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
 
   // ── Normal sign in mode ──
   return (
+    <div className="space-y-6">
+      {ssoEnabled && (
+        <>
+          <a
+            href={`/api/auth/saml/initiate?organizationId=${encodeURIComponent(organizationId)}${searchParams.get('redirect') ? `&redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`}
+            className="w-full flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 transition-colors cursor-pointer"
+          >
+            <KeyRound className="w-4 h-4" />
+            Sign in with SSO
+          </a>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-slate-400">or sign in with email</span>
+            </div>
+          </div>
+        </>
+      )}
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
@@ -512,5 +549,6 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         You&apos;ll stay logged in while you&apos;re active
       </p>
     </form>
+    </div>
   )
 }

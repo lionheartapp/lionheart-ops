@@ -27,8 +27,6 @@ interface DashboardLayoutProps extends SidebarProps {
   teamLabel?: string
   /** Pass a custom sidebar element to replace the default Sidebar */
   customSidebar?: ReactNode
-  /** When true, the content wrapper renders with no padding (caller manages its own) */
-  noPadding?: boolean
 }
 
 export default function DashboardLayout({
@@ -42,7 +40,6 @@ export default function DashboardLayout({
   teamLabel,
   onLogout: onLogoutProp,
   customSidebar,
-  noPadding,
 }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -214,7 +211,7 @@ export default function DashboardLayout({
               </MobileShell>
             </Suspense>
           ) : (
-            <div className={`relative flex flex-col ${noPadding ? 'h-full' : 'min-h-full pl-4 pr-4 sm:px-10 pt-6 lg:pt-8 pb-10'}`}>
+            <div className="relative flex flex-col h-full min-h-0">
               {children}
             </div>
           )}
