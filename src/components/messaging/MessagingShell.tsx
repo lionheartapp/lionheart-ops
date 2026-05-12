@@ -11,7 +11,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
-import { MessageSquare, ChevronLeft, Menu } from 'lucide-react'
+import { MessageSquare, ChevronLeft } from 'lucide-react'
 import type { MessageWithAuthor } from '@/lib/services/messageService'
 import { useChannels } from '@/lib/hooks/useChannels'
 import ChannelList from './ChannelList'
@@ -323,74 +323,40 @@ export default function MessagingShell() {
     <div className="flex h-full overflow-hidden relative bg-white">
       {/* Message area — full width, animated transitions */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <AnimatePresence mode="wait">
-          {composeMode ? (
-            <motion.div
-              key="compose"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              <NewMessageView
-                onChannelSelected={(channelId) => {
-                  setComposeMode(false)
-                  setActiveChannelId(channelId)
-                  window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
-                }}
-                onClose={() => {
-                  setComposeMode(false)
-                  window.history.replaceState(null, '', '/messaging')
-                }}
-              />
-            </motion.div>
-          ) : browseMode ? (
-            <motion.div
-              key="browse"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              <BrowseChannelsPanel
-                onJoined={(channelId) => {
-                  setBrowseMode(false)
-                  handleSelectChannel(channelId)
-                  window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
-                }}
-                onClose={() => setBrowseMode(false)}
-              />
-            </motion.div>
-          ) : activeChannelId ? (
-            <motion.div
-              key={`channel-${activeChannelId}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex-1 flex flex-col min-h-0"
-            >
-              <MessageArea
-                channelId={activeChannelId}
-                onThreadClick={handleThreadClick}
-                onSearchClick={() => setShowSearch(true)}
-                onAddPerson={handleAddPerson}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400"
-            >
-              <MessageSquare className="w-10 h-10" />
-              <p className="text-sm">Select a channel from the sidebar to start messaging</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {composeMode ? (
+          <NewMessageView
+            onChannelSelected={(channelId) => {
+              setComposeMode(false)
+              setActiveChannelId(channelId)
+              window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
+            }}
+            onClose={() => {
+              setComposeMode(false)
+              window.history.replaceState(null, '', '/messaging')
+            }}
+          />
+        ) : browseMode ? (
+          <BrowseChannelsPanel
+            onJoined={(channelId) => {
+              setBrowseMode(false)
+              handleSelectChannel(channelId)
+              window.history.replaceState(null, '', `/messaging?channel=${channelId}`)
+            }}
+            onClose={() => setBrowseMode(false)}
+          />
+        ) : activeChannelId ? (
+          <MessageArea
+            channelId={activeChannelId}
+            onThreadClick={handleThreadClick}
+            onSearchClick={() => setShowSearch(true)}
+            onAddPerson={handleAddPerson}
+          />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <MessageSquare className="w-10 h-10" />
+            <p className="text-sm">Select a channel from the sidebar to start messaging</p>
+          </div>
+        )}
       </div>
 
       {/* Thread panel overlay (desktop) */}
