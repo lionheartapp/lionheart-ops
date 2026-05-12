@@ -192,8 +192,9 @@ export default function MessageList({
   // On initial load, scroll to bottom
   useEffect(() => {
     if (messages.length > 0 && prevMessageCountRef.current === 0) {
-      // First batch of messages loaded — jump to bottom
-      requestAnimationFrame(scrollToBottom)
+      // First batch of messages loaded — jump to bottom.
+      // Double-rAF ensures the container has its final dimensions after layout.
+      requestAnimationFrame(() => requestAnimationFrame(scrollToBottom))
     }
     prevMessageCountRef.current = messages.length
   }, [messages.length, scrollToBottom])
