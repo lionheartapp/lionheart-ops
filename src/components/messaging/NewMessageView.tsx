@@ -85,8 +85,9 @@ export default function NewMessageView({ onChannelSelected, onClose }: NewMessag
       })
       if (!msgRes.ok) throw new Error('Failed to send message')
 
-      // Step 3: Navigate to the channel
-      queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+      // Step 3: Wait for channels list to refresh (so the unhidden DM appears)
+      // then navigate to the channel
+      await queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
       onChannelSelected(channelId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')

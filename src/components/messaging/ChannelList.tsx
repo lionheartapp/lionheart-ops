@@ -399,15 +399,16 @@ export default function ChannelList({ activeChannelId, onSelectChannel, onCompos
     setShowNewDM(false)
   }
 
-  function handleCloseDM(closedId: string) {
-    queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
-    // If we're viewing the closed chat, navigate to the next DM (or clear)
+  async function handleCloseDM(closedId: string) {
+    // If we're viewing the closed chat, navigate to the next DM (or clear) immediately
     if (closedId === activeChannelId) {
       const remaining = grouped.dms.filter((ch) => ch.id !== closedId)
       const nextId = remaining[0]?.id ?? ''
       onSelectChannel(nextId)
       window.history.replaceState(null, '', nextId ? `/messaging?channel=${nextId}` : '/messaging')
     }
+    // Refresh the channel list after navigation so the hidden DM disappears
+    await queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
   }
 
   if (isLoading) {

@@ -85,14 +85,16 @@ export default function MessagingShell() {
 
   // Clear activeChannelId if the user isn't a member of that channel
   // (e.g. URL from a previous session, impersonating a different user)
-  const { data: userChannels } = useChannels()
+  const { data: userChannels, isFetching: channelsFetching } = useChannels()
   useEffect(() => {
-    if (!activeChannelId || !userChannels) return
+    // Don't clear the channel while the list is still refetching — the channel
+    // may have just been unhidden and the fresh list hasn't arrived yet.
+    if (!activeChannelId || !userChannels || channelsFetching) return
     const isMember = userChannels.some((ch) => ch.id === activeChannelId)
     if (!isMember) {
       setActiveChannelId(null)
     }
-  }, [activeChannelId, userChannels])
+  }, [activeChannelId, userChannels, channelsFetching])
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageWithAuthor | null>(null)

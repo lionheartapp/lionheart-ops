@@ -171,9 +171,12 @@ export default function ChannelListItem({ channel, isActive, onSelect, onClose, 
                     method: 'POST',
                     credentials: 'include',
                   }).then((res) => {
-                    if (!res.ok) setHidden(false) // rollback on failure
+                    if (!res.ok) {
+                      setHidden(false)
+                      return
+                    }
+                    onClose?.(channel.id)
                   }).catch(() => setHidden(false))
-                  onClose?.(channel.id)
                 }}
                 className="hidden group-hover/item:flex w-5 h-5 rounded-full items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 cursor-pointer transition-all"
                 title="Close conversation"
