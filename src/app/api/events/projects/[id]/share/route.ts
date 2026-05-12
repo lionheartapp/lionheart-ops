@@ -31,6 +31,15 @@ const putSchema = z.object({
 export const GET = withAuth(async ({ orgId, params }) => {
   const eventProjectId = params.id
 
+  // Verify the event project belongs to the caller's org
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!project) {
+    return NextResponse.json(fail('NOT_FOUND', 'Event project not found'), { status: 404 })
+  }
+
   // Fetch the registration form for this event project
   const form = await rawPrisma.registrationForm.findUnique({
     where: { eventProjectId },
@@ -109,8 +118,18 @@ export const GET = withAuth(async ({ orgId, params }) => {
 
 // ─── PUT ──────────────────────────────────────────────────────────────────────
 
-export const PUT = withAuth(async ({ req, params }) => {
+export const PUT = withAuth(async ({ orgId, req, params }) => {
   const eventProjectId = params.id
+
+  // Verify the event project belongs to the caller's org
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!project) {
+    return NextResponse.json(fail('NOT_FOUND', 'Event project not found'), { status: 404 })
+  }
+
   const body = await req.json()
   const parsed = putSchema.safeParse(body)
 

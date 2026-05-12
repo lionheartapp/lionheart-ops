@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import * as microsoftCalendarService from '@/lib/services/integrations/microsoftCalendarService'
+import { isAllowedOrigin } from '@/lib/services/integrations/oauth-state'
 
 /**
  * GET /api/integrations/microsoft-calendar/callback
  * OAuth callback from Microsoft — exchanges code for tokens, redirects to the tenant's settings.
- * The `state` param encodes { userId, origin } so we redirect to the correct subdomain.
+ * The `state` param is HMAC-signed to prevent CSRF and open-redirect attacks.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -17,7 +18,9 @@ export async function GET(req: NextRequest) {
     ? microsoftCalendarService.decodeOAuthState(stateParam)
     : { userId: '', origin: '' }
 
-  const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || ''
+  // Validate redirect origin to prevent open redirects
+  const safeOrigin = origin && isAllowedOrigin(origin) ? origin : ''
+  const baseUrl = safeOrigin || process.env.NEXT_PUBLIC_APP_URL || ''
   const settingsUrl = `${baseUrl}/settings`
 
   if (error || !code || !userId) {

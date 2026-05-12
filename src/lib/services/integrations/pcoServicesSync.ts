@@ -12,6 +12,7 @@
 
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
+import { encryptToken, decryptToken } from './token-encryption'
 
 const PCO_BASE_URL = 'https://api.planningcenteronline.com'
 const log = logger.child({ service: 'pco-services-sync' })
@@ -77,13 +78,16 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
 
   if (!cred?.accessToken) return null
 
+  const accessToken = decryptToken(cred.accessToken)
+  const refreshTokenVal = cred.refreshToken ? decryptToken(cred.refreshToken) : null
+
   // Refresh if token expires within 5 minutes
   const needsRefresh =
     cred.tokenExpiresAt && cred.tokenExpiresAt.getTime() - Date.now() < 5 * 60 * 1000
 
-  if (!needsRefresh) return cred.accessToken
+  if (!needsRefresh) return accessToken
 
-  if (!cred.refreshToken) return null
+  if (!refreshTokenVal) return null
 
   try {
     const response = await fetch('https://api.planningcenteronline.com/oauth/token', {
@@ -91,13 +95,13 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         grant_type: 'refresh_token',
-        refresh_token: cred.refreshToken,
+        refresh_token: refreshTokenVal,
         client_id: process.env.PCO_APP_ID,
         client_secret: process.env.PCO_SECRET,
       }),
     })
 
-    if (!response.ok) return cred.accessToken
+    if (!response.ok) return accessToken
 
     const tokenData = await response.json()
     const expiresAt = new Date(Date.now() + (tokenData.expires_in || 7200) * 1000)
@@ -105,8 +109,8 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
     await rawPrisma.integrationCredential.update({
       where: { id: cred.id },
       data: {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || cred.refreshToken,
+        accessToken: encryptToken(tokenData.access_token),
+        refreshToken: tokenData.refresh_token ? encryptToken(tokenData.refresh_token) : cred.refreshToken,
         tokenExpiresAt: expiresAt,
         updatedAt: new Date(),
       },
@@ -114,7 +118,7 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
 
     return tokenData.access_token
   } catch {
-    return cred.accessToken
+    return accessToken
   }
 }
 

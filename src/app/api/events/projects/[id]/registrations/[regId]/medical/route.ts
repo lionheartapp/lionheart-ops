@@ -15,8 +15,17 @@ import { rawPrisma } from '@/lib/db'
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
-export const GET = withAuth(async ({ params }) => {
+export const GET = withAuth(async ({ orgId, params }) => {
   const { id: eventProjectId, regId: registrationId } = params
+
+  // Verify the event project belongs to the caller's org
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!project) {
+    return NextResponse.json(fail('NOT_FOUND', 'Event project not found'), { status: 404 })
+  }
 
   // Verify the registration belongs to the correct event project
   const registration = await rawPrisma.eventRegistration.findUnique({

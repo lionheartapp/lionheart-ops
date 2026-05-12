@@ -7,13 +7,13 @@ import { uploadBrandingImage, deleteBrandingImage } from '@/lib/services/storage
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 import { logger } from '@/lib/logger'
 
-// Branding allows SVG in addition to standard image types
-const ALLOWED_BRANDING_TYPES = new Set([...ALLOWED_IMAGE_TYPES, 'image/svg+xml'])
+// SVG removed — can contain <script> tags leading to stored XSS on login page
+const ALLOWED_BRANDING_TYPES = new Set([...ALLOWED_IMAGE_TYPES])
 
 const UploadSchema = z.object({
   imageType: z.enum(['logo', 'hero']),
   fileBase64: z.string().min(1),
-  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']),
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
 })
 
 const DeleteSchema = z.object({
@@ -55,7 +55,7 @@ export const DELETE = withAuth<z.infer<typeof DeleteSchema>>(async ({ orgId, bod
     return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid image URL'), { status: 400 })
   }
   const expectedPathPrefix = `/storage/v1/object/public/logos/${orgId}/`
-  if (!imageUrlParsed.pathname.includes(expectedPathPrefix)) {
+  if (!imageUrlParsed.pathname.startsWith(expectedPathPrefix)) {
     return NextResponse.json(fail('FORBIDDEN', 'Image does not belong to this organization'), { status: 403 })
   }
 

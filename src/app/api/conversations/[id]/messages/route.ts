@@ -16,14 +16,14 @@ const QuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 })
 
-export const GET = withAuth(async ({ orgId, params, searchParams }) => {
+export const GET = withAuth(async ({ orgId, ctx, params, searchParams }) => {
   const query = QuerySchema.parse({
     limit: searchParams.get('limit') ?? undefined,
     offset: searchParams.get('offset') ?? undefined,
   })
 
   // Verify conversation belongs to current user's org
-  const conversation = await getConversation(params.id, orgId)
+  const conversation = await getConversation(params.id, orgId, ctx.userId)
   if (!conversation) {
     return NextResponse.json(fail('NOT_FOUND', 'Conversation not found'), { status: 404 })
   }

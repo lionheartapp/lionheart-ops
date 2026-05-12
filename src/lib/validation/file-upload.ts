@@ -39,6 +39,20 @@ export interface FileValidationResult {
 }
 
 /**
+ * Strip path traversal and unsafe characters from a client-supplied filename.
+ * Returns a safe basename containing only [A-Za-z0-9._-].
+ * Falls back to a timestamp-based name if nothing usable remains.
+ */
+export function sanitizeFileName(raw: string): string {
+  // Extract just the filename (strip any directory components)
+  const basename = raw.split(/[/\\]/).pop() || ''
+  // Keep only safe characters
+  const cleaned = basename.replace(/[^A-Za-z0-9._-]/g, '_')
+  // Ensure we always return something usable
+  return cleaned || `file-${Date.now()}`
+}
+
+/**
  * Validate a single file against MIME type allowlist and size limit.
  *
  * @param file - File metadata: MIME type, byte size, and name

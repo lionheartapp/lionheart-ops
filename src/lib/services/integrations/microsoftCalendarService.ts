@@ -15,6 +15,7 @@
  */
 
 import { rawPrisma } from '@/lib/db'
+import { encryptToken, decryptToken } from './token-encryption'
 
 const MS_AUTH_BASE = 'https://login.microsoftonline.com/common/oauth2/v2.0'
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0'
@@ -34,21 +35,20 @@ function getRedirectUri(): string {
   return `${base}/api/integrations/microsoft-calendar/callback`
 }
 
-// ─── Auth URL ────────────────────────────────────────────────────────────────
+// ─── Auth URL (HMAC-signed state) ───────────────────────────────────────────
 
-/** Encode userId + tenant origin into the OAuth state parameter. */
+import { encodeSignedOAuthState, decodeSignedOAuthState } from './oauth-state'
+
+/** Encode userId + tenant origin into a signed OAuth state parameter. */
 export function encodeOAuthState(userId: string, tenantOrigin?: string): string {
-  return Buffer.from(JSON.stringify({ userId, origin: tenantOrigin || '' })).toString('base64url')
+  return encodeSignedOAuthState({ userId, origin: tenantOrigin || '' })
 }
 
-/** Decode the OAuth state parameter back to userId + tenant origin. */
+/** Decode and verify the signed OAuth state parameter. */
 export function decodeOAuthState(state: string): { userId: string; origin: string } {
-  try {
-    const parsed = JSON.parse(Buffer.from(state, 'base64url').toString())
-    return { userId: parsed.userId || '', origin: parsed.origin || '' }
-  } catch {
-    return { userId: state, origin: '' }
-  }
+  const payload = decodeSignedOAuthState(state)
+  if (!payload) return { userId: '', origin: '' }
+  return { userId: payload.userId, origin: payload.origin || '' }
 }
 
 export function getAuthUrl(userId: string, tenantOrigin?: string): string | null {
@@ -122,15 +122,15 @@ export async function handleCallback(
         organizationId,
         userId,
         provider: PROVIDER,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || null,
+        accessToken: encryptToken(tokens.access_token),
+        refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : null,
         tokenExpiresAt: expiresAt,
         config: { msEmail },
         isActive: true,
       },
       update: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || undefined,
+        accessToken: encryptToken(tokens.access_token),
+        refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : undefined,
         tokenExpiresAt: expiresAt,
         config: { msEmail },
         isActive: true,
@@ -153,11 +153,14 @@ async function refreshTokenIfNeeded(credentialId: string): Promise<string | null
   const cred = await rawPrisma.integrationCredential.findUnique({ where: { id: credentialId } })
   if (!cred || !cred.accessToken) return null
 
+  const accessToken = decryptToken(cred.accessToken)
+  const refreshTokenVal = cred.refreshToken ? decryptToken(cred.refreshToken) : null
+
   const needsRefresh = cred.tokenExpiresAt && cred.tokenExpiresAt.getTime() - Date.now() < 5 * 60 * 1000
 
-  if (!needsRefresh) return cred.accessToken
+  if (!needsRefresh) return accessToken
 
-  if (!cred.refreshToken) return cred.accessToken
+  if (!refreshTokenVal) return accessToken
 
   try {
     const res = await fetch(`${MS_AUTH_BASE}/token`, {
@@ -166,13 +169,13 @@ async function refreshTokenIfNeeded(credentialId: string): Promise<string | null
       body: new URLSearchParams({
         client_id: process.env.AZURE_AD_CLIENT_ID!,
         client_secret: process.env.AZURE_AD_CLIENT_SECRET!,
-        refresh_token: cred.refreshToken,
+        refresh_token: refreshTokenVal,
         grant_type: 'refresh_token',
         scope: SCOPES,
       }),
     })
 
-    if (!res.ok) return cred.accessToken
+    if (!res.ok) return accessToken
 
     const data = await res.json()
     const expiresAt = new Date(Date.now() + (data.expires_in || 3600) * 1000)
@@ -180,8 +183,8 @@ async function refreshTokenIfNeeded(credentialId: string): Promise<string | null
     await rawPrisma.integrationCredential.update({
       where: { id: credentialId },
       data: {
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token || cred.refreshToken,
+        accessToken: encryptToken(data.access_token),
+        refreshToken: data.refresh_token ? encryptToken(data.refresh_token) : cred.refreshToken,
         tokenExpiresAt: expiresAt,
         updatedAt: new Date(),
       },
@@ -189,7 +192,7 @@ async function refreshTokenIfNeeded(credentialId: string): Promise<string | null
 
     return data.access_token
   } catch {
-    return cred.accessToken
+    return accessToken
   }
 }
 

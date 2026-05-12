@@ -7,6 +7,8 @@
 
 import { rawPrisma } from '@/lib/db'
 import type { PCOSyncResult } from '@/lib/types/integrations'
+import { encodeSignedOAuthState, decodeSignedOAuthState } from './oauth-state'
+import { encryptToken, decryptToken } from './token-encryption'
 
 const PCO_BASE_URL = 'https://api.planningcenteronline.com'
 const PCO_AUTH_URL = 'https://api.planningcenteronline.com/oauth/authorize'
@@ -32,10 +34,16 @@ export function getAuthUrl(organizationId: string): string | null {
     client_id: process.env.PCO_APP_ID!,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/integrations/planning-center/callback`,
     scope: 'people services check_ins',
-    state: organizationId,
+    state: encodeSignedOAuthState({ orgId: organizationId }),
   })
 
   return `${PCO_AUTH_URL}?${params.toString()}`
+}
+
+/** Decode and verify a signed PCO OAuth state. Returns orgId or null. */
+export function decodePcoState(state: string): string | null {
+  const payload = decodeSignedOAuthState(state)
+  return payload?.orgId || null
 }
 
 /**
@@ -93,8 +101,8 @@ export async function handleCallback(
       await rawPrisma.integrationCredential.update({
         where: { id: existing.id },
         data: {
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token || null,
+          accessToken: encryptToken(tokenData.access_token),
+          refreshToken: tokenData.refresh_token ? encryptToken(tokenData.refresh_token) : null,
           tokenExpiresAt: expiresAt,
           config: { orgName },
           isActive: true,
@@ -107,8 +115,8 @@ export async function handleCallback(
           organizationId,
           provider: 'planning_center',
           userId: null,
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token || null,
+          accessToken: encryptToken(tokenData.access_token),
+          refreshToken: tokenData.refresh_token ? encryptToken(tokenData.refresh_token) : null,
           tokenExpiresAt: expiresAt,
           config: { orgName },
           isActive: true,
@@ -134,13 +142,16 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
 
   if (!cred || !cred.accessToken) return null
 
+  const accessToken = decryptToken(cred.accessToken)
+  const refreshTokenVal = cred.refreshToken ? decryptToken(cred.refreshToken) : null
+
   // If token expires within 5 minutes, refresh it
   const needsRefresh =
     cred.tokenExpiresAt && cred.tokenExpiresAt.getTime() - Date.now() < 5 * 60 * 1000
 
-  if (!needsRefresh) return cred.accessToken
+  if (!needsRefresh) return accessToken
 
-  if (!cred.refreshToken) return null
+  if (!refreshTokenVal) return null
 
   try {
     const response = await fetch(PCO_TOKEN_URL, {
@@ -148,13 +159,13 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         grant_type: 'refresh_token',
-        refresh_token: cred.refreshToken,
+        refresh_token: refreshTokenVal,
         client_id: process.env.PCO_APP_ID,
         client_secret: process.env.PCO_SECRET,
       }),
     })
 
-    if (!response.ok) return cred.accessToken // Return old token as fallback
+    if (!response.ok) return accessToken // Return old token as fallback
 
     const tokenData = await response.json()
     const expiresAt = new Date(Date.now() + (tokenData.expires_in || 7200) * 1000)
@@ -162,8 +173,8 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
     await rawPrisma.integrationCredential.update({
       where: { id: cred.id },
       data: {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || cred.refreshToken,
+        accessToken: encryptToken(tokenData.access_token),
+        refreshToken: tokenData.refresh_token ? encryptToken(tokenData.refresh_token) : cred.refreshToken,
         tokenExpiresAt: expiresAt,
         updatedAt: new Date(),
       },
@@ -171,7 +182,7 @@ async function getValidAccessToken(organizationId: string): Promise<string | nul
 
     return tokenData.access_token
   } catch {
-    return cred.accessToken // Fallback to old token
+    return accessToken // Fallback to old token
   }
 }
 

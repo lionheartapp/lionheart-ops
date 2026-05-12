@@ -5,22 +5,25 @@ import * as planningCenterService from '@/lib/services/integrations/planningCent
 /**
  * GET /api/integrations/planning-center/callback
  * Handles OAuth callback from Planning Center — redirects to settings page.
- * This is a public redirect endpoint; the `state` param carries the orgId.
+ * The `state` param is HMAC-signed to prevent CSRF and open-redirect attacks.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
-  const state = searchParams.get('state') // organizationId
+  const stateParam = searchParams.get('state')
   const error = searchParams.get('error')
 
-  // Build the redirect URL back to the correct tenant subdomain
-  const settingsUrl = await buildSettingsUrl(req, state)
+  // Decode and verify the signed state to get orgId
+  const orgId = stateParam ? planningCenterService.decodePcoState(stateParam) : null
 
-  if (error || !code || !state) {
-    return NextResponse.redirect(`${settingsUrl}?tab=integrations&pco_error=${encodeURIComponent(error || 'Missing code or state')}`)
+  // Build the redirect URL back to the correct tenant subdomain
+  const settingsUrl = await buildSettingsUrl(req, orgId)
+
+  if (error || !code || !orgId) {
+    return NextResponse.redirect(`${settingsUrl}?tab=integrations&pco_error=${encodeURIComponent(error || 'Invalid or missing state')}`)
   }
 
-  const result = await planningCenterService.handleCallback(state, code)
+  const result = await planningCenterService.handleCallback(orgId, code)
 
   if (!result.success) {
     return NextResponse.redirect(`${settingsUrl}?tab=integrations&pco_error=${encodeURIComponent(result.error || 'Connection failed')}`)

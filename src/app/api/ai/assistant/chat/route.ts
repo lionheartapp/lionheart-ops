@@ -137,8 +137,8 @@ export async function POST(req: NextRequest) {
     const isNewConversation = !body.conversationId
 
     if (body.conversationId) {
-      // Verify conversation belongs to current user's org
-      const existing = await getConversation(body.conversationId, orgId)
+      // Verify conversation belongs to the current user
+      const existing = await getConversation(body.conversationId, orgId, ctx.userId)
       if (existing) {
         conversationId = existing.id
       } else {

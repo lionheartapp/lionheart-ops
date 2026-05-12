@@ -29,6 +29,23 @@
       "rules": {
         "no-restricted-syntax": "off"
       }
+    },
+    {
+      "files": ["src/app/api/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "warn",
+          {
+            "paths": [
+              {
+                "name": "@/lib/db",
+                "importNames": ["rawPrisma"],
+                "message": "Use the org-scoped `prisma` client in route handlers. rawPrisma skips tenant isolation. If rawPrisma is genuinely needed (auth lookup, etc.), add // eslint-disable-next-line no-restricted-imports with a reason."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

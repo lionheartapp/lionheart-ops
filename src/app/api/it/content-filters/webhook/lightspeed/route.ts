@@ -26,10 +26,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('NOT_FOUND', 'Provider not configured'), { status: 404 })
     }
 
-    if (config.webhookSecret) {
-      if (!signature || !validateWebhookSignature(rawBody, signature, config.webhookSecret)) {
-        return NextResponse.json(fail('UNAUTHORIZED', 'Invalid or missing signature'), { status: 401 })
-      }
+    if (!config.webhookSecret) {
+      return NextResponse.json(fail('CONFIG_ERROR', 'Webhook secret not configured — rejecting unsigned payload'), { status: 403 })
+    }
+    if (!signature || !validateWebhookSignature(rawBody, signature, config.webhookSecret)) {
+      return NextResponse.json(fail('UNAUTHORIZED', 'Invalid or missing signature'), { status: 401 })
     }
 
     const payload = JSON.parse(rawBody)

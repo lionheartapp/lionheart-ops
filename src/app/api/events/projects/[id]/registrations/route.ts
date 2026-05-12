@@ -31,8 +31,17 @@ const actionSchema = z.object({
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
-export const GET = withAuth(async ({ params, searchParams }) => {
+export const GET = withAuth(async ({ orgId, params, searchParams }) => {
   const eventProjectId = params.id
+
+  // Verify the event project belongs to the caller's org
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!project) {
+    return NextResponse.json(fail('NOT_FOUND', 'Event project not found'), { status: 404 })
+  }
 
   const statusParam = searchParams.get('status')
   const search = searchParams.get('search')?.trim() ?? ''
@@ -120,8 +129,17 @@ export const GET = withAuth(async ({ params, searchParams }) => {
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
-export const POST = withAuth(async ({ params, body }) => {
+export const POST = withAuth(async ({ orgId, params, body }) => {
   const eventProjectId = params.id
+
+  // Verify the event project belongs to the caller's org
+  const project = await rawPrisma.eventProject.findFirst({
+    where: { id: eventProjectId, organizationId: orgId, deletedAt: null },
+    select: { id: true },
+  })
+  if (!project) {
+    return NextResponse.json(fail('NOT_FOUND', 'Event project not found'), { status: 404 })
+  }
 
   if (body.action === 'cancel') {
     const { registrationId } = body

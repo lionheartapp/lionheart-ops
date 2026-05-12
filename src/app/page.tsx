@@ -164,10 +164,10 @@ function Hero() {
   return (
     <section className="relative px-6 pt-20 pb-14 sm:pt-28 sm:pb-20">
       <div className="max-w-[1200px] mx-auto">
-        {/* Eyebrow */}
+        {/* Eyebrow — visible on first paint, subtle y animation only */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 1, y: 8 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.4 }}
           className="flex justify-center"
         >
@@ -183,10 +183,10 @@ function Hero() {
           </span>
         </motion.div>
 
-        {/* Headline */}
+        {/* Headline — visible on first paint */}
         <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 1, y: 16 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.05, ease: [0.25, 0.1, 0.25, 1] }}
           className="mt-8 text-center font-semibold max-w-[1100px] mx-auto"
           style={{
@@ -200,10 +200,10 @@ function Hero() {
           <br className="hidden sm:inline" /> for absolutely everyone.
         </motion.h1>
 
-        {/* Sub */}
+        {/* Sub — visible on first paint */}
         <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 1, y: 12 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.12 }}
           className="mt-8 text-center max-w-[680px] mx-auto"
           style={{
@@ -218,10 +218,10 @@ function Hero() {
           every classroom, hallway, and practice field.
         </motion.p>
 
-        {/* CTAs */}
+        {/* CTAs — visible on first paint */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 1, y: 12 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
         >
@@ -248,7 +248,7 @@ function Hero() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.28 }}
           className="mt-6 text-center text-[13px]"

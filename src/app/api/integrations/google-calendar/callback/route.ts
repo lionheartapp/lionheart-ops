@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rawPrisma } from '@/lib/db'
 import { invalidateUserCache } from '@/lib/cache/route-cache'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'
+import { isAllowedOrigin } from '@/lib/services/integrations/oauth-state'
 
 /**
  * GET /api/integrations/google-calendar/callback
  * Handles OAuth callback from Google — redirects to the tenant's settings page.
- * The `state` param encodes { userId, origin } so we redirect to the correct subdomain.
+ * The `state` param is HMAC-signed to prevent CSRF and open-redirect attacks.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -14,13 +15,14 @@ export async function GET(req: NextRequest) {
   const stateParam = searchParams.get('state')
   const error = searchParams.get('error')
 
-  // Decode the state to get userId and tenant origin
+  // Decode and verify the signed state
   const { userId, origin } = stateParam
     ? googleCalendarService.decodeOAuthState(stateParam)
     : { userId: '', origin: '' }
 
-  // Build settings URL — prefer the tenant origin encoded in state, fall back to platform URL
-  const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || ''
+  // Validate redirect origin to prevent open redirects
+  const safeOrigin = origin && isAllowedOrigin(origin) ? origin : ''
+  const baseUrl = safeOrigin || process.env.NEXT_PUBLIC_APP_URL || ''
   const settingsUrl = `${baseUrl}/settings`
 
   if (error || !code || !userId) {

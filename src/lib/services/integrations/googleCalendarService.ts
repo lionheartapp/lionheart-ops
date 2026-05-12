@@ -10,6 +10,7 @@ import { google, calendar_v3 } from 'googleapis'
 import { rawPrisma } from '@/lib/db'
 import type { GoogleCalendarEvent } from '@/lib/types/integrations'
 import type { EventProject } from '@prisma/client'
+import { encryptToken, decryptToken } from './token-encryption'
 
 // Single broad Calendar scope. Required because the integration both reads existing
 // events (for conflict detection) and writes/modifies/deletes events (for two-way sync).
@@ -44,22 +45,20 @@ function createOAuth2Client() {
   )
 }
 
-// ─── OAuth state encoding ───────────────────────────────────────────────────
+// ─── OAuth state encoding (HMAC-signed) ────────────────────────────────────
 
-/** Encode userId + tenant origin into the OAuth state parameter. */
+import { encodeSignedOAuthState, decodeSignedOAuthState } from './oauth-state'
+
+/** Encode userId + tenant origin into a signed OAuth state parameter. */
 export function encodeOAuthState(userId: string, tenantOrigin?: string): string {
-  return Buffer.from(JSON.stringify({ userId, origin: tenantOrigin || '' })).toString('base64url')
+  return encodeSignedOAuthState({ userId, origin: tenantOrigin || '' })
 }
 
-/** Decode the OAuth state parameter back to userId + tenant origin. */
+/** Decode and verify the signed OAuth state parameter. */
 export function decodeOAuthState(state: string): { userId: string; origin: string } {
-  try {
-    const parsed = JSON.parse(Buffer.from(state, 'base64url').toString())
-    return { userId: parsed.userId || '', origin: parsed.origin || '' }
-  } catch {
-    // Backwards compat: old state was just the raw userId string
-    return { userId: state, origin: '' }
-  }
+  const payload = decodeSignedOAuthState(state)
+  if (!payload) return { userId: '', origin: '' }
+  return { userId: payload.userId, origin: payload.origin || '' }
 }
 
 // ─── Auth URL ────────────────────────────────────────────────────────────────
@@ -129,15 +128,15 @@ export async function handleCallback(
         organizationId,
         userId,
         provider: 'google_calendar',
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || null,
+        accessToken: encryptToken(tokens.access_token),
+        refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : null,
         tokenExpiresAt: expiresAt,
         config: { googleEmail },
         isActive: true,
       },
       update: {
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || undefined,
+        accessToken: encryptToken(tokens.access_token),
+        refreshToken: tokens.refresh_token ? encryptToken(tokens.refresh_token) : undefined,
         tokenExpiresAt: expiresAt,
         config: { googleEmail },
         isActive: true,
@@ -167,21 +166,24 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
 
   if (!cred || !cred.accessToken) return null
 
+  const accessToken = decryptToken(cred.accessToken)
+  const refreshToken = cred.refreshToken ? decryptToken(cred.refreshToken) : null
+
   const oauth2Client = createOAuth2Client()
   const needsRefresh =
     cred.tokenExpiresAt && cred.tokenExpiresAt.getTime() - Date.now() < 5 * 60 * 1000
 
   if (!needsRefresh) {
     oauth2Client.setCredentials({
-      access_token: cred.accessToken,
-      refresh_token: cred.refreshToken || undefined,
+      access_token: accessToken,
+      refresh_token: refreshToken || undefined,
     })
     return oauth2Client
   }
 
-  if (!cred.refreshToken) {
+  if (!refreshToken) {
     // Cannot refresh without refresh token
-    oauth2Client.setCredentials({ access_token: cred.accessToken })
+    oauth2Client.setCredentials({ access_token: accessToken })
     return oauth2Client
   }
 
@@ -191,7 +193,7 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
-        refresh_token: cred.refreshToken,
+        refresh_token: refreshToken,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
       }).toString(),
@@ -199,7 +201,7 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
 
     if (!response.ok) {
       // Fallback to old token
-      oauth2Client.setCredentials({ access_token: cred.accessToken })
+      oauth2Client.setCredentials({ access_token: accessToken })
       return oauth2Client
     }
 
@@ -209,7 +211,7 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
     await rawPrisma.integrationCredential.update({
       where: { id: credentialId },
       data: {
-        accessToken: tokenData.access_token,
+        accessToken: encryptToken(tokenData.access_token),
         tokenExpiresAt: expiresAt,
         updatedAt: new Date(),
       },
@@ -217,11 +219,11 @@ export async function refreshTokenIfNeeded(credentialId: string): Promise<Instan
 
     oauth2Client.setCredentials({
       access_token: tokenData.access_token,
-      refresh_token: cred.refreshToken,
+      refresh_token: refreshToken,
     })
     return oauth2Client
   } catch {
-    oauth2Client.setCredentials({ access_token: cred.accessToken })
+    oauth2Client.setCredentials({ access_token: accessToken })
     return oauth2Client
   }
 }

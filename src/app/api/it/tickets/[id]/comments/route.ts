@@ -30,6 +30,7 @@ export const GET = withAuth(async ({ ctx, params, permissions }) => {
       assignedTo: { select: { id: true, firstName: true, lastName: true } },
     },
     orderBy: { createdAt: 'asc' },
+    take: 500,
   })
 
   return NextResponse.json(ok(activities))

@@ -108,17 +108,19 @@ export async function getConversations(
 }
 
 /**
- * Get a single conversation by ID, scoped to an org.
- * Returns null if not found or soft-deleted.
+ * Get a single conversation by ID, scoped to an org and user.
+ * Returns null if not found, soft-deleted, or not owned by the user.
  */
 export async function getConversation(
   conversationId: string,
-  orgId: string
+  orgId: string,
+  userId?: string
 ): Promise<{ id: string; title: string | null; createdAt: Date; updatedAt: Date } | null> {
   return rawPrisma.conversation.findFirst({
     where: {
       id: conversationId,
       organizationId: orgId,
+      ...(userId ? { userId } : {}),
       deletedAt: null,
     },
     select: {

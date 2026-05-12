@@ -11,7 +11,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
-import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import { validateFileUpload, sanitizeFileName, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 import { logger } from '@/lib/logger'
 
 const UploadUrlSchema = z.object({
@@ -51,7 +51,7 @@ export const POST = withAuth(async ({ req, orgId }) => {
     return NextResponse.json(fail('VALIDATION_ERROR', uploadCheck.error!), { status: 400 })
   }
 
-  const storagePath = `${orgId}/it/${Date.now()}-${fileName}`
+  const storagePath = `${orgId}/it/${Date.now()}-${sanitizeFileName(fileName)}`
 
   try {
     const supabase = getSupabaseClient()

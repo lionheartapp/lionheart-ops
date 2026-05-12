@@ -54,6 +54,8 @@ export const GET = withAuth(
     const campusId = searchParams.get('campusId') || undefined
     const districtId = searchParams.get('districtId') || undefined
 
+    const limit = Math.min(500, Math.max(1, parseInt(searchParams.get('limit') ?? '500', 10)))
+
     const buildings = await prisma.building.findMany({
       where: {
         organizationId: orgId,
@@ -69,6 +71,7 @@ export const GET = withAuth(
         site: { select: { id: true, label: true, address: true } },
       },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      take: limit,
     })
 
     return NextResponse.json(ok(buildings))

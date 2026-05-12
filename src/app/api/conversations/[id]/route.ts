@@ -9,8 +9,8 @@ import { withAuth } from '@/lib/api/with-auth'
 import { getConversation, deleteConversation } from '@/lib/services/ai/conversationService'
 import { rawPrisma } from '@/lib/db'
 
-export const GET = withAuth(async ({ orgId, params }) => {
-  const conversation = await getConversation(params.id, orgId)
+export const GET = withAuth(async ({ orgId, ctx, params }) => {
+  const conversation = await getConversation(params.id, orgId, ctx.userId)
   if (!conversation) {
     return NextResponse.json(fail('NOT_FOUND', 'Conversation not found'), { status: 404 })
   }

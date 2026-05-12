@@ -27,37 +27,48 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
   // Accept both `spaceId` (preferred) and legacy `areaId` for backward compat
   const spaceId = searchParams.get('spaceId') || searchParams.get('areaId') || undefined
 
-  const rooms = await prisma.room.findMany({
-    where: {
-      organizationId: orgId,
-      ...(includeInactive ? {} : { isActive: true }),
-      ...(buildingId ? { buildingId } : {}),
-      ...(spaceId ? { spaceId } : {}),
-    },
-    include: {
-      building: { select: { id: true, name: true, code: true } },
-      space: { select: { id: true, name: true, spaceType: true } },
-      assignments: {
-        where: { isActive: true },
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              avatar: true,
-              jobTitle: true,
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+  const limit = Math.min(500, Math.max(1, parseInt(searchParams.get('limit') ?? '500', 10)))
+  const skip = (page - 1) * limit
+
+  const where = {
+    organizationId: orgId,
+    ...(includeInactive ? {} : { isActive: true }),
+    ...(buildingId ? { buildingId } : {}),
+    ...(spaceId ? { spaceId } : {}),
+  }
+
+  const [total, rooms] = await Promise.all([
+    prisma.room.count({ where }),
+    prisma.room.findMany({
+      where,
+      include: {
+        building: { select: { id: true, name: true, code: true } },
+        space: { select: { id: true, name: true, spaceType: true } },
+        assignments: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                avatar: true,
+                jobTitle: true,
+              },
             },
           },
+          orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
         },
-        orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
       },
-    },
-    orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
-  })
+      orderBy: [{ sortOrder: 'asc' }, { roomNumber: 'asc' }],
+      skip,
+      take: limit,
+    }),
+  ])
 
-  return NextResponse.json(ok(rooms))
+  return NextResponse.json(ok({ rooms, total, page, limit }))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 
 export const POST = withAuth<z.infer<typeof CreateRoomSchema>>(async ({ orgId, body }) => {
