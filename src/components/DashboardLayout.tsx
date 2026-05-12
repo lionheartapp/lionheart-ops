@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react'
+import { ReactNode, useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
@@ -93,8 +93,17 @@ export default function DashboardLayout({
     }
   }, [onLogoutProp, router])
 
-  // Prevent the browser from restoring scroll position on refresh —
-  // every page should load from the top, not mid-scroll.
+  // Prevent the browser from restoring scroll position on refresh.
+  // history.scrollRestoration covers the document; the ref callback + delayed
+  // reset cover <main>'s own overflow-y-auto scroll restoration (Chrome tracks
+  // overflow containers independently).
+  const mainRef = useCallback((node: HTMLElement | null) => {
+    if (node) {
+      node.scrollTop = 0
+      // Chrome restores overflow scroll async — beat it with a second reset
+      requestAnimationFrame(() => { node.scrollTop = 0 })
+    }
+  }, [])
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
@@ -185,7 +194,7 @@ export default function DashboardLayout({
         ))}
 
         {/* Main Content */}
-        <main id="main-content" className={`flex-1 min-w-0 min-h-0 relative ${isMobile ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
+        <main ref={mainRef} id="main-content" className={`flex-1 min-w-0 min-h-0 relative ${isMobile ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
           {/* Warm ambient orbs — gives glass cards depth via transparency interaction */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[550px] h-[550px] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(180, 160, 130, 0.12)' }} />
