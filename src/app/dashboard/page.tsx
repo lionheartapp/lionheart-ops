@@ -263,6 +263,8 @@ export default function DashboardPage() {
   const [leoDrawerDetail, setLeoDrawerDetail] = useState<Record<string, unknown> | null>(null)
   const [leoDrawerLoading, setLeoDrawerLoading] = useState(false)
 
+  const [facilityProcessingIds, setFacilityProcessingIds] = useState<Set<string>>(new Set())
+
   // ── Facility Requests (pending event approvals for maintenance team) ──
   const { data: permFlags } = usePermissions()
   // Only show facility requests to users actually on the maintenance team —
