@@ -74,13 +74,15 @@ export function useAnimatedTabIndicator(activeKey: string, deps: unknown[] = [])
 
     if (measure()) return
 
-    // Fallback: element may not be laid out yet (async data, CSS transitions)
-    const t1 = setTimeout(measure, 50)
-    const t2 = setTimeout(measure, 150)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
+    // Fallback: element may not be laid out yet (async data, CSS transitions,
+    // or Next.js client-side navigation remount). Retry with increasing delays.
+    const timers = [
+      setTimeout(measure, 30),
+      setTimeout(measure, 80),
+      setTimeout(measure, 200),
+      setTimeout(measure, 500),
+    ]
+    return () => timers.forEach(clearTimeout)
   }, [activeKey, ...deps]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
