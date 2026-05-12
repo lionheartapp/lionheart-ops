@@ -21,6 +21,7 @@ export interface SidebarRouteSyncOptions {
   setEventsOpen: Dispatch<SetStateAction<boolean>>
   setCalendarOpen: Dispatch<SetStateAction<boolean>>
   setAthleticsOpen: Dispatch<SetStateAction<boolean>>
+  setMessagingOpen: Dispatch<SetStateAction<boolean>>
   setFacilitiesOpen: Dispatch<SetStateAction<boolean>>
   setItOpen: Dispatch<SetStateAction<boolean>>
   setAvOpen: Dispatch<SetStateAction<boolean>>
@@ -48,69 +49,32 @@ export function useSidebarRouteSync(options: SidebarRouteSyncOptions): void {
     setEventsOpen,
     setCalendarOpen,
     setAthleticsOpen,
+    setMessagingOpen,
     setFacilitiesOpen,
     setItOpen,
     setAvOpen,
   } = options
 
+  // Single effect that derives all panel states from the current route.
+  // This replaces the previous per-panel effects that could leave stale
+  // state when the sidebar persists across navigations (shared layout).
   useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/settings')) {
-      setSettingsOpen(true)
-      setAthleticsOpen(false)
-      setEventsOpen(false)
-    }
-  }, [pathname, setSettingsOpen, setAthleticsOpen, setEventsOpen])
+    const isSettings = pathname.startsWith('/settings')
+    const isEvents = pathname.startsWith('/events') || pathname.startsWith('/calendar') || pathname.startsWith('/planning')
+    const isCalendar = pathname.startsWith('/calendar')
+    const isAthletics = pathname.startsWith('/athletics')
+    const isMessaging = pathname.startsWith('/messaging')
+    const isMaintenance = isMaintenancePath(pathname, pageSearchParams)
+    const isIT = isITPath(pathname, pageSearchParams)
+    const isAV = isAVPath(pathname, pageSearchParams)
 
-  useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/events') || pathname.startsWith('/calendar') || pathname.startsWith('/planning')) {
-      setEventsOpen(true)
-      setSettingsOpen(false)
-      setAthleticsOpen(false)
-    }
-  }, [pathname, setEventsOpen, setSettingsOpen, setAthleticsOpen])
-
-  useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/calendar')) {
-      setCalendarOpen(true)
-      setSettingsOpen(false)
-      setAthleticsOpen(false)
-    } else {
-      setCalendarOpen(false)
-    }
-  }, [pathname, setCalendarOpen, setSettingsOpen, setAthleticsOpen])
-
-  useIsomorphicLayoutEffect(() => {
-    if (pathname.startsWith('/athletics')) {
-      setAthleticsOpen(true)
-      setSettingsOpen(false)
-      setCalendarOpen(false)
-      setEventsOpen(false)
-    } else {
-      setAthleticsOpen(false)
-    }
-  }, [pathname, setAthleticsOpen, setSettingsOpen, setCalendarOpen, setEventsOpen])
-
-  useIsomorphicLayoutEffect(() => {
-    if (isMaintenancePath(pathname, pageSearchParams)) {
-      setFacilitiesOpen(true)
-      setItOpen(false)
-      setAvOpen(false)
-    }
-  }, [pathname, pageSearchParams, setFacilitiesOpen, setItOpen, setAvOpen])
-
-  useIsomorphicLayoutEffect(() => {
-    if (isITPath(pathname, pageSearchParams)) {
-      setItOpen(true)
-      setFacilitiesOpen(false)
-      setAvOpen(false)
-    }
-  }, [pathname, pageSearchParams, setItOpen, setFacilitiesOpen, setAvOpen])
-
-  useIsomorphicLayoutEffect(() => {
-    if (isAVPath(pathname, pageSearchParams)) {
-      setAvOpen(true)
-      setFacilitiesOpen(false)
-      setItOpen(false)
-    }
-  }, [pathname, pageSearchParams, setAvOpen, setFacilitiesOpen, setItOpen])
+    setSettingsOpen(isSettings)
+    setEventsOpen(isEvents)
+    setCalendarOpen(isCalendar)
+    setAthleticsOpen(isAthletics)
+    setMessagingOpen(isMessaging)
+    setFacilitiesOpen(isMaintenance)
+    setItOpen(isIT)
+    setAvOpen(isAV)
+  }, [pathname, pageSearchParams, setSettingsOpen, setEventsOpen, setCalendarOpen, setAthleticsOpen, setMessagingOpen, setFacilitiesOpen, setItOpen, setAvOpen])
 }

@@ -97,6 +97,7 @@ export default function Sidebar({
     setEventsOpen,
     setCalendarOpen,
     setAthleticsOpen,
+    setMessagingOpen,
     setFacilitiesOpen,
     setItOpen,
     setAvOpen,
