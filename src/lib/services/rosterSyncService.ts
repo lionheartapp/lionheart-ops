@@ -161,12 +161,43 @@ async function getOAuthToken(
 
 // ─── Upsert Student ────────────────────────────────────────────────────────
 
+/**
+ * Batch-load existing students by externalIds. Returns a Map keyed by externalId.
+ * Call this once per page of sync results to avoid N+1 SELECT queries.
+ */
+async function batchLoadStudents(
+  externalIds: string[]
+): Promise<Map<string, { id: string; firstName: string | null; lastName: string | null; email: string | null; grade: string | null; gradeNumeric: number | null; campusId: string | null }>> {
+  if (externalIds.length === 0) return new Map()
+
+  const students = await prisma.student.findMany({
+    where: { externalId: { in: externalIds } },
+    select: {
+      id: true,
+      externalId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      grade: true,
+      gradeNumeric: true,
+      campusId: true,
+    },
+  })
+
+  const map = new Map<string, typeof students[number]>()
+  for (const s of students) {
+    if (s.externalId) map.set(s.externalId, s)
+  }
+  return map
+}
+
 async function upsertStudent(
   normalized: NormalizedStudent,
-  rosterSource: 'CLEVER' | 'CLASSLINK'
+  rosterSource: 'CLEVER' | 'CLASSLINK',
+  existingMap?: Map<string, { id: string; firstName: string | null; lastName: string | null; email: string | null; grade: string | null; gradeNumeric: number | null; campusId: string | null }>
 ): Promise<'created' | 'updated' | 'skipped'> {
-  // Look up by externalId first
-  const existing = await prisma.student.findFirst({
+  // Use pre-loaded map if available, otherwise fall back to single query
+  const existing = existingMap?.get(normalized.externalId) ?? await prisma.student.findFirst({
     where: { externalId: normalized.externalId },
   })
 
@@ -247,15 +278,14 @@ async function deactivateAbsentStudents(
   )
 
   if (toDeactivate.length > 0) {
-    for (const student of toDeactivate) {
-      await prisma.student.update({
-        where: { id: student.id },
-        data: {
-          status: 'INACTIVE',
-          lastSyncedAt: new Date(),
-        },
-      })
-    }
+    const deactivateIds = toDeactivate.map((s: { id: string }) => s.id)
+    await prisma.student.updateMany({
+      where: { id: { in: deactivateIds } },
+      data: {
+        status: 'INACTIVE',
+        lastSyncedAt: new Date(),
+      },
+    })
   }
 
   return toDeactivate.length
@@ -317,11 +347,11 @@ export async function cleverSync(orgId: string): Promise<SyncSummary> {
 
       const data: CleverResponse = await res.json()
 
+      // Normalize all students in this page first, then batch-load existing records
+      const pageStudents: Array<{ item: typeof data.data[number]; normalized: NormalizedStudent }> = []
       for (const item of data.data) {
         try {
           const attrs = item.attributes || (item as unknown as { data: CleverStudentData }).data || item
-
-          // Convert Clever format to OneRoster format
           const oneRosterStudent: OneRosterStudent = {
             sourcedId: item.id || attrs.id,
             givenName: attrs.name?.first || '',
@@ -335,11 +365,21 @@ export async function cleverSync(orgId: string): Promise<SyncSummary> {
                 : [],
             status: 'active',
           }
+          pageStudents.push({ item, normalized: normalizeToStudent(oneRosterStudent, schoolMappings) })
+        } catch (studentError) {
+          const msg = studentError instanceof Error ? studentError.message : 'Unknown error'
+          errors.push(`Student ${item.id}: ${msg}`)
+          recordsSkipped++
+        }
+      }
 
-          const normalized = normalizeToStudent(oneRosterStudent, schoolMappings)
+      // Batch-load existing students for this page (1 query instead of N)
+      const existingMap = await batchLoadStudents(pageStudents.map((s) => s.normalized.externalId))
+
+      for (const { item, normalized } of pageStudents) {
+        try {
           syncedExternalIds.add(normalized.externalId)
-
-          const result = await upsertStudent(normalized, 'CLEVER')
+          const result = await upsertStudent(normalized, 'CLEVER', existingMap)
 
           if (result === 'created') recordsCreated++
           else if (result === 'updated') recordsUpdated++
@@ -484,9 +524,10 @@ export async function classLinkSync(orgId: string): Promise<SyncSummary> {
 
       if (!data.users || data.users.length === 0) break
 
+      // Normalize all students in this page first, then batch-load existing records
+      const pageStudents: Array<{ user: typeof data.users[number]; normalized: NormalizedStudent }> = []
       for (const user of data.users) {
         try {
-          // Convert ClassLink OneRoster format to our normalized format
           const oneRosterStudent: OneRosterStudent = {
             sourcedId: user.sourcedId,
             givenName: user.givenName,
@@ -502,10 +543,21 @@ export async function classLinkSync(orgId: string): Promise<SyncSummary> {
             continue
           }
 
-          const normalized = normalizeToStudent(oneRosterStudent, schoolMappings)
-          syncedExternalIds.add(normalized.externalId)
+          pageStudents.push({ user, normalized: normalizeToStudent(oneRosterStudent, schoolMappings) })
+        } catch (studentError) {
+          const msg = studentError instanceof Error ? studentError.message : 'Unknown error'
+          errors.push(`Student ${user.sourcedId}: ${msg}`)
+          recordsSkipped++
+        }
+      }
 
-          const result = await upsertStudent(normalized, 'CLASSLINK')
+      // Batch-load existing students for this page (1 query instead of N)
+      const existingMap = await batchLoadStudents(pageStudents.map((s) => s.normalized.externalId))
+
+      for (const { user, normalized } of pageStudents) {
+        try {
+          syncedExternalIds.add(normalized.externalId)
+          const result = await upsertStudent(normalized, 'CLASSLINK', existingMap)
 
           if (result === 'created') recordsCreated++
           else if (result === 'updated') recordsUpdated++
