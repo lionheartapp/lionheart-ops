@@ -58,7 +58,7 @@ export function encodeOAuthState(userId: string, tenantOrigin?: string): string 
 export function decodeOAuthState(state: string): { userId: string; origin: string } {
   const payload = decodeSignedOAuthState(state)
   if (!payload) return { userId: '', origin: '' }
-  return { userId: payload.userId, origin: payload.origin || '' }
+  return { userId: payload.userId || '', origin: payload.origin || '' }
 }
 
 // ─── Auth URL ────────────────────────────────────────────────────────────────
