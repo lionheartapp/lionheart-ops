@@ -209,6 +209,7 @@ export default function DashboardPage() {
   }, [createCalendarEvent])
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false)
+  const createDropdownRef = useRef<HTMLDivElement>(null)
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [isTasksDrawerOpen, setIsTasksDrawerOpen] = useState(false)
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null)
