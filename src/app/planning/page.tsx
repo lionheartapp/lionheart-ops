@@ -138,8 +138,8 @@ export default function PlanningPage() {
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
       >
-        <motion.div variants={fadeInUp} className="flex items-center justify-between">
-          <div>
+        <motion.div variants={fadeInUp} className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold text-slate-900">
               Year Plans
             </h1>
@@ -147,7 +147,7 @@ export default function PlanningPage() {
               Plan next year’s events. Collect proposals from staff, review them, and publish approved events to the calendar.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Season Selector (when multiple seasons exist) */}
             {seasons.length > 1 && (
               <div className="relative">
@@ -168,11 +168,12 @@ export default function PlanningPage() {
             {isAdmin && !activeSeason && (
               <button
                 onClick={() => setShowCreateSeason(true)}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-[13px] font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px"
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-slate-900 text-white text-[13px] font-semibold rounded-full hover:bg-slate-800 transition-all duration-200 cursor-pointer hover:-translate-y-px whitespace-nowrap flex-shrink-0"
                 style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)' }}
               >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-                Start a Year Plan
+                <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+                <span className="hidden sm:inline">Start a Year Plan</span>
+                <span className="sm:hidden">Start</span>
               </button>
             )}
             {isAdmin && activeSeason && (
