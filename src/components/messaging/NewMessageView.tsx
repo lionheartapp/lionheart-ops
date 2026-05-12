@@ -39,15 +39,36 @@ export default function NewMessageView({ onChannelSelected, onClose }: NewMessag
 
   const selectedIds = new Set(recipients.map((r) => r.id))
 
-  const handleSelectPerson = useCallback((user: PersonSearchUser) => {
+  const handleSelectPerson = useCallback(async (user: PersonSearchUser) => {
     const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+
+    // For 1:1 DMs: immediately find or create the conversation and navigate to it.
+    // This way existing message history is visible right away.
+    const allRecipientIds = [...recipients.map((r) => r.id), user.id]
+    try {
+      const res = await fetch('/api/messaging/dms', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: allRecipientIds }),
+      })
+      const json = await res.json()
+      if (json.ok) {
+        await queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+        onChannelSelected(json.data.id)
+        return
+      }
+    } catch {
+      // Fall through to compose mode if the DM lookup fails
+    }
+
+    // Fallback: add to recipients list and show composer
     setRecipients((prev) => {
       if (prev.some((r) => r.id === user.id)) return prev
       return [...prev, { id: user.id, name, avatar: user.avatar }]
     })
-    // Collapse the picker once we have at least one recipient
     setShowPeoplePicker(false)
-  }, [])
+  }, [recipients, queryClient, onChannelSelected])
 
   const handleRemoveRecipient = useCallback((id: string) => {
     setRecipients((prev) => {
@@ -85,9 +106,12 @@ export default function NewMessageView({ onChannelSelected, onClose }: NewMessag
       })
       if (!msgRes.ok) throw new Error('Failed to send message')
 
-      // Step 3: Wait for channels list to refresh (so the unhidden DM appears)
-      // then navigate to the channel
-      await queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] })
+      // Step 3: Refresh both channels and messages so the conversation shows
+      // the just-sent message immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'channels'] }),
+        queryClient.invalidateQueries({ queryKey: ['messaging', 'messages', channelId] }),
+      ])
       onChannelSelected(channelId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
