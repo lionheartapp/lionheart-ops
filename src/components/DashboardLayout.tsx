@@ -211,9 +211,7 @@ export default function DashboardLayout({
               </MobileShell>
             </Suspense>
           ) : (
-            <div className="relative flex flex-col h-full min-h-0">
-              {children}
-            </div>
+            children
           )}
         </main>
       </div>
