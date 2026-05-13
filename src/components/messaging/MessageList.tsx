@@ -184,17 +184,20 @@ export default function MessageList({
   const lastMessageIdRef = useRef<string | undefined>(undefined)
   const prevMessageCountRef = useRef(0)
 
-  // Scroll to bottom helper
+  // Scroll to bottom helper — uses scrollTop for reliability across layouts
   const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' })
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [])
 
   // On initial load, scroll to bottom
   useEffect(() => {
     if (messages.length > 0 && prevMessageCountRef.current === 0) {
-      // First batch of messages loaded — jump to bottom.
-      // Double-rAF ensures the container has its final dimensions after layout.
-      requestAnimationFrame(() => requestAnimationFrame(scrollToBottom))
+      // First batch loaded — scroll after images/layout settle
+      scrollToBottom()
+      const t1 = setTimeout(scrollToBottom, 100)
+      const t2 = setTimeout(scrollToBottom, 300)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
     }
     prevMessageCountRef.current = messages.length
   }, [messages.length, scrollToBottom])
