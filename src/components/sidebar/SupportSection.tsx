@@ -191,7 +191,7 @@ export default function SupportSection({
                       data-facility-active={pathname === '/maintenance' ? 'true' : undefined}
                       onClick={closePanels}
                       className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                        pathname === '/maintenance' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        pathname === '/maintenance' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                       }`}
                       aria-current={pathname === '/maintenance' ? 'page' : undefined}
                     >
@@ -203,7 +203,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/maintenance/work-orders' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/maintenance/work-orders' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/maintenance/work-orders' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Work Orders</span>
@@ -215,7 +215,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
                       >
@@ -228,7 +228,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/maintenance/assets' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/maintenance/assets' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/maintenance/assets' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                       >
@@ -241,7 +241,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/knowledge-base') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/knowledge-base') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/knowledge-base') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                       >
@@ -254,7 +254,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/analytics') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/analytics') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/analytics') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/analytics') ? 'page' : undefined}
                       >
@@ -267,7 +267,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/compliance') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/compliance') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/compliance') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/compliance') ? 'page' : undefined}
                       >
@@ -353,7 +353,7 @@ export default function SupportSection({
                       data-it-active={pathname === '/it' ? 'true' : undefined}
                       onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                       className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                        pathname === '/it' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        pathname === '/it' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                       }`}
                       aria-current={pathname === '/it' ? 'page' : undefined}
                     >
@@ -365,7 +365,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/devices' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/devices' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/devices' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Devices</span>
@@ -377,7 +377,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/lifecycle' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/lifecycle' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/lifecycle' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Lifecycle</span>
@@ -389,7 +389,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/security' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/security' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/security' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Security</span>
@@ -401,7 +401,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/admin' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/admin' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/admin' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Reports & Admin</span>
@@ -413,7 +413,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'page' : undefined}
                       >
@@ -491,7 +491,7 @@ export default function SupportSection({
                     href="/inventory"
                     onClick={closePanels}
                     className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                      pathname === '/inventory' && !pageSearchParams.get('dept') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                      pathname === '/inventory' && !pageSearchParams.get('dept') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                     }`}
                     aria-current={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'page' : undefined}
                   >
@@ -502,7 +502,7 @@ export default function SupportSection({
                   href="/av/event-approvals"
                   onClick={closePanels}
                   className={`flex items-center justify-between pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                    pathname === '/av/event-approvals' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                    pathname === '/av/event-approvals' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   aria-current={pathname === '/av/event-approvals' ? 'page' : undefined}
                 >
