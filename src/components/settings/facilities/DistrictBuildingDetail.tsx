@@ -61,8 +61,8 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     setLoading(true)
     try {
       const [bRes, rRes] = await Promise.all([
-        fetch(`/api/settings/campus/buildings/${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' as const, credentials: 'include' }),
-        fetch(`/api/settings/campus/rooms?buildingId=${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' as const, credentials: 'include' }),
+        fetch(`/api/settings/campus/buildings/${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' }),
+        fetch(`/api/settings/campus/rooms?buildingId=${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' }),
       ])
       const bData = await bRes.json()
       const rData = await rRes.json()
