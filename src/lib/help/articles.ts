@@ -388,10 +388,6 @@ export const HELP_ARTICLES: HelpArticle[] = [
             title: 'Optionally add spaces',
             body: 'Group rooms by floor or wing if it helps your team navigate. Skip this for small buildings.',
           },
-          {
-            title: 'Print QR codes',
-            body: 'Each room can generate a QR code that pre-fills location on a new ticket. Stick them inside doors.',
-          },
         ],
       },
       {
