@@ -88,6 +88,13 @@ export default function SupportSection({
     [pathname, pageSearchParams, canManageIT, canSubmitIT],
   )
 
+  const avIndicator = useNavIndicator(
+    'av',
+    avOpen,
+    'data-av-active',
+    [pathname, pageSearchParams],
+  )
+
   const closePanels = () => {
     setSettingsOpen(false)
     setAthleticsOpen(false)
@@ -191,7 +198,7 @@ export default function SupportSection({
                       data-facility-active={pathname === '/maintenance' ? 'true' : undefined}
                       onClick={closePanels}
                       className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                        pathname === '/maintenance' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        pathname === '/maintenance' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                       }`}
                       aria-current={pathname === '/maintenance' ? 'page' : undefined}
                     >
@@ -203,7 +210,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/maintenance/work-orders' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/maintenance/work-orders' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/maintenance/work-orders' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Work Orders</span>
@@ -215,7 +222,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance' ? 'page' : undefined}
                       >
@@ -228,7 +235,7 @@ export default function SupportSection({
                         data-facility-active={pathname === '/maintenance/assets' ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/maintenance/assets' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/maintenance/assets' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                       >
@@ -241,7 +248,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/knowledge-base') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/knowledge-base') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/knowledge-base') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/knowledge-base') ? 'page' : undefined}
                       >
@@ -254,7 +261,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/analytics') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/analytics') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/analytics') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/analytics') ? 'page' : undefined}
                       >
@@ -267,7 +274,7 @@ export default function SupportSection({
                         data-facility-active={pathname.startsWith('/maintenance/compliance') ? 'true' : undefined}
                         onClick={closePanels}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname.startsWith('/maintenance/compliance') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname.startsWith('/maintenance/compliance') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname.startsWith('/maintenance/compliance') ? 'page' : undefined}
                       >
@@ -353,7 +360,7 @@ export default function SupportSection({
                       data-it-active={pathname === '/it' ? 'true' : undefined}
                       onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                       className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                        pathname === '/it' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        pathname === '/it' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                       }`}
                       aria-current={pathname === '/it' ? 'page' : undefined}
                     >
@@ -365,7 +372,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/devices' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/devices' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/devices' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Devices</span>
@@ -377,7 +384,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/lifecycle' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/lifecycle' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/lifecycle' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Lifecycle</span>
@@ -389,7 +396,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/security' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/security' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/security' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Security</span>
@@ -401,7 +408,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/it/admin' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/it/admin' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/it/admin' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         <span className="text-sm">Reports & Admin</span>
@@ -413,7 +420,7 @@ export default function SupportSection({
                         data-it-active={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'true' : undefined}
                         onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
                         className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                          pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                          pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                         }`}
                         aria-current={pathname === '/inventory' && pageSearchParams.get('dept') === 'it' ? 'page' : undefined}
                       >
@@ -477,6 +484,7 @@ export default function SupportSection({
               </motion.span>
             </button>
             <div
+              ref={avIndicator.containerRefCb}
               className="relative ml-8 mt-1 overflow-hidden"
               style={{
                 maxHeight: avOpen ? '200px' : '0px',
@@ -485,13 +493,29 @@ export default function SupportSection({
               }}
             >
               <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-slate-300/40" />
+              <div
+                ref={avIndicator.trailRefCb}
+                className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                style={{ filter: 'blur(1.5px)' }}
+              />
+              <motion.div
+                className="absolute left-0 w-0.5 rounded-full pointer-events-none"
+                style={{
+                  top: avIndicator.indicatorTop,
+                  height: avIndicator.indicatorHeight,
+                  opacity: avIndicator.indicatorOpacity,
+                  background: 'linear-gradient(180deg, #3B82F6 0%, #6366F1 100%)',
+                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.5), 0 0 16px rgba(99, 102, 241, 0.25)',
+                }}
+              />
               <div className="space-y-0.5 py-1">
                 {canReadInventory && (
                   <PrefetchLink
                     href="/inventory"
                     onClick={closePanels}
+                    data-av-active={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'true' : undefined}
                     className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                      pathname === '/inventory' && !pageSearchParams.get('dept') ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                      pathname === '/inventory' && !pageSearchParams.get('dept') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                     }`}
                     aria-current={pathname === '/inventory' && !pageSearchParams.get('dept') ? 'page' : undefined}
                   >
@@ -501,8 +525,9 @@ export default function SupportSection({
                 <PrefetchLink
                   href="/av/event-approvals"
                   onClick={closePanels}
+                  data-av-active={pathname === '/av/event-approvals' ? 'true' : undefined}
                   className={`flex items-center justify-between pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                    pathname === '/av/event-approvals' ? 'bg-primary-50/60 text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                    pathname === '/av/event-approvals' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
                   }`}
                   aria-current={pathname === '/av/event-approvals' ? 'page' : undefined}
                 >
