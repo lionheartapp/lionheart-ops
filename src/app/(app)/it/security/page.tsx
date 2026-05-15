@@ -7,6 +7,7 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
+import PagePadding from '@/components/PagePadding'
 import ITContentFiltersTab from '@/components/it/ITContentFiltersTab'
 import ITSecurityIncidentsTab from '@/components/it/ITSecurityIncidentsTab'
 import ITIntelligenceTab from '@/components/it/ITIntelligenceTab'
@@ -127,8 +128,10 @@ function SecurityContent() {
 
 export default function ITSecurityPage() {
   return (
-    <ITPageShell>
-      <SecurityContent />
-    </ITPageShell>
+    <PagePadding>
+      <ITPageShell>
+        <SecurityContent />
+      </ITPageShell>
+    </PagePadding>
   )
 }

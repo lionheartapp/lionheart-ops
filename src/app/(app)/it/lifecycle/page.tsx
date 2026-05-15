@@ -7,6 +7,7 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
+import PagePadding from '@/components/PagePadding'
 import ITDeploymentTab from '@/components/it/ITDeploymentTab'
 import ITDeploymentBatchDetail from '@/components/it/ITDeploymentBatchDetail'
 import ITDeploymentCreateDrawer from '@/components/it/ITDeploymentCreateDrawer'
@@ -148,8 +149,10 @@ function LifecycleContent() {
 
 export default function ITLifecyclePage() {
   return (
-    <ITPageShell>
-      <LifecycleContent />
-    </ITPageShell>
+    <PagePadding>
+      <ITPageShell>
+        <LifecycleContent />
+      </ITPageShell>
+    </PagePadding>
   )
 }

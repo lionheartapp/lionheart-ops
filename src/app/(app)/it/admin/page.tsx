@@ -8,6 +8,7 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
+import PagePadding from '@/components/PagePadding'
 import ITAnalyticsTab from '@/components/it/ITAnalyticsTab'
 import ITReportsTab from '@/components/it/ITReportsTab'
 import ITERateUnifiedTab from '@/components/it/ITERateUnifiedTab'
@@ -150,8 +151,10 @@ function AdminContent(): JSX.Element | null {
 
 export default function ITAdminPage() {
   return (
-    <ITPageShell>
-      <AdminContent />
-    </ITPageShell>
+    <PagePadding>
+      <ITPageShell>
+        <AdminContent />
+      </ITPageShell>
+    </PagePadding>
   )
 }

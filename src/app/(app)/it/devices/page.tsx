@@ -7,6 +7,7 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
+import PagePadding from '@/components/PagePadding'
 import ITDevicesTab from '@/components/it/ITDevicesTab'
 import ITDeviceDetailDrawer from '@/components/it/ITDeviceDetailDrawer'
 import ITDeviceCreateDrawer from '@/components/it/ITDeviceCreateDrawer'
@@ -158,8 +159,10 @@ function DevicesContent() {
 
 export default function ITDevicesPage() {
   return (
-    <ITPageShell>
-      <DevicesContent />
-    </ITPageShell>
+    <PagePadding>
+      <ITPageShell>
+        <DevicesContent />
+      </ITPageShell>
+    </PagePadding>
   )
 }
