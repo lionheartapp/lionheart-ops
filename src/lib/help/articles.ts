@@ -339,12 +339,12 @@ export const HELP_ARTICLES: HelpArticle[] = [
     slug: 'setting-up-your-campus',
     title: 'Setting up your campus',
     description:
-      'Buildings, areas, rooms, and schools — the foundation everything else attaches to.',
+      'Buildings, spaces, rooms, and schools — the foundation everything else attaches to.',
     category: 'campus',
     audience: ['org-admin'],
-    updated: '2026-04-30',
+    updated: '2026-05-15',
     readMinutes: 6,
-    keywords: ['buildings', 'rooms', 'schools', 'campus', 'setup', 'locations'],
+    keywords: ['buildings', 'rooms', 'spaces', 'schools', 'campus', 'facilities', 'setup', 'locations'],
     body: [
       {
         type: 'paragraph',
@@ -360,7 +360,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
         ordered: true,
         items: [
           'Building — a physical structure (Main Hall, Gymnasium, Maintenance Shed).',
-          'Area — a region of a building (1st Floor, East Wing, Stage). Optional, but useful for big buildings.',
+          'Space — a region of a building (1st Floor, East Wing, Stage). Optional, but useful for big buildings.',
           'Room — the smallest addressable unit (Room 204, Boiler Room, Cafeteria).',
         ],
       },
@@ -373,19 +373,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
         type: 'steps',
         items: [
           {
-            title: 'Open Settings → Campus',
-            body: 'You will see a tree view that starts empty.',
+            title: 'Open Settings → Facilities',
+            body: 'You will see your campus structure. If this is your first time, it starts empty.',
           },
           {
             title: 'Add buildings first',
             body: 'Use the names people actually say out loud. "Main Hall" beats "Building A".',
           },
           {
-            title: 'Add rooms next',
-            body: 'You can paste a list — one room per line — and Lionheart will create them in bulk.',
+            title: 'Add rooms',
+            body: 'Click into a building and add rooms one at a time. Give each a room number or display name.',
           },
           {
-            title: 'Optionally add areas',
+            title: 'Optionally add spaces',
             body: 'Group rooms by floor or wing if it helps your team navigate. Skip this for small buildings.',
           },
           {
