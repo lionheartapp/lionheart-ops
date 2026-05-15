@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
                 districtId: true,
                 schoolId: true,
                 campusId: true,
+                district: { select: { id: true, name: true } },
+                school: { select: { id: true, name: true } },
+                campus: { select: { id: true, name: true } },
                 spaces: {
                   where: { isActive: true },
                   orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],

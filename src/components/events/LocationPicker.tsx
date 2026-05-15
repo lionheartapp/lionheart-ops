@@ -42,6 +42,13 @@ interface BuildingRaw {
   areas: AreaRaw[]
   /** True when this entry is actually an unassigned space, not a building */
   isSpace?: boolean
+  /** Parent group label for structured dropdown */
+  groupLabel?: string
+}
+
+interface LocationGroup {
+  label: string
+  items: BuildingRaw[]
 }
 
 interface AreaRaw {
@@ -112,9 +119,21 @@ function useCampusBuildings() {
         })
         const json = await res.json()
         if (json.ok) {
-          const rawBuildings: BuildingRaw[] = json.data.buildings ?? []
+          // Attach parent group label to each building
+          const rawBuildings: BuildingRaw[] = (json.data.buildings ?? []).map(
+            (b: Record<string, unknown>) => ({
+              ...b,
+              areas: b.areas ?? b.spaces ?? [],
+              rooms: b.rooms ?? [],
+              groupLabel:
+                (b.campus as { name?: string } | null)?.name ??
+                (b.school as { name?: string } | null)?.name ??
+                (b.district as { name?: string } | null)?.name ??
+                'General',
+            })
+          )
 
-          // Merge unassigned spaces (outdoor areas, hubs, etc.) as selectable locations
+          // Merge unassigned spaces (outdoor areas, hubs, etc.)
           const unassignedSpaces = json.data.unassignedSpaces ?? json.data.unassignedAreas ?? []
           const spacesAsBuildings: BuildingRaw[] = unassignedSpaces.map(
             (s: { id: string; name: string; rooms?: RoomRaw[] }) => ({
@@ -123,6 +142,7 @@ function useCampusBuildings() {
               rooms: s.rooms ?? [],
               areas: [],
               isSpace: true,
+              groupLabel: 'Outdoor & Spaces',
             })
           )
 
@@ -138,6 +158,18 @@ function useCampusBuildings() {
   }, [])
 
   return { buildings, loading }
+}
+
+/** Group buildings by their parent label, preserving order. */
+function groupBuildings(items: BuildingRaw[]): LocationGroup[] {
+  const map = new Map<string, BuildingRaw[]>()
+  for (const b of items) {
+    const label = b.groupLabel ?? 'General'
+    const existing = map.get(label) ?? []
+    existing.push(b)
+    map.set(label, existing)
+  }
+  return Array.from(map.entries()).map(([label, groupItems]) => ({ label, items: groupItems }))
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -192,6 +224,9 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
   const filteredBuildings = buildingSearch
     ? buildings.filter((b) => b.name.toLowerCase().includes(buildingSearch.toLowerCase()))
     : buildings
+
+  // Group for structured dropdown
+  const groups = groupBuildings(filteredBuildings)
 
   // Filter rooms by search
   const filteredRooms = roomSearch
@@ -350,7 +385,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
             </div>
 
             {showBuildingDropdown && (
-              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-hidden">
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-72 overflow-hidden">
                 {/* Search */}
                 <div className="px-3 py-2 border-b border-slate-100">
                   <SearchInput
@@ -361,38 +396,51 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                     autoFocus
                   />
                 </div>
-                {/* Options */}
-                <div className="overflow-y-auto max-h-44">
+                {/* Grouped options */}
+                <div className="overflow-y-auto max-h-60">
                   {filteredBuildings.length === 0 ? (
                     <p className="px-4 py-3 text-xs text-slate-400 text-center">No locations found</p>
                   ) : (
-                    filteredBuildings.map((b) => {
-                      const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => handleSelectBuilding(b)}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between ${
-                            value.buildingId === b.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {b.isSpace ? (
-                              <TreePine className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                            ) : (
-                              <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                            )}
-                            <span className="font-medium">{b.name}</span>
-                          </div>
-                          {totalRooms > 0 && (
-                            <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                              {totalRooms} room{totalRooms === 1 ? '' : 's'}
+                    groups.map((group, gi) => (
+                      <div key={group.label}>
+                        {/* Group header */}
+                        {groups.length > 1 && (
+                          <div className={`sticky top-0 z-10 px-4 py-1.5 bg-slate-50 border-b border-slate-100 ${gi > 0 ? 'border-t' : ''}`}>
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                              {group.label}
                             </span>
-                          )}
-                        </button>
-                      )
-                    })
+                          </div>
+                        )}
+                        {/* Group items */}
+                        {group.items.map((b) => {
+                          const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
+                          return (
+                            <button
+                              key={b.id}
+                              type="button"
+                              onClick={() => handleSelectBuilding(b)}
+                              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between ${
+                                value.buildingId === b.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5">
+                                {b.isSpace ? (
+                                  <TreePine className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                ) : (
+                                  <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                                )}
+                                <span className="font-medium">{b.name}</span>
+                              </div>
+                              {totalRooms > 0 && (
+                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                                  {totalRooms} room{totalRooms === 1 ? '' : 's'}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
