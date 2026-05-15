@@ -167,7 +167,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
   const loadCampuses = async (andLoadData = false) => {
     setCampusesLoading(true)
     try {
-      const res = await fetch('/api/settings/campus/campuses', { headers: getAuthHeaders() })
+      const res = await fetch('/api/settings/campus/campuses', { headers: getAuthHeaders(), credentials: 'include' as const })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to load campuses')
@@ -191,9 +191,9 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
     try {
       const q = campusId ? `?campusId=${campusId}` : ''
       const [campusRes, mapRes, schoolsRes] = await Promise.all([
-        fetch(`/api/settings/campus${q}`, { headers: getAuthHeaders() }),
-        fetch(`/api/settings/campus/map-data${q}`, { headers: getAuthHeaders() }),
-        fetch('/api/settings/schools', { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus${q}`, { headers: getAuthHeaders(), credentials: 'include' as const }),
+        fetch(`/api/settings/campus/map-data${q}`, { headers: getAuthHeaders(), credentials: 'include' as const }),
+        fetch('/api/settings/schools', { headers: getAuthHeaders(), credentials: 'include' as const }),
       ])
       if (handleAuthResponse(campusRes)) return
       const campusJson = await campusRes.json()
@@ -456,7 +456,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
     if (!name) { setAddCampusError('Campus name is required'); return }
     setAddCampusSaving(true)
     try {
-      const res = await fetch('/api/settings/campus/campuses', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ name, address: addCampusForm.address.trim() || null, campusKind: addCampusForm.campusKind }) })
+      const res = await fetch('/api/settings/campus/campuses', { method: 'POST', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ name, address: addCampusForm.address.trim() || null, campusKind: addCampusForm.campusKind }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to add campus')
@@ -477,7 +477,7 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
     if (!name) { setEditCampusError('Campus name is required'); return }
     setEditCampusSaving(true)
     try {
-      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ name, address: editCampusForm.address.trim() || null, campusKind: editCampusForm.campusKind }) })
+      const res = await fetch(`/api/settings/campus/campuses/${editingCampus.id}`, { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ name, address: editCampusForm.address.trim() || null, campusKind: editCampusForm.campusKind }) })
       if (handleAuthResponse(res)) return
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json?.error?.message || 'Failed to update campus')
@@ -568,8 +568,8 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
         editable
         quickPlaceMode={null}
         onQuickPlaceDone={undefined}
-        onOrgCenterChange={async (lat, lng) => { try { const res = await fetch('/api/settings/campus/map-data', { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('School center position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save school center position') } }}
-        onBuildingPositionChange={async (buildingId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage('Building position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building position') } }}
+        onOrgCenterChange={async (lat, lng) => { try { const res = await fetch('/api/settings/campus/map-data', { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('School center position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save school center position') } }}
+        onBuildingPositionChange={async (buildingId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, latitude: lat, longitude: lng } : b))); setSuccessMessage('Building position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building position') } }}
         onAddBuildingAtPosition={async (lat, lng) => {
           setBuildingForm({ name: '', code: '', schoolDivision: 'GLOBAL', buildingType: 'GENERAL', schoolIds: [] }); setEditingBuilding(null); setBuildingDrawerOpen(true); setPendingBuildingCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'building' })
         }}
@@ -577,8 +577,8 @@ export default function CampusTab({ onDirtyChange, embedded = false, initialCamp
           setOutdoorForm({ name: '', areaType: 'FIELD', schoolIds: [] }); setEditingOutdoor(null); setOutdoorDrawerOpen(true); setPendingOutdoorCoords({ lat, lng }); setPendingMarkerData({ lat, lng, label: '', type: 'outdoor' })
         }}
         onBuildingSelected={setSelectedMapBuildingId}
-        onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
-        onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/spaces/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
+        onPolygonSaved={async (buildingId, coordinates) => { try { const res = await fetch(`/api/settings/campus/buildings/${buildingId}`, { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ polygonCoordinates: coordinates }) }); if (res.ok) { setBuildings((prev) => prev.map((b) => (b.id === buildingId ? { ...b, polygonCoordinates: coordinates } : b))); setSuccessMessage('Building outline saved'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save building outline') } }}
+        onOutdoorPositionChange={async (areaId, lat, lng) => { try { const res = await fetch(`/api/settings/campus/spaces/${areaId}`, { method: 'PATCH', headers: getAuthHeaders(), credentials: 'include' as const, body: JSON.stringify({ latitude: lat, longitude: lng }) }); if (res.ok) { setSuccessMessage('Outdoor space position updated'); setTimeout(() => setSuccessMessage(''), 3000) } } catch { setError('Failed to save outdoor space position') } }}
         onEditBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openEditBuilding(b) }}
         onDeleteBuilding={(id) => { const b = buildings.find((x) => x.id === id); if (b) openDeleteConfirm('building', b.id, b.name) }}
         onManageRooms={(id) => { const b = buildings.find((x) => x.id === id); if (b) setRoomsBuilding(b) }}
