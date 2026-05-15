@@ -12,6 +12,7 @@ import { disableMfa, isOrgMfaRequired } from '@/lib/services/mfaService'
 import { rawPrisma } from '@/lib/db'
 import { compare } from 'bcryptjs'
 import { z } from 'zod'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const schema = z.object({
   password: z.string().min(1, 'Password is required'),
@@ -57,6 +58,17 @@ export async function POST(req: NextRequest) {
     }
 
     await disableMfa(ctx.userId)
+
+    void audit({
+      organizationId: ctx.organizationId,
+      userId: ctx.userId,
+      userEmail: ctx.email,
+      action: 'user.mfa_disable',
+      resourceType: 'User',
+      resourceId: ctx.userId,
+      resourceLabel: ctx.email,
+      ipAddress: getIp(req),
+    })
 
     return NextResponse.json(ok({ disabled: true }))
   } catch (err) {

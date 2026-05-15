@@ -10,6 +10,7 @@ import { verifyAndSaveRegistration } from '@/lib/services/passkeyService'
 import { invalidateUserCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const schema = z.object({
   credential: z.record(z.string(), z.unknown()),
@@ -44,6 +45,17 @@ export async function POST(req: NextRequest) {
     invalidateUserCache(ctx.userId, 'auth:passkeys')
 
     logger.info({ userId: ctx.userId }, 'Passkey registered successfully')
+
+    void audit({
+      organizationId: ctx.organizationId,
+      userId: ctx.userId,
+      userEmail: ctx.email,
+      action: 'user.passkey_register',
+      resourceType: 'User',
+      resourceId: ctx.userId,
+      resourceLabel: ctx.email,
+      ipAddress: getIp(req),
+    })
 
     return NextResponse.json(ok(result))
   } catch (err) {

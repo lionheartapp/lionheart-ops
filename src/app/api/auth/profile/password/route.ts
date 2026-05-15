@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import { passwordSchema } from '@/lib/validation/password'
 import { isPasswordBreached } from '@/lib/validation/password-breach-check'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const PasswordChangeSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
@@ -79,6 +80,17 @@ export async function PATCH(request: NextRequest) {
         organizationId_email: { organizationId, email: user.email },
       },
       data: { passwordHash: newPasswordHash },
+    })
+
+    void audit({
+      organizationId,
+      userId,
+      userEmail: user.email,
+      action: 'user.password_change',
+      resourceType: 'User',
+      resourceId: userId,
+      resourceLabel: user.email,
+      ipAddress: getIp(request),
     })
 
     return NextResponse.json(ok({ success: true }))

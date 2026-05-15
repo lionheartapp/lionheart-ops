@@ -6,6 +6,7 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const AvatarUpdateSchema = z.object({
   avatar: z.string().nullable().optional().refine(
@@ -74,6 +75,17 @@ export async function PATCH(request: NextRequest) {
       })
 
       logger.info({ userId }, 'Updated avatar for user')
+
+      void audit({
+        organizationId,
+        userId,
+        userEmail: user.email,
+        action: 'user.avatar_update',
+        resourceType: 'User',
+        resourceId: userId,
+        resourceLabel: user.email,
+        ipAddress: getIp(request),
+      })
 
       return NextResponse.json(
         ok({

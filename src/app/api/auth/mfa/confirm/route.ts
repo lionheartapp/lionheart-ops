@@ -10,6 +10,7 @@ import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
 import { confirmMfaSetup } from '@/lib/services/mfaService'
 import { z } from 'zod'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const schema = z.object({
   secret: z.string().min(1),
@@ -33,6 +34,17 @@ export async function POST(req: NextRequest) {
     }
 
     const { backupCodes } = await confirmMfaSetup(ctx.userId, parsed.data.secret, parsed.data.code)
+
+    void audit({
+      organizationId: ctx.organizationId,
+      userId: ctx.userId,
+      userEmail: ctx.email,
+      action: 'user.mfa_enable',
+      resourceType: 'User',
+      resourceId: ctx.userId,
+      resourceLabel: ctx.email,
+      ipAddress: getIp(req),
+    })
 
     return NextResponse.json(ok({ backupCodes }))
   } catch (err) {

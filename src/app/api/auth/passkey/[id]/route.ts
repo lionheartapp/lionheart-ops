@@ -10,6 +10,7 @@ import { renamePasskey, deletePasskey } from '@/lib/services/passkeyService'
 import { invalidateUserCache } from '@/lib/cache/route-cache'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const renameSchema = z.object({
   name: z.string().min(1).max(100),
@@ -65,6 +66,17 @@ export async function DELETE(
     invalidateUserCache(ctx.userId, 'auth:passkeys')
 
     logger.info({ userId: ctx.userId, passkeyId: id }, 'Passkey deleted')
+
+    void audit({
+      organizationId: ctx.organizationId,
+      userId: ctx.userId,
+      userEmail: ctx.email,
+      action: 'user.passkey_delete',
+      resourceType: 'User',
+      resourceId: ctx.userId,
+      resourceLabel: ctx.email,
+      ipAddress: getIp(req),
+    })
 
     return NextResponse.json(ok({ success: true }))
   } catch (err) {

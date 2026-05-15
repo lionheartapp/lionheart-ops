@@ -6,6 +6,7 @@ import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext } from '@/lib/org-context'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
+import { audit, getIp } from '@/lib/services/auditService'
 
 const ProfileUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100).optional(),
@@ -66,6 +67,17 @@ export async function PATCH(request: NextRequest) {
           lastName: true,
           name: true,
         },
+      })
+
+      void audit({
+        organizationId,
+        userId,
+        userEmail: user.email,
+        action: 'user.profile_update',
+        resourceType: 'User',
+        resourceId: userId,
+        resourceLabel: user.email,
+        ipAddress: getIp(request),
       })
 
       return NextResponse.json(ok({ user }))

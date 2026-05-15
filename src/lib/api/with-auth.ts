@@ -37,6 +37,7 @@ import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext, type RequestContext } from '@/lib/request-context'
 import { assertCan, can, canAny } from '@/lib/auth/permissions'
 import { getTrialState } from '@/lib/trial-utils'
+import { audit as writeAuditLog, getIp, type AuditAction } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
@@ -94,6 +95,14 @@ type Handler<TBody, TParams extends Record<string, string>> = (
   context: RouteContext<TBody, TParams>
 ) => Promise<NextResponse>
 
+/** Audit logging configuration */
+interface AuditConfig {
+  /** Override the auto-derived action name (e.g. 'user.invite') */
+  action?: AuditAction
+  /** Resource type (e.g. 'User', 'Ticket'). Auto-derived from path if omitted. */
+  resourceType?: string
+}
+
 /** Options for the wrapper */
 interface WithAuthOptions<TBody> {
   /** Permission string — checked via assertCan() before handler runs */
@@ -104,6 +113,13 @@ interface WithAuthOptions<TBody> {
   schema?: ZodSchema<TBody>
   /** Route label for logging (auto-detected from req.url if omitted) */
   routeLabel?: string
+  /**
+   * Audit logging for mutations (POST/PUT/PATCH/DELETE).
+   * - `true` or omitted: auto-log with derived action name (default for mutations)
+   * - `false`: disable audit logging for this route
+   * - `AuditConfig`: custom action name / resource type
+   */
+  audit?: boolean | AuditConfig
 }
 
 // ---------------------------------------------------------------------------
@@ -275,6 +291,75 @@ function classifyError(error: unknown): NextResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Auto-audit helpers
+// ---------------------------------------------------------------------------
+
+const METHOD_VERB: Record<string, string> = {
+  POST: 'create',
+  PUT: 'update',
+  PATCH: 'update',
+  DELETE: 'delete',
+}
+
+/**
+ * Derive an audit action from the request method and URL path.
+ *
+ * Examples:
+ *   PATCH /api/settings/users/abc123         → "settings.users.update"
+ *   POST  /api/tickets                       → "tickets.create"
+ *   DELETE /api/maintenance/tickets/abc/costs → "maintenance.tickets.costs.delete"
+ *
+ * Dynamic segments (UUIDs, cuid-style IDs) are stripped so the action
+ * is stable across different records.
+ */
+function deriveAuditAction(method: string, pathname: string): string {
+  const verb = METHOD_VERB[method] || method.toLowerCase()
+
+  // Strip /api/ prefix and split into segments
+  const segments = pathname
+    .replace(/^\/api\//, '')
+    .split('/')
+    .filter((s) => s && !looksLikeId(s))
+
+  const resource = segments.join('.')
+  return resource ? `${resource}.${verb}` : verb
+}
+
+/**
+ * Derive a resource type from the URL path (first meaningful segment after /api/).
+ * "settings/users/abc" → "User", "tickets/abc" → "Ticket", "maintenance/tickets" → "MaintenanceTicket"
+ */
+function deriveResourceType(pathname: string): string | undefined {
+  const segments = pathname
+    .replace(/^\/api\//, '')
+    .split('/')
+    .filter((s) => s && !looksLikeId(s))
+
+  if (segments.length === 0) return undefined
+
+  // Use the last non-ID segment, singularized naively
+  const last = segments[segments.length - 1]
+  // "users" → "User", "tickets" → "Ticket"
+  const singular = last.endsWith('s') && !last.endsWith('ss')
+    ? last.slice(0, -1)
+    : last
+  return singular.charAt(0).toUpperCase() + singular.slice(1)
+}
+
+/** Heuristic: segment looks like a dynamic ID (cuid, uuid, or numeric) */
+function looksLikeId(segment: string): boolean {
+  // cuid: starts with c, 25 chars
+  if (/^c[a-z0-9]{24}$/.test(segment)) return true
+  // uuid: 8-4-4-4-12 hex
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment)) return true
+  // numeric
+  if (/^\d+$/.test(segment)) return true
+  // Long random strings (cuid2, nanoid, etc.)
+  if (/^[a-z0-9]{20,}$/.test(segment)) return true
+  return false
+}
+
+// ---------------------------------------------------------------------------
 // withAuth
 // ---------------------------------------------------------------------------
 
@@ -366,9 +451,36 @@ export function withAuth<
         canAny: (perms: string[]) => canAny(ctx.userId, perms),
       }
 
-      return await runWithOrgContext(orgId, () =>
+      const response = await runWithOrgContext(orgId, () =>
         handler({ req, orgId, ctx, body, params, searchParams, permissions })
       )
+
+      // ── Auto-audit for mutations ──────────────────────────────────
+      // Fire-and-forget: log successful state-changing requests unless
+      // the route explicitly opts out with `{ audit: false }`.
+      const auditOpt = options?.audit
+      if (
+        MUTATING_METHODS.has(req.method) &&
+        auditOpt !== false &&
+        response.status >= 200 &&
+        response.status < 300
+      ) {
+        const pathname = new URL(req.url).pathname
+        const config = typeof auditOpt === 'object' ? auditOpt : {}
+        const action = config.action || deriveAuditAction(req.method, pathname)
+        const resourceType = config.resourceType || deriveResourceType(pathname)
+
+        void writeAuditLog({
+          organizationId: orgId,
+          userId: ctx.userId,
+          userEmail: ctx.email,
+          action,
+          resourceType,
+          ipAddress: getIp(req),
+        })
+      }
+
+      return response
     } catch (error) {
       const response = classifyError(error)
       // Log 5xx errors
