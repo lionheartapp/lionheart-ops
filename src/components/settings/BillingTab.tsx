@@ -368,7 +368,7 @@ export default function BillingTab() {
   return (
     <div className="space-y-8">
       {/* Header — full-width, flush top */}
-      <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+      <div className="-mt-6 lg:-mt-8 -mx-4 sm:-mx-10 px-4 sm:px-10 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
         <div className="flex items-center gap-4">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-white" />
