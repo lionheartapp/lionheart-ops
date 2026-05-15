@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, Plus, Building2, School as SchoolIcon, MapPin, Users, Landmark } from 'lucide-react'
+import { ChevronRight, Plus, Building2, School as SchoolIcon, MapPin, Users, Landmark, TreePine } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -51,6 +51,22 @@ type DistrictBuilding = {
   buildingType: string
   isActive: boolean
   _count?: { rooms: number; spaces: number }
+}
+
+type DistrictSpace = {
+  id: string
+  name: string
+  spaceType: string
+  isActive: boolean
+}
+
+const SPACE_TYPE_LABELS: Record<string, string> = {
+  FIELD: 'Athletic Field',
+  COURT: 'Court',
+  GYM: 'Gymnasium',
+  COMMON: 'Gathering Area',
+  PARKING: 'Parking',
+  OTHER: 'Other',
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -135,6 +151,7 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
   // District state
   const [district, setDistrict] = useState<District | null>(null)
   const [districtBuildings, setDistrictBuildings] = useState<DistrictBuilding[]>([])
+  const [districtSpaces, setDistrictSpaces] = useState<DistrictSpace[]>([])
   const [districtLoading, setDistrictLoading] = useState(true)
   const [districtError, setDistrictError] = useState<string | null>(null)
 
@@ -172,12 +189,17 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
       const d = await fetchApi<District>('/api/settings/campus/district')
       setDistrict(d)
       if (d?.id) {
-        const buildings = await fetchApi<DistrictBuilding[]>(`/api/settings/campus/buildings?districtId=${d.id}`)
+        const [buildings, spaces] = await Promise.all([
+          fetchApi<DistrictBuilding[]>(`/api/settings/campus/buildings?districtId=${d.id}`),
+          fetchApi<DistrictSpace[]>(`/api/settings/campus/spaces?districtId=${d.id}`),
+        ])
         setDistrictBuildings(Array.isArray(buildings) ? buildings : [])
+        setDistrictSpaces(Array.isArray(spaces) ? spaces : [])
       }
     } catch {
       setDistrict(null)
       setDistrictBuildings([])
+      setDistrictSpaces([])
     } finally {
       setDistrictLoading(false)
     }
@@ -427,6 +449,7 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-400">
                     <span>{district._count.buildings} {district._count.buildings === 1 ? 'building' : 'buildings'}</span>
+                    {districtSpaces.length > 0 && <span>{districtSpaces.length} {districtSpaces.length === 1 ? 'space' : 'spaces'}</span>}
                     <span>{district._count.users} {district._count.users === 1 ? 'person' : 'people'}</span>
                   </div>
                 </div>
@@ -487,6 +510,37 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                           <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
                         </div>
                       </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Spaces list */}
+                {districtSpaces.length > 0 && (
+                  <div className="space-y-2 mt-4">
+                    <div className="flex items-center gap-2.5 px-1 mb-2">
+                      <TreePine className="w-4 h-4 text-slate-400" />
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Spaces</h4>
+                      <span className="text-xs text-slate-400">{districtSpaces.length}</span>
+                    </div>
+                    {districtSpaces.map((s) => (
+                      <div
+                        key={s.id}
+                        className="w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                            <TreePine className="w-5 h-5 text-emerald-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-semibold text-slate-900">{s.name}</span>
+                              <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">
+                                {SPACE_TYPE_LABELS[s.spaceType] || s.spaceType}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
