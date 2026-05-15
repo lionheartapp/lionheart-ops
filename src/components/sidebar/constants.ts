@@ -13,6 +13,7 @@ import {
   Home,
   CalendarDays,
   Route,
+  KeyRound,
 } from 'lucide-react'
 import type { SettingsTabDef } from './types'
 
@@ -46,6 +47,7 @@ export const WORKSPACE_TABS: SettingsTabDef[] = [
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'add-ons', label: 'Add-ons', icon: Puzzle },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
+  { id: 'sso', label: 'Single Sign-On', icon: KeyRound },
   { id: 'activity-log', label: 'Activity Log', icon: ScrollText },
 ]
 

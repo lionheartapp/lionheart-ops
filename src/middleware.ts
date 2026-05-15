@@ -62,6 +62,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/auth/passkey/authenticate')) return true // Passkey assertion during login (uses temp token)
   // NOTE: /api/auth/me and /api/auth/logout are NOT public — they require auth cookie
   if (pathname === '/api/health') return true // Uptime monitoring — no auth
+  if (pathname === '/api/status') return true // Public status page API
   if (pathname.startsWith('/api/branding')) return true
   if (pathname.startsWith('/api/organizations/slug-check')) return true
   if (pathname.startsWith('/api/organizations/signup')) return true
@@ -102,6 +103,8 @@ function isPublicPath(pathname: string) {
   // OAuth callbacks — must be public so OAuth redirects land correctly
   if (pathname.startsWith('/api/integrations/google-calendar/callback')) return true
   if (pathname.startsWith('/api/integrations/planning-center/callback')) return true
+  // SAML SSO — initiate, callback (ACS), metadata, and status endpoints
+  if (pathname.startsWith('/api/auth/saml/')) return true
   return false
 }
 

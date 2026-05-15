@@ -14,6 +14,7 @@ import {
   CreditCard,
   CalendarDays,
   ClipboardCheck,
+  KeyRound,
 } from 'lucide-react'
 import BottomSheet from '@/components/ui/BottomSheet'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
@@ -45,6 +46,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
   { icon: <CreditCard className="w-5 h-5" />, label: 'Billing', tab: 'billing' },
   { icon: <Puzzle className="w-5 h-5" />, label: 'Add-ons', tab: 'add-ons' },
   { icon: <Link2 className="w-5 h-5" />, label: 'Integrations', tab: 'integrations' },
+  { icon: <KeyRound className="w-5 h-5" />, label: 'Single Sign-On', tab: 'sso' },
   { icon: <ScrollText className="w-5 h-5" />, label: 'Activity Log', tab: 'activity-log' },
 ]
 

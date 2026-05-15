@@ -8,7 +8,32 @@
 
 import Twilio from 'twilio'
 import { rawPrisma } from '@/lib/db'
+import { encryptToken, decryptToken } from './token-encryption'
 import type { SMSResult, BulkSMSResult } from '@/lib/types/integrations'
+
+// ─── Config encryption helpers ──────────────────────────────────────────────
+
+/** Decrypt Twilio config fields. Handles legacy plaintext gracefully. */
+function decryptConfig(config: Record<string, string>): {
+  accountSid: string
+  authToken: string
+  phoneNumber: string
+} {
+  return {
+    accountSid: config.accountSid ? decryptToken(config.accountSid) : '',
+    authToken: config.authToken ? decryptToken(config.authToken) : '',
+    phoneNumber: config.phoneNumber || '', // not encrypted
+  }
+}
+
+/** Encrypt sensitive Twilio config fields before storage. */
+function encryptConfig(accountSid: string, authToken: string, phoneNumber: string): Record<string, string> {
+  return {
+    accountSid: encryptToken(accountSid),
+    authToken: encryptToken(authToken),
+    phoneNumber, // phone number is user-facing, not secret
+  }
+}
 
 // ─── Availability check ──────────────────────────────────────────────────────
 
@@ -22,8 +47,11 @@ export async function isAvailable(organizationId: string): Promise<boolean> {
   })
 
   if (!cred) return false
-  const config = cred.config as Record<string, string> | null
-  return !!(config?.accountSid && config?.authToken && config?.phoneNumber)
+  const raw = cred.config as Record<string, string> | null
+  if (!raw?.accountSid || !raw?.authToken || !raw?.phoneNumber) return false
+  // Verify fields decrypt successfully (handles both encrypted and legacy plaintext)
+  const config = decryptConfig(raw)
+  return !!(config.accountSid && config.authToken && config.phoneNumber)
 }
 
 // ─── Get Twilio client for org ────────────────────────────────────────────────
@@ -36,8 +64,11 @@ async function getTwilioClient(
   })
 
   if (!cred) return null
-  const config = cred.config as Record<string, string> | null
-  if (!config?.accountSid || !config?.authToken || !config?.phoneNumber) return null
+  const raw = cred.config as Record<string, string> | null
+  if (!raw?.accountSid || !raw?.authToken || !raw?.phoneNumber) return null
+
+  const config = decryptConfig(raw)
+  if (!config.accountSid || !config.authToken) return null
 
   return {
     client: Twilio(config.accountSid, config.authToken),
@@ -198,6 +229,8 @@ export async function saveCredentials(
   authToken: string,
   phoneNumber: string
 ): Promise<void> {
+  const encrypted = encryptConfig(accountSid, authToken, phoneNumber)
+
   await rawPrisma.integrationCredential.upsert({
     where: {
       organizationId_provider_userId: {
@@ -210,11 +243,11 @@ export async function saveCredentials(
       organizationId,
       provider: 'twilio',
       userId: null,
-      config: { accountSid, authToken, phoneNumber },
+      config: encrypted,
       isActive: true,
     },
     update: {
-      config: { accountSid, authToken, phoneNumber },
+      config: encrypted,
       isActive: true,
       updatedAt: new Date(),
     },
