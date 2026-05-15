@@ -345,12 +345,5 @@ export default function RichTextEditor({
   )
 }
 
-/**
- * Extract plain text from Tiptap HTML for preview/notification purposes.
- */
-export function htmlToPlainText(html: string): string {
-  if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, '')
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent || div.innerText || ''
-}
+// Re-export from lightweight utility so consumers can import from either location
+export { htmlToPlainText } from './rich-text-utils'

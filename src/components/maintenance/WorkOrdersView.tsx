@@ -21,7 +21,9 @@ import WorkOrdersTable, {
   type SortField,
   type SortState,
 } from './WorkOrdersTable'
-import KanbanBoard from './KanbanBoard'
+import dynamic from 'next/dynamic'
+
+const KanbanBoard = dynamic(() => import('./KanbanBoard'), { ssr: false })
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 

@@ -16,7 +16,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { X, UserPlus, Loader2, Paperclip, Smile, ImagePlay } from 'lucide-react'
 import PersonSearchPanel from './PersonSearchPanel'
 import type { PersonSearchUser } from './PersonSearchPanel'
-import RichTextEditor, { htmlToPlainText } from './RichTextEditor'
+import dynamic from 'next/dynamic'
+import { htmlToPlainText } from './rich-text-utils'
+
+const RichTextEditor = dynamic(() => import('./RichTextEditor'), { ssr: false })
 
 interface Recipient {
   id: string

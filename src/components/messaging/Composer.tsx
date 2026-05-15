@@ -5,7 +5,10 @@ import { Paperclip, SendHorizonal, Smile, ImagePlay } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useSendMessage } from '@/lib/hooks/useSendMessage'
 import { useFileUpload } from '@/lib/hooks/useFileUpload'
-import RichTextEditor, { htmlToPlainText } from './RichTextEditor'
+import dynamic from 'next/dynamic'
+import { htmlToPlainText } from './rich-text-utils'
+
+const RichTextEditor = dynamic(() => import('./RichTextEditor'), { ssr: false })
 import EmojiPicker from './EmojiPicker'
 import FileUploadProgress from './FileUploadProgress'
 import SlashCommandPicker from './SlashCommandPicker'

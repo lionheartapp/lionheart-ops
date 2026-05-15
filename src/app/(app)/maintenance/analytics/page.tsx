@@ -2,8 +2,12 @@
 
 import { Suspense } from 'react'
 import { motion, MotionConfig } from 'framer-motion'
+import dynamic from 'next/dynamic'
 
-import AnalyticsDashboard from '@/components/maintenance/AnalyticsDashboard'
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/maintenance/AnalyticsDashboard'),
+  { ssr: false, loading: () => <div className="space-y-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-48 bg-slate-100 rounded-xl animate-pulse" />)}</div> }
+)
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 import PagePadding from '@/components/PagePadding'

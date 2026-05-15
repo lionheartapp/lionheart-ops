@@ -14,7 +14,9 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import ITPageShell from '@/components/it/ITPageShell'
 import ITDashboard from '@/components/it/ITDashboard'
 import ITTicketsList from '@/components/it/ITTicketsList'
-import ITKanbanBoard from '@/components/it/ITKanbanBoard'
+import dynamic from 'next/dynamic'
+
+const ITKanbanBoard = dynamic(() => import('@/components/it/ITKanbanBoard'), { ssr: false })
 import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
 import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'

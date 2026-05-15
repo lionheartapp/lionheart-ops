@@ -1,6 +1,8 @@
 'use client'
 
-import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
+import dynamic from 'next/dynamic'
+
+const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), { ssr: false })
 import PagePadding from '@/components/PagePadding'
 import { usePageTitle } from '@/hooks/usePageTitle'
 

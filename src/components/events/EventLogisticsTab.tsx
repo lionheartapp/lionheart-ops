@@ -19,7 +19,9 @@ import { tabContent, staggerContainer, fadeInUp } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useGroups, useAssignToGroup } from '@/lib/hooks/useEventGroups'
 import { useToast } from '@/components/Toast'
-import GroupDragBoard from './groups/GroupDragBoard'
+import dynamic from 'next/dynamic'
+
+const GroupDragBoard = dynamic(() => import('./groups/GroupDragBoard'), { ssr: false })
 import ActivityManager from './groups/ActivityManager'
 import DietaryMedicalReport from './groups/DietaryMedicalReport'
 import EventPDFGenerator from './groups/EventPDFGenerator'

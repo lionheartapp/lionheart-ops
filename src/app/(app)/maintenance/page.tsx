@@ -13,7 +13,9 @@ import PmCalendarView from '@/components/maintenance/PmCalendarView'
 import PmScheduleList from '@/components/maintenance/PmScheduleList'
 import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
-import ApprovalRulesBuilder from '@/components/settings/ApprovalRulesBuilder'
+import dynamic from 'next/dynamic'
+
+const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), { ssr: false })
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import {
   LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText,
