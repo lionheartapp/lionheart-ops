@@ -385,7 +385,7 @@ export default function SettingsPage() {
   return (
     <>
       <MotionConfig reducedMotion="user">
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 pb-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-10 pt-6 lg:pt-8 pb-6">
               {/*
                 F-015: visually-hidden h1 establishes the page heading for
                 screen readers. The on-screen tab panels keep their existing

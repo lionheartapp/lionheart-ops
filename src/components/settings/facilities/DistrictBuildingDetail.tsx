@@ -61,8 +61,8 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     setLoading(true)
     try {
       const [bRes, rRes] = await Promise.all([
-        fetch(`/api/settings/campus/buildings/${buildingId}`, { headers: getAuthHeaders() }),
-        fetch(`/api/settings/campus/rooms?buildingId=${buildingId}`, { headers: getAuthHeaders() }),
+        fetch(`/api/settings/campus/buildings/${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' as const, credentials: 'include' }),
+        fetch(`/api/settings/campus/rooms?buildingId=${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' as const, credentials: 'include' }),
       ])
       const bData = await bRes.json()
       const rData = await rRes.json()
@@ -91,7 +91,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleAddRoom = async (form: { roomNumber: string; displayName: string; floor: string }) => {
     const res = await fetch('/api/settings/campus/rooms', {
       method: 'POST',
-      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
       body: JSON.stringify({ buildingId, roomNumber: form.roomNumber, displayName: form.displayName || null, floor: form.floor || null }),
     })
     const data = await res.json()
@@ -102,7 +102,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleEditRoom = async (roomId: string, form: { roomNumber: string; displayName: string; floor: string }) => {
     const res = await fetch(`/api/settings/campus/rooms/${roomId}`, {
       method: 'PATCH',
-      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
       body: JSON.stringify({ roomNumber: form.roomNumber, displayName: form.displayName || null, floor: form.floor || null }),
     })
     const data = await res.json()
@@ -113,7 +113,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleDeactivateRoom = async (id: string) => {
     await fetch(`/api/settings/campus/rooms/${id}`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders(), credentials: 'include' as const,
     })
     await loadData()
   }
@@ -121,7 +121,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleRoomImagesChange = async (roomId: string, images: string[]) => {
     await fetch(`/api/settings/campus/rooms/${roomId}`, {
       method: 'PATCH',
-      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
       body: JSON.stringify({ images }),
     })
     await loadData()
@@ -130,7 +130,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleBuildingPositionChange = async (id: string, lat: number, lng: number) => {
     await fetch(`/api/settings/campus/buildings/${id}`, {
       method: 'PATCH',
-      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
       body: JSON.stringify({ latitude: lat, longitude: lng }),
     })
     await loadData()
@@ -140,7 +140,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleAssignPerson = async (roomId: string, userId: string) => {
     const res = await fetch('/api/settings/campus/room-assignments', {
       method: 'POST',
-      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' },
+      headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
       body: JSON.stringify({ roomId, userId }),
     })
     const data = await res.json()
@@ -151,7 +151,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const handleUnassignPerson = async (assignmentId: string) => {
     await fetch(`/api/settings/campus/room-assignments/${assignmentId}`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders(), credentials: 'include' as const,
     })
     await loadData()
   }
@@ -178,7 +178,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     try {
       const res = await fetch(`/api/settings/campus/buildings/${building.id}`, {
         method: 'PATCH',
-        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, credentials: 'include' as const,
         body: JSON.stringify({
           name: editForm.name.trim(),
           code: editForm.code.trim() || null,
