@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Building2, DoorOpen, MapPin, Pencil, X, Check } from 'lucide-react'
+import { Building2, ChevronDown, ChevronRight, DoorOpen, MapPin, Pencil, Plus, X, Check } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import RoomsDrawer from '@/components/settings/campus/RoomsDrawer'
@@ -44,6 +44,8 @@ const BUILDING_TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
+const ROOM_ACCENT_COLOR = '#6366f1'
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingDetailProps) {
@@ -55,6 +57,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', code: '', buildingType: 'GENERAL', address: '' })
   const [saving, setSaving] = useState(false)
+  const [roomsCollapsed, setRoomsCollapsed] = useState(false)
 
   // ── Load building + rooms ─────────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -200,11 +203,12 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-6 animate-pulse">
-          <div className="h-6 w-48 bg-slate-200 rounded mb-3" />
+        <div className="animate-pulse">
+          <div className="h-6 w-48 bg-slate-200 rounded mb-2" />
           <div className="h-4 w-64 bg-slate-100 rounded" />
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl h-[400px] animate-pulse" />
+        <div className="bg-white border border-slate-200 rounded-xl h-[600px] animate-pulse" />
+        <div className="bg-white border border-slate-200 rounded-xl h-[120px] animate-pulse" />
       </div>
     )
   }
@@ -219,7 +223,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
 
   return (
     <div className="space-y-6">
-      {/* Building header — page-level context, not a card */}
+      {/* ── Building header ── */}
       {editing ? (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -227,7 +231,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
             <div className="flex items-center gap-2">
               <button
                 onClick={cancelEditing}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors duration-200 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
                 Cancel
@@ -235,7 +239,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
               <button
                 onClick={saveBuilding}
                 disabled={saving || !editForm.name.trim()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-colors duration-200 cursor-pointer disabled:opacity-50"
               >
                 <Check className="w-3.5 h-3.5" />
                 {saving ? 'Saving...' : 'Save'}
@@ -286,92 +290,136 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
           <div className="flex items-center gap-2">
             <button
               onClick={startEditing}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:border-slate-300 hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Map — full-bleed like campus detail ── */}
+      <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+        <div style={{ height: 600 }}>
+          <InteractiveCampusMap
+            buildings={mapBuildings}
+            mapCenter={mapCenter}
+            editable
+            embedded
+            fillContainer
+            campusName={building.name}
+            onBuildingPositionChange={handleBuildingPositionChange}
+            onManageRooms={() => setRoomsDrawerOpen(true)}
+          />
+        </div>
+      </div>
+
+      {/* ── Rooms & Spaces card — matches "Buildings & Spaces" pattern ── */}
+      <div
+        className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+        style={{ borderLeftWidth: 4, borderLeftColor: ROOM_ACCENT_COLOR }}
+      >
+        {/* Card header */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-expanded={!roomsCollapsed}
+          onClick={() => setRoomsCollapsed((c) => !c)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setRoomsCollapsed((c) => !c)
+            }
+          }}
+          className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors duration-200 cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-0"
+        >
+          <div
+            className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: ROOM_ACCENT_COLOR }}
+          >
+            <DoorOpen className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900">Rooms & Spaces</h3>
+              <span className="text-xs text-slate-400">
+                {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setRoomsDrawerOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setRoomsDrawerOpen(true)
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
             >
-              <DoorOpen className="w-3.5 h-3.5" />
-              Manage Rooms
+              <Plus className="w-3.5 h-3.5" />
+              Room
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Map */}
-      {mapCenter ? (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <div className="h-[450px]">
-            <InteractiveCampusMap
-              buildings={mapBuildings}
-              mapCenter={mapCenter}
-              editable
-              embedded
-              fillContainer
-              onBuildingPositionChange={handleBuildingPositionChange}
-              onManageRooms={() => setRoomsDrawerOpen(true)}
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center">
-          <MapPin className="w-5 h-5 text-slate-300 mx-auto mb-2" />
-          <div className="text-sm text-slate-500">No location set</div>
-          <div className="text-xs text-slate-400 mt-0.5">
-            Add an address to see this building on the map.
-          </div>
-        </div>
-      )}
-
-      {/* Rooms quick view */}
-      {rooms.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Rooms <span className="text-slate-400 font-normal">&middot; {rooms.length}</span>
-            </h3>
             <button
-              onClick={() => setRoomsDrawerOpen(true)}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setRoomsDrawerOpen(true)
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
             >
               Manage
             </button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {rooms.map((r) => {
-              const assigned = r.assignments?.[0]
-              const assignedName = assigned
-                ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
-                : null
-              return (
-                <div
-                  key={r.id}
-                  className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                >
-                  <div className="font-medium text-slate-800">{r.roomNumber}</div>
-                  {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
-                  {assigned && (
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      {assigned.user.avatar ? (
-                        <img src={assigned.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[8px] font-bold">
-                          {assignedName?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <span className="text-xs text-slate-500 truncate">{assignedName}</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+            {roomsCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-slate-400" />
+            )}
           </div>
         </div>
-      )}
+
+        {/* Card body */}
+        {!roomsCollapsed && (
+          <div className="px-5 pb-5">
+            {rooms.length === 0 ? (
+              <div className="text-center py-8 text-sm text-slate-400">
+                No rooms yet. Use the buttons above to add one.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {rooms.map((r) => {
+                  const assigned = r.assignments?.[0]
+                  const assignedName = assigned
+                    ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
+                    : null
+                  return (
+                    <div
+                      key={r.id}
+                      className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                    >
+                      <div className="font-medium text-slate-800">{r.roomNumber}</div>
+                      {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
+                      {assigned && (
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          {assigned.user.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={assigned.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[8px] font-bold">
+                              {assignedName?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs text-slate-500 truncate">{assignedName}</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Rooms Drawer */}
       <RoomsDrawer

@@ -148,6 +148,12 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
   const [buildingSaving, setBuildingSaving] = useState(false)
   const [buildingError, setBuildingError] = useState('')
 
+  // Add space drawer
+  const [showAddSpace, setShowAddSpace] = useState(false)
+  const [spaceForm, setSpaceForm] = useState({ name: '', spaceType: 'FIELD' })
+  const [spaceSaving, setSpaceSaving] = useState(false)
+  const [spaceError, setSpaceError] = useState('')
+
   // ── Load schools ─────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false
@@ -237,6 +243,47 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     }
   }
 
+  // ── Add space handler ──────────────────────────────────────────────────
+  const handleAddSpace = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!district || !spaceForm.name.trim()) return
+    setSpaceSaving(true)
+    setSpaceError('')
+    try {
+      const res = await fetch('/api/settings/campus/spaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
+          'X-Organization-ID': localStorage.getItem('org-id') || '',
+        },
+        body: JSON.stringify({
+          name: spaceForm.name.trim(),
+          spaceType: spaceForm.spaceType,
+          districtId: district.id,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to create space')
+      setShowAddSpace(false)
+      setSpaceForm({ name: '', spaceType: 'FIELD' })
+      loadDistrict()
+    } catch (err) {
+      setSpaceError(err instanceof Error ? err.message : 'Failed to create space')
+    } finally {
+      setSpaceSaving(false)
+    }
+  }
+
+  const SPACE_TYPE_OPTIONS = [
+    { value: 'FIELD', label: 'Athletic Field' },
+    { value: 'COURT', label: 'Court' },
+    { value: 'GYM', label: 'Gymnasium' },
+    { value: 'COMMON', label: 'Gathering Area' },
+    { value: 'PARKING', label: 'Parking' },
+    { value: 'OTHER', label: 'Other' },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Header — full-width, flush top (matches all other settings tabs) */}
@@ -260,12 +307,20 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
             </button>
           )}
           {activeTab === 'district' && district && (
-            <button
-              onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
-              className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Add Building
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setShowAddSpace(true); setSpaceError('') }}
+                className="bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-50 hover:border-slate-300 text-sm font-medium transition-colors duration-200 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Add Space
+              </button>
+              <button
+                onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
+                className="bg-slate-900 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-slate-800 text-sm font-medium transition-colors duration-200 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Add Building
+              </button>
+            </div>
           )}
         </div>
 
@@ -611,6 +666,60 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
               onChange={(value) => setBuildingForm((p) => ({ ...p, address: value }))}
             />
           </div>
+        </form>
+      </DetailDrawer>
+
+      {/* ── Add Space Drawer ── */}
+      <DetailDrawer
+        isOpen={showAddSpace}
+        onClose={() => { if (!spaceSaving) setShowAddSpace(false) }}
+        title="Add District Space"
+        width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="add-district-space-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              disabled={spaceSaving || !spaceForm.name.trim()}
+            >
+              {spaceSaving ? 'Creating...' : 'Create Space'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAddSpace(false)}
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors duration-200 py-1 cursor-pointer"
+              disabled={spaceSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        }
+      >
+        <form id="add-district-space-form" onSubmit={handleAddSpace} className="space-y-5">
+          {spaceError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{spaceError}</div>
+          )}
+
+          <p className="text-sm text-slate-500">Add a district-level outdoor space such as a parking lot, athletic field, or gathering area.</p>
+
+          <FloatingInput
+            id="district-space-name"
+            label="Space name"
+            value={spaceForm.name}
+            onChange={(e) => setSpaceForm((p) => ({ ...p, name: e.target.value }))}
+            disabled={spaceSaving}
+            autoFocus
+          />
+
+          <FloatingDropdown
+            id="district-space-type"
+            label="Space type"
+            value={spaceForm.spaceType}
+            onChange={(v) => setSpaceForm((p) => ({ ...p, spaceType: v }))}
+            disabled={spaceSaving}
+            options={SPACE_TYPE_OPTIONS}
+          />
         </form>
       </DetailDrawer>
     </div>
