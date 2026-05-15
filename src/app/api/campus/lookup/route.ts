@@ -19,13 +19,16 @@ export async function GET(req: NextRequest) {
 
           const [buildings, unassignedSpaces] = await Promise.all([
             db.building.findMany({
-              where: { organizationId: orgId, isActive: true },
+              where: { organizationId: orgId, isActive: true, deletedAt: null },
               orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
               select: {
                 id: true,
                 name: true,
                 code: true,
-                schoolDivision: true,
+                buildingType: true,
+                districtId: true,
+                schoolId: true,
+                campusId: true,
                 spaces: {
                   where: { isActive: true },
                   orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -59,7 +62,7 @@ export async function GET(req: NextRequest) {
               },
             }),
             db.space.findMany({
-              where: { organizationId: orgId, isActive: true, buildingId: null },
+              where: { organizationId: orgId, isActive: true, deletedAt: null, buildingId: null },
               orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
               select: {
                 id: true,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MapPin, Building2, DoorOpen, Search, Loader2, Navigation } from 'lucide-react'
+import { MapPin, Building2, DoorOpen, Search, Loader2, Navigation, TreePine } from 'lucide-react'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
 import { logger } from '@/lib/logger'
 import { Input } from '@/components/ui/Input'
@@ -40,6 +40,8 @@ interface BuildingRaw {
   name: string
   rooms: RoomRaw[]
   areas: AreaRaw[]
+  /** True when this entry is actually an unassigned space, not a building */
+  isSpace?: boolean
 }
 
 interface AreaRaw {
@@ -110,8 +112,21 @@ function useCampusBuildings() {
         })
         const json = await res.json()
         if (json.ok) {
-          // Raw buildings include nested areas.rooms + building.rooms
-          setBuildings(json.data.buildings ?? [])
+          const rawBuildings: BuildingRaw[] = json.data.buildings ?? []
+
+          // Merge unassigned spaces (outdoor areas, hubs, etc.) as selectable locations
+          const unassignedSpaces = json.data.unassignedSpaces ?? json.data.unassignedAreas ?? []
+          const spacesAsBuildings: BuildingRaw[] = unassignedSpaces.map(
+            (s: { id: string; name: string; rooms?: RoomRaw[] }) => ({
+              id: s.id,
+              name: s.name,
+              rooms: s.rooms ?? [],
+              areas: [],
+              isSpace: true,
+            })
+          )
+
+          setBuildings([...rawBuildings, ...spacesAsBuildings])
         }
       } catch (error: unknown) {
         logger.error({ error: String(error) }, 'Failed to fetch campus buildings:')
@@ -321,11 +336,15 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
               }`}
               onClick={() => setShowBuildingDropdown(!showBuildingDropdown)}
             >
-              <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              {selectedBuilding?.isSpace ? (
+                <TreePine className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              ) : (
+                <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              )}
               {selectedBuilding ? (
                 <span className="text-sm text-slate-900 flex-1">{selectedBuilding.name}</span>
               ) : (
-                <span className="text-sm text-slate-400 flex-1">Select a building...</span>
+                <span className="text-sm text-slate-400 flex-1">Select a location...</span>
               )}
               {buildingsLoading && <Loader2 className="w-3.5 h-3.5 text-slate-300 animate-spin" />}
             </div>
@@ -338,14 +357,14 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                     size="sm"
                     value={buildingSearch}
                     onChange={(e) => setBuildingSearch(e.target.value)}
-                    placeholder="Search buildings..."
+                    placeholder="Search locations..."
                     autoFocus
                   />
                 </div>
                 {/* Options */}
                 <div className="overflow-y-auto max-h-44">
                   {filteredBuildings.length === 0 ? (
-                    <p className="px-4 py-3 text-xs text-slate-400 text-center">No buildings found</p>
+                    <p className="px-4 py-3 text-xs text-slate-400 text-center">No locations found</p>
                   ) : (
                     filteredBuildings.map((b) => {
                       const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
@@ -358,7 +377,14 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                             value.buildingId === b.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
                           }`}
                         >
-                          <span className="font-medium">{b.name}</span>
+                          <div className="flex items-center gap-2">
+                            {b.isSpace ? (
+                              <TreePine className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                            ) : (
+                              <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            )}
+                            <span className="font-medium">{b.name}</span>
+                          </div>
                           {totalRooms > 0 && (
                             <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
                               {totalRooms} room{totalRooms === 1 ? '' : 's'}
