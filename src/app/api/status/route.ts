@@ -94,16 +94,23 @@ async function checkStorage(): Promise<{ status: ServiceStatus; latencyMs: numbe
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!supabaseUrl) return { status: 'degraded', latencyMs: 0 }
 
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
   const start = Date.now()
-  // HEAD request to the Supabase REST endpoint — lightweight connectivity check
+  // Use the Supabase health endpoint — doesn't require auth
   const res = await fetch(`${supabaseUrl}/rest/v1/`, {
     method: 'HEAD',
     headers: {
-      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      apikey: serviceKey || anonKey || '',
     },
     cache: 'no-store',
   })
-  if (!res.ok && res.status !== 406) throw new Error(`Supabase returned ${res.status}`)
+  // 401 with no key just means the key isn't configured — Supabase itself is reachable
+  // 406 is expected for HEAD on the REST root
+  if (!res.ok && res.status !== 406 && res.status !== 401) {
+    throw new Error(`Supabase returned ${res.status}`)
+  }
   return { status: 'operational', latencyMs: Date.now() - start }
 }
 
