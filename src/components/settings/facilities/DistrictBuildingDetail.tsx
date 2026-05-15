@@ -1,11 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Building2, ChevronDown, ChevronRight, DoorOpen, MapPin, Pencil, Plus, X, Check } from 'lucide-react'
+import { Building2, ChevronDown, ChevronRight, DoorOpen, MapPin, Pencil, Plus, TreePine, X, Check } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import RoomsDrawer from '@/components/settings/campus/RoomsDrawer'
 import PhotoLightbox from '@/components/settings/PhotoLightbox'
+import DetailDrawer from '@/components/DetailDrawer'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type { Room } from '@/components/settings/campus/types'
@@ -23,6 +24,13 @@ type BuildingDetail = {
   isActive: boolean
   images?: string[]
   polygonCoordinates?: { lat: number; lng: number }[] | null
+}
+
+type BuildingSpace = {
+  id: string
+  name: string
+  spaceType: string
+  isActive: boolean
 }
 
 type DistrictBuildingDetailProps = {
@@ -44,33 +52,57 @@ const BUILDING_TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
-const ROOM_ACCENT_COLOR = '#6366f1'
+const SPACE_TYPE_LABELS: Record<string, string> = {
+  FIELD: 'Athletic Field',
+  COURT: 'Court',
+  GYM: 'Gymnasium',
+  COMMON: 'Gathering Area',
+  PARKING: 'Parking',
+  PLAYGROUND: 'Playground',
+  POOL: 'Pool',
+  GARDEN: 'Garden',
+  OTHER: 'Other',
+}
+
+const SPACE_TYPE_OPTIONS = Object.entries(SPACE_TYPE_LABELS).map(([value, label]) => ({ value, label }))
+
+const ACCENT_COLOR = '#6366f1'
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingDetailProps) {
   const [building, setBuilding] = useState<BuildingDetail | null>(null)
   const [rooms, setRooms] = useState<Room[]>([])
+  const [spaces, setSpaces] = useState<BuildingSpace[]>([])
   const [loading, setLoading] = useState(true)
   const [roomsDrawerOpen, setRoomsDrawerOpen] = useState(false)
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', code: '', buildingType: 'GENERAL', address: '' })
   const [saving, setSaving] = useState(false)
-  const [roomsCollapsed, setRoomsCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
-  // ── Load building + rooms ─────────────────────────────────────────────────
+  // Space drawer
+  const [spaceDrawerOpen, setSpaceDrawerOpen] = useState(false)
+  const [spaceForm, setSpaceForm] = useState({ name: '', spaceType: 'OTHER' })
+  const [spaceSaving, setSpaceSaving] = useState(false)
+  const [spaceError, setSpaceError] = useState('')
+
+  // ── Load building + rooms + spaces ────────────────────────────────────────
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const [bRes, rRes] = await Promise.all([
+      const [bRes, rRes, sRes] = await Promise.all([
         fetch(`/api/settings/campus/buildings/${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' }),
         fetch(`/api/settings/campus/rooms?buildingId=${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' }),
+        fetch(`/api/settings/campus/spaces?buildingId=${buildingId}`, { headers: getAuthHeaders(), credentials: 'include' }),
       ])
       const bData = await bRes.json()
       const rData = await rRes.json()
+      const sData = await sRes.json()
       if (bData.ok) setBuilding(bData.data)
       if (rData.ok) setRooms(Array.isArray(rData.data) ? rData.data : rData.data?.rooms ?? [])
+      if (sData.ok) setSpaces(Array.isArray(sData.data) ? sData.data : [])
     } catch {
       // silent — building was already validated by parent
     } finally {
@@ -159,6 +191,38 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
     await loadData()
   }
 
+  // ── Space handlers ─────────────────────────────────────────────────────────
+  const handleAddSpace = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!spaceForm.name.trim()) return
+    setSpaceSaving(true)
+    setSpaceError('')
+    try {
+      const res = await fetch('/api/settings/campus/spaces', {
+        method: 'POST',
+        headers: { ...(getAuthHeaders()), 'Content-Type': 'application/json' }, credentials: 'include' as const,
+        body: JSON.stringify({ name: spaceForm.name.trim(), spaceType: spaceForm.spaceType, buildingId }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to create space')
+      setSpaceDrawerOpen(false)
+      setSpaceForm({ name: '', spaceType: 'OTHER' })
+      await loadData()
+    } catch (err) {
+      setSpaceError(err instanceof Error ? err.message : 'Failed to create space')
+    } finally {
+      setSpaceSaving(false)
+    }
+  }
+
+  const handleDeleteSpace = async (spaceId: string) => {
+    await fetch(`/api/settings/campus/spaces/${spaceId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(), credentials: 'include' as const,
+    })
+    await loadData()
+  }
+
   // ── Building edit handlers ──────────────────────────────────────────────────
   const startEditing = () => {
     if (!building) return
@@ -198,6 +262,13 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       setSaving(false)
     }
   }
+
+  // ── Derived ────────────────────────────────────────────────────────────────
+  const totalItems = rooms.length + spaces.length
+  const subtitle = [
+    rooms.length > 0 ? `${rooms.length} ${rooms.length === 1 ? 'room' : 'rooms'}` : null,
+    spaces.length > 0 ? `${spaces.length} ${spaces.length === 1 ? 'space' : 'spaces'}` : null,
+  ].filter(Boolean).join(' · ') || '0 rooms'
 
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) {
@@ -285,6 +356,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
                 </span>
               )}
               <span>{rooms.length} {rooms.length === 1 ? 'room' : 'rooms'}</span>
+              {spaces.length > 0 && <span>{spaces.length} {spaces.length === 1 ? 'space' : 'spaces'}</span>}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -318,34 +390,32 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       {/* ── Rooms & Spaces card — matches "Buildings & Spaces" pattern ── */}
       <div
         className="bg-white border border-slate-200 rounded-xl overflow-hidden"
-        style={{ borderLeftWidth: 4, borderLeftColor: ROOM_ACCENT_COLOR }}
+        style={{ borderLeftWidth: 4, borderLeftColor: ACCENT_COLOR }}
       >
         {/* Card header */}
         <div
           role="button"
           tabIndex={0}
-          aria-expanded={!roomsCollapsed}
-          onClick={() => setRoomsCollapsed((c) => !c)}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed((c) => !c)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
-              setRoomsCollapsed((c) => !c)
+              setCollapsed((c) => !c)
             }
           }}
           className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors duration-200 cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-0"
         >
           <div
             className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: ROOM_ACCENT_COLOR }}
+            style={{ backgroundColor: ACCENT_COLOR }}
           >
-            <DoorOpen className="w-4 h-4 text-white" />
+            <Building2 className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-slate-900">Rooms & Spaces</h3>
-              <span className="text-xs text-slate-400">
-                {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'}
-              </span>
+              <span className="text-xs text-slate-400">{subtitle}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -364,13 +434,15 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                setRoomsDrawerOpen(true)
+                setSpaceDrawerOpen(true)
+                setSpaceError('')
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white text-slate-700 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors duration-200 cursor-pointer"
             >
-              Manage
+              <Plus className="w-3.5 h-3.5" />
+              Space
             </button>
-            {roomsCollapsed ? (
+            {collapsed ? (
               <ChevronRight className="w-5 h-5 text-slate-400" />
             ) : (
               <ChevronDown className="w-5 h-5 text-slate-400" />
@@ -379,42 +451,95 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
         </div>
 
         {/* Card body */}
-        {!roomsCollapsed && (
+        {!collapsed && (
           <div className="px-5 pb-5">
-            {rooms.length === 0 ? (
+            {totalItems === 0 ? (
               <div className="text-center py-8 text-sm text-slate-400">
-                No rooms yet. Use the buttons above to add one.
+                No rooms or spaces yet. Use the buttons above to add one.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {rooms.map((r) => {
-                  const assigned = r.assignments?.[0]
-                  const assignedName = assigned
-                    ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
-                    : null
-                  return (
-                    <div
-                      key={r.id}
-                      className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                    >
-                      <div className="font-medium text-slate-800">{r.roomNumber}</div>
-                      {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
-                      {assigned && (
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          {assigned.user.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={assigned.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[8px] font-bold">
-                              {assignedName?.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-xs text-slate-500 truncate">{assignedName}</span>
-                        </div>
-                      )}
+              <div className="space-y-4">
+                {/* Rooms grid */}
+                {rooms.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <DoorOpen className="w-3.5 h-3.5 text-slate-400" />
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Rooms
+                      </h4>
+                      <span className="text-xs text-slate-400">{rooms.length}</span>
+                      <button
+                        onClick={() => setRoomsDrawerOpen(true)}
+                        className="ml-auto text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors duration-200 cursor-pointer"
+                      >
+                        Manage
+                      </button>
                     </div>
-                  )
-                })}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {rooms.map((r) => {
+                        const assigned = r.assignments?.[0]
+                        const assignedName = assigned
+                          ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
+                          : null
+                        return (
+                          <div
+                            key={r.id}
+                            className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                          >
+                            <div className="font-medium text-slate-800">{r.roomNumber}</div>
+                            {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
+                            {assigned && (
+                              <div className="flex items-center gap-1.5 mt-1.5">
+                                {assigned.user.avatar ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={assigned.user.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[8px] font-bold">
+                                    {assignedName?.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                                <span className="text-xs text-slate-500 truncate">{assignedName}</span>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Spaces list */}
+                {spaces.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <TreePine className="w-3.5 h-3.5 text-slate-400" />
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Spaces
+                      </h4>
+                      <span className="text-xs text-slate-400">{spaces.length}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {spaces.map((s) => (
+                        <div
+                          key={s.id}
+                          className="px-3 py-2.5 bg-emerald-50 border border-emerald-100 rounded-lg text-sm group"
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="font-medium text-slate-800 truncate">{s.name}</div>
+                            <button
+                              onClick={() => handleDeleteSpace(s.id)}
+                              className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-all duration-200 cursor-pointer flex-shrink-0"
+                              title="Remove space"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <div className="text-xs text-slate-500">{SPACE_TYPE_LABELS[s.spaceType] || s.spaceType}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -434,6 +559,62 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
         onAssignPerson={handleAssignPerson}
         onUnassignPerson={handleUnassignPerson}
       />
+
+      {/* Add Space Drawer */}
+      <DetailDrawer
+        isOpen={spaceDrawerOpen}
+        onClose={() => { if (!spaceSaving) setSpaceDrawerOpen(false) }}
+        title="Add Space"
+        width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="add-building-space-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              disabled={spaceSaving || !spaceForm.name.trim()}
+            >
+              {spaceSaving ? 'Creating...' : 'Create Space'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSpaceDrawerOpen(false)}
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors duration-200 py-1 cursor-pointer"
+              disabled={spaceSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        }
+      >
+        <form id="add-building-space-form" onSubmit={handleAddSpace} className="space-y-5">
+          {spaceError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{spaceError}</div>
+          )}
+          <p className="text-sm text-slate-500">Add a space within this building such as a gym, courtyard, or gathering area.</p>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Space name</label>
+            <Input
+              value={spaceForm.name}
+              onChange={(e) => setSpaceForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="e.g. Main Gymnasium"
+              disabled={spaceSaving}
+              autoFocus
+              size="sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Space type</label>
+            <Select
+              value={spaceForm.spaceType}
+              onChange={(v) => setSpaceForm((p) => ({ ...p, spaceType: v }))}
+              options={SPACE_TYPE_OPTIONS}
+              disabled={spaceSaving}
+              size="sm"
+            />
+          </div>
+        </form>
+      </DetailDrawer>
 
       {/* Photo Lightbox */}
       {lightbox && (
