@@ -67,7 +67,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       const bData = await bRes.json()
       const rData = await rRes.json()
       if (bData.ok) setBuilding(bData.data)
-      if (rData.ok) setRooms(rData.data ?? [])
+      if (rData.ok) setRooms(Array.isArray(rData.data) ? rData.data : rData.data?.rooms ?? [])
     } catch {
       // silent — building was already validated by parent
     } finally {
