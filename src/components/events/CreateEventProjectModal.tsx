@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, CalendarDays, Users, Monitor, Wrench,
-  Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert,
+  Loader2, CalendarDays, Users,
+  Check, ChevronRight, ChevronLeft,
   School as SchoolIcon,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -18,6 +18,8 @@ import { PeoplePicker } from '@/components/events/PeoplePicker'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
+import FormFieldRenderer, { type FormFieldData } from '@/components/forms/FormFieldRenderer'
+import { useSystemForm, getDynamicFields } from '@/lib/hooks/useSystemForm'
 import type { CreateEventProjectInput } from '@/lib/types/event-project'
 
 type EventMode = 'single' | 'multiday'
@@ -27,25 +29,8 @@ const STEP_LABELS = ['Details', 'Location', 'Team & People'] as const
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const AV_OPTIONS = [
-  'Projector & Screen',
-  'Wireless Microphone(s)',
-  'Podium Mic',
-  'Livestream / Recording',
-  'Sound System / Speakers',
-  'Stage Lighting',
-  'Laptop / Presentation Clicker',
-]
-
-const FACILITIES_OPTIONS = [
-  'Extra Seating / Chairs',
-  'Table Arrangement',
-  'Stage or Podium Setup',
-  'Outdoor Setup',
-  'Cleaning Before Event',
-  'Cleaning After Event',
-  'Signage / Wayfinding',
-]
+// AV_OPTIONS and FACILITIES_OPTIONS moved to system form definitions.
+// They are now loaded dynamically from the form template (see system-form-seeds.ts).
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -66,15 +51,10 @@ interface FormData {
   endsAt: string
   endsAtTime: string
   expectedAttendance: string
-  requiresAV: boolean
-  avNeeds: string[]
-  avNotes: string
-  requiresFacilities: boolean
-  facilityNeeds: string[]
-  facilityNotes: string
-  requiresCustodial: boolean
-  requiresSecurity: boolean
 }
+
+/** Dynamic field values keyed by field.key — populated from system form template */
+type DynamicFieldValues = Record<string, unknown>
 
 const defaultForm: FormData = {
   title: '',
@@ -85,14 +65,6 @@ const defaultForm: FormData = {
   endsAt: '',
   endsAtTime: '',
   expectedAttendance: '',
-  requiresAV: false,
-  avNeeds: [],
-  avNotes: '',
-  requiresFacilities: false,
-  facilityNeeds: [],
-  facilityNotes: '',
-  requiresCustodial: false,
-  requiresSecurity: false,
 }
 
 const ALL_SCHOOLS_VALUE = '__ALL_SCHOOLS__'
@@ -347,6 +319,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
   const isPlanning = !!planningSeasonId
   const { activeSchoolId, schools, isMultiSchool } = useActiveSchool()
   const [form, setForm] = useState<FormData>(defaultForm)
+  const [dynamicValues, setDynamicValues] = useState<DynamicFieldValues>({})
   const [location, setLocation] = useState<LocationData>(defaultLocationData())
   const [requestedAttendees, setRequestedAttendees] = useState<string[]>([])
   const [showPeoplePicker, setShowPeoplePicker] = useState(false)
@@ -354,6 +327,16 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
   const [errors, setErrors] = useState<Partial<Record<keyof FormData | 'location', string>>>({})
   const [mode, setMode] = useState<EventMode>(initialMode)
   const [step, setStep] = useState<Step>(1)
+
+  // Fetch the system form definition for the current event type
+  const systemKey = mode === 'multiday' ? 'multiday_event' : 'single_event'
+  const { data: systemForm } = useSystemForm(systemKey)
+
+  // Dynamic fields from the form template (DEFAULT + CUSTOM, excludes LOCKED)
+  const step3DynamicFields = useMemo(
+    () => getDynamicFields(systemForm, 'Team & People'),
+    [systemForm]
+  )
 
   useEffect(() => {
     if (isOpen) {
@@ -386,6 +369,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
 
   function handleClose() {
     setForm(defaultForm)
+    setDynamicValues({})
     setLocation(defaultLocationData())
     setRequestedAttendees([])
     setShowPeoplePicker(false)
@@ -465,6 +449,21 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         : `${form.startsAt}T${form.startsAtTime || '23:59'}:59`
     }
 
+    // Map dynamic field values back to legacy payload fields for backward compatibility
+    const avNeeds = dynamicValues.av_needs as string[] | undefined
+    const facilityNeeds = dynamicValues.facility_needs as string[] | undefined
+    const requiresCustodial = !!dynamicValues.requires_custodial
+    const requiresSecurity = !!dynamicValues.requires_security
+
+    // Collect any non-standard dynamic fields (custom fields admins added)
+    const knownDynamicKeys = new Set(['av_needs', 'facility_needs', 'requires_custodial', 'requires_security'])
+    const customFields: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(dynamicValues)) {
+      if (!knownDynamicKeys.has(k) && v != null && v !== '' && v !== false) {
+        customFields[k] = v
+      }
+    }
+
     const payload: CreateEventProjectInput = {
       title: form.title.trim(),
       description: form.description.trim() || undefined,
@@ -472,10 +471,10 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       startsAt: new Date(startDateTime),
       endsAt: new Date(endDateTime),
       isMultiDay,
-      requiresAV: form.requiresAV,
-      requiresFacilities: form.requiresFacilities,
-      requiresCustodial: form.requiresCustodial,
-      requiresSecurity: form.requiresSecurity,
+      requiresAV: !!(avNeeds && avNeeds.length > 0),
+      requiresFacilities: !!(facilityNeeds && facilityNeeds.length > 0),
+      requiresCustodial,
+      requiresSecurity,
       requiresAthleticDirector: false,
       isOffCampus: location.isOffCampus,
       locationText: location.locationText || undefined,
@@ -489,9 +488,13 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         ? parseInt(form.expectedAttendance, 10)
         : undefined,
       metadata: {
-        ...(form.requiresAV ? { avNeeds: form.avNeeds, avNotes: form.avNotes.trim() } : {}),
-        ...(form.requiresFacilities ? { facilityNeeds: form.facilityNeeds, facilityNotes: form.facilityNotes.trim() } : {}),
+        ...(avNeeds && avNeeds.length > 0 ? { avNeeds } : {}),
+        ...(facilityNeeds && facilityNeeds.length > 0 ? { facilityNeeds } : {}),
         ...(requestedAttendees.length > 0 ? { requestedAttendees, peopleNote: peopleNote.trim() || undefined } : {}),
+        // Include the system form ID so per-event cloning can reference the template
+        ...(systemForm ? { systemFormId: systemForm.id } : {}),
+        // Include any custom fields the admin added to the template
+        ...(Object.keys(customFields).length > 0 ? { customFields } : {}),
       },
     }
 
@@ -502,9 +505,9 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
           (new Date(endDateTime).getTime() - new Date(startDateTime).getTime()) / 60000
         )
         const resourceNeeds: Array<{ resourceType: string; details?: string }> = []
-        if (form.requiresAV) resourceNeeds.push({ resourceType: 'AV_EQUIPMENT', details: form.avNeeds.join(', ') })
-        if (form.requiresFacilities) resourceNeeds.push({ resourceType: 'FACILITY', details: form.facilityNeeds.join(', ') })
-        if (form.requiresCustodial) resourceNeeds.push({ resourceType: 'CUSTODIAL' })
+        if (avNeeds && avNeeds.length > 0) resourceNeeds.push({ resourceType: 'AV_EQUIPMENT', details: avNeeds.join(', ') })
+        if (facilityNeeds && facilityNeeds.length > 0) resourceNeeds.push({ resourceType: 'FACILITY', details: facilityNeeds.join(', ') })
+        if (requiresCustodial) resourceNeeds.push({ resourceType: 'CUSTODIAL' })
 
         const sub = (await createSubmission.mutateAsync({
           seasonId: planningSeasonId,
@@ -683,170 +686,51 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         {/* ═══════════════════ Step 3: Team & People ══════════════════════════ */}
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* ── Requirements ── */}
-            <div className="space-y-2.5">
-              <p className="text-sm font-medium text-slate-700">Requirements</p>
-              <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
+            {/* ── Dynamic fields from system form template ── */}
+            {step3DynamicFields.length > 0 && (
+              <div className="space-y-2.5">
+                <p className="text-sm font-medium text-slate-700">Requirements</p>
+                <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
 
-              {/* A/V Section */}
-              <div className={`rounded-xl border transition-colors ${form.requiresAV ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
-                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresAV ? 'bg-blue-100' : 'bg-slate-100'}`}>
-                    <Monitor className={`w-4 h-4 transition-colors ${form.requiresAV ? 'text-blue-600' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">A/V Production</p>
-                    <p className="text-xs text-slate-500">Projectors, mics, livestream, sound</p>
-                  </div>
-                  <div
-                    role="switch"
-                    aria-checked={form.requiresAV}
-                    onClick={() => update('requiresAV', !form.requiresAV)}
-                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresAV ? 'bg-blue-500' : 'bg-slate-200'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresAV ? 'translate-x-4' : ''}`} />
-                  </div>
-                </label>
-
-                {form.requiresAV && (
-                  <div className="px-3.5 pb-3.5 space-y-3 border-t border-blue-100 pt-3">
-                    <p className="text-xs font-medium text-slate-700">What do you need?</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {AV_OPTIONS.map((opt) => {
-                        const selected = form.avNeeds.includes(opt)
-                        return (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() =>
-                              setForm((prev) => ({
-                                ...prev,
-                                avNeeds: selected
-                                  ? prev.avNeeds.filter((n) => n !== opt)
-                                  : [...prev.avNeeds, opt],
-                              }))
-                            }
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                              selected
-                                ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        )
-                      })}
+                <div className="space-y-4">
+                  {step3DynamicFields.map((field) => (
+                    <div key={field.id} className="space-y-1.5">
+                      <label className="block text-sm font-medium text-slate-700">
+                        {field.label}
+                        {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                      </label>
+                      <FormFieldRenderer
+                        field={{
+                          key: field.key,
+                          label: field.label,
+                          type: field.type as FormFieldData['type'],
+                          required: field.required,
+                          placeholder: field.placeholder,
+                          helpText: field.helpText,
+                          options: field.options,
+                        }}
+                        value={dynamicValues[field.key]}
+                        onChange={(v) => setDynamicValues((prev) => ({ ...prev, [field.key]: v }))}
+                      />
+                      {field.helpText && (
+                        <p className="text-xs text-slate-500">{field.helpText}</p>
+                      )}
                     </div>
-                    <Textarea
-                      value={form.avNotes}
-                      onChange={(e) => update('avNotes', e.target.value)}
-                      rows={2}
-                      placeholder="Any other A/V details — specific equipment, setup timing, etc."
-                    />
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
+            )}
 
-              {/* Facilities Section */}
-              <div className={`rounded-xl border transition-colors ${form.requiresFacilities ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
-                  <div className={`p-1.5 rounded-lg transition-colors ${form.requiresFacilities ? 'bg-amber-100' : 'bg-slate-100'}`}>
-                    <Wrench className={`w-4 h-4 transition-colors ${form.requiresFacilities ? 'text-amber-600' : 'text-slate-400'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900">Facilities</p>
-                    <p className="text-xs text-slate-500">Room setup, cleaning, staging, outdoor needs</p>
-                  </div>
-                  <div
-                    role="switch"
-                    aria-checked={form.requiresFacilities}
-                    onClick={() => update('requiresFacilities', !form.requiresFacilities)}
-                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresFacilities ? 'bg-amber-500' : 'bg-slate-200'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.requiresFacilities ? 'translate-x-4' : ''}`} />
-                  </div>
-                </label>
-
-                {form.requiresFacilities && (
-                  <div className="px-3.5 pb-3.5 space-y-3 border-t border-amber-100 pt-3">
-                    <p className="text-xs font-medium text-slate-700">What do you need?</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {FACILITIES_OPTIONS.map((opt) => {
-                        const selected = form.facilityNeeds.includes(opt)
-                        return (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() =>
-                              setForm((prev) => ({
-                                ...prev,
-                                facilityNeeds: selected
-                                  ? prev.facilityNeeds.filter((n) => n !== opt)
-                                  : [...prev.facilityNeeds, opt],
-                              }))
-                            }
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                              selected
-                                ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {opt}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <Textarea
-                      value={form.facilityNotes}
-                      onChange={(e) => update('facilityNotes', e.target.value)}
-                      rows={2}
-                      placeholder="Any other details — seating layout, special equipment, timing, etc."
-                    />
-                  </div>
-                )}
+            {/* ── Fallback: hardcoded fields when system form hasn't loaded ── */}
+            {step3DynamicFields.length === 0 && !systemForm && (
+              <div className="space-y-3">
+                <div className="h-8 bg-slate-100 rounded-lg animate-pulse" />
+                <div className="h-24 bg-slate-100 rounded-lg animate-pulse" />
+                <div className="h-16 bg-slate-100 rounded-lg animate-pulse" />
               </div>
-            </div>
+            )}
 
-            {/* ── Additional Resource Toggles (compact row) ── */}
-            <div className="grid grid-cols-2 gap-2">
-              {/* Custodial */}
-              <div className={`rounded-xl border transition-colors ${form.requiresCustodial ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
-                  <div className={`p-1 rounded-lg transition-colors ${form.requiresCustodial ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                    <Sparkles className={`w-3.5 h-3.5 transition-colors ${form.requiresCustodial ? 'text-emerald-600' : 'text-slate-400'}`} />
-                  </div>
-                  <p className="text-sm font-medium text-slate-900 flex-1">Custodial</p>
-                  <div
-                    role="switch"
-                    aria-checked={form.requiresCustodial}
-                    onClick={() => update('requiresCustodial', !form.requiresCustodial)}
-                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresCustodial ? 'bg-emerald-500' : 'bg-slate-200'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.requiresCustodial ? 'translate-x-4' : ''}`} />
-                  </div>
-                </label>
-              </div>
-
-              {/* Security */}
-              <div className={`rounded-xl border transition-colors ${form.requiresSecurity ? 'border-red-200 bg-red-50/30' : 'border-slate-200'}`}>
-                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
-                  <div className={`p-1 rounded-lg transition-colors ${form.requiresSecurity ? 'bg-red-100' : 'bg-slate-100'}`}>
-                    <ShieldAlert className={`w-3.5 h-3.5 transition-colors ${form.requiresSecurity ? 'text-red-600' : 'text-slate-400'}`} />
-                  </div>
-                  <p className="text-sm font-medium text-slate-900 flex-1">Security</p>
-                  <div
-                    role="switch"
-                    aria-checked={form.requiresSecurity}
-                    onClick={() => update('requiresSecurity', !form.requiresSecurity)}
-                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${form.requiresSecurity ? 'bg-red-500' : 'bg-slate-200'}`}
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.requiresSecurity ? 'translate-x-4' : ''}`} />
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {/* ── Request Specific People (toggle card) ── */}
+            {/* ── Request Specific People (always present, not from form template) ── */}
             <div className={`rounded-xl border transition-colors ${requestedAttendees.length > 0 || showPeoplePicker ? 'border-stone-300 bg-stone-50/50' : 'border-slate-200'}`}>
               <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
                 <div className={`p-1 rounded-lg transition-colors ${showPeoplePicker ? 'bg-stone-200' : 'bg-slate-100'}`}>
