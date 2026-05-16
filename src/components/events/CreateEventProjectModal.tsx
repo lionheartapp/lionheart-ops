@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, CalendarDays, Users,
+  Loader2, CalendarDays, CalendarRange, Users,
   Check, ChevronRight, ChevronLeft,
   School as SchoolIcon,
 } from 'lucide-react'
@@ -88,9 +88,9 @@ function safePick(ref: React.RefObject<HTMLInputElement | null>) {
   }
 }
 
-const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string }> = {
-  single: { title: 'New Single Event', placeholder: 'e.g. Spring Retreat 2026' },
-  multiday: { title: 'New Multi-day Event', placeholder: 'e.g. Fall Conference 2026' },
+const MODE_CONFIG: Record<EventMode, { title: string; placeholder: string; icon: typeof CalendarDays; badge: string; badgeColor: string }> = {
+  single: { title: 'New Single Event', placeholder: 'e.g. Spring Retreat 2026', icon: CalendarDays, badge: 'Single Event', badgeColor: 'bg-blue-50 text-blue-700' },
+  multiday: { title: 'New Multi-day Event', placeholder: 'e.g. Fall Conference 2026', icon: CalendarRange, badge: 'Multi-day', badgeColor: 'bg-indigo-50 text-indigo-700' },
 }
 
 // ─── Stepper Header ──────────────────────────────────────────────────────────
@@ -592,6 +592,16 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       footer={footer}
     >
       <div>
+        {/* Event type badge */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-1.5 rounded-lg bg-slate-100">
+            <config.icon className="w-4 h-4 text-slate-500" />
+          </div>
+          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${config.badgeColor}`}>
+            {config.badge}
+          </span>
+        </div>
+
         <StepperHeader currentStep={step} onStepClick={(s) => setStep(s)} />
 
         {/* ═══════════════════════ Step 1: Event Details ═══════════════════════ */}
