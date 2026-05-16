@@ -13,6 +13,7 @@ import {
   DollarSign,
   CheckSquare,
   MessageSquare,
+  ListOrdered,
   type LucideIcon,
 } from 'lucide-react'
 import type { EventProject } from '@/lib/hooks/useEventProject'
@@ -41,7 +42,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 // ─── Nav item definitions ─────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'schedule' | 'people' | 'registration' | 'documents' | 'logistics' | 'budget' | 'tasks' | 'comms'
+type TabId = 'overview' | 'schedule' | 'people' | 'registration' | 'responses' | 'documents' | 'logistics' | 'budget' | 'tasks' | 'comms'
 
 interface NavItem {
   id: TabId
@@ -64,6 +65,7 @@ const NAV_SECTIONS: NavSection[] = [
       { id: 'schedule', label: 'Schedule', icon: CalendarDays },
       { id: 'people', label: 'Team', icon: Users },
       { id: 'registration', label: 'Registration', icon: ClipboardList, requiredPermission: 'canViewRegistrations' },
+      { id: 'responses', label: 'Responses', icon: ListOrdered },
     ],
   },
   {

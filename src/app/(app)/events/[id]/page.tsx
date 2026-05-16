@@ -19,6 +19,7 @@ import { EventLogisticsTab } from '@/components/events/EventLogisticsTab'
 import { EventBudgetTab } from '@/components/events/EventBudgetTab'
 import { EventCommsTab } from '@/components/events/EventCommsTab'
 import { RegistrationTab } from '@/components/events/project/RegistrationTab'
+import { EventResponsesTab } from '@/components/events/EventResponsesTab'
 import { PresenceBar } from '@/components/events/comms/PresenceBar'
 import { EventChatDrawer } from '@/components/events/comms/EventChatPanel'
 import { SaveAsTemplateDialog } from '@/components/events/templates/SaveAsTemplateDialog'
@@ -233,6 +234,8 @@ function TabContent({ activeTab, project }: { activeTab: TabId; project: EventPr
       return <EventPeopleTab eventProjectId={project.id} createdById={project.createdById} />
     case 'registration':
       return <RegistrationTab eventProjectId={project.id} />
+    case 'responses':
+      return <EventResponsesTab eventProjectId={project.id} />
     case 'documents':
       return <EventDocumentsTab eventProjectId={project.id} />
     case 'logistics':
@@ -261,6 +264,7 @@ const TAB_LABELS: Record<TabId, string> = {
   schedule: 'Schedule',
   people: 'Team',
   registration: 'Registration',
+  responses: 'Responses',
   documents: 'Documents',
   logistics: 'Logistics',
   budget: 'Budget',
