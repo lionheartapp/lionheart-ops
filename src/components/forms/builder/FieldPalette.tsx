@@ -71,7 +71,7 @@ export default function FieldPalette({ onAddField }: FieldPaletteProps) {
                 <span className="text-slate-400 group-hover:text-blue-500 transition-colors">
                   {getIcon(meta.icon, 'w-4.5 h-4.5')}
                 </span>
-                <span className="text-[10px] font-medium text-slate-600 group-hover:text-blue-600 truncate w-full text-center">
+                <span className="text-[10px] font-medium text-slate-600 group-hover:text-slate-800 truncate w-full text-center">
                   {meta.label}
                 </span>
               </button>
