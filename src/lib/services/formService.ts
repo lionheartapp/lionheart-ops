@@ -304,11 +304,10 @@ export async function createForm(data: {
   context?: FormContext
   createdBy?: string | null
 }) {
-  return prisma.formDefinition.create({
+  return (prisma.formDefinition.create as Function)({
     data: {
       context: data.context ?? ('CUSTOM' as FormContext),
       description: data.description ?? null,
-      // Use categoryKey as a display name holder for custom forms
       categoryKey: null,
       systemKey: null,
       createdBy: data.createdBy ?? null,

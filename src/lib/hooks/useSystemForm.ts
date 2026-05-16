@@ -51,6 +51,7 @@ export interface SystemFormDefinition {
   context: string
   pages: SystemFormPage[]
   fields: SystemFormField[] // loose fields (no page)
+  parentTemplateId?: string | null
 }
 
 /**

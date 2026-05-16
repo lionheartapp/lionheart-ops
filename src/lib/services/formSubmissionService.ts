@@ -88,7 +88,7 @@ export async function createSubmission(data: {
     ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
     : null
 
-  return prisma.formSubmission.create({
+  return (prisma.formSubmission.create as Function)({
     data: {
       formId: data.formId,
       submittedBy: data.submittedBy,

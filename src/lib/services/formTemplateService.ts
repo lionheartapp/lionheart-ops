@@ -123,8 +123,8 @@ export async function saveFormAsTemplate(
       name,
       description: description ?? form.description,
       category: category ?? null,
-      fieldSnapshot: fieldSnapshot as unknown as Record<string, unknown>,
-      styleSnapshot: styleSnapshot as unknown as Record<string, unknown>,
+      fieldSnapshot: JSON.parse(JSON.stringify(fieldSnapshot)),
+      styleSnapshot: JSON.parse(JSON.stringify(styleSnapshot)),
       isSystem: false,
     },
   })
@@ -146,12 +146,12 @@ export async function cloneFromTemplate(
   const style = (template.styleSnapshot ?? {}) as Record<string, unknown>
 
   // Create the form
-  const form = await prisma.formDefinition.create({
+  const form = await (prisma.formDefinition.create as Function)({
     data: {
       context: 'CUSTOM' as FormContext,
       description: template.description ?? template.name,
       coverColor: (style.coverColor as string) ?? null,
-      publicStyle: (style.publicStyle as string) ?? 'MINIMAL',
+      publicStyle: ((style.publicStyle as string) ?? 'MINIMAL') as 'MINIMAL' | 'SPLIT' | 'HERO',
       publicCtaColor: (style.publicCtaColor as string) ?? null,
       publicBgColor: (style.publicBgColor as string) ?? null,
       createdBy,
@@ -355,7 +355,7 @@ export async function seedSystemTemplates(orgId: string): Promise<void> {
         icon: t.icon,
         description: t.description,
         category: t.category,
-        fieldSnapshot: { pages: t.pages } as unknown as Record<string, unknown>,
+        fieldSnapshot: JSON.parse(JSON.stringify({ pages: t.pages })),
         isSystem: true,
         sortOrder: i,
       },

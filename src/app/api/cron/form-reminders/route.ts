@@ -61,15 +61,13 @@ export async function POST(req: NextRequest) {
         // Only remind the form creator (if known)
         if (!sub.form.createdBy) continue
 
-        // Check if we already sent a reminder for this day threshold
+        // Check if we already sent a reminder for this submission
+        const reminderTag = `form-reminder:${sub.id}`
         const existingReminder = await rawPrisma.notification.findFirst({
           where: {
             userId: sub.form.createdBy,
             type: 'FORM_REMINDER',
-            metadata: {
-              path: ['submissionId'],
-              equals: sub.id,
-            },
+            linkUrl: reminderTag,
           },
           select: { id: true },
         })
@@ -82,12 +80,8 @@ export async function POST(req: NextRequest) {
             userId: sub.form.createdBy,
             type: 'FORM_REMINDER',
             title: `Pending approval: ${sub.form.description || 'Form submission'}`,
-            message: `A submission from ${sub.submitterName || 'someone'} has been waiting ${days} day${days === 1 ? '' : 's'} for review.`,
-            metadata: {
-              formId: sub.formId,
-              submissionId: sub.id,
-              reminderDay: days,
-            },
+            body: `A submission from ${sub.submitterName || 'someone'} has been waiting ${days} day${days === 1 ? '' : 's'} for review.`,
+            linkUrl: reminderTag,
           },
         })
 

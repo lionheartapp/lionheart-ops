@@ -170,7 +170,7 @@ export type FormPageInput = z.infer<typeof formPageSchema>
 export const formActionSchema = z.object({
   id: z.string().optional(),
   actionType: FormActionTypeZ,
-  config: z.record(z.unknown()),
+  config: z.record(z.string(), z.unknown()),
   sortOrder: z.number().int().min(0).optional().default(0),
   isEnabled: z.boolean().optional().default(true),
 })

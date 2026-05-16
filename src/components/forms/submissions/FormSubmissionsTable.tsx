@@ -81,9 +81,10 @@ export default function FormSubmissionsTable({
         <div className="flex items-center gap-2">
           <SearchInput
             value={search}
-            onChange={setSearch}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search submissions..."
             size="sm"
+            onClear={search ? () => setSearch('') : undefined}
           />
           <a
             href={exportUrl}

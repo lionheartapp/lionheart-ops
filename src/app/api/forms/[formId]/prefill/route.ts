@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+import { rawPrisma } from '@/lib/db'
 
 export const GET = withAuth<unknown, { formId: string }>(
   async ({ ctx, params }) => {
@@ -22,15 +23,15 @@ export const GET = withAuth<unknown, { formId: string }>(
       return NextResponse.json(ok({}))
     }
 
-    // Fetch user profile data
-    const user = await prisma.user.findFirst({
+    // Fetch user profile data (rawPrisma for relation includes)
+    const user = await rawPrisma.user.findUnique({
       where: { id: ctx.userId },
       select: {
         firstName: true,
         lastName: true,
         email: true,
         phone: true,
-        role: { select: { name: true } },
+        userRole: { select: { name: true } },
         school: { select: { name: true, address: true } },
       },
     })
@@ -48,7 +49,7 @@ export const GET = withAuth<unknown, { formId: string }>(
       'user.lastName': user?.lastName ?? null,
       'user.email': user?.email ?? null,
       'user.phone': user?.phone ?? null,
-      'user.role': user?.role?.name ?? null,
+      'user.role': user?.userRole?.name ?? null,
       'school.name': user?.school?.name ?? null,
       'school.address': user?.school?.address ?? null,
       'org.name': org?.name ?? null,

@@ -153,11 +153,8 @@ async function handleNotify(config: ActionConfig, ctx: SubmissionContext): Promi
         userId: u.id,
         type: 'FORM_SUBMISSION',
         title: config.subject || `New form submission: ${ctx.formName || 'Form'}`,
-        message: config.message || `${ctx.submitterName || 'Someone'} submitted a response.`,
-        metadata: {
-          formId: ctx.formId,
-          submissionId: ctx.submissionId,
-        },
+        body: config.message || `${ctx.submitterName || 'Someone'} submitted a response.`,
+        linkUrl: `/forms/${ctx.formId}`,
       })),
     })
   }
@@ -206,11 +203,8 @@ async function handleRequireApproval(config: ActionConfig, ctx: SubmissionContex
           userId: u.id,
           type: 'FORM_APPROVAL_NEEDED',
           title: `Approval needed: ${ctx.formName || 'Form submission'}`,
-          message: `${ctx.submitterName || 'A user'} submitted a response that needs your review.`,
-          metadata: {
-            formId: ctx.formId,
-            submissionId: ctx.submissionId,
-          },
+          body: `${ctx.submitterName || 'A user'} submitted a response that needs your review.`,
+          linkUrl: `/forms/${ctx.formId}`,
         })),
       })
     }
