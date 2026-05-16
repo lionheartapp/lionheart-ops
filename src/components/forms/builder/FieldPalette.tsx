@@ -68,10 +68,10 @@ export default function FieldPalette({ onAddField }: FieldPaletteProps) {
                 className="flex flex-col items-center gap-1 p-2.5 rounded-lg border border-slate-100 bg-white hover:border-slate-300 hover:shadow-sm transition-all duration-150 cursor-pointer group"
                 title={meta.description}
               >
-                <span className="text-slate-400 group-hover:text-slate-600 transition-colors">
+                <span className="text-slate-400 group-hover:text-blue-500 transition-colors">
                   {getIcon(meta.icon, 'w-4.5 h-4.5')}
                 </span>
-                <span className="text-[10px] font-medium text-slate-600 group-hover:text-slate-800 truncate w-full text-center">
+                <span className="text-[10px] font-medium text-slate-600 group-hover:text-blue-600 truncate w-full text-center">
                   {meta.label}
                 </span>
               </button>
