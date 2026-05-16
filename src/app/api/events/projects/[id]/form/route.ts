@@ -68,7 +68,16 @@ export const GET = withAuth<unknown, { id: string }>(
       )
     }
 
-    // Clone the template for this event
+    // Clone the template for this event — re-check for race condition
+    // (eventId has a unique constraint, so a concurrent request may have created it)
+    const raceCheck = await prisma.formDefinition.findFirst({
+      where: { eventId },
+      include: FULL_FORM_INCLUDE,
+    })
+    if (raceCheck) {
+      return NextResponse.json(ok(raceCheck))
+    }
+
     const cloned = await cloneFormForEvent(template.id, eventId, orgId)
 
     return NextResponse.json(ok(cloned), { status: 201 })
