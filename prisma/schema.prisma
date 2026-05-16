@@ -5963,6 +5963,7 @@ model FormDefinition {
 
   // Form builder settings
   coverColor     String?
+  logoUrl        String?  // Logo/header image shown at top of form
   description    String?  @db.Text
   confirmMessage String?  @db.Text
   redirectUrl    String?

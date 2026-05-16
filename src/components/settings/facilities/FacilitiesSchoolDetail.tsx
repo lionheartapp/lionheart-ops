@@ -551,7 +551,7 @@ export default function FacilitiesSchoolDetail({
         </div>
 
         {/* Stats strip — glassmorphic cards */}
-        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3 px-2 sm:px-4">
           <StatCard label="Campuses" value={campuses.length} icon={<Building2 className="w-4 h-4" />} dark />
           <StatCard
             label="Buildings"
@@ -571,7 +571,7 @@ export default function FacilitiesSchoolDetail({
       </div>
 
       {/* Content below hero — re-apply padding since parent padding is removed */}
-      <div className="px-4 sm:px-10 pb-10 space-y-5 mt-5">
+      <div className="px-6 sm:px-14 pb-10 space-y-5 mt-5">
 
       {/* Campuses section header + search */}
       <div className="flex items-center gap-2.5">

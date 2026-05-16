@@ -8,9 +8,16 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { listForms, createForm } from '@/lib/services/formService'
+import { listForms, createForm, seedSystemForms } from '@/lib/services/formService'
 
-export const GET = withAuth(async ({ ctx }) => {
+export const GET = withAuth(async ({ orgId }) => {
+  try {
+    // Lazy seed: create system forms on first visit if they don't exist
+    await seedSystemForms(orgId)
+  } catch (e) {
+    console.error('[forms/hub] seedSystemForms failed:', e)
+    // Continue — show whatever forms exist even if seeding fails
+  }
   const forms = await listForms()
   return NextResponse.json(ok(forms))
 })

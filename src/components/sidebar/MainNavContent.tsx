@@ -8,6 +8,7 @@ import {
   Trophy,
   MessageSquare,
   FileText,
+  Sparkles,
 } from 'lucide-react'
 import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
 import { useQueryClient } from '@tanstack/react-query'
@@ -320,6 +321,17 @@ export default function MainNavContent({
           setIsOpen={setIsOpen}
         />
       </nav>
+
+      {/* Leo AI Assistant */}
+      <div className="px-4 pb-1">
+        <button
+          onClick={() => window.dispatchEvent(new Event('open-leo-drawer'))}
+          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 cursor-pointer"
+        >
+          <Sparkles className="w-5 h-5 flex-shrink-0 text-indigo-400" strokeWidth={1.5} aria-hidden="true" />
+          <span className="text-sm">Leo</span>
+        </button>
+      </div>
 
       {/* Footer */}
       <UserMenu

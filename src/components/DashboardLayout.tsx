@@ -8,6 +8,7 @@ import Sidebar, { type SidebarProps } from './Sidebar'
 import SearchCommand from './SearchCommand'
 import ImpersonationBanner from './ImpersonationBanner'
 import TrialBanner from './TrialBanner'
+import LeoDrawer from './ai/LeoDrawer'
 import { syncOfflineData } from '@/lib/offline/sync'
 import { useConnectivity } from '@/hooks/useConnectivity'
 import { useMobileDetect } from '@/lib/hooks/useMobileDetect'
@@ -220,6 +221,8 @@ export default function DashboardLayout({
         {isSearchOpen && <SearchCommand isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
       </AnimatePresence>
 
+      {/* Global Leo AI drawer — available on every page */}
+      <LeoDrawer />
     </div>
   )
 

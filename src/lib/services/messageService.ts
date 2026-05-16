@@ -135,7 +135,7 @@ function fireMessageNotifications(
     const authorName = [author?.firstName, author?.lastName].filter(Boolean).join(' ') || 'Someone'
 
     if (channel?.type === 'DM' || channel?.type === 'GROUP_DM') {
-      await notifyDMRecipients(channelId, userId, authorName, content.slice(0, 100))
+      await notifyDMRecipients(channelId, userId, authorName)
     } else {
       await notifyMentionedUsers(messageId, channelId, userId, authorName)
     }

@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger'
 import DetailDrawer from '@/components/DetailDrawer'
 import ErrorCard from '@/components/ErrorCard'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
-import ChatPanel from '@/components/ai/ChatPanel'
+// ChatPanel moved to global LeoDrawer (sidebar sparkle icon)
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { readResourceItems } from '@/lib/utils/resourceItems'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -685,348 +685,248 @@ export default function DashboardPage() {
         <FacilityRequestsBanner requests={pendingFacilityRequests} />
       )}
 
-      {/* Since Yesterday — the morning ritual centerpiece */}
-      <div className="mb-6 flex-shrink-0">
-        <SinceYesterdayWidget />
-      </div>
-
-      {/* Dashboard Panels Grid */}
+      {/* Dashboard Panels Grid — 2/3 left (activity) + 1/3 right (focus & weather) */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 lg:overflow-hidden overflow-y-auto mb-10"
-        style={{ gridTemplateRows: 'minmax(0, 1fr)' }}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.1, 0.15)}
       >
-        {/* Main Panel — My Tasks / Upcoming Events / Requests (mode-aware) */}
-        {user.dashboardMode === 'admin' ? (
-          <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
-            {/* Getting-started checklist sits above the events panel so Leo
-                (right rail) can stay full-height without the checklist
-                squeezing it from above. */}
-            <OnboardingChecklistWidget />
-            <PlanningSeasonWidget />
-            {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <WeatherWidget contextLabel={activeSchool?.name} />
-              <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => { setFocusedTaskId(null); setIsTasksDrawerOpen(true) }} onOpenTask={(id) => { setFocusedTaskId(id); setIsTasksDrawerOpen(true) }} />
-            </div>
-            <div className="flex-1 min-h-0">
-              <UpcomingEventsPanel
-                items={upcomingItems}
-                loading={upcomingCalLoading || upcomingProjectsLoading}
-                error={
-                  upcomingCalError
-                    ? 'We couldn\u2019t reach the calendar service.'
-                    : upcomingProjectsError
-                      ? 'We couldn\u2019t load event projects.'
-                      : null
-                }
-                onRetry={() => { void refetchUpcomingCal() }}
-                onEventClick={(event) => setSelectedEvent(event)}
-                onProjectClick={(project) => router.push(`/events/${project.id}`)}
-                onCreateSelect={handleUpcomingCreate}
-                isAdmin={isAdmin}
-              />
-            </div>
-          </motion.div>
-        ) : (
-        <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col min-h-0">
+        {/* Left column (2/3) — Since Yesterday + Next Two Weeks */}
+        <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col gap-6">
           <OnboardingChecklistWidget />
           <PlanningSeasonWidget />
-          {/* Half-and-half row — weather + today's focus — sits above the calendar. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <WeatherWidget contextLabel={activeSchool?.name} />
-            <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => { setFocusedTaskId(null); setIsTasksDrawerOpen(true) }} onOpenTask={(id) => { setFocusedTaskId(id); setIsTasksDrawerOpen(true) }} />
-          </div>
-          <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
-          {/* Sticky header — stays pinned while events scroll */}
-          <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
-                {user.dashboardMode === 'admin' ? 'Upcoming Events' :
-                 user.dashboardMode === 'maintenance' ? 'Maintenance Requests' :
-                 user.dashboardMode === 'it' ? 'IT Requests' :
-                 user.dashboardMode === 'av' ? 'Upcoming A/V Events' :
-                 'My Tasks'}
-              </h2>
+          <SinceYesterdayWidget />
+
+          {/* The next two weeks / mode-specific panel */}
+          {user.dashboardMode === 'admin' ? (
+            <UpcomingEventsPanel
+              items={upcomingItems}
+              loading={upcomingCalLoading || upcomingProjectsLoading}
+              error={
+                upcomingCalError
+                  ? 'We couldn\u2019t reach the calendar service.'
+                  : upcomingProjectsError
+                    ? 'We couldn\u2019t load event projects.'
+                    : null
+              }
+              onRetry={() => { void refetchUpcomingCal() }}
+              onEventClick={(event) => setSelectedEvent(event)}
+              onProjectClick={(project) => router.push(`/events/${project.id}`)}
+              onCreateSelect={handleUpcomingCreate}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
+            {/* Sticky header — stays pinned while events scroll */}
+            <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-slate-900">
+                  {user.dashboardMode === 'maintenance' ? 'Maintenance Requests' :
+                   user.dashboardMode === 'it' ? 'IT Requests' :
+                   user.dashboardMode === 'av' ? 'Upcoming A/V Events' :
+                   'My Tasks'}
+                </h2>
+              </div>
+
+              {/* Compact stats row — labels and values adapt per mode */}
+              <div className="flex gap-3 mb-6">
+              {user.dashboardMode === 'av' && (
+                <>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-l-[3px] border-violet-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={events.length} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">A/V Events</p>
+                  </div>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-l-[3px] border-emerald-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={events.filter(e => e.avEquipmentList && e.avEquipmentList.length > 0).length} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Equipment Ready</p>
+                  </div>
+                </>
+              )}
+              {(user.dashboardMode === 'maintenance' || user.dashboardMode === 'it') && (
+                <>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={tickets.filter(t => t.status === 'OPEN').length} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Open Requests</p>
+                  </div>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-amber-50/80 to-orange-50/80 border-l-[3px] border-amber-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={tickets.filter(t => t.status === 'IN_PROGRESS').length} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">In Progress</p>
+                  </div>
+                </>
+              )}
+              {user.dashboardMode !== 'admin' && user.dashboardMode !== 'av' && user.dashboardMode !== 'maintenance' && user.dashboardMode !== 'it' && (
+                <>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={ticketCount} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Active Requests</p>
+                  </div>
+                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-indigo-50/80 to-violet-50/80 border-l-[3px] border-indigo-500 backdrop-blur-sm">
+                    <p className="text-2xl font-bold text-slate-900">
+                      <AnimatedCounter value={tickets.length} duration={0.8} />
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Total Tasks</p>
+                  </div>
+                </>
+              )}
+            </div>
             </div>
 
-            {/* Compact stats row — labels and values adapt per mode */}
-            <div className="flex gap-3 mb-6">
-            {user.dashboardMode === 'admin' && (
-              <>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={upcomingCalEvents.filter(e => new Date(e.startTime).toDateString() === new Date().toDateString()).length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Events Today</p>
+            {/* Scrollable events area */}
+            <div className="relative flex-1 min-h-0">
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none z-10 rounded-b-2xl" />
+            <div className="h-full overflow-y-auto dashboard-scroll px-6 pb-20" onScroll={(e) => setEventsScrolled(e.currentTarget.scrollTop > 0)}>
+            {user.dashboardMode === 'av' ? (
+              /* ── AV Events Panel — formal Events with requiresAV flag ── */
+              eventsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
                 </div>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-indigo-50/80 to-violet-50/80 border-l-[3px] border-indigo-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={upcomingCalEvents.length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Next 2 Weeks</p>
+              ) : eventsError ? (
+                <ErrorCard
+                  resource="A/V events"
+                  message={eventsError}
+                  onRetry={() => fetchEvents()}
+                />
+              ) : events.length === 0 ? (
+                <div className="text-center py-16">
+                  <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-base font-semibold text-slate-700 mb-1">No A/V events scheduled</p>
+                  <p className="text-sm text-slate-500">Events that require A/V support will appear here.</p>
                 </div>
-              </>
-            )}
-            {user.dashboardMode === 'av' && (
-              <>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-l-[3px] border-violet-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={events.length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">A/V Events</p>
-                </div>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-l-[3px] border-emerald-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={events.filter(e => e.avEquipmentList && e.avEquipmentList.length > 0).length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Equipment Ready</p>
-                </div>
-              </>
-            )}
-            {(user.dashboardMode === 'maintenance' || user.dashboardMode === 'it') && (
-              <>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={tickets.filter(t => t.status === 'OPEN').length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Open Requests</p>
-                </div>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-amber-50/80 to-orange-50/80 border-l-[3px] border-amber-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={tickets.filter(t => t.status === 'IN_PROGRESS').length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">In Progress</p>
-                </div>
-              </>
-            )}
-            {user.dashboardMode !== 'admin' && user.dashboardMode !== 'av' && user.dashboardMode !== 'maintenance' && user.dashboardMode !== 'it' && (
-              <>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={ticketCount} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Active Requests</p>
-                </div>
-                <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-indigo-50/80 to-violet-50/80 border-l-[3px] border-indigo-500 backdrop-blur-sm">
-                  <p className="text-2xl font-bold text-slate-900">
-                    <AnimatedCounter value={tickets.length} duration={0.8} />
-                  </p>
-                  <p className="text-[11px] font-medium text-slate-500 mt-0.5">Total Tasks</p>
-                </div>
-              </>
-            )}
-          </div>
-          </div>
-
-          {/* Scrollable events area */}
-          <div className="relative flex-1 min-h-0">
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none z-10 rounded-b-2xl" />
-          <div className="h-full overflow-y-auto dashboard-scroll px-6 pb-20" onScroll={(e) => setEventsScrolled(e.currentTarget.scrollTop > 0)}>
-          {/* ── Admin Events Panel — uses CalendarEvents (same source as calendar page) ── */}
-          {user.dashboardMode === 'admin' ? (
-            upcomingCalLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
-              </div>
-            ) : upcomingCalError ? (
-              <ErrorCard
-                resource="upcoming events"
-                message="We couldn't reach the calendar service. Check your connection and try again."
-                onRetry={() => { void refetchUpcomingCal() }}
-              />
-            ) : upcomingCalEvents.length === 0 ? (
-              <div className="text-center py-16">
-                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-base font-semibold text-slate-700 mb-1">No upcoming events</p>
-                <p className="text-sm text-slate-500">Events on any calendar will appear here.</p>
-              </div>
-            ) : (
-              <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
-                {upcomingCalEvents.map((event: CalendarEventData) => {
-                  const startDate = new Date(event.startTime)
-                  const endDate = new Date(event.endTime)
-                  const isToday = startDate.toDateString() === new Date().toDateString()
-                  const timeStr = `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} – ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
-                  const dateLabel = isToday ? 'Today' : startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-                  const dotColor = event.category?.color || event.calendar.color || '#6366f1'
-
-                  return (
-                    <motion.li
-                      key={event.id}
-                      variants={listItem}
-                      className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition cursor-pointer"
-                      onClick={() => setSelectedEvent(event)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEvent(event) } }}
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: dotColor + '20' }}>
-                        <Calendar className="w-5 h-5" style={{ color: dotColor }} aria-hidden="true" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{event.title}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{dateLabel} · {timeStr}</p>
-                        {event.locationText && (
-                          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.locationText}
-                          </p>
-                        )}
-                        <p className="text-xs text-slate-400 mt-0.5">{event.calendar.name}</p>
-                      </div>
-                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                        {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </motion.li>
-                  )
-                })}
-              </motion.ul>
-            )
-          ) : user.dashboardMode === 'av' ? (
-            /* ── AV Events Panel — formal Events with requiresAV flag ── */
-            eventsLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
-              </div>
-            ) : eventsError ? (
-              <ErrorCard
-                resource="A/V events"
-                message={eventsError}
-                onRetry={() => fetchEvents()}
-              />
-            ) : events.length === 0 ? (
-              <div className="text-center py-16">
-                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-base font-semibold text-slate-700 mb-1">No A/V events scheduled</p>
-                <p className="text-sm text-slate-500">Events that require A/V support will appear here.</p>
-              </div>
-            ) : (
-              <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
-                {events.map((event) => {
-                  const startDate = new Date(event.startsAt)
-                  const endDate = new Date(event.endsAt)
-                  const isToday = startDate.toDateString() === new Date().toDateString()
-                  const timeStr = `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} – ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
-                  const dateLabel = isToday ? 'Today' : startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-
-                  return (
-                    <motion.li
-                      key={event.id}
-                      variants={listItem}
-                      className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
-                        <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{event.title}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{dateLabel} · {timeStr}</p>
-                        {event.room && (
-                          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.room}
-                          </p>
-                        )}
-                        <div className="mt-2">
-                          {event.avEquipmentList && event.avEquipmentList.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {event.avEquipmentList.map((eq, i) => (
-                                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
-                                  <Zap className="w-2.5 h-2.5" aria-hidden="true" />
-                                  {eq.quantity > 1 ? `${eq.quantity}× ` : ''}{eq.item}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">
-                              <Loader2 className="w-2.5 h-2.5 animate-spin" aria-hidden="true" />
-                              Equipment list pending AI parsing…
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                        {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </motion.li>
-                  )
-                })}
-              </motion.ul>
-            )
-          ) : (
-            /* ── Ticket Panel (maintenance, it, default) ── */
-            ticketsLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
-              </div>
-            ) : ticketsError ? (
-              <ErrorCard
-                resource={
-                  user.dashboardMode === 'maintenance' ? 'maintenance requests' :
-                  user.dashboardMode === 'it' ? 'IT requests' :
-                  'tasks'
-                }
-                message={ticketsError}
-                onRetry={() => fetchTickets()}
-              />
-            ) : tickets.length === 0 ? (
-              <div className="text-center py-16">
-                <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
-                <p className="text-base font-semibold text-slate-700 mb-1">No tasks yet</p>
-                <p className="text-sm text-slate-500 mb-4">Submit a maintenance request or create a task to get started.</p>
-                <button
-                  onClick={() => openCreateDrawer('MAINTENANCE')}
-                  className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
-                >
-                  Create First Task
-                </button>
-              </div>
-            ) : (
-              <>
+              ) : (
                 <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
-                  {tickets.filter(t => t.status !== 'RESOLVED').slice(0, 8).map((ticket) => (
-                    <motion.li
-                      key={ticket.id}
-                      variants={listItem}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
-                      onClick={() => { setSelectedTicket(ticket); setIsDetailOpen(true) }}
-                    >
-                      <div className="flex-shrink-0">
-                        {getStatusIcon(ticket.status)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{ticket.title}</p>
-                        <p className="text-xs text-slate-500 mt-1">{formatDate(ticket.createdAt)}</p>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
-                        {ticket.priority === 'NORMAL' ? 'Normal' : ticket.priority === 'CRITICAL' ? 'Critical' : ticket.priority}
-                      </div>
-                    </motion.li>
-                  ))}
+                  {events.map((event) => {
+                    const startDate = new Date(event.startsAt)
+                    const endDate = new Date(event.endsAt)
+                    const isToday = startDate.toDateString() === new Date().toDateString()
+                    const timeStr = `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} – ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+                    const dateLabel = isToday ? 'Today' : startDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+
+                    return (
+                      <motion.li
+                        key={event.id}
+                        variants={listItem}
+                        className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                          <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-900 truncate">{event.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{dateLabel} · {timeStr}</p>
+                          {event.room && (
+                            <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                              <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />{event.room}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            {event.avEquipmentList && event.avEquipmentList.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {event.avEquipmentList.map((eq, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
+                                    <Zap className="w-2.5 h-2.5" aria-hidden="true" />
+                                    {eq.quantity > 1 ? `${eq.quantity}× ` : ''}{eq.item}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-700">
+                                <Loader2 className="w-2.5 h-2.5 animate-spin" aria-hidden="true" />
+                                Equipment list pending AI parsing…
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${isToday ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {isToday ? 'Today' : startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </motion.li>
+                    )
+                  })}
                 </motion.ul>
+              )
+            ) : (
+              /* ── Ticket Panel (maintenance, it, default) ── */
+              ticketsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+                </div>
+              ) : ticketsError ? (
+                <ErrorCard
+                  resource={
+                    user.dashboardMode === 'maintenance' ? 'maintenance requests' :
+                    user.dashboardMode === 'it' ? 'IT requests' :
+                    'tasks'
+                  }
+                  message={ticketsError}
+                  onRetry={() => fetchTickets()}
+                />
+              ) : tickets.length === 0 ? (
+                <div className="text-center py-16">
+                  <IllustrationTickets className="w-48 h-40 mx-auto mb-2" />
+                  <p className="text-base font-semibold text-slate-700 mb-1">No tasks yet</p>
+                  <p className="text-sm text-slate-500 mb-4">Submit a maintenance request or create a task to get started.</p>
+                  <button
+                    onClick={() => openCreateDrawer('MAINTENANCE')}
+                    className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
+                  >
+                    Create First Task
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <motion.ul className="space-y-3" role="list" initial="hidden" animate="visible" variants={staggerContainer(0.04, 0)}>
+                    {tickets.filter(t => t.status !== 'RESOLVED').slice(0, 8).map((ticket) => (
+                      <motion.li
+                        key={ticket.id}
+                        variants={listItem}
+                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
+                        onClick={() => { setSelectedTicket(ticket); setIsDetailOpen(true) }}
+                      >
+                        <div className="flex-shrink-0">
+                          {getStatusIcon(ticket.status)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-900 truncate">{ticket.title}</p>
+                          <p className="text-xs text-slate-500 mt-1">{formatDate(ticket.createdAt)}</p>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(ticket.priority)}`}>
+                          {ticket.priority === 'NORMAL' ? 'Normal' : ticket.priority === 'CRITICAL' ? 'Critical' : ticket.priority}
+                        </div>
+                      </motion.li>
+                    ))}
+                  </motion.ul>
 
-                <button
-                  onClick={() => openCreateDrawer('MAINTENANCE')}
-                  className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition flex items-center justify-center gap-1"
-                >
-                  <Plus className="w-4 h-4" /> Add task
-                </button>
-              </>
-            )
+                  <button
+                    onClick={() => openCreateDrawer('MAINTENANCE')}
+                    className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition flex items-center justify-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" /> Add task
+                  </button>
+                </>
+              )
+            )}
+            </div>
+            </div>
+            </div>
           )}
-          </div>
-          </div>
-          </div>
         </motion.div>
-        )}
 
-        {/* Right Rail — Embedded Leo AI Assistant */}
-        <motion.div
-          variants={cardEntrance}
-          className="min-h-0 overflow-hidden lg:h-[800px]"
-        >
-          <ChatPanel variant="embedded" />
+        {/* Right column (1/3) — Today's Focus on top, Weather below */}
+        <motion.div variants={cardEntrance} className="flex flex-col gap-6 self-start">
+          <TasksFocusWidget firstName={user.name?.split(' ')[0] || 'there'} onViewAll={() => { setFocusedTaskId(null); setIsTasksDrawerOpen(true) }} onOpenTask={(id) => { setFocusedTaskId(id); setIsTasksDrawerOpen(true) }} />
+          <WeatherWidget contextLabel={activeSchool?.name} />
         </motion.div>
       </motion.div>
       </div>

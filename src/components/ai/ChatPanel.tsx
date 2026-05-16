@@ -632,7 +632,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
-          {!isEmbedded && onClose && (
+          {onClose && (
             <button
               onClick={onClose}
               className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"

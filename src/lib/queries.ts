@@ -58,16 +58,6 @@ export const queryKeys = {
   modules: {
     all: ['tenant-modules'] as const,
   },
-  // Forms
-  forms: {
-    all: ['forms'] as const,
-    detail: (formId: string) => ['forms', formId] as const,
-    fields: (formId: string) => ['forms', formId, 'fields'] as const,
-    pages: (formId: string) => ['forms', formId, 'pages'] as const,
-    submissions: (formId: string) => ['forms', formId, 'submissions'] as const,
-    templates: ['forms', 'templates'] as const,
-  },
-
   notifications: {
     all: ['notifications'] as const,
     list: (cursor?: string) => ['notifications', { cursor }] as const,
@@ -356,6 +346,11 @@ export const queryKeys = {
   },
   forms: {
     all: ['forms'] as const,
+    detail: (formId: string) => ['forms', formId] as const,
+    fields: (formId: string) => ['forms', formId, 'fields'] as const,
+    pages: (formId: string) => ['forms', formId, 'pages'] as const,
+    submissions: (formId: string) => ['forms', formId, 'submissions'] as const,
+    templates: ['forms', 'templates'] as const,
     byCategory: (categoryKey: string) => ['forms', 'category', categoryKey] as const,
     qrList: ['forms', 'qr-list'] as const,
   },

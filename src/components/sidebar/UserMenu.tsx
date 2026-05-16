@@ -142,10 +142,6 @@ export default function UserMenu({
         </AnimatePresence>
       </div>
 
-      <div className="border-t border-slate-200/20 my-2" />
-      <div className="flex justify-center">
-        <img src="/logo.svg" alt="" className="h-6 opacity-30" aria-hidden="true" />
-      </div>
     </div>
   )
 }

@@ -310,15 +310,37 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     <div className="space-y-6">
       {/* Header — full-width, flush top (matches all other settings tabs) */}
       <div className="-mt-6 lg:-mt-8 -mx-4 sm:-mx-10 px-4 sm:px-10 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Facilities</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Manage district offices, schools, campuses, and buildings</p>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Facilities</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage district offices, schools, campuses, and buildings</p>
+          </div>
+        </div>
+
+        {/* Tab bar + action buttons */}
+        <div className="mt-5 pt-5 border-t border-slate-200/60 flex items-center justify-between gap-4 flex-wrap">
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                  activeTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {activeTab === t.key && (
+                  <motion.div
+                    layoutId="facilitiesTabPill"
+                    className="absolute inset-0 rounded-full bg-slate-900"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
+                  />
+                )}
+                <span className="relative z-10">{t.label}</span>
+              </button>
+            ))}
           </div>
           {activeTab === 'schools' && onAddSchool && (
             <button
@@ -344,30 +366,6 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
               </button>
             </div>
           )}
-        </div>
-
-        {/* Tab bar */}
-        <div className="mt-5 pt-5 border-t border-slate-200/60">
-          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setActiveTab(t.key)}
-                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                  activeTab === t.key ? 'text-white' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {activeTab === t.key && (
-                  <motion.div
-                    layoutId="facilitiesTabPill"
-                    className="absolute inset-0 rounded-full bg-slate-900"
-                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
-                  />
-                )}
-                <span className="relative z-10">{t.label}</span>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 

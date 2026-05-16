@@ -21,13 +21,19 @@ export const GET = withAuth(async ({ params }) => {
 
 const UpdateFormSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
-  coverColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  coverColor: z.string().nullable().optional(),
   confirmMessage: z.string().max(2000).nullable().optional(),
   redirectUrl: z.string().url().nullable().optional(),
   autoSave: z.boolean().optional(),
   allowDrafts: z.boolean().optional(),
   isPublic: z.boolean().optional(),
   requireEmail: z.boolean().optional(),
+  publicStyle: z.enum(['MINIMAL', 'SPLIT', 'HERO']).optional(),
+  publicCtaColor: z.string().nullable().optional(),
+  publicBgColor: z.string().nullable().optional(),
+  publicImageUrl: z.string().nullable().optional(),
+  publicImageSide: z.enum(['LEFT', 'RIGHT']).optional(),
+  logoUrl: z.string().nullable().optional(),
 })
 
 export const PATCH = withAuth(

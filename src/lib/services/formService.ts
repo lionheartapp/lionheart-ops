@@ -12,6 +12,7 @@
 import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
 import { DEFAULT_CATEGORY_FIELDS, type FormFieldInput, type FormPageInput, type FormActionInput } from '@/lib/forms/schemas'
+import { SYSTEM_FORM_SEEDS } from '@/lib/forms/system-form-seeds'
 import type { FormFieldType, FormContext, FieldProtection, FieldSensitivity } from '@prisma/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -265,17 +266,17 @@ export async function getFormById(formId: string) {
   })
 }
 
-/** List all forms for the current org (system + custom) */
+/** List all forms for the current org (system + custom, excludes ticket category forms) */
 export async function listForms() {
-  return prisma.formDefinition.findMany({
-    where: { context: { not: 'TICKET_CATEGORY' as FormContext } },
+  const all = await prisma.formDefinition.findMany({
     include: {
       pages: { select: { id: true }, orderBy: { sortOrder: 'asc' } },
       fields: { select: { id: true } },
-      _count: { select: { submissions: true } },
     },
     orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
   })
+  // Filter out ticket category forms (those have a categoryKey and TICKET_CATEGORY context)
+  return all.filter((f) => f.context !== 'TICKET_CATEGORY')
 }
 
 /** Create a new custom form */
@@ -314,6 +315,12 @@ export async function updateForm(
     allowDrafts?: boolean
     isPublic?: boolean
     requireEmail?: boolean
+    publicStyle?: 'MINIMAL' | 'SPLIT' | 'HERO'
+    publicCtaColor?: string | null
+    publicBgColor?: string | null
+    publicImageUrl?: string | null
+    publicImageSide?: 'LEFT' | 'RIGHT'
+    logoUrl?: string | null
   }
 ) {
   return prisma.formDefinition.update({
@@ -393,6 +400,62 @@ export async function reorderPages(formId: string, pageIds: string[]) {
     where: { id: formId },
     include: FULL_FORM_INCLUDE,
   })
+}
+
+// ─── Seed System Forms ──────────────────────────────────────────────────────
+
+/**
+ * Seed system forms for an org if they don't exist yet.
+ * Uses rawPrisma because this may run outside org context (during signup or lazy seed).
+ */
+export async function seedSystemForms(orgId: string): Promise<void> {
+  // Check if any system forms already exist for this org
+  const existing = await rawPrisma.formDefinition.findFirst({
+    where: { organizationId: orgId, isDefault: true },
+    select: { id: true },
+  })
+  if (existing) return // Already seeded
+
+  for (const seed of SYSTEM_FORM_SEEDS) {
+    const form = await rawPrisma.formDefinition.create({
+      data: {
+        organizationId: orgId,
+        context: seed.context as FormContext,
+        systemKey: seed.systemKey,
+        description: seed.description,
+        isDefault: true,
+      },
+    })
+
+    for (let pi = 0; pi < seed.pages.length; pi++) {
+      const pageSeed = seed.pages[pi]
+      const page = await rawPrisma.formPage.create({
+        data: {
+          formId: form.id,
+          title: pageSeed.title,
+          sortOrder: pi,
+        },
+      })
+
+      if (pageSeed.fields.length > 0) {
+        await rawPrisma.formField.createMany({
+          data: pageSeed.fields.map((f, fi) => ({
+            formId: form.id,
+            pageId: page.id,
+            key: f.key,
+            label: f.label,
+            type: f.type,
+            required: f.required,
+            protection: f.protection as FieldProtection,
+            placeholder: f.placeholder ?? null,
+            helpText: f.helpText ?? null,
+            options: f.options ?? [],
+            sortOrder: fi,
+          })),
+        })
+      }
+    }
+  }
 }
 
 // ─── Clone Form (for per-event copies) ──────────────────────────────────────

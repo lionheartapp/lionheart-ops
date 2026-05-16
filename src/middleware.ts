@@ -54,6 +54,8 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/favicon')) return true
   if (pathname.startsWith('/api/auth/login')) return true
   if (pathname.startsWith('/api/auth/set-password')) return true
+  if (pathname.startsWith('/api/f/')) return true  // Public form API (no auth)
+  if (pathname.startsWith('/f/')) return true       // Public form page (no auth)
   if (pathname.startsWith('/api/auth/forgot-password')) return true
   if (pathname.startsWith('/api/auth/reset-password')) return true
   if (pathname.startsWith('/api/auth/verify-email')) return true

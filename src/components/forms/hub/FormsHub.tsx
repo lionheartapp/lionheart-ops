@@ -31,7 +31,6 @@ interface FormListItem {
   updatedAt: string
   pages: Array<{ id: string }>
   fields: Array<{ id: string }>
-  _count: { submissions: number }
 }
 
 // ─── System form display config ─────────────────────────────────────────────
@@ -99,7 +98,7 @@ export default function FormsHub() {
   // ─── Loading skeleton ─────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="px-4 sm:px-8 py-6 space-y-6 max-w-4xl">
+      <div className="px-4 sm:px-8 py-6 space-y-6 max-w-5xl">
         <div className="flex items-center justify-between">
           <div className="h-7 w-32 bg-slate-200 rounded-lg animate-pulse" />
           <div className="h-9 w-28 bg-slate-200 rounded-full animate-pulse" />
@@ -118,13 +117,21 @@ export default function FormsHub() {
   }
 
   return (
-    <div className="px-4 sm:px-8 py-6 space-y-8 max-w-4xl">
+    <div className="px-4 sm:px-8 py-6 space-y-8 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Forms</h1>
         <button
-          onClick={() => {
-            // TODO: open create form dialog
+          onClick={async () => {
+            try {
+              const form = await fetchApi<{ id: string }>('/api/forms/hub', {
+                method: 'POST',
+                body: JSON.stringify({ name: 'Untitled Form' }),
+              })
+              router.push(`/forms/${form.id}/builder`)
+            } catch {
+              // TODO: toast error
+            }
           }}
           className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
         >
@@ -148,7 +155,7 @@ export default function FormsHub() {
                 description={config.description}
                 fieldCount={form.fields.length}
                 pageCount={form.pages.length}
-                submissionCount={form._count.submissions}
+                submissionCount={0}
                 isSystem
                 onClick={() => handleOpenBuilder(form.id)}
               />
@@ -198,19 +205,46 @@ export default function FormsHub() {
             <p className="text-xs text-slate-500 mt-1">Create a form to collect responses from staff, parents, or the community.</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {filteredCustom.map((form) => (
-              <FormCard
-                key={form.id}
-                icon={FileText}
-                label={form.description || 'Untitled Form'}
-                description={`${form.fields.length} fields · ${form._count.submissions} responses`}
-                fieldCount={form.fields.length}
-                pageCount={form.pages.length}
-                submissionCount={form._count.submissions}
-                onClick={() => handleOpenBuilder(form.id)}
-              />
-            ))}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Pages</th>
+                  <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Fields</th>
+                  <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">Created</th>
+                  <th className="w-10" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredCustom.map((form) => (
+                  <tr
+                    key={form.id}
+                    onClick={() => handleOpenBuilder(form.id)}
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4 h-4 text-slate-400" strokeWidth={1.5} />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900 truncate">
+                          {form.description || 'Untitled Form'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">{form.pages.length}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">{form.fields.length}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400 hidden md:table-cell">
+                      {new Date(form.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td className="px-2 py-3">
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
