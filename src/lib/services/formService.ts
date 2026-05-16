@@ -190,9 +190,26 @@ export async function updateField(
       ...(patch.options != null && { options: patch.options }),
       ...(patch.autoEscalate != null && { autoEscalate: patch.autoEscalate }),
       ...(patch.condFieldKey !== undefined && { condFieldKey: patch.condFieldKey ?? null }),
+      ...(patch.condOperator !== undefined && { condOperator: patch.condOperator ?? null }),
       ...(patch.condEquals !== undefined && { condEquals: patch.condEquals ?? null }),
       ...(patch.sortOrder != null && { sortOrder: patch.sortOrder }),
       ...(patch.sectionId !== undefined && { sectionId: patch.sectionId ?? null }),
+      ...(patch.pageId !== undefined && { pageId: patch.pageId ?? null }),
+      // Protection & visibility
+      ...(patch.protection != null && { protection: patch.protection as FieldProtection }),
+      ...(patch.isIncluded != null && { isIncluded: patch.isIncluded }),
+      ...(patch.sensitivityLevel != null && { sensitivityLevel: patch.sensitivityLevel as FieldSensitivity }),
+      // Validation
+      ...(patch.minValue !== undefined && { minValue: patch.minValue ?? null }),
+      ...(patch.maxValue !== undefined && { maxValue: patch.maxValue ?? null }),
+      ...(patch.pattern !== undefined && { pattern: patch.pattern ?? null }),
+      ...(patch.errorMessage !== undefined && { errorMessage: patch.errorMessage ?? null }),
+      // Defaults & pre-fill
+      ...(patch.defaultValue !== undefined && { defaultValue: patch.defaultValue ?? null }),
+      ...(patch.prefillSource !== undefined && { prefillSource: patch.prefillSource ?? null }),
+      // File upload config
+      ...(patch.fileTypes != null && { fileTypes: patch.fileTypes }),
+      ...(patch.maxFileSize !== undefined && { maxFileSize: patch.maxFileSize ?? null }),
     },
   })
 }
@@ -448,6 +465,7 @@ export async function seedSystemForms(orgId: string): Promise<void> {
             type: f.type,
             required: f.required,
             protection: f.protection as FieldProtection,
+            isIncluded: true,
             placeholder: f.placeholder ?? null,
             helpText: f.helpText ?? null,
             options: f.options ?? [],
