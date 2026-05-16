@@ -724,6 +724,43 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               </div>
             )}
 
+            {/* ── Request Specific People ── */}
+            <div className={`rounded-xl border transition-colors ${requestedAttendees.length > 0 || showPeoplePicker ? 'border-stone-300 bg-stone-50/50' : 'border-slate-200'}`}>
+              <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                <div className={`p-1 rounded-lg transition-colors ${showPeoplePicker ? 'bg-stone-200' : 'bg-slate-100'}`}>
+                  <Users className={`w-3.5 h-3.5 transition-colors ${showPeoplePicker ? 'text-stone-700' : 'text-slate-400'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900">Request Specific People</p>
+                  <p className="text-[11px] text-slate-500">Notify specific staff after approval</p>
+                </div>
+                <div
+                  role="switch"
+                  aria-checked={showPeoplePicker}
+                  onClick={() => setShowPeoplePicker((p) => !p)}
+                  className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${showPeoplePicker ? 'bg-slate-900' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showPeoplePicker ? 'translate-x-4' : ''}`} />
+                </div>
+              </label>
+
+              {showPeoplePicker && (
+                <div className="px-3.5 pb-3.5 space-y-3 border-t border-stone-200 pt-3">
+                  <PeoplePicker
+                    selectedUserIds={requestedAttendees}
+                    onChange={setRequestedAttendees}
+                    hideHeader
+                  />
+                  <Textarea
+                    value={peopleNote}
+                    onChange={(e) => setPeopleNote(e.target.value)}
+                    rows={2}
+                    placeholder="Note for requested people — role, instructions, etc."
+                  />
+                </div>
+              )}
+            </div>
+
             {/* ── Requirements ── */}
             {(avField || facilityField) && (
             <div className="space-y-2.5">
@@ -915,42 +952,6 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               </div>
             )}
 
-            {/* ── Request Specific People (always present, not from form template) ── */}
-            <div className={`rounded-xl border transition-colors ${requestedAttendees.length > 0 || showPeoplePicker ? 'border-stone-300 bg-stone-50/50' : 'border-slate-200'}`}>
-              <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
-                <div className={`p-1 rounded-lg transition-colors ${showPeoplePicker ? 'bg-stone-200' : 'bg-slate-100'}`}>
-                  <Users className={`w-3.5 h-3.5 transition-colors ${showPeoplePicker ? 'text-stone-700' : 'text-slate-400'}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900">Request Specific People</p>
-                  <p className="text-[11px] text-slate-500">Notify specific staff after approval</p>
-                </div>
-                <div
-                  role="switch"
-                  aria-checked={showPeoplePicker}
-                  onClick={() => setShowPeoplePicker((p) => !p)}
-                  className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${showPeoplePicker ? 'bg-slate-900' : 'bg-slate-200'}`}
-                >
-                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showPeoplePicker ? 'translate-x-4' : ''}`} />
-                </div>
-              </label>
-
-              {showPeoplePicker && (
-                <div className="px-3.5 pb-3.5 space-y-3 border-t border-stone-200 pt-3">
-                  <PeoplePicker
-                    selectedUserIds={requestedAttendees}
-                    onChange={setRequestedAttendees}
-                    hideHeader
-                  />
-                  <Textarea
-                    value={peopleNote}
-                    onChange={(e) => setPeopleNote(e.target.value)}
-                    rows={2}
-                    placeholder="Note for requested people — role, instructions, etc."
-                  />
-                </div>
-              )}
-            </div>
           </div>
           )
         })()}

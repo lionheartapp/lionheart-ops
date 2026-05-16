@@ -134,7 +134,7 @@ export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: 
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg max-h-[120px] overflow-y-auto">
+          <div className="absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg max-h-[280px] overflow-y-auto">
             {filteredUsers.length === 0 ? (
               <div className="px-4 py-3 text-xs text-slate-400 text-center">
                 {search ? 'No matching people found' : 'All members have been added'}
