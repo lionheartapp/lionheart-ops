@@ -127,8 +127,8 @@ function useCampusBuildings() {
               groupLabel:
                 (b.campus as { name?: string } | null)?.name ??
                 (b.school as { name?: string } | null)?.name ??
-                (b.district as { name?: string } | null)?.name ??
-                'General',
+                ((b.district as { name?: string } | null)?.name ? 'District' : null) ??
+                'District',
             })
           )
 
@@ -210,23 +210,23 @@ function CampusPillScroller({
   }
 
   return (
-    <div className="relative border-b border-slate-100 mb-1">
+    <div className="flex items-center gap-0 border-b border-slate-100 mb-1">
       {/* Left arrow */}
-      {canScrollLeft && (
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); scroll('left') }}
-          className="absolute left-0 top-0 bottom-0 z-10 w-7 flex items-center justify-center bg-gradient-to-r from-white via-white/90 to-transparent cursor-pointer"
-        >
-          <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
-        </button>
-      )}
+      <button
+        type="button"
+        onMouseDown={(e) => { e.preventDefault(); scroll('left') }}
+        className={`flex-shrink-0 w-6 h-8 flex items-center justify-center transition-opacity cursor-pointer ${
+          canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
+      </button>
 
-      {/* Scrollable pill container — max 2 rows */}
+      {/* Single-row scrollable pills */}
       <div
         ref={scrollRef}
-        className="flex flex-wrap gap-0.5 px-2 py-1.5 max-h-[60px] overflow-x-auto overflow-y-hidden scrollbar-none"
-        style={{ scrollbarWidth: 'none' }}
+        className="flex-1 flex items-center gap-0.5 py-1.5 overflow-x-auto scrollbar-none"
+        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         <button
           type="button"
@@ -256,15 +256,15 @@ function CampusPillScroller({
       </div>
 
       {/* Right arrow */}
-      {canScrollRight && (
-        <button
-          type="button"
-          onMouseDown={(e) => { e.preventDefault(); scroll('right') }}
-          className="absolute right-0 top-0 bottom-0 z-10 w-7 flex items-center justify-center bg-gradient-to-l from-white via-white/90 to-transparent cursor-pointer"
-        >
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        </button>
-      )}
+      <button
+        type="button"
+        onMouseDown={(e) => { e.preventDefault(); scroll('right') }}
+        className={`flex-shrink-0 w-6 h-8 flex items-center justify-center transition-opacity cursor-pointer ${
+          canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+      </button>
     </div>
   )
 }
