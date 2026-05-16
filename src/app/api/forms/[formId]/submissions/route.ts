@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+import { PERMISSIONS } from '@/lib/permissions'
+import { can } from '@/lib/auth/permissions'
 import {
   listSubmissions,
   createSubmission,
@@ -14,10 +16,10 @@ import {
 } from '@/lib/services/formSubmissionService'
 import { processFormActions } from '@/lib/services/formActionProcessor'
 import { prisma } from '@/lib/db'
-import type { SubmissionStatus } from '@prisma/client'
+import type { SubmissionStatus, FieldSensitivity } from '@prisma/client'
 
 export const GET = withAuth<unknown, { formId: string }>(
-  async ({ params, searchParams }) => {
+  async ({ ctx, params, searchParams }) => {
     const { formId } = params
     const status = searchParams.get('status') as SubmissionStatus | null
     const search = searchParams.get('search') ?? undefined
@@ -29,9 +31,34 @@ export const GET = withAuth<unknown, { formId: string }>(
       getSubmissionCount(formId),
     ])
 
+    // FERPA enforcement: redact FERPA_PROTECTED field values for unauthorized users
+    const canReadFerpa = await can(ctx.userId, PERMISSIONS.FORMS_FERPA_READ)
+    if (!canReadFerpa) {
+      const ferpaKeys = await getFerpaFieldKeys(formId)
+      if (ferpaKeys.size > 0) {
+        for (const sub of submissions) {
+          const data = (sub.data ?? {}) as Record<string, unknown>
+          for (const key of ferpaKeys) {
+            if (key in data) {
+              data[key] = '[FERPA Protected]'
+            }
+          }
+        }
+      }
+    }
+
     return NextResponse.json(ok({ submissions, counts }))
   }
 )
+
+/** Cache of FERPA field keys per form to avoid repeated queries */
+async function getFerpaFieldKeys(formId: string): Promise<Set<string>> {
+  const fields = await prisma.formField.findMany({
+    where: { formId, sensitivityLevel: 'FERPA_PROTECTED' as FieldSensitivity },
+    select: { key: true },
+  })
+  return new Set(fields.map((f) => f.key))
+}
 
 const CreateSubmissionSchema = z.object({
   data: z.record(z.string(), z.unknown()),

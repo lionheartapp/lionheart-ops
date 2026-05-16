@@ -9,6 +9,8 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+import { can } from '@/lib/auth/permissions'
+import { prisma } from '@/lib/db'
 import {
   getSubmission,
   transitionStatus,
@@ -16,14 +18,30 @@ import {
   submitDraft,
   deleteSubmission,
 } from '@/lib/services/formSubmissionService'
-import type { SubmissionStatus } from '@prisma/client'
+import type { SubmissionStatus, FieldSensitivity } from '@prisma/client'
 
 export const GET = withAuth<unknown, { formId: string; subId: string }>(
-  async ({ params }) => {
+  async ({ ctx, params }) => {
     const submission = await getSubmission(params.subId)
     if (!submission) {
       return NextResponse.json(fail('NOT_FOUND', 'Submission not found'), { status: 404 })
     }
+
+    // FERPA enforcement
+    const canReadFerpa = await can(ctx.userId, PERMISSIONS.FORMS_FERPA_READ)
+    if (!canReadFerpa) {
+      const ferpaFields = await prisma.formField.findMany({
+        where: { formId: params.formId, sensitivityLevel: 'FERPA_PROTECTED' as FieldSensitivity },
+        select: { key: true },
+      })
+      const data = (submission.data ?? {}) as Record<string, unknown>
+      for (const f of ferpaFields) {
+        if (f.key in data) {
+          data[f.key] = '[FERPA Protected]'
+        }
+      }
+    }
+
     return NextResponse.json(ok(submission))
   }
 )

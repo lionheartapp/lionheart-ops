@@ -257,6 +257,7 @@ export const PERMISSIONS = {
 
   // Forms
   FORMS_MANAGE: 'forms:manage',
+  FORMS_FERPA_READ: 'forms:ferpa:read',                     // View FERPA-protected field data in form submissions
 
   // Messaging — Phase 23
   MESSAGING_CHANNELS_CREATE:     'channels:create',
@@ -445,6 +446,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.EVENTS_REGISTRATION_MANAGE,
       // Forms
       PERMISSIONS.FORMS_MANAGE,
+      PERMISSIONS.FORMS_FERPA_READ,
       // Phase 21: Documents, Groups, Communication, Day-of Tools
       PERMISSIONS.EVENTS_DOCUMENTS_MANAGE,
       PERMISSIONS.EVENTS_COMPLIANCE_MANAGE,
@@ -896,6 +898,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.ACADEMIC_READ,
       // Forms
       PERMISSIONS.FORMS_MANAGE,
+      PERMISSIONS.FORMS_FERPA_READ,
       // Phase 23: Messaging
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
@@ -998,6 +1001,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.KB_READ,
       // Forms
       PERMISSIONS.FORMS_MANAGE,
+      PERMISSIONS.FORMS_FERPA_READ,
       // Phase 23: Messaging
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
