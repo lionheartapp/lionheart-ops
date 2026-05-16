@@ -3,8 +3,14 @@
  * Send a branded Lionheart test email via Resend.
  * Usage: node scripts/send-test-email.mjs <recipient> [template]
  *
- * Templates: welcome, password_setup, event_updated, event_approved,
- *            event_rejected, event_cancelled, event_invite
+ * Design: matches lionheartapp.com — near-black on warm white, Inter,
+ * monochrome restraint with subtle hairlines.
+ *
+ * Templates: welcome, password_setup, password_reset, email_verification,
+ *            event_invite, event_updated, event_approved, event_rejected,
+ *            event_cancelled, maintenance_submitted, maintenance_assigned,
+ *            maintenance_urgent, maintenance_done, it_ticket_submitted,
+ *            it_ticket_urgent, it_ticket_done
  */
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
@@ -16,182 +22,326 @@ const API_KEY = process.env.RESEND_API_KEY || 're_jA1WA9h6_Cj5JJS2hfeMRWm8cGKmgt
 const FROM = process.env.MAIL_FROM || 'Lionheart <no-reply@lionheartapp.com>'
 const APP_URL = 'https://lionheart-ops.vercel.app'
 
-// ─── Brand tokens ───────────────────────────────────────────────────
+// ─── Brand tokens (lionheartapp.com style) ──────────────────────────
 
 const B = {
-  blue: '#1d4ed8',
-  blueLight: '#eff6ff',
-  dark: '#111827',
-  gray100: '#f3f4f6',
-  gray400: '#9ca3af',
-  gray500: '#6b7280',
-  gray700: '#374151',
-  green: '#059669',
+  nearBlack: '#0f0f0f',
+  textSec: '#5a5a5a',
+  textMute: '#9a9a9a',
+  border: '#e7e7e6',
+  borderSoft: '#efefee',
+  surface: '#ffffff',
+  surfaceAlt: '#fafaf9',
+  surfaceWarm: '#fdfcfb',
+  green: '#047857',
   greenLight: '#ecfdf5',
-  red: '#dc2626',
+  greenBorder: '#bbf7d0',
+  red: '#b91c1c',
   redLight: '#fef2f2',
+  redBorder: '#fecaca',
+  amber: '#b45309',
+  amberLight: '#fffbeb',
+  amberBorder: '#fde68a',
+  gray50: '#f7f7f6',
   white: '#ffffff',
 }
 
-// ─── Template data per type ─────────────────────────────────────────
+const FONT_STACK = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+const YEAR = new Date().getFullYear()
+
+// ─── Helpers (mirror src/lib/email/email-layout.ts) ─────────────────
+
+function pill(label, variant = 'gray') {
+  const p = {
+    green: { bg: B.greenLight, fg: B.green },
+    red: { bg: B.redLight, fg: B.red },
+    amber: { bg: B.amberLight, fg: B.amber },
+    gray: { bg: B.gray50, fg: B.textSec },
+  }[variant]
+  return `<span style="display:inline-block;background:${p.bg};color:${p.fg};padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;">${label}</span>`
+}
+
+function ticketTag(id) {
+  return `<span style="display:inline-block;font-family:'SF Mono',Menlo,monospace;font-size:12px;font-weight:600;color:${B.nearBlack};background:${B.surface};border:1px solid ${B.border};padding:2px 8px;border-radius:5px;">${id}</span>`
+}
+
+function kvRows(rows) {
+  return rows
+    .map(
+      ([k, v], i) =>
+        `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;${i === 0 ? '' : `border-top:1px solid ${B.borderSoft};`}"><tr><td style="padding:8px 0;color:${B.textSec};font-size:13.5px;font-weight:500;">${k}</td><td align="right" style="padding:8px 0;color:${B.nearBlack};font-size:14px;font-weight:600;">${v}</td></tr></table>`
+    )
+    .join('')
+}
+
+function hero(eyebrow, headline) {
+  return `
+    <mj-section background-color="${B.surface}" padding="36px 32px 0 32px">
+      <mj-column>
+        <mj-text align="left" font-size="12px" color="${B.textSec}" padding="0 0 10px 0" css-class="subheading">${eyebrow}</mj-text>
+        <mj-text align="left" font-size="30px" font-weight="700" color="${B.nearBlack}" css-class="heading" line-height="1.18" padding="0 0 14px 0">${headline}</mj-text>
+      </mj-column>
+    </mj-section>`
+}
+
+function lede(html) {
+  return `
+    <mj-section background-color="${B.surface}" padding="0 32px 6px 32px">
+      <mj-column>
+        <mj-text padding="0" align="left" font-size="16px" line-height="1.55" color="${B.textSec}">${html}</mj-text>
+      </mj-column>
+    </mj-section>`
+}
+
+function cta(label, url, color = B.nearBlack) {
+  return `
+    <mj-section background-color="${B.surface}" padding="6px 32px 12px 32px">
+      <mj-column>
+        <mj-button href="${url}" background-color="${color}" color="${B.white}" align="left" border-radius="8px" inner-padding="12px 22px" font-size="14.5px" font-weight="600">${label}</mj-button>
+      </mj-column>
+    </mj-section>`
+}
+
+function detailCard(content, bg = B.surfaceAlt, border = B.border) {
+  return `
+    <mj-section background-color="${B.surface}" padding="12px 32px 16px 32px">
+      <mj-column>
+        <mj-text padding="0" align="left">
+          <div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:14px 18px;font-family:${FONT_STACK};">
+            ${content}
+          </div>
+        </mj-text>
+      </mj-column>
+    </mj-section>`
+}
+
+function micro(html) {
+  return `
+    <mj-section background-color="${B.surface}" padding="6px 32px 16px 32px">
+      <mj-column>
+        <mj-text padding="0" align="left" font-size="13px" line-height="1.5" color="${B.textMute}">${html}</mj-text>
+      </mj-column>
+    </mj-section>`
+}
+
+function band(text, ctaLabel, ctaUrl) {
+  return `
+    <mj-section background-color="${B.nearBlack}" padding="40px 32px">
+      <mj-column>
+        <mj-text align="center" color="#ffffff" font-size="16px" line-height="1.55" padding-bottom="${ctaLabel ? '20px' : '0'}">${text}</mj-text>
+        ${ctaLabel ? `<mj-button href="${ctaUrl}" background-color="#ffffff" color="${B.nearBlack}" align="center" border-radius="8px" inner-padding="12px 22px" font-size="14px" font-weight="600">${ctaLabel}</mj-button>` : ''}
+      </mj-column>
+    </mj-section>`
+}
+
+// ─── Template data ──────────────────────────────────────────────────
 
 const templates = {
   welcome: {
-    subject: 'Welcome to Lionheart — your account is ready',
-    subtitle: '- Your Account Is Ready -',
-    headline: "It's Your Time<br />to Get Started",
-    ctaLabel: 'Set Your Password',
-    ctaUrl: `${APP_URL}/set-password?token=test`,
-    body: `Your account at <strong>Linfield Christian School</strong> is ready. Explore your calendar, manage events, track inventory, and more — all in one place. What will you accomplish with Lionheart?`,
-    bandCtaLabel: 'Set Your Password',
-    bandCtaUrl: `${APP_URL}/set-password?token=test`,
+    subject: 'Welcome to Lionheart',
+    body: () => [
+      hero('Account ready', 'Welcome to Lionheart,<br/>Sarah.'),
+      lede(`Your administrator at <strong style="color:${B.nearBlack};">Linfield Christian School</strong> set up an account for you. Set a password and you're in — calendars, events, work orders, and inventory, all in one place.`),
+      cta('Set your password', `${APP_URL}/set-password?token=test`),
+      micro(`This link expires Friday, May 15, 2026 at 4:30 PM. Need a new one? Ask your admin to resend.`),
+      band(`<strong style="color:#ffffff;">Lionheart</strong> is the single workspace for schools that run on details — events, facilities, IT, athletics, and the people behind it all.`, "See what's inside", APP_URL),
+    ].join(''),
   },
   password_setup: {
     subject: "You're invited to Lionheart",
-    subtitle: "- You're Invited -",
-    headline: 'Complete Your<br />Account Setup',
-    ctaLabel: 'Set Your Password',
-    ctaUrl: `${APP_URL}/set-password?token=test`,
-    body: `You've been invited to join <strong>Linfield Christian School</strong> on Lionheart. Set your password to access calendars, events, facilities, and everything your team uses to stay organized.`,
-    bandCtaLabel: 'Get Started',
-    bandCtaUrl: `${APP_URL}/set-password?token=test`,
+    body: () => [
+      hero("You're invited", 'Join your team<br/>on Lionheart.'),
+      lede(`<strong style="color:${B.nearBlack};">Linfield Christian School</strong> invited you to their workspace. Set a password to access the calendar, submit requests, and stay in the loop.`),
+      cta('Get started', `${APP_URL}/set-password?token=test`),
+      micro(`Invite expires Friday, May 15 at 4:30 PM. If you weren't expecting this, you can ignore it.`),
+    ].join(''),
+  },
+  password_reset: {
+    subject: 'Reset your password',
+    body: () => [
+      hero('Password reset', 'Reset your password.'),
+      lede(`Hi Sarah — we got a request to reset your Lionheart password for <strong style="color:${B.nearBlack};">Linfield Christian School</strong>. The link is good for one hour.`),
+      cta('Reset password', `${APP_URL}/reset-password?token=test`),
+      micro(`Didn't request this? You can ignore this email. Your password won't change.`),
+    ].join(''),
+  },
+  email_verification: {
+    subject: 'Verify your email address',
+    body: () => [
+      hero('One last step', 'Verify your email.'),
+      lede(`Welcome to <strong style="color:${B.nearBlack};">Lionheart</strong>. Click below to confirm this is your address and activate your account.`),
+      cta('Verify email', `${APP_URL}/verify?token=test`),
+      micro(`This link expires in 24 hours. Didn't sign up? Just ignore this email.`),
+    ].join(''),
+  },
+  event_invite: {
+    subject: "You're invited: Spring Awards Ceremony",
+    body: () => [
+      hero("You're invited", 'New event<br/>on your calendar.'),
+      lede(`You've been added as an attendee to <strong style="color:${B.nearBlack};">Spring Awards Ceremony</strong>.`),
+      detailCard(kvRows([
+        ['When', 'Fri, May 22 · 6:00 PM'],
+        ['Where', 'Linfield Gymnasium'],
+      ])),
+      cta('View event', `${APP_URL}/calendar?eventId=test`),
+    ].join(''),
   },
   event_updated: {
-    subject: 'Event rescheduled: Staff Meeting',
-    subtitle: '- Event Update -',
-    headline: 'Event<br />Rescheduled',
-    ctaLabel: 'View Event',
-    ctaUrl: `${APP_URL}/calendar?eventId=test`,
-    detail: `<strong>Staff Meeting</strong> has been rescheduled by John Smith.`,
-    detailCard: `<strong>New Time</strong><br />Friday, March 7, 2026<br />2:00 PM – 3:30 PM`,
-    footnote: "You're receiving this because you're an attendee of this event.",
+    subject: 'Event rescheduled: Spring Awards Ceremony',
+    body: () => [
+      hero('Event update', 'Spring Awards<br/>has moved.'),
+      lede(`<strong style="color:${B.nearBlack};">Spring Awards Ceremony</strong> was rescheduled by Marcus Thompson.`),
+      detailCard(kvRows([
+        ['Was', 'Fri, May 22 · 6:00 PM'],
+        ['Now', 'Sat, May 23 · 5:00 PM'],
+        ['Location', 'Linfield Gymnasium'],
+      ])),
+      cta('View event', `${APP_URL}/calendar?eventId=test`),
+      micro(`You're getting this because you're an attendee. RSVPs roll over — no need to respond again.`),
+    ].join(''),
   },
   event_approved: {
-    subject: 'Event approved: Spring Concert',
-    subtitle: '- Good News -',
-    headline: 'Event<br />Approved',
-    ctaLabel: 'View Event',
-    ctaUrl: `${APP_URL}/calendar?eventId=test`,
-    ctaColor: B.green,
-    detail: `Your event <strong>Spring Concert</strong> has been approved.`,
-    detailCard: `Approved via <strong>facilities</strong> channel.`,
-    detailBg: B.greenLight,
-    detailBorder: B.green,
+    subject: 'Event approved: Robotics Demo Night',
+    body: () => [
+      hero('Approved', 'Your event got<br/>the green light.'),
+      lede(`<strong style="color:${B.nearBlack};">Robotics Demo Night</strong> was approved and is now on the master calendar.`),
+      detailCard(kvRows([
+        ['Approved by', 'Facilities channel'],
+        ['When', 'Tue, May 19 · 7:00 PM'],
+        ['Status', pill('Live on calendar', 'green')],
+      ]), B.greenLight, B.greenBorder),
+      cta('View event', `${APP_URL}/calendar?eventId=test`, B.green),
+    ].join(''),
   },
   event_rejected: {
     subject: 'Event not approved: Field Day',
-    subtitle: '- Event Update -',
-    headline: 'Event Not<br />Approved',
-    ctaLabel: 'View Event',
-    ctaUrl: `${APP_URL}/calendar?eventId=test`,
-    detail: `Your event <strong>Field Day</strong> was not approved.`,
-    detailCard: `<strong>Reason</strong><br />The gymnasium is already reserved for that date. Please choose an alternative time.`,
-    detailBg: B.redLight,
-    detailBorder: B.red,
-    extra: `You can edit your event and resubmit it for approval.`,
+    body: () => [
+      hero('Event update', 'Event not approved.'),
+      lede(`Your event <strong style="color:${B.nearBlack};">Field Day</strong> wasn't approved this round.`),
+      detailCard(kvRows([
+        ['Channel', 'Facilities'],
+        ['Reason', 'Gymnasium already reserved'],
+      ]), B.redLight, B.redBorder),
+      micro(`You can edit the event (date, location, etc.) and resubmit any time.`),
+      cta('Edit and resubmit', `${APP_URL}/calendar?eventId=test`),
+    ].join(''),
   },
   event_cancelled: {
     subject: 'Event cancelled: Faculty Lunch',
-    subtitle: '- Event Update -',
-    headline: 'Event<br />Cancelled',
-    ctaLabel: null,
-    detail: `The event <strong>Faculty Lunch</strong> has been cancelled and removed from the calendar.`,
-    detailCard: `This event is no longer scheduled. No further action is needed.`,
-    detailBg: B.gray100,
-    detailBorder: B.gray500,
-    footnote: "You're receiving this because you were an attendee of this event.",
+    body: () => [
+      hero('Event update', 'Faculty Lunch<br/>was cancelled.'),
+      lede(`The event was removed from the calendar by the organizer.`),
+      detailCard(kvRows([['Status', pill('Cancelled', 'gray')]]), B.gray50, B.border),
+      micro(`No action needed. You're receiving this because you were on the attendee list.`),
+    ].join(''),
   },
-  event_invite: {
-    subject: "You're invited: Parent-Teacher Night",
-    subtitle: "- You're Invited -",
-    headline: 'New Event<br />on Your Calendar',
-    ctaLabel: 'View Event',
-    ctaUrl: `${APP_URL}/calendar?eventId=test`,
-    detail: `You've been added as an attendee to <strong>Parent-Teacher Night</strong>.`,
-    detailCard: `<strong>When</strong><br />Thursday, March 13, 2026<br />6:00 PM – 8:00 PM`,
+  maintenance_submitted: {
+    subject: 'Maintenance request MT-1042 received',
+    body: () => [
+      hero('Maintenance', 'We got your request.'),
+      lede(`Your request is in the queue. We'll keep you posted as it moves.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('MT-1042')],
+        ['Title', 'Broken light fixture, Room 214'],
+        ['Priority', pill('Medium', 'amber')],
+      ])),
+      cta('Track your request', `${APP_URL}/maintenance/tickets/MT-1042`),
+    ].join(''),
+  },
+  maintenance_assigned: {
+    subject: 'Work order assigned: MT-1042',
+    body: () => [
+      hero('Work order', 'New ticket on your queue.'),
+      lede(`This one is yours. Tap through for full context — photos, history, and location.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('MT-1042')],
+        ['Title', 'Broken light fixture, Room 214'],
+        ['Priority', pill('High', 'red')],
+        ['Category', 'Electrical'],
+        ['Location', 'Main Building, Floor 2'],
+      ])),
+      cta('View ticket', `${APP_URL}/maintenance/tickets/MT-1042`),
+    ].join(''),
+  },
+  maintenance_urgent: {
+    subject: 'URGENT maintenance request: MT-1043',
+    body: () => [
+      hero('Urgent', 'Immediate attention needed.'),
+      lede(`An <strong style="color:${B.nearBlack};">urgent</strong> maintenance request was just submitted. Please review and assign.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('MT-1043')],
+        ['Title', 'Water leak from ceiling, Cafeteria'],
+        ['Category', 'Plumbing'],
+        ['Location', 'Cafeteria, Main Building'],
+        ['Priority', pill('Urgent', 'red')],
+      ]), B.redLight, B.redBorder),
+      cta('View urgent ticket', `${APP_URL}/maintenance/tickets/MT-1043`, B.red),
+    ].join(''),
+  },
+  maintenance_done: {
+    subject: 'Request MT-1042 completed',
+    body: () => [
+      hero('All done', 'Request completed.'),
+      lede(`Your maintenance request has been resolved and closed.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('MT-1042')],
+        ['Title', 'Broken light fixture, Room 214'],
+        ['Status', pill('Completed', 'green')],
+      ]), B.greenLight, B.greenBorder),
+      cta('View details', `${APP_URL}/maintenance/tickets/MT-1042`, B.green),
+      micro(`Thanks for using Lionheart maintenance.`),
+    ].join(''),
+  },
+  it_ticket_submitted: {
+    subject: 'IT request IT-2087 received',
+    body: () => [
+      hero('IT help desk', 'We got your request.'),
+      lede(`Your IT request is in the queue. We'll keep you updated as it moves.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('IT-2087')],
+        ['Title', 'Laptop not connecting to WiFi'],
+        ['Category', 'Network'],
+      ])),
+      cta('Track your request', `${APP_URL}/it/tickets/IT-2087`),
+    ].join(''),
+  },
+  it_ticket_urgent: {
+    subject: 'URGENT IT request: IT-2090',
+    body: () => [
+      hero('Urgent', 'IT request —<br/>immediate attention needed.'),
+      lede(`An <strong style="color:${B.nearBlack};">urgent</strong> IT request was just submitted.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('IT-2090')],
+        ['Title', 'Network outage — main building'],
+        ['Category', 'Infrastructure'],
+        ['Priority', pill('Urgent', 'red')],
+      ]), B.redLight, B.redBorder),
+      cta('View urgent ticket', `${APP_URL}/it/tickets/IT-2090`, B.red),
+    ].join(''),
+  },
+  it_ticket_done: {
+    subject: 'IT request IT-2087 resolved',
+    body: () => [
+      hero('All done', 'IT request resolved.'),
+      lede(`Your IT request is closed.`),
+      detailCard(kvRows([
+        ['Ticket', ticketTag('IT-2087')],
+        ['Title', 'Laptop not connecting to WiFi'],
+        ['Status', pill('Resolved', 'green')],
+      ]), B.greenLight, B.greenBorder),
+      cta('View details', `${APP_URL}/it/tickets/IT-2087`, B.green),
+      micro(`Thanks for using the IT help desk.`),
+    ].join(''),
   },
 }
 
 const t = templates[TEMPLATE]
 if (!t) {
-  console.error(`Unknown template: ${TEMPLATE}. Options: ${Object.keys(templates).join(', ')}`)
+  console.error(`Unknown template: ${TEMPLATE}\n\nOptions:\n  ${Object.keys(templates).join('\n  ')}`)
   process.exit(1)
 }
 
 // ─── Build MJML ─────────────────────────────────────────────────────
-
-const isWelcome = TEMPLATE === 'welcome' || TEMPLATE === 'password_setup'
-
-// Hero section (welcome/invite style templates)
-// For welcome/password_setup: only show heading, CTA is in blue band only
-const heroContent = `
-    <mj-section background-color="${B.white}" padding="40px 40px 0 40px">
-      <mj-column>
-        <mj-text align="center" font-size="13px" color="${B.blue}" padding-bottom="12px" letter-spacing="2px" css-class="subheading">
-          ${t.subtitle}
-        </mj-text>
-        <mj-text align="center" font-size="36px" font-weight="700" color="${B.dark}" css-class="heading" line-height="1.15" padding-bottom="24px">
-          ${t.headline}
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    ${(!isWelcome && t.ctaLabel) ? `
-    <mj-section background-color="${B.white}" padding="0 40px 8px 40px">
-      <mj-column>
-        <mj-button href="${t.ctaUrl}" background-color="${t.ctaColor || B.blue}" color="${B.white}" align="center" border-radius="24px" inner-padding="14px 40px">
-          ${t.ctaLabel}
-        </mj-button>
-      </mj-column>
-    </mj-section>` : ''}
-`
-
-// Detail section for event-type emails
-const detailContent = t.detail ? `
-    <mj-section background-color="${B.white}" padding="8px 40px 0 40px">
-      <mj-column>
-        <mj-text align="center" padding="0" font-size="16px">
-          ${t.detail}
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    ${t.detailCard ? `
-    <mj-section background-color="${B.white}" padding="16px 40px 8px 40px">
-      <mj-column>
-        <mj-text padding="0" align="center">
-          <div style="background-color: ${t.detailBg || B.blueLight}; border: 1px solid ${t.detailBorder || B.blue}; border-radius: 12px; padding: 20px 24px; text-align: center; display: inline-block; width: auto; max-width: 100%;">
-            <span style="font-size: 15px; line-height: 1.7; color: ${B.dark};">${t.detailCard}</span>
-          </div>
-        </mj-text>
-      </mj-column>
-    </mj-section>` : ''}
-    ${t.extra ? `
-    <mj-section background-color="${B.white}" padding="8px 40px 16px 40px">
-      <mj-column>
-        <mj-text align="center" font-size="14px" color="${B.gray500}">${t.extra}</mj-text>
-      </mj-column>
-    </mj-section>` : ''}` : ''
-
-// Footnote
-const footnoteContent = t.footnote ? `
-    <mj-section background-color="${B.white}" padding="8px 40px 24px 40px">
-      <mj-column>
-        <mj-text align="center" font-size="12px" color="${B.gray400}">${t.footnote}</mj-text>
-      </mj-column>
-    </mj-section>` : ''
-
-// Blue band (welcome emails only)
-const blueBand = isWelcome ? `
-    <mj-section background-color="${B.blue}" padding="48px 40px">
-      <mj-column>
-        <mj-text align="center" color="${B.white}" font-size="17px" line-height="1.6" padding-bottom="24px">
-          ${t.body}
-        </mj-text>
-        ${t.bandCtaLabel ? `
-        <mj-button href="${t.bandCtaUrl}" background-color="${B.white}" color="${B.blue}" align="center" border-radius="24px" inner-padding="12px 36px" font-size="15px" font-weight="600">
-          ${t.bandCtaLabel}
-        </mj-button>` : ''}
-      </mj-column>
-    </mj-section>` : ''
 
 const mjmlSource = `<mjml>
   <mj-head>
@@ -200,65 +350,69 @@ const mjmlSource = `<mjml>
       <meta name="color-scheme" content="light only" />
       <meta name="supported-color-schemes" content="light only" />
     </mj-raw>
-    <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
-    <mj-font name="Oswald" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" />
+    <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <mj-attributes>
-      <mj-all font-family="Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" />
-      <mj-text font-size="15px" line-height="1.6" color="${B.gray700}" />
-      <mj-button font-family="Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15px" font-weight="600" />
+      <mj-all font-family="${FONT_STACK}" />
+      <mj-text font-size="15px" line-height="1.6" color="${B.nearBlack}" />
+      <mj-button font-family="${FONT_STACK}" font-size="14.5px" font-weight="600" />
       <mj-section padding="0" />
-      <mj-body background-color="${B.white}" width="600px" />
+      <mj-body background-color="${B.surfaceWarm}" width="600px" />
     </mj-attributes>
     <mj-style inline="inline">
-      .heading { font-family: Oswald, 'Arial Narrow', Arial, sans-serif; font-weight: 700; letter-spacing: -0.01em; text-transform: uppercase; }
-      .subheading { font-family: Poppins, sans-serif; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; }
+      .heading { font-family: ${FONT_STACK}; font-weight: 700; letter-spacing: -0.022em; }
+      .subheading { font-family: ${FONT_STACK}; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
     </mj-style>
     <mj-style>
       :root { color-scheme: light only; }
-      .footer-link { color: ${B.gray400} !important; text-decoration: underline; font-size: 12px; }
-      a { color: ${B.blue}; }
-      [data-ogsc] body, [data-ogsb] body { background-color: ${B.white} !important; color: ${B.gray700} !important; }
-      @media (prefers-color-scheme: dark) {
-        body, .body { background-color: ${B.white} !important; }
-        h1, h2, h3, p, td, th, div, span { color: inherit !important; }
-      }
+      .footer-link { color: ${B.textSec} !important; text-decoration: none; font-size: 12px; font-weight: 500; }
+      a { color: ${B.nearBlack}; }
     </mj-style>
   </mj-head>
-  <mj-body>
+  <mj-body background-color="${B.surfaceWarm}">
 
-    <!-- Logo -->
-    <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
-      <mj-column>
-        <mj-image src="${APP_URL}/email/logo-color.png" alt="Lionheart Educational Operations" width="180px" align="center" padding="0" />
+    <!-- Logo bar -->
+    <mj-section background-color="${B.surface}" padding="24px 32px 16px 32px">
+      <mj-column width="44px" vertical-align="middle">
+        <mj-text padding="0" align="left">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td bgcolor="${B.nearBlack}" width="34" height="34" align="center" valign="middle" style="background:${B.nearBlack};border-radius:8px;color:#ffffff;font-family:${FONT_STACK};font-size:16px;font-weight:800;line-height:34px;letter-spacing:-0.02em;">
+              <a href="${APP_URL}" style="color:#ffffff;text-decoration:none;display:block;width:34px;height:34px;line-height:34px;">L</a>
+            </td>
+          </tr></table>
+        </mj-text>
+      </mj-column>
+      <mj-column vertical-align="middle">
+        <mj-text padding="0 0 0 12px" font-size="16px" font-weight="700" color="${B.nearBlack}" line-height="34px">Lionheart</mj-text>
       </mj-column>
     </mj-section>
 
-    <!-- Blue divider -->
-    <mj-section padding="0 40px">
+    <!-- Hairline -->
+    <mj-section background-color="${B.surface}" padding="0 32px">
       <mj-column>
-        <mj-divider border-color="${B.blue}" border-width="2px" padding="0" />
+        <mj-divider border-color="${B.border}" border-width="1px" padding="0" />
       </mj-column>
     </mj-section>
 
-    ${heroContent}
-    ${detailContent}
-    ${footnoteContent}
-    ${blueBand}
+    ${t.body()}
 
     <!-- Footer -->
-    <mj-section background-color="${B.white}" padding="32px 40px 16px 40px">
+    <mj-section background-color="${B.surfaceWarm}" padding="28px 32px 8px 32px">
       <mj-column>
-        <mj-text align="center" font-size="13px" color="${B.gray400}" line-height="1.6">
-          Stay up to date with our latest news &amp; features.
+        <mj-text align="center" font-size="12px" color="${B.textSec}" line-height="1.6">
+          <a href="${APP_URL}" class="footer-link">Open app</a>
+          &nbsp;·&nbsp;
+          <a href="${APP_URL}/settings/notifications" class="footer-link">Notification settings</a>
+          &nbsp;·&nbsp;
+          <a href="${APP_URL}/help" class="footer-link">Help center</a>
         </mj-text>
       </mj-column>
     </mj-section>
 
-    <mj-section background-color="${B.white}" padding="0 40px 32px 40px">
+    <mj-section background-color="${B.surfaceWarm}" padding="0 32px 28px 32px">
       <mj-column>
-        <mj-text align="center" font-size="11px" color="${B.gray400}" line-height="1.5">
-          &copy; 2026 Lionheart Educational Operations<br />
-          <a href="${APP_URL}" class="footer-link">Open Lionheart</a>
+        <mj-text align="center" font-size="11px" color="${B.textMute}" line-height="1.5">
+          &copy; ${YEAR} Lionheart Educational Operations · lionheartapp.com<br />
+          Made for schools, districts, and teams that run on details.
         </mj-text>
       </mj-column>
     </mj-section>
@@ -284,7 +438,7 @@ const res = await fetch('https://api.resend.com/emails', {
     to: [TO],
     subject: t.subject,
     html,
-    text: `${t.subtitle.replace(/-/g, '').trim()} — ${t.headline.replace(/<br\s*\/?>/g, ' ')}`,
+    text: t.subject,
   }),
 })
 

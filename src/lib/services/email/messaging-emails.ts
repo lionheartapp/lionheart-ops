@@ -7,6 +7,8 @@
 
 import { sendViaResend, sendViaSmtp, getResendConfig, getSmtpConfig } from './transport'
 import { logger } from '@/lib/logger'
+import { wrapInlineLayout, inlineHero, inlineCta, inlineMicro } from '@/lib/email/inline-layout'
+import { B } from '@/lib/email/email-layout'
 
 const log = logger.child({ service: 'messagingEmails' })
 
@@ -41,63 +43,40 @@ function buildDigestHtml(input: SendDigestInput): { subject: string; html: strin
     .map((ch) => {
       const previewRows = ch.previews
         .map(
-          (p) =>
-            `<tr>
-              <td style="padding:4px 8px;color:#374151;font-size:14px;">
-                <strong>${escapeHtml(p.author)}</strong>
-                <span style="color:#6B7280;margin-left:8px;font-size:12px;">${escapeHtml(p.time)}</span>
-                <br/>
-                <span style="color:#4B5563;">${escapeHtml(p.text.slice(0, 80))}${p.text.length > 80 ? '...' : ''}</span>
-              </td>
-            </tr>`
+          (p, i) =>
+            `<div style="padding:12px 0;${i === 0 ? '' : `border-top:1px solid ${B.borderSoft};`}">
+              <div style="font-size:13.5px;font-weight:600;color:${B.nearBlack};margin-bottom:2px;">${escapeHtml(p.author)} <span style="color:${B.textMute};font-weight:500;font-size:11px;margin-left:6px;">· ${escapeHtml(p.time)}</span></div>
+              <div style="font-size:14px;color:${B.textSec};line-height:1.5;">${escapeHtml(p.text.slice(0, 80))}${p.text.length > 80 ? '…' : ''}</div>
+            </div>`
         )
         .join('')
 
-      return `
-        <tr>
-          <td style="padding:16px 0 4px 0;">
-            <h3 style="margin:0;font-size:16px;color:#111827;">#${escapeHtml(ch.name)}</h3>
-            <span style="font-size:13px;color:#6B7280;">${ch.unreadCount} unread message${ch.unreadCount === 1 ? '' : 's'}</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9FAFB;border-radius:8px;">
-              ${previewRows}
-            </table>
-          </td>
-        </tr>`
+      return `<div style="padding:12px 32px 4px 32px;">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+          <span style="font-size:14.5px;font-weight:600;color:${B.nearBlack};">#${escapeHtml(ch.name)}</span>
+          <span style="font-size:12px;color:${B.textMute};font-weight:500;">${ch.unreadCount} unread</span>
+        </div>
+        <div style="background:${B.surfaceAlt};border:1px solid ${B.border};border-radius:12px;padding:4px 16px;">
+          ${previewRows}
+        </div>
+      </div>`
     })
     .join('')
 
-  const html = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
-<body style="margin:0;padding:0;background:#F3F4F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td align="center" style="padding:32px 16px;">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:12px;overflow:hidden;">
-        <tr><td style="padding:24px 24px 16px 24px;">
-          <h2 style="margin:0 0 4px 0;font-size:20px;color:#111827;">Hi ${escapeHtml(input.userName)},</h2>
-          <p style="margin:0;font-size:15px;color:#6B7280;">You have ${totalUnread} unread message${totalUnread === 1 ? '' : 's'} across ${input.channels.length} channel${input.channels.length === 1 ? '' : 's'}.</p>
-        </td></tr>
-        <tr><td style="padding:0 24px;">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            ${channelBlocks}
-          </table>
-        </td></tr>
-        <tr><td align="center" style="padding:24px;">
-          <a href="${input.appUrl}/messaging" style="display:inline-block;padding:12px 32px;background:#4F46E5;color:#FFFFFF;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">Open Messaging</a>
-        </td></tr>
-        <tr><td style="padding:0 24px 24px 24px;font-size:12px;color:#9CA3AF;text-align:center;">
-          You're receiving this because you have email digests enabled. Adjust your notification preferences in the app.
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`
+  const channelCount = input.channels.length
+  const html = wrapInlineLayout({
+    appUrl: input.appUrl,
+    content: [
+      `<div style="padding:36px 32px 6px 32px;">
+        <div style="font-size:12px;font-weight:600;color:${B.textSec};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Daily digest</div>
+        <h1 style="margin:0 0 14px;font-size:30px;font-weight:700;line-height:1.18;letter-spacing:-0.022em;color:${B.nearBlack};">${totalUnread} message${totalUnread === 1 ? '' : 's'} you missed.</h1>
+        <p style="margin:0 0 18px;font-size:16px;line-height:1.55;color:${B.textSec};">Hi ${escapeHtml(input.userName)} — here's what came in while you were away, across ${channelCount} channel${channelCount === 1 ? '' : 's'}.</p>
+      </div>`,
+      channelBlocks,
+      inlineCta('Open messaging', `${input.appUrl}/messaging`),
+      inlineMicro(`Want a different cadence? <a href="${input.appUrl}/settings/notifications" style="color:${B.textSec};text-decoration:underline;">Adjust digest settings</a>.`),
+    ].join(''),
+  })
 
   const textLines = [`Hi ${input.userName},\n`, `You have ${totalUnread} unread message(s):\n`]
   for (const ch of input.channels) {

@@ -3,6 +3,7 @@
 import nodemailer from 'nodemailer'
 import { sendViaResend, sendViaSmtp, getResendConfig, getSmtpConfig, getAppUrl, type SendEmailResult } from './transport'
 import { logger } from '@/lib/logger'
+import { wrapInlineLayout, inlineHero, inlineCta, inlineKvCard, inlineCard, inlinePill, inlineMicro } from '@/lib/email/inline-layout'
 
 const log = logger.child({ service: 'reportEmails' })
 
@@ -24,15 +25,31 @@ export async function sendBoardReportEmail(
 ): Promise<{ sent: boolean; reason?: string }> {
   const from = getResendConfig()?.from || getSmtpConfig()?.from || 'Lionheart <no-reply@lionheartapp.com>'
 
-  const fciColors: Record<string, string> = { GOOD: '#059669', FAIR: '#f59e0b', POOR: '#ef4444' }
-  const fciColor = fciColors[input.fciRating] ?? '#6b7280'
   const fciLabel = input.fciRating === 'GOOD' ? 'Good' : input.fciRating === 'FAIR' ? 'Fair' : 'Poor'
+  const fciVariant: 'green' | 'amber' | 'red' | 'gray' =
+    input.fciRating === 'GOOD' ? 'green' : input.fciRating === 'FAIR' ? 'amber' : input.fciRating === 'POOR' ? 'red' : 'gray'
 
   const subject = `Board Facilities Report — ${input.period} — ${input.orgName}`
+  const appUrl = input.appUrl || getAppUrl()
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px;"><div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><div style="background: #059669; padding: 24px 32px;"><p style="color: #d1fae5; margin: 0 0 4px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Lionheart Facilities Management</p><h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">Board Facilities Report</h1><p style="color: #a7f3d0; margin: 4px 0 0; font-size: 14px;">${input.orgName} — ${input.period}</p></div><div style="padding: 32px;"><p style="color: #374151; margin: 0 0 16px; font-size: 15px;">Hi ${input.recipientName},</p><p style="color: #6b7280; margin: 0 0 24px; font-size: 14px; line-height: 1.6;">Your facilities board report for <strong>${input.period}</strong> is attached as a PDF.</p><div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px;"><table style="width: 100%; border-collapse: collapse;"><tr><td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; width: 160px;">Facility Condition (FCI)</td><td style="padding: 6px 0;"><span style="display: inline-block; background: ${fciColor}20; color: ${fciColor}; padding: 2px 10px; border-radius: 9999px; font-size: 13px; font-weight: 700;">${fciLabel}</span></td></tr><tr><td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase;">Open Work Orders</td><td style="padding: 6px 0; color: #111827; font-size: 14px; font-weight: 600;">${input.backlogCount} tickets</td></tr></table></div><a href="${input.appUrl || getAppUrl()}/maintenance/board-report" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;">View Live Dashboard</a></div></div></body></html>`
+  const html = wrapInlineLayout({
+    appUrl,
+    content: [
+      inlineHero(
+        'Board report',
+        `${input.period} in numbers.`,
+        `Hi ${input.recipientName} — here's the facilities summary for <strong style="color:#0f0f0f;">${input.orgName}</strong>. The full report is attached as a PDF.`
+      ),
+      inlineKvCard([
+        ['Facility condition (FCI)', inlinePill(fciLabel, fciVariant)],
+        ['Open work orders', `${input.backlogCount} tickets`],
+        ['Period', input.period],
+      ]),
+      inlineCta('Open live dashboard', `${appUrl}/maintenance/board-report`),
+    ].join(''),
+  })
 
-  const text = `Board Facilities Report — ${input.orgName} — ${input.period}\n\nFCI Rating: ${fciLabel}\nOpen Work Orders: ${input.backlogCount}\n\nView: ${input.appUrl || getAppUrl()}/maintenance/board-report`
+  const text = `Board Facilities Report — ${input.orgName} — ${input.period}\n\nFCI Rating: ${fciLabel}\nOpen Work Orders: ${input.backlogCount}\n\nView: ${appUrl}/maintenance/board-report`
 
   const cfg = getResendConfig()
   if (cfg) {
@@ -79,7 +96,31 @@ export async function sendContactFormEmail(input: ContactFormEmailInput): Promis
   const from = process.env.MAIL_FROM || 'Lionheart <no-reply@lionheartapp.com>'
   const subject = `[Lionheart Contact] ${input.subject || 'New Message'} from ${input.name}`
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px;"><div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><div style="background: #4f46e5; padding: 24px 32px;"><p style="color: #c7d2fe; margin: 0 0 4px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Contact Form Submission</p><h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">New Message from ${input.name}</h1></div><div style="padding: 32px;"><table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;"><tr><td style="padding: 8px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; width: 100px; vertical-align: top;">Name</td><td style="padding: 8px 0; color: #111827; font-size: 14px;">${input.name}</td></tr><tr><td style="padding: 8px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; vertical-align: top;">Email</td><td style="padding: 8px 0;"><a href="mailto:${input.email}" style="color: #4f46e5; font-size: 14px;">${input.email}</a></td></tr></table><div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;"><p style="color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; margin: 0 0 8px;">Message</p><p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${input.message}</p></div></div></div></body></html>`
+  const escapedMessage = input.message
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>')
+  const appUrl = getAppUrl()
+  const html = wrapInlineLayout({
+    appUrl,
+    content: [
+      inlineHero(
+        'New inquiry',
+        'Someone wants to talk to you.',
+        `A new contact form was just submitted from <strong style="color:#0f0f0f;">lionheartapp.com</strong>.`
+      ),
+      inlineKvCard([
+        ['Name', input.name],
+        ['Email', `<a href="mailto:${input.email}" style="color:#0f0f0f;">${input.email}</a>`],
+        ...(input.subject ? [['Subject', input.subject] as const] : []),
+      ]),
+      inlineCard(
+        `<div style="font-size:11px;font-weight:600;color:#9a9a9a;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Message</div><div style="font-size:14.5px;color:#0f0f0f;line-height:1.6;">${escapedMessage}</div>`
+      ),
+      inlineCta('Reply in dashboard', `${appUrl}/admin/support`),
+    ].join(''),
+  })
   const text = `New contact form message from ${input.name} <${input.email}>\n${input.subject ? `Subject: ${input.subject}\n` : ''}\nMessage:\n${input.message}`
 
   const resendResult = await sendViaResend(to, subject, html, text, from)
@@ -98,13 +139,38 @@ type ComplianceReminderEmailInput = {
 
 export async function sendComplianceReminderEmail(input: ComplianceReminderEmailInput): Promise<SendEmailResult> {
   const isUrgent = input.daysUntilDue <= 7
-  const urgencyColor = isUrgent ? '#ef4444' : '#f59e0b'
-  const urgencyLabel = isUrgent ? `URGENT: ${input.daysUntilDue} days remaining` : `${input.daysUntilDue} days remaining`
+  const variant: 'red' | 'amber' = isUrgent ? 'red' : 'amber'
   const subject = isUrgent
     ? `URGENT: ${input.domain} compliance due in ${input.daysUntilDue} days — ${input.orgName}`
     : `Compliance Reminder: ${input.domain} due in ${input.daysUntilDue} days — ${input.orgName}`
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 20px;"><div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"><div style="background: #059669; padding: 24px 32px;"><p style="color: #d1fae5; margin: 0 0 4px; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Lionheart Compliance</p><h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">${input.orgName}</h1></div><div style="padding: 32px;"><div style="background: ${urgencyColor}10; border: 1px solid ${urgencyColor}30; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;"><p style="color: ${urgencyColor}; margin: 0; font-size: 14px; font-weight: 600;">${urgencyLabel}</p></div><p style="color: #374151; margin: 0 0 8px; font-size: 15px;">Hi ${input.recipientName || 'there'},</p><p style="color: #6b7280; margin: 0 0 24px; font-size: 14px; line-height: 1.6;">A compliance deadline is approaching for <strong>${input.orgName}</strong>.</p><div style="background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px;"><table style="width: 100%; border-collapse: collapse;"><tr><td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase; width: 120px;">Domain</td><td style="padding: 6px 0; color: #111827; font-size: 14px; font-weight: 600;">${input.domain}</td></tr><tr><td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase;">Inspection</td><td style="padding: 6px 0; color: #111827; font-size: 14px;">${input.recordTitle}</td></tr><tr><td style="padding: 6px 0; color: #9ca3af; font-size: 12px; font-weight: 600; text-transform: uppercase;">Due Date</td><td style="padding: 6px 0; color: ${urgencyColor}; font-size: 14px; font-weight: 700;">${input.dueDate}</td></tr></table></div><a href="${input.complianceLink}" style="display: inline-block; background: #059669; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;">View Compliance Calendar</a></div></div></body></html>`
+  const appUrl = getAppUrl()
+  const eyebrow = isUrgent ? 'Urgent · compliance' : 'Compliance'
+  const headline = isUrgent
+    ? `${input.daysUntilDue} days left.`
+    : `Heads up — ${input.domain.toLowerCase()} due soon.`
+  const lede = `Hi ${input.recipientName || 'there'} — a compliance deadline is approaching for <strong style="color:#0f0f0f;">${input.orgName}</strong>.`
+
+  const cardBg = isUrgent ? '#fef2f2' : '#fffbeb'
+  const cardBorder = isUrgent ? '#fecaca' : '#fde68a'
+
+  const html = wrapInlineLayout({
+    appUrl,
+    content: [
+      inlineHero(eyebrow, headline, lede),
+      inlineKvCard(
+        [
+          ['Domain', input.domain],
+          ['Inspection', input.recordTitle],
+          ['Due', input.dueDate],
+          ['Status', inlinePill(`${input.daysUntilDue} days remaining`, variant)],
+        ],
+        cardBg,
+        cardBorder
+      ),
+      inlineCta('Open compliance calendar', input.complianceLink),
+    ].join(''),
+  })
   const text = `Compliance Reminder — ${input.orgName}\n\nDomain: ${input.domain}\nInspection: ${input.recordTitle}\nDue: ${input.dueDate}\nDays: ${input.daysUntilDue}\n\nView: ${input.complianceLink}`
 
   const from = getResendConfig()?.from || getSmtpConfig()?.from || 'Lionheart <no-reply@lionheartapp.com>'

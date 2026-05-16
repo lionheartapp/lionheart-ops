@@ -2,7 +2,7 @@
  * Lionheart-branded MJML email templates.
  *
  * Layout, brand tokens, and MJML helpers are in email-layout.ts.
- * This file defines per-template MJML content, subjects, and text bodies.
+ * Design: matches lionheartapp.com — near-black on warm white, Inter, monochrome restraint.
  */
 
 import mjml2html from 'mjml'
@@ -14,6 +14,8 @@ import {
   centeredCta,
   contentSection,
   detailCard,
+  ledeText,
+  microNote,
 } from './email-layout'
 
 // ─── Template Definitions ────────────────────────────────────────────────────
@@ -28,7 +30,6 @@ export type EmailTemplate =
   | 'event_invite'
   | 'password_setup'
   | 'password_reset'
-  // Maintenance email templates (10 triggers)
   | 'maintenance_submitted'
   | 'maintenance_assigned'
   | 'maintenance_claimed'
@@ -39,11 +40,9 @@ export type EmailTemplate =
   | 'maintenance_urgent'
   | 'maintenance_stale'
   | 'maintenance_qa_rejected'
-  // Maintenance asset intelligence alerts (3 triggers)
   | 'maintenance_repeat_repair'
   | 'maintenance_cost_threshold'
   | 'maintenance_end_of_life'
-  // IT Help Desk email templates (6 triggers)
   | 'it_ticket_submitted'
   | 'it_ticket_assigned'
   | 'it_ticket_in_progress'
@@ -53,632 +52,574 @@ export type EmailTemplate =
 
 type TemplateVars = Record<string, string | undefined>
 
+// ─── Reusable bits ───────────────────────────────────────────────────────────
+
+/** Small status pill rendered as an inline span (email-safe). */
+function pill(label: string, variant: 'green' | 'red' | 'amber' | 'gray' = 'gray'): string {
+  const palette = {
+    green: { bg: B.greenLight, fg: B.green },
+    red: { bg: B.redLight, fg: B.red },
+    amber: { bg: B.amberLight, fg: B.amber },
+    gray: { bg: B.gray50, fg: B.textSec },
+  }[variant]
+  return `<span style="display:inline-block;background:${palette.bg};color:${palette.fg};padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:0.01em;">${label}</span>`
+}
+
+/** Monospace ticket-ID tag. */
+function ticketTag(id: string): string {
+  return `<span style="display:inline-block;font-family:'SF Mono',Menlo,monospace;font-size:12px;font-weight:600;color:${B.nearBlack};background:${B.surface};border:1px solid ${B.border};padding:2px 8px;border-radius:5px;letter-spacing:0.02em;">${id}</span>`
+}
+
+/** Key/value rows rendered inside a detailCard. */
+function kvRows(rows: ReadonlyArray<readonly [string, string]>): string {
+  return rows
+    .map(
+      ([k, v], i) =>
+        `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0;${i === 0 ? '' : `border-top:1px solid ${B.borderSoft};`}padding:${i === 0 ? '0' : '6px'} 0;"><tr><td style="padding:6px 0;color:${B.textSec};font-size:13.5px;font-weight:500;">${k}</td><td align="right" style="padding:6px 0;color:${B.nearBlack};font-size:14px;font-weight:600;">${v}</td></tr></table>`
+    )
+    .join('')
+}
+
+// ─── Per-template MJML ───────────────────────────────────────────────────────
+
+// eslint-disable-next-line complexity
 function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
   switch (template) {
-    // ── Welcome (new account created by admin) ──
+    // ── Account ──────────────────────────────────────────────────────────────
     case 'welcome':
       return wrapLayout({
         previewText: 'Your account is ready — set your password to get started',
         content: [
-          heroHeading('- Your Account Is Ready -', "It's Your Time<br />to Get Started"),
+          heroHeading('Account ready', 'Welcome to Lionheart,<br />{{firstName}}.'),
+          ledeText(
+            `Your administrator at <strong style="color:${B.nearBlack};">{{orgName}}</strong> set up an account for you. Set a password and you're in — calendars, events, work orders, and inventory, all in one place.`
+          ),
+          centeredCta('Set your password', '{{setupLink}}'),
+          microNote(`This link expires {{expiresAt}}. Need a new one? Ask your admin to resend.`),
         ].join('\n'),
         blueBand: {
-          text: `Your account at <strong>{{orgName}}</strong> is ready. Explore your calendar, manage events, track inventory, and more — all in one place. What will you accomplish with Lionheart?`,
-          ctaLabel: 'Set Your Password',
-          ctaUrl: '{{setupLink}}',
+          text: `<strong style="color:#ffffff;">Lionheart</strong> is the single workspace for schools that run on details — events, facilities, IT, athletics, and the people behind it all.`,
+          ctaLabel: "See what's inside",
+          ctaUrl: '{{appUrl}}',
         },
       })
 
-    // ── Password setup (invited user) ──
     case 'password_setup':
       return wrapLayout({
         previewText: 'Set your password to join {{orgName}} on Lionheart',
         content: [
-          heroHeading("- You're Invited -", 'Complete Your<br />Account Setup'),
+          heroHeading("You're invited", 'Join your team<br />on Lionheart.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{orgName}}</strong> invited you to their workspace. Set a password to access the calendar, submit requests, and stay in the loop with your team.`
+          ),
+          centeredCta('Get started', '{{setupLink}}'),
+          microNote(`Invite expires {{expiresAt}}. If you weren't expecting this, you can ignore it.`),
         ].join('\n'),
-        blueBand: {
-          text: `You've been invited to join <strong>{{orgName}}</strong> on Lionheart. Set your password to access calendars, events, facilities, and everything your team uses to stay organized.`,
-          ctaLabel: 'Get Started',
-          ctaUrl: '{{setupLink}}',
-        },
       })
 
-    // ── Password reset ──
     case 'password_reset':
       return wrapLayout({
         previewText: 'Reset your password for {{orgName}} on Lionheart',
         content: [
-          heroHeading('- Password Reset -', 'Reset Your<br />Password'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Hi {{firstName}}, we received a request to reset your password for <strong>{{orgName}}</strong>. Click the button below to set a new password. This link expires in 1 hour.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Password reset', 'Reset your password.'),
+          ledeText(
+            `Hi {{firstName}} — we got a request to reset your Lionheart password for <strong style="color:${B.nearBlack};">{{orgName}}</strong>. Use the button below to set a new one. The link is good for one hour.`
           ),
-          centeredCta('Reset Password', '{{resetLink}}'),
+          centeredCta('Reset password', '{{resetLink}}'),
+          microNote(`Didn't request this? You can ignore this email. Your password won't change.`),
         ].join('\n'),
-        blueBand: {
-          text: `If you didn't request this, you can safely ignore this email. Your password will not change.`,
-        },
       })
 
-    // ── Email Verification ──
     case 'email_verification':
       return wrapLayout({
         previewText: 'Verify your email address to get started with {{orgName}}',
         content: [
-          heroHeading('- Welcome to Lionheart -', 'Verify Your<br />Email Address'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Hi {{firstName}}, welcome to <strong>{{orgName}}</strong>! Please verify your email address to activate your account and get started.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('One last step', 'Verify your email.'),
+          ledeText(
+            `Welcome to <strong style="color:${B.nearBlack};">Lionheart</strong>. Click below to confirm this is your address and activate your account at {{orgName}}.`
           ),
-          centeredCta('Verify Email', '{{verificationLink}}'),
-        ].join('\n'),
-        blueBand: {
-          text: 'This verification link expires in 24 hours. If you did not create an account on Lionheart, you can safely ignore this email.',
-        },
-      })
-
-    // ── Event rescheduled ──
-    case 'event_updated':
-      return wrapLayout({
-        previewText: '{{eventTitle}} has been rescheduled',
-        content: [
-          heroHeading('- Event Update -', 'Event<br />Rescheduled'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              <strong>{{eventTitle}}</strong> has been rescheduled by {{updatedByName}}.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>New Time</strong><br />{{eventDate}}<br />{{eventTime}}`
-          ),
-          centeredCta('View Event', '{{eventLink}}'),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you're an attendee of this event.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          centeredCta('Verify email', '{{verificationLink}}'),
+          microNote(`This link expires in 24 hours. Didn't sign up? Just ignore this email.`),
         ].join('\n'),
       })
 
-    // ── Event approved ──
-    case 'event_approved':
-      return wrapLayout({
-        previewText: 'Your event "{{eventTitle}}" has been approved',
-        content: [
-          heroHeading('- Good News -', 'Event<br />Approved'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your event <strong>{{eventTitle}}</strong> has been approved.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `Approved via <strong>{{channelName}}</strong> channel.`,
-            B.greenLight,
-            B.green
-          ),
-          centeredCta('View Event', '{{eventLink}}', B.green),
-        ].join('\n'),
-      })
-
-    // ── Event rejected ──
-    case 'event_rejected':
-      return wrapLayout({
-        previewText: 'Your event "{{eventTitle}}" was not approved',
-        content: [
-          heroHeading('- Event Update -', 'Event Not<br />Approved'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your event <strong>{{eventTitle}}</strong> was not approved.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          vars.reason
-            ? detailCard(`<strong>Reason</strong><br />{{reason}}`, B.redLight, B.red)
-            : '',
-          contentSection(
-            `<mj-text align="center" padding-bottom="0" font-size="14px" color="${B.gray500}">
-              You can edit your event and resubmit it for approval.
-            </mj-text>`,
-            '8px 40px 16px 40px'
-          ),
-          centeredCta('View Event', '{{eventLink}}'),
-        ].filter(Boolean).join('\n'),
-      })
-
-    // ── Event cancelled ──
-    case 'event_cancelled':
-      return wrapLayout({
-        previewText: '{{eventTitle}} has been cancelled',
-        content: [
-          heroHeading('- Event Update -', 'Event<br />Cancelled'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              The event <strong>{{eventTitle}}</strong> has been cancelled and removed from the calendar.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            'This event is no longer scheduled. No further action is needed.',
-            B.gray100,
-            B.gray500
-          ),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">You're receiving this because you were an attendee of this event.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
-        ].join('\n'),
-      })
-
-    // ── Event invite ──
+    // ── Events ──────────────────────────────────────────────────────────────
     case 'event_invite':
       return wrapLayout({
         previewText: 'You\'ve been added to "{{eventTitle}}"',
         content: [
-          heroHeading("- You're Invited -", 'New Event<br />on Your Calendar'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              You've been added as an attendee to <strong>{{eventTitle}}</strong>.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading("You're invited", 'New event<br />on your calendar.'),
+          ledeText(
+            `You've been added as an attendee to <strong style="color:${B.nearBlack};">{{eventTitle}}</strong>.`
           ),
           vars.eventDate
-            ? detailCard(`<strong>When</strong><br />{{eventDate}}<br />{{eventTime}}`)
+            ? detailCard(kvRows([
+                ['When', '{{eventDate}} · {{eventTime}}'],
+              ]))
             : '',
-          // RSVP action buttons
-          vars.eventId ? `
-    <mj-section background-color="${B.white}" padding="8px 40px 0 40px">
+          vars.eventId
+            ? `
+    <mj-section background-color="${B.surface}" padding="0 32px 6px 32px">
       <mj-column>
-        <mj-text align="center" font-size="13px" color="${B.gray500}" padding-bottom="12px">
+        <mj-text padding="0 0 10px 0" align="left" font-size="13px" color="${B.textSec}" font-weight="500">
           Will you attend?
         </mj-text>
       </mj-column>
     </mj-section>
-    <mj-section background-color="${B.white}" padding="0 40px 8px 40px">
+    <mj-section background-color="${B.surface}" padding="0 32px 8px 32px">
       <mj-column>
-        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=accept" background-color="${B.green}" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=accept" background-color="${B.green}" color="${B.white}" align="left" border-radius="8px" inner-padding="10px 18px" padding="0 6px 0 0" font-size="13.5px" font-weight="600">
           Accept
         </mj-button>
       </mj-column>
       <mj-column>
-        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=maybe" background-color="#f59e0b" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=maybe" background-color="${B.amber}" color="${B.white}" align="left" border-radius="8px" inner-padding="10px 18px" padding="0 6px 0 0" font-size="13.5px" font-weight="600">
           Maybe
         </mj-button>
       </mj-column>
       <mj-column>
-        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=decline" background-color="${B.red}" color="${B.white}" align="center" border-radius="24px" inner-padding="12px 28px" font-size="14px" font-weight="600">
+        <mj-button href="{{appUrl}}/calendar?eventId={{eventId}}&rsvp=decline" background-color="${B.red}" color="${B.white}" align="left" border-radius="8px" inner-padding="10px 18px" padding="0" font-size="13.5px" font-weight="600">
           Decline
         </mj-button>
       </mj-column>
-    </mj-section>` : '',
-          centeredCta('View Event', '{{eventLink}}'),
+    </mj-section>`
+            : '',
+          centeredCta('View event', '{{eventLink}}'),
         ].filter(Boolean).join('\n'),
       })
 
-    // ── Maintenance: Ticket Submitted (to submitter) ──
+    case 'event_updated':
+      return wrapLayout({
+        previewText: '{{eventTitle}} has been rescheduled',
+        content: [
+          heroHeading('Event update', '{{eventTitle}}<br />has moved.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{eventTitle}}</strong> was rescheduled by {{updatedByName}}.`
+          ),
+          detailCard(kvRows([
+            ['New time', '{{eventDate}} · {{eventTime}}'],
+          ])),
+          centeredCta('View event', '{{eventLink}}'),
+          microNote(`You're getting this because you're an attendee. RSVPs roll over — you don't need to respond again.`),
+        ].join('\n'),
+      })
+
+    case 'event_approved':
+      return wrapLayout({
+        previewText: 'Your event "{{eventTitle}}" has been approved',
+        content: [
+          heroHeading('Approved', 'Your event<br />got the green light.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{eventTitle}}</strong> was approved and is now on the master calendar.`
+          ),
+          detailCard(
+            kvRows([
+              ['Approved by', '{{channelName}} channel'],
+              ['Status', pill('Live on calendar', 'green')],
+            ]),
+            B.greenLight,
+            '#bbf7d0'
+          ),
+          centeredCta('View event', '{{eventLink}}', B.green),
+        ].join('\n'),
+      })
+
+    case 'event_rejected':
+      return wrapLayout({
+        previewText: 'Your event "{{eventTitle}}" was not approved',
+        content: [
+          heroHeading('Event update', 'Event not approved.'),
+          ledeText(
+            `Your event <strong style="color:${B.nearBlack};">{{eventTitle}}</strong> wasn't approved this round.`
+          ),
+          vars.reason
+            ? detailCard(kvRows([['Reason', '{{reason}}']]), B.redLight, '#fecaca')
+            : '',
+          microNote(`You can edit the event (date, location, etc.) and resubmit any time.`),
+          centeredCta('Edit and resubmit', '{{eventLink}}'),
+        ].filter(Boolean).join('\n'),
+      })
+
+    case 'event_cancelled':
+      return wrapLayout({
+        previewText: '{{eventTitle}} has been cancelled',
+        content: [
+          heroHeading('Event update', '{{eventTitle}}<br />was cancelled.'),
+          ledeText(`The event was removed from the calendar by the organizer.`),
+          detailCard(kvRows([['Status', pill('Cancelled', 'gray')]]), B.gray50, B.border),
+          microNote(`No action needed. You're receiving this because you were on the attendee list.`),
+        ].join('\n'),
+      })
+
+    // ── Maintenance ─────────────────────────────────────────────────────────
     case 'maintenance_submitted':
       return wrapLayout({
         previewText: 'Your maintenance request {{ticketNumber}} has been submitted',
         content: [
-          heroHeading('- Maintenance Request -', 'Request<br />Submitted'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your maintenance request has been received and is now in our queue.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}`,
-            B.blueLight,
-            B.blue
-          ),
-          centeredCta('View Request', '{{ticketLink}}'),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll keep you updated as your request is processed.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          heroHeading('Maintenance', 'We got your request.'),
+          ledeText(`Your request is in the queue. We'll keep you posted as it moves.`),
+          detailCard(kvRows([
+            ['Ticket', ticketTag('{{ticketNumber}}')],
+            ['Title', '{{ticketTitle}}'],
+            ['Priority', '{{priority}}'],
+          ])),
+          centeredCta('Track your request', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: Ticket Assigned (to assignee) ──
     case 'maintenance_assigned':
       return wrapLayout({
         previewText: 'Maintenance ticket {{ticketNumber}} has been assigned to you',
         content: [
-          heroHeading('- Work Order -', 'Ticket<br />Assigned to You'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              A maintenance ticket has been assigned to you for action.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Category:</strong> {{category}}`,
-            B.blueLight,
-            B.blue
-          ),
-          centeredCta('View Ticket', '{{ticketLink}}'),
+          heroHeading('Work order', 'New ticket on your queue.'),
+          ledeText(`This one is yours. Tap through for full context — photos, history, and location.`),
+          detailCard(kvRows([
+            ['Ticket', ticketTag('{{ticketNumber}}')],
+            ['Title', '{{ticketTitle}}'],
+            ['Priority', '{{priority}}'],
+            ['Category', '{{category}}'],
+          ])),
+          centeredCta('View ticket', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: Ticket Claimed (to Head) ──
     case 'maintenance_claimed':
       return wrapLayout({
         previewText: '{{technicianName}} has claimed ticket {{ticketNumber}}',
         content: [
-          heroHeading('- Work Order Update -', 'Ticket<br />Claimed'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              <strong>{{technicianName}}</strong> has self-claimed ticket {{ticketNumber}} and will begin work soon.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Update', 'Ticket claimed.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{technicianName}}</strong> self-claimed ticket {{ticketNumber}} and will start work shortly.`
           ),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Assigned to:</strong> {{technicianName}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Assigned to', '{{technicianName}}'],
+              ['Status', pill('Claimed', 'green')],
+            ]),
             B.greenLight,
-            B.green
+            '#bbf7d0'
           ),
-          centeredCta('View Ticket', '{{ticketLink}}', B.green),
+          centeredCta('View ticket', '{{ticketLink}}', B.green),
         ].join('\n'),
       })
 
-    // ── Maintenance: In Progress (to submitter) ──
     case 'maintenance_in_progress':
       return wrapLayout({
         previewText: 'Work has begun on your request {{ticketNumber}}',
         content: [
-          heroHeading('- Maintenance Update -', 'Work<br />In Progress'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Good news — work has started on your maintenance request.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('Update', 'Work has started.'),
+          ledeText(`Good news — someone's on it. We'll let you know when it's done.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Assigned to:</strong> {{technicianName}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Assigned to', '{{technicianName}}'],
+              ['Status', pill('In progress', 'green')],
+            ]),
             B.greenLight,
-            B.green
+            '#bbf7d0'
           ),
-          centeredCta('View Request', '{{ticketLink}}', B.green),
+          centeredCta('View progress', '{{ticketLink}}', B.green),
         ].join('\n'),
       })
 
-    // ── Maintenance: On Hold (to submitter and Head) ──
     case 'maintenance_on_hold':
       return wrapLayout({
         previewText: 'Maintenance request {{ticketNumber}} is temporarily on hold',
         content: [
-          heroHeading('- Maintenance Update -', 'Request<br />On Hold'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your maintenance request has been temporarily placed on hold.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('Update', 'Request on hold.'),
+          ledeText(`Your maintenance request is temporarily paused. Here's why:`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Reason:</strong> {{holdReason}}`,
-            B.gray100,
-            B.gray500
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Reason', '{{holdReason}}'],
+              ['Status', pill('On hold', 'amber')],
+            ]),
+            B.amberLight,
+            '#fde68a'
           ),
-          centeredCta('View Request', '{{ticketLink}}'),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll update you when work resumes.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          centeredCta('View ticket', '{{ticketLink}}'),
+          microNote(`We'll email you the moment work resumes.`),
         ].join('\n'),
       })
 
-    // ── Maintenance: QA Ready (to Head) ──
     case 'maintenance_qa_ready':
       return wrapLayout({
         previewText: 'Ticket {{ticketNumber}} is ready for QA review',
         content: [
-          heroHeading('- QA Review Needed -', 'Ready for<br />Approval'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              A maintenance ticket is ready for your QA review and sign-off.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Completed by:</strong> {{technicianName}}`,
-            B.blueLight,
-            B.blue
-          ),
-          centeredCta('Review & Approve', '{{ticketLink}}'),
+          heroHeading('QA review', 'Ready for your sign-off.'),
+          ledeText(`A maintenance ticket is ready for QA review.`),
+          detailCard(kvRows([
+            ['Ticket', ticketTag('{{ticketNumber}}')],
+            ['Title', '{{ticketTitle}}'],
+            ['Completed by', '{{technicianName}}'],
+            ['Status', pill('Awaiting QA', 'amber')],
+          ])),
+          centeredCta('Review and approve', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: Done (to submitter) ──
     case 'maintenance_done':
       return wrapLayout({
         previewText: 'Your maintenance request {{ticketNumber}} has been completed',
         content: [
-          heroHeading('- All Done -', 'Request<br />Completed'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your maintenance request has been completed and closed.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('All done', 'Request completed.'),
+          ledeText(`Your maintenance request has been resolved and closed.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Status', pill('Completed', 'green')],
+            ]),
             B.greenLight,
-            B.green
+            '#bbf7d0'
           ),
-          centeredCta('View Details', '{{ticketLink}}', B.green),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">Thank you for using Lionheart maintenance.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          centeredCta('View details', '{{ticketLink}}', B.green),
+          microNote(`Thanks for using Lionheart maintenance.`),
         ].join('\n'),
       })
 
-    // ── Maintenance: Urgent Alert (to Head/admin) ──
     case 'maintenance_urgent':
       return wrapLayout({
         previewText: 'URGENT: New maintenance request {{ticketNumber}} requires immediate attention',
         content: [
-          heroHeading('- Urgent Alert -', 'Urgent<br />Maintenance Request'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              An <strong>URGENT</strong> maintenance request has been submitted and requires immediate attention.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Urgent', 'Immediate attention needed.'),
+          ledeText(
+            `An <strong style="color:${B.nearBlack};">urgent</strong> maintenance request was just submitted. Please review and assign.`
           ),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}<br /><strong>Location:</strong> {{location}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Category', '{{category}}'],
+              ['Location', '{{location}}'],
+              ['Priority', pill('Urgent', 'red')],
+            ]),
             B.redLight,
-            B.red
+            '#fecaca'
           ),
-          centeredCta('View Urgent Ticket', '{{ticketLink}}'),
+          centeredCta('View urgent ticket', '{{ticketLink}}', B.red),
         ].join('\n'),
       })
 
-    // ── Maintenance: Stale Alert (to Head) ──
     case 'maintenance_stale':
       return wrapLayout({
         previewText: 'Ticket {{ticketNumber}} has been unassigned for 48+ hours',
         content: [
-          heroHeading('- Action Required -', 'Unassigned<br />Ticket Alert'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              A maintenance ticket has been in the backlog for over 48 hours without assignment.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('Action required', 'Unassigned for 48+ hours.'),
+          ledeText(`A maintenance ticket has been in the backlog for over 48 hours without assignment.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Age:</strong> {{ticketAge}}`,
-            B.redLight,
-            B.red
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Priority', '{{priority}}'],
+              ['Age', '{{ticketAge}}'],
+            ]),
+            B.amberLight,
+            '#fde68a'
           ),
-          centeredCta('Assign Now', '{{ticketLink}}'),
+          centeredCta('Assign now', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: QA Rejected (to technician) ──
     case 'maintenance_qa_rejected':
       return wrapLayout({
         previewText: 'QA review for {{ticketNumber}} was not approved — action required',
         content: [
-          heroHeading('- QA Update -', 'Review Not<br />Approved'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your QA submission for ticket {{ticketNumber}} was not approved. Please review the feedback and resubmit.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('QA update', 'Review not approved.'),
+          ledeText(
+            `Your QA submission for ticket {{ticketNumber}} wasn't approved. Have a look at the feedback and resubmit when ready.`
           ),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Feedback:</strong> {{rejectionNote}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Feedback', '{{rejectionNote}}'],
+            ]),
             B.redLight,
-            B.red
+            '#fecaca'
           ),
-          centeredCta('View Ticket', '{{ticketLink}}'),
+          centeredCta('View ticket', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: Repeat Repair Alert ──
+    // ── Maintenance asset intelligence ──────────────────────────────────────
     case 'maintenance_repeat_repair':
       return wrapLayout({
         previewText: 'Asset {{assetName}} has had {{repairCount}} repairs in the last 12 months',
         content: [
-          heroHeading('- Asset Alert -', 'Repeat Repair<br />Detected'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Asset <strong>{{assetName}}</strong> ({{assetNumber}}) has required <strong>{{repairCount}} repairs</strong> in the past 12 months, indicating a pattern of recurring failures.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Asset intelligence', 'Repeat repair detected.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{assetName}}</strong> (asset {{assetNumber}}) has needed <strong style="color:${B.nearBlack};">{{repairCount}} repairs</strong> in the past 12 months — that's a pattern worth a closer look.`
           ),
-          detailCard(
-            `<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Repairs in Last 12 Months:</strong> {{repairCount}}<br /><br />Consider scheduling a full inspection or evaluating replacement to prevent ongoing maintenance costs.`,
-            B.redLight,
-            B.red
-          ),
-          centeredCta('View Asset', '{{assetUrl}}', B.green),
+          detailCard(kvRows([
+            ['Asset', '{{assetName}} ({{assetNumber}})'],
+            ['Repairs (12 mo)', '{{repairCount}}'],
+            ['Suggestion', 'Inspect or evaluate replacement'],
+          ])),
+          centeredCta('View asset', '{{assetUrl}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: Cost Threshold Alert ──
     case 'maintenance_cost_threshold':
       return wrapLayout({
         previewText: 'Repair costs for {{assetName}} have exceeded the replacement threshold',
         content: [
-          heroHeading('- Cost Alert -', 'Repair Cost<br />Threshold Exceeded'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Cumulative repair costs for <strong>{{assetName}}</strong> have exceeded <strong>{{pct}}%</strong> of its replacement cost, triggering a replace-vs-repair review.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Cost alert', 'Time for a replace-vs-repair call.'),
+          ledeText(
+            `Cumulative repair costs for <strong style="color:${B.nearBlack};">{{assetName}}</strong> now exceed <strong style="color:${B.nearBlack};">{{pct}}%</strong> of its replacement cost.`
           ),
+          detailCard(kvRows([
+            ['Asset', '{{assetName}} ({{assetNumber}})'],
+            ['Cumulative repair', '${{cumulativeCost}}'],
+            ['Replacement cost', '${{replacementCost}}'],
+            ['Threshold', '{{pct}}%'],
+          ])),
           detailCard(
-            '<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Cumulative Repair Cost:</strong> ${{cumulativeCost}}<br /><strong>Replacement Cost:</strong> ${{replacementCost}}<br /><strong>Threshold:</strong> {{pct}}%<br /><br /><strong>AI Recommendation:</strong><br />{{recommendation}}',
-            B.redLight,
-            B.red
+            `<div style="font-size:11px;font-weight:600;color:${B.textMute};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">Leo's recommendation</div><div style="font-size:14.5px;color:${B.nearBlack};line-height:1.55;">{{recommendation}}</div>`,
+            B.surfaceAlt,
+            B.border
           ),
-          centeredCta('View Asset', '{{assetUrl}}', B.green),
+          centeredCta('View asset', '{{assetUrl}}'),
         ].join('\n'),
       })
 
-    // ── Maintenance: End of Life Alert ──
     case 'maintenance_end_of_life':
       return wrapLayout({
         previewText: 'Asset {{assetName}} has reached its expected end of life',
         content: [
-          heroHeading('- Lifecycle Alert -', 'Asset End<br />of Life Reached'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Asset <strong>{{assetName}}</strong> has exceeded its expected lifespan of <strong>{{expectedLifespan}} years</strong> and may require replacement evaluation.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Lifecycle alert', 'Asset has reached<br />end of life.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{assetName}}</strong> has passed its expected <strong style="color:${B.nearBlack};">{{expectedLifespan}}-year</strong> lifespan and may need replacement evaluation.`
           ),
           detailCard(
-            `<strong>Asset:</strong> {{assetName}} ({{assetNumber}})<br /><br /><strong>Purchase Year:</strong> {{purchaseYear}}<br /><strong>Expected Lifespan:</strong> {{expectedLifespan}} years<br /><br />Please evaluate whether to continue operating, schedule a major overhaul, or initiate the replacement process.`,
-            B.gray100,
-            B.gray500
+            kvRows([
+              ['Asset', '{{assetName}} ({{assetNumber}})'],
+              ['Purchase year', '{{purchaseYear}}'],
+              ['Expected lifespan', '{{expectedLifespan}} years'],
+            ]),
+            B.gray50,
+            B.border
           ),
-          centeredCta('View Asset', '{{assetUrl}}', B.green),
+          microNote(`Evaluate whether to continue operating, schedule a major overhaul, or start the replacement process.`),
+          centeredCta('View asset', '{{assetUrl}}'),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: Ticket Submitted (to submitter) ──
+    // ── IT Help Desk ────────────────────────────────────────────────────────
     case 'it_ticket_submitted':
       return wrapLayout({
         previewText: 'Your IT request {{ticketNumber}} has been submitted',
         content: [
-          heroHeading('- IT Help Desk -', 'Request<br />Submitted'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your IT request has been received and is now in our queue.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}`,
-            B.blueLight,
-            B.blue
-          ),
-          centeredCta('View Request', '{{ticketLink}}'),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll keep you updated as your request is processed.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          heroHeading('IT help desk', 'We got your request.'),
+          ledeText(`Your IT request is in the queue. We'll keep you updated as it moves.`),
+          detailCard(kvRows([
+            ['Ticket', ticketTag('{{ticketNumber}}')],
+            ['Title', '{{ticketTitle}}'],
+            ['Category', '{{category}}'],
+          ])),
+          centeredCta('Track your request', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: Ticket Assigned (to assignee) ──
     case 'it_ticket_assigned':
       return wrapLayout({
         previewText: 'IT ticket {{ticketNumber}} has been assigned to you',
         content: [
-          heroHeading('- IT Help Desk -', 'Ticket<br />Assigned to You'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              An IT ticket has been assigned to you for action.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
-          detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Priority:</strong> {{priority}}<br /><strong>Category:</strong> {{category}}`,
-            B.blueLight,
-            B.blue
-          ),
-          centeredCta('View Ticket', '{{ticketLink}}'),
+          heroHeading('IT help desk', 'New ticket on your queue.'),
+          ledeText(`An IT ticket has been assigned to you.`),
+          detailCard(kvRows([
+            ['Ticket', ticketTag('{{ticketNumber}}')],
+            ['Title', '{{ticketTitle}}'],
+            ['Priority', '{{priority}}'],
+            ['Category', '{{category}}'],
+          ])),
+          centeredCta('View ticket', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: In Progress (to submitter) ──
     case 'it_ticket_in_progress':
       return wrapLayout({
         previewText: 'Work has begun on your IT request {{ticketNumber}}',
         content: [
-          heroHeading('- IT Help Desk -', 'Work<br />In Progress'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Good news — work has started on your IT request.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('Update', 'Work has started.'),
+          ledeText(`Good news — IT is on your case.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Status', pill('In progress', 'green')],
+            ]),
             B.greenLight,
-            B.green
+            '#bbf7d0'
           ),
-          centeredCta('View Request', '{{ticketLink}}', B.green),
+          centeredCta('View progress', '{{ticketLink}}', B.green),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: On Hold (to submitter) ──
     case 'it_ticket_on_hold':
       return wrapLayout({
         previewText: 'IT request {{ticketNumber}} is temporarily on hold',
         content: [
-          heroHeading('- IT Help Desk -', 'Request<br />On Hold'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your IT request has been temporarily placed on hold.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('Update', 'Request on hold.'),
+          ledeText(`Your IT request is paused for now.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
-            B.gray100,
-            B.gray500
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Status', pill('On hold', 'amber')],
+            ]),
+            B.amberLight,
+            '#fde68a'
           ),
-          centeredCta('View Request', '{{ticketLink}}'),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">We'll update you when work resumes.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          microNote(`We'll email when work resumes.`),
+          centeredCta('View ticket', '{{ticketLink}}'),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: Done (to submitter) ──
     case 'it_ticket_done':
       return wrapLayout({
         previewText: 'Your IT request {{ticketNumber}} has been resolved',
         content: [
-          heroHeading('- All Done -', 'Request<br />Resolved'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              Your IT request has been resolved and closed.
-            </mj-text>`,
-            '8px 40px 0 40px'
-          ),
+          heroHeading('All done', 'IT request resolved.'),
+          ledeText(`Your IT request is closed.`),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Status', pill('Resolved', 'green')],
+            ]),
             B.greenLight,
-            B.green
+            '#bbf7d0'
           ),
-          centeredCta('View Details', '{{ticketLink}}', B.green),
-          contentSection(
-            `<mj-text align="center" font-size="12px" color="${B.gray400}">Thank you for using IT Help Desk.</mj-text>`,
-            '8px 40px 24px 40px'
-          ),
+          centeredCta('View details', '{{ticketLink}}', B.green),
+          microNote(`Thanks for using the IT help desk.`),
         ].join('\n'),
       })
 
-    // ── IT Help Desk: Urgent Alert (to IT coordinators) ──
     case 'it_ticket_urgent':
       return wrapLayout({
         previewText: 'URGENT: IT request {{ticketNumber}} requires immediate attention',
         content: [
-          heroHeading('- Urgent Alert -', 'Urgent<br />IT Request'),
-          contentSection(
-            `<mj-text align="center" padding="0" font-size="16px">
-              An <strong>URGENT</strong> IT request has been submitted and requires immediate attention.
-            </mj-text>`,
-            '8px 40px 0 40px'
+          heroHeading('Urgent', 'IT request —<br />immediate attention needed.'),
+          ledeText(
+            `An <strong style="color:${B.nearBlack};">urgent</strong> IT request was just submitted.`
           ),
           detailCard(
-            `<strong>{{ticketNumber}}</strong><br />{{ticketTitle}}<br /><br /><strong>Category:</strong> {{category}}<br /><strong>Location:</strong> {{location}}`,
+            kvRows([
+              ['Ticket', ticketTag('{{ticketNumber}}')],
+              ['Title', '{{ticketTitle}}'],
+              ['Category', '{{category}}'],
+              ['Location', '{{location}}'],
+              ['Priority', pill('Urgent', 'red')],
+            ]),
             B.redLight,
-            B.red
+            '#fecaca'
           ),
-          centeredCta('View Urgent Ticket', '{{ticketLink}}'),
+          centeredCta('View urgent ticket', '{{ticketLink}}', B.red),
         ].join('\n'),
       })
 
@@ -709,7 +650,6 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   event_rejected: 'Event not approved: {{eventTitle}}',
   event_cancelled: 'Event cancelled: {{eventTitle}}',
   event_invite: "You're invited: {{eventTitle}}",
-  // Maintenance
   maintenance_submitted: 'Maintenance request {{ticketNumber}} received',
   maintenance_assigned: 'Work order assigned: {{ticketNumber}}',
   maintenance_claimed: '{{technicianName}} claimed ticket {{ticketNumber}}',
@@ -720,11 +660,9 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   maintenance_urgent: 'URGENT maintenance request: {{ticketNumber}}',
   maintenance_stale: 'Action required: Unassigned ticket {{ticketNumber}}',
   maintenance_qa_rejected: 'QA not approved for {{ticketNumber}}',
-  // Maintenance asset intelligence alerts
   maintenance_repeat_repair: 'Repeat Repair Alert: {{assetName}}',
   maintenance_cost_threshold: 'Repair Cost Threshold Exceeded: {{assetName}}',
   maintenance_end_of_life: 'Asset End of Life: {{assetName}}',
-  // IT Help Desk
   it_ticket_submitted: 'IT request {{ticketNumber}} received',
   it_ticket_assigned: 'IT ticket assigned: {{ticketNumber}}',
   it_ticket_in_progress: 'Work started on your IT request {{ticketNumber}}',
@@ -735,7 +673,7 @@ const SUBJECTS: Record<EmailTemplate, string> = {
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
   welcome: 'Welcome to Lionheart! Your account at {{orgName}} is ready. Set your password: {{setupLink}}',
-  email_verification: 'Hi {{firstName}}, welcome to {{orgName}}! Please verify your email address to get started: {{verificationLink}} (expires in 24 hours).',
+  email_verification: 'Hi {{firstName}}, welcome to {{orgName}}! Verify your email: {{verificationLink}} (expires in 24 hours).',
   password_setup: "You've been invited to join {{orgName}} on Lionheart. Set your password: {{setupLink}}",
   password_reset: 'Hi {{firstName}}, reset your password for {{orgName}} on Lionheart: {{resetLink}} (expires in 1 hour). If you did not request this, ignore this email.',
   event_updated: '"{{eventTitle}}" was rescheduled by {{updatedByName}}. New time: {{eventDate}}, {{eventTime}}. View: {{eventLink}}',
@@ -743,7 +681,6 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   event_rejected: 'Your event "{{eventTitle}}" was not approved. {{reason}} View: {{eventLink}}',
   event_cancelled: '"{{eventTitle}}" has been cancelled and removed from the calendar.',
   event_invite: 'You\'ve been added to "{{eventTitle}}". View: {{eventLink}}',
-  // Maintenance
   maintenance_submitted: 'Your maintenance request {{ticketNumber}} "{{ticketTitle}}" has been received. Priority: {{priority}}. View: {{ticketLink}}',
   maintenance_assigned: 'Maintenance ticket {{ticketNumber}} "{{ticketTitle}}" has been assigned to you. Priority: {{priority}}. View: {{ticketLink}}',
   maintenance_claimed: '{{technicianName}} has claimed ticket {{ticketNumber}} "{{ticketTitle}}". View: {{ticketLink}}',
@@ -754,11 +691,9 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   maintenance_urgent: 'URGENT: Maintenance request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
   maintenance_stale: 'Ticket {{ticketNumber}} "{{ticketTitle}}" has been unassigned for 48+ hours. Priority: {{priority}}. View: {{ticketLink}}',
   maintenance_qa_rejected: 'QA review for {{ticketNumber}} "{{ticketTitle}}" was not approved. Feedback: {{rejectionNote}}. View: {{ticketLink}}',
-  // Maintenance asset intelligence alerts
   maintenance_repeat_repair: 'Asset {{assetName}} ({{assetNumber}}) has had {{repairCount}} repairs in the last 12 months. View: {{assetUrl}}',
   maintenance_cost_threshold: 'Cumulative repair cost (${{cumulativeCost}}) for {{assetName}} has exceeded {{pct}}% of replacement cost (${{replacementCost}}). AI Recommendation: {{recommendation}}. View: {{assetUrl}}',
   maintenance_end_of_life: 'Asset {{assetName}} ({{assetNumber}}) purchased in {{purchaseYear}} has exceeded its expected lifespan of {{expectedLifespan}} years. View: {{assetUrl}}',
-  // IT Help Desk
   it_ticket_submitted: 'Your IT request {{ticketNumber}} "{{ticketTitle}}" has been received. Category: {{category}}. View: {{ticketLink}}',
   it_ticket_assigned: 'IT ticket {{ticketNumber}} "{{ticketTitle}}" has been assigned to you. Priority: {{priority}}. View: {{ticketLink}}',
   it_ticket_in_progress: 'Work has started on your IT request {{ticketNumber}} "{{ticketTitle}}". View: {{ticketLink}}',
@@ -771,7 +706,6 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
  * Render a Lionheart-branded email template.
  */
 export function renderEmail(template: EmailTemplate, vars: TemplateVars): RenderEmailResult {
-  // Inject current year for footer copyright
   const enrichedVars = {
     ...vars,
     currentYear: new Date().getFullYear().toString(),

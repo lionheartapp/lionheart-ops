@@ -26,11 +26,11 @@ export async function notifyMentionedUsers(
   authorName: string,
 ): Promise<void> {
   try {
-    // Get the message content and channel name
+    // Get the channel name (and verify both records exist)
     const [message, channel] = await Promise.all([
       rawPrisma.message.findUnique({
         where: { id: messageId },
-        select: { content: true },
+        select: { id: true },
       }),
       rawPrisma.channel.findUnique({
         where: { id: channelId },
@@ -69,14 +69,12 @@ export async function notifyMentionedUsers(
     const eligibleUserIds = mentionedUserIds.filter((id) => !silencedSet.has(id))
     if (eligibleUserIds.length === 0) return
 
-    const contentPreview = message.content.slice(0, 100)
     const channelName = channel.name || 'a channel'
 
     const notifications: CreateBulkNotificationInput[] = eligibleUserIds.map((userId) => ({
       userId,
       type: 'messaging_mention' as const,
       title: `${authorName} mentioned you in #${channelName}`,
-      body: contentPreview,
       linkUrl: `/messaging?channel=${channelId}`,
     }))
 
@@ -96,7 +94,6 @@ export async function notifyDMRecipients(
   channelId: string,
   authorId: string,
   authorName: string,
-  contentPreview: string,
 ): Promise<void> {
   try {
     // Get all members of this DM channel except the sender
@@ -125,13 +122,10 @@ export async function notifyDMRecipients(
     const eligibleIds = recipientIds.filter((id) => !silencedSet.has(id))
     if (eligibleIds.length === 0) return
 
-    const preview = contentPreview.slice(0, 100)
-
     const notifications: CreateBulkNotificationInput[] = eligibleIds.map((userId) => ({
       userId,
       type: 'messaging_dm' as const,
       title: `New message from ${authorName}`,
-      body: preview,
       linkUrl: `/messaging?channel=${channelId}`,
     }))
 
