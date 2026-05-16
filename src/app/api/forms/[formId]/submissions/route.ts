@@ -12,6 +12,8 @@ import {
   createSubmission,
   getSubmissionCount,
 } from '@/lib/services/formSubmissionService'
+import { processFormActions } from '@/lib/services/formActionProcessor'
+import { prisma } from '@/lib/db'
 import type { SubmissionStatus } from '@prisma/client'
 
 export const GET = withAuth<unknown, { formId: string }>(
@@ -48,6 +50,23 @@ export const POST = withAuth<z.infer<typeof CreateSubmissionSchema>, { formId: s
       data: body.data,
       isDraft: body.isDraft,
     })
+
+    // Fire-and-forget: process post-submission actions (notify, approve, webhook)
+    if (!body.isDraft) {
+      const form = await prisma.formDefinition.findUnique({
+        where: { id: params.formId },
+        select: { description: true, organizationId: true },
+      })
+      processFormActions({
+        submissionId: submission.id,
+        formId: params.formId,
+        formName: form?.description ?? null,
+        orgId: form?.organizationId ?? '',
+        submitterEmail: body.submitterEmail ?? ctx.email ?? null,
+        submitterName: body.submitterName ?? null,
+        data: body.data,
+      }).catch(() => {})
+    }
 
     return NextResponse.json(ok(submission), { status: 201 })
   },
