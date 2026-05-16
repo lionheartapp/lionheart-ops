@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MapPin, Building2, DoorOpen, Loader2, Navigation, TreePine } from 'lucide-react'
+import { MapPin, Building2, DoorOpen, Loader2, Navigation, TreePine, ChevronLeft, ChevronRight } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { Input } from '@/components/ui/Input'
 import { SearchInput } from '@/components/ui/SearchInput'
@@ -169,6 +169,104 @@ function groupBuildings(items: BuildingRaw[]): LocationGroup[] {
     map.set(label, existing)
   }
   return Array.from(map.entries()).map(([label, groupItems]) => ({ label, items: groupItems }))
+}
+
+// ─── Campus Pill Scroller ───────────────────────────────────────────────────
+
+function CampusPillScroller({
+  groups,
+  activeTab,
+  onTabChange,
+}: {
+  groups: Array<{ label: string }>
+  activeTab: string | null
+  onTabChange: (tab: string | null) => void
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 2)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
+  }, [])
+
+  useEffect(() => {
+    checkScroll()
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkScroll, { passive: true })
+    const ro = new ResizeObserver(checkScroll)
+    ro.observe(el)
+    return () => { el.removeEventListener('scroll', checkScroll); ro.disconnect() }
+  }, [checkScroll, groups.length])
+
+  function scroll(dir: 'left' | 'right') {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir === 'left' ? -160 : 160, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="relative border-b border-slate-100 mb-1">
+      {/* Left arrow */}
+      {canScrollLeft && (
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); scroll('left') }}
+          className="absolute left-0 top-0 bottom-0 z-10 w-7 flex items-center justify-center bg-gradient-to-r from-white via-white/90 to-transparent cursor-pointer"
+        >
+          <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
+        </button>
+      )}
+
+      {/* Scrollable pill container — max 2 rows */}
+      <div
+        ref={scrollRef}
+        className="flex flex-wrap gap-0.5 px-2 py-1.5 max-h-[60px] overflow-x-auto overflow-y-hidden scrollbar-none"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); onTabChange(null) }}
+          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 ${
+            activeTab === null
+              ? 'bg-slate-900 text-white'
+              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          All
+        </button>
+        {groups.map((g) => (
+          <button
+            key={g.label}
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); onTabChange(g.label) }}
+            className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 ${
+              activeTab === g.label
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Right arrow */}
+      {canScrollRight && (
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); scroll('right') }}
+          className="absolute right-0 top-0 bottom-0 z-10 w-7 flex items-center justify-center bg-gradient-to-l from-white via-white/90 to-transparent cursor-pointer"
+        >
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+        </button>
+      )}
+    </div>
+  )
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -389,35 +487,13 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
             {showBuildingDropdown && (
               <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
                 <div className="py-1 max-h-72 overflow-y-auto">
-                  {/* Category pill tabs */}
+                  {/* Category pill tabs — scrollable with arrows */}
                   {allGroups.length > 1 && (
-                    <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 mb-1">
-                      <button
-                        type="button"
-                        onMouseDown={(e) => { e.preventDefault(); setActiveTab(null) }}
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
-                          activeTab === null
-                            ? 'bg-slate-900 text-white'
-                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        All
-                      </button>
-                      {allGroups.map((g) => (
-                        <button
-                          key={g.label}
-                          type="button"
-                          onMouseDown={(e) => { e.preventDefault(); setActiveTab(g.label) }}
-                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
-                            activeTab === g.label
-                              ? 'bg-slate-900 text-white'
-                              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          {g.label}
-                        </button>
-                      ))}
-                    </div>
+                    <CampusPillScroller
+                      groups={allGroups}
+                      activeTab={activeTab}
+                      onTabChange={setActiveTab}
+                    />
                   )}
                   {/* Items */}
                   {filteredBuildings.length === 0 ? (
