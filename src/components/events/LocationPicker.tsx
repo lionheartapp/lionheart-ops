@@ -269,74 +269,7 @@ function CampusPillScroller({
   )
 }
 
-// ─── Room List Grouped by Space ─────────────────────────────────────────────
-
-function RoomListGrouped({
-  building,
-  rooms,
-  selectedRoomId,
-  onSelect,
-}: {
-  building: BuildingRaw
-  rooms: RoomRaw[]
-  selectedRoomId: string | null
-  onSelect: (room: RoomRaw) => void
-}) {
-  const getRoomLabel = (r: RoomRaw) =>
-    r.displayName || r.roomNumber || `Room ${r.id.slice(-4)}`
-
-  // Group rooms: direct building rooms first, then by space/area
-  const directRooms = rooms.filter((r) => !r.areaId)
-  const areas = building.areas ?? []
-
-  // Build area groups from the building's space list
-  const areaGroups: Array<{ area: AreaRaw; rooms: RoomRaw[] }> = []
-  for (const area of areas) {
-    const areaRooms = rooms.filter((r) => r.areaId === area.id)
-    if (areaRooms.length > 0) {
-      areaGroups.push({ area, rooms: areaRooms })
-    }
-  }
-
-  // If no areas or all rooms are direct, render flat
-  if (areaGroups.length === 0) {
-    return (
-      <>
-        {rooms.map((r) => (
-          <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
-        ))}
-      </>
-    )
-  }
-
-  return (
-    <>
-      {/* Direct rooms (not in any space) */}
-      {directRooms.length > 0 && (
-        <>
-          <div className="px-3 pt-2 pb-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">General</span>
-          </div>
-          {directRooms.map((r) => (
-            <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
-          ))}
-        </>
-      )}
-
-      {/* Rooms grouped by space/area */}
-      {areaGroups.map(({ area, rooms: areaRooms }) => (
-        <div key={area.id}>
-          <div className="px-3 pt-2.5 pb-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{area.name}</span>
-          </div>
-          {areaRooms.map((r) => (
-            <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
-          ))}
-        </div>
-      ))}
-    </>
-  )
-}
+// ─── Room List (flat — buildings have rooms, no sub-grouping) ───────────────
 
 function RoomItem({
   room,
@@ -405,11 +338,9 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
 
   // Derive selected building and its rooms
   const selectedBuilding = buildings.find((b) => b.id === value.buildingId) ?? null
-  const availableRooms: RoomRaw[] = selectedBuilding
-    ? [
-        ...(selectedBuilding.rooms ?? []),
-        ...(selectedBuilding.areas?.flatMap((a) => a.rooms ?? []) ?? []),
-      ]
+  // Buildings have rooms; spaces don't
+  const availableRooms: RoomRaw[] = selectedBuilding && !selectedBuilding.isSpace
+    ? (selectedBuilding.rooms ?? [])
     : []
   const selectedRoom = availableRooms.find((r) => r.id === value.roomId) ?? null
 
@@ -466,20 +397,28 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
     setBuildingSearch('')
     setRoomSearch('')
 
-    // Get all rooms for this building
-    const allRooms = [
-      ...(building.rooms ?? []),
-      ...(building.areas?.flatMap((a) => a.rooms ?? []) ?? []),
-    ]
+    // Spaces are standalone locations — no rooms to pick
+    if (building.isSpace) {
+      onChange({
+        ...value,
+        buildingId: building.id,
+        areaId: null,
+        roomId: null,
+        locationText: building.name,
+      })
+      return
+    }
+
+    // Buildings may have rooms
+    const allRooms = building.rooms ?? []
 
     if (allRooms.length === 1) {
-      // Auto-fill room
       const room = allRooms[0]
       const roomLabel = room.displayName || room.roomNumber || 'Room'
       onChange({
         ...value,
         buildingId: building.id,
-        areaId: room.areaId || null,
+        areaId: null,
         roomId: room.id,
         locationText: `${building.name} — ${roomLabel}`,
       })
@@ -595,14 +534,8 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                     <p className="px-4 py-3 text-xs text-slate-400 text-center">No locations found</p>
                   ) : (
                     filteredBuildings.map((b) => {
-                      const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
-                      const totalSpaces = b.areas?.length ?? 0
+                      const roomCount = b.rooms?.length ?? 0
                       const typeLabel = b.isSpace ? 'Space' : 'Building'
-
-                      // Build meta chips (e.g. "3 rooms" or "2 spaces, 5 rooms")
-                      const meta: string[] = []
-                      if (totalSpaces > 0) meta.push(`${totalSpaces} space${totalSpaces === 1 ? '' : 's'}`)
-                      if (totalRooms > 0) meta.push(`${totalRooms} room${totalRooms === 1 ? '' : 's'}`)
 
                       return (
                         <button
@@ -620,11 +553,13 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-800 truncate">{b.name}</p>
-                            <p className="text-[10px] text-slate-400">
-                              {typeLabel}
-                              {meta.length > 0 && <span className="ml-1 text-slate-300">({meta.join(', ')})</span>}
-                            </p>
+                            <p className="text-[10px] text-slate-400">{typeLabel}</p>
                           </div>
+                          {!b.isSpace && roomCount > 0 && (
+                            <span className="text-[10px] text-slate-300 flex-shrink-0">
+                              {roomCount} room{roomCount === 1 ? '' : 's'}
+                            </span>
+                          )}
                         </button>
                       )
                     })
@@ -668,12 +603,15 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                     {filteredRooms.length === 0 ? (
                       <p className="px-4 py-3 text-xs text-slate-400 text-center">No rooms found</p>
                     ) : (
-                      <RoomListGrouped
-                        building={selectedBuilding!}
-                        rooms={filteredRooms}
-                        selectedRoomId={value.roomId}
-                        onSelect={handleSelectRoom}
-                      />
+                      filteredRooms.map((r) => (
+                        <RoomItem
+                          key={r.id}
+                          room={r}
+                          label={getRoomLabel(r)}
+                          selected={r.id === value.roomId}
+                          onSelect={handleSelectRoom}
+                        />
+                      ))
                     )}
                   </div>
                 </div>
