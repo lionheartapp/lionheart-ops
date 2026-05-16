@@ -16,6 +16,7 @@ import {
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import FormCard from './FormCard'
+import FormTemplateGallery from '@/components/forms/templates/FormTemplateGallery'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -65,6 +66,7 @@ function getSystemConfig(systemKey: string | null): SystemFormConfig | undefined
 export default function FormsHub() {
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const [showGallery, setShowGallery] = useState(false)
 
   const { data: forms = [], isLoading } = useQuery({
     queryKey: queryKeys.forms.all,
@@ -123,17 +125,7 @@ export default function FormsHub() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Forms</h1>
         <button
-          onClick={async () => {
-            try {
-              const form = await fetchApi<{ id: string }>('/api/forms/hub', {
-                method: 'POST',
-                body: JSON.stringify({ name: 'Untitled Form' }),
-              })
-              router.push(`/forms/${form.id}/builder`)
-            } catch {
-              // TODO: toast error
-            }
-          }}
+          onClick={() => setShowGallery(true)}
           className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -249,6 +241,11 @@ export default function FormsHub() {
           </div>
         )}
       </div>
+
+      <FormTemplateGallery
+        isOpen={showGallery}
+        onClose={() => setShowGallery(false)}
+      />
     </div>
   )
 }
