@@ -218,6 +218,8 @@ model Organization {
   // Forms module relations
   formDefinitions                  FormDefinition[]
   formQrCodes                      FormQrCode[]
+  formSubmissions                  FormSubmission[]
+  formTemplates                    FormTemplate[]
   // AI ticket intake sessions
   aiTicketIntakes                  AiTicketIntake[]
   // Personal tasks
@@ -5874,20 +5876,62 @@ enum FormFieldType {
   TEXTAREA
   NUMBER
   DATE
+  TIME
   EMAIL
   PHONE
+  URL
   DROPDOWN
   MULTI_SELECT
+  RADIO
   CHECKBOX
+  RATING
+  SCALE
   FILE
   SIGNATURE
   ASSET_PICKER
   USER_PICKER
   LOCATION_PICKER
   GRADE_SELECTOR
+  HEADER
+  DIVIDER
 }
 
-/// Shared form definition — one row per "form context" (ticket category or event).
+enum FormContext {
+  TICKET_CATEGORY
+  EVENT_REGISTRATION
+  EVENT_CREATION
+  CUSTOM
+}
+
+enum FieldProtection {
+  LOCKED
+  DEFAULT
+  CUSTOM
+}
+
+enum FieldSensitivity {
+  PUBLIC
+  INTERNAL
+  FERPA_PROTECTED
+}
+
+enum FormActionType {
+  CREATE_RECORD
+  NOTIFY
+  REQUIRE_APPROVAL
+  WEBHOOK
+  REDIRECT
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+/// Shared form definition — one row per "form context" (ticket category, event, or custom).
 model FormDefinition {
   id             String       @id @default(cuid())
   organizationId String
@@ -5898,21 +5942,43 @@ model FormDefinition {
   eventId     String? @unique // event registration form
   event       Event?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
+  // Form context and identity
+  context          FormContext @default(TICKET_CATEGORY)
+  isDefault        Boolean    @default(false)
+  systemKey        String?    // "single_event", "facilities_request", etc.
+  parentTemplateId String?    // FK to the template this was cloned from (for "Reset to template")
+
   sections FormSection[]
   fields   FormField[]
+  pages    FormPage[]
+  actions  FormAction[]
+  submissions FormSubmission[]
 
-  // Public form styling (only meaningful for event forms)
+  // Public form styling (only meaningful for event/public forms)
   publicStyle     PublicFormStyle @default(MINIMAL)
   publicCtaColor  String? // hex, e.g. "#4f46e5"
   publicBgColor   String? // hex — only used by MINIMAL
   publicImageUrl  String?
   publicImageSide FormImageSide   @default(RIGHT)
 
+  // Form builder settings
+  coverColor     String?
+  description    String?  @db.Text
+  confirmMessage String?  @db.Text
+  redirectUrl    String?
+  autoSave       Boolean  @default(true)
+  allowDrafts    Boolean  @default(true)
+  isPublic       Boolean  @default(false)
+  requireEmail   Boolean  @default(true)
+  createdBy      String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([organizationId, categoryKey])
   @@index([organizationId, eventId])
+  @@index([organizationId, context])
+  @@index([organizationId, systemKey])
 }
 
 /// A named section within a form (e.g. "Student Information", "Health & Safety").
@@ -5927,6 +5993,24 @@ model FormSection {
   @@index([formId])
 }
 
+/// A named page within a multi-page form (e.g. "Event Details", "Location & Setup").
+model FormPage {
+  id           String         @id @default(cuid())
+  formId       String
+  form         FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  sortOrder    Int            @default(0)
+  isOptional   Boolean        @default(false)
+  condFieldKey String?
+  condOperator String?
+  condEquals   String?
+  fields       FormField[]
+  createdAt    DateTime       @default(now())
+
+  @@index([formId])
+}
+
 /// A single configurable field within a form.
 model FormField {
   id        String         @id @default(cuid())
@@ -5934,21 +6018,43 @@ model FormField {
   form      FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
   sectionId String?
   section   FormSection?   @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  pageId    String?
+  page      FormPage?      @relation(fields: [pageId], references: [id], onDelete: SetNull)
 
   key         String // stable slug used in customFields JSON, e.g. "device_type"
   label       String
   type        FormFieldType
-  required    Boolean       @default(false)
+  required    Boolean          @default(false)
   placeholder String?
   helpText    String?
-  options     String[]      @default([]) // for DROPDOWN / MULTI_SELECT
+  options     String[]         @default([]) // for DROPDOWN / MULTI_SELECT
+
+  // Protection level — controls what admins can do with this field
+  protection       FieldProtection  @default(CUSTOM)
+  isIncluded       Boolean          @default(true) // false = toggled off but not deleted
+  sensitivityLevel FieldSensitivity @default(PUBLIC)
 
   // Checkbox-only: when this box is checked, escalate parent ticket to URGENT
   autoEscalate Boolean @default(false)
 
-  // Conditional logic — show this field if [condFieldKey] equals [condEquals]
+  // Conditional logic — show this field if [condFieldKey] meets condition
   condFieldKey String?
+  condOperator String? // "equals", "not_equals", "contains", "greater_than", "is_empty", "is_filled"
   condEquals   String?
+
+  // Validation
+  minValue     String? // min chars, min number, min selections
+  maxValue     String? // max chars, max number, max selections
+  pattern      String? // regex for custom validation
+  errorMessage String? // custom validation error text
+
+  // Defaults and pre-fill
+  defaultValue  String?
+  prefillSource String? // "user.name", "user.email", "student.grade", etc.
+
+  // File upload config
+  fileTypes   String[] @default([]) // e.g. ["pdf", "jpg", "png"]
+  maxFileSize Int?     // bytes
 
   sortOrder Int
 
@@ -5977,6 +6083,67 @@ model FormQrCode {
 
   @@index([organizationId])
   @@index([spaceId])
+}
+
+// ─── Form Actions & Submissions ────────────────────────────────────────────────
+
+/// Post-submission action (notify, approve, create record, webhook, redirect).
+model FormAction {
+  id         String         @id @default(cuid())
+  formId     String
+  form       FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  actionType FormActionType
+  config     Json
+  sortOrder  Int            @default(0)
+  isEnabled  Boolean        @default(true)
+  createdAt  DateTime       @default(now())
+
+  @@index([formId])
+}
+
+/// A single form submission (custom forms, public forms).
+model FormSubmission {
+  id              String           @id @default(cuid())
+  organizationId  String
+  formId          String
+  form            FormDefinition   @relation(fields: [formId], references: [id])
+  submittedBy     String?
+  submitterName   String?
+  submitterEmail  String?
+  data            Json
+  status          SubmissionStatus @default(SUBMITTED)
+  isDraft         Boolean          @default(false)
+  draftExpiresAt  DateTime?
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([formId])
+  @@index([organizationId, status])
+}
+
+/// Reusable form template — cloned to create new forms.
+model FormTemplate {
+  id             String        @id @default(cuid())
+  organizationId String?
+  name           String
+  icon           String?
+  description    String?
+  category       String?
+  fieldSnapshot  Json
+  styleSnapshot  Json?
+  isSystem       Boolean       @default(false)
+  sortOrder      Int           @default(0)
+  createdAt      DateTime      @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 // ─── AI Ticket Intake ──────────────────────────────────────────────────────────

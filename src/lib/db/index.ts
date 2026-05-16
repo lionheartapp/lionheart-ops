@@ -154,6 +154,8 @@ const orgScopedModels = new Set([
 	// Forms module
 	'FormDefinition',
 	'FormQrCode',
+	'FormSubmission',
+	'FormTemplate',
 	// Personal tasks
 	'Task',
 	// Since-Yesterday diff module (append-only, not soft-deleted)
@@ -209,6 +211,8 @@ const softDeleteModels = new Set([
 	'EventProject',
 	// Registration module (Phase 20)
 	'EventRegistration',
+	// Forms module
+	'FormSubmission',
 	// Personal tasks
 	'Task',
 	// Phase 23: Messaging module

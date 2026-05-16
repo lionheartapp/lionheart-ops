@@ -7,17 +7,24 @@ export const FORM_FIELD_TYPES = [
   'TEXTAREA',
   'NUMBER',
   'DATE',
+  'TIME',
   'EMAIL',
   'PHONE',
+  'URL',
   'DROPDOWN',
   'MULTI_SELECT',
+  'RADIO',
   'CHECKBOX',
+  'RATING',
+  'SCALE',
   'FILE',
   'SIGNATURE',
   'ASSET_PICKER',
   'USER_PICKER',
   'LOCATION_PICKER',
   'GRADE_SELECTOR',
+  'HEADER',
+  'DIVIDER',
 ] as const
 
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number]
@@ -26,34 +33,58 @@ export const FormFieldTypeZ = z.enum(FORM_FIELD_TYPES)
 
 // ─── Field Type Metadata (for Add Field picker UI) ───────────────────────────
 
+export type FieldTypeCategory = 'text' | 'choices' | 'date_time' | 'uploads' | 'pickers' | 'layout'
+
 export interface FieldTypeMeta {
   type: FormFieldType
   label: string
   icon: string // Lucide icon name
   description: string
-  category: 'basic' | 'choice' | 'special'
+  category: FieldTypeCategory
+  /** True for types that don't collect data (Header, Divider) */
+  isLayout?: boolean
 }
 
 export const FIELD_TYPE_META: FieldTypeMeta[] = [
-  // Basic
-  { type: 'TEXT', label: 'Text', icon: 'Type', description: 'Single-line input', category: 'basic' },
-  { type: 'TEXTAREA', label: 'Textarea', icon: 'AlignLeft', description: 'Multi-line input', category: 'basic' },
-  { type: 'NUMBER', label: 'Number', icon: 'Hash', description: 'Numeric input', category: 'basic' },
-  { type: 'DATE', label: 'Date', icon: 'Calendar', description: 'Date picker', category: 'basic' },
-  { type: 'EMAIL', label: 'Email', icon: 'Mail', description: 'Email address', category: 'basic' },
-  { type: 'PHONE', label: 'Phone', icon: 'Phone', description: 'Phone number', category: 'basic' },
-  // Choice
-  { type: 'DROPDOWN', label: 'Dropdown', icon: 'ChevronDown', description: 'Pick one from a list', category: 'choice' },
-  { type: 'MULTI_SELECT', label: 'Multi-select', icon: 'ListChecks', description: 'Pick multiple', category: 'choice' },
-  { type: 'CHECKBOX', label: 'Checkbox', icon: 'CheckSquare', description: 'Yes/no toggle', category: 'choice' },
-  // Special
-  { type: 'FILE', label: 'File Upload', icon: 'Upload', description: 'File attachment', category: 'special' },
-  { type: 'SIGNATURE', label: 'Signature', icon: 'PenTool', description: 'Signature pad', category: 'special' },
-  { type: 'ASSET_PICKER', label: 'Asset Picker', icon: 'Monitor', description: 'Select a device/asset', category: 'special' },
-  { type: 'USER_PICKER', label: 'User Picker', icon: 'User', description: 'Select a staff member', category: 'special' },
-  { type: 'LOCATION_PICKER', label: 'Location', icon: 'MapPin', description: 'Building/room picker', category: 'special' },
-  { type: 'GRADE_SELECTOR', label: 'Grade', icon: 'GraduationCap', description: 'Grade level selector', category: 'special' },
+  // Text
+  { type: 'TEXT', label: 'Text', icon: 'Type', description: 'Single-line input', category: 'text' },
+  { type: 'TEXTAREA', label: 'Long Text', icon: 'AlignLeft', description: 'Multi-line input', category: 'text' },
+  { type: 'NUMBER', label: 'Number', icon: 'Hash', description: 'Numeric input', category: 'text' },
+  { type: 'EMAIL', label: 'Email', icon: 'Mail', description: 'Email address', category: 'text' },
+  { type: 'PHONE', label: 'Phone', icon: 'Phone', description: 'Phone number', category: 'text' },
+  { type: 'URL', label: 'URL', icon: 'Link', description: 'Web address', category: 'text' },
+  // Choices
+  { type: 'DROPDOWN', label: 'Dropdown', icon: 'ChevronDown', description: 'Pick one from a list', category: 'choices' },
+  { type: 'RADIO', label: 'Radio', icon: 'Circle', description: 'Pick one (visible options)', category: 'choices' },
+  { type: 'MULTI_SELECT', label: 'Multi-select', icon: 'ListChecks', description: 'Pick multiple', category: 'choices' },
+  { type: 'CHECKBOX', label: 'Checkbox', icon: 'CheckSquare', description: 'Yes/no toggle', category: 'choices' },
+  { type: 'RATING', label: 'Rating', icon: 'Star', description: 'Star rating (1–5)', category: 'choices' },
+  { type: 'SCALE', label: 'Scale', icon: 'SlidersHorizontal', description: 'Linear scale (1–10)', category: 'choices' },
+  // Date & Time
+  { type: 'DATE', label: 'Date', icon: 'Calendar', description: 'Date picker', category: 'date_time' },
+  { type: 'TIME', label: 'Time', icon: 'Clock', description: 'Time picker', category: 'date_time' },
+  // Uploads
+  { type: 'FILE', label: 'File Upload', icon: 'Upload', description: 'File attachment', category: 'uploads' },
+  { type: 'SIGNATURE', label: 'Signature', icon: 'PenTool', description: 'Signature pad', category: 'uploads' },
+  // Pickers
+  { type: 'USER_PICKER', label: 'Person', icon: 'User', description: 'Select a staff member', category: 'pickers' },
+  { type: 'LOCATION_PICKER', label: 'Location', icon: 'MapPin', description: 'Building/room picker', category: 'pickers' },
+  { type: 'ASSET_PICKER', label: 'Asset', icon: 'Monitor', description: 'Select a device/asset', category: 'pickers' },
+  { type: 'GRADE_SELECTOR', label: 'Grade', icon: 'GraduationCap', description: 'Grade level selector', category: 'pickers' },
+  // Layout
+  { type: 'HEADER', label: 'Header', icon: 'Heading', description: 'Section heading text', category: 'layout', isLayout: true },
+  { type: 'DIVIDER', label: 'Divider', icon: 'Minus', description: 'Visual separator', category: 'layout', isLayout: true },
 ]
+
+/** Category labels for the field palette UI */
+export const FIELD_CATEGORY_LABELS: Record<FieldTypeCategory, string> = {
+  text: 'Text',
+  choices: 'Choices',
+  date_time: 'Date & Time',
+  uploads: 'Uploads & Media',
+  pickers: 'Pickers',
+  layout: 'Layout',
+}
 
 export function getFieldTypeMeta(type: FormFieldType): FieldTypeMeta {
   return FIELD_TYPE_META.find((m) => m.type === type) ?? FIELD_TYPE_META[0]
@@ -68,6 +99,11 @@ export const conditionalRuleSchema = z.object({
 
 // ─── Form Field Schema ────────────────────────────────────────────────────────
 
+export const FieldProtectionZ = z.enum(['LOCKED', 'DEFAULT', 'CUSTOM'])
+export const FieldSensitivityZ = z.enum(['PUBLIC', 'INTERNAL', 'FERPA_PROTECTED'])
+export const FormContextZ = z.enum(['TICKET_CATEGORY', 'EVENT_REGISTRATION', 'EVENT_CREATION', 'CUSTOM'])
+export const FormActionTypeZ = z.enum(['CREATE_RECORD', 'NOTIFY', 'REQUIRE_APPROVAL', 'WEBHOOK', 'REDIRECT'])
+
 export const formFieldSchema = z.object({
   id: z.string().optional(), // omitted on create
   key: z.string().min(1).max(100),
@@ -79,9 +115,26 @@ export const formFieldSchema = z.object({
   options: z.array(z.string()).default([]),
   autoEscalate: z.boolean().optional().default(false),
   condFieldKey: z.string().nullable().optional(),
+  condOperator: z.string().nullable().optional(),
   condEquals: z.string().nullable().optional(),
   sortOrder: z.number().int().min(0),
   sectionId: z.string().nullable().optional(),
+  pageId: z.string().nullable().optional(),
+  // Protection & visibility
+  protection: FieldProtectionZ.optional().default('CUSTOM'),
+  isIncluded: z.boolean().optional().default(true),
+  sensitivityLevel: FieldSensitivityZ.optional().default('PUBLIC'),
+  // Validation
+  minValue: z.string().nullable().optional(),
+  maxValue: z.string().nullable().optional(),
+  pattern: z.string().nullable().optional(),
+  errorMessage: z.string().max(500).nullable().optional(),
+  // Defaults & pre-fill
+  defaultValue: z.string().nullable().optional(),
+  prefillSource: z.string().nullable().optional(),
+  // File upload config
+  fileTypes: z.array(z.string()).optional().default([]),
+  maxFileSize: z.number().int().nullable().optional(),
 })
 
 export type FormFieldInput = z.infer<typeof formFieldSchema>
@@ -96,6 +149,33 @@ export const formSectionSchema = z.object({
 })
 
 export type FormSectionInput = z.infer<typeof formSectionSchema>
+
+// ─── Form Page Schema ────────────────────────────────────────────────────────
+
+export const formPageSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1).max(200),
+  description: z.string().max(500).nullable().optional(),
+  sortOrder: z.number().int().min(0),
+  isOptional: z.boolean().optional().default(false),
+  condFieldKey: z.string().nullable().optional(),
+  condOperator: z.string().nullable().optional(),
+  condEquals: z.string().nullable().optional(),
+})
+
+export type FormPageInput = z.infer<typeof formPageSchema>
+
+// ─── Form Action Schema ──────────────────────────────────────────────────────
+
+export const formActionSchema = z.object({
+  id: z.string().optional(),
+  actionType: FormActionTypeZ,
+  config: z.record(z.unknown()),
+  sortOrder: z.number().int().min(0).optional().default(0),
+  isEnabled: z.boolean().optional().default(true),
+})
+
+export type FormActionInput = z.infer<typeof formActionSchema>
 
 // ─── Public Style Enums ───────────────────────────────────────────────────────
 

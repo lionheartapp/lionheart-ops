@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Trophy,
   MessageSquare,
+  FileText,
 } from 'lucide-react'
 import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
 import { useQueryClient } from '@tanstack/react-query'
@@ -138,6 +139,7 @@ export default function MainNavContent({
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
+    { icon: FileText, label: 'Forms', href: '/forms' },
   ]
 
   return (
