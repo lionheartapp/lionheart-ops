@@ -9,6 +9,7 @@ import { Loader2, Monitor, Wrench, Check, ChevronRight, ChevronLeft, Repeat } fr
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Radio, RadioGroup } from '@/components/ui/Radio'
+import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
 import type { CreateEventSeriesInput } from '@/lib/types/event-project'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -131,7 +132,6 @@ interface SeriesFormData {
   endUntil: string
   defaultStartTime: string
   defaultDuration: number
-  defaultLocationText: string
   requiresAV: boolean
   avNeeds: string[]
   avNotes: string
@@ -151,7 +151,6 @@ const defaultForm: SeriesFormData = {
   endUntil: '',
   defaultStartTime: '09:00',
   defaultDuration: 60,
-  defaultLocationText: '',
   requiresAV: false,
   avNeeds: [],
   avNotes: '',
@@ -225,7 +224,8 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
   const { toast } = useToast()
   const createSeries = useCreateEventSeries()
   const [form, setForm] = useState<SeriesFormData>(defaultForm)
-  const [errors, setErrors] = useState<Partial<Record<keyof SeriesFormData, string>>>({})
+  const [location, setLocation] = useState<LocationData>(defaultLocationData())
+  const [errors, setErrors] = useState<Partial<Record<keyof SeriesFormData | 'location', string>>>({})
   const [step, setStep] = useState<Step>(1)
 
   function update<K extends keyof SeriesFormData>(key: K, value: SeriesFormData[K]) {
@@ -244,6 +244,7 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
 
   function handleClose() {
     setForm(defaultForm)
+    setLocation(defaultLocationData())
     setErrors({})
     setStep(1)
     onClose()
@@ -297,7 +298,9 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
       rrule,
       defaultStartTime: form.defaultStartTime || undefined,
       defaultDuration: form.defaultDuration || undefined,
-      defaultLocationText: form.defaultLocationText.trim() || undefined,
+      defaultLocationText: location.locationText || location.venueName || undefined,
+      defaultBuildingId: location.isOffCampus ? undefined : (location.buildingId || undefined),
+      defaultRoomId: location.isOffCampus ? undefined : (location.roomId || undefined),
       resourceNeeds: {
         requiresAV: form.requiresAV,
         requiresFacilities: form.requiresFacilities,
@@ -559,15 +562,15 @@ export function EventSeriesDrawer({ isOpen, onClose }: EventSeriesDrawerProps) {
             </div>
           </div>
 
-          {/* Default location */}
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Default Location</label>
-            <Input
-              value={form.defaultLocationText}
-              onChange={(e) => update('defaultLocationText', e.target.value)}
-              placeholder="e.g. Main Hall, Room 201"
-            />
-          </div>
+          {/* Location picker */}
+          <LocationPicker
+            value={location}
+            onChange={(loc) => {
+              setLocation(loc)
+              setErrors((prev) => ({ ...prev, location: undefined }))
+            }}
+            error={errors.location}
+          />
         </div>
         </div>
         )}
