@@ -269,6 +269,101 @@ function CampusPillScroller({
   )
 }
 
+// ─── Room List Grouped by Space ─────────────────────────────────────────────
+
+function RoomListGrouped({
+  building,
+  rooms,
+  selectedRoomId,
+  onSelect,
+}: {
+  building: BuildingRaw
+  rooms: RoomRaw[]
+  selectedRoomId: string | null
+  onSelect: (room: RoomRaw) => void
+}) {
+  const getRoomLabel = (r: RoomRaw) =>
+    r.displayName || r.roomNumber || `Room ${r.id.slice(-4)}`
+
+  // Group rooms: direct building rooms first, then by space/area
+  const directRooms = rooms.filter((r) => !r.areaId)
+  const areas = building.areas ?? []
+
+  // Build area groups from the building's space list
+  const areaGroups: Array<{ area: AreaRaw; rooms: RoomRaw[] }> = []
+  for (const area of areas) {
+    const areaRooms = rooms.filter((r) => r.areaId === area.id)
+    if (areaRooms.length > 0) {
+      areaGroups.push({ area, rooms: areaRooms })
+    }
+  }
+
+  // If no areas or all rooms are direct, render flat
+  if (areaGroups.length === 0) {
+    return (
+      <>
+        {rooms.map((r) => (
+          <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
+        ))}
+      </>
+    )
+  }
+
+  return (
+    <>
+      {/* Direct rooms (not in any space) */}
+      {directRooms.length > 0 && (
+        <>
+          <div className="px-3 pt-2 pb-1">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">General</span>
+          </div>
+          {directRooms.map((r) => (
+            <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
+          ))}
+        </>
+      )}
+
+      {/* Rooms grouped by space/area */}
+      {areaGroups.map(({ area, rooms: areaRooms }) => (
+        <div key={area.id}>
+          <div className="px-3 pt-2.5 pb-1">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{area.name}</span>
+          </div>
+          {areaRooms.map((r) => (
+            <RoomItem key={r.id} room={r} label={getRoomLabel(r)} selected={r.id === selectedRoomId} onSelect={onSelect} />
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
+function RoomItem({
+  room,
+  label,
+  selected,
+  onSelect,
+}: {
+  room: RoomRaw
+  label: string
+  selected: boolean
+  onSelect: (room: RoomRaw) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(room)}
+      className={`w-full flex items-center gap-3 px-4 py-2 text-left text-sm transition-colors cursor-pointer ${
+        selected ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50'
+      }`}
+    >
+      <DoorOpen className={`w-3.5 h-3.5 flex-shrink-0 ${selected ? 'text-indigo-500' : 'text-slate-300'}`} />
+      <span className="flex-1">{label}</span>
+      {room.floor && <span className="text-[10px] text-slate-400">Floor {room.floor}</span>}
+    </button>
+  )
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function LocationPicker({ value, onChange, error }: LocationPickerProps) {
@@ -501,6 +596,14 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                   ) : (
                     filteredBuildings.map((b) => {
                       const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
+                      const totalSpaces = b.areas?.length ?? 0
+                      const typeLabel = b.isSpace ? 'Space' : 'Building'
+
+                      // Build meta chips (e.g. "3 rooms" or "2 spaces, 5 rooms")
+                      const meta: string[] = []
+                      if (totalSpaces > 0) meta.push(`${totalSpaces} space${totalSpaces === 1 ? '' : 's'}`)
+                      if (totalRooms > 0) meta.push(`${totalRooms} room${totalRooms === 1 ? '' : 's'}`)
+
                       return (
                         <button
                           key={b.id}
@@ -517,13 +620,11 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-800 truncate">{b.name}</p>
-                            <p className="text-[10px] text-slate-400">{b.isSpace ? 'Space' : 'Building'}</p>
+                            <p className="text-[10px] text-slate-400">
+                              {typeLabel}
+                              {meta.length > 0 && <span className="ml-1 text-slate-300">({meta.join(', ')})</span>}
+                            </p>
                           </div>
-                          {totalRooms > 0 && (
-                            <span className="text-[10px] text-slate-300 flex-shrink-0">
-                              {totalRooms} room{totalRooms === 1 ? '' : 's'}
-                            </span>
-                          )}
                         </button>
                       )
                     })
@@ -551,7 +652,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
               </div>
 
               {showRoomDropdown && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-56 overflow-hidden">
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-hidden">
                   {availableRooms.length > 5 && (
                     <div className="px-3 py-2 border-b border-slate-100">
                       <SearchInput
@@ -563,23 +664,16 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                       />
                     </div>
                   )}
-                  <div className="overflow-y-auto max-h-44">
+                  <div className="overflow-y-auto max-h-52">
                     {filteredRooms.length === 0 ? (
                       <p className="px-4 py-3 text-xs text-slate-400 text-center">No rooms found</p>
                     ) : (
-                      filteredRooms.map((r) => (
-                        <button
-                          key={r.id}
-                          type="button"
-                          onClick={() => handleSelectRoom(r)}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors cursor-pointer ${
-                            value.roomId === r.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
-                          }`}
-                        >
-                          {getRoomLabel(r)}
-                          {r.floor && <span className="text-xs text-slate-400 ml-2">Floor {r.floor}</span>}
-                        </button>
-                      ))
+                      <RoomListGrouped
+                        building={selectedBuilding!}
+                        rooms={filteredRooms}
+                        selectedRoomId={value.roomId}
+                        onSelect={handleSelectRoom}
+                      />
                     )}
                   </div>
                 </div>
