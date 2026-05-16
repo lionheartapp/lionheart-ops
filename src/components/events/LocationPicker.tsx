@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MapPin, Building2, DoorOpen, Search, Loader2, Navigation, TreePine } from 'lucide-react'
-import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
+import { MapPin, Building2, DoorOpen, Loader2, Navigation, TreePine } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { Input } from '@/components/ui/Input'
 import { SearchInput } from '@/components/ui/SearchInput'
@@ -186,6 +185,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
   // Building search state
   const [buildingSearch, setBuildingSearch] = useState('')
   const [showBuildingDropdown, setShowBuildingDropdown] = useState(false)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
   const buildingDropdownRef = useRef<HTMLDivElement>(null)
 
   // Room search state
@@ -220,13 +220,15 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
     : []
   const selectedRoom = availableRooms.find((r) => r.id === value.roomId) ?? null
 
-  // Filter buildings by search
-  const filteredBuildings = buildingSearch
-    ? buildings.filter((b) => b.name.toLowerCase().includes(buildingSearch.toLowerCase()))
-    : buildings
+  // All groups (unfiltered) for tab labels
+  const allGroups = groupBuildings(buildings)
 
-  // Group for structured dropdown
-  const groups = groupBuildings(filteredBuildings)
+  // Filter buildings by search + active tab
+  const filteredBuildings = buildings.filter((b) => {
+    if (buildingSearch && !b.name.toLowerCase().includes(buildingSearch.toLowerCase())) return false
+    if (activeTab && (b.groupLabel ?? 'General') !== activeTab) return false
+    return true
+  })
 
   // Filter rooms by search
   const filteredRooms = roomSearch
@@ -385,62 +387,70 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
             </div>
 
             {showBuildingDropdown && (
-              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-72 overflow-hidden">
-                {/* Search */}
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <SearchInput
-                    size="sm"
-                    value={buildingSearch}
-                    onChange={(e) => setBuildingSearch(e.target.value)}
-                    placeholder="Search locations..."
-                    autoFocus
-                  />
-                </div>
-                {/* Grouped options */}
-                <div className="overflow-y-auto max-h-60">
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+                <div className="py-1 max-h-72 overflow-y-auto">
+                  {/* Category pill tabs */}
+                  {allGroups.length > 1 && (
+                    <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-slate-100 mb-1">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); setActiveTab(null) }}
+                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
+                          activeTab === null
+                            ? 'bg-slate-900 text-white'
+                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        All
+                      </button>
+                      {allGroups.map((g) => (
+                        <button
+                          key={g.label}
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); setActiveTab(g.label) }}
+                          className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
+                            activeTab === g.label
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          {g.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {/* Items */}
                   {filteredBuildings.length === 0 ? (
                     <p className="px-4 py-3 text-xs text-slate-400 text-center">No locations found</p>
                   ) : (
-                    groups.map((group, gi) => (
-                      <div key={group.label}>
-                        {/* Group header */}
-                        {groups.length > 1 && (
-                          <div className={`sticky top-0 z-10 px-4 py-1.5 bg-slate-50 border-b border-slate-100 ${gi > 0 ? 'border-t' : ''}`}>
-                            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                              {group.label}
-                            </span>
+                    filteredBuildings.map((b) => {
+                      const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => handleSelectBuilding(b)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
+                            value.buildingId === b.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                            b.isSpace ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {b.name.charAt(0).toUpperCase()}
                           </div>
-                        )}
-                        {/* Group items */}
-                        {group.items.map((b) => {
-                          const totalRooms = (b.rooms?.length ?? 0) + (b.areas?.reduce((sum, a) => sum + (a.rooms?.length ?? 0), 0) ?? 0)
-                          return (
-                            <button
-                              key={b.id}
-                              type="button"
-                              onClick={() => handleSelectBuilding(b)}
-                              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between ${
-                                value.buildingId === b.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5">
-                                {b.isSpace ? (
-                                  <TreePine className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                                ) : (
-                                  <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                                )}
-                                <span className="font-medium">{b.name}</span>
-                              </div>
-                              {totalRooms > 0 && (
-                                <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                                  {totalRooms} room{totalRooms === 1 ? '' : 's'}
-                                </span>
-                              )}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ))
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-800 truncate">{b.name}</p>
+                            <p className="text-[10px] text-slate-400">{b.isSpace ? 'Space' : 'Building'}</p>
+                          </div>
+                          {totalRooms > 0 && (
+                            <span className="text-[10px] text-slate-300 flex-shrink-0">
+                              {totalRooms} room{totalRooms === 1 ? '' : 's'}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })
                   )}
                 </div>
               </div>
