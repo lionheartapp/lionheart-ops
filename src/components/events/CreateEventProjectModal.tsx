@@ -456,7 +456,9 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
     const requiresSecurity = !!dynamicValues.requires_security
 
     // Collect any non-standard dynamic fields (custom fields admins added)
-    const knownDynamicKeys = new Set(['av_needs', 'facility_needs', 'requires_custodial', 'requires_security'])
+    const avNotes = ((dynamicValues.av_notes as string) ?? '').trim()
+    const facilityNotes = ((dynamicValues.facility_notes as string) ?? '').trim()
+    const knownDynamicKeys = new Set(['av_needs', 'facility_needs', 'requires_custodial', 'requires_security', 'av_notes', 'facility_notes'])
     const customFields: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(dynamicValues)) {
       if (!knownDynamicKeys.has(k) && v != null && v !== '' && v !== false) {
@@ -488,8 +490,8 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         ? parseInt(form.expectedAttendance, 10)
         : undefined,
       metadata: {
-        ...(avNeeds && avNeeds.length > 0 ? { avNeeds } : {}),
-        ...(facilityNeeds && facilityNeeds.length > 0 ? { facilityNeeds } : {}),
+        ...(avNeeds && avNeeds.length > 0 ? { avNeeds, ...(avNotes ? { avNotes } : {}) } : {}),
+        ...(facilityNeeds && facilityNeeds.length > 0 ? { facilityNeeds, ...(facilityNotes ? { facilityNotes } : {}) } : {}),
         ...(requestedAttendees.length > 0 ? { requestedAttendees, peopleNote: peopleNote.trim() || undefined } : {}),
         // Include the system form ID so per-event cloning can reference the template
         ...(systemForm ? { systemFormId: systemForm.id } : {}),
@@ -774,6 +776,12 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                         )
                       })}
                     </div>
+                    <Textarea
+                      value={(dynamicValues.av_notes as string) ?? ''}
+                      onChange={(e) => setDynamicValues((prev) => ({ ...prev, av_notes: e.target.value }))}
+                      rows={2}
+                      placeholder="Anything else the A/V team should know?"
+                    />
                   </div>
                 )}
               </div>
@@ -825,6 +833,12 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                         )
                       })}
                     </div>
+                    <Textarea
+                      value={(dynamicValues.facility_notes as string) ?? ''}
+                      onChange={(e) => setDynamicValues((prev) => ({ ...prev, facility_notes: e.target.value }))}
+                      rows={2}
+                      placeholder="Anything else the facilities team should know?"
+                    />
                   </div>
                 )}
               </div>
