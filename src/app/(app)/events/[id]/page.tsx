@@ -4,7 +4,7 @@ import { use, useState, useEffect, Component, type ReactNode, type ErrorInfo } f
 import { logger } from '@/lib/logger'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle, QrCode, BookmarkPlus } from 'lucide-react'
+import { AlertCircle, QrCode, BookmarkPlus, FileText } from 'lucide-react'
 
 import EventSidebar, { type TabId } from '@/components/events/EventSidebar'
 import { staggerContainer, listItem, tabContent } from '@/lib/animations'
@@ -23,6 +23,7 @@ import { PresenceBar } from '@/components/events/comms/PresenceBar'
 import { EventChatDrawer } from '@/components/events/comms/EventChatPanel'
 import { SaveAsTemplateDialog } from '@/components/events/templates/SaveAsTemplateDialog'
 import { ApprovalReviewDrawer } from '@/components/events/ApprovalReviewDrawer'
+import FormBuilderDrawer from '@/components/forms/builder/FormBuilderDrawer'
 import { useToast } from '@/components/Toast'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -305,6 +306,9 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   // Approval review drawer — replaces the old one-click approve button
   const [isApprovalDrawerOpen, setIsApprovalDrawerOpen] = useState(false)
 
+  // Form builder drawer state
+  const [isFormBuilderOpen, setIsFormBuilderOpen] = useState(false)
+
   // Chat drawer state
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
@@ -422,18 +426,32 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
             >
               {TAB_LABELS[activeTab]}
             </h1>
-            {activeTab === 'overview' && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status) && (
-              <button
-                onClick={() => setIsTemplateDialogOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
-                style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ede9e0')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP)}
-              >
-                <BookmarkPlus className="w-4 h-4" strokeWidth={1.75} />
-                Save as Template
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {activeTab === 'overview' && (
+                <button
+                  onClick={() => setIsFormBuilderOpen(true)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
+                  style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ede9e0')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP)}
+                >
+                  <FileText className="w-4 h-4" strokeWidth={1.75} />
+                  Customize Form
+                </button>
+              )}
+              {activeTab === 'overview' && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(project.status) && (
+                <button
+                  onClick={() => setIsTemplateDialogOpen(true)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
+                  style={{ backgroundColor: WARM_CHIP, color: TEXT_PRIMARY }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ede9e0')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = WARM_CHIP)}
+                >
+                  <BookmarkPlus className="w-4 h-4" strokeWidth={1.75} />
+                  Save as Template
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* Tab content */}
@@ -452,6 +470,12 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
           </AnimatePresence>
         </motion.div>
       </div>
+      <FormBuilderDrawer
+        eventId={project.id}
+        eventTitle={project.title}
+        isOpen={isFormBuilderOpen}
+        onClose={() => setIsFormBuilderOpen(false)}
+      />
       <SaveAsTemplateDialog
         eventProjectId={project.id}
         eventTitle={project.title}
