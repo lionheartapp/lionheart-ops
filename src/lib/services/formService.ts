@@ -272,6 +272,7 @@ export async function listForms() {
     include: {
       pages: { select: { id: true }, orderBy: { sortOrder: 'asc' } },
       fields: { select: { id: true } },
+      _count: { select: { submissions: true } },
     },
     orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
   })

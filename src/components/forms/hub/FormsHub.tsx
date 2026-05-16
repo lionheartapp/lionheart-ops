@@ -31,6 +31,7 @@ interface FormListItem {
   updatedAt: string
   pages: Array<{ id: string }>
   fields: Array<{ id: string }>
+  _count?: { submissions: number }
 }
 
 // ─── System form display config ─────────────────────────────────────────────
@@ -155,7 +156,7 @@ export default function FormsHub() {
                 description={config.description}
                 fieldCount={form.fields.length}
                 pageCount={form.pages.length}
-                submissionCount={0}
+                submissionCount={form._count?.submissions ?? 0}
                 isSystem
                 onClick={() => handleOpenBuilder(form.id)}
               />
