@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, CalendarDays, CalendarRange, Users,
-  Check, ChevronRight, ChevronLeft,
+  Loader2, CalendarDays, CalendarRange, Users, Monitor, Wrench,
+  Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert,
   School as SchoolIcon,
 } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -694,49 +694,210 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         )}
 
         {/* ═══════════════════ Step 3: Team & People ══════════════════════════ */}
-        {step === 3 && (
+        {step === 3 && (() => {
+          // Read options from the system form template (falls back to empty arrays)
+          const avField = step3DynamicFields.find((f) => f.key === 'av_needs')
+          const facilityField = step3DynamicFields.find((f) => f.key === 'facility_needs')
+          const custodialField = step3DynamicFields.find((f) => f.key === 'requires_custodial')
+          const securityField = step3DynamicFields.find((f) => f.key === 'requires_security')
+          const customFields = step3DynamicFields.filter(
+            (f) => !['av_needs', 'facility_needs', 'requires_custodial', 'requires_security'].includes(f.key)
+          )
+
+          const avOptions = avField?.options ?? []
+          const facilityOptions = facilityField?.options ?? []
+          const avNeeds = Array.isArray(dynamicValues.av_needs) ? dynamicValues.av_needs as string[] : []
+          const facilityNeeds = Array.isArray(dynamicValues.facility_needs) ? dynamicValues.facility_needs as string[] : []
+          const requiresCustodial = !!dynamicValues.requires_custodial
+          const requiresSecurity = !!dynamicValues.requires_security
+
+          return (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* ── Dynamic fields from system form template ── */}
-            {step3DynamicFields.length > 0 && (
-              <div className="space-y-2.5">
-                <p className="text-sm font-medium text-slate-700">Requirements</p>
-                <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
-
-                <div className="space-y-4">
-                  {step3DynamicFields.map((field) => (
-                    <div key={field.id} className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700">
-                        {field.label}
-                        {field.required && <span className="text-red-500 ml-0.5">*</span>}
-                      </label>
-                      <FormFieldRenderer
-                        field={{
-                          key: field.key,
-                          label: field.label,
-                          type: field.type as FormFieldData['type'],
-                          required: field.required,
-                          placeholder: field.placeholder,
-                          helpText: field.helpText,
-                          options: field.options,
-                        }}
-                        value={dynamicValues[field.key]}
-                        onChange={(v) => setDynamicValues((prev) => ({ ...prev, [field.key]: v }))}
-                      />
-                      {field.helpText && (
-                        <p className="text-xs text-slate-500">{field.helpText}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ── Fallback: hardcoded fields when system form hasn't loaded ── */}
+            {/* ── Loading skeleton ── */}
             {step3DynamicFields.length === 0 && !systemForm && (
               <div className="space-y-3">
                 <div className="h-8 bg-slate-100 rounded-lg animate-pulse" />
                 <div className="h-24 bg-slate-100 rounded-lg animate-pulse" />
                 <div className="h-16 bg-slate-100 rounded-lg animate-pulse" />
+              </div>
+            )}
+
+            {/* ── Requirements ── */}
+            {(avField || facilityField) && (
+            <div className="space-y-2.5">
+              <p className="text-sm font-medium text-slate-700">Requirements</p>
+              <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
+
+              {/* A/V Section */}
+              {avField && (
+              <div className={`rounded-xl border transition-colors ${avNeeds.length > 0 ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${avNeeds.length > 0 ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                    <Monitor className={`w-4 h-4 transition-colors ${avNeeds.length > 0 ? 'text-blue-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">{avField.label}</p>
+                    <p className="text-xs text-slate-500">Projectors, mics, livestream, sound</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={avNeeds.length > 0}
+                    onClick={() => setDynamicValues((prev) => ({ ...prev, av_needs: avNeeds.length > 0 ? [] : [avOptions[0] ?? ''] }))}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${avNeeds.length > 0 ? 'bg-blue-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${avNeeds.length > 0 ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+
+                {avNeeds.length > 0 && (
+                  <div className="px-3.5 pb-3.5 space-y-3 border-t border-blue-100 pt-3">
+                    <p className="text-xs font-medium text-slate-700">What do you need?</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {avOptions.map((opt) => {
+                        const selected = avNeeds.includes(opt)
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              const next = selected ? avNeeds.filter((n) => n !== opt) : [...avNeeds, opt]
+                              setDynamicValues((prev) => ({ ...prev, av_needs: next }))
+                            }}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                              selected
+                                ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300'
+                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+              )}
+
+              {/* Facilities Section */}
+              {facilityField && (
+              <div className={`rounded-xl border transition-colors ${facilityNeeds.length > 0 ? 'border-amber-200 bg-amber-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${facilityNeeds.length > 0 ? 'bg-amber-100' : 'bg-slate-100'}`}>
+                    <Wrench className={`w-4 h-4 transition-colors ${facilityNeeds.length > 0 ? 'text-amber-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">{facilityField.label}</p>
+                    <p className="text-xs text-slate-500">Room setup, cleaning, staging, outdoor needs</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={facilityNeeds.length > 0}
+                    onClick={() => setDynamicValues((prev) => ({ ...prev, facility_needs: facilityNeeds.length > 0 ? [] : [facilityOptions[0] ?? ''] }))}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${facilityNeeds.length > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${facilityNeeds.length > 0 ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+
+                {facilityNeeds.length > 0 && (
+                  <div className="px-3.5 pb-3.5 space-y-3 border-t border-amber-100 pt-3">
+                    <p className="text-xs font-medium text-slate-700">What do you need?</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {facilityOptions.map((opt) => {
+                        const selected = facilityNeeds.includes(opt)
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              const next = selected ? facilityNeeds.filter((n) => n !== opt) : [...facilityNeeds, opt]
+                              setDynamicValues((prev) => ({ ...prev, facility_needs: next }))
+                            }}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                              selected
+                                ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300'
+                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+              )}
+            </div>
+            )}
+
+            {/* ── Compact toggle row: Custodial + Security ── */}
+            {(custodialField || securityField) && (
+            <div className="grid grid-cols-2 gap-2">
+              {custodialField && (
+              <div className={`rounded-xl border transition-colors ${requiresCustodial ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                  <div className={`p-1 rounded-lg transition-colors ${requiresCustodial ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                    <Sparkles className={`w-3.5 h-3.5 transition-colors ${requiresCustodial ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  </div>
+                  <p className="text-sm font-medium text-slate-900 flex-1">{custodialField.label}</p>
+                  <div
+                    role="switch"
+                    aria-checked={requiresCustodial}
+                    onClick={() => setDynamicValues((prev) => ({ ...prev, requires_custodial: !requiresCustodial }))}
+                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${requiresCustodial ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${requiresCustodial ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+              </div>
+              )}
+              {securityField && (
+              <div className={`rounded-xl border transition-colors ${requiresSecurity ? 'border-red-200 bg-red-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer">
+                  <div className={`p-1 rounded-lg transition-colors ${requiresSecurity ? 'bg-red-100' : 'bg-slate-100'}`}>
+                    <ShieldAlert className={`w-3.5 h-3.5 transition-colors ${requiresSecurity ? 'text-red-600' : 'text-slate-400'}`} />
+                  </div>
+                  <p className="text-sm font-medium text-slate-900 flex-1">{securityField.label}</p>
+                  <div
+                    role="switch"
+                    aria-checked={requiresSecurity}
+                    onClick={() => setDynamicValues((prev) => ({ ...prev, requires_security: !requiresSecurity }))}
+                    className={`relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${requiresSecurity ? 'bg-red-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${requiresSecurity ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+              </div>
+              )}
+            </div>
+            )}
+
+            {/* ── Custom fields added by admin (rendered generically) ── */}
+            {customFields.length > 0 && (
+              <div className="space-y-4 pt-2 border-t border-slate-100">
+                {customFields.map((field) => (
+                  <div key={field.id} className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-700">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                    </label>
+                    <FormFieldRenderer
+                      field={{
+                        key: field.key,
+                        label: field.label,
+                        type: field.type as FormFieldData['type'],
+                        required: field.required,
+                        placeholder: field.placeholder,
+                        helpText: field.helpText,
+                        options: field.options,
+                      }}
+                      value={dynamicValues[field.key]}
+                      onChange={(v) => setDynamicValues((prev) => ({ ...prev, [field.key]: v }))}
+                    />
+                  </div>
+                ))}
               </div>
             )}
 
@@ -777,7 +938,8 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
               )}
             </div>
           </div>
-        )}
+          )
+        })()}
       </div>
     </DetailDrawer>
   )
