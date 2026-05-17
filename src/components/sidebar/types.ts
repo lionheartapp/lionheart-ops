@@ -26,7 +26,7 @@ export type AthleticsTab = 'overview' | 'manage' | 'schedule' | 'stats'
 export type AthleticsManageSection = 'sports' | 'teams' | 'roster'
 /** Sub-sections within the Schedule tab */
 export type AthleticsScheduleSection = 'games' | 'tournaments'
-export type MaintenanceTab = 'dashboard' | 'pm-calendar' | 'routing' | 'approvals' | 'forms'
+export type MaintenanceTab = 'dashboard' | 'pm-calendar' | 'routing' | 'forms'
 
 export interface EventProjectSummary {
   id: string

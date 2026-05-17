@@ -15,10 +15,9 @@ import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import dynamic from 'next/dynamic'
 
-const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), { ssr: false })
 import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import {
-  LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, ShieldCheck, FileText,
+  LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, FileText,
   Zap, Droplets, Wind, Hammer, SprayCan, Trees, HelpCircle, ChevronLeft, Pencil, Settings,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -48,7 +47,6 @@ const CONFIG_TABS: {
   icon: typeof Route
 }[] = [
   { key: 'routing', label: 'Routing', icon: Route },
-  { key: 'approvals', label: 'Approvals', icon: ShieldCheck },
   { key: 'forms', label: 'Forms', icon: FileText },
 ]
 
@@ -386,18 +384,6 @@ function MaintenanceContent() {
                         className="animate-[fadeIn_200ms_ease-out]"
                       >
                         <TicketRoutingTab defaultModule="MAINTENANCE" />
-                      </div>
-                    )}
-
-                    {/* Approvals tab — managers only */}
-                    {canManageMaintenance && activeTab === 'approvals' && (
-                      <div
-                        role="tabpanel"
-                        id="tabpanel-approvals"
-                        aria-labelledby="tab-approvals"
-                        className="animate-[fadeIn_200ms_ease-out]"
-                      >
-                        <ApprovalRulesBuilder module="MAINTENANCE" />
                       </div>
                     )}
 
