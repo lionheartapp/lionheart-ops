@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Eye, EyeOff, Save, Check, Loader2, Share2, Link2, Copy, CheckCheck, Settings, BookmarkPlus } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Save, Check, Loader2, Share2, Link2, Copy, CheckCheck, Settings, BookmarkPlus, Globe, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import { fetchApi } from '@/lib/api-client'
@@ -79,6 +79,8 @@ interface FormDefinitionData {
   publicImageUrl: string | null
   publicImageSide: string
   logoUrl: string | null
+  visibility: 'PRIVATE' | 'SHARED'
+  createdBy: string | null
   pages: FormPageData[]
   fields: FormFieldData[]
   actions: unknown[]
@@ -196,6 +198,10 @@ export default function FormBuilder({ formId }: { formId: string }) {
       body: JSON.stringify(patch),
     }).then(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.forms.detail(formId) })
+      // Also invalidate hub list in case visibility changed
+      if ('visibility' in patch) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.forms.all })
+      }
     }).catch(() => {})
   }, [formId, queryClient])
 
@@ -486,6 +492,47 @@ export default function FormBuilder({ formId }: { formId: string }) {
                 </button>
               </div>
             </div>
+            {/* Visibility toggle — custom forms only */}
+            {form.context === 'CUSTOM' && (
+              <div className="pt-2 border-t border-slate-100">
+                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                  Form Visibility
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = form.visibility === 'SHARED' ? 'PRIVATE' : 'SHARED'
+                      updateFormStyle({ visibility: next })
+                    }}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                      form.visibility === 'SHARED' ? 'bg-indigo-500' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                        form.visibility === 'SHARED' ? 'translate-x-[18px]' : 'translate-x-[3px]'
+                      }`}
+                    />
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {form.visibility === 'SHARED' ? (
+                      <Globe className="w-3.5 h-3.5 text-indigo-500" />
+                    ) : (
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
+                    )}
+                    <span className="text-xs font-medium text-slate-700">
+                      {form.visibility === 'SHARED' ? 'Shared with organization' : 'Only visible to you'}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1.5">
+                  {form.visibility === 'SHARED'
+                    ? 'Everyone in your organization can see and use this form.'
+                    : 'Only you can see this form. Toggle to share it with your team.'}
+                </p>
+              </div>
+            )}
             {/* Save as template */}
             <div className="pt-2 border-t border-slate-100">
               <button

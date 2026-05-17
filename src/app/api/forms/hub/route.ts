@@ -10,7 +10,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { listForms, createForm, seedSystemForms } from '@/lib/services/formService'
 
-export const GET = withAuth(async ({ orgId }) => {
+export const GET = withAuth(async ({ orgId, ctx }) => {
   try {
     // Lazy seed: create system forms on first visit if they don't exist
     await seedSystemForms(orgId)
@@ -18,7 +18,7 @@ export const GET = withAuth(async ({ orgId }) => {
     console.error('[forms/hub] seedSystemForms failed:', e)
     // Continue — show whatever forms exist even if seeding fails
   }
-  const forms = await listForms()
+  const forms = await listForms(ctx.userId)
   return NextResponse.json(ok(forms))
 })
 

@@ -283,8 +283,9 @@ export async function getFormById(formId: string) {
   })
 }
 
-/** List all forms for the current org (system + custom, excludes ticket category forms) */
-export async function listForms() {
+/** List all forms for the current org (system + custom, excludes ticket category forms).
+ *  Custom forms are filtered by visibility: you see your own + SHARED ones. */
+export async function listForms(userId?: string) {
   const all = await prisma.formDefinition.findMany({
     include: {
       pages: { select: { id: true }, orderBy: { sortOrder: 'asc' } },
@@ -294,8 +295,13 @@ export async function listForms() {
     },
     orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
   })
-  // Filter out ticket category forms (those have a categoryKey and TICKET_CATEGORY context)
-  return all.filter((f) => f.context !== 'TICKET_CATEGORY')
+  // Filter out ticket category forms
+  // For custom forms, only show the creator's own forms + shared ones
+  return all.filter((f) => {
+    if (f.context === 'TICKET_CATEGORY') return false
+    if (f.context === 'CUSTOM' && userId && f.visibility === 'PRIVATE' && f.createdBy !== userId) return false
+    return true
+  })
 }
 
 /** Create a new custom form */
@@ -333,6 +339,7 @@ export async function updateForm(
     allowDrafts?: boolean
     isPublic?: boolean
     requireEmail?: boolean
+    visibility?: 'PRIVATE' | 'SHARED'
     publicStyle?: 'MINIMAL' | 'SPLIT' | 'HERO'
     publicCtaColor?: string | null
     publicBgColor?: string | null

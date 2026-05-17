@@ -14,6 +14,8 @@ import {
   ClipboardList,
   ChevronRight,
   Search,
+  Globe,
+  Lock,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
@@ -30,6 +32,7 @@ interface FormListItem {
   description: string | null
   categoryKey: string | null
   createdBy: string | null
+  visibility: 'PRIVATE' | 'SHARED'
   createdAt: string
   updatedAt: string
   pages: Array<{ id: string }>
@@ -244,6 +247,17 @@ export default function FormsHub() {
                           <span className="text-sm font-medium text-slate-900 truncate">
                             {form.description || 'Untitled Form'}
                           </span>
+                          {form.visibility === 'SHARED' ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-indigo-600 bg-indigo-50 rounded-full flex-shrink-0">
+                              <Globe className="w-2.5 h-2.5" />
+                              Shared
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-slate-50 rounded-full flex-shrink-0">
+                              <Lock className="w-2.5 h-2.5" />
+                              Private
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">{form.pages.length}</td>

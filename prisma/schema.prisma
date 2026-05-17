@@ -5914,6 +5914,11 @@ enum FormContext {
   CUSTOM
 }
 
+enum FormVisibility {
+  PRIVATE  // Only the creator can see this form
+  SHARED   // Everyone in the org can see and use this form
+}
+
 enum FieldProtection {
   LOCKED
   DEFAULT
@@ -5972,6 +5977,9 @@ model FormDefinition {
   publicBgColor   String? // hex — only used by MINIMAL
   publicImageUrl  String?
   publicImageSide FormImageSide   @default(RIGHT)
+
+  // Form visibility (custom forms only — system forms are always visible)
+  visibility     FormVisibility @default(PRIVATE)
 
   // Form builder settings
   coverColor     String?

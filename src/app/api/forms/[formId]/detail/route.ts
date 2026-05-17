@@ -28,6 +28,7 @@ const UpdateFormSchema = z.object({
   allowDrafts: z.boolean().optional(),
   isPublic: z.boolean().optional(),
   requireEmail: z.boolean().optional(),
+  visibility: z.enum(['PRIVATE', 'SHARED']).optional(),
   publicStyle: z.enum(['MINIMAL', 'SPLIT', 'HERO']).optional(),
   publicCtaColor: z.string().nullable().optional(),
   publicBgColor: z.string().nullable().optional(),
