@@ -91,8 +91,11 @@ const MAINTENANCE_PRIORITIES = [
   { value: 'URGENT', label: 'Urgent' },
 ]
 
-async function fetchRules(module: string) {
-  return fetchApi(`/api/settings/approval-rules?module=${module}`) as Promise<{
+async function fetchRules(module: string, formDefinitionId?: string) {
+  const base = formDefinitionId
+    ? `/api/forms/${formDefinitionId}/approval-rules`
+    : `/api/settings/approval-rules?module=${module}`
+  return fetchApi(base) as Promise<{
     rules: RuleData[]; schools: SchoolData[]; campuses: CampusData[]; categories: CategoryData[]; buildings: BuildingData[]; teams: TeamData[]
   }>
 }
@@ -254,15 +257,19 @@ function SortableStepRow({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 interface ApprovalRulesBuilderProps {
-  module?: 'EVENT' | 'MAINTENANCE'
+  module?: 'EVENT' | 'MAINTENANCE' | 'IT'
+  formDefinitionId?: string
 }
 
-export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRulesBuilderProps) {
+export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionId }: ApprovalRulesBuilderProps) {
   const queryClient = useQueryClient()
   const isMaintenance = module === 'MAINTENANCE'
+  const apiBase = formDefinitionId
+    ? `/api/forms/${formDefinitionId}/approval-rules`
+    : '/api/settings/approval-rules'
   const { data, isLoading } = useQuery({
-    queryKey: ['approval-rules', module],
-    queryFn: () => fetchRules(module),
+    queryKey: formDefinitionId ? ['form-approval-rules', formDefinitionId] : ['approval-rules', module],
+    queryFn: () => fetchRules(module, formDefinitionId),
   })
   const { activeSchoolId } = useActiveSchool()
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null)
@@ -330,7 +337,9 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
         body: action.body ? JSON.stringify(action.body) : undefined,
       })
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['approval-rules', module] }),
+    onSuccess: () => queryClient.invalidateQueries({
+      queryKey: formDefinitionId ? ['form-approval-rules', formDefinitionId] : ['approval-rules', module],
+    }),
   })
 
   const addRule = (opts: { schoolId?: string; isDefault?: boolean; isFinalApprover?: boolean }) => {
@@ -338,7 +347,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
       ? (isMaintenance ? 'All Other Tickets' : 'All Other Events')
       : 'New Rule'
     mutate.mutate({
-      method: 'POST', url: '/api/settings/approval-rules',
+      method: 'POST', url: apiBase,
       body: { name, module, ...opts },
     })
   }
@@ -352,7 +361,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
   const confirmDeleteRule = () => {
     if (!confirmDeleteRuleId) return
     if (selectedRuleId === confirmDeleteRuleId) setSelectedRuleId(null)
-    mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${confirmDeleteRuleId}` })
+    mutate.mutate({ method: 'DELETE', url: `${apiBase}/${confirmDeleteRuleId}` })
     setConfirmDeleteRuleId(null)
   }
 
@@ -365,7 +374,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
     // Background save via the shared mutation (handles CSRF, refetch on success)
     mutate.mutate({
       method: 'PATCH',
-      url: `/api/settings/approval-rules/${id}`,
+      url: `${apiBase}/${id}`,
       body: updates,
     })
   }
@@ -377,11 +386,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
 
   const addStep = (ruleId: string) => {
     if (addStepType === 'team' && addStepTeamId) {
-      mutate.mutate({ method: 'POST', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { teamId: addStepTeamId } })
+      mutate.mutate({ method: 'POST', url: `${apiBase}/${ruleId}/steps`, body: { teamId: addStepTeamId } })
     } else if (addStepType === 'person' && addStepPersonId) {
       const memberTeam = teams.find(t => t.members.some(m => m.id === addStepPersonId))
       mutate.mutate({
-        method: 'POST', url: `/api/settings/approval-rules/${ruleId}/steps`,
+        method: 'POST', url: `${apiBase}/${ruleId}/steps`,
         body: { teamId: memberTeam?.id || teams[0]?.id, assignedUserId: addStepPersonId },
       })
     }
@@ -392,11 +401,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
   }
 
   const updateStep = useCallback((ruleId: string, stepId: string, data: Record<string, unknown>) => {
-    mutate.mutate({ method: 'PUT', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { stepId, ...data } })
+    mutate.mutate({ method: 'PUT', url: `${apiBase}/${ruleId}/steps`, body: { stepId, ...data } })
   }, [mutate])
 
   const removeStep = useCallback((ruleId: string, stepId: string) => {
-    mutate.mutate({ method: 'DELETE', url: `/api/settings/approval-rules/${ruleId}/steps`, body: { stepId } })
+    mutate.mutate({ method: 'DELETE', url: `${apiBase}/${ruleId}/steps`, body: { stepId } })
   }, [mutate])
 
   // Step reorder handler — optimistic update + single background save
@@ -430,7 +439,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
     const stepsToUpdate = withNewOrder.filter((step, i) => selectedRule.steps[i]?.id !== step.id)
     Promise.all(
       stepsToUpdate.map(step =>
-        fetchApi(`/api/settings/approval-rules/${selectedRule.id}/steps`, {
+        fetchApi(`${apiBase}/${selectedRule.id}/steps`, {
           method: 'PUT',
           body: JSON.stringify({ stepId: step.id, sortOrder: step.sortOrder }),
         })
@@ -442,8 +451,19 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
     })
   }, [selectedRule, queryClient])
 
+  const isEmbedded = !!formDefinitionId
+
   if (isLoading) {
-    return (
+    return isEmbedded ? (
+      <div className="flex h-full border-t border-slate-200">
+        <div className="w-96 bg-slate-50 border-r border-slate-200 p-4 space-y-3 animate-pulse">
+          <div className="h-8 bg-slate-200/60 rounded-lg" />
+          <div className="h-12 bg-slate-100 rounded-lg" />
+          <div className="h-12 bg-slate-100 rounded-lg" />
+        </div>
+        <div className="flex-1" />
+      </div>
+    ) : (
       <div className="space-y-6">
         <div className="ui-glass p-6"><div className="h-20 animate-pulse rounded-xl bg-slate-100" /></div>
         <div className="h-96 animate-pulse rounded-2xl bg-slate-50 border border-slate-200" />
@@ -452,12 +472,14 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header — matches Year Plans sibling page */}
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Approval Rules</h1>
-        <p className="text-sm text-slate-500 mt-1">Define who must approve events using conditional rules</p>
-      </div>
+    <div className={isEmbedded ? 'flex flex-col h-full' : 'space-y-6'}>
+      {/* Header — hidden when embedded in form builder */}
+      {!isEmbedded && (
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Approval Rules</h1>
+          <p className="text-sm text-slate-500 mt-1">Define who must approve events using conditional rules</p>
+        </div>
+      )}
 
       {/* AI disclaimer banner */}
       <AnimatePresence>
@@ -496,7 +518,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT' }: ApprovalRules
         had a 384px sidebar squeezing the editor down to nothing usable.
       */}
       <div
-        className="flex flex-col md:flex-row gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white md:h-[calc(100vh-200px)]"
+        className={`flex flex-col md:flex-row gap-0 overflow-hidden bg-white ${
+          isEmbedded
+            ? 'border-t border-slate-200 flex-1'
+            : 'border border-slate-200 rounded-2xl md:h-[calc(100vh-200px)]'
+        }`}
       >
 
         {/* ── Left panel: flat rule list ─────────────────────────────── */}

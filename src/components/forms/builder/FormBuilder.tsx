@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, EyeOff, Save, Check, Loader2, Share2, Link2, Copy, CheckCheck, Settings, BookmarkPlus } from 'lucide-react'
+import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import type { FormFieldType, FieldProtection, FieldSensitivity } from '@prisma/client'
@@ -13,6 +15,10 @@ import PageList from './PageList'
 import FormCanvas from './FormCanvas'
 import FieldProperties from './FieldProperties'
 import FormStylePanel from './FormStylePanel'
+
+const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), {
+  ssr: false,
+})
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -89,7 +95,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
   const [formName, setFormName] = useState('')
   const [activePageId, setActivePageId] = useState<string | null>(null)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
-  const [leftTab, setLeftTab] = useState<'pages' | 'components'>('components')
+  const [leftTab, setLeftTab] = useState<'pages' | 'components' | 'workflows'>('components')
   const [previewMode, setPreviewMode] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
@@ -381,7 +387,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
             placeholder="Untitled Form"
           />
           {form.systemKey && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium ml-1">
               System
             </span>
           )}
@@ -512,37 +518,45 @@ export default function FormBuilder({ formId }: { formId: string }) {
         </div>
       )}
 
-      {/* Three-panel layout */}
+      {/* Builder mode tabs */}
+      {!previewMode && (
+        <div className="flex items-center gap-1 px-4 py-1.5 bg-white border-b border-slate-100">
+          {(['pages', 'components', 'workflows'] as const).map((tab) => {
+            const labels = { pages: 'Pages', components: 'Fields', workflows: 'Approvals' } as const
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setLeftTab(tab)}
+                className={`relative px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-colors duration-200 ${
+                  leftTab === tab
+                    ? 'text-white'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {leftTab === tab && (
+                  <motion.div
+                    layoutId="builder-tab-pill"
+                    className="absolute inset-0 bg-slate-900 rounded-full"
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                  />
+                )}
+                <span className="relative z-10">{labels[tab]}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {leftTab === 'workflows' && !previewMode ? (
+        <div className="flex-1 overflow-hidden">
+          <ApprovalRulesBuilder formDefinitionId={formId} />
+        </div>
+      ) : (
       <div className="flex-1 flex overflow-hidden">
         {/* Left panel — palette / pages (hidden in preview) */}
         {!previewMode && (
         <aside className="w-56 bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0">
-          {/* Tabs */}
-          <div className="flex border-b border-slate-100 px-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setLeftTab('pages')}
-              className={`flex-1 px-3 py-2 text-xs font-medium rounded-t-lg transition-colors cursor-pointer ${
-                leftTab === 'pages'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Pages
-            </button>
-            <button
-              type="button"
-              onClick={() => setLeftTab('components')}
-              className={`flex-1 px-3 py-2 text-xs font-medium rounded-t-lg transition-colors cursor-pointer ${
-                leftTab === 'components'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Components
-            </button>
-          </div>
-
           {/* Panel content */}
           <div className="flex-1 overflow-y-auto">
             {leftTab === 'pages' ? (
@@ -629,6 +643,8 @@ export default function FormBuilder({ formId }: { formId: string }) {
         </aside>
         )}
       </div>
+
+      )}
     </div>
   )
 }

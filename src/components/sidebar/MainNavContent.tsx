@@ -140,7 +140,6 @@ export default function MainNavContent({
 
   const navItems = [
     { icon: Home, label: 'Dashboard', href: '/dashboard' },
-    { icon: FileText, label: 'Forms', href: '/forms' },
   ]
 
   return (
@@ -288,6 +287,27 @@ export default function MainNavContent({
               </button>
             </li>
           ) : null}
+          {/* Forms */}
+          <li>
+            <PrefetchLink
+              href="/forms"
+              onClick={() => {
+                setSettingsOpen(false)
+                setAthleticsOpen(false)
+                setEventsOpen(false)
+                setIsOpen(false)
+              }}
+              className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen
+                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+              }`}
+              aria-current={isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'page' : undefined}
+            >
+              <FileText className={`w-5 h-5 flex-shrink-0 ${isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+              <span className="text-sm">Forms</span>
+            </PrefetchLink>
+          </li>
         </ul>
 
         {/* Support section */}

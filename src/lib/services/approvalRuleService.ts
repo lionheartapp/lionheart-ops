@@ -428,3 +428,279 @@ export async function resolveMaintenanceApprovalSteps(orgId: string, ticketCtx: 
 
   return [...deduped, ...finalSteps]
 }
+
+// ─── IT approval step resolution ─────────────────────────────────────────────
+
+interface ITTicketContext {
+  schoolId?: string | null
+  campusId?: string | null
+  issueType?: string | null
+  priority?: string | null
+  buildingId?: string | null
+}
+
+/**
+ * Given an IT ticket context, returns the ordered list of approval steps.
+ * Same merge-all-matching-rules logic as event/maintenance approval.
+ */
+export async function resolveITApprovalSteps(orgId: string, ticketCtx: ITTicketContext) {
+  const rules = await rawPrisma.approvalRule.findMany({
+    where: { organizationId: orgId, module: 'IT', isActive: true, formDefinitionId: null },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      steps: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          team: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+
+  return evaluateRulesWithContext(rules, {
+    schoolId: ticketCtx.schoolId,
+    campusId: ticketCtx.campusId,
+    category: ticketCtx.issueType,
+    priority: ticketCtx.priority,
+    buildingId: ticketCtx.buildingId,
+  })
+}
+
+// ─── Form-scoped approval resolution ─────────────────────────────────────────
+
+export interface FormSubmissionContext {
+  schoolId?: string | null
+  campusId?: string | null
+  category?: string | null
+  expectedAttendance?: number | null
+  requiresAV?: boolean
+  requiresFacilities?: boolean
+  requiresCustodial?: boolean
+  requiresSecurity?: boolean
+  isOffCampus?: boolean
+  priority?: string | null
+  buildingId?: string | null
+  estimatedCost?: number | null
+  issueType?: string | null
+}
+
+/**
+ * Resolves approval steps scoped to a specific form.
+ * Checks form-scoped rules first. If none configured, falls back to legacy
+ * module-level resolution for backwards compatibility.
+ */
+export async function resolveFormApprovalSteps(
+  orgId: string,
+  formDefinitionId: string,
+  ctx: FormSubmissionContext
+) {
+  // 1. Try form-scoped rules first
+  const formRules = await rawPrisma.approvalRule.findMany({
+    where: { organizationId: orgId, formDefinitionId, isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      steps: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          team: { select: { id: true, name: true } },
+        },
+      },
+    },
+  })
+
+  if (formRules.length > 0) {
+    return evaluateRulesWithContext(formRules, ctx)
+  }
+
+  // 2. Fallback: legacy global rules (no formDefinitionId) matching module
+  const form = await rawPrisma.formDefinition.findUnique({
+    where: { id: formDefinitionId },
+    select: { context: true, systemKey: true },
+  })
+
+  if (!form) return []
+
+  // Determine which legacy resolver to use based on form context
+  const isIT = form.systemKey === 'it_request'
+  const isMaintenance = form.systemKey === 'facilities_request' || form.context === 'TICKET_CATEGORY'
+
+  if (isIT) {
+    return resolveITApprovalSteps(orgId, {
+      schoolId: ctx.schoolId,
+      campusId: ctx.campusId,
+      issueType: ctx.issueType ?? ctx.category,
+      priority: ctx.priority,
+      buildingId: ctx.buildingId,
+    })
+  }
+
+  if (isMaintenance) {
+    return resolveMaintenanceApprovalSteps(orgId, {
+      schoolId: ctx.schoolId,
+      campusId: ctx.campusId,
+      category: ctx.category,
+      priority: ctx.priority,
+      buildingId: ctx.buildingId,
+      estimatedRepairCostUSD: ctx.estimatedCost,
+    })
+  }
+
+  // Default: event approval
+  return resolveApprovalSteps(orgId, {
+    schoolId: ctx.schoolId,
+    campusId: ctx.campusId,
+    category: ctx.category,
+    expectedAttendance: ctx.expectedAttendance,
+    requiresAV: ctx.requiresAV,
+    requiresFacilities: ctx.requiresFacilities,
+    requiresCustodial: ctx.requiresCustodial,
+    requiresSecurity: ctx.requiresSecurity,
+    isOffCampus: ctx.isOffCampus,
+  })
+}
+
+// ─── Shared rule evaluation logic ────────────────────────────────────────────
+
+interface EvalContext {
+  schoolId?: string | null
+  campusId?: string | null
+  category?: string | null
+  expectedAttendance?: number | null
+  requiresAV?: boolean
+  requiresFacilities?: boolean
+  requiresCustodial?: boolean
+  requiresSecurity?: boolean
+  isOffCampus?: boolean
+  priority?: string | null
+  buildingId?: string | null
+  estimatedCost?: number | null
+  issueType?: string | null
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RuleWithSteps = any
+
+/**
+ * Shared evaluation logic for all approval rule types.
+ * Merges all matching conditional rules, falls back to defaults if none match,
+ * always appends final approver rules, and deduplicates by team+user.
+ */
+function evaluateRulesWithContext(rules: RuleWithSteps[], ctx: EvalContext) {
+  const matchedSteps: RuleWithSteps[] = []
+  const defaultSteps: RuleWithSteps[] = []
+  const finalSteps: RuleWithSteps[] = []
+
+  for (const rule of rules) {
+    if (rule.isFinalApprover) {
+      finalSteps.push(...rule.steps)
+      continue
+    }
+
+    if (rule.isDefault) {
+      defaultSteps.push(...rule.steps)
+      continue
+    }
+
+    // Shared conditions
+    const matchesSchool = !rule.schoolId || rule.schoolId === ctx.schoolId
+    const matchesCampus = !rule.campusId || rule.campusId === ctx.campusId
+
+    // Event conditions
+    const matchesEventCategory = !rule.eventCategory || rule.eventCategory === ctx.category
+    const matchesAttendance = rule.minAttendance == null || (ctx.expectedAttendance ?? 0) >= rule.minAttendance
+    const matchesResource = !rule.requiresResource || (
+      (rule.requiresResource === 'av' && ctx.requiresAV) ||
+      (rule.requiresResource === 'facilities' && ctx.requiresFacilities) ||
+      (rule.requiresResource === 'custodial' && ctx.requiresCustodial) ||
+      (rule.requiresResource === 'security' && ctx.requiresSecurity)
+    )
+    const matchesOffCampus = rule.isOffCampus == null || rule.isOffCampus === (ctx.isOffCampus ?? false)
+
+    // Maintenance/IT conditions
+    const matchesMaintenanceCategory = !rule.maintenanceCategory || rule.maintenanceCategory === (ctx.category ?? ctx.issueType)
+    const matchesPriority = !rule.maintenancePriority || rule.maintenancePriority === ctx.priority
+    const matchesBuilding = !rule.maintenanceBuildingId || rule.maintenanceBuildingId === ctx.buildingId
+    const matchesCost = rule.maintenanceMinCost == null || (ctx.estimatedCost ?? 0) >= rule.maintenanceMinCost
+
+    const allMatch = matchesSchool && matchesCampus &&
+      matchesEventCategory && matchesAttendance && matchesResource && matchesOffCampus &&
+      matchesMaintenanceCategory && matchesPriority && matchesBuilding && matchesCost
+
+    if (allMatch) {
+      matchedSteps.push(...rule.steps)
+    }
+  }
+
+  const baseSteps = matchedSteps.length > 0 ? matchedSteps : defaultSteps
+
+  const seen = new Set<string>()
+  const deduped = baseSteps.filter((step: RuleWithSteps) => {
+    const key = `${step.teamId}:${step.assignedUserId ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  return [...deduped, ...finalSteps]
+}
+
+// ─── Form-scoped CRUD helpers ────────────────────────────────────────────────
+
+export async function getFormApprovalRules(formDefinitionId: string) {
+  const orgId = getOrgContextId()
+  return rawPrisma.approvalRule.findMany({
+    where: { organizationId: orgId, formDefinitionId },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      school: { select: { id: true, name: true, color: true } },
+      campus: { select: { id: true, name: true } },
+      maintenanceBuilding: { select: { id: true, name: true } },
+      steps: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          team: { select: { id: true, name: true, slug: true } },
+          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+        },
+      },
+    },
+  })
+}
+
+export async function createFormApprovalRule(formDefinitionId: string, input: CreateRuleInput) {
+  const orgId = getOrgContextId()
+
+  // Verify the form belongs to this org
+  const form = await rawPrisma.formDefinition.findFirst({
+    where: { id: formDefinitionId, organizationId: orgId },
+    select: { id: true },
+  })
+  if (!form) throw new Error('Form not found')
+
+  const maxSort = await rawPrisma.approvalRule.aggregate({
+    where: { organizationId: orgId, formDefinitionId },
+    _max: { sortOrder: true },
+  })
+
+  return rawPrisma.approvalRule.create({
+    data: {
+      organizationId: orgId,
+      formDefinitionId,
+      module: input.module || 'EVENT',
+      name: input.name,
+      description: input.description || null,
+      schoolId: input.schoolId || null,
+      campusId: input.campusId || null,
+      eventCategory: input.eventCategory || null,
+      minAttendance: input.minAttendance ?? null,
+      requiresResource: input.requiresResource || null,
+      isOffCampus: input.isOffCampus ?? null,
+      maintenanceCategory: input.maintenanceCategory || null,
+      maintenancePriority: input.maintenancePriority || null,
+      maintenanceBuildingId: input.maintenanceBuildingId || null,
+      maintenanceMinCost: input.maintenanceMinCost ?? null,
+      isDefault: input.isDefault ?? false,
+      isFinalApprover: input.isFinalApprover ?? false,
+      sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
+    },
+  })
+}

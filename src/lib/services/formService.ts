@@ -474,6 +474,112 @@ export async function seedSystemForms(orgId: string): Promise<void> {
       }
     }
   }
+
+  // Seed default approval workflows for the newly created forms
+  await seedFormApprovalDefaults(orgId)
+}
+
+/**
+ * Seed default approval workflows for system forms.
+ * Each system form gets a default catch-all workflow so admins have something to configure.
+ */
+export async function seedFormApprovalDefaults(orgId: string): Promise<void> {
+  // Look up system forms for this org
+  const systemForms = await rawPrisma.formDefinition.findMany({
+    where: { organizationId: orgId, systemKey: { not: null }, isDefault: true },
+    select: { id: true, systemKey: true },
+  })
+
+  if (systemForms.length === 0) return
+
+  // Look up the org's teams by slug so we can assign the right team to each form
+  const teams = await rawPrisma.team.findMany({
+    where: { organizationId: orgId },
+    select: { id: true, slug: true },
+  })
+  const teamBySlug = Object.fromEntries(teams.map((t) => [t.slug, t.id]))
+
+  // Default workflow mapping: systemKey → { ruleName, teamSlug, module }
+  const defaults: Record<string, { name: string; teamSlug: string; module: string }> = {
+    single_event: { name: 'Default Event Approval', teamSlug: 'administration', module: 'EVENT' },
+    recurring_event: { name: 'Default Event Approval', teamSlug: 'administration', module: 'EVENT' },
+    multiday_event: { name: 'Default Event Approval', teamSlug: 'administration', module: 'EVENT' },
+    facilities_request: { name: 'Default Facilities Approval', teamSlug: 'maintenance', module: 'MAINTENANCE' },
+    it_request: { name: 'Default IT Approval', teamSlug: 'it-support', module: 'IT' },
+  }
+
+  for (const form of systemForms) {
+    if (!form.systemKey || !defaults[form.systemKey]) continue
+
+    // Skip if this form already has approval rules
+    const existingRules = await rawPrisma.approvalRule.findFirst({
+      where: { organizationId: orgId, formDefinitionId: form.id },
+      select: { id: true },
+    })
+    if (existingRules) continue
+
+    const def = defaults[form.systemKey]
+    const teamId = teamBySlug[def.teamSlug]
+    if (!teamId) continue // Team not found — skip
+
+    // Create the default catch-all rule
+    const rule = await rawPrisma.approvalRule.create({
+      data: {
+        organizationId: orgId,
+        formDefinitionId: form.id,
+        module: def.module,
+        name: def.name,
+        isDefault: true,
+        sortOrder: 0,
+      },
+    })
+
+    // Add the primary team as a required approval step
+    await rawPrisma.approvalFlowEntry.create({
+      data: {
+        organizationId: orgId,
+        ruleId: rule.id,
+        teamId,
+        mode: 'REQUIRED',
+        trigger: 'ALWAYS',
+        sortOrder: 0,
+      },
+    })
+
+    // Event forms also get Facilities + A/V as conditional approvers
+    const isEventForm = ['single_event', 'recurring_event', 'multiday_event'].includes(form.systemKey!)
+    if (isEventForm) {
+      const maintenanceTeamId = teamBySlug['maintenance']
+      const avTeamId = teamBySlug['av-production']
+
+      if (maintenanceTeamId) {
+        await rawPrisma.approvalFlowEntry.create({
+          data: {
+            organizationId: orgId,
+            ruleId: rule.id,
+            teamId: maintenanceTeamId,
+            mode: 'REQUIRED',
+            trigger: 'WHEN_RESOURCE_REQUESTED',
+            resourceType: 'facilities',
+            sortOrder: 1,
+          },
+        })
+      }
+      if (avTeamId) {
+        await rawPrisma.approvalFlowEntry.create({
+          data: {
+            organizationId: orgId,
+            ruleId: rule.id,
+            teamId: avTeamId,
+            mode: 'REQUIRED',
+            trigger: 'WHEN_RESOURCE_REQUESTED',
+            resourceType: 'av',
+            sortOrder: 2,
+          },
+        })
+      }
+    }
+  }
 }
 
 // ─── Clone Form (for per-event copies) ──────────────────────────────────────

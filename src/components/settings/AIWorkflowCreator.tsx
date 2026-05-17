@@ -71,7 +71,7 @@ type Phase = 'input' | 'processing' | 'preview' | 'saving' | 'done'
 interface AIWorkflowCreatorProps {
   isOpen: boolean
   onClose: () => void
-  module?: 'EVENT' | 'MAINTENANCE'
+  module?: 'EVENT' | 'MAINTENANCE' | 'IT'
   context: WorkflowContext
   onRulesCreated: () => void
 }

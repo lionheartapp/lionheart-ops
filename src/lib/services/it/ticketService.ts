@@ -89,6 +89,17 @@ export const ALLOWED_TRANSITIONS: Record<
       description: 'Cancel ticket with reason',
     },
   },
+  PENDING_APPROVAL: {
+    TODO: {
+      requiredPermissions: ['it:ticket:update:status' as const],
+      description: 'Approve and move to queue',
+    },
+    CANCELLED: {
+      requiredPermissions: ['it:ticket:update:status' as const],
+      requiredFields: ['cancellationReason'],
+      description: 'Reject the request',
+    },
+  },
   DONE: {}, // Terminal
   CANCELLED: {}, // Terminal
 }

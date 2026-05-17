@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Lock, ShieldHalf, Trash2, ArrowLeft, ArrowRight } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import SortableList from '@/components/forms/SortableList'
@@ -276,9 +277,15 @@ export default function FormCanvas({
 
       return (
         <div className="h-full flex flex-col items-center justify-start bg-slate-100 p-6 overflow-y-auto">
-          <div className="flex items-center gap-1 mb-4 bg-white border border-slate-200 rounded-lg p-0.5">
-            <button type="button" onClick={() => setPreviewDevice('desktop')} className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${previewDevice === 'desktop' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}>Desktop</button>
-            <button type="button" onClick={() => setPreviewDevice('mobile')} className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${previewDevice === 'mobile' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}>Mobile</button>
+          <div className="flex items-center gap-1 mb-4 bg-white border border-slate-200 rounded-full p-0.5">
+            {(['desktop', 'mobile'] as const).map((device) => (
+              <button key={device} type="button" onClick={() => setPreviewDevice(device)} className={`relative px-3 py-1.5 text-[11px] font-medium rounded-full cursor-pointer transition-colors duration-200 ${previewDevice === device ? 'text-white' : 'text-slate-500'}`}>
+                {previewDevice === device && (
+                  <motion.div layoutId="preview-device-pill" className="absolute inset-0 bg-slate-900 rounded-full" transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }} />
+                )}
+                <span className="relative z-10">{device === 'desktop' ? 'Desktop' : 'Mobile'}</span>
+              </button>
+            ))}
           </div>
 
           {/* Drawer frame */}
@@ -423,25 +430,22 @@ export default function FormCanvas({
     return (
       <div className="h-full flex flex-col items-center justify-start bg-slate-100 p-6 overflow-y-auto">
         {/* Device toggle */}
-        <div className="flex items-center gap-1 mb-4 bg-white border border-slate-200 rounded-lg p-0.5">
-          <button
-            type="button"
-            onClick={() => setPreviewDevice('desktop')}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${
-              previewDevice === 'desktop' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Desktop
-          </button>
-          <button
-            type="button"
-            onClick={() => setPreviewDevice('mobile')}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${
-              previewDevice === 'mobile' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Mobile
-          </button>
+        <div className="flex items-center gap-1 mb-4 bg-white border border-slate-200 rounded-full p-0.5">
+          {(['desktop', 'mobile'] as const).map((device) => (
+            <button
+              key={device}
+              type="button"
+              onClick={() => setPreviewDevice(device)}
+              className={`relative px-3 py-1.5 text-[11px] font-medium rounded-full cursor-pointer transition-colors duration-200 ${
+                previewDevice === device ? 'text-white' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {previewDevice === device && (
+                <motion.div layoutId="preview-device-pill-2" className="absolute inset-0 bg-slate-900 rounded-full" transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }} />
+              )}
+              <span className="relative z-10">{device === 'desktop' ? 'Desktop' : 'Mobile'}</span>
+            </button>
+          ))}
         </div>
 
         {/* Browser frame */}
@@ -480,18 +484,25 @@ export default function FormCanvas({
       {/* Page tabs (edit mode only) */}
       {!previewMode && pages.length > 1 && (
         <div className="flex items-center gap-1 mb-6 bg-white border border-slate-200 rounded-xl p-1 w-fit">
-          {pages.map((page) => (
+          {pages.map((page, i) => (
             <button
               key={page.id}
               type="button"
               onClick={() => onSelectPage(page.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+              className={`relative px-3 py-1.5 text-xs font-medium rounded-full cursor-pointer transition-colors duration-200 ${
                 page.id === activePageId
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'text-white'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              {page.title}
+              {page.id === activePageId && (
+                <motion.div
+                  layoutId="form-page-tab-pill"
+                  className="absolute inset-0 bg-slate-900 rounded-full"
+                  transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                />
+              )}
+              <span className="relative z-10">{page.title || `Page ${i + 1}`}</span>
             </button>
           ))}
         </div>
