@@ -40,6 +40,7 @@ export const CreateEventProjectSchema = z.object({
   requiresSecurity: z.boolean().optional(),
   requiresAthleticDirector: z.boolean().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
+  formDefinitionId: z.string().optional(),
 })
 
 export type CreateEventProjectInput = z.infer<typeof CreateEventProjectSchema>

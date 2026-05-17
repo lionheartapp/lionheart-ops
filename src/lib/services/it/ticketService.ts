@@ -129,6 +129,7 @@ export const CreateITTicketSchema = z.object({
   roomId: z.string().optional(),
   schoolId: z.string().optional(),
   customFields: z.record(z.string(), z.unknown()).optional(),
+  formDefinitionId: z.string().optional(),
 })
 
 export const SubTicketSchema = z.object({
@@ -198,6 +199,37 @@ export async function createITTicket(
       content: 'Ticket submitted',
     },
   })
+
+  // Check for approval rules — if gates are needed, set PENDING_APPROVAL
+  try {
+    const { resolveFormApprovalSteps, resolveITApprovalSteps, getSystemFormId } = await import('@/lib/services/approvalRuleService')
+    const { buildGatesFromFlow } = await import('@/lib/services/approvalFlowService')
+    const ticketCtx = {
+      schoolId: input.schoolId ?? null,
+      campusId: input.schoolId ?? null,
+      issueType: input.issueType,
+      priority: input.priority,
+      buildingId: input.buildingId ?? null,
+    }
+    const formId = input.formDefinitionId ?? await getSystemFormId(orgId, 'it_request')
+    const resolvedSteps = formId
+      ? await resolveFormApprovalSteps(orgId, formId, ticketCtx)
+      : await resolveITApprovalSteps(orgId, ticketCtx)
+
+    if (resolvedSteps.length > 0) {
+      const { gates } = await buildGatesFromFlow({}, resolvedSteps)
+      const hasActiveGates = Object.values(gates).some((g: { status: string }) => g.status === 'PENDING')
+      if (hasActiveGates) {
+        await rawPrisma.iTTicket.update({
+          where: { id: ticket.id },
+          data: { status: 'PENDING_APPROVAL', approvalGates: JSON.parse(JSON.stringify(gates)) },
+        })
+      }
+    }
+  } catch (err) {
+    // Approval check is non-blocking — log and continue
+    console.error('[IT ticket] Approval check failed:', err)
+  }
 
   // Compute and set SLA due dates (fire-and-forget)
   import('@/lib/services/slaService').then(({ computeSLADueDates }) => {

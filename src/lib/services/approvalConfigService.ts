@@ -4,7 +4,7 @@ import { getOrgContextId } from '@/lib/org-context'
 
 const db = prisma as unknown as OrgPrismaClient
 
-const APPROVAL_CHANNELS = ['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY', 'ATHLETIC_DIRECTOR'] as const
+const APPROVAL_CHANNELS = ['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY'] as const
 
 function invalidateApprovalConfigCache(): void {
   invalidateOrgCache(getOrgContextId(), 'approval-config')

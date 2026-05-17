@@ -37,7 +37,6 @@ export interface ApprovalGatesV1 {
   facilities?: GateState
   custodial?: GateState
   security?: GateState
-  athletic_director?: GateState
 }
 
 /** Union type that accepts both V1 and V2 gate shapes */
@@ -53,7 +52,7 @@ function isV2Gates(gates: Record<string, unknown>): boolean {
 
 // ─── V1 Config ──────────────────────────────────────────────────────────────
 
-const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security', 'athletic_director'] as const
+const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security'] as const
 
 const V1_LABELS: Record<string, string> = {
   admin: 'Admin',
@@ -61,7 +60,6 @@ const V1_LABELS: Record<string, string> = {
   facilities: 'Facilities',
   custodial: 'Custodial',
   security: 'Security',
-  athletic_director: 'Athletic Director',
 }
 
 // ─── Status styling ─────────────────────────────────────────────────────────

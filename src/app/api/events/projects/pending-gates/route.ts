@@ -8,7 +8,7 @@ import {
 } from '@/lib/services/eventProjectService'
 import type { GateType } from '@/lib/services/eventProjectService'
 
-const VALID_GATE_TYPES = new Set<GateType>(['admin', 'facilities', 'av', 'custodial', 'security', 'athletic_director'])
+const VALID_GATE_TYPES = new Set<GateType>(['admin', 'facilities', 'av', 'custodial', 'security'])
 
 /**
  * GET /api/events/projects/pending-gates?gateType=av|facilities|admin&countOnly=true
@@ -26,7 +26,7 @@ export const GET = withAuth(async ({ searchParams }) => {
 
   if (!gateType || !VALID_GATE_TYPES.has(gateType)) {
     return NextResponse.json(
-      fail('VALIDATION_ERROR', 'gateType query parameter is required and must be one of: admin, facilities, av, custodial, security, athletic_director'),
+      fail('VALIDATION_ERROR', 'gateType query parameter is required and must be one of: admin, facilities, av, custodial, security'),
       { status: 400 },
     )
   }

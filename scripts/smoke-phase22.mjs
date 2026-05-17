@@ -166,15 +166,6 @@ async function testNotificationRuleApprove() {
 // ─── AI Tests ─────────────────────────────────────────────────────────────────
 
 /**
- * ai-create-from-description: POST /api/events/ai/create-from-description
- * AI event creation from natural language description — requires GEMINI_API_KEY.
- * Returns structured EventProject data (not yet saved).
- */
-async function testAiCreateFromDescription() {
-  skip('not implemented — requires AUTH_TOKEN and GEMINI_API_KEY set on server')
-}
-
-/**
  * ai-generate-schedule: POST /api/events/ai/generate-schedule
  * Generates a detailed schedule from event overview data.
  * Returns array of schedule blocks with start/end times.
@@ -311,8 +302,7 @@ const TESTS = {
   'notification-rule-create': testNotificationRuleCreate,
   'notification-rule-approve': testNotificationRuleApprove,
 
-  // AI (8 tests)
-  'ai-create-from-description': testAiCreateFromDescription,
+  // AI (7 tests)
   'ai-generate-schedule': testAiGenerateSchedule,
   'ai-generate-form': testAiGenerateForm,
   'ai-generate-groups': testAiGenerateGroups,
@@ -382,8 +372,8 @@ async function main() {
   }
 
   console.log('')
-  console.log(`  ${YELLOW}AI Features (8 tests)${RESET}`)
-  for (const name of ['ai-create-from-description', 'ai-generate-schedule', 'ai-generate-form', 'ai-generate-groups', 'ai-detect-conflicts', 'ai-estimate-budget', 'ai-generate-summary', 'ai-analyze-feedback']) {
+  console.log(`  ${YELLOW}AI Features (7 tests)${RESET}`)
+  for (const name of ['ai-generate-schedule', 'ai-generate-form', 'ai-generate-groups', 'ai-detect-conflicts', 'ai-estimate-budget', 'ai-generate-summary', 'ai-analyze-feedback']) {
     await runTest(name, TESTS[name])
   }
 

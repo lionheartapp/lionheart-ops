@@ -17,7 +17,6 @@ export const RESOURCE_TYPES = [
   { value: 'facilities', label: 'Facilities Setup', formField: 'requiresFacilities' },
   { value: 'custodial', label: 'Custodial', formField: 'requiresCustodial' },
   { value: 'security', label: 'Security', formField: 'requiresSecurity' },
-  { value: 'athletic', label: 'Athletic Facilities', formField: 'requiresAthleticDirector' },
 ] as const
 
 export type ResourceType = typeof RESOURCE_TYPES[number]['value']
@@ -151,7 +150,6 @@ export interface EventResourceNeeds {
   requiresFacilities?: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
-  requiresAthleticDirector?: boolean
 }
 
 /** Map resource type values to event form field names */
@@ -160,7 +158,6 @@ const RESOURCE_TO_FIELD: Record<string, string> = {
   facilities: 'requiresFacilities',
   custodial: 'requiresCustodial',
   security: 'requiresSecurity',
-  athletic: 'requiresAthleticDirector',
 }
 
 export interface BuildGatesResult {

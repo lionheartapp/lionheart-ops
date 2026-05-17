@@ -6,7 +6,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { rejectGate } from '@/lib/services/eventProjectService'
 
 const schema = z.object({
-  gateType: z.enum(['admin', 'facilities', 'av', 'custodial', 'security', 'athletic_director']),
+  gateType: z.enum(['admin', 'facilities', 'av', 'custodial', 'security']),
   reason: z.string().min(1, 'A reason is required when rejecting'),
 })
 

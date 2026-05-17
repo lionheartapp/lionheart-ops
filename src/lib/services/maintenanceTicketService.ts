@@ -56,6 +56,7 @@ const CreateTicketSchema = z.object({
   availabilityNote: z.string().optional(),
   assetId: z.string().optional(),  // Optional link to a MaintenanceAsset
   customFields: z.record(z.string(), z.unknown()).optional(),  // Category-scoped dynamic field values
+  formDefinitionId: z.string().optional(),  // Which form was used to create this ticket
 })
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
@@ -148,7 +149,7 @@ export async function createMaintenanceTicket(
   // Check for approval rules — if gates are needed, set PENDING_APPROVAL and skip routing
   let needsApproval = false
   try {
-    const { resolveMaintenanceApprovalSteps } = await import('./approvalRuleService')
+    const { resolveFormApprovalSteps, resolveMaintenanceApprovalSteps, getSystemFormId } = await import('./approvalRuleService')
     const { buildGatesFromFlow } = await import('./approvalFlowService')
     const ticketCtx = {
       schoolId: data.schoolId ?? null,
@@ -156,9 +157,13 @@ export async function createMaintenanceTicket(
       category: data.category,
       priority: data.priority,
       buildingId: data.buildingId ?? null,
-      estimatedRepairCostUSD: null, // not available at creation time
+      estimatedCost: null, // not available at creation time
     }
-    const resolvedSteps = await resolveMaintenanceApprovalSteps(orgId, ticketCtx)
+    // Use the form that created this ticket if known, otherwise look up the system form
+    const formId = data.formDefinitionId ?? await getSystemFormId(orgId, 'facilities_request')
+    const resolvedSteps = formId
+      ? await resolveFormApprovalSteps(orgId, formId, ticketCtx)
+      : await resolveMaintenanceApprovalSteps(orgId, ticketCtx)
     if (resolvedSteps.length > 0) {
       const { gates } = await buildGatesFromFlow({}, resolvedSteps)
       const hasActiveGates = Object.values(gates).some((g: { status: string }) => g.status === 'PENDING')

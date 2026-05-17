@@ -6,7 +6,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { getApprovalConfigs, bulkUpsertApprovalConfigs } from '@/lib/services/approvalConfigService'
 
 const ConfigSchema = z.object({
-  channelType: z.enum(['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY', 'ATHLETIC_DIRECTOR']),
+  channelType: z.enum(['ADMIN', 'FACILITIES', 'AV_PRODUCTION', 'CUSTODIAL', 'SECURITY']),
   mode: z.enum(['REQUIRED', 'NOTIFICATION', 'DISABLED']),
   assignedTeamId: z.string().nullable().optional(),
   escalationHours: z.number().int().min(1).max(720).optional(),

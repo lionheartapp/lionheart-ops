@@ -20,7 +20,7 @@ export interface GateState {
   reason?: string | null
 }
 
-export type GateType = 'admin' | 'facilities' | 'av' | 'custodial' | 'security' | 'athletic_director'
+export type GateType = 'admin' | 'facilities' | 'av' | 'custodial' | 'security'
 
 export interface ApprovalGates {
   admin?: GateState
@@ -28,7 +28,6 @@ export interface ApprovalGates {
   av?: GateState
   custodial?: GateState
   security?: GateState
-  athletic_director?: GateState
 }
 
 // ─── Channel ↔ Gate Key Translation ────────────────────────────────────────
@@ -40,7 +39,6 @@ export const CHANNEL_TO_GATE: Record<string, GateType> = {
   AV_PRODUCTION: 'av',
   CUSTODIAL: 'custodial',
   SECURITY: 'security',
-  ATHLETIC_DIRECTOR: 'athletic_director',
 }
 
 /** Reverse: gate key → ApprovalChannel enum value */
@@ -50,7 +48,6 @@ export const GATE_TO_CHANNEL: Record<GateType, string> = {
   av: 'AV_PRODUCTION',
   custodial: 'CUSTODIAL',
   security: 'SECURITY',
-  athletic_director: 'ATHLETIC_DIRECTOR',
 }
 
 /** Human-readable labels and default link URLs for each gate type */
@@ -60,7 +57,6 @@ export const GATE_META: Record<GateType, { label: string; defaultUrl: string }> 
   facilities: { label: 'Facilities', defaultUrl: '/events/approvals' },
   custodial: { label: 'Custodial', defaultUrl: '/events/approvals' },
   security: { label: 'Security', defaultUrl: '/events/approvals' },
-  athletic_director: { label: 'Athletic Director', defaultUrl: '/events/approvals' },
 }
 
 // ─── Event Metadata → Channel Mapping ──────────────────────────────────────
@@ -71,7 +67,6 @@ const CHANNEL_TRIGGERS: Record<string, string> = {
   FACILITIES: 'requiresFacilities',
   CUSTODIAL: 'requiresCustodial',
   SECURITY: 'requiresSecurity',
-  ATHLETIC_DIRECTOR: 'requiresAthleticDirector',
   // ADMIN has no trigger — it's always evaluated based on config mode
 }
 
@@ -82,7 +77,6 @@ export interface EventResourceNeeds {
   requiresFacilities: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
-  requiresAthleticDirector?: boolean
 }
 
 /**

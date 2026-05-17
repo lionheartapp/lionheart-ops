@@ -42,10 +42,9 @@ const V1_LABELS: Record<string, string> = {
   facilities: 'Facilities',
   custodial: 'Custodial',
   security: 'Security',
-  athletic_director: 'Athletic Director',
 }
 
-const ALL_V1_KEYS: (keyof ApprovalGatesV1)[] = ['admin', 'av', 'facilities', 'custodial', 'security', 'athletic_director']
+const ALL_V1_KEYS: (keyof ApprovalGatesV1)[] = ['admin', 'av', 'facilities', 'custodial', 'security']
 
 function normalize(gates: ApprovalGates): NormalizedGate[] {
   const raw = gates as Record<string, unknown>

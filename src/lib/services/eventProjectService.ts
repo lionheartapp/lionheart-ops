@@ -34,7 +34,7 @@ import {
   type GateStateV2,
 } from './approvalFlowService'
 
-import { resolveApprovalSteps } from './approvalRuleService'
+import { resolveApprovalSteps, resolveFormApprovalSteps, getSystemFormId } from './approvalRuleService'
 
 import {
   notifyTeamsOfPendingApproval,
@@ -125,13 +125,12 @@ export async function createEventProject(
   const requiresFacilities = !!(data as Record<string, unknown>).requiresFacilities
   const requiresCustodial = !!(data as Record<string, unknown>).requiresCustodial
   const requiresSecurity = !!(data as Record<string, unknown>).requiresSecurity
-  const requiresAthleticDirector = !!(data as Record<string, unknown>).requiresAthleticDirector
 
   // Build gates from the org's approval flow.
   // V2 (team-based) is used when ApprovalFlowEntry rows exist.
   // Falls back to V1 (channel-based ApprovalChannelConfig) otherwise.
   const orgId = getOrgContextId()
-  const needs = { requiresAV, requiresFacilities, requiresCustodial, requiresSecurity, requiresAthleticDirector }
+  const needs = { requiresAV, requiresFacilities, requiresCustodial, requiresSecurity }
 
   const flowEntries = await getApprovalFlowEntries()
   const useV2 = flowEntries.length > 0
@@ -152,7 +151,18 @@ export async function createEventProject(
       requiresSecurity,
       isOffCampus: !!(data as Record<string, unknown>).isOffCampus,
     }
-    const resolvedSteps = await resolveApprovalSteps(orgId, eventCtx)
+
+    // Try form-scoped approval first
+    // If the caller passed a formDefinitionId (they know which form was used), use it directly.
+    // Otherwise fall back to guessing from the event type, then legacy global rules.
+    let formId = (data as Record<string, unknown>).formDefinitionId as string | undefined
+    if (!formId) {
+      const systemKey = source === 'SERIES' ? 'recurring_event' : data.isMultiDay ? 'multiday_event' : 'single_event'
+      formId = await getSystemFormId(orgId, systemKey) ?? undefined
+    }
+    const resolvedSteps = formId
+      ? await resolveFormApprovalSteps(orgId, formId, eventCtx)
+      : await resolveApprovalSteps(orgId, eventCtx)
 
     // Build gates only from the resolved steps' teams (not all flow entries)
     const result = await buildGatesFromFlow(needs, resolvedSteps)

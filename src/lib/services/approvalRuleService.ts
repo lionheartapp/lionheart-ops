@@ -704,3 +704,17 @@ export async function createFormApprovalRule(formDefinitionId: string, input: Cr
     },
   })
 }
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Look up a system form's ID by its systemKey for the given org.
+ * Returns null if the form hasn't been seeded yet.
+ */
+export async function getSystemFormId(orgId: string, systemKey: string): Promise<string | null> {
+  const form = await rawPrisma.formDefinition.findFirst({
+    where: { organizationId: orgId, systemKey },
+    select: { id: true },
+  })
+  return form?.id ?? null
+}

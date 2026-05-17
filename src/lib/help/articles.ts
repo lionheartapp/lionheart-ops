@@ -297,8 +297,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
         type: 'steps',
         items: [
           {
-            title: 'Click "New event"',
-            body: 'You can also use the AI-assisted flow at /events/new/ai if you want to describe the event in plain language and let Leo fill in the basics.',
+            title: 'Click "+ Create"',
+            body: 'Pick the type of event you\'re making: Single Event, Recurring Event, or Multi-day Event.',
           },
           {
             title: 'Fill the essentials',
@@ -537,7 +537,6 @@ export const HELP_ARTICLES: HelpArticle[] = [
       {
         type: 'list',
         items: [
-          'Event creation — at /events/new/ai you can describe the event in plain language and Leo drafts the record for you.',
           'Maintenance triage — when you submit a ticket with a photo, Leo suggests a category and likely root cause.',
           'Reports — admin dashboards have a "Summarize" button that turns the current view into a written board-ready summary.',
         ],
