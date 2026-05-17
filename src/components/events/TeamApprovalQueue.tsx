@@ -312,7 +312,7 @@ function QueueSkeleton() {
 
 // ─── TeamApprovalQueue ───────────────────────────────────────────────────────
 
-interface TeamApprovalQueueProps {
+export interface TeamApprovalQueueProps {
   /** V1 channel type ('av' | 'facilities') or V2 team UUID */
   gateType: string
   teamLabel: string
