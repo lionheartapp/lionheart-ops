@@ -71,8 +71,19 @@ export async function GET(req: NextRequest) {
 
           const twilioConfig = twilioCred?.config as Record<string, string> | null
 
+          // Content filter configs — org-level
+          const filterConfigs = await rawPrisma.iTContentFilterConfig.findMany({
+            where: { organizationId: orgId },
+            select: { provider: true, isEnabled: true, lastSyncAt: true },
+          })
+
           return {
             institutionType: org.institutionType || 'PUBLIC',
+            contentFilters: filterConfigs.map((c) => ({
+              provider: c.provider,
+              isEnabled: c.isEnabled,
+              lastSyncAt: c.lastSyncAt?.toISOString() ?? null,
+            })),
             planningCenter: {
               provider: 'planning_center',
               isAvailable: planningCenterService.isAvailable(),

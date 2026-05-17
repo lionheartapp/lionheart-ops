@@ -1,5 +1,11 @@
 // ─── Integration Types & Helpers ─────────────────────────────────────────────
 
+export interface ContentFilterStatus {
+  provider: 'GOGUARDIAN' | 'SECURLY' | 'LIGHTSPEED' | 'BARK'
+  isEnabled: boolean
+  lastSyncAt: string | null
+}
+
 export interface IntegrationStatusData {
   institutionType: string
   planningCenter: {
@@ -26,6 +32,7 @@ export interface IntegrationStatusData {
     lastSyncAt: string | null
     phoneNumber: string | null
   }
+  contentFilters: ContentFilterStatus[]
 }
 
 export function formatRelative(dateStr: string | null): string {

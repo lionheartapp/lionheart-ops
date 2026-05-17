@@ -1,18 +1,22 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'next/navigation'
+import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
+import TabIndicator from '@/components/ui/TabIndicator'
 import {
   Link2,
   AlertCircle,
   RefreshCw,
+  Shield,
 } from 'lucide-react'
 import { PlanningCenterCard } from './integrations/PlanningCenterCard'
 import { GoogleCalendarCard } from './integrations/GoogleCalendarCard'
 import { MicrosoftCalendarCard } from './integrations/MicrosoftCalendarCard'
 import { TwilioCard } from './integrations/TwilioCard'
-import type { IntegrationStatusData } from './integrations/integration-types'
+import { ContentFilterCard } from './integrations/ContentFilterCard'
+import type { IntegrationStatusData, ContentFilterStatus } from './integrations/integration-types'
 
 // ─── Main IntegrationsTab ─────────────────────────────────────────────────────
 
@@ -46,6 +50,8 @@ export default function IntegrationsTab() {
   }
 
   const showPlanningCenter = data?.institutionType === 'FAITH_BASED'
+  const [activeTab, setActiveTab] = useState<'services' | 'content-filtering'>('services')
+  const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab)
 
   if (isLoading) {
     return (
@@ -98,6 +104,22 @@ export default function IntegrationsTab() {
   const cardCount = (showPlanningCenter ? 1 : 0) + 2 // Google Calendar + Twilio always show
   const gridCols = cardCount === 2 ? 'lg:grid-cols-2' : 'lg:grid-cols-2 xl:grid-cols-3'
 
+  // Content filter platforms — show all 4, let the card handle connected/not state
+  const ALL_FILTER_PROVIDERS = ['GOGUARDIAN', 'SECURLY', 'LIGHTSPEED', 'BARK'] as const
+  const filterConfigs = data.contentFilters ?? []
+
+  const getFilterStatus = (provider: string): ContentFilterStatus => {
+    const found = filterConfigs.find((c) => c.provider === provider)
+    return found ?? { provider: provider as ContentFilterStatus['provider'], isEnabled: false, lastSyncAt: null }
+  }
+
+  const TABS = [
+    { key: 'services', label: 'Services', icon: Link2 },
+    { key: 'content-filtering', label: 'Content Filtering', icon: Shield },
+  ] as const
+
+  type TabKey = (typeof TABS)[number]['key']
+
   return (
     <div className="space-y-6">
       {/* Header — full-width, flush top */}
@@ -113,15 +135,63 @@ export default function IntegrationsTab() {
         </div>
       </div>
 
-      {/* Integration cards grid */}
-      <div className={`grid grid-cols-1 ${gridCols} gap-5`}>
-        {showPlanningCenter && (
-          <PlanningCenterCard status={data.planningCenter} onRefresh={handleRefresh} />
-        )}
-        <GoogleCalendarCard status={data.googleCalendar} onRefresh={handleRefresh} />
-        <MicrosoftCalendarCard status={data.microsoftCalendar} onRefresh={handleRefresh} />
-        <TwilioCard status={data.twilio} onRefresh={handleRefresh} />
+      {/* Tabs */}
+      <div ref={tabContainerRef} role="tablist" aria-label="Integration tabs" className="relative flex gap-1 border-b border-slate-200">
+        {TABS.map((tab) => {
+          const Icon = tab.icon
+          const isActive = activeTab === tab.key
+          return (
+            <button
+              key={tab.key}
+              ref={(el) => setTabRef(tab.key, el)}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded ${
+                isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          )
+        })}
+        <TabIndicator style={indicatorStyle} />
       </div>
+
+      {/* Tab content */}
+      {activeTab === 'services' && (
+        <div className={`grid grid-cols-1 ${gridCols} gap-5`}>
+          {showPlanningCenter && (
+            <PlanningCenterCard status={data.planningCenter} onRefresh={handleRefresh} />
+          )}
+          <GoogleCalendarCard status={data.googleCalendar} onRefresh={handleRefresh} />
+          <MicrosoftCalendarCard status={data.microsoftCalendar} onRefresh={handleRefresh} />
+          <TwilioCard status={data.twilio} onRefresh={handleRefresh} />
+        </div>
+      )}
+
+      {activeTab === 'content-filtering' && (
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Connect your content filtering platform to receive alerts, manage unblock requests, and maintain CIPA compliance records.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {ALL_FILTER_PROVIDERS.map((provider) => {
+              const status = getFilterStatus(provider)
+              return (
+                <ContentFilterCard
+                  key={provider}
+                  provider={provider}
+                  isEnabled={status.isEnabled}
+                  lastSyncAt={status.lastSyncAt}
+                  onRefresh={handleRefresh}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
