@@ -101,9 +101,9 @@ export default function MobileTabBar({
       },
     ]
 
-    // Role-based tab: pick the most relevant one based on team/role
-    if (isSuperAdmin || canManageWorkspace) {
-      // Admins get Approvals
+    // Role-based tab: pick the most relevant one based on team membership
+    if (isSuperAdmin) {
+      // Super-admins get Approvals
       list.push({
         id: 'approvals',
         icon: ClipboardCheck,
@@ -111,7 +111,7 @@ export default function MobileTabBar({
         href: '/approvals',
         activeRoutes: ['/approvals'],
       })
-    } else if (isOnITTeam || canManageIT) {
+    } else if (isOnITTeam) {
       // IT team gets IT Tickets queue
       list.push({
         id: 'it-tickets',
@@ -120,7 +120,7 @@ export default function MobileTabBar({
         href: '/it',
         activeRoutes: ['/it'],
       })
-    } else if (isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) {
+    } else if (isOnMaintenanceTeam) {
       // Maintenance team gets Work Orders
       list.push({
         id: 'work-orders',
@@ -153,12 +153,8 @@ export default function MobileTabBar({
   }, [
     unreadMessages,
     isSuperAdmin,
-    canManageWorkspace,
     isOnITTeam,
-    canManageIT,
     isOnMaintenanceTeam,
-    canManageMaintenance,
-    canClaimMaintenance,
   ])
 
   const isActive = useCallback(

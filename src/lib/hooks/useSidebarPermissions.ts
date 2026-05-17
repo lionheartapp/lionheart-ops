@@ -33,6 +33,7 @@ export function useSidebarPermissions() {
     }
   }, [perms?.userTeams])
 
+  const isSuperAdmin = perms?.isSuperAdmin ?? (optimisticRole === 'super-admin')
   const canManageWorkspace = perms?.canManageWorkspace ?? optimisticIsAdmin
   const canManageMaintenance = perms?.canManageMaintenance ?? optimisticIsAdmin
   const canClaimMaintenance = perms?.canClaimMaintenance ?? optimisticIsAdmin
@@ -67,12 +68,15 @@ export function useSidebarPermissions() {
   const { data: avGateCount } = usePendingGateCount('av', canApproveAVGate)
 
   const { enabled: athleticsEnabled, loading: athleticsModuleLoading } = useModuleEnabled('athletics')
-  const canWriteAthletics = perms?.canWriteAthletics ?? optimisticIsAdmin
+  // Athletics: only show for athletics-specific roles, not plain admins
+  const canWriteAthletics = perms
+    ? perms.canWriteAthletics && perms.legacyRole !== 'ADMIN'
+    : false
 
-  // Derived: does the user have ANY support section access?
-  const showFacilities = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance || canSubmitMaintenance
-  const showIT = isOnITTeam || canManageIT || canSubmitIT
-  const showAV = isOnAVTeam || canManageWorkspace
+  // Team membership drives sidebar visibility. Super-admins see everything.
+  const showFacilities = isOnMaintenanceTeam || isSuperAdmin
+  const showIT = isOnITTeam || isSuperAdmin
+  const showAV = isOnAVTeam || isSuperAdmin
   const hasAnySupportAccess = showFacilities || showIT || showAV
 
   return {
@@ -118,6 +122,6 @@ export function useSidebarPermissions() {
     canViewITBoardReports,
     canViewERate,
     canManageSync,
-    isSuperAdmin: optimisticIsAdmin,
+    isSuperAdmin,
   }
 }

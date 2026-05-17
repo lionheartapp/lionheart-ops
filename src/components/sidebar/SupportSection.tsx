@@ -39,6 +39,8 @@ interface SupportSectionProps {
   isOnAVTeam: boolean
   canManageWorkspace: boolean
   avGateCount: { count: number } | undefined
+  // Role
+  isSuperAdmin: boolean
   // Navigation
   setSettingsOpen: (open: boolean) => void
   setAthleticsOpen: (open: boolean) => void
@@ -70,6 +72,7 @@ export default function SupportSection({
   isOnAVTeam,
   canManageWorkspace,
   avGateCount,
+  isSuperAdmin,
   setSettingsOpen,
   setAthleticsOpen,
   setIsOpen,
@@ -104,9 +107,10 @@ export default function SupportSection({
   const isMaintenancePath = pathname.startsWith('/maintenance') || (pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance')
   const isITPath = pathname.startsWith('/it') || (pathname === '/inventory' && pageSearchParams.get('dept') === 'it')
 
-  const showFacilities = isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance || canSubmitMaintenance
-  const showIT = isOnITTeam || canManageIT || canSubmitIT
-  const showAV = isOnAVTeam || canManageWorkspace
+  // Team membership drives sidebar visibility. Super-admins see everything.
+  const showFacilities = isOnMaintenanceTeam || isSuperAdmin
+  const showIT = isOnITTeam || isSuperAdmin
+  const showAV = isOnAVTeam || isSuperAdmin
 
   // Close expandable sections when user doesn't have sub-link access
   // (prevents stale open state from impersonation or permission changes)

@@ -15,6 +15,7 @@ import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { usePendingGateCount } from '@/lib/hooks/useEventProject'
 
 export interface SidebarPermissionFlags {
+  isSuperAdmin: boolean
   canManageWorkspace: boolean
   canManageMaintenance: boolean
   canClaimMaintenance: boolean
@@ -65,6 +66,7 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
     }
   }, [perms?.userTeams])
 
+  const isSuperAdmin = perms?.isSuperAdmin ?? (optimisticRole === 'super-admin')
   const canManageWorkspace = perms?.canManageWorkspace ?? optimisticIsAdmin
   const canManageMaintenance = perms?.canManageMaintenance ?? optimisticIsAdmin
   const canClaimMaintenance = perms?.canClaimMaintenance ?? optimisticIsAdmin
@@ -115,6 +117,7 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
   const { data: avGateCount } = usePendingGateCount('av', canApproveAVGate)
 
   return {
+    isSuperAdmin,
     canManageWorkspace,
     canManageMaintenance,
     canClaimMaintenance,
@@ -122,7 +125,10 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
     canManageIT,
     canSubmitIT,
     canReadInventory,
-    canWriteAthletics: perms?.canWriteAthletics ?? false,
+    // Athletics: show only for users with an athletics-specific role (not plain admins)
+    canWriteAthletics: perms
+      ? perms.canWriteAthletics && perms.legacyRole !== 'ADMIN'
+      : false,
     canSeeITDevices,
     canSeeITLifecycle,
     canSeeITSecurity,

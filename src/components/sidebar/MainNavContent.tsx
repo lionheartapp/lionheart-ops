@@ -336,6 +336,7 @@ export default function MainNavContent({
           isOnAVTeam={isOnAVTeam}
           canManageWorkspace={canManageWorkspace}
           avGateCount={avGateCount}
+          isSuperAdmin={isSuperAdmin}
           setSettingsOpen={setSettingsOpen}
           setAthleticsOpen={setAthleticsOpen}
           setIsOpen={setIsOpen}

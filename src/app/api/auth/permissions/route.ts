@@ -118,6 +118,7 @@ export async function GET(req: NextRequest) {
         canWriteInventory: canSync(perms, PERMISSIONS.INVENTORY_CREATE),
         // Events — medical/dietary
         canViewMedical: canSync(perms, PERMISSIONS.EVENTS_MEDICAL_READ),
+        isSuperAdmin: legacyRole === 'SUPER_ADMIN',
         legacyRole,
         userTeams,
       })
