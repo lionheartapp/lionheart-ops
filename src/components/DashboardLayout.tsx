@@ -191,8 +191,19 @@ export default function DashboardLayout({
           />
         ))}
 
-        {/* Main Content */}
-        <main ref={mainRef} id="main-content" className={`flex-1 min-w-0 min-h-0 relative ${isMobile ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'}`}>
+        {/* Main Content
+            Full-bleed routes (calendar) need <main> to be a flex column with
+            overflow-hidden so their internal flex chain can fill the viewport.
+            All other routes scroll naturally with overflow-y-auto. */}
+        <main
+          ref={mainRef}
+          id="main-content"
+          className={`flex-1 min-w-0 min-h-0 relative ${
+            isMobile || pathname?.startsWith('/calendar')
+              ? 'flex flex-col overflow-hidden bg-white'
+              : 'overflow-y-auto'
+          }`}
+        >
           {/* Warm ambient orbs — gives glass cards depth via transparency interaction */}
           <div className="fixed inset-0 pointer-events-none" aria-hidden="true" style={{ zIndex: 0 }}>
             <div className="absolute -top-32 right-0 w-[550px] h-[550px] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(180, 160, 130, 0.12)' }} />
