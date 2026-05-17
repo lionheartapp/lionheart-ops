@@ -20,6 +20,7 @@ const ITKanbanBoard = dynamic(() => import('@/components/it/ITKanbanBoard'), { s
 import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
 import ITTicketDetail from '@/components/it/ITTicketDetail'
 import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
+import SupportRequestDrawer from '@/components/forms/SupportRequestDrawer'
 import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import QrCodeManager from '@/components/forms/QrCodeManager'
 import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
@@ -393,10 +394,10 @@ function ITContent() {
           }}
         />
       ) : (
-        <ITTicketCreateDrawer
+        <SupportRequestDrawer
           isOpen={showCreate}
           onClose={() => { setShowCreate(false); setForceManualForm(false) }}
-          canManage={p.canManage}
+          module="IT"
         />
       )}
     </div>

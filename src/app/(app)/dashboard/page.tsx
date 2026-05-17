@@ -21,6 +21,7 @@ import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { getAuthHeaders } from '@/lib/api-client'
 import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
 import SubmitRequestWizard from '@/components/maintenance/SubmitRequestWizard'
+import SupportRequestDrawer from '@/components/forms/SupportRequestDrawer'
 import EventDetailPanel from '@/components/calendar/EventDetailPanel'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
@@ -427,16 +428,11 @@ export default function DashboardPage() {
   }, [isReady, org.id, user.dashboardMode, fetchTickets, fetchEvents])
 
   const [showMaintenanceWizard, setShowMaintenanceWizard] = useState(false)
+  const [supportDrawerModule, setSupportDrawerModule] = useState<'MAINTENANCE' | 'IT' | null>(null)
 
   const openCreateDrawer = useCallback((category: 'MAINTENANCE' | 'IT') => {
-    if (category === 'MAINTENANCE') {
-      setShowMaintenanceWizard(true)
-      setIsCreateDropdownOpen(false)
-      return
-    }
-    setCreateCategory(category)
-    setCreateForm({ title: '', description: '', locationText: '', priority: 'NORMAL' })
-    setCreateError('')
+    // Use the new form-driven SupportRequestDrawer for both modules
+    setSupportDrawerModule(category)
     setIsCreateDropdownOpen(false)
   }, [])
 
@@ -1045,7 +1041,14 @@ export default function DashboardPage() {
         )}
       </DetailDrawer>
 
-      {/* Create Ticket Drawer */}
+      {/* Support Request Drawer (form-driven — replaces old hardcoded drawers) */}
+      <SupportRequestDrawer
+        isOpen={supportDrawerModule !== null}
+        onClose={() => setSupportDrawerModule(null)}
+        module={supportDrawerModule ?? 'MAINTENANCE'}
+      />
+
+      {/* Create Ticket Drawer (legacy — kept for backward compat, no longer opened by Create menu) */}
       <DetailDrawer
         isOpen={createCategory !== null}
         onClose={() => setCreateCategory(null)}

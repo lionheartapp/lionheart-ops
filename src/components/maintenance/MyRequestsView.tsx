@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Wrench, ArrowLeft } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { staggerContainer, fadeInUp, tabContent } from '@/lib/animations'
-import SubmitRequestWizard from './SubmitRequestWizard'
+import SupportRequestDrawer from '@/components/forms/SupportRequestDrawer'
 import MyRequestsGrid from './MyRequestsGrid'
 
 export default function MyRequestsView() {
@@ -66,23 +66,16 @@ export default function MyRequestsView() {
         )}
       </motion.div>
 
-      {/* Content — wizard or grid */}
+      {/* Support Request Drawer (form-driven) */}
+      <SupportRequestDrawer
+        isOpen={showWizard}
+        onClose={handleCancel}
+        module="MAINTENANCE"
+      />
+
+      {/* Content — grid */}
       <AnimatePresence mode="wait">
-        {showWizard ? (
-          <motion.div
-            key="wizard"
-            variants={tabContent}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="ui-glass-overlay rounded-2xl p-6 min-h-[520px]"
-          >
-            <SubmitRequestWizard
-              onComplete={handleComplete}
-              onCancel={handleCancel}
-            />
-          </motion.div>
-        ) : (
+        {!showWizard && (
           <motion.div
             key="grid"
             variants={tabContent}
