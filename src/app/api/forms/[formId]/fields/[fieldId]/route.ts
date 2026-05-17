@@ -10,7 +10,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { runWithOrgContext } from '@/lib/org-context'
-import { updateField, removeField } from '@/lib/services/formService'
+import { updateField, removeField, touchFormUpdatedBy } from '@/lib/services/formService'
 import { formFieldSchema } from '@/lib/forms/schemas'
 import { invalidateOrgCache } from '@/lib/cache/route-cache'
 
@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const ctx = await getUserContext(req)
     await assertCan(ctx.userId, PERMISSIONS.FORMS_MANAGE)
 
-    const { fieldId } = await params
+    const { formId, fieldId } = await params
     const body = await req.json()
     const parsed = formFieldSchema.partial().safeParse(body)
     if (!parsed.success) {
@@ -34,6 +34,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     return await runWithOrgContext(orgId, async () => {
       const field = await updateField(fieldId, parsed.data)
+      touchFormUpdatedBy(formId, ctx.userId).catch(() => {})
       invalidateOrgCache(orgId, 'forms:category')
       return NextResponse.json(ok(field))
     })

@@ -11,7 +11,21 @@ interface FormCardProps {
   pageCount: number
   submissionCount: number
   isSystem?: boolean
+  updatedAt?: string
+  updatedBy?: { firstName: string | null; lastName: string | null; avatar: string | null } | null
   onClick: () => void
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export default function FormCard({
@@ -22,8 +36,14 @@ export default function FormCard({
   pageCount,
   submissionCount,
   isSystem,
+  updatedAt,
+  updatedBy,
   onClick,
 }: FormCardProps) {
+  const editorName = updatedBy
+    ? `${updatedBy.firstName ?? ''} ${updatedBy.lastName ?? ''}`.trim()
+    : null
+
   return (
     <button
       type="button"
@@ -56,6 +76,20 @@ export default function FormCard({
             </span>
           )}
         </div>
+
+        {/* Last edited */}
+        {updatedAt && (
+          <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
+            {updatedBy?.avatar ? (
+              <img src={updatedBy.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+            ) : editorName ? (
+              <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-medium text-slate-500">
+                {editorName.charAt(0)}
+              </div>
+            ) : null}
+            <span className="text-[10px] text-slate-400">{timeAgo(updatedAt)}</span>
+          </div>
+        )}
 
         {/* Arrow */}
         <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />

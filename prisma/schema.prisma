@@ -320,6 +320,7 @@ model User {
   itTicketsSubmitted               ITTicket[]                        @relation("ITTicketSubmittedBy")
   itTicketsAssigned                ITTicket[]                        @relation("ITTicketAssignedTo")
   itTicketsApproved                ITTicket[]                        @relation("ITTicketApprovedBy")
+  formsUpdated                     FormDefinition[]                  @relation("FormUpdatedBy")
   itActivitiesPerformed            ITTicketActivity[]                @relation("ITActivityActor")
   itActivitiesAssignedTo           ITTicketActivity[]                @relation("ITActivityAssignedTo")
   itMagicLinksCreated              ITMagicLink[]                     @relation("ITMagicLinkCreator")
@@ -5983,6 +5984,8 @@ model FormDefinition {
   isPublic       Boolean  @default(false)
   requireEmail   Boolean  @default(true)
   createdBy      String?
+  updatedById    String?
+  updatedByUser  User?    @relation("FormUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

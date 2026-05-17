@@ -290,6 +290,7 @@ export async function listForms() {
       pages: { select: { id: true }, orderBy: { sortOrder: 'asc' } },
       fields: { select: { id: true } },
       _count: { select: { submissions: true } },
+      updatedByUser: { select: { id: true, firstName: true, lastName: true, avatar: true } },
     },
     orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
   })
@@ -338,12 +339,21 @@ export async function updateForm(
     publicImageUrl?: string | null
     publicImageSide?: 'LEFT' | 'RIGHT'
     logoUrl?: string | null
+    updatedById?: string
   }
 ) {
   return prisma.formDefinition.update({
     where: { id: formId },
     data: patch,
     include: FULL_FORM_INCLUDE,
+  })
+}
+
+/** Stamp the updatedById on a form (called after any edit — fields, pages, etc.) */
+export async function touchFormUpdatedBy(formId: string, userId: string) {
+  await rawPrisma.formDefinition.update({
+    where: { id: formId },
+    data: { updatedById: userId },
   })
 }
 

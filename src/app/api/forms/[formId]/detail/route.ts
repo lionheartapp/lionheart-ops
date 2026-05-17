@@ -37,8 +37,8 @@ const UpdateFormSchema = z.object({
 })
 
 export const PATCH = withAuth(
-  async ({ params, body }) => {
-    const form = await updateForm(params.formId, body)
+  async ({ ctx, params, body }) => {
+    const form = await updateForm(params.formId, { ...body, updatedById: ctx.userId })
     return NextResponse.json(ok(form))
   },
   { permission: PERMISSIONS.FORMS_MANAGE, schema: UpdateFormSchema }

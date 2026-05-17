@@ -35,6 +35,7 @@ interface FormListItem {
   pages: Array<{ id: string }>
   fields: Array<{ id: string }>
   _count?: { submissions: number }
+  updatedByUser?: { id: string; firstName: string | null; lastName: string | null; avatar: string | null } | null
 }
 
 // ─── System form display config ─────────────────────────────────────────────
@@ -118,7 +119,7 @@ export default function FormsHub() {
   // ─── Loading skeleton ─────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="px-4 sm:px-8 py-6 space-y-6 max-w-5xl">
+      <div className="px-4 sm:px-8 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="h-7 w-32 bg-slate-200 rounded-lg animate-pulse" />
           <div className="h-9 w-28 bg-slate-200 rounded-full animate-pulse" />
@@ -137,7 +138,7 @@ export default function FormsHub() {
   }
 
   return (
-    <div className="px-4 sm:px-8 py-6 space-y-6 max-w-5xl">
+    <div className="px-4 sm:px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Forms</h1>
@@ -281,6 +282,8 @@ export default function FormsHub() {
                     pageCount={form.pages.length}
                     submissionCount={form._count?.submissions ?? 0}
                     isSystem
+                    updatedAt={form.updatedAt}
+                    updatedBy={form.updatedByUser}
                     onClick={() => handleOpenBuilder(form.id)}
                   />
                 ))}
