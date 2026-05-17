@@ -902,7 +902,7 @@ export default function CalendarView() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="flex flex-col flex-1 min-h-0 -mx-4 sm:-mx-10 -mt-4 sm:-mt-6 lg:-mt-8 -mb-10">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white">
       {/* Header area — stays fixed, white bg, shadow at bottom edge */}
       <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-5 sm:pt-6 pb-5 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
         <CalendarToolbar
