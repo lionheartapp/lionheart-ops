@@ -200,7 +200,7 @@ export default function DashboardLayout({
           id="main-content"
           className={`flex-1 min-w-0 min-h-0 relative ${
             isMobile || pathname?.startsWith('/calendar')
-              ? 'flex flex-col overflow-hidden bg-white'
+              ? 'flex flex-col overflow-hidden'
               : 'overflow-y-auto'
           }`}
         >
