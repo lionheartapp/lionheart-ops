@@ -268,8 +268,10 @@ export function NotificationDrawer({ isOpen, onClose }: NotificationDrawerProps)
                   <p className={`text-sm leading-snug ${!n.isRead ? 'font-medium text-slate-900' : 'text-slate-700'}`}>
                     {n.title}
                   </p>
-                  {n.body && (
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
+                  {n.body && !isMessageNotification(n.type) && (
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                      {n.body.replace(/<[^>]*>/g, '')}
+                    </p>
                   )}
                   <p
                     className="text-xs text-slate-400 mt-1"
