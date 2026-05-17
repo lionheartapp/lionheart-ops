@@ -489,6 +489,8 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       expectedAttendance: form.expectedAttendance
         ? parseInt(form.expectedAttendance, 10)
         : undefined,
+      // Pass the form ID so approval workflows resolve from this form's rules
+      formDefinitionId: systemForm?.id,
       metadata: {
         ...(avNeeds && avNeeds.length > 0 ? { avNeeds, ...(avNotes ? { avNotes } : {}) } : {}),
         ...(facilityNeeds && facilityNeeds.length > 0 ? { facilityNeeds, ...(facilityNotes ? { facilityNotes } : {}) } : {}),

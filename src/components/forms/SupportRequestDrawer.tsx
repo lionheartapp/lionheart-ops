@@ -162,8 +162,9 @@ export default function SupportRequestDrawer({
         payload.metadata = { customFields }
       }
 
-      // Include the system form ID for tracking
+      // Include the system form ID for approval workflow resolution + tracking
       if (systemForm) {
+        payload.formDefinitionId = systemForm.id
         payload.systemFormId = systemForm.id
       }
 
