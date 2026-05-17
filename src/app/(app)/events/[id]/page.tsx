@@ -18,7 +18,7 @@ import { EventDocumentsTab } from '@/components/events/EventDocumentsTab'
 import { EventLogisticsTab } from '@/components/events/EventLogisticsTab'
 import { EventBudgetTab } from '@/components/events/EventBudgetTab'
 import { EventCommsTab } from '@/components/events/EventCommsTab'
-import { RegistrationTab } from '@/components/events/project/RegistrationTab'
+import { EventFormLinkTab } from '@/components/events/project/EventFormLinkTab'
 import { EventResponsesTab } from '@/components/events/EventResponsesTab'
 import { PresenceBar } from '@/components/events/comms/PresenceBar'
 import { EventChatDrawer } from '@/components/events/comms/EventChatPanel'
@@ -233,7 +233,7 @@ function TabContent({ activeTab, project }: { activeTab: TabId; project: EventPr
     case 'people':
       return <EventPeopleTab eventProjectId={project.id} createdById={project.createdById} />
     case 'registration':
-      return <RegistrationTab eventProjectId={project.id} />
+      return <EventFormLinkTab eventProjectId={project.id} />
     case 'responses':
       return <EventResponsesTab eventProjectId={project.id} />
     case 'documents':

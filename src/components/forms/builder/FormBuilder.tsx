@@ -19,6 +19,12 @@ import FormStylePanel from './FormStylePanel'
 const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), {
   ssr: false,
 })
+const TicketsBuilder = dynamic(() => import('./TicketsBuilder'), {
+  ssr: false,
+})
+const ResponsesTab = dynamic(() => import('./ResponsesTab'), {
+  ssr: false,
+})
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -97,7 +103,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
   const [formName, setFormName] = useState('')
   const [activePageId, setActivePageId] = useState<string | null>(null)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
-  const [leftTab, setLeftTab] = useState<'pages' | 'components' | 'workflows'>('components')
+  const [leftTab, setLeftTab] = useState<'pages' | 'components' | 'tickets' | 'responses' | 'workflows'>('components')
   const [previewMode, setPreviewMode] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
@@ -262,7 +268,14 @@ export default function FormBuilder({ formId }: { formId: string }) {
 
   const addField = useCallback(async (type: FormFieldType) => {
     if (!activePageId) return
-    const label = type === 'HEADER' ? 'Section Heading' : type === 'DIVIDER' ? '' : 'New Field'
+
+    // Only one TICKET_SELECTOR allowed per form
+    if (type === 'TICKET_SELECTOR') {
+      const alreadyHas = pages.some((p) => p.fields.some((f) => f.type === 'TICKET_SELECTOR'))
+      if (alreadyHas) return // silently prevent duplicate
+    }
+
+    const label = type === 'HEADER' ? 'Section Heading' : type === 'DIVIDER' ? '' : type === 'TICKET_SELECTOR' ? 'Ticket Selection' : 'New Field'
     const key = slugifyFieldKey(label) + '_' + Date.now().toString(36)
 
     try {
@@ -568,8 +581,8 @@ export default function FormBuilder({ formId }: { formId: string }) {
       {/* Builder mode tabs */}
       {!previewMode && (
         <div className="flex items-center gap-1 px-4 py-1.5 bg-white border-b border-slate-100">
-          {(['pages', 'components', 'workflows'] as const).map((tab) => {
-            const labels = { pages: 'Pages', components: 'Fields', workflows: 'Approvals' } as const
+          {(['pages', 'components', 'tickets', 'responses', 'workflows'] as const).map((tab) => {
+            const labels = { pages: 'Pages', components: 'Fields', tickets: 'Tickets', responses: 'Responses', workflows: 'Approvals' } as const
             return (
               <button
                 key={tab}
@@ -595,7 +608,15 @@ export default function FormBuilder({ formId }: { formId: string }) {
         </div>
       )}
 
-      {leftTab === 'workflows' && !previewMode ? (
+      {leftTab === 'tickets' && !previewMode ? (
+        <div className="flex-1 overflow-hidden">
+          <TicketsBuilder formDefinitionId={formId} />
+        </div>
+      ) : leftTab === 'responses' && !previewMode ? (
+        <div className="flex-1 overflow-hidden">
+          <ResponsesTab formId={formId} hasTicketTypes={true} />
+        </div>
+      ) : leftTab === 'workflows' && !previewMode ? (
         <div className="flex-1 overflow-hidden">
           <ApprovalRulesBuilder formDefinitionId={formId} />
         </div>
@@ -625,6 +646,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
         {/* Center panel — canvas */}
         <main className="flex-1 overflow-y-auto">
           <FormCanvas
+            formId={formId}
             pages={pages}
             activePageId={activePageId}
             onSelectPage={setActivePageId}

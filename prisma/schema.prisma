@@ -220,6 +220,10 @@ model Organization {
   formQrCodes                      FormQrCode[]
   formSubmissions                  FormSubmission[]
   formTemplates                    FormTemplate[]
+  // Ticketing module relations (Phase 1)
+  formOrders                       FormOrder[]
+  eventTickets                     EventTicket[]
+  venues                           Venue[]
   // AI ticket intake sessions
   aiTicketIntakes                  AiTicketIntake[]
   // Personal tasks
@@ -4472,6 +4476,7 @@ model EventProject {
   activityLog          EventActivityLog[]
   registrationForm     RegistrationForm?
   registrations        EventRegistration[]
+  formDefinition       FormDefinition?    @relation("FormDefinitionEventProject") // new unified form link
   // Phase 21 relations
   documentRequirements EventDocumentRequirement[]
   complianceItems      EventComplianceItem[]
@@ -5905,6 +5910,7 @@ enum FormFieldType {
   GRADE_SELECTOR
   HEADER
   DIVIDER
+  TICKET_SELECTOR
 }
 
 enum FormContext {
@@ -5917,6 +5923,11 @@ enum FormContext {
 enum FormVisibility {
   PRIVATE  // Only the creator can see this form
   SHARED   // Everyone in the org can see and use this form
+}
+
+enum FormStatus {
+  ACTIVE
+  ARCHIVED
 }
 
 enum FieldProtection {
@@ -5971,6 +5982,17 @@ model FormDefinition {
   submissions   FormSubmission[]
   approvalRules ApprovalRule[] @relation("FormApprovalRules")
 
+  // Ticketing module (Phase 1)
+  maxCapacity      Int?             // total capacity (null = unlimited)
+  waitlistEnabled  Boolean          @default(false)
+  discountCodes    Json?            // [{ code, percentOff, amountOff, maxUses, usedCount }]
+  eventProjectId   String?          @unique  // optional link to EventProject for event-linked forms
+  eventProject     EventProject?    @relation("FormDefinitionEventProject", fields: [eventProjectId], references: [id], onDelete: SetNull)
+  ticketTypes      TicketType[]
+  orders           FormOrder[]
+  ticketDesign     TicketDesign?
+  seatingMap       EventSeatingMap?
+
   // Public form styling (only meaningful for event/public forms)
   publicStyle     PublicFormStyle @default(MINIMAL)
   publicCtaColor  String? // hex, e.g. "#4f46e5"
@@ -5980,6 +6002,7 @@ model FormDefinition {
 
   // Form visibility (custom forms only — system forms are always visible)
   visibility     FormVisibility @default(PRIVATE)
+  status         FormStatus     @default(ACTIVE)
 
   // Form builder settings
   coverColor     String?
@@ -6144,6 +6167,7 @@ model FormSubmission {
   deletedAt       DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  order        FormOrder?   // back-relation: exists when submission is tied to a paid order
 
   @@index([organizationId])
   @@index([formId])
@@ -6463,4 +6487,256 @@ model DiffEventHandled {
 
   @@id([diffEventId, userId])
   @@index([userId, handledAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TICKETING MODULE — Unified forms + payments + tickets + seating
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// A ticket type (pricing tier) on a form. Presence of TicketTypes = paid form.
+model TicketType {
+  id              String         @id @default(cuid())
+  formId          String
+  form            FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  name            String         // "Adult", "Child (5-12)", "Senior"
+  description     String?
+  price           Int            // cents (0 = free tier, e.g. "Volunteer Usher")
+  maxPerOrder     Int?           // per-order limit (e.g., max 6)
+  totalInventory  Int?           // total available (null = unlimited)
+  soldCount       Int            @default(0)
+  sortOrder       Int            @default(0)
+  salesStartAt    DateTime?      // tier opens for sale
+  salesEndAt      DateTime?      // tier closes (auto-hidden on public form)
+  isActive        Boolean        @default(true)
+  depositPercent  Int?           // 0-100 — optional per-tier deposit requirement
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  lineItems    OrderLineItem[]
+  tickets      EventTicket[]
+
+  @@index([formId])
+  @@index([formId, isActive])
+}
+
+/// An order placed through a ticketed form. Tracks payment and links to tickets.
+model FormOrder {
+  id              String         @id @default(cuid())
+  organizationId  String
+  formId          String
+  form            FormDefinition @relation(fields: [formId], references: [id])
+  submissionId    String?        @unique
+  submission      FormSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+
+  // Buyer info
+  buyerName       String
+  buyerEmail      String
+  buyerPhone      String?
+
+  // Payment
+  paymentStatus   OrderPaymentStatus @default(UNPAID)
+  subtotal        Int            // cents — sum of line items before discount
+  discountAmount  Int            @default(0) // cents
+  discountCode    String?
+  total           Int            // cents (subtotal - discountAmount)
+  currency        String         @default("usd")
+
+  // Stripe
+  stripePaymentIntentId String?  @unique
+  paidAt          DateTime?
+
+  // Status
+  status          OrderStatus    @default(PENDING)
+  cancelledAt     DateTime?
+  refundedAt      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lineItems    OrderLineItem[]
+  tickets      EventTicket[]
+
+  @@index([organizationId])
+  @@index([formId])
+  @@index([buyerEmail])
+  @@index([organizationId, status])
+}
+
+enum OrderPaymentStatus {
+  UNPAID
+  DEPOSIT_PAID
+  PAID
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING     // created, awaiting payment
+  CONFIRMED   // paid (or total was $0)
+  CANCELLED
+  REFUNDED
+}
+
+/// A line item within an order (quantity of a specific ticket type).
+model OrderLineItem {
+  id           String     @id @default(cuid())
+  orderId      String
+  order        FormOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTypeId String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  quantity     Int
+  unitPrice    Int        // cents — snapshot at purchase time
+  subtotal     Int        // quantity * unitPrice
+
+  @@index([orderId])
+}
+
+/// A single issued ticket (one per seat/admission). Has a unique scannable code.
+model EventTicket {
+  id              String       @id @default(cuid())
+  organizationId  String
+  orderId         String
+  order           FormOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTypeId    String
+  ticketType      TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  ticketCode      String       @unique // "TKT-A3X9-7BM2"
+  status          EventTicketStatus @default(VALID)
+  // Seat assignment (null for general admission)
+  seatId          String?
+  seat            Seat?        @relation(fields: [seatId], references: [id], onDelete: SetNull)
+  // Check-in tracking
+  checkedInAt     DateTime?
+  checkedInBy     String?      // userId who scanned
+  createdAt       DateTime     @default(now())
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([ticketCode])
+  @@index([organizationId])
+}
+
+enum EventTicketStatus {
+  VALID
+  USED         // checked in
+  CANCELLED
+  TRANSFERRED
+}
+
+/// Visual ticket template design (Fabric.js canvas JSON). One per form, optional.
+model TicketDesign {
+  id            String         @id @default(cuid())
+  formId        String         @unique
+  form          FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  layout        Json           // Fabric.js canvas.toJSON() — full template definition
+  canvasWidth   Int            @default(1050)
+  canvasHeight  Int            @default(450)
+  backgroundUrl String?        // Supabase Storage URL for background image
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// ─── Seating / Venue Models ────────────────────────────────────────────────���
+
+/// A reusable venue layout. Created once, attached to many events.
+model Venue {
+  id             String         @id @default(cuid())
+  organizationId String
+  name           String         // "Main Auditorium"
+  description    String?
+  totalCapacity  Int            // auto-calculated from sections
+  layoutConfig   Json?          // rendering hints (stage position, overall arrangement)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sections     VenueSection[]
+  seatingMaps  EventSeatingMap[]
+
+  @@index([organizationId])
+}
+
+/// A section within a venue (e.g., "Orchestra Center", "Balcony").
+model VenueSection {
+  id            String   @id @default(cuid())
+  venueId       String
+  name          String   // "Orchestra Center"
+  rowCount      Int      // number of rows in this section
+  seatsPerRow   Int      // seats per row
+  rowStartLabel String   @default("A") // "A" for letters, "1" for numbers
+  color         String   // hex color for map display, e.g. "#3B82F6"
+  priceInCents  Int      // section-level price
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  venue Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seats Seat[]
+
+  @@index([venueId])
+}
+
+/// An individual seat within a venue section. Auto-generated from section definition.
+model Seat {
+  id         String   @id @default(cuid())
+  sectionId  String
+  row        String   // "A", "B", "C" (or "1", "2", "3")
+  number     Int      // seat number within the row
+  label      String   // display label, e.g. "A12"
+  seatType   SeatType @default(STANDARD)
+  isActive   Boolean  @default(true) // false = physically removed/blocked
+  gridX      Int      // x position for SVG rendering
+  gridY      Int      // y position for SVG rendering
+
+  section       VenueSection      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  eventStatuses EventSeatStatus[]
+  tickets       EventTicket[]
+
+  @@index([sectionId])
+}
+
+enum SeatType {
+  STANDARD
+  ACCESSIBLE
+  COMPANION    // companion seat next to accessible
+  RESTRICTED   // not for sale (blocked, tech booth, etc.)
+}
+
+enum SeatAvailability {
+  AVAILABLE
+  HELD      // temporarily reserved during checkout (TTL)
+  SOLD
+  BLOCKED   // admin blocked for this specific event
+}
+
+/// Links a venue to a specific form/event for per-event seat tracking.
+model EventSeatingMap {
+  id        String         @id @default(cuid())
+  formId    String         @unique // one seating map per form
+  venueId   String
+  form      FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  venue     Venue          @relation(fields: [venueId], references: [id])
+  createdAt DateTime       @default(now())
+
+  seatStatuses EventSeatStatus[]
+
+  @@index([venueId])
+}
+
+/// Per-seat, per-event availability status. Tracks holds and sales.
+model EventSeatStatus {
+  id        String           @id @default(cuid())
+  mapId     String
+  seatId    String
+  status    SeatAvailability @default(AVAILABLE)
+  heldBy    String?          // session ID or buyer email holding this seat
+  heldUntil DateTime?        // TTL — hold expires after this time
+  orderId   String?          // FormOrder that purchased this seat
+  ticketId  String?          // EventTicket for this seat
+
+  map  EventSeatingMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  seat Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@unique([mapId, seatId])
+  @@index([mapId, status])
+  @@index([heldUntil])
 }

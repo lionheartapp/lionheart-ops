@@ -30,6 +30,23 @@ export async function GET(
         publicImageUrl: true,
         publicImageSide: true,
         logoUrl: true,
+        discountCodes: true,
+        maxCapacity: true,
+        ticketTypes: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            maxPerOrder: true,
+            totalInventory: true,
+            soldCount: true,
+            salesStartAt: true,
+            salesEndAt: true,
+          },
+        },
         pages: {
           orderBy: { sortOrder: 'asc' },
           select: {
@@ -63,7 +80,41 @@ export async function GET(
       return NextResponse.json(fail('NOT_FOUND', 'Form not found'), { status: 404 })
     }
 
-    return NextResponse.json(ok(form))
+    // Filter ticket types to only those currently on sale
+    const now = new Date()
+    const onSaleTypes = form.ticketTypes.filter((tt) => {
+      if (tt.salesStartAt && new Date(tt.salesStartAt) > now) return false
+      if (tt.salesEndAt && new Date(tt.salesEndAt) < now) return false
+      return true
+    })
+
+    // Compute availability: shared capacity across all types, with optional per-type limits
+    const totalSoldAcrossAllTypes = form.ticketTypes.reduce((sum, tt) => sum + tt.soldCount, 0)
+    const sharedRemaining = form.maxCapacity != null ? form.maxCapacity - totalSoldAcrossAllTypes : null
+
+    const availableTicketTypes = onSaleTypes.map((tt) => {
+      // Per-type remaining (if that type has its own limit)
+      const typeRemaining = tt.totalInventory != null ? tt.totalInventory - tt.soldCount : null
+      // Effective availability is the lesser of per-type limit and shared pool
+      let available: number | null = null
+      if (sharedRemaining != null && typeRemaining != null) {
+        available = Math.min(sharedRemaining, typeRemaining)
+      } else if (sharedRemaining != null) {
+        available = sharedRemaining
+      } else if (typeRemaining != null) {
+        available = typeRemaining
+      }
+      return { ...tt, available }
+    })
+
+    return NextResponse.json(ok({
+      ...form,
+      ticketTypes: availableTicketTypes,
+      maxCapacity: form.maxCapacity,
+      totalSold: totalSoldAcrossAllTypes,
+      discountCodes: undefined, // don't expose codes to client — validation is server-side
+      hasDiscountCodes: Array.isArray(form.discountCodes) && (form.discountCodes as unknown[]).length > 0,
+    }))
   } catch {
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to load form'), { status: 500 })
   }

@@ -157,7 +157,7 @@ export async function addField(
     data: {
       formId,
       key: field.key,
-      label: field.label,
+      label: field.label || '',
       type: field.type as FormFieldType,
       required: field.required ?? false,
       placeholder: field.placeholder ?? null,
@@ -168,6 +168,7 @@ export async function addField(
       condEquals: field.condEquals ?? null,
       sortOrder,
       sectionId: field.sectionId ?? null,
+      pageId: field.pageId ?? null,
     },
   })
 }

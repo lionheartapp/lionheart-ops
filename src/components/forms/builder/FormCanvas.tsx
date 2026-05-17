@@ -22,6 +22,7 @@ interface FormStyleProps {
 }
 
 interface FormCanvasProps {
+  formId?: string
   pages: FormPageData[]
   activePageId: string | null
   onSelectPage: (pageId: string) => void
@@ -51,6 +52,32 @@ function FieldPreview({ field }: { field: FormFieldData }) {
   }
   if (field.type === 'DIVIDER') {
     return <hr className="border-slate-200" />
+  }
+  if (field.type === 'TICKET_SELECTOR') {
+    return (
+      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 space-y-2">
+        <div className="flex items-center gap-2 mb-2">
+          <LucideIcons.Ticket className="w-4 h-4 text-indigo-500" />
+          <span className="text-xs font-semibold text-indigo-700">Ticket Selection</span>
+        </div>
+        {[1, 2].map((i) => (
+          <div key={i} className="bg-white/70 border border-indigo-100 rounded-lg px-3 py-2 flex items-center justify-between">
+            <div>
+              <div className="h-3 w-16 bg-indigo-200/50 rounded" />
+              <div className="h-2 w-10 bg-indigo-100/50 rounded mt-1" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded-full border border-indigo-200 bg-white" />
+              <div className="h-3 w-3 bg-indigo-200/50 rounded" />
+              <div className="w-6 h-6 rounded-full border border-indigo-200 bg-white" />
+            </div>
+          </div>
+        ))}
+        <p className="text-[10px] text-indigo-400 text-center pt-1">
+          Buyers pick ticket types and quantities here. Configure types in the Tickets tab.
+        </p>
+      </div>
+    )
   }
 
   // Standard field preview
@@ -129,6 +156,7 @@ function FieldPreview({ field }: { field: FormFieldData }) {
 // ─── Canvas Component ───────────────────────────────────────────────────
 
 export default function FormCanvas({
+  formId,
   pages,
   activePageId,
   onSelectPage,
@@ -209,6 +237,25 @@ export default function FormCanvas({
           const meta = getFieldTypeMeta(field.type)
           if (field.type === 'HEADER') return <h3 key={field.id} className={`text-base font-semibold ${textPrimary} pt-2`}>{field.label}</h3>
           if (field.type === 'DIVIDER') return <hr key={field.id} className={`${isDark ? 'border-white/10' : 'border-slate-200'} my-1`} />
+          if (field.type === 'TICKET_SELECTOR') return (
+            <div key={field.id} className="space-y-2">
+              {[{ name: 'Adult', price: '$15.00' }, { name: 'Child', price: '$10.00' }].map((t) => (
+                <div key={t.name} className={`border rounded-xl p-3.5 flex items-center justify-between ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'}`}>
+                  <div>
+                    <span className={`text-sm font-medium ${textPrimary}`}>{t.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`text-sm font-semibold ${textPrimary}`}>{t.price}</span>
+                    <div className="flex items-center gap-1">
+                      <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs ${isDark ? 'border-white/20 text-white/40' : 'border-slate-200 text-slate-400'}`}>−</div>
+                      <span className={`w-5 text-center text-sm font-medium ${textPrimary}`}>0</span>
+                      <div className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs ${isDark ? 'border-white/20 text-white/40' : 'border-slate-200 text-slate-400'}`}>+</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
           const inputStyle = { backgroundColor: inputBgHex, borderColor: inputBorderHex }
           const inputCls = `w-full h-11 px-3.5 text-sm border rounded-lg ${inputText}`
           return (
@@ -321,6 +368,23 @@ export default function FormCanvas({
                   const meta = getFieldTypeMeta(field.type)
                   if (field.type === 'HEADER') return <h3 key={field.id} className="text-base font-semibold text-slate-800 pt-2">{field.label}</h3>
                   if (field.type === 'DIVIDER') return <hr key={field.id} className="border-slate-200 my-1" />
+                  if (field.type === 'TICKET_SELECTOR') return (
+                    <div key={field.id} className="space-y-2">
+                      {[{ name: 'Adult', price: '$15.00' }, { name: 'Child', price: '$10.00' }].map((t) => (
+                        <div key={t.name} className="border border-slate-200 bg-white rounded-xl p-3.5 flex items-center justify-between">
+                          <span className="text-sm font-medium text-slate-900">{t.name}</span>
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-sm font-semibold text-slate-900">{t.price}</span>
+                            <div className="flex items-center gap-1">
+                              <div className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400">−</div>
+                              <span className="w-5 text-center text-sm font-medium text-slate-900">0</span>
+                              <div className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400">+</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                   const cls = "w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white"
                   return (
                     <div key={field.id}>
@@ -469,6 +533,23 @@ export default function FormCanvas({
             </div>
           </div>
 
+          {/* Preview banner */}
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
+            <p className="text-xs text-amber-800">
+              This is a preview — inputs and buttons won't work here.
+            </p>
+            {formId && (
+              <a
+                href={`/f/${formId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1 rounded-full transition-colors cursor-pointer"
+              >
+                Open live form
+              </a>
+            )}
+          </div>
+
           {/* Form content */}
           <div className="flex-1 overflow-hidden">
             {layoutContent}
@@ -555,6 +636,23 @@ export default function FormCanvas({
               const meta = getFieldTypeMeta(field.type)
               if (field.type === 'HEADER') return <h3 key={field.id} className="text-base font-semibold text-slate-800 pt-2">{field.label}</h3>
               if (field.type === 'DIVIDER') return <hr key={field.id} className="border-slate-200 my-1" />
+              if (field.type === 'TICKET_SELECTOR') return (
+                <div key={field.id} className="space-y-2">
+                  {[{ name: 'Adult', price: '$15.00' }, { name: 'Child', price: '$10.00' }].map((t) => (
+                    <div key={t.name} className="border border-slate-200 bg-white rounded-xl p-3.5 flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-900">{t.name}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-sm font-semibold text-slate-900">{t.price}</span>
+                        <div className="flex items-center gap-1">
+                          <div className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400">−</div>
+                          <span className="w-5 text-center text-sm font-medium text-slate-900">0</span>
+                          <div className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center text-xs text-slate-400">+</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
 
               const inputCls = "w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
 

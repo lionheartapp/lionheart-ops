@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/erate-sync",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/ticket-reminders",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/release-seat-holds",
+      "schedule": "* * * * *"
     }
   ]
 }

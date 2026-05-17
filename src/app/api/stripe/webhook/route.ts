@@ -409,6 +409,29 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(ok({ received: true }))
       }
 
+      case 'payment_intent.succeeded': {
+        // Handle FormOrder ticket fulfillment
+        const pi = event.data.object as { id: string; metadata?: Record<string, string> | null }
+        const formOrderId = pi.metadata?.formOrderId
+        if (formOrderId) {
+          try {
+            const { fulfillOrder } = await import('@/lib/services/eventTicketService')
+            await fulfillOrder(formOrderId)
+            logger.info(
+              { eventType: event.type, formOrderId, paymentIntentId: pi.id },
+              'FormOrder fulfilled — tickets generated and email sent'
+            )
+          } catch (err) {
+            logger.error(
+              { eventType: event.type, formOrderId, error: String(err) },
+              'FormOrder fulfillment failed'
+            )
+            return NextResponse.json(fail('INTERNAL_ERROR', 'Fulfillment failed'), { status: 500 })
+          }
+        }
+        return NextResponse.json(ok({ received: true }))
+      }
+
       default:
         logger.info({ eventType: event.type }, 'Unhandled Stripe event type — ignored')
         return NextResponse.json(ok({ received: true, handled: false }))

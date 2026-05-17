@@ -350,6 +350,7 @@ export const queryKeys = {
     fields: (formId: string) => ['forms', formId, 'fields'] as const,
     pages: (formId: string) => ['forms', formId, 'pages'] as const,
     submissions: (formId: string) => ['forms', formId, 'submissions'] as const,
+    tickets: (formId: string) => ['forms', formId, 'tickets'] as const,
     templates: ['forms', 'templates'] as const,
     byCategory: (categoryKey: string) => ['forms', 'category', categoryKey] as const,
     qrList: ['forms', 'qr-list'] as const,

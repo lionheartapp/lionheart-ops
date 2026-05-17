@@ -25,6 +25,7 @@ export const FORM_FIELD_TYPES = [
   'GRADE_SELECTOR',
   'HEADER',
   'DIVIDER',
+  'TICKET_SELECTOR',
 ] as const
 
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number]
@@ -74,6 +75,7 @@ export const FIELD_TYPE_META: FieldTypeMeta[] = [
   // Layout
   { type: 'HEADER', label: 'Header', icon: 'Heading', description: 'Section heading text', category: 'layout', isLayout: true },
   { type: 'DIVIDER', label: 'Divider', icon: 'Minus', description: 'Visual separator', category: 'layout', isLayout: true },
+  { type: 'TICKET_SELECTOR', label: 'Tickets', icon: 'Ticket', description: 'Ticket selection & purchase', category: 'layout', isLayout: true },
 ]
 
 /** Category labels for the field palette UI */
@@ -107,7 +109,7 @@ export const FormActionTypeZ = z.enum(['CREATE_RECORD', 'NOTIFY', 'REQUIRE_APPRO
 export const formFieldSchema = z.object({
   id: z.string().optional(), // omitted on create
   key: z.string().min(1).max(100),
-  label: z.string().min(1).max(200),
+  label: z.string().max(200).default(''),
   type: FormFieldTypeZ,
   required: z.boolean().default(false),
   placeholder: z.string().max(500).nullable().optional(),
