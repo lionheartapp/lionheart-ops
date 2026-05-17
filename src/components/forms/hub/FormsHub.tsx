@@ -150,8 +150,8 @@ export default function FormsHub() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1">
+      {/* Tabs — hide when only one tab (non-admin users) */}
+      {tabs.length > 1 && <div className="flex items-center gap-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -182,7 +182,7 @@ export default function FormsHub() {
             </span>
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* ─── Custom Tab ─────────────────────────────────────────────────── */}
       {activeTab === 'custom' && (
