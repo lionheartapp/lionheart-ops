@@ -265,33 +265,80 @@ export default function FormsHub() {
 
       {/* ─── System Tab ─────────────────────────────────────────────────── */}
       {activeTab === 'system' && (
-        <div className="space-y-6">
-          {Array.from(systemGroups.entries()).map(([groupLabel, groupForms]) => (
-            <div key={groupLabel} className="space-y-3">
-              <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">
-                {groupLabel}
-              </h2>
-              <div className="space-y-2">
-                {groupForms.map(({ config, ...form }) => (
-                  <FormCard
-                    key={form.id}
-                    icon={config.icon}
-                    label={config.label}
-                    description={config.description}
-                    fieldCount={form.fields.length}
-                    pageCount={form.pages.length}
-                    submissionCount={form._count?.submissions ?? 0}
-                    isSystem
-                    updatedAt={form.updatedAt}
-                    updatedBy={form.updatedByUser}
-                    onClick={() => handleOpenBuilder(form.id)}
-                  />
-                ))}
-              </div>
+        <div className="space-y-3">
+          {systemGroups.size > 0 ? (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Name</th>
+                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Pages</th>
+                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Fields</th>
+                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden md:table-cell">Last Edited</th>
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from(systemGroups.entries()).map(([groupLabel, groupForms]) => (
+                    <>
+                      {/* Group header row */}
+                      <tr key={`group-${groupLabel}`} className="bg-slate-50/70">
+                        <td colSpan={5} className="px-4 py-2">
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{groupLabel}</span>
+                        </td>
+                      </tr>
+                      {groupForms.map(({ config, ...form }) => {
+                        const editorName = form.updatedByUser
+                          ? `${form.updatedByUser.firstName ?? ''} ${form.updatedByUser.lastName ?? ''}`.trim()
+                          : null
+                        return (
+                          <tr
+                            key={form.id}
+                            onClick={() => handleOpenBuilder(form.id)}
+                            className="hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-100 last:border-b-0"
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                  <config.icon className="w-4 h-4 text-blue-600" strokeWidth={1.5} />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-sm font-medium text-slate-900 truncate block">{config.label}</span>
+                                  <span className="text-xs text-slate-400 truncate block">{config.description}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">{form.pages.length}</td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">{form.fields.length}</td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <div className="flex items-center gap-2">
+                                {form.updatedByUser?.avatar ? (
+                                  <img src={form.updatedByUser.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                                ) : editorName ? (
+                                  <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-medium text-slate-500">
+                                    {editorName.charAt(0)}
+                                  </div>
+                                ) : null}
+                                <div className="flex flex-col">
+                                  {editorName && <span className="text-[10px] text-slate-500 font-medium leading-tight">{editorName}</span>}
+                                  <span className="text-[10px] text-slate-400 leading-tight">
+                                    {new Date(form.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-2 py-3">
+                              <ChevronRight className="w-4 h-4 text-slate-300" />
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-
-          {systemGroups.size === 0 && (
+          ) : (
             <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-8 text-center">
               <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
               <p className="text-sm text-slate-500">System forms will appear here once configured.</p>
