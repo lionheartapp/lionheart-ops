@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { useAuth } from '@/lib/hooks/useAuth'
 import {
   Plus,
   FileText,
@@ -68,7 +69,8 @@ type HubTab = 'custom' | 'system'
 
 export default function FormsHub() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<HubTab>('custom')
+  const { isAdmin } = useAuth()
+  const [activeTab, setActiveTab] = useState<HubTab>(isAdmin ? 'system' : 'custom')
   const [search, setSearch] = useState('')
   const [showGallery, setShowGallery] = useState(false)
 
@@ -109,8 +111,8 @@ export default function FormsHub() {
   }
 
   const tabs: { key: HubTab; label: string }[] = [
+    ...(isAdmin ? [{ key: 'system' as const, label: 'System' }] : []),
     { key: 'custom', label: 'Custom' },
-    { key: 'system', label: 'System' },
   ]
 
   // ─── Loading skeleton ─────────────────────────────────────────────────────
@@ -172,7 +174,7 @@ export default function FormsHub() {
               {tab.label}
               {tabCounts[tab.key] > 0 && (
                 <span className={`text-[10px] w-[18px] h-[18px] inline-flex items-center justify-center rounded-full ${
-                  activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'
+                  activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'
                 }`}>
                   {tabCounts[tab.key]}
                 </span>
