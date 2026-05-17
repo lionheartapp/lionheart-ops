@@ -131,7 +131,9 @@ function QRScanner({ onScan, active }: { onScan: (code: string) => void; active:
     try {
       // Use BarcodeDetector if available
       if ('BarcodeDetector' in window) {
-        const detector = new (window as Record<string, unknown>).BarcodeDetector({ formats: ['qr_code'] })
+        // BarcodeDetector is not yet in TypeScript's lib.dom — access via indexing
+        const BarcodeDetectorCtor = (window as unknown as Record<string, new (opts: { formats: string[] }) => { detect: (source: HTMLCanvasElement) => Promise<Array<{ rawValue: string }>> }>).BarcodeDetector
+        const detector = new BarcodeDetectorCtor({ formats: ['qr_code'] })
         const barcodes = await detector.detect(canvas)
         if (barcodes.length > 0) {
           const url = barcodes[0].rawValue
