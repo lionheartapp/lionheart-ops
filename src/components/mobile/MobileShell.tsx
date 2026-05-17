@@ -54,29 +54,18 @@ export default function MobileShell({
 
       {/* Tab bar */}
       <MobileTabBar
-        athleticsEnabled={perms.athleticsEnabled}
-        canWriteAthletics={perms.canWriteAthletics}
-        showFacilities={perms.showFacilities}
-        showIT={perms.showIT}
-        showAV={perms.showAV}
-        hasAnySupportAccess={perms.hasAnySupportAccess}
-        facilitiesGateCount={perms.facilitiesGateCount}
-        avGateCount={perms.avGateCount}
+        isOnMaintenanceTeam={perms.isOnMaintenanceTeam}
+        isOnITTeam={perms.isOnITTeam}
+        isSuperAdmin={perms.isSuperAdmin}
         canManageMaintenance={perms.canManageMaintenance}
         canClaimMaintenance={perms.canClaimMaintenance}
         canSubmitMaintenance={perms.canSubmitMaintenance}
-        canReadInventory={perms.canReadInventory}
-        isOnMaintenanceTeam={perms.isOnMaintenanceTeam}
         canManageIT={perms.canManageIT}
         canSubmitIT={perms.canSubmitIT}
-        canSeeITDevices={perms.canSeeITDevices}
-        isOnITTeam={perms.isOnITTeam}
-        isOnAVTeam={perms.isOnAVTeam}
         canManageWorkspace={perms.canManageWorkspace}
         userName={userName || 'User'}
         userEmail={userEmail || ''}
         userAvatar={userAvatar || undefined}
-        isSuperAdmin={perms.isSuperAdmin}
         onLogout={onLogout}
       />
     </MobileHeaderProvider>

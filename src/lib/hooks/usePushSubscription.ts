@@ -104,8 +104,8 @@ export function usePushSubscription(): UsePushSubscriptionResult {
         throw new Error('Invalid push subscription — missing endpoint or keys')
       }
 
-      // Register with server
-      await fetch('/api/messaging/push-subscription', {
+      // Register with server (general-purpose endpoint — works for all notification types)
+      await fetch('/api/notifications/push-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -132,7 +132,7 @@ export function usePushSubscription(): UsePushSubscriptionResult {
         await subscription.unsubscribe()
 
         // Remove from server
-        await fetch('/api/messaging/push-subscription', {
+        await fetch('/api/notifications/push-subscription', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

@@ -1,158 +1,182 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  Home,
-  CalendarClock,
+  LayoutDashboard,
+  CalendarDays,
+  MessageSquare,
   Wrench,
-  Settings,
-  Trophy,
+  Monitor,
+  ClipboardCheck,
+  TicketCheck,
+  Menu,
 } from 'lucide-react'
 import { haptic } from '@/lib/haptics'
-import SupportSheet from './SupportSheet'
+import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
 import ProfileSheet from './ProfileSheet'
-import EventsSheet from './EventsSheet'
 import SettingsSheet from './SettingsSheet'
-import AthleticsSheet from './AthleticsSheet'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface MobileTabBarProps {
-  // Athletics
-  athleticsEnabled: boolean
-  canWriteAthletics: boolean
-  // Support visibility
-  showFacilities: boolean
-  showIT: boolean
-  showAV: boolean
-  hasAnySupportAccess: boolean
-  // Counts
-  facilitiesGateCount?: { count: number }
-  avGateCount?: { count: number }
-  // Support sub-permissions
+  // Role/team flags
+  isOnMaintenanceTeam: boolean
+  isOnITTeam: boolean
+  isSuperAdmin: boolean
   canManageMaintenance: boolean
   canClaimMaintenance: boolean
   canSubmitMaintenance: boolean
-  canReadInventory: boolean
-  isOnMaintenanceTeam: boolean
   canManageIT: boolean
   canSubmitIT: boolean
-  canSeeITDevices: boolean
-  isOnITTeam: boolean
-  isOnAVTeam: boolean
   canManageWorkspace: boolean
   // User info
   userName: string
   userEmail: string
   userAvatar?: string
-  isSuperAdmin: boolean
   onLogout?: () => void
 }
 
-type SheetAction = 'support' | 'profile' | 'events' | 'settings' | 'athletics'
+type SheetAction = 'profile' | 'settings' | 'more'
 
 interface TabItem {
   id: string
-  icon: typeof Home
+  icon: typeof LayoutDashboard
   label: string
-  href?: string
-  action?: SheetAction
-  /** Route prefixes that make this tab show as active */
+  href: string
+  badge?: number
   activeRoutes?: string[]
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function MobileTabBar({
-  athleticsEnabled,
-  canWriteAthletics,
-  showFacilities,
-  showIT,
-  showAV,
-  hasAnySupportAccess,
-  facilitiesGateCount,
-  avGateCount,
+  isOnMaintenanceTeam,
+  isOnITTeam,
+  isSuperAdmin,
   canManageMaintenance,
   canClaimMaintenance,
-  canSubmitMaintenance,
-  canReadInventory,
-  isOnMaintenanceTeam,
   canManageIT,
   canSubmitIT,
-  canSeeITDevices,
-  isOnITTeam,
-  isOnAVTeam,
   canManageWorkspace,
   userName,
   userEmail,
   userAvatar,
-  isSuperAdmin,
   onLogout,
 }: MobileTabBarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [openSheet, setOpenSheet] = useState<SheetAction | null>(null)
+  const unreadMessages = useMessagingUnread()
 
-  // Build tab list dynamically based on permissions
-  const tabs: TabItem[] = [
-    { id: 'home', icon: Home, label: 'Home', href: '/dashboard' },
-    {
-      id: 'events',
-      icon: CalendarClock,
-      label: 'Events',
-      action: 'events',
-      activeRoutes: ['/events', '/calendar', '/planning'],
-    },
-  ]
+  // Build tab list: Dashboard, Calendar, Messages (always) + role-based tab
+  const tabs = useMemo(() => {
+    const list: TabItem[] = [
+      {
+        id: 'dashboard',
+        icon: LayoutDashboard,
+        label: 'Dashboard',
+        href: '/dashboard',
+        activeRoutes: ['/dashboard'],
+      },
+      {
+        id: 'calendar',
+        icon: CalendarDays,
+        label: 'Calendar',
+        href: '/calendar',
+        activeRoutes: ['/calendar'],
+      },
+      {
+        id: 'messages',
+        icon: MessageSquare,
+        label: 'Messages',
+        href: '/messaging',
+        badge: unreadMessages,
+        activeRoutes: ['/messaging'],
+      },
+    ]
 
-  // Athletics takes a tab slot when enabled
-  if (athleticsEnabled && canWriteAthletics) {
-    tabs.push({
-      id: 'athletics',
-      icon: Trophy,
-      label: 'Athletics',
-      action: 'athletics',
-      activeRoutes: ['/athletics'],
+    // Role-based tab: pick the most relevant one based on team/role
+    if (isSuperAdmin || canManageWorkspace) {
+      // Admins get Approvals
+      list.push({
+        id: 'approvals',
+        icon: ClipboardCheck,
+        label: 'Approvals',
+        href: '/approvals',
+        activeRoutes: ['/approvals'],
+      })
+    } else if (isOnITTeam || canManageIT) {
+      // IT team gets IT Tickets queue
+      list.push({
+        id: 'it-tickets',
+        icon: Monitor,
+        label: 'IT Tickets',
+        href: '/it',
+        activeRoutes: ['/it'],
+      })
+    } else if (isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) {
+      // Maintenance team gets Work Orders
+      list.push({
+        id: 'work-orders',
+        icon: Wrench,
+        label: 'Work Orders',
+        href: '/maintenance',
+        activeRoutes: ['/maintenance'],
+      })
+    } else {
+      // Everyone else (teachers, staff) gets Tickets (submit + my tickets)
+      list.push({
+        id: 'tickets',
+        icon: TicketCheck,
+        label: 'Tickets',
+        href: '/tickets',
+        activeRoutes: ['/tickets', '/maintenance', '/it'],
+      })
+    }
+
+    // More tab (overflow — profile, settings)
+    list.push({
+      id: 'more',
+      icon: Menu,
+      label: 'More',
+      href: '',
+      activeRoutes: ['/settings'],
     })
-  }
 
-  // Support tab (opens bottom sheet)
-  if (hasAnySupportAccess) {
-    tabs.push({
-      id: 'support',
-      icon: Wrench,
-      label: 'Support',
-      action: 'support',
-      activeRoutes: ['/maintenance', '/it', '/facilities'],
-    })
-  }
-
-  // Settings (opens bottom sheet with all tabs)
-  tabs.push({
-    id: 'settings',
-    icon: Settings,
-    label: 'Settings',
-    action: 'settings',
-    activeRoutes: ['/settings'],
-  })
+    return list
+  }, [
+    unreadMessages,
+    isSuperAdmin,
+    canManageWorkspace,
+    isOnITTeam,
+    canManageIT,
+    isOnMaintenanceTeam,
+    canManageMaintenance,
+    canClaimMaintenance,
+  ])
 
   const isActive = useCallback(
     (tab: TabItem): boolean => {
-      if (tab.id === 'home') return pathname === '/dashboard' || pathname === '/'
+      if (tab.id === 'dashboard') return pathname === '/dashboard' || pathname === '/'
       if (tab.activeRoutes) {
         return tab.activeRoutes.some((r) => pathname.startsWith(r))
       }
-      if (tab.href) return pathname.startsWith(tab.href)
       return false
     },
     [pathname],
   )
 
-  const totalBadgeCount = (facilitiesGateCount?.count ?? 0) + (avGateCount?.count ?? 0)
-
   const handleTabPress = (tab: TabItem) => {
     haptic('light')
-    if (tab.action) {
-      setOpenSheet(tab.action)
-    } else if (tab.href) {
+    if (tab.id === 'more') {
+      setOpenSheet('more')
+    } else {
       router.push(tab.href)
     }
   }
@@ -202,10 +226,10 @@ export default function MobileTabBar({
                     strokeWidth={active ? 2.2 : 1.8}
                     aria-hidden="true"
                   />
-                  {/* Badge for support tab */}
-                  {tab.id === 'support' && totalBadgeCount > 0 && (
-                    <span className="absolute -top-1 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold bg-primary-500 text-white">
-                      {totalBadgeCount}
+                  {/* Unread badge */}
+                  {tab.badge != null && tab.badge > 0 && (
+                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold bg-red-500 text-white">
+                      {tab.badge > 99 ? '99+' : tab.badge}
                     </span>
                   )}
                 </div>
@@ -231,59 +255,132 @@ export default function MobileTabBar({
         </div>
       </nav>
 
-      {/* Events Bottom Sheet */}
-      <EventsSheet
-        open={openSheet === 'events'}
-        onClose={() => setOpenSheet(null)}
-      />
-
-      {/* Athletics Bottom Sheet */}
-      {athleticsEnabled && canWriteAthletics && (
-        <AthleticsSheet
-          open={openSheet === 'athletics'}
-          onClose={() => setOpenSheet(null)}
-        />
-      )}
-
-      {/* Support Bottom Sheet */}
-      <SupportSheet
-        open={openSheet === 'support'}
-        onClose={() => setOpenSheet(null)}
-        showFacilities={showFacilities}
-        showIT={showIT}
-        showAV={showAV}
-        facilitiesGateCount={facilitiesGateCount}
-        avGateCount={avGateCount}
-        canManageMaintenance={canManageMaintenance}
-        canClaimMaintenance={canClaimMaintenance}
-        canSubmitMaintenance={canSubmitMaintenance}
-        canReadInventory={canReadInventory}
-        isOnMaintenanceTeam={isOnMaintenanceTeam}
-        canManageIT={canManageIT}
-        canSubmitIT={canSubmitIT}
-        canSeeITDevices={canSeeITDevices}
-        isOnITTeam={isOnITTeam}
-        isOnAVTeam={isOnAVTeam}
-        canManageWorkspace={canManageWorkspace}
-      />
-
-      {/* Settings Bottom Sheet */}
-      <SettingsSheet
-        open={openSheet === 'settings'}
-        onClose={() => setOpenSheet(null)}
-        canManageWorkspace={canManageWorkspace}
-      />
-
-      {/* Profile Bottom Sheet */}
-      <ProfileSheet
-        open={openSheet === 'profile'}
+      {/* More Sheet — profile + settings */}
+      <MoreSheet
+        open={openSheet === 'more'}
         onClose={() => setOpenSheet(null)}
         userName={userName}
         userEmail={userEmail}
         userAvatar={userAvatar}
         isSuperAdmin={isSuperAdmin}
+        canManageWorkspace={canManageWorkspace}
         onLogout={onLogout}
       />
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// More Sheet — combines Profile + Settings into a single overflow menu
+// ---------------------------------------------------------------------------
+
+function MoreSheet({
+  open,
+  onClose,
+  userName,
+  userEmail,
+  userAvatar,
+  isSuperAdmin,
+  canManageWorkspace,
+  onLogout,
+}: {
+  open: boolean
+  onClose: () => void
+  userName: string
+  userEmail: string
+  userAvatar?: string
+  isSuperAdmin: boolean
+  canManageWorkspace: boolean
+  onLogout?: () => void
+}) {
+  const router = useRouter()
+
+  if (!open) return null
+
+  const navigate = (href: string) => {
+    haptic('light')
+    router.push(href)
+    onClose()
+  }
+
+  const handleLogout = () => {
+    haptic('medium')
+    onLogout?.()
+    onClose()
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/30 z-50 lg:hidden"
+        onClick={onClose}
+      />
+
+      {/* Sheet */}
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+        className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-white rounded-t-2xl"
+        style={{ paddingBottom: 'var(--safe-area-bottom)' }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 rounded-full bg-slate-200" />
+        </div>
+
+        <div className="px-5 pb-6 space-y-4">
+          {/* User info */}
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div
+              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
+            >
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white text-sm font-semibold">
+                  {(userName || 'U').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 truncate">{userName}</p>
+              <p className="text-xs text-slate-500 truncate">{userEmail}</p>
+            </div>
+          </div>
+
+          {/* Navigation items */}
+          <div className="space-y-1">
+            <MoreItem label="Profile" onClick={() => navigate('/settings?tab=profile')} />
+            <MoreItem label="Notifications" onClick={() => navigate('/settings?tab=notifications')} />
+            {(isSuperAdmin || canManageWorkspace) && (
+              <MoreItem label="Settings" onClick={() => navigate('/settings')} />
+            )}
+          </div>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="w-full py-3 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors cursor-pointer"
+          >
+            Log Out
+          </button>
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+function MoreItem({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-3 py-3 text-sm font-medium text-slate-700 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer"
+    >
+      {label}
+    </button>
   )
 }

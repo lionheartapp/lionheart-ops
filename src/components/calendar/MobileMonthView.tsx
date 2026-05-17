@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Clock, MapPin, Trophy, Repeat, Clock3 } from 'lucide-react'
+import { useState, useMemo, useRef, useCallback } from 'react'
+import { Clock, MapPin, Trophy, Repeat, Clock3, Plus } from 'lucide-react'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
@@ -13,6 +13,9 @@ interface MobileMonthViewProps {
   onEventClick: (event: CalendarEventData) => void
   campusShapeMap: Map<string, number>
   isLoading?: boolean
+  onNavigateBack?: () => void
+  onNavigateForward?: () => void
+  onCreateEvent?: () => void
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -38,7 +41,29 @@ function formatFullDate(date: Date): string {
   return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`
 }
 
-export default function MobileMonthView({ currentDate, events, onEventClick, campusShapeMap, isLoading }: MobileMonthViewProps) {
+export default function MobileMonthView({ currentDate, events, onEventClick, campusShapeMap, isLoading, onNavigateBack, onNavigateForward, onCreateEvent }: MobileMonthViewProps) {
+  // Swipe gesture for month navigation
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const swiping = useRef(false)
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    swiping.current = true
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!swiping.current) return
+    swiping.current = false
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY.current)
+    // Only trigger on horizontal swipes (>80px) that aren't vertical scrolls
+    if (Math.abs(deltaX) > 80 && deltaY < 60) {
+      if (deltaX > 0) onNavigateBack?.()
+      else onNavigateForward?.()
+    }
+  }, [onNavigateBack, onNavigateForward])
   // Initialize selectedDate: today if in current month, otherwise 1st of month
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date()
@@ -115,8 +140,12 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Compact month grid */}
-      <div className="flex-shrink-0 px-3 pt-2 pb-1">
+      {/* Compact month grid — swipe left/right to navigate months */}
+      <div
+        className="flex-shrink-0 px-3 pt-2 pb-1"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Day-of-week headers */}
         <div className="grid grid-cols-7 mb-1">
           {dayHeaders.map((day, i) => (
@@ -296,6 +325,18 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
           </div>
         )}
       </div>
+
+      {/* Floating action button — create event */}
+      {onCreateEvent && (
+        <button
+          onClick={onCreateEvent}
+          className="fixed right-4 bottom-20 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-30 cursor-pointer active:scale-95 transition-transform"
+          style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
+          aria-label="Create event"
+        >
+          <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   )
 }

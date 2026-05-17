@@ -516,6 +516,58 @@ All of these compose `src/components/ui/form-tokens.ts`, which in turn reference
 
 **Migration plan.** As old files are touched for unrelated work, convert the form elements while you're there. Once the warning count is at or near zero, flip the rule from `warn` to `error` in `.eslintrc.json` to lock the codebase down.
 
+### Mobile Experience (non-negotiable)
+
+This app has two distinct UI surfaces: **desktop** and **mobile** (< 1024px). They share the same API and data layer but have different navigation, layout, and feature sets. **When building or modifying any UI feature, you must consider both surfaces.**
+
+**Architecture:**
+- Desktop: sidebar navigation via `SidebarLayout.tsx`
+- Mobile: bottom tab bar via `MobileShell.tsx` + `MobileTabBar.tsx` (code-split, lazy-loaded)
+- Detection: `useMobileDetect()` hook at 1024px breakpoint
+- Mobile shell includes: pull-to-refresh, safe area handling, page transitions, haptic feedback
+
+**Mobile tab bar (5 tabs max):**
+
+| Tab | Who sees it | Route |
+|-----|------------|-------|
+| Dashboard | Everyone | `/dashboard` |
+| Calendar | Everyone | `/calendar` |
+| Messages | Everyone (with unread badge) | `/messaging` |
+| *Role-based tab* | Based on team/role (see below) | varies |
+| More | Everyone | Profile, settings, logout |
+
+**Role-based 4th tab:**
+
+| Role / Team | Tab | Route |
+|-------------|-----|-------|
+| Admin / Super Admin | Approvals | `/approvals` |
+| IT Team | IT Tickets (queue) | `/it` |
+| Maintenance Team | Work Orders | `/maintenance` |
+| Teachers / Staff | Tickets (submit + my requests) | `/tickets` |
+
+**What belongs on mobile vs. desktop-only:**
+
+| Mobile (do) | Desktop-only (don't) |
+|---|---|
+| View/create/edit calendar events | Form builder |
+| Send/receive messages | Approval workflow builder |
+| Submit tickets, view my requests | Campus/building/room config |
+| View dashboard | User management / roles / permissions |
+| Approve/reject (admin) | Reports / analytics dashboards |
+| View schedule | Inventory management |
+| Notifications | Bulk operations |
+
+**Rules for new features:**
+1. If a feature adds UI that users interact with daily (viewing data, quick actions, communication), it needs a mobile view. Build it at the same time as desktop, not as a follow-up.
+2. If a feature is admin config, complex builders, or bulk operations — desktop-only is fine. Don't force it onto mobile.
+3. Mobile components live in `src/components/mobile/`. The `MobileMonthView` pattern (separate mobile component imported by the shared parent) is the preferred approach for views that differ significantly between surfaces.
+4. The mobile calendar uses `MobileMonthView.tsx` with swipe gestures and a floating action button. Tap a day to see events, tap `+` to create.
+5. Always test that new pages render correctly inside `MobileShell` (tab bar padding, safe areas, pull-to-refresh).
+6. If adding a new role-based tab, update `MobileTabBar.tsx` tab logic and this documentation.
+
+**Push notifications:**
+All notification types (messaging, tickets, events, approvals, maintenance) dispatch web push via `sendPushToUser()` in `notificationService.ts`. VAPID keys are in `.env`. Users opt in via Settings > Notifications. The service worker (`src/app/sw.ts`) handles display and click-through navigation.
+
 ### Marketing Skills (Available on Demand)
 
 34 marketing skills are installed in `.claude/skills/`. Use them when working on any marketing-related task:

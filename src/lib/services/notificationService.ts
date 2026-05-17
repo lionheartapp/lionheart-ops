@@ -1,6 +1,7 @@
 import { prisma, rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { cachePerUser, invalidateUserCache } from '@/lib/cache/route-cache'
+import { sendPushToUser } from '@/lib/services/pushNotificationService'
 
 const log = logger.child({ service: 'notificationService' })
 
@@ -128,6 +129,13 @@ export async function createNotification(data: CreateNotificationInput) {
 
     // New notification arrived → cached unread-count is now stale for this user.
     invalidateUserCache(data.userId, 'notifications')
+
+    // Fire web push notification (best-effort, never blocks)
+    sendPushToUser(data.userId, {
+      title: data.title,
+      body: data.body ?? '',
+      url: data.linkUrl ?? '/',
+    }).catch(() => {})
   } catch (err) {
     log.error({ err }, 'Failed to create notification')
   }
@@ -188,6 +196,17 @@ export async function createBulkNotifications(items: CreateBulkNotificationInput
     for (const uid of eligibleUserIds) {
       invalidateUserCache(uid, 'notifications')
     }
+
+    // Fire web push notifications to all eligible recipients (best-effort)
+    Promise.allSettled(
+      eligible.map((item) =>
+        sendPushToUser(item.userId, {
+          title: item.title,
+          body: item.body ?? '',
+          url: item.linkUrl ?? '/',
+        })
+      )
+    ).catch(() => {})
   } catch (err) {
     log.error({ err }, 'Failed to create bulk notifications')
   }

@@ -1032,6 +1032,9 @@ export default function CalendarView() {
                 onEventClick={handleEventClick}
                 campusShapeMap={campusShapeMap}
                 isLoading={showSkeletons}
+                onNavigateBack={goPrev}
+                onNavigateForward={goNext}
+                onCreateEvent={handleCreateEvent}
               />
             ) : (
               <MonthView

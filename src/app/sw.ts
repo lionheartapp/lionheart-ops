@@ -137,14 +137,18 @@ self.addEventListener('push', (event: any) => {
     body: string
     url?: string
     icon?: string
+    tag?: string
   }
+
+  // Use tag from payload or derive from URL for smart grouping
+  const tag = data.tag || (data.url?.includes('/messaging') ? 'messaging' : 'notification')
 
   const options: Record<string, unknown> = {
     body: data.body,
     icon: data.icon || '/icons/icon-192x192.png',
     badge: '/icons/badge-72x72.png',
-    data: { url: data.url || '/messaging' },
-    tag: 'messaging-notification',
+    data: { url: data.url || '/' },
+    tag,
     renotify: true,
   }
 
@@ -155,7 +159,7 @@ self.addEventListener('push', (event: any) => {
 self.addEventListener('notificationclick', (event: any) => {
   event.notification.close()
   const url =
-    (event.notification.data as { url?: string })?.url || '/messaging'
+    (event.notification.data as { url?: string })?.url || '/'
 
   event.waitUntil(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
