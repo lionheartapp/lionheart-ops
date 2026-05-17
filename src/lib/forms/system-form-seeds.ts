@@ -56,7 +56,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
       {
         title: 'Team & People',
         fields: [
-          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'LOCKED' },
+          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting', 'Laptop / Clicker'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
@@ -90,7 +90,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
       {
         title: 'Team & People',
         fields: [
-          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'LOCKED' },
+          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting', 'Laptop / Clicker'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
@@ -123,7 +123,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
       {
         title: 'Team & People',
         fields: [
-          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'LOCKED' },
+          { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
