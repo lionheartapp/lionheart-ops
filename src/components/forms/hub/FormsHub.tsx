@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -280,9 +280,9 @@ export default function FormsHub() {
                 </thead>
                 <tbody>
                   {Array.from(systemGroups.entries()).map(([groupLabel, groupForms]) => (
-                    <>
+                    <Fragment key={groupLabel}>
                       {/* Group header row */}
-                      <tr key={`group-${groupLabel}`} className="bg-slate-50/70">
+                      <tr className="bg-slate-50/70">
                         <td colSpan={5} className="px-4 py-2">
                           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{groupLabel}</span>
                         </td>
@@ -333,7 +333,7 @@ export default function FormsHub() {
                           </tr>
                         )
                       })}
-                    </>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
