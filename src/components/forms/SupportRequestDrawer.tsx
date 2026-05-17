@@ -40,20 +40,25 @@ const MODULE_CONFIG: Record<TicketModule, {
   },
 }
 
-// Map system form field keys to the ticket API field names
+// Map system form field keys to the ticket API field names.
+// Keys here match the field.key values in system-form-seeds.ts.
+// LOCKED fields are required by the ticket APIs and can't be removed by admins.
 const FIELD_TO_TICKET_MAP: Record<string, string> = {
+  // Shared (both Maintenance and IT)
   title: 'title',
   description: 'description',
   priority: 'priority',
   location: 'locationText',
-  category: 'category',
-  urgency: 'priority',
-  device: 'assetId',
-  photo: 'photos',
-  screenshot: 'photos',
+  // Maintenance-specific
+  category: 'category',          // LOCKED — required enum for routing
   requested_date: 'scheduledDate',
+  photo: 'photos',
   requires_custodial: 'requiresCustodial',
   requires_security: 'requiresSecurity',
+  // IT-specific
+  issueType: 'issueType',        // LOCKED — required enum for routing
+  device: 'assetId',
+  screenshot: 'photos',
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────

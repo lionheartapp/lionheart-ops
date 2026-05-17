@@ -144,7 +144,8 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
         fields: [
           { key: 'title', label: 'Title', type: 'TEXT', required: true, protection: 'LOCKED', placeholder: 'Brief summary' },
           { key: 'description', label: 'Description', type: 'TEXTAREA', required: true, protection: 'LOCKED', placeholder: 'What do you need?' },
-          { key: 'priority', label: 'Priority', type: 'DROPDOWN', required: false, protection: 'DEFAULT', options: ['Low', 'Normal', 'High', 'Urgent'] },
+          { key: 'category', label: 'Category', type: 'DROPDOWN', required: true, protection: 'LOCKED', options: ['ELECTRICAL', 'PLUMBING', 'HVAC', 'STRUCTURAL', 'CUSTODIAL_BIOHAZARD', 'IT_AV', 'GROUNDS', 'OTHER'] },
+          { key: 'priority', label: 'Priority', type: 'DROPDOWN', required: false, protection: 'DEFAULT', options: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] },
           { key: 'requested_date', label: 'Requested Date', type: 'DATE', required: false, protection: 'DEFAULT' },
           { key: 'photo', label: 'Photo', type: 'FILE', required: false, protection: 'DEFAULT', helpText: 'Attach a photo if helpful' },
         ],
@@ -169,8 +170,8 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
         fields: [
           { key: 'title', label: 'Title', type: 'TEXT', required: true, protection: 'LOCKED', placeholder: 'Brief summary of the issue' },
           { key: 'description', label: 'Description', type: 'TEXTAREA', required: true, protection: 'LOCKED', placeholder: 'What happened?' },
-          { key: 'category', label: 'Category', type: 'DROPDOWN', required: false, protection: 'DEFAULT', options: ['Hardware', 'Software', 'Network', 'Account / Password', 'Other'] },
-          { key: 'urgency', label: 'Urgency', type: 'DROPDOWN', required: false, protection: 'DEFAULT', options: ['Low', 'Normal', 'High', 'Urgent'] },
+          { key: 'issueType', label: 'Category', type: 'DROPDOWN', required: true, protection: 'LOCKED', options: ['HARDWARE', 'SOFTWARE', 'ACCOUNT_PASSWORD', 'NETWORK', 'DISPLAY_AV', 'OTHER'] },
+          { key: 'priority', label: 'Urgency', type: 'DROPDOWN', required: false, protection: 'DEFAULT', options: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] },
         ],
       },
       {
