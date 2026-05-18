@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Building2, ChevronDown, ChevronRight, DoorOpen, MapPin, Pencil, Plus, TreePine, X, Check } from 'lucide-react'
+import { Building2, ChevronDown, ChevronRight, DoorOpen, Edit2, MapPin, Pencil, Plus, Trash2, TreePine, X, Check } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import InteractiveCampusMap from '@/components/settings/InteractiveCampusMap'
 import RoomsDrawer from '@/components/settings/campus/RoomsDrawer'
@@ -9,6 +9,8 @@ import PhotoLightbox from '@/components/settings/PhotoLightbox'
 import DetailDrawer from '@/components/DetailDrawer'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import RowActionMenu from '@/components/RowActionMenu'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import type { Room } from '@/components/settings/campus/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -88,6 +90,15 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
   const [spaceSaving, setSpaceSaving] = useState(false)
   const [spaceError, setSpaceError] = useState('')
 
+  // Inline room edit
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null)
+  const [editRoomForm, setEditRoomForm] = useState({ roomNumber: '', displayName: '', floor: '' })
+  const [editRoomSaving, setEditRoomSaving] = useState(false)
+
+  // Room delete confirm
+  const [deleteRoomTarget, setDeleteRoomTarget] = useState<Room | null>(null)
+  const [deleteRoomLoading, setDeleteRoomLoading] = useState(false)
+
   // ── Load building + rooms + spaces ────────────────────────────────────────
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -112,10 +123,10 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
 
   useEffect(() => { loadData() }, [loadData])
 
-  // ── Map center from building coords ────────────────────────────────────────
+  // ── Map center from building coords (fall back to default so map always renders) ──
   const mapCenter = building?.latitude && building?.longitude
     ? { lat: building.latitude, lng: building.longitude, name: building.name, address: building.address }
-    : null
+    : { lat: 33.4936, lng: -117.0892, name: building?.name ?? '', address: building?.address ?? null }
 
   // ── Map building data ──────────────────────────────────────────────────────
   const mapBuildings = building?.latitude && building?.longitude
@@ -221,6 +232,33 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       headers: getAuthHeaders(), credentials: 'include' as const,
     })
     await loadData()
+  }
+
+  // ── Inline room edit handler ────────────────────────────────────────────────
+  const openEditRoom = (r: Room) => {
+    setEditingRoom(r)
+    setEditRoomForm({ roomNumber: r.roomNumber, displayName: r.displayName || '', floor: r.floor || '' })
+  }
+
+  const saveInlineRoomEdit = async () => {
+    if (!editingRoom || !editRoomForm.roomNumber.trim()) return
+    setEditRoomSaving(true)
+    try {
+      await handleEditRoom(editingRoom.id, editRoomForm)
+      setEditingRoom(null)
+    } catch { /* parent handles */ }
+    finally { setEditRoomSaving(false) }
+  }
+
+  const confirmDeleteRoom = async () => {
+    if (!deleteRoomTarget) return
+    setDeleteRoomLoading(true)
+    try {
+      await handleDeactivateRoom(deleteRoomTarget.id)
+      setDeleteRoomTarget(null)
+    } finally {
+      setDeleteRoomLoading(false)
+    }
   }
 
   // ── Building edit handlers ──────────────────────────────────────────────────
@@ -481,13 +519,45 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
                         const assignedName = assigned
                           ? [assigned.user.firstName, assigned.user.lastName].filter(Boolean).join(' ') || assigned.user.email
                           : null
+                        const isEditing = editingRoom?.id === r.id
+
+                        if (isEditing) {
+                          return (
+                            <div key={r.id} className="col-span-2 sm:col-span-3 md:col-span-4 px-4 py-3 bg-indigo-50/50 border border-indigo-200 rounded-lg space-y-3">
+                              <div className="grid grid-cols-3 gap-3">
+                                <Input value={editRoomForm.roomNumber} onChange={(e) => setEditRoomForm({ ...editRoomForm, roomNumber: e.target.value })} placeholder="Room #" size="sm" disabled={editRoomSaving} autoFocus />
+                                <Input value={editRoomForm.displayName} onChange={(e) => setEditRoomForm({ ...editRoomForm, displayName: e.target.value })} placeholder="Name (optional)" size="sm" disabled={editRoomSaving} />
+                                <Input value={editRoomForm.floor} onChange={(e) => setEditRoomForm({ ...editRoomForm, floor: e.target.value })} placeholder="Floor (optional)" size="sm" disabled={editRoomSaving} />
+                              </div>
+                              <div className="flex justify-end gap-2">
+                                <button onClick={() => setEditingRoom(null)} disabled={editRoomSaving} className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-full transition cursor-pointer">Cancel</button>
+                                <button onClick={saveInlineRoomEdit} disabled={editRoomSaving || !editRoomForm.roomNumber.trim()} className="px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-full transition disabled:opacity-40 cursor-pointer">
+                                  {editRoomSaving ? 'Saving...' : 'Save'}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        }
+
                         return (
                           <div
                             key={r.id}
-                            className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                            className="px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm group relative"
                           >
-                            <div className="font-medium text-slate-800">{r.roomNumber}</div>
-                            {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
+                            <div className="flex items-start justify-between gap-1">
+                              <div className="min-w-0">
+                                <div className="font-medium text-slate-800">{r.roomNumber}</div>
+                                {r.displayName && <div className="text-xs text-slate-500 truncate">{r.displayName}</div>}
+                              </div>
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                <RowActionMenu
+                                  items={[
+                                    { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditRoom(r) },
+                                    { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteRoomTarget(r), variant: 'danger' as const },
+                                  ]}
+                                />
+                              </div>
+                            </div>
                             {assigned && (
                               <div className="flex items-center gap-1.5 mt-1.5">
                                 {assigned.user.avatar ? (
@@ -615,6 +685,19 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
           </div>
         </form>
       </DetailDrawer>
+
+      {/* Delete Room Confirm */}
+      <ConfirmDialog
+        isOpen={!!deleteRoomTarget}
+        onClose={() => setDeleteRoomTarget(null)}
+        onConfirm={confirmDeleteRoom}
+        title="Delete Room"
+        message={`Are you sure you want to delete "${deleteRoomTarget?.displayName || deleteRoomTarget?.roomNumber}"?`}
+        confirmText="Delete"
+        isLoading={deleteRoomLoading}
+        loadingText="Deleting…"
+        variant="danger"
+      />
 
       {/* Photo Lightbox */}
       {lightbox && (
