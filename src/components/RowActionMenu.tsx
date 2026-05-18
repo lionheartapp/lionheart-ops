@@ -35,7 +35,13 @@ export default function RowActionMenu({ items, ariaLabel = 'Row actions' }: RowA
     e.stopPropagation()
     if (!btnRef.current) return
     const rect = btnRef.current.getBoundingClientRect()
-    setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    const menuHeight = items.length * 48 + 8 // approximate: 48px per item + py-1
+    const spaceBelow = window.innerHeight - rect.bottom
+    const opensUp = spaceBelow < menuHeight + 8
+    setPos({
+      top: opensUp ? rect.top - menuHeight - 4 : rect.bottom + 4,
+      right: window.innerWidth - rect.right,
+    })
     setOpen(true)
   }
 

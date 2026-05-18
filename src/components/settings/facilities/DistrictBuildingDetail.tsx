@@ -410,20 +410,15 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
       )}
 
       {/* ── Map — full-bleed like campus detail ── */}
-      <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
-        <div style={{ height: 600 }}>
-          <InteractiveCampusMap
-            buildings={mapBuildings}
-            mapCenter={mapCenter}
-            editable
-            embedded
-            fillContainer
-            campusName={building.name}
-            onBuildingPositionChange={handleBuildingPositionChange}
-            onManageRooms={() => setRoomsDrawerOpen(true)}
-          />
-        </div>
-      </div>
+      <InteractiveCampusMap
+        buildings={mapBuildings}
+        mapCenter={mapCenter}
+        editable
+        embedded
+        campusName={building.name}
+        onBuildingPositionChange={handleBuildingPositionChange}
+        onManageRooms={() => setRoomsDrawerOpen(true)}
+      />
 
       {/* ── Rooms & Spaces card — matches "Buildings & Spaces" pattern ── */}
       <div
