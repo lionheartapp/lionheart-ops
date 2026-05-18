@@ -1056,6 +1056,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
             isOpen={showAICreator}
             onClose={() => setShowAICreator(false)}
             module={module}
+            formDefinitionId={formDefinitionId}
             context={{
               schools: schools.map(s => ({ id: s.id, name: s.name })),
               campuses: campuses.map(c => ({ id: c.id, name: c.name, schoolName: schools.find(s => s.id === c.schoolId)?.name })),
@@ -1066,7 +1067,9 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
               members: allMembers.map(m => ({ id: m.id, name: m.name || m.email, teamName: m.teamName, avatar: m.avatar })),
             }}
             onRulesCreated={() => {
-              queryClient.invalidateQueries({ queryKey: ['approval-rules', module] })
+              queryClient.invalidateQueries({
+                queryKey: formDefinitionId ? ['form-approval-rules', formDefinitionId] : ['approval-rules', module],
+              })
               setShowAICreator(false)
               setShowAIDisclaimer(true)
             }}

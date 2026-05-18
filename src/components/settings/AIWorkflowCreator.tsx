@@ -74,6 +74,8 @@ interface AIWorkflowCreatorProps {
   module?: 'EVENT' | 'MAINTENANCE' | 'IT'
   context: WorkflowContext
   onRulesCreated: () => void
+  /** When embedded in the form builder, rules are scoped to this form */
+  formDefinitionId?: string
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -84,6 +86,7 @@ export default function AIWorkflowCreator({
   module = 'EVENT',
   context,
   onRulesCreated,
+  formDefinitionId,
 }: AIWorkflowCreatorProps) {
   const isMaintenance = module === 'MAINTENANCE'
   const [phase, setPhase] = useState<Phase>('input')
@@ -407,7 +410,10 @@ export default function AIWorkflowCreator({
     try {
       for (const rule of result.rules) {
         // Create the rule
-        const ruleRes = await fetchApi('/api/settings/approval-rules', {
+        const rulesBase = formDefinitionId
+          ? `/api/forms/${formDefinitionId}/approval-rules`
+          : '/api/settings/approval-rules'
+        const ruleRes = await fetchApi(rulesBase, {
           method: 'POST',
           body: JSON.stringify({
             name: rule.name,
@@ -435,7 +441,10 @@ export default function AIWorkflowCreator({
           // Add steps to the rule
           for (const step of rule.steps) {
             if (!step.teamId) continue
-            await fetchApi(`/api/settings/approval-rules/${created.id}/steps`, {
+            const stepsBase = formDefinitionId
+              ? `/api/forms/${formDefinitionId}/approval-rules/${created.id}/steps`
+              : `/api/settings/approval-rules/${created.id}/steps`
+            await fetchApi(stepsBase, {
               method: 'POST',
               body: JSON.stringify({
                 teamId: step.teamId,
