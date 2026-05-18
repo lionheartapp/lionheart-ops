@@ -104,7 +104,19 @@ export default function FormBuilder({ formId }: { formId: string }) {
   const [formName, setFormName] = useState('')
   const [activePageId, setActivePageId] = useState<string | null>(null)
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null)
-  const [leftTab, setLeftTab] = useState<'pages' | 'components' | 'tickets' | 'responses' | 'workflows'>('components')
+  const validTabs = ['pages', 'components', 'tickets', 'responses', 'workflows'] as const
+  type BuilderTab = typeof validTabs[number]
+  const [leftTab, setLeftTabRaw] = useState<BuilderTab>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '') as BuilderTab
+      if (validTabs.includes(hash)) return hash
+    }
+    return 'components'
+  })
+  const setLeftTab = (tab: BuilderTab) => {
+    setLeftTabRaw(tab)
+    window.history.replaceState(null, '', `#${tab}`)
+  }
   const [previewMode, setPreviewMode] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
@@ -582,7 +594,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
       {/* Builder mode tabs */}
       {!previewMode && (
         <div className="flex items-center gap-1 px-4 py-1.5 bg-white border-b border-slate-100">
-          {(['pages', 'components', 'tickets', 'responses', 'workflows'] as const)
+          {validTabs
             .filter((tab) => {
               // Tickets tab hidden on system form templates — they're shared templates, not individual events
               if (tab === 'tickets' && form?.isDefault) return false
