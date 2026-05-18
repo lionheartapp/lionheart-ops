@@ -412,7 +412,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
         </div>
       )}
 
-      <div className="ui-glass-table overflow-x-auto">
+      <div className="ui-glass-table overflow-hidden">
         {loading ? (
           <div className="animate-pulse">
             <div className="flex items-center gap-4 p-4 border-b border-slate-100 bg-slate-50">

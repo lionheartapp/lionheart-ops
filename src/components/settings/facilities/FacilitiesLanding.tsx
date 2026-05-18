@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, Plus, Building2, School as SchoolIcon, MapPin, Users, Landmark, TreePine } from 'lucide-react'
+import { ChevronRight, Plus, Building2, School as SchoolIcon, MapPin, Users, Landmark, TreePine, Edit2, Trash2 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
+import ConfirmDialog from '@/components/ConfirmDialog'
+import RowActionMenu from '@/components/RowActionMenu'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -297,6 +299,112 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     }
   }
 
+  // ── Edit building state + handler ──────────────────────────────────────────
+  const [editingBuilding, setEditingBuilding] = useState<DistrictBuilding | null>(null)
+  const [editBuildingForm, setEditBuildingForm] = useState({ name: '', code: '', buildingType: 'GENERAL', address: '' })
+  const [editBuildingSaving, setEditBuildingSaving] = useState(false)
+  const [editBuildingError, setEditBuildingError] = useState('')
+
+  const openEditBuilding = (b: DistrictBuilding) => {
+    setEditingBuilding(b)
+    setEditBuildingForm({ name: b.name, code: b.code || '', buildingType: b.buildingType, address: b.address || '' })
+    setEditBuildingError('')
+  }
+
+  const handleEditBuilding = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingBuilding || !editBuildingForm.name.trim()) return
+    setEditBuildingSaving(true)
+    setEditBuildingError('')
+    try {
+      await fetchApi(`/api/settings/campus/buildings/${editingBuilding.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: editBuildingForm.name.trim(),
+          code: editBuildingForm.code.trim() || null,
+          buildingType: editBuildingForm.buildingType,
+          address: editBuildingForm.address.trim() || null,
+        }),
+      })
+      setEditingBuilding(null)
+      loadDistrict()
+    } catch (err) {
+      setEditBuildingError(err instanceof Error ? err.message : 'Failed to update building')
+    } finally {
+      setEditBuildingSaving(false)
+    }
+  }
+
+  // ── Delete building state + handler ─────────────────────────────────────
+  const [deleteBuildingTarget, setDeleteBuildingTarget] = useState<DistrictBuilding | null>(null)
+  const [deleteBuildingLoading, setDeleteBuildingLoading] = useState(false)
+
+  const handleDeleteBuilding = async () => {
+    if (!deleteBuildingTarget) return
+    setDeleteBuildingLoading(true)
+    try {
+      await fetchApi(`/api/settings/campus/buildings/${deleteBuildingTarget.id}?permanent=true`, { method: 'DELETE' })
+      setDeleteBuildingTarget(null)
+      loadDistrict()
+    } catch {
+      // keep dialog open on error
+    } finally {
+      setDeleteBuildingLoading(false)
+    }
+  }
+
+  // ── Edit space state + handler ──────────────────────────────────────────
+  const [editingSpace, setEditingSpace] = useState<DistrictSpace | null>(null)
+  const [editSpaceForm, setEditSpaceForm] = useState({ name: '', spaceType: 'FIELD' })
+  const [editSpaceSaving, setEditSpaceSaving] = useState(false)
+  const [editSpaceError, setEditSpaceError] = useState('')
+
+  const openEditSpace = (s: DistrictSpace) => {
+    setEditingSpace(s)
+    setEditSpaceForm({ name: s.name, spaceType: s.spaceType })
+    setEditSpaceError('')
+  }
+
+  const handleEditSpace = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingSpace || !editSpaceForm.name.trim()) return
+    setEditSpaceSaving(true)
+    setEditSpaceError('')
+    try {
+      await fetchApi(`/api/settings/campus/spaces/${editingSpace.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: editSpaceForm.name.trim(),
+          spaceType: editSpaceForm.spaceType,
+        }),
+      })
+      setEditingSpace(null)
+      loadDistrict()
+    } catch (err) {
+      setEditSpaceError(err instanceof Error ? err.message : 'Failed to update space')
+    } finally {
+      setEditSpaceSaving(false)
+    }
+  }
+
+  // ── Delete space state + handler ────────────────────────────────────────
+  const [deleteSpaceTarget, setDeleteSpaceTarget] = useState<DistrictSpace | null>(null)
+  const [deleteSpaceLoading, setDeleteSpaceLoading] = useState(false)
+
+  const handleDeleteSpace = async () => {
+    if (!deleteSpaceTarget) return
+    setDeleteSpaceLoading(true)
+    try {
+      await fetchApi(`/api/settings/campus/spaces/${deleteSpaceTarget.id}?permanent=true`, { method: 'DELETE' })
+      setDeleteSpaceTarget(null)
+      loadDistrict()
+    } catch {
+      // keep dialog open on error
+    } finally {
+      setDeleteSpaceLoading(false)
+    }
+  }
+
   const SPACE_TYPE_OPTIONS = [
     { value: 'FIELD', label: 'Athletic Field' },
     { value: 'COURT', label: 'Court' },
@@ -505,7 +613,15 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                               </div>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
+                          <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <RowActionMenu
+                              items={[
+                                { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditBuilding(b) },
+                                { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteBuildingTarget(b), variant: 'danger' as const },
+                              ]}
+                            />
+                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -537,6 +653,12 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                               </span>
                             </div>
                           </div>
+                          <RowActionMenu
+                            items={[
+                              { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditSpace(s) },
+                              { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteSpaceTarget(s), variant: 'danger' as const },
+                            ]}
+                          />
                         </div>
                       </div>
                     ))}
@@ -774,6 +896,154 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
           />
         </form>
       </DetailDrawer>
+
+      {/* ── Edit Building Drawer ── */}
+      <DetailDrawer
+        isOpen={!!editingBuilding}
+        onClose={() => { if (!editBuildingSaving) setEditingBuilding(null) }}
+        title="Edit Building"
+        width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="edit-district-building-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              disabled={editBuildingSaving || !editBuildingForm.name.trim()}
+            >
+              {editBuildingSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditingBuilding(null)}
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition py-1 cursor-pointer"
+              disabled={editBuildingSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        }
+      >
+        <form id="edit-district-building-form" onSubmit={handleEditBuilding} className="space-y-5">
+          {editBuildingError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editBuildingError}</div>
+          )}
+
+          <FloatingInput
+            id="edit-building-name"
+            label="Building name"
+            value={editBuildingForm.name}
+            onChange={(e) => setEditBuildingForm((p) => ({ ...p, name: e.target.value }))}
+            disabled={editBuildingSaving}
+            autoFocus
+          />
+
+          <FloatingInput
+            id="edit-building-code"
+            label="Building code (optional)"
+            value={editBuildingForm.code}
+            onChange={(e) => setEditBuildingForm((p) => ({ ...p, code: e.target.value }))}
+            disabled={editBuildingSaving}
+          />
+
+          <FloatingDropdown
+            id="edit-building-type"
+            label="Building type"
+            value={editBuildingForm.buildingType}
+            onChange={(v) => setEditBuildingForm((p) => ({ ...p, buildingType: v }))}
+            disabled={editBuildingSaving}
+            options={Object.entries(BUILDING_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+          />
+
+          <div>
+            <label htmlFor="edit-building-address" className="block text-xs text-slate-500 font-medium mb-1.5">
+              Address
+            </label>
+            <AddressAutocomplete
+              value={editBuildingForm.address}
+              onChange={(value) => setEditBuildingForm((p) => ({ ...p, address: value }))}
+            />
+          </div>
+        </form>
+      </DetailDrawer>
+
+      {/* ── Edit Space Drawer ── */}
+      <DetailDrawer
+        isOpen={!!editingSpace}
+        onClose={() => { if (!editSpaceSaving) setEditingSpace(null) }}
+        title="Edit Space"
+        width="lg"
+        footer={
+          <div className="space-y-3">
+            <button
+              type="submit"
+              form="edit-district-space-form"
+              className="w-full py-3.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              disabled={editSpaceSaving || !editSpaceForm.name.trim()}
+            >
+              {editSpaceSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditingSpace(null)}
+              className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors duration-200 py-1 cursor-pointer"
+              disabled={editSpaceSaving}
+            >
+              Cancel
+            </button>
+          </div>
+        }
+      >
+        <form id="edit-district-space-form" onSubmit={handleEditSpace} className="space-y-5">
+          {editSpaceError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{editSpaceError}</div>
+          )}
+
+          <FloatingInput
+            id="edit-space-name"
+            label="Space name"
+            value={editSpaceForm.name}
+            onChange={(e) => setEditSpaceForm((p) => ({ ...p, name: e.target.value }))}
+            disabled={editSpaceSaving}
+            autoFocus
+          />
+
+          <FloatingDropdown
+            id="edit-space-type"
+            label="Space type"
+            value={editSpaceForm.spaceType}
+            onChange={(v) => setEditSpaceForm((p) => ({ ...p, spaceType: v }))}
+            disabled={editSpaceSaving}
+            options={SPACE_TYPE_OPTIONS}
+          />
+        </form>
+      </DetailDrawer>
+
+      {/* ── Delete Building Confirm ── */}
+      <ConfirmDialog
+        isOpen={!!deleteBuildingTarget}
+        onClose={() => setDeleteBuildingTarget(null)}
+        onConfirm={handleDeleteBuilding}
+        title="Delete Building"
+        message={`Are you sure you want to delete "${deleteBuildingTarget?.name}"? This will also remove all rooms inside it.`}
+        confirmText="Delete"
+        isLoading={deleteBuildingLoading}
+        loadingText="Deleting…"
+        variant="danger"
+      />
+
+      {/* ── Delete Space Confirm ── */}
+      <ConfirmDialog
+        isOpen={!!deleteSpaceTarget}
+        onClose={() => setDeleteSpaceTarget(null)}
+        onConfirm={handleDeleteSpace}
+        title="Delete Space"
+        message={`Are you sure you want to delete "${deleteSpaceTarget?.name}"?`}
+        confirmText="Delete"
+        isLoading={deleteSpaceLoading}
+        loadingText="Deleting…"
+        variant="danger"
+      />
     </div>
   )
 }

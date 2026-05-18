@@ -509,7 +509,7 @@ function BuildingsList({
         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Buildings</h4>
         <span className="text-xs text-slate-400">({buildings.length})</span>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-slate-100">
+      <div className="overflow-hidden rounded-lg border border-slate-100">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-slate-500 bg-slate-50 border-b border-slate-100">
@@ -714,7 +714,7 @@ function OutdoorList({
         <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outdoor Spaces</h4>
         <span className="text-xs text-slate-400">({outdoorSpaces.length})</span>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-slate-100">
+      <div className="overflow-hidden rounded-lg border border-slate-100">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="text-slate-500 bg-slate-50 border-b border-slate-100">

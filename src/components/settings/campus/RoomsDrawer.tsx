@@ -123,7 +123,7 @@ function PersonSearchPicker({
   }, [query, excludeUserIds])
 
   return (
-    <div ref={containerRef} className="absolute z-50 top-full left-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+    <div ref={containerRef} className="absolute z-50 top-full left-0 mt-1 w-full max-w-[280px] bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
       <div className="p-2 border-b border-slate-100">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
@@ -319,7 +319,7 @@ export default function RoomsDrawer({
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{addError}</div>
           )}
           <form onSubmit={handleAdd} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <FloatingInput id="ct-roomNumber" label="Room # / ID" value={addForm.roomNumber} onChange={(e) => setAddForm((p) => ({ ...p, roomNumber: e.target.value }))} disabled={addSaving} required />
               <FloatingInput id="ct-roomDisplayName" label="Name (optional)" value={addForm.displayName} onChange={(e) => setAddForm((p) => ({ ...p, displayName: e.target.value }))} disabled={addSaving} />
               <FloatingInput id="ct-roomFloor" label="Floor (optional)" value={addForm.floor} onChange={(e) => setAddForm((p) => ({ ...p, floor: e.target.value }))} disabled={addSaving} />
@@ -348,115 +348,115 @@ export default function RoomsDrawer({
             <p className="text-sm">No rooms yet — add one above.</p>
           </div>
         ) : (
-          <div className="ui-glass-table overflow-x-auto">
-            <table className="min-w-full text-sm whitespace-nowrap">
-              <thead>
-                <tr className="text-slate-500 border-b bg-slate-50">
-                  <th className="py-2.5 px-3 text-left font-medium">Room</th>
-                  <th className="py-2.5 px-3 text-left font-medium">Display name</th>
-                  {hasAssignmentSupport && (
-                    <th className="py-2.5 px-3 text-left font-medium">Assigned to</th>
-                  )}
-                  <th className="py-2.5 px-3 text-left font-medium">Floor</th>
-                  <th className="py-2.5 px-3 text-left font-medium">Status</th>
-                  <th className="py-2.5 pl-3 pr-3 text-right font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rooms.map((r) => {
-                  const assignments = r.assignments || []
-                  const assignedUserIds = assignments.map((a) => a.userId)
+          <div className="space-y-2">
+            {rooms.map((r) => {
+              const assignments = r.assignments || []
+              const assignedUserIds = assignments.map((a) => a.userId)
 
-                  return editingId === r.id ? (
-                    <tr key={r.id} className="border-b last:border-b-0 bg-primary-50">
-                      <td className="py-2 px-3">
-                        <input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} autoFocus />
-                      </td>
-                      <td className="py-2 px-3">
-                        <input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
-                      </td>
-                      {hasAssignmentSupport && <td className="py-2 px-3" />}
-                      <td className="py-2 px-3">
-                        <input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent" disabled={editSaving} />
-                      </td>
-                      <td className="py-2 px-3">{renderStatusBadge(r.isActive)}</td>
-                      <td className="py-2 pl-3 pr-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => saveEdit(r.id)} disabled={editSaving} className="p-2 text-green-600 hover:bg-green-50 rounded-full transition disabled:opacity-40" title="Save" aria-label="Save">
-                            <Save className="w-4 h-4" />
-                          </button>
-                          <button onClick={cancelEdit} disabled={editSaving} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition" title="Cancel" aria-label="Cancel">
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    <React.Fragment key={r.id}>
-                      <tr className="border-b last:border-b-0 hover:bg-slate-50 transition-colors duration-150">
-                        <td className="py-2.5 px-3 font-medium text-slate-900">{r.roomNumber}</td>
-                        <td className="py-2.5 px-3 text-slate-600">{r.displayName || <span className="text-slate-400">—</span>}</td>
-                        {hasAssignmentSupport && (
-                          <td className="py-2.5 px-3">
-                            <div className="relative flex items-center gap-1.5 flex-wrap">
-                              {assignments.map((a) => (
-                                <AssignedChip
-                                  key={a.id}
-                                  user={a.user}
-                                  assignmentId={a.id}
-                                  onRemove={handleUnassign}
-                                />
-                              ))}
-                              <button
-                                onClick={() => setAssigningRoomId(assigningRoomId === r.id ? null : r.id)}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-full transition cursor-pointer"
-                                title="Assign person"
-                              >
-                                <UserPlus className="w-3.5 h-3.5" />
-                                {assignments.length === 0 && 'Assign'}
-                              </button>
-                              {assigningRoomId === r.id && (
-                                <PersonSearchPicker
-                                  onSelect={(user) => handleAssign(r.id, user)}
-                                  onCancel={() => setAssigningRoomId(null)}
-                                  excludeUserIds={assignedUserIds}
-                                />
-                              )}
-                            </div>
-                          </td>
+              return editingId === r.id ? (
+                <div key={r.id} className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Room # / ID</label>
+                      <input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} autoFocus />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Name</label>
+                      <input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Floor</label>
+                      <input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={cancelEdit} disabled={editSaving} className="px-4 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition cursor-pointer">
+                      Cancel
+                    </button>
+                    <button onClick={() => saveEdit(r.id)} disabled={editSaving} className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-full transition disabled:opacity-40 cursor-pointer">
+                      <Save className="w-3.5 h-3.5" />
+                      {editSaving ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={r.id} className="rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors duration-150">
+                  {/* Room header row */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex-shrink-0">
+                      <DoorOpen className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900">{r.roomNumber}</span>
+                        {r.displayName && (
+                          <span className="text-sm text-slate-500">{r.displayName}</span>
                         )}
-                        <td className="py-2.5 px-3 text-slate-600">{r.floor || <span className="text-slate-400">—</span>}</td>
-                        <td className="py-2.5 px-3">{renderStatusBadge(r.isActive)}</td>
-                        <td className="py-2.5 pl-3 pr-3">
-                          <div className="flex justify-end">
-                            <RowActionMenu
-                              items={[
-                                { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => startEdit(r) },
-                                { label: 'Photos', icon: <Camera className="w-4 h-4" />, onClick: () => setImagesId(imagesId === r.id ? null : r.id) },
-                                { label: 'Deactivate', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeactivateRoom(r.id, r.displayName || r.roomNumber), variant: 'danger' as const },
-                              ]}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                      {imagesId === r.id && (
-                        <tr className="border-b last:border-b-0 bg-slate-50">
-                          <td colSpan={hasAssignmentSupport ? 6 : 5} className="px-4 py-4">
-                            <ImageUpload
-                              entityType="room"
-                              entityId={r.id}
-                              images={r.images || []}
-                              onImagesChange={(imgs) => onRoomImagesChange(r.id, imgs)}
-                              onImageClick={onImageClick}
-                            />
-                          </td>
-                        </tr>
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        {r.floor && (
+                          <span className="text-xs text-slate-400">Floor {r.floor}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {renderStatusBadge(r.isActive)}
+                      <RowActionMenu
+                        items={[
+                          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => startEdit(r) },
+                          { label: 'Photos', icon: <Camera className="w-4 h-4" />, onClick: () => setImagesId(imagesId === r.id ? null : r.id) },
+                          { label: 'Deactivate', icon: <Trash2 className="w-4 h-4" />, onClick: () => onDeactivateRoom(r.id, r.displayName || r.roomNumber), variant: 'danger' as const },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Assignments section */}
+                  {hasAssignmentSupport && (
+                    <div className="relative px-4 pb-3 pt-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {assignments.map((a) => (
+                          <AssignedChip
+                            key={a.id}
+                            user={a.user}
+                            assignmentId={a.id}
+                            onRemove={handleUnassign}
+                          />
+                        ))}
+                        <button
+                          onClick={() => setAssigningRoomId(assigningRoomId === r.id ? null : r.id)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-full transition cursor-pointer"
+                          title="Assign person"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          {assignments.length === 0 ? 'Assign person' : 'Add'}
+                        </button>
+                      </div>
+                      {assigningRoomId === r.id && (
+                        <PersonSearchPicker
+                          onSelect={(user) => handleAssign(r.id, user)}
+                          onCancel={() => setAssigningRoomId(null)}
+                          excludeUserIds={assignedUserIds}
+                        />
                       )}
-                    </React.Fragment>
-                  )
-                })}
-              </tbody>
-            </table>
+                    </div>
+                  )}
+
+                  {/* Image upload expand */}
+                  {imagesId === r.id && (
+                    <div className="border-t border-slate-100 px-4 py-4">
+                      <ImageUpload
+                        entityType="room"
+                        entityId={r.id}
+                        images={r.images || []}
+                        onImagesChange={(imgs) => onRoomImagesChange(r.id, imgs)}
+                        onImageClick={onImageClick}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
