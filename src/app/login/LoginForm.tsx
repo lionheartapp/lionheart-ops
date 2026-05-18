@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, ShieldCheck, Fingerprint, KeyRound } from 'lucide-react'
+import { Eye, EyeOff, ShieldCheck, Fingerprint, KeyRound, Mail } from 'lucide-react'
 import { startAuthentication } from '@simplewebauthn/browser'
 
 interface LoginFormProps {
@@ -35,6 +35,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   const [hasPasskeys, setHasPasskeys] = useState(false)
   const [hasTotp, setHasTotp] = useState(false)
   const [passkeyLoading, setPasskeyLoading] = useState(false)
+  const [emailOtpMode, setEmailOtpMode] = useState(false)
+  const [emailOtpSending, setEmailOtpSending] = useState(false)
+  const [emailOtpSent, setEmailOtpSent] = useState(false)
+  const [maskedEmail, setMaskedEmail] = useState('')
 
   // SAML SSO state
   const [ssoEnabled, setSsoEnabled] = useState(false)
@@ -274,6 +278,40 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     }
   }
 
+  // ── Request email OTP ──
+  async function handleRequestEmailCode() {
+    setEmailOtpSending(true)
+    setMfaError('')
+    try {
+      const res = await fetch('/api/auth/mfa/email-code', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaToken }),
+      })
+      const data = await res.json()
+      if (!data.ok) {
+        if (data.error?.code === 'INVALID_TOKEN') {
+          setMfaMode(false)
+          setMfaToken('')
+          setError('Your verification session expired. Please sign in again.')
+          return
+        }
+        setMfaError(data.error?.message || 'Could not send code. Try again.')
+        return
+      }
+      setMaskedEmail(data.data.maskedEmail || '')
+      setEmailOtpMode(true)
+      setEmailOtpSent(true)
+      setMfaCode('')
+      setTimeout(() => mfaInputRef.current?.focus(), 100)
+    } catch (err) {
+      setMfaError(err instanceof Error ? err.message : 'Network error')
+    } finally {
+      setEmailOtpSending(false)
+    }
+  }
+
   function handleBackToSignIn() {
     setForgotMode(false)
     setForgotEmail('')
@@ -282,6 +320,9 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     setMfaToken('')
     setMfaCode('')
     setMfaError('')
+    setEmailOtpMode(false)
+    setEmailOtpSent(false)
+    setMaskedEmail('')
   }
 
   // ── MFA code entry mode ──
@@ -290,11 +331,15 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       <div className="space-y-6">
         <div className="text-center">
           <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4">
-            <ShieldCheck className="w-6 h-6 text-white" />
+            {emailOtpMode ? <Mail className="w-6 h-6 text-white" /> : <ShieldCheck className="w-6 h-6 text-white" />}
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-1">Two-factor authentication</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-1">
+            {emailOtpMode ? 'Check your email' : 'Two-factor authentication'}
+          </h2>
           <p className="text-sm text-slate-500">
-            {hasPasskeys && hasTotp
+            {emailOtpMode
+              ? `We sent a 6-digit code to ${maskedEmail}`
+              : hasPasskeys && hasTotp
               ? 'Use your passkey or enter a code from your authenticator app.'
               : hasPasskeys
               ? 'Use your passkey to verify your identity.'
@@ -302,8 +347,8 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           </p>
         </div>
 
-        {/* Passkey button */}
-        {hasPasskeys && (
+        {/* Passkey button — hide when in email OTP mode */}
+        {hasPasskeys && !emailOtpMode && (
           <button
             type="button"
             onClick={handlePasskeyAuth}
@@ -316,7 +361,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
         )}
 
         {/* Divider when both methods available */}
-        {hasPasskeys && hasTotp && (
+        {hasPasskeys && hasTotp && !emailOtpMode && (
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-200" />
             <span className="text-xs text-slate-400 font-medium">or enter a code</span>
@@ -324,12 +369,12 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           </div>
         )}
 
-        {/* TOTP code input */}
-        {hasTotp && (
+        {/* Code input — shown for TOTP, backup codes, or email OTP */}
+        {(hasTotp || emailOtpMode) && (
           <form onSubmit={handleMfaSubmit} className="space-y-4">
             <div>
               <label htmlFor="mfa-code" className="block text-sm font-medium text-slate-700 mb-1">
-                Verification code
+                {emailOtpMode ? 'Email verification code' : 'Verification code'}
               </label>
               <input
                 ref={mfaInputRef}
@@ -342,7 +387,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
                 placeholder="000000"
                 className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
                 required
-                autoFocus={!hasPasskeys}
+                autoFocus={!hasPasskeys || emailOtpMode}
                 maxLength={12}
               />
             </div>
@@ -351,7 +396,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
               type="submit"
               disabled={mfaLoading || mfaCode.length < 6}
               className={`w-full rounded-full px-4 py-3.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                hasPasskeys
+                hasPasskeys && !emailOtpMode
                   ? 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50'
                   : 'bg-slate-900 text-white hover:bg-slate-800'
               }`}
@@ -365,6 +410,31 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
             {mfaError}
           </div>
+        )}
+
+        {/* Email me a code — fallback for users without TOTP or who can't use passkey */}
+        {!emailOtpMode && (
+          <button
+            type="button"
+            onClick={handleRequestEmailCode}
+            disabled={emailOtpSending}
+            className="w-full flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+          >
+            <Mail className="w-4 h-4" />
+            {emailOtpSending ? 'Sending...' : 'Email me a code instead'}
+          </button>
+        )}
+
+        {/* Resend code — shown after email OTP was sent */}
+        {emailOtpSent && emailOtpMode && (
+          <button
+            type="button"
+            onClick={handleRequestEmailCode}
+            disabled={emailOtpSending}
+            className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+          >
+            {emailOtpSending ? 'Sending...' : "Didn't get it? Resend code"}
+          </button>
         )}
 
         <button

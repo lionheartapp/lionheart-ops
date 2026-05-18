@@ -10,7 +10,7 @@
  *   - transport.ts       — shared SMTP/Resend send infrastructure
  */
 
-export { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from './auth-emails'
+export { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, sendMfaEmailCode } from './auth-emails'
 export { sendEventUpdateEmails, sendEventApprovedEmail, sendEventRejectedEmail, sendEventCancelledEmail, sendEventInviteEmail } from './event-emails'
 export { sendMaintenanceSubmittedEmail, sendMaintenanceAssignedEmail, sendMaintenanceClaimedEmail, sendMaintenanceInProgressEmail, sendMaintenanceOnHoldEmail, sendMaintenanceQAReadyEmail, sendMaintenanceDoneEmail, sendMaintenanceUrgentEmail, sendMaintenanceStaleEmail, sendMaintenanceQARejectedEmail, sendRepeatRepairAlertEmail, sendCostThresholdAlertEmail, sendEndOfLifeAlertEmail } from './maintenance-emails'
 export { sendITTicketSubmittedEmail, sendITTicketAssignedEmail, sendITTicketInProgressEmail, sendITTicketOnHoldEmail, sendITTicketDoneEmail, sendITTicketUrgentEmail } from './it-emails'

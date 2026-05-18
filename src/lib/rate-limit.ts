@@ -319,6 +319,13 @@ export const eventRegistrationRateLimiter = new RateLimiter({
   maxAttempts: 20,
 })
 
+/** MFA email OTP send: 3 sends per 5 minutes per IP */
+export const mfaEmailOtpRateLimiter = new RateLimiter({
+  name: 'mfa-email-otp',
+  windowMs: 5 * 60 * 1000,
+  maxAttempts: 3,
+})
+
 /** AI chat: 30 requests per minute per IP */
 export const aiChatRateLimiter = new RateLimiter({
   name: 'ai-chat',

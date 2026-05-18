@@ -49,6 +49,7 @@ export type EmailTemplate =
   | 'it_ticket_on_hold'
   | 'it_ticket_done'
   | 'it_ticket_urgent'
+  | 'mfa_email_code'
 
 type TemplateVars = Record<string, string | undefined>
 
@@ -623,6 +624,19 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].join('\n'),
       })
 
+    // ── MFA ────────────────────────────────────────────────────────────────
+    case 'mfa_email_code':
+      return wrapLayout({
+        previewText: 'Your verification code is {{code}}',
+        content: [
+          heroHeading('Sign-in code', 'Enter this code to<br />verify your identity.'),
+          contentSection(
+            `<div style="font-size:36px;font-weight:700;letter-spacing:0.3em;text-align:center;font-family:'SF Mono',Menlo,monospace;color:${B.nearBlack};padding:8px 0;">{{code}}</div>`
+          ),
+          ledeText(`This code expires in 5 minutes. If you didn't try to sign in, you can safely ignore this email.`),
+        ].join('\n'),
+      })
+
     default:
       throw new Error(`Unknown email template: ${template}`)
   }
@@ -669,6 +683,7 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   it_ticket_on_hold: 'IT request {{ticketNumber}} is on hold',
   it_ticket_done: 'IT request {{ticketNumber}} resolved',
   it_ticket_urgent: 'URGENT IT request: {{ticketNumber}}',
+  mfa_email_code: 'Your sign-in code: {{code}}',
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
@@ -700,6 +715,7 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   it_ticket_on_hold: 'IT request {{ticketNumber}} "{{ticketTitle}}" is on hold. View: {{ticketLink}}',
   it_ticket_done: 'IT request {{ticketNumber}} "{{ticketTitle}}" has been resolved and closed. View: {{ticketLink}}',
   it_ticket_urgent: 'URGENT: IT request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
+  mfa_email_code: 'Your Lionheart sign-in code is {{code}}. It expires in 5 minutes. If you did not request this, ignore this email.',
 }
 
 /**

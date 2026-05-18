@@ -14,6 +14,7 @@ export {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  sendMfaEmailCode,
   sendEventUpdateEmails,
   sendEventApprovedEmail,
   sendEventRejectedEmail,

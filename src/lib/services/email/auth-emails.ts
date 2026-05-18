@@ -44,6 +44,17 @@ export async function sendPasswordResetEmail(input: PasswordResetEmailInput): Pr
   })
 }
 
+type MfaEmailCodeInput = {
+  to: string
+  code: string
+}
+
+export async function sendMfaEmailCode(input: MfaEmailCodeInput): Promise<SendEmailResult> {
+  return sendBrandedEmail('mfa_email_code', input.to, {
+    code: input.code,
+  })
+}
+
 export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendEmailResult> {
   const expiresAt = new Date(input.expiresAtIso)
   const template: EmailTemplate = input.mode === 'ADMIN_CREATE' ? 'welcome' : 'password_setup'

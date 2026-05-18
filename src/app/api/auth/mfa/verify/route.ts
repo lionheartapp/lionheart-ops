@@ -11,7 +11,7 @@ import { signAuthToken, verifyAuthToken } from '@/lib/auth'
 import { verifyMfaForLogin } from '@/lib/services/mfaService'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { rawPrisma } from '@/lib/db'
-import { randomUUID } from 'node:crypto'
+import { randomUUID, createHash } from 'node:crypto'
 import { z } from 'zod'
 import { logger } from '@/lib/logger'
 import { mfaRateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
@@ -51,8 +51,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail('INVALID_TOKEN', 'Invalid or expired MFA session. Please log in again.'), { status: 401 })
     }
 
-    // Verify the TOTP code or backup code
-    const valid = await verifyMfaForLogin(claims.userId, code.replace(/-/g, '').trim())
+    // Verify the TOTP code, backup code, or email OTP
+    const normalizedCode = code.replace(/-/g, '').trim()
+    let valid = await verifyMfaForLogin(claims.userId, normalizedCode)
+
+    // Fallback: check email OTP codes
+    if (!valid) {
+      const codeHash = createHash('sha256').update(normalizedCode).digest('hex')
+      const otpRecord = await rawPrisma.emailOtpCode.findFirst({
+        where: {
+          userId: claims.userId,
+          codeHash,
+          expiresAt: { gt: new Date() },
+          usedAt: null,
+        },
+      })
+      if (otpRecord) {
+        valid = true
+        await rawPrisma.emailOtpCode.update({
+          where: { id: otpRecord.id },
+          data: { usedAt: new Date() },
+        })
+      }
+    }
+
     if (!valid) {
       return NextResponse.json(fail('INVALID_CODE', 'Invalid verification code. Please try again.'), { status: 400 })
     }
