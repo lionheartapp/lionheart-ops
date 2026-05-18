@@ -25,7 +25,7 @@ const checkoutSchema = z.object({
   buyerEmail: z.string().email(),
   buyerPhone: z.string().max(30).optional(),
   discountCode: z.string().max(50).optional(),
-  formData: z.record(z.string()).optional(), // custom field responses
+  formData: z.record(z.string(), z.string()).optional(), // custom field responses
 })
 
 export async function POST(
