@@ -632,6 +632,7 @@ export default function InventoryPage() {
           }}
           title={editingItem ? 'Edit Equipment' : 'Add Equipment'}
           width="xl"
+          noPadding
         >
           <AVEquipmentWizard
             item={editingItem as unknown as ComponentProps<typeof AVEquipmentWizard>['item']}

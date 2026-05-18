@@ -294,7 +294,7 @@ export default function AVEquipmentWizard({
   return (
     <div className="flex flex-col h-full">
       {/* ── Step Progress Indicator ── */}
-      <div className="pt-2 pb-6">
+      <div className="px-6 pt-2 pb-6">
         <div className="flex items-center gap-0">
           {STEPS.map((step, i) => {
             const Icon = step.icon
@@ -352,13 +352,13 @@ export default function AVEquipmentWizard({
 
       {/* ── Form Error ── */}
       {mutation.isError && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div className="mx-6 mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
           {mutation.error?.message || 'Something went wrong. Please try again.'}
         </div>
       )}
 
       {/* ── Step Content ── */}
-      <div className="flex-1 overflow-y-auto pb-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentStep}
@@ -414,7 +414,7 @@ export default function AVEquipmentWizard({
       </div>
 
       {/* ── Footer Navigation ── */}
-      <div className="border-t border-slate-200 py-4 bg-white">
+      <div className="border-t border-slate-200 px-6 py-4 bg-white">
         <div className="flex gap-3">
           {/* Save / Submit */}
           {currentStep === lastStep ? (

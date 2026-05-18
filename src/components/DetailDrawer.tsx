@@ -14,6 +14,8 @@ interface DetailDrawerProps {
   footer?: ReactNode
   width?: 'sm' | 'md' | 'lg' | 'xl'
   onEdit?: () => void
+  /** Remove content padding so children go edge-to-edge */
+  noPadding?: boolean
   /** Element to return focus to when the drawer closes */
   triggerRef?: React.RefObject<HTMLElement | null>
 }
@@ -33,6 +35,7 @@ export default function DetailDrawer({
   footer,
   width = 'md',
   onEdit,
+  noPadding,
   triggerRef,
 }: DetailDrawerProps) {
   const focusTrapRef = useFocusTrap(isOpen)
@@ -137,7 +140,7 @@ export default function DetailDrawer({
         {/* Content - Scrollable */}
         <div
           ref={contentRef}
-          className="flex-1 overflow-y-auto px-6 pt-3 pb-6"
+          className={`flex-1 overflow-y-auto ${noPadding ? '' : 'px-6 pt-3 pb-6'}`}
         >
           {children}
         </div>
