@@ -584,8 +584,8 @@ export default function FormBuilder({ formId }: { formId: string }) {
         <div className="flex items-center gap-1 px-4 py-1.5 bg-white border-b border-slate-100">
           {(['pages', 'components', 'tickets', 'responses', 'workflows'] as const)
             .filter((tab) => {
-              // Tickets tab only on event-linked forms (has ticket types / orders)
-              if (tab === 'tickets' && !form?.eventProjectId) return false
+              // Tickets tab hidden on system form templates — they're shared templates, not individual events
+              if (tab === 'tickets' && form?.isDefault) return false
               return true
             })
             .map((tab) => {
