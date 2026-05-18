@@ -16,6 +16,12 @@ import {
   Tag,
   Users,
   Clock,
+  DollarSign,
+  ScanLine,
+  ChevronRight,
+  Download,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
@@ -783,7 +789,194 @@ export default function TicketsBuilder({ formDefinitionId }: TicketsBuilderProps
             </p>
           </section>
         )}
+
+        {/* ── Sales Dashboard ─────────────────────────────────────────── */}
+        {ticketTypes.length > 0 && (
+          <OrdersDashboard formId={formDefinitionId} />
+        )}
       </div>
     </div>
+  )
+}
+
+// ─── Orders Dashboard (inline in Tickets tab) ────────────────────────────
+
+interface OrderSummary {
+  totalRevenue: number
+  totalOrders: number
+  totalTicketsSold: number
+  totalCapacity: number | null
+  checkedIn: number
+}
+
+interface TicketTypeSummary {
+  id: string
+  name: string
+  price: number
+  sold: number
+  total: number | null
+  revenue: number
+}
+
+interface OrderItem {
+  id: string
+  buyerName: string
+  buyerEmail: string
+  status: string
+  paymentStatus: string
+  total: number
+  discountCode: string | null
+  discountAmount: number
+  createdAt: string
+  paidAt: string | null
+  ticketCount: number
+  lineItems: Array<{
+    ticketTypeName: string
+    quantity: number
+    unitPrice: number
+    subtotal: number
+  }>
+}
+
+interface OrdersData {
+  summary: OrderSummary
+  ticketTypes: TicketTypeSummary[]
+  orders: OrderItem[]
+}
+
+function OrdersDashboard({ formId }: { formId: string }) {
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
+
+  const { data, isLoading } = useQuery<OrdersData>({
+    queryKey: ['forms', formId, 'orders'],
+    queryFn: () => fetchApi<OrdersData>(`/api/forms/${formId}/orders`),
+    staleTime: 15_000,
+  })
+
+  if (isLoading) {
+    return (
+      <section className="border-t border-slate-100 pt-5 space-y-3 animate-pulse">
+        <div className="h-4 w-32 bg-slate-100 rounded" />
+        <div className="grid grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-14 bg-slate-100 rounded-xl" />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (!data) return null
+
+  const { summary, ticketTypes: ttSummary, orders } = data
+
+  return (
+    <section className="border-t border-slate-100 pt-5 space-y-4">
+      <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+        <DollarSign className="w-4 h-4 text-emerald-500" />
+        Sales
+      </h3>
+
+      {/* Summary row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5">
+          <span className="text-[11px] text-slate-500">Revenue</span>
+          <p className="text-sm font-bold text-slate-900">${(summary.totalRevenue / 100).toFixed(2)}</p>
+        </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5">
+          <span className="text-[11px] text-slate-500">Tickets Sold</span>
+          <p className="text-sm font-bold text-slate-900">
+            {summary.totalTicketsSold}
+            {summary.totalCapacity != null && (
+              <span className="text-xs font-normal text-slate-400"> / {summary.totalCapacity}</span>
+            )}
+          </p>
+        </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5">
+          <span className="text-[11px] text-slate-500">Orders</span>
+          <p className="text-sm font-bold text-slate-900">{summary.totalOrders}</p>
+        </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-lg px-3 py-2.5">
+          <span className="text-[11px] text-slate-500">Checked In</span>
+          <p className="text-sm font-bold text-slate-900">{summary.checkedIn}</p>
+        </div>
+      </div>
+
+      {/* Ticket type breakdown */}
+      {ttSummary.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 text-slate-500">
+                <th className="text-left px-3 py-2 font-medium">Type</th>
+                <th className="text-right px-3 py-2 font-medium">Sold</th>
+                <th className="text-right px-3 py-2 font-medium">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ttSummary.map((tt) => (
+                <tr key={tt.id} className="border-b border-slate-50 last:border-0">
+                  <td className="px-3 py-2 text-slate-900 font-medium">{tt.name}</td>
+                  <td className="px-3 py-2 text-right text-slate-600">
+                    {tt.sold}{tt.total != null ? `/${tt.total}` : ''}
+                  </td>
+                  <td className="px-3 py-2 text-right text-slate-900 font-medium">
+                    ${(tt.revenue / 100).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Recent orders */}
+      {orders.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600">
+              Recent Orders ({orders.length})
+            </span>
+            <button
+              onClick={() => window.open(`/api/forms/${formId}/submissions/export`, '_blank')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-md transition-colors cursor-pointer"
+            >
+              <Download className="w-3 h-3" />
+              Export
+            </button>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {orders.slice(0, 10).map((order) => (
+              <button
+                key={order.id}
+                type="button"
+                onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-slate-900 truncate">{order.buyerName}</span>
+                    {order.paymentStatus === 'PAID' ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                    ) : order.status === 'CANCELLED' ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {order.lineItems.map((li) => `${li.quantity}× ${li.ticketTypeName}`).join(', ')}
+                  </p>
+                </div>
+                <span className="text-xs font-medium text-slate-900">
+                  ${(order.total / 100).toFixed(2)}
+                </span>
+                <ChevronRight className={`w-3.5 h-3.5 text-slate-300 flex-shrink-0 transition-transform ${expandedOrderId === order.id ? 'rotate-90' : ''}`} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
   )
 }

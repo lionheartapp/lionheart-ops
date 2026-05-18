@@ -136,7 +136,7 @@ CREATE INDEX "EventTicket_organizationId_idx" ON "EventTicket"("organizationId")
 ALTER TABLE "EventTicket" ADD CONSTRAINT "EventTicket_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "EventTicket" ADD CONSTRAINT "EventTicket_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "FormOrder"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "EventTicket" ADD CONSTRAINT "EventTicket_ticketTypeId_fkey" FOREIGN KEY ("ticketTypeId") REFERENCES "TicketType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "EventTicket" ADD CONSTRAINT "EventTicket_seatId_fkey" FOREIGN KEY ("seatId") REFERENCES "Seat"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- EventTicket_seatId_fkey deferred to end of file (Seat table created below)
 
 -- CreateTable: TicketDesign
 CREATE TABLE "TicketDesign" (
@@ -250,3 +250,6 @@ CREATE UNIQUE INDEX "EventSeatStatus_mapId_seatId_key" ON "EventSeatStatus"("map
 
 ALTER TABLE "EventSeatStatus" ADD CONSTRAINT "EventSeatStatus_mapId_fkey" FOREIGN KEY ("mapId") REFERENCES "EventSeatingMap"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "EventSeatStatus" ADD CONSTRAINT "EventSeatStatus_seatId_fkey" FOREIGN KEY ("seatId") REFERENCES "Seat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Deferred FK: EventTicket -> Seat (Seat table now exists)
+ALTER TABLE "EventTicket" ADD CONSTRAINT "EventTicket_seatId_fkey" FOREIGN KEY ("seatId") REFERENCES "Seat"("id") ON DELETE SET NULL ON UPDATE CASCADE;

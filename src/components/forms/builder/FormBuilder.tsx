@@ -87,6 +87,7 @@ interface FormDefinitionData {
   logoUrl: string | null
   visibility: 'PRIVATE' | 'SHARED'
   createdBy: string | null
+  eventProjectId: string | null
   pages: FormPageData[]
   fields: FormFieldData[]
   actions: unknown[]
@@ -581,7 +582,13 @@ export default function FormBuilder({ formId }: { formId: string }) {
       {/* Builder mode tabs */}
       {!previewMode && (
         <div className="flex items-center gap-1 px-4 py-1.5 bg-white border-b border-slate-100">
-          {(['pages', 'components', 'tickets', 'responses', 'workflows'] as const).map((tab) => {
+          {(['pages', 'components', 'tickets', 'responses', 'workflows'] as const)
+            .filter((tab) => {
+              // Tickets tab only on event-linked forms (has ticket types / orders)
+              if (tab === 'tickets' && !form?.eventProjectId) return false
+              return true
+            })
+            .map((tab) => {
             const labels = { pages: 'Pages', components: 'Fields', tickets: 'Tickets', responses: 'Responses', workflows: 'Approvals' } as const
             return (
               <button
@@ -614,7 +621,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
         </div>
       ) : leftTab === 'responses' && !previewMode ? (
         <div className="flex-1 overflow-hidden">
-          <ResponsesTab formId={formId} hasTicketTypes={true} />
+          <ResponsesTab formId={formId} />
         </div>
       ) : leftTab === 'workflows' && !previewMode ? (
         <div className="flex-1 overflow-hidden">
