@@ -630,6 +630,8 @@ export default function PublicFormPage({ params }: { params: Promise<{ formId: s
     )
   }
 
+  const isTicketedForm = (form.ticketTypes?.length ?? 0) > 0
+
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: form.publicBgColor || '#f8fafc' }}>
@@ -659,9 +661,9 @@ export default function PublicFormPage({ params }: { params: Promise<{ formId: s
       fields: p.fields.filter((f) => f.isIncluded && f.sensitivityLevel !== 'FERPA_PROTECTED'),
     }))
 
-  // Form is ticketed if it has ticket types AND a TICKET_SELECTOR field on the canvas
+  // Ticket selector only renders if the form also has a TICKET_SELECTOR field on the canvas
   const hasTicketField = visiblePages.some((p) => p.fields.some((f) => f.type === 'TICKET_SELECTOR'))
-  const isTicketedForm = (form.ticketTypes?.length ?? 0) > 0 && hasTicketField
+  const showTicketSelector = isTicketedForm && hasTicketField
 
   function handleTicketQuantityChange(id: string, qty: number) {
     setTicketQuantities((prev) => ({ ...prev, [id]: qty }))
@@ -688,7 +690,7 @@ export default function PublicFormPage({ params }: { params: Promise<{ formId: s
       setSubmitting={setSubmitting}
       setSubmitted={setSubmitted}
       // Ticket props — only passed when form has tickets
-      {...(isTicketedForm ? {
+      {...(showTicketSelector ? {
         ticketTypes: form.ticketTypes,
         ticketQuantities,
         onTicketQuantityChange: handleTicketQuantityChange,
