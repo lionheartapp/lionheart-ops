@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Trash2, ChevronRight, Shield, GripVertical,
-  Layers, ArrowDown, Users, Sparkles, Search,
+  Layers, ArrowDown, Users, Sparkles, Search, RotateCcw,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
@@ -259,9 +259,10 @@ function SortableStepRow({
 interface ApprovalRulesBuilderProps {
   module?: 'EVENT' | 'MAINTENANCE' | 'IT'
   formDefinitionId?: string
+  isSystemForm?: boolean
 }
 
-export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionId }: ApprovalRulesBuilderProps) {
+export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionId, isSystemForm }: ApprovalRulesBuilderProps) {
   const queryClient = useQueryClient()
   const isMaintenance = module === 'MAINTENANCE'
   const apiBase = formDefinitionId
@@ -285,6 +286,23 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
   // fall through to the next matching rule, which is rarely what the admin
   // intends if they're "cleaning up".
   const [confirmDeleteRuleId, setConfirmDeleteRuleId] = useState<string | null>(null)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  const resetMutation = useMutation({
+    mutationFn: () =>
+      fetchApi(`/api/forms/${formDefinitionId}/approval-rules/reset`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: formDefinitionId
+          ? ['form-approval-rules', formDefinitionId]
+          : ['approval-rules', module],
+      })
+      setSelectedRuleId(null)
+      setShowResetConfirm(false)
+    },
+  })
 
   const allRules = data?.rules ?? []
   const schools = data?.schools ?? []
@@ -610,6 +628,14 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-lg transition-colors cursor-pointer w-full"
               >
                 <Layers className="w-3.5 h-3.5" /> Add default catch-all
+              </button>
+            )}
+            {isSystemForm && formDefinitionId && (
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer w-full mt-1 border-t border-slate-100 pt-3"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset to defaults
               </button>
             )}
           </div>
@@ -1055,6 +1081,16 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
         message="The rule and all its steps will be deleted. In-flight events that matched this rule will fall through to the next matching rule (or default), which may approve them faster than you intend."
         confirmText="Delete rule"
         cancelText="Keep rule"
+        variant="danger"
+      />
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={() => resetMutation.mutate()}
+        title="Reset approval workflows?"
+        message="This will delete all current approval rules for this form and restore the platform defaults. Any custom rules you've added will be lost."
+        confirmText={resetMutation.isPending ? 'Resetting...' : 'Reset to defaults'}
+        cancelText="Cancel"
         variant="danger"
       />
     </div>

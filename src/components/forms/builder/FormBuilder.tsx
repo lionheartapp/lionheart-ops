@@ -625,7 +625,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
         </div>
       ) : leftTab === 'workflows' && !previewMode ? (
         <div className="flex-1 overflow-hidden">
-          <ApprovalRulesBuilder formDefinitionId={formId} />
+          <ApprovalRulesBuilder formDefinitionId={formId} isSystemForm={!!form?.isDefault} />
         </div>
       ) : (
       <div className="flex-1 flex overflow-hidden">
