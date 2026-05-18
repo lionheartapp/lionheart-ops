@@ -533,7 +533,6 @@ export default function InventoryPage() {
           >
             {filteredItems.map((item) => {
               const totalQty = item.quantityOnHand
-              const maxQty = totalQty + (item.reorderThreshold || totalQty)
               return (
                 <motion.div
                   key={item.id}
@@ -562,7 +561,7 @@ export default function InventoryPage() {
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-green-100 text-green-700'
                     }`}>
-                      {totalQty} / {maxQty} Available
+                      {totalQty} Available
                     </span>
                   </div>
 
