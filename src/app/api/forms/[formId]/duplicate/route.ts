@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           publicImageSide: source.publicImageSide,
           maxCapacity: source.maxCapacity,
           waitlistEnabled: source.waitlistEnabled,
-          discountCodes: source.discountCodes,
+          discountCodes: source.discountCodes ?? undefined,
           createdBy: ctx.userId,
         },
       })
