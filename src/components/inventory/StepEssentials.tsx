@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useImperativeHandle, forwardRef } from 'react'
 import { Plus, Trash2, MapPin } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
@@ -24,6 +24,11 @@ interface UserOption {
   email: string
 }
 
+export interface StepEssentialsHandle {
+  /** Commit the pending "add location" row if it has a quantity > 0 */
+  flushPendingLocation: () => void
+}
+
 interface StepEssentialsProps {
   name: string
   description: string
@@ -42,7 +47,7 @@ interface StepEssentialsProps {
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
-export default function StepEssentials({
+const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(function StepEssentials({
   name,
   description,
   ownerId,
@@ -56,7 +61,7 @@ export default function StepEssentials({
   onCheckoutChange,
   onCategoryChange,
   nameError,
-}: StepEssentialsProps) {
+}, ref) {
   // Local state for the "add location" row
   const [newQty, setNewQty] = useState('1')
   const [newLocationId, setNewLocationId] = useState('')
@@ -121,6 +126,36 @@ export default function StepEssentials({
     setLocationSearch(loc.hierarchy?.join(' › ') || loc.label)
     setShowLocationDropdown(false)
   }
+
+  // Expose flushPendingLocation so the parent wizard can auto-commit
+  // whatever the user typed before advancing steps
+  useImperativeHandle(ref, () => ({
+    flushPendingLocation: () => {
+      const qty = parseInt(newQty, 10)
+      if (!qty || qty < 1) return
+
+      let locName = 'Unassigned'
+      let locId: string | null = null
+      if (selectedLocation) {
+        locName = selectedLocation.hierarchy?.join(' › ') || selectedLocation.label
+        locId = selectedLocation.roomId || selectedLocation.areaId || selectedLocation.buildingId
+      }
+
+      const entry: LocationEntry = {
+        id: crypto.randomUUID(),
+        quantity: qty,
+        locationId: locId,
+        locationName: locName,
+        usage: newUsage.trim(),
+      }
+
+      onLocationsChange([...locations, entry])
+      setNewQty('1')
+      setNewLocationId('')
+      setNewUsage('')
+      setLocationSearch('')
+    },
+  }), [newQty, selectedLocation, newUsage, locations, onLocationsChange])
 
   const totalQuantity = locations.reduce((sum, loc) => sum + loc.quantity, 0)
 
@@ -339,4 +374,6 @@ export default function StepEssentials({
       </section>
     </div>
   )
-}
+})
+
+export default StepEssentials

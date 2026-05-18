@@ -469,7 +469,7 @@ export default function InventoryPage() {
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
-          className="ui-glass-table overflow-x-auto"
+          className="ui-glass-table overflow-hidden"
         >
           {isLoading ? (
             <TableSkeleton />

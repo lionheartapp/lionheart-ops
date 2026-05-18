@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Settings, Save, ChevronLeft, ChevronRight, X, ClipboardCheck } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
-import StepEssentials, { type LocationEntry } from './StepEssentials'
+import StepEssentials, { type LocationEntry, type StepEssentialsHandle } from './StepEssentials'
 import StepDetails, { type DocLink } from './StepDetails'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -188,6 +188,7 @@ export default function AVEquipmentWizard({
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [formData, setFormData] = useState<AVEquipmentFormData>(() => getInitialData(item))
   const [nameError, setNameError] = useState('')
+  const essentialsRef = useRef<StepEssentialsHandle>(null)
 
   const isEditing = Boolean(item?.id)
   const lastStep = STEPS.length - 1
@@ -211,6 +212,10 @@ export default function AVEquipmentWizard({
     }
     setNameError('')
     if (!canAdvance) return
+    // Auto-commit any pending location entry before leaving step 0
+    if (currentStep === 0) {
+      essentialsRef.current?.flushPendingLocation()
+    }
     setDirection('forward')
     setCurrentStep((s) => Math.min(s + 1, lastStep))
   }
@@ -366,6 +371,7 @@ export default function AVEquipmentWizard({
           >
             {currentStep === 0 && (
               <StepEssentials
+                ref={essentialsRef}
                 name={formData.name}
                 description={formData.description}
                 ownerId={formData.ownerId}
