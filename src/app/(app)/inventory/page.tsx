@@ -13,6 +13,9 @@ import {
   Eye,
   Loader2,
   X,
+  LayoutGrid,
+  List,
+  ImageIcon,
 } from 'lucide-react'
 
 import DetailDrawer from '@/components/DetailDrawer'
@@ -117,6 +120,9 @@ export default function InventoryPage() {
     setCategoryOpen(false)
     setStockOpen(false)
   })
+
+  // ── View mode ──
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   // ── Drawer state ──
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
@@ -462,19 +468,35 @@ export default function InventoryPage() {
               )}
             </AnimatePresence>
           </div>
+
+          {/* View mode toggle */}
+          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden ml-auto">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 transition-colors duration-200 cursor-pointer ${viewMode === 'grid' ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-50'}`}
+              aria-label="Grid view"
+              aria-pressed={viewMode === 'grid'}
+            >
+              <LayoutGrid className="w-4 h-4" aria-hidden="true" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 transition-colors duration-200 cursor-pointer ${viewMode === 'list' ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-50'}`}
+              aria-label="List view"
+              aria-pressed={viewMode === 'list'}
+            >
+              <List className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
         </motion.div>
 
-        {/* ── Items table ── */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="ui-glass-table overflow-hidden"
-        >
-          {isLoading ? (
+        {/* ── Items (grid or list) ── */}
+        {isLoading ? (
+          <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="ui-glass-table overflow-hidden">
             <TableSkeleton />
-          ) : filteredItems.length === 0 ? (
-            // Empty state
+          </motion.div>
+        ) : filteredItems.length === 0 ? (
+          <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="ui-glass-table overflow-hidden">
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-4">
                 <Package className="w-8 h-8 text-primary-400" aria-hidden="true" />
@@ -500,7 +522,82 @@ export default function InventoryPage() {
                 </button>
               )}
             </div>
-          ) : (
+          </motion.div>
+        ) : viewMode === 'grid' ? (
+          /* ── Grid view ── */
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer(0.05)}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          >
+            {filteredItems.map((item) => {
+              const totalQty = item.quantityOnHand
+              const maxQty = totalQty + (item.reorderThreshold || totalQty)
+              return (
+                <motion.div
+                  key={item.id}
+                  variants={cardEntrance}
+                  className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer group flex flex-col"
+                  onClick={() => handleOpenDetail(item)}
+                >
+                  {/* Image area */}
+                  <div className="relative aspect-square bg-slate-100 overflow-hidden">
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="w-16 h-16 text-slate-300" aria-hidden="true" />
+                      </div>
+                    )}
+                    {/* Availability badge */}
+                    <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      totalQty === 0
+                        ? 'bg-red-100 text-red-700'
+                        : totalQty <= item.reorderThreshold
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      {totalQty} / {maxQty} Available
+                    </span>
+                  </div>
+
+                  {/* Card body */}
+                  <div className="p-4 flex flex-col flex-1">
+                    {item.manufacturer && (
+                      <p className="text-xs text-blue-600 font-medium mb-0.5">{item.manufacturer}</p>
+                    )}
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug mb-3 line-clamp-2">
+                      {item.name}
+                    </h3>
+                    <div className="mt-auto">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleOpenDetail(item)
+                        }}
+                        className="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        ) : (
+          /* ── List view (table) ── */
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+            className="ui-glass-table overflow-hidden"
+          >
             <table className="w-full" role="table">
               <thead>
                 <tr className="border-b border-slate-100">
@@ -522,7 +619,16 @@ export default function InventoryPage() {
                     onClick={() => handleOpenDetail(item)}
                   >
                     <td className="px-6 py-3.5">
-                      <span className="text-sm font-medium text-slate-900">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-1" />
+                          ) : (
+                            <ImageIcon className="w-5 h-5 text-slate-300" aria-hidden="true" />
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">{item.name}</span>
+                      </div>
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell">
                       <span className="text-sm text-slate-500">{item.category || '—'}</span>
@@ -571,8 +677,8 @@ export default function InventoryPage() {
                 ))}
               </motion.tbody>
             </table>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* ── Pagination Controls ── */}
         {totalPages > 1 && (
