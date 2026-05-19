@@ -219,31 +219,43 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
         setDistrictSpaces(Array.isArray(spaces) ? spaces : [])
       }
     } catch {
-      setDistrict(null)
-      setDistrictBuildings([])
-      setDistrictSpaces([])
+      // No district yet — try to auto-create one using the org name
+      try {
+        await autoCreateDistrict()
+      } catch {
+        setDistrict(null)
+        setDistrictBuildings([])
+        setDistrictSpaces([])
+      }
     } finally {
       setDistrictLoading(false)
     }
+  }
+
+  /** Auto-creates a district from the org name when none exists. */
+  const autoCreateDistrict = async () => {
+    const name = localStorage.getItem('org-name') || 'My District'
+    const d = await fetchApi<District>('/api/settings/campus/district', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    })
+    setDistrict(d)
+    setDistrictBuildings([])
+    setDistrictSpaces([])
   }
 
   const handleCreateDistrict = async () => {
     if (!districtName.trim()) return
     setCreatingDistrict(true)
     try {
-      const res = await fetch('/api/settings/campus/district', {
+      const d = await fetchApi<District>('/api/settings/campus/district', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
-          'X-Organization-ID': localStorage.getItem('org-id') || '',
-        },
         body: JSON.stringify({ name: districtName.trim() }),
       })
-      const data = await res.json()
-      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to create district')
       setDistrictName('')
-      loadDistrict()
+      setDistrict(d)
+      setDistrictBuildings([])
+      setDistrictSpaces([])
     } catch (err) {
       setDistrictError(err instanceof Error ? err.message : 'Failed to create district')
     } finally {
@@ -260,13 +272,8 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     setBuildingSaving(true)
     setBuildingError('')
     try {
-      const res = await fetch('/api/settings/campus/buildings', {
+      await fetchApi('/api/settings/campus/buildings', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
-          'X-Organization-ID': localStorage.getItem('org-id') || '',
-        },
         body: JSON.stringify({
           name: buildingForm.name.trim(),
           code: buildingForm.code.trim() || null,
@@ -275,8 +282,6 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
           districtId: district.id,
         }),
       })
-      const data = await res.json()
-      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to create building')
       setShowAddBuilding(false)
       setBuildingForm({ name: '', code: '', buildingType: 'GENERAL', address: '' })
       loadDistrict()
@@ -294,21 +299,14 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     setSpaceSaving(true)
     setSpaceError('')
     try {
-      const res = await fetch('/api/settings/campus/spaces', {
+      await fetchApi('/api/settings/campus/spaces', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth-token')}`,
-          'X-Organization-ID': localStorage.getItem('org-id') || '',
-        },
         body: JSON.stringify({
           name: spaceForm.name.trim(),
           spaceType: spaceForm.spaceType,
           districtId: district.id,
         }),
       })
-      const data = await res.json()
-      if (!res.ok || !data.ok) throw new Error(data?.error?.message || 'Failed to create space')
       setShowAddSpace(false)
       setSpaceForm({ name: '', spaceType: 'FIELD' })
       loadDistrict()
