@@ -3,8 +3,8 @@ import {
   getStockStatus,
   formatActorName,
   formatDate,
-} from '@/app/inventory/inventory-utils'
-import type { InventoryItem, TransactionActor } from '@/app/inventory/inventory-types'
+} from '@/app/(app)/inventory/inventory-utils'
+import type { InventoryItem, TransactionActor } from '@/app/(app)/inventory/inventory-types'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
