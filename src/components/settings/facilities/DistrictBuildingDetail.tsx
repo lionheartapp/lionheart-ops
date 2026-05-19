@@ -348,7 +348,7 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
               <button
                 onClick={saveBuilding}
                 disabled={saving || !editForm.name.trim()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-colors duration-200 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-full transition-colors duration-200 cursor-pointer disabled:opacity-50"
               >
                 <Check className="w-3.5 h-3.5" />
                 {saving ? 'Saving...' : 'Save'}

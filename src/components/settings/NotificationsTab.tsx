@@ -60,6 +60,19 @@ export default function NotificationsTab() {
 
   return (
     <div className="space-y-8">
+      {/* Header — full-width, flush top (matches all other settings tabs) */}
+      <div className="-mt-6 lg:-mt-8 -mx-4 sm:-mx-10 px-4 sm:px-10 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Notifications</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage how and when you receive alerts</p>
+          </div>
+        </div>
+      </div>
+
       {/* Section 0: Push Notifications */}
       {pushSupported && (
         <div>
@@ -85,7 +98,7 @@ export default function NotificationsTab() {
               className={`px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200 ${
                 pushSubscribed
                   ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  : 'bg-gray-900 text-white hover:bg-gray-800'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
               } disabled:opacity-50`}
             >
               {pushLoading ? '...' : pushSubscribed ? 'Disable' : 'Enable'}
@@ -201,12 +214,14 @@ function CalendarRow({
         {/* Reminder dropdown */}
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-slate-400" />
+          {/* eslint-disable-next-line no-restricted-syntax -- inline compact picker, not a form field */}
           <select
             value={reminderMinutes ?? ''}
             onChange={(e) => {
               const val = e.target.value
               onChangeReminder(val === '' ? null : parseInt(val, 10))
             }}
+            aria-label="Reminder time"
             className="text-xs text-slate-600 bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer pr-4"
           >
             {REMINDER_OPTIONS.map((opt) => (

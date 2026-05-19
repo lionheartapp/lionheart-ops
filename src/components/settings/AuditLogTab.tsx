@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Shield, ChevronDown, ChevronRight } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -310,7 +311,7 @@ export default function AuditLogTab() {
     <div className="animate-[fadeIn_200ms_ease-out]">
       {/* Header — full-width, flush top */}
       <div className="-mt-6 lg:-mt-8 -mx-4 sm:-mx-10 px-4 sm:px-10 py-5 bg-white/60 backdrop-blur-sm border-b border-slate-200/60 mb-4">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-5">
           <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
@@ -339,24 +340,18 @@ export default function AuditLogTab() {
               options={userOptions}
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">From date</label>
-            <input
-              type="date"
-              value={fromFilter}
-              onChange={(e) => setFromFilter(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">To date</label>
-            <input
-              type="date"
-              value={toFilter}
-              onChange={(e) => setToFilter(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent"
-            />
-          </div>
+          <Input
+            type="date"
+            label="From date"
+            value={fromFilter}
+            onChange={(e) => setFromFilter(e.target.value)}
+          />
+          <Input
+            type="date"
+            label="To date"
+            value={toFilter}
+            onChange={(e) => setToFilter(e.target.value)}
+          />
         </div>
         <div className="flex justify-end mt-3">
           <button

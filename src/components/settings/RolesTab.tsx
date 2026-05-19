@@ -722,8 +722,10 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 <label htmlFor="reassign-role" className="mb-1.5 block text-sm font-medium text-amber-900">
                   Move users to
                 </label>
+                {/* eslint-disable-next-line no-restricted-syntax -- contextual amber-styled select inside warning dialog */}
                 <select
                   id="reassign-role"
+                  aria-label="Reassign all users to role"
                   value={reassignRoleId}
                   onChange={(event) => setReassignRoleId(event.target.value)}
                   className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none"
@@ -763,8 +765,9 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                               </p>
                               <p className="text-xs text-amber-700">{user.email}</p>
                             </div>
+                            {/* eslint-disable-next-line no-restricted-syntax -- contextual amber-styled select inside warning dialog */}
                             <select
-                              aria-label="Reassign users to role"
+                              aria-label="Reassign user to role"
                               value={roleUserReassignments[user.id] || ''}
                               onChange={(event) =>
                                 setRoleUserReassignments((previous) => ({

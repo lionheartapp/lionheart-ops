@@ -100,7 +100,7 @@ export default function BlackoutDatesTab() {
         <button
           type="button"
           onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 active:scale-[0.97] transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Date
@@ -137,7 +137,7 @@ export default function BlackoutDatesTab() {
                 addMutation.mutate({ date: newDate, reason: newReason })
               }}
               disabled={!newDate || addMutation.isPending}
-              className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 disabled:opacity-50 transition-all cursor-pointer"
+              className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 disabled:opacity-50 transition-all cursor-pointer"
             >
               {addMutation.isPending ? 'Adding...' : 'Add'}
             </button>
