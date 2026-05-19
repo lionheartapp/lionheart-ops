@@ -541,7 +541,7 @@ export default function InventoryPage() {
                   onClick={() => handleOpenDetail(item)}
                 >
                   {/* Image area */}
-                  <div className="relative aspect-square bg-slate-100 overflow-hidden">
+                  <div className="relative aspect-square bg-white overflow-hidden">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
