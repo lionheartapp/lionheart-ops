@@ -747,6 +747,7 @@ export default function InventoryPage() {
               setEditingItem(null)
             }}
             onPendingChange={setFormPending}
+            defaultCategory={deptCategories[0]}
           />
         </DetailDrawer>
 

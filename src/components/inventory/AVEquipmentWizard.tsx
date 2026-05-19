@@ -40,6 +40,8 @@ interface AVEquipmentWizardProps {
   formId?: string
   /** Expose pending state to parent */
   onPendingChange?: (pending: boolean) => void
+  /** Default category for new items (set by the department page) */
+  defaultCategory?: string
 }
 
 // ─── Step Config ───────────────────────────────────────────────────────────
@@ -70,14 +72,14 @@ const transition = { duration: 0.25, ease: EASE }
 
 // ─── Initial Form Data ─────────────────────────────────────────────────────
 
-function getInitialData(item?: InventoryItemData | null): AVEquipmentFormData {
+function getInitialData(item?: InventoryItemData | null, defaultCategory?: string): AVEquipmentFormData {
   return {
     name: item?.name ?? '',
     description: item?.description ?? '',
     ownerId: item?.ownerId ?? null,
     locations: item?.locations ?? [],
     allowCheckout: item?.allowCheckout ?? false,
-    category: item?.category ?? '',
+    category: item?.category ?? defaultCategory ?? '',
     manufacturer: item?.manufacturer ?? '',
     model: item?.model ?? '',
     serialNumbers: item?.serialNumbers ?? [],
@@ -182,11 +184,12 @@ export default function AVEquipmentWizard({
   onSuccess,
   onCancel,
   onPendingChange,
+  defaultCategory,
 }: AVEquipmentWizardProps) {
   const queryClient = useQueryClient()
   const [currentStep, setCurrentStep] = useState(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
-  const [formData, setFormData] = useState<AVEquipmentFormData>(() => getInitialData(item))
+  const [formData, setFormData] = useState<AVEquipmentFormData>(() => getInitialData(item, defaultCategory))
   const [nameError, setNameError] = useState('')
   const essentialsRef = useRef<StepEssentialsHandle>(null)
 
