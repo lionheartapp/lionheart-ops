@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useImperativeHandle, forwardRef } from 'react'
-import { Plus, Trash2, MapPin } from 'lucide-react'
+import { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react'
+import { Plus, Trash2, MapPin, Pencil, Check, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
@@ -70,6 +70,15 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Editing state for existing locations
+  const [editingLocId, setEditingLocId] = useState<string | null>(null)
+  const [editQty, setEditQty] = useState('')
+  const [editLocationId, setEditLocationId] = useState('')
+  const [editLocationSearch, setEditLocationSearch] = useState('')
+  const [editUsage, setEditUsage] = useState('')
+  const [showEditLocationDropdown, setShowEditLocationDropdown] = useState(false)
+  const editDropdownRef = useRef<HTMLDivElement>(null)
+
   // Fetch users for owner dropdown
   const { data: users = [] } = useQuery<UserOption[]>({
     queryKey: ['org-users-for-owner'],
@@ -119,6 +128,71 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
   const handleRemoveLocation = (id: string) => {
     onLocationsChange(locations.filter((l) => l.id !== id))
   }
+
+  const startEditLocation = (loc: LocationEntry) => {
+    setEditingLocId(loc.id)
+    setEditQty(String(loc.quantity))
+    setEditLocationId(loc.locationId || '')
+    setEditLocationSearch(loc.locationName)
+    setEditUsage(loc.usage)
+    setShowEditLocationDropdown(false)
+  }
+
+  const cancelEditLocation = () => {
+    setEditingLocId(null)
+    setShowEditLocationDropdown(false)
+  }
+
+  const saveEditLocation = () => {
+    if (!editingLocId) return
+    const qty = parseInt(editQty, 10)
+    if (!qty || qty < 1) return
+
+    const editSelectedLoc = campusLocations.find(
+      (loc) => (loc.roomId || loc.areaId || loc.buildingId) === editLocationId
+    )
+
+    let locName = editLocationSearch || 'Unassigned'
+    let locId: string | null = editLocationId || null
+
+    if (editSelectedLoc) {
+      locName = editSelectedLoc.hierarchy?.join(' › ') || editSelectedLoc.label
+      locId = editSelectedLoc.roomId || editSelectedLoc.areaId || editSelectedLoc.buildingId
+    }
+
+    onLocationsChange(
+      locations.map((l) =>
+        l.id === editingLocId
+          ? { ...l, quantity: qty, locationId: locId, locationName: locName, usage: editUsage.trim() }
+          : l
+      )
+    )
+    setEditingLocId(null)
+    setShowEditLocationDropdown(false)
+  }
+
+  const handleSelectEditLocation = (loc: CampusLocationOption) => {
+    const id = loc.roomId || loc.areaId || loc.buildingId || ''
+    setEditLocationId(id)
+    setEditLocationSearch(loc.hierarchy?.join(' › ') || loc.label)
+    setShowEditLocationDropdown(false)
+  }
+
+  // Filter locations for edit search
+  const filteredEditLocations = campusLocations.filter((loc) =>
+    loc.label.toLowerCase().includes(editLocationSearch.toLowerCase())
+  )
+
+  // Close edit dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (editDropdownRef.current && !editDropdownRef.current.contains(e.target as Node)) {
+        setShowEditLocationDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const handleSelectLocation = (loc: CampusLocationOption) => {
     const id = loc.roomId || loc.areaId || loc.buildingId || ''
@@ -236,33 +310,131 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
         {/* Existing location rows */}
         {locations.length > 0 && (
           <div className="space-y-2">
-            {locations.map((loc) => (
-              <div
-                key={loc.id}
-                className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-lg border border-slate-100"
-              >
-                <span className="text-sm font-medium text-slate-900 min-w-[2.5rem]">
-                  {loc.quantity}×
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-900 truncate flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                    {loc.locationName}
-                  </p>
-                  {loc.usage && (
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">{loc.usage}</p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveLocation(loc.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Remove location"
+            {locations.map((loc) =>
+              editingLocId === loc.id ? (
+                /* ── Inline edit form ── */
+                <div
+                  key={loc.id}
+                  className="px-4 py-3 bg-indigo-50 rounded-lg border border-indigo-200 space-y-3"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                  <div className="grid grid-cols-[80px_1fr] gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Qty</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editQty}
+                        onChange={(e) => setEditQty(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
+                      />
+                    </div>
+                    <div className="relative" ref={editDropdownRef}>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={editLocationSearch}
+                        onChange={(e) => {
+                          setEditLocationSearch(e.target.value)
+                          setShowEditLocationDropdown(true)
+                          setEditLocationId('')
+                        }}
+                        onFocus={() => setShowEditLocationDropdown(true)}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
+                        placeholder="Select or type location"
+                      />
+                      {showEditLocationDropdown && filteredEditLocations.length > 0 && (
+                        <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
+                          {filteredEditLocations.map((l) => {
+                            const id = l.roomId || l.areaId || l.buildingId || ''
+                            return (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => handleSelectEditLocation(l)}
+                                className="w-full px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors cursor-pointer"
+                              >
+                                <span className="text-slate-900">
+                                  {l.hierarchy?.join(' › ') || l.label}
+                                </span>
+                                <span className="ml-2 text-xs text-slate-400 capitalize">{l.type}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Usage</label>
+                    <input
+                      type="text"
+                      value={editUsage}
+                      onChange={(e) => setEditUsage(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
+                      placeholder="e.g., For basketball games"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      type="button"
+                      onClick={cancelEditLocation}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <X className="w-3.5 h-3.5" /> Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveEditLocation}
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* ── Read-only card ── */
+                <div
+                  key={loc.id}
+                  className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors cursor-pointer group"
+                  onClick={() => startEditLocation(loc)}
+                >
+                  <span className="text-sm font-medium text-slate-900 min-w-[2.5rem]">
+                    {loc.quantity}×
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-900 truncate flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      {loc.locationName}
+                    </p>
+                    {loc.usage && (
+                      <p className="text-xs text-slate-500 mt-0.5 truncate">{loc.usage}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startEditLocation(loc)
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                    aria-label="Edit location"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveLocation(loc.id)
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
+                    aria-label="Remove location"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )
+            )}
           </div>
         )}
 

@@ -419,24 +419,31 @@ export async function createAVEquipment(
   const totalQuantity = (data.locations || []).reduce((sum, loc) => sum + loc.quantity, 0)
 
   return runWithOrgContext(orgId, async () => {
-    return (prisma.inventoryItem.create as Function)({
-      data: {
-        name: data.name,
-        description: data.description ?? null,
-        category: data.category ?? null,
-        ownerId: data.ownerId ?? null,
-        allowCheckout: data.allowCheckout,
-        locations: data.locations as Prisma.InputJsonValue,
-        quantityOnHand: totalQuantity,
-        reorderThreshold: 0,
-        manufacturer: data.manufacturer ?? null,
-        model: data.model ?? null,
-        serialNumbers: data.serialNumbers,
-        imageUrl: data.imageUrl ?? null,
-        documentationLinks: data.documentationLinks as Prisma.InputJsonValue,
-        tags: data.tags,
-      },
-    })
+    try {
+      return await (prisma.inventoryItem.create as Function)({
+        data: {
+          name: data.name,
+          description: data.description ?? null,
+          category: data.category ?? null,
+          ownerId: data.ownerId ?? null,
+          allowCheckout: data.allowCheckout,
+          locations: data.locations as Prisma.InputJsonValue,
+          quantityOnHand: totalQuantity,
+          reorderThreshold: 0,
+          manufacturer: data.manufacturer ?? null,
+          model: data.model ?? null,
+          serialNumbers: data.serialNumbers,
+          imageUrl: data.imageUrl ?? null,
+          documentationLinks: data.documentationLinks as Prisma.InputJsonValue,
+          tags: data.tags,
+        },
+      })
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('Unique constraint')) {
+        throw new Error(`An item named "${data.name}" already exists`)
+      }
+      throw err
+    }
   })
 }
 
