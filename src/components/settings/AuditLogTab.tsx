@@ -3,8 +3,7 @@
 import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Shield, ChevronDown, ChevronRight } from 'lucide-react'
-import { FloatingDropdown } from '@/components/ui/FloatingInput'
-import { Input } from '@/components/ui/Input'
+import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -340,13 +339,15 @@ export default function AuditLogTab() {
               options={userOptions}
             />
           </div>
-          <Input
+          <FloatingInput
+            id="audit-from-date"
             type="date"
             label="From date"
             value={fromFilter}
             onChange={(e) => setFromFilter(e.target.value)}
           />
-          <Input
+          <FloatingInput
+            id="audit-to-date"
             type="date"
             label="To date"
             value={toFilter}
