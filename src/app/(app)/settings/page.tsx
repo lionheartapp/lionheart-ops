@@ -351,7 +351,7 @@ export default function SettingsPage() {
   }
 
   const unsavedDialogTitle = blockedTab === 'school-info'
-    ? 'Unsaved school information'
+    ? 'Unsaved organization settings'
     : 'Unsaved changes'
 
   const unsavedDialogMessage = blockedTab === 'school-info'
@@ -397,7 +397,7 @@ export default function SettingsPage() {
                   const labels: Record<Tab, string> = {
                     profile: 'My Profile',
                     notifications: 'Notifications',
-                    'school-info': 'School Information',
+                    'school-info': 'Organization',
                     roles: 'Roles',
                     teams: 'Teams',
                     users: 'Members',

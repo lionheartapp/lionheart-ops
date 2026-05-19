@@ -1,7 +1,7 @@
 'use client'
 
 import type { SettingsTab, SettingsTabDef } from './types'
-import { GENERAL_TABS, WORKSPACE_TABS } from './constants'
+import { GENERAL_TABS, WORKSPACE_GROUPS } from './constants'
 
 interface SettingsPanelProps {
   activeSettingsTab: SettingsTab
@@ -51,11 +51,15 @@ export default function SettingsPanel({
       </div>
 
       {canManageWorkspace && (
-        <div className="px-3 pt-5 pb-4">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase px-2 mb-2">
-            Workspace
-          </p>
-          {renderTabList(WORKSPACE_TABS, 'Workspace')}
+        <div className="px-3 pt-3 pb-4 space-y-4">
+          {WORKSPACE_GROUPS.map((group) => (
+            <div key={group.label}>
+              <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase px-2 mb-2">
+                {group.label}
+              </p>
+              {renderTabList(group.tabs, group.label)}
+            </div>
+          ))}
         </div>
       )}
     </div>

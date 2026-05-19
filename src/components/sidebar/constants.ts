@@ -37,19 +37,51 @@ export const GENERAL_TABS: SettingsTabDef[] = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
 ]
 
-export const WORKSPACE_TABS: SettingsTabDef[] = [
-  { id: 'school-info', label: 'School Information', icon: School },
-  { id: 'roles', label: 'Roles', icon: Shield },
-  { id: 'teams', label: 'Teams', icon: Users },
-  { id: 'users', label: 'Members', icon: UserCog },
-  { id: 'campus', label: 'Facilities', icon: Building2 },
-  { id: 'academic-calendar', label: 'Academic Calendar', icon: CalendarDays },
-  { id: 'billing', label: 'Billing', icon: CreditCard },
-  { id: 'add-ons', label: 'Add-ons', icon: Puzzle },
-  { id: 'integrations', label: 'Integrations', icon: Link2 },
-  { id: 'sso', label: 'Single Sign-On', icon: KeyRound },
-  { id: 'activity-log', label: 'Activity Log', icon: ScrollText },
+// ── Grouped workspace tabs ──────────────────────────────────────────────────
+// Each group gets a small section header in the sidebar. This replaces the
+// old flat WORKSPACE_TABS array.
+
+export interface SettingsTabGroup {
+  label: string
+  tabs: SettingsTabDef[]
+}
+
+export const WORKSPACE_GROUPS: SettingsTabGroup[] = [
+  {
+    label: 'Organization',
+    tabs: [
+      { id: 'school-info', label: 'Organization', icon: School },
+      { id: 'campus', label: 'Facilities', icon: Building2 },
+    ],
+  },
+  {
+    label: 'People',
+    tabs: [
+      { id: 'users', label: 'Members', icon: UserCog },
+      { id: 'teams', label: 'Teams', icon: Users },
+      { id: 'roles', label: 'Roles', icon: Shield },
+    ],
+  },
+  {
+    label: 'Billing & Apps',
+    tabs: [
+      { id: 'billing', label: 'Billing', icon: CreditCard },
+      { id: 'add-ons', label: 'Add-ons', icon: Puzzle },
+      { id: 'integrations', label: 'Integrations', icon: Link2 },
+    ],
+  },
+  {
+    label: 'Security',
+    tabs: [
+      { id: 'sso', label: 'Single Sign-On', icon: KeyRound },
+      { id: 'activity-log', label: 'Activity Log', icon: ScrollText },
+    ],
+  },
 ]
+
+/** Flat list of all workspace tabs — for backwards compat with code that
+ *  iterates the old WORKSPACE_TABS array. */
+export const WORKSPACE_TABS: SettingsTabDef[] = WORKSPACE_GROUPS.flatMap((g) => g.tabs)
 
 export const NAV_ITEMS = [
   { icon: Home, label: 'Dashboard', href: '/dashboard' },

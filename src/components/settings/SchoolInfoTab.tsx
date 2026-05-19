@@ -407,8 +407,8 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
             <School className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">School Information</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Manage your institution details, branding, and settings</p>
+            <h3 className="text-lg font-semibold text-slate-900">Organization</h3>
+            <p className="text-sm text-slate-500 mt-0.5">Manage your organization details, branding, and settings</p>
           </div>
         </div>
 

@@ -52,6 +52,8 @@ const TAB_ALIASES: Record<string, Tab> = {
   approval: 'approval-config',
   'school-information': 'school-info',
   schoolinfo: 'school-info',
+  organization: 'school-info',
+  org: 'school-info',
   audit: 'activity-log',
   'audit-log': 'activity-log',
   activity: 'activity-log',
