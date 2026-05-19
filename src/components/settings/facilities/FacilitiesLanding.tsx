@@ -111,6 +111,26 @@ const BUILDING_TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
+/** Accent color per building type — keeps the list visually scannable. */
+const BUILDING_TYPE_COLORS: Record<string, { bg: string; icon: string; border: string }> = {
+  ADMINISTRATION: { bg: 'bg-blue-50', icon: 'text-blue-500', border: 'border-l-blue-400' },
+  ACADEMIC: { bg: 'bg-indigo-50', icon: 'text-indigo-500', border: 'border-l-indigo-400' },
+  ATHLETICS: { bg: 'bg-orange-50', icon: 'text-orange-500', border: 'border-l-orange-400' },
+  ARTS_CULTURE: { bg: 'bg-purple-50', icon: 'text-purple-500', border: 'border-l-purple-400' },
+  MAINTENANCE: { bg: 'bg-amber-50', icon: 'text-amber-500', border: 'border-l-amber-400' },
+  DINING: { bg: 'bg-rose-50', icon: 'text-rose-500', border: 'border-l-rose-400' },
+  LIBRARY: { bg: 'bg-cyan-50', icon: 'text-cyan-500', border: 'border-l-cyan-400' },
+  RECREATION: { bg: 'bg-emerald-50', icon: 'text-emerald-500', border: 'border-l-emerald-400' },
+  RESIDENTIAL: { bg: 'bg-teal-50', icon: 'text-teal-500', border: 'border-l-teal-400' },
+  PARKING: { bg: 'bg-slate-100', icon: 'text-slate-500', border: 'border-l-slate-400' },
+  GENERAL: { bg: 'bg-slate-50', icon: 'text-slate-400', border: 'border-l-slate-300' },
+  OTHER: { bg: 'bg-slate-50', icon: 'text-slate-400', border: 'border-l-slate-300' },
+}
+
+function getBuildingColors(type: string) {
+  return BUILDING_TYPE_COLORS[type] ?? BUILDING_TYPE_COLORS.GENERAL
+}
+
 function gradeRangeLabel(campuses: CampusSummary[]): string | null {
   const levels = new Set(campuses.map((c) => c.gradeLevel).filter(Boolean))
   if (levels.size === 0) return null
@@ -539,131 +559,164 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
             )}
 
             {!districtLoading && district && (
-              <div className="space-y-1">
-                {/* District context — label-style header, not a card.
-                    Per Refactoring UI: section titles are supporting content,
-                    treat them small/subtle, emphasize the data below. */}
-                <div className="flex items-center justify-between gap-4 px-1 mb-2">
-                  <div className="flex items-center gap-2.5">
-                    <Landmark className="w-4 h-4 text-slate-400" />
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{district.name}</h4>
-                    {formatDistrictAddress(district) && (
-                      <span className="text-xs text-slate-400 hidden sm:inline">
-                        &middot; {formatDistrictAddress(district)}
+              <div className="space-y-8">
+                {/* ── District overview bar ─────────────────────────────────── */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
+                      <Landmark className="w-4.5 h-4.5 text-slate-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900">{district.name}</h4>
+                      {formatDistrictAddress(district) && (
+                        <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">{formatDistrictAddress(district)}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                    <span className="flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5" />
+                      {district._count.buildings}
+                    </span>
+                    {districtSpaces.length > 0 && (
+                      <span className="flex items-center gap-1.5">
+                        <TreePine className="w-3.5 h-3.5" />
+                        {districtSpaces.length}
+                      </span>
+                    )}
+                    {district._count.users > 0 && (
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        {district._count.users}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-400">
-                    <span>{district._count.buildings} {district._count.buildings === 1 ? 'building' : 'buildings'}</span>
-                    {districtSpaces.length > 0 && <span>{districtSpaces.length} {districtSpaces.length === 1 ? 'space' : 'spaces'}</span>}
-                    <span>{district._count.users} {district._count.users === 1 ? 'person' : 'people'}</span>
-                  </div>
                 </div>
 
-                {/* Buildings list — these are the real interactive elements */}
-                {districtBuildings.length === 0 ? (
-                  <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">
-                      <Building2 className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="text-sm font-medium text-slate-700">No buildings yet</div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      Add buildings like district offices, admin centers, or warehouses.
-                    </div>
-                    <button
-                      onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
-                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" /> Add your first building
-                    </button>
+                {/* ── Buildings section ─────────────────────────────────────── */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buildings</h4>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 rounded-full px-1.5 py-0.5 min-w-[20px] text-center">{districtBuildings.length}</span>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {districtBuildings.map((b) => (
+
+                  {districtBuildings.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
+                      <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3">
+                        <Building2 className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div className="text-sm font-medium text-slate-700">No buildings yet</div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        Add buildings like district offices, admin centers, or warehouses.
+                      </div>
                       <button
-                        key={b.id}
-                        onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
-                        className="w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer group"
+                        onClick={() => { setShowAddBuilding(true); setBuildingError('') }}
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-800 transition cursor-pointer"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-50 transition-colors">
-                            <Building2 className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">{b.name}</span>
-                              <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">
-                                {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
-                              </span>
-                              {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
-                            </div>
-                            {(b.address || (b._count && (b._count.rooms > 0 || b._count.spaces > 0))) && (
-                              <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                                {b.address && (
-                                  <span className="flex items-center gap-1 truncate">
-                                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                                    {b.address}
+                        <Plus className="w-4 h-4" /> Add your first building
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {districtBuildings.map((b) => {
+                        const colors = getBuildingColors(b.buildingType)
+                        return (
+                          <button
+                            key={b.id}
+                            onClick={() => onSelectDistrictBuilding?.(b.id, b.name)}
+                            className={`w-full text-left bg-white border border-slate-200 border-l-[3px] ${colors.border} rounded-xl px-5 py-4 hover:border-slate-300 hover:shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all cursor-pointer group`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0 transition-colors`}>
+                                <Building2 className={`w-5 h-5 ${colors.icon} transition-colors`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-semibold text-slate-900">{b.name}</span>
+                                  <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">
+                                    {BUILDING_TYPE_LABELS[b.buildingType] || b.buildingType}
                                   </span>
-                                )}
-                                {b._count && (b._count.rooms > 0 || b._count.spaces > 0) && (
-                                  <span>
-                                    {b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}
-                                  </span>
+                                  {b.code && <span className="text-xs text-slate-400">({b.code})</span>}
+                                </div>
+                                {(b.address || (b._count && (b._count.rooms > 0 || b._count.spaces > 0))) && (
+                                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                                    {b.address && (
+                                      <span className="flex items-center gap-1 truncate">
+                                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                                        {b.address}
+                                      </span>
+                                    )}
+                                    {b._count && b._count.rooms > 0 && (
+                                      <span>{b._count.rooms} {b._count.rooms === 1 ? 'room' : 'rooms'}</span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <RowActionMenu
+                                  items={[
+                                    { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditBuilding(b) },
+                                    { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteBuildingTarget(b), variant: 'danger' as const },
+                                  ]}
+                                />
+                                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Spaces section ────────────────────────────────────────── */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outdoor Spaces</h4>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 rounded-full px-1.5 py-0.5 min-w-[20px] text-center">{districtSpaces.length}</span>
+                  </div>
+
+                  {districtSpaces.length === 0 ? (
+                    <div className="border border-dashed border-slate-200 rounded-xl p-6 text-center">
+                      <p className="text-sm text-slate-400">No outdoor spaces yet.</p>
+                      <button
+                        onClick={() => { setShowAddSpace(true); setSpaceError('') }}
+                        className="mt-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                      >
+                        + Add a space
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {districtSpaces.map((s) => (
+                        <div
+                          key={s.id}
+                          className="w-full text-left bg-white border border-slate-200 border-l-[3px] border-l-emerald-400 rounded-xl px-5 py-4 hover:border-slate-300 hover:shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                              <TreePine className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-semibold text-slate-900">{s.name}</span>
+                                <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-600 font-medium">
+                                  {SPACE_TYPE_LABELS[s.spaceType] || s.spaceType}
+                                </span>
+                              </div>
+                            </div>
                             <RowActionMenu
                               items={[
-                                { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditBuilding(b) },
-                                { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteBuildingTarget(b), variant: 'danger' as const },
+                                { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditSpace(s) },
+                                { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteSpaceTarget(s), variant: 'danger' as const },
                               ]}
                             />
-                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
                           </div>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Spaces list */}
-                {districtSpaces.length > 0 && (
-                  <div className="space-y-2 mt-4">
-                    <div className="flex items-center gap-2.5 px-1 mb-2">
-                      <TreePine className="w-4 h-4 text-slate-400" />
-                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Spaces</h4>
-                      <span className="text-xs text-slate-400">{districtSpaces.length}</span>
+                      ))}
                     </div>
-                    {districtSpaces.map((s) => (
-                      <div
-                        key={s.id}
-                        className="w-full text-left bg-white border border-slate-200 rounded-xl px-5 py-4"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                            <TreePine className="w-5 h-5 text-emerald-500" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-semibold text-slate-900">{s.name}</span>
-                              <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">
-                                {SPACE_TYPE_LABELS[s.spaceType] || s.spaceType}
-                              </span>
-                            </div>
-                          </div>
-                          <RowActionMenu
-                            items={[
-                              { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => openEditSpace(s) },
-                              { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteSpaceTarget(s), variant: 'danger' as const },
-                            ]}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
