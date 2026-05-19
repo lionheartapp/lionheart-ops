@@ -73,6 +73,12 @@ export default function DetailDrawer({
       // Focus is managed by useFocusTrap hook
     } else if (isAnimating) {
       setShouldShow(false)
+      // Parent set isOpen to false directly (e.g., onSuccess callback).
+      // Complete the slide-out animation, then fully unmount.
+      const timer = setTimeout(() => {
+        setIsAnimating(false)
+      }, 300)
+      return () => clearTimeout(timer)
     }
 
     return () => {
