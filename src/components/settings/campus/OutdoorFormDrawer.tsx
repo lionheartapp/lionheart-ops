@@ -12,7 +12,7 @@ type OutdoorFormDrawerProps = {
   isOpen: boolean
   onClose: () => void
   editingOutdoor: Area | null
-  form: { name: string; areaType: string; schoolIds: string[] }
+  form: { name: string; areaType: string; schoolIds: string[]; status?: string; capacity?: string; openTime?: string; closeTime?: string }
   onFormChange: (update: Partial<OutdoorFormDrawerProps['form']>) => void
   error: string
   saving: boolean
@@ -132,6 +132,58 @@ export default function OutdoorFormDrawer({
               { value: 'OTHER', label: 'Other' },
             ]}
           />
+        </section>
+
+        {/* Booking Management */}
+        <section className="space-y-4 border-t border-slate-200 pt-6">
+          <div className="border-b border-slate-200 pb-3">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Booking Settings</h3>
+            <p className="mt-1 text-sm text-slate-500">Control how this space can be reserved.</p>
+          </div>
+
+          <FloatingDropdown
+            id="ct-spaceStatus"
+            label="Status"
+            value={form.status || 'ACTIVE'}
+            onChange={(v) => onFormChange({ status: v })}
+            disabled={saving}
+            options={[
+              { value: 'ACTIVE', label: 'Active — available for booking' },
+              { value: 'UNDER_MAINTENANCE', label: 'Under Maintenance — blocked' },
+              { value: 'CLOSED', label: 'Closed — not in use' },
+            ]}
+          />
+
+          <FloatingInput
+            id="ct-capacity"
+            label="Concurrent Booking Capacity"
+            type="number"
+            value={form.capacity || ''}
+            onChange={(e) => onFormChange({ capacity: e.target.value })}
+            disabled={saving}
+            placeholder="1 (default — one booking at a time)"
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <FloatingInput
+              id="ct-openTime"
+              label="Opens At"
+              type="time"
+              value={form.openTime || ''}
+              onChange={(e) => onFormChange({ openTime: e.target.value })}
+              disabled={saving}
+              placeholder="e.g. 07:00"
+            />
+            <FloatingInput
+              id="ct-closeTime"
+              label="Closes At"
+              type="time"
+              value={form.closeTime || ''}
+              onChange={(e) => onFormChange({ closeTime: e.target.value })}
+              disabled={saving}
+              placeholder="e.g. 22:00"
+            />
+          </div>
         </section>
 
         {!embedded && (

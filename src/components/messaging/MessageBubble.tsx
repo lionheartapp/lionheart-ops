@@ -19,6 +19,7 @@ import type { MessageWithAuthor } from '@/lib/services/messageService'
 import type { ReactionGroup } from '@/lib/hooks/useReactions'
 import ReactionBar from './ReactionBar'
 import AttachmentPreview from './AttachmentPreview'
+import BookingReferenceCard from './BookingReferenceCard'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -460,6 +461,9 @@ export default function MessageBubble({
               {message.attachments?.map((att) => (
                 <AttachmentPreview key={att.id} attachment={att} />
               ))}
+              {message.metadata && (message.metadata as Record<string, unknown>).type === 'booking-conflict' && (
+                <BookingReferenceCard metadata={message.metadata as { type: 'booking-conflict'; booking: { title: string; spaceName: string; date: string; startTime: string; endTime: string; calendarEventId: string; sourceModule: string } }} />
+              )}
             </div>
           )}
           {reactionSection}
@@ -530,6 +534,9 @@ export default function MessageBubble({
             {message.attachments?.map((att) => (
               <AttachmentPreview key={att.id} attachment={att} />
             ))}
+            {message.metadata && (message.metadata as Record<string, unknown>).type === 'booking-conflict' && (
+              <BookingReferenceCard metadata={message.metadata as { type: 'booking-conflict'; booking: { title: string; spaceName: string; date: string; startTime: string; endTime: string; calendarEventId: string; sourceModule: string } }} />
+            )}
           </div>
         )}
 

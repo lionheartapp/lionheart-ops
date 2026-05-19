@@ -23,6 +23,7 @@ export const SendMessageSchema = z.object({
     mimeType: z.string(),
     storageUrl: z.string(),
   })).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(), // Structured data for rich cards (booking refs, etc.)
 })
 
 export const EditMessageSchema = z.object({
@@ -52,6 +53,7 @@ export interface MessageWithAuthor {
   pinnedAt: string | null
   createdAt: string
   attachments?: AttachmentData[]
+  metadata?: Record<string, unknown> | null
 }
 
 export interface SearchResult {
@@ -102,6 +104,7 @@ function shapeMessage(row: Record<string, unknown>): MessageWithAuthor {
     pinnedAt: row.pinnedAt ? (row.pinnedAt as Date).toISOString() : null,
     createdAt: (row.createdAt as Date).toISOString(),
     ...(attachments && attachments.length > 0 ? { attachments } : {}),
+    ...((row as Record<string, unknown>).metadata ? { metadata: (row as Record<string, unknown>).metadata as Record<string, unknown> } : {}),
   }
 }
 
@@ -178,6 +181,7 @@ export async function sendMessage(
       authorId: userId,
       content: input.content,
       parentId: input.parentId ?? null,
+      ...(input.metadata ? { metadata: input.metadata } : {}),
     },
     include: { author: { select: AUTHOR_SELECT }, attachments: true },
   })

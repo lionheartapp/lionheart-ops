@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown, FloatingTextarea, type DropdownOption } from '@/components/ui/FloatingInput'
 import RRuleBuilder from '@/components/athletics/RRuleBuilder'
+import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
+import ConflictCard from '@/components/athletics/ConflictCard'
+import OverrideReasonModal from '@/components/athletics/OverrideReasonModal'
+import { useFacilityAvailability } from '@/lib/hooks/useFacilityAvailability'
 import { handleAuthResponse } from '@/lib/client-auth'
 
 interface Team {
@@ -23,13 +27,21 @@ interface EditingPractice {
   rrule: string | null
 }
 
+interface Calendar {
+  id: string
+  name: string
+  calendarType: string
+}
+
 interface PracticeDrawerProps {
   isOpen: boolean
   onClose: () => void
   onSaved: () => void
   teams: Team[]
+  calendars?: Calendar[]
   preselectedTeamId?: string
   editingPractice?: EditingPractice | null
+  onMessageBooker?: (userId: string) => void
 }
 
 function toLocalDatetime(isoStr: string): string {
@@ -44,8 +56,10 @@ export default function PracticeDrawer({
   onClose,
   onSaved,
   teams,
+  calendars = [],
   preselectedTeamId,
   editingPractice = null,
+  onMessageBooker,
 }: PracticeDrawerProps) {
   const [form, setForm] = useState({
     athleticTeamId: '',
@@ -56,8 +70,19 @@ export default function PracticeDrawer({
     recurring: false,
     rrule: '',
   })
+  const [locationData, setLocationData] = useState<LocationData>(defaultLocationData())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [showOverrideModal, setShowOverrideModal] = useState(false)
+  const [overrideReason, setOverrideReason] = useState<string | null>(null)
+
+  // Check facility availability when space + time are selected
+  const availability = useFacilityAvailability({
+    spaceId: locationData.buildingId && !locationData.areaId ? null : locationData.areaId, // areaId = spaceId in LocationPicker
+    startTime: form.startTime ? new Date(form.startTime).toISOString() : null,
+    endTime: form.endTime ? new Date(form.endTime).toISOString() : null,
+    enabled: !!(locationData.areaId || locationData.buildingId) && !!form.startTime && !!form.endTime,
+  })
 
   useEffect(() => {
     if (!isOpen) return
@@ -82,7 +107,9 @@ export default function PracticeDrawer({
         rrule: '',
       })
     }
+    setLocationData(defaultLocationData())
     setError('')
+    setOverrideReason(null)
   }, [isOpen, editingPractice, preselectedTeamId])
 
   const teamOptions: DropdownOption[] = teams.map((t) => ({
@@ -101,15 +128,19 @@ export default function PracticeDrawer({
 
     try {
       const token = localStorage.getItem('auth-token')
-      const payload: Record<string, any> = {
+      const payload: Record<string, unknown> = {
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
-        location: form.location.trim() || undefined,
+        location: locationData.locationText || form.location.trim() || undefined,
         notes: form.notes.trim() || undefined,
       }
       if (form.recurring && form.rrule) {
         payload.rrule = form.rrule
       }
+
+      // Facility booking fields (passed through to CalendarEvent)
+      if (locationData.areaId) payload.spaceId = locationData.areaId
+      if (locationData.buildingId) payload.buildingId = locationData.buildingId
 
       let res: Response
       if (editingPractice) {
@@ -120,6 +151,9 @@ export default function PracticeDrawer({
         })
       } else {
         payload.athleticTeamId = form.athleticTeamId
+        // Auto-link to first athletics calendar if available
+        const athleticsCalendar = calendars.find((c) => c.calendarType === 'ATHLETICS')
+        if (athleticsCalendar) payload.calendarId = athleticsCalendar.id
         res = await fetch('/api/athletics/practices', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -186,12 +220,31 @@ export default function PracticeDrawer({
           required
         />
 
-        <FloatingInput
-          id="practice-location"
-          label="Location"
-          value={form.location}
-          onChange={(e) => setForm({ ...form, location: e.target.value })}
+        {/* Facility picker — replaces the plain text location input */}
+        <LocationPicker
+          value={locationData}
+          onChange={(data) => {
+            setLocationData(data)
+            // Keep text location in sync for display fallback
+            setForm((prev) => ({ ...prev, location: data.locationText }))
+          }}
+          spaceTypeFilter={['FIELD', 'COURT', 'GYM', 'POOL', 'COMMON']}
         />
+
+        {/* Conflict card — shown when space + time are selected and there's a conflict */}
+        {availability.data && !availability.data.available && (
+          <ConflictCard
+            conflicts={availability.data.conflicts}
+            alternatives={availability.data.alternatives}
+            blockedReason={availability.data.blockedReason}
+            onMessage={onMessageBooker}
+            onPickAlternative={(spaceId) => {
+              setLocationData((prev) => ({ ...prev, areaId: spaceId, buildingId: null, roomId: null, locationText: '' }))
+            }}
+            onOverride={() => setShowOverrideModal(true)}
+            canOverride={true}
+          />
+        )}
 
         <FloatingTextarea
           id="practice-notes"
@@ -222,6 +275,18 @@ export default function PracticeDrawer({
 
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
+
+      <OverrideReasonModal
+        isOpen={showOverrideModal}
+        onClose={() => setShowOverrideModal(false)}
+        onConfirm={(reason) => {
+          setOverrideReason(reason)
+          setShowOverrideModal(false)
+          // Trigger save with override
+          handleSave()
+        }}
+        conflictTitle={availability.data?.conflicts?.[0]?.title}
+      />
     </DetailDrawer>
   )
 }

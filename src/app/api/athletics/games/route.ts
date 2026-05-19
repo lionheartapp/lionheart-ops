@@ -16,6 +16,14 @@ const CreateGameSchema = z.object({
   endTime: z.string().transform((s) => new Date(s)),
   venue: z.string().optional(),
   calendarId: z.string().optional(),
+  // Facility booking fields (passed through to CalendarEvent)
+  spaceId: z.string().optional(),
+  buildingId: z.string().optional(),
+  roomId: z.string().optional(),
+  setupMinutes: z.number().int().min(0).max(120).optional(),
+  teardownMinutes: z.number().int().min(0).max(120).optional(),
+  exclusiveUse: z.boolean().optional(),
+  description: z.string().optional(),
 })
 
 export const GET = withAuth(async ({ searchParams }) => {

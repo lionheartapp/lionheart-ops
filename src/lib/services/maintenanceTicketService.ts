@@ -405,6 +405,29 @@ export async function transitionTicketStatus(
     log.error({ err: String(err) }, 'notification import failed')
   )
 
+  // Sync space maintenance status when a blocksFacility ticket changes state
+  if (ticket.blocksFacility && ticket.spaceId) {
+    import('@/lib/services/facilityBookingService').then(({ syncSpaceMaintenanceStatus }) => {
+      syncSpaceMaintenanceStatus(ticket.spaceId!).catch((err: unknown) =>
+        log.error({ err: String(err) }, 'syncSpaceMaintenanceStatus failed')
+      )
+    }).catch(() => {})
+
+    // Notify affected bookers when a space is first blocked
+    if (currentStatus === 'BACKLOG' && newStatus !== 'DONE' && newStatus !== 'CANCELLED') {
+      import('@/lib/services/facilityNotificationService').then(({ notifyMaintenanceBlock }) => {
+        const blockerName = ticket.submittedBy
+          ? `${ticket.submittedBy.firstName ?? ''} ${ticket.submittedBy.lastName ?? ''}`.trim() || 'Maintenance'
+          : 'Maintenance'
+        notifyMaintenanceBlock({
+          spaceId: ticket.spaceId!,
+          spaceName: ticket.title,
+          blockedByName: blockerName,
+        }).catch(() => {})
+      }).catch(() => {})
+    }
+  }
+
   return updated
 }
 

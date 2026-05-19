@@ -3,6 +3,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
+import ConflictCard from '@/components/athletics/ConflictCard'
+import OverrideReasonModal from '@/components/athletics/OverrideReasonModal'
+import { useFacilityAvailability } from '@/lib/hooks/useFacilityAvailability'
 import { handleAuthResponse } from '@/lib/client-auth'
 
 interface Team {
@@ -39,6 +43,7 @@ interface GameDrawerProps {
   teams: Team[]
   calendars: Calendar[]
   preselectedTeamId?: string
+  onMessageBooker?: (userId: string) => void
 }
 
 type OpponentType = 'in_org' | 'external'
@@ -70,7 +75,10 @@ export default function GameDrawer({
   teams,
   calendars,
   preselectedTeamId,
+  onMessageBooker,
 }: GameDrawerProps) {
+  const [locationData, setLocationData] = useState<LocationData>(defaultLocationData())
+  const [showOverrideModal, setShowOverrideModal] = useState(false)
   const [form, setForm] = useState<FormState>({
     athleticTeamId: '',
     opponentType: 'external',
@@ -84,6 +92,14 @@ export default function GameDrawer({
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Check facility availability when space + time are selected
+  const availability = useFacilityAvailability({
+    spaceId: locationData.areaId,
+    startTime: form.startTime ? new Date(form.startTime).toISOString() : null,
+    endTime: form.endTime ? new Date(form.endTime).toISOString() : null,
+    enabled: !!(locationData.areaId || locationData.buildingId) && !!form.startTime && !!form.endTime,
+  })
 
   useEffect(() => {
     if (!isOpen) return
@@ -114,6 +130,7 @@ export default function GameDrawer({
       })
     }
     setError('')
+    setLocationData(defaultLocationData())
   }, [isOpen, editingGame, preselectedTeamId])
 
   const teamOptions: DropdownOption[] = teams.map((t) => ({
@@ -191,8 +208,13 @@ export default function GameDrawer({
         homeAway: form.homeAway,
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
-        venue: form.venue.trim() || undefined,
+        venue: locationData.locationText || form.venue.trim() || undefined,
       }
+
+      // Facility booking fields
+      if (locationData.areaId) payload.spaceId = locationData.areaId
+      if (locationData.buildingId) payload.buildingId = locationData.buildingId
+      if (locationData.roomId) payload.roomId = locationData.roomId
 
       if (form.opponentType === 'in_org') {
         payload.opponentAthleticTeamId = form.opponentAthleticTeamId
@@ -338,12 +360,30 @@ export default function GameDrawer({
           required
         />
 
-        <FloatingInput
-          id="game-venue"
-          label="Venue"
-          value={form.venue}
-          onChange={(e) => setForm({ ...form, venue: e.target.value })}
+        {/* Facility picker — on-campus (spaces/buildings) or off-campus (Google Places) */}
+        <LocationPicker
+          value={locationData}
+          onChange={(data) => {
+            setLocationData(data)
+            setForm((prev) => ({ ...prev, venue: data.locationText }))
+          }}
+          spaceTypeFilter={['FIELD', 'COURT', 'GYM', 'POOL', 'COMMON']}
         />
+
+        {/* Conflict card */}
+        {availability.data && !availability.data.available && (
+          <ConflictCard
+            conflicts={availability.data.conflicts}
+            alternatives={availability.data.alternatives}
+            blockedReason={availability.data.blockedReason}
+            onMessage={onMessageBooker}
+            onPickAlternative={(spaceId) => {
+              setLocationData((prev) => ({ ...prev, areaId: spaceId, buildingId: null, roomId: null, locationText: '' }))
+            }}
+            onOverride={() => setShowOverrideModal(true)}
+            canOverride={true}
+          />
+        )}
 
         {!editingGame && athleticsCalendars.length > 0 && (
           <FloatingDropdown
@@ -357,6 +397,16 @@ export default function GameDrawer({
 
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
+
+      <OverrideReasonModal
+        isOpen={showOverrideModal}
+        onClose={() => setShowOverrideModal(false)}
+        onConfirm={() => {
+          setShowOverrideModal(false)
+          handleSave()
+        }}
+        conflictTitle={availability.data?.conflicts?.[0]?.title}
+      />
     </DetailDrawer>
   )
 }

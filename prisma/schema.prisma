@@ -240,6 +240,10 @@ model Organization {
   diffEvents                       DiffEvent[]
   // SAML SSO
   samlConnection                   SamlConnection?
+  // Facility Booking module
+  blackoutDates                    BlackoutDate[]
+  bookingOverrides                 BookingOverride[]
+  calendarFeeds                    CalendarFeed[]
 
   @@index([onboardingStatus])
 }
@@ -412,6 +416,9 @@ model User {
   channelsCreated                  Channel[]                         @relation("ChannelCreator")
   channelJoinRequests              ChannelJoinRequest[]              @relation("ChannelJoinRequester")
   channelJoinResolutions           ChannelJoinRequest[]              @relation("ChannelJoinResolver")
+  // Facility Booking module
+  bookingOverrides                 BookingOverride[]
+  calendarFeeds                    CalendarFeed[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -680,6 +687,10 @@ model Space {
   districtId         String?
   name               String
   spaceType          SpaceType           @default(OTHER)
+  status             SpaceStatus         @default(ACTIVE)
+  capacity           Int?                // concurrent bookings allowed (null = 1)
+  openTime           String?             // "07:00" (HH:mm 24hr) — null = no restriction
+  closeTime          String?             // "22:00"
   latitude           Float?
   longitude          Float?
   polygonCoordinates Json?
@@ -703,6 +714,7 @@ model Space {
   itTickets          ITTicket[]
   eventProjects      EventProject[]
   formQrCodes        FormQrCode[]
+  blackoutDates      BlackoutDate[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
@@ -1099,6 +1111,12 @@ enum SpaceType {
   POOL
   GARDEN
   OTHER
+}
+
+enum SpaceStatus {
+  ACTIVE
+  UNDER_MAINTENANCE
+  CLOSED
 }
 
 enum TicketSource {
@@ -1499,11 +1517,14 @@ model CalendarEvent {
   locationText   String?
   buildingId     String?
   spaceId        String?
-  sourceModule   String? // 'athletics', 'timetable', etc.
-  sourceId       String? // ID in source module
-  createdById    String?
-  approvedById   String?
-  metadata       Json? // Extensible data bag
+  sourceModule    String? // 'athletics', 'timetable', etc.
+  sourceId        String? // ID in source module
+  createdById     String?
+  approvedById    String?
+  metadata        Json? // Extensible data bag
+  setupMinutes    Int? // Buffer before event (overrides org default)
+  teardownMinutes Int? // Buffer after event (overrides org default)
+  exclusiveUse    Boolean @default(false) // Claims full capacity of space
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   deletedAt      DateTime?
@@ -1519,9 +1540,13 @@ model CalendarEvent {
   createdBy        User?                       @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
   approvedBy       User?                       @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   embedding        Unsupported("vector(768)")?
-  attendees        EventAttendee[]
-  resourceRequests EventResourceRequest[]
-  syncMappings     EventSyncMapping[]
+  attendees            EventAttendee[]
+  resourceRequests     EventResourceRequest[]
+  syncMappings         EventSyncMapping[]
+  overridesAsSource    BookingOverride[]       @relation("OverrideSource")
+  overridesAsTarget    BookingOverride[]       @relation("OverrideTarget")
+  games                Game[]
+  practices            Practice[]
 
   @@index([calendarId, startTime, endTime])
   @@index([organizationId, startTime])
@@ -2312,6 +2337,7 @@ model Game {
   organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   athleticTeam         AthleticTeam       @relation("GameOwningTeam", fields: [athleticTeamId], references: [id], onDelete: Cascade)
   opponentAthleticTeam AthleticTeam?      @relation("GameOpponentTeam", fields: [opponentAthleticTeamId], references: [id], onDelete: SetNull)
+  calendarEvent        CalendarEvent?     @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
   bracketEntry         TournamentBracket? @relation("BracketGame")
   playerStats          PlayerGameStat[]
 
@@ -2336,8 +2362,9 @@ model Practice {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  athleticTeam AthleticTeam @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam  AthleticTeam  @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  calendarEvent CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([athleticTeamId])
@@ -2614,6 +2641,7 @@ model MaintenanceTicket {
   spaceId                String?
   roomId                 String?
   campusId               String?
+  blocksFacility         Boolean                 @default(false) // When true + spaceId set, marks space UNDER_MAINTENANCE
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   deletedAt              DateTime?
@@ -6362,6 +6390,7 @@ model Message {
   parent         Message?                 @relation("ThreadReplies", fields: [parentId], references: [id])
   replies        Message[]                @relation("ThreadReplies")
   replyCount     Int                      @default(0)
+  metadata       Json?                    // Structured data for rich cards (booking refs, etc.)
   editedAt       DateTime?
   pinnedAt       DateTime?
   deletedAt      DateTime?
@@ -6751,4 +6780,61 @@ model EventSeatStatus {
   @@unique([mapId, seatId])
   @@index([mapId, status])
   @@index([heldUntil])
+}
+
+// ─── Facility Booking ──────────────────────────────────────────────────────────
+
+/// Org-level blocked dates (holidays, in-service days). Bookings rejected on these dates.
+model BlackoutDate {
+  id             String       @id @default(cuid())
+  organizationId String
+  date           DateTime     // The blocked date (stored as UTC midnight; compare in org timezone)
+  reason         String?      // "Winter Break", "Teacher In-Service", etc.
+  appliesToAll   Boolean      @default(true) // true = all spaces blocked
+  spaceId        String?      // If not appliesToAll, block this specific space only
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  space        Space?       @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, date])
+  @@index([spaceId])
+}
+
+/// Audit trail for conflict overrides. Survives event deletion (SetNull FKs).
+model BookingOverride {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  calendarEventId    String?   // The event booked despite conflict (nullable — audit survives deletion)
+  overriddenEventId  String?   // The event that was already there (nullable — same reason)
+  overriddenByUserId String    // Who performed the override
+  reason             String    // Required — why the override was needed
+  createdAt          DateTime  @default(now())
+
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  calendarEvent   CalendarEvent? @relation("OverrideSource", fields: [calendarEventId], references: [id], onDelete: SetNull)
+  overriddenEvent CalendarEvent? @relation("OverrideTarget", fields: [overriddenEventId], references: [id], onDelete: SetNull)
+  overriddenBy    User           @relation(fields: [overriddenByUserId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([calendarEventId])
+  @@index([overriddenEventId])
+}
+
+/// iCal subscription feed tokens. Users and public team feeds.
+model CalendarFeed {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?  // Who owns this feed (null for public team feeds)
+  feedType       String   // 'team' (user-bound) | 'team-public' (shareable, parent-facing) | 'space' | 'user'
+  entityId       String?  // teamId or spaceId (null for user feed)
+  token          String   @unique // Signed token for subscription URL
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
 }

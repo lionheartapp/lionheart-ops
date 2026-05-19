@@ -355,6 +355,14 @@ export async function createGame(
     startTime: Date
     endTime: Date
     venue?: string
+    // Facility booking fields (written to CalendarEvent, not Game)
+    spaceId?: string | null
+    buildingId?: string | null
+    roomId?: string | null
+    setupMinutes?: number | null
+    teardownMinutes?: number | null
+    exclusiveUse?: boolean
+    description?: string | null
   },
   autoCreateEvent?: { calendarId: string },
 ) {
@@ -386,12 +394,19 @@ export async function createGame(
       data: {
         calendarId: autoCreateEvent.calendarId,
         title,
+        description: data.description || null,
         startTime: data.startTime,
         endTime: data.endTime,
         locationText: data.venue || null,
         calendarStatus: 'CONFIRMED',
         sourceModule: 'athletics',
         sourceId: game.id,
+        // Facility booking fields
+        spaceId: data.spaceId || null,
+        buildingId: data.buildingId || null,
+        setupMinutes: data.setupMinutes ?? null,
+        teardownMinutes: data.teardownMinutes ?? null,
+        exclusiveUse: data.exclusiveUse ?? false,
       },
     })
     await db.game.update({
@@ -410,10 +425,20 @@ export async function updateGame(id: string, data: {
   startTime?: Date
   endTime?: Date
   venue?: string
+  // Facility booking fields (synced to CalendarEvent)
+  spaceId?: string | null
+  buildingId?: string | null
+  setupMinutes?: number | null
+  teardownMinutes?: number | null
+  exclusiveUse?: boolean
+  description?: string | null
 }) {
+  // Separate facility fields from Game fields (Game doesn't store them)
+  const { spaceId, buildingId, setupMinutes, teardownMinutes, exclusiveUse, description, ...gameData } = data
+
   const updated = await db.game.update({
     where: { id },
-    data,
+    data: gameData,
     include: GAME_INCLUDE,
   })
 
@@ -434,9 +459,16 @@ export async function updateGame(id: string, data: {
       where: { id: updated.calendarEventId },
       data: {
         title,
+        description: description !== undefined ? description : undefined,
         startTime: updated.startTime,
         endTime: updated.endTime,
         locationText: updated.venue ?? null,
+        // Facility booking fields
+        ...(spaceId !== undefined ? { spaceId } : {}),
+        ...(buildingId !== undefined ? { buildingId } : {}),
+        ...(setupMinutes !== undefined ? { setupMinutes } : {}),
+        ...(teardownMinutes !== undefined ? { teardownMinutes } : {}),
+        ...(exclusiveUse !== undefined ? { exclusiveUse } : {}),
       },
     })
   }
@@ -475,15 +507,24 @@ export async function getPractices(filters?: { teamId?: string }) {
   })
 }
 
-export async function createPractice(data: {
-  athleticTeamId: string
-  startTime: Date
-  endTime: Date
-  location?: string
-  notes?: string
-  rrule?: string
-}) {
-  return db.practice.create({
+export async function createPractice(
+  data: {
+    athleticTeamId: string
+    startTime: Date
+    endTime: Date
+    location?: string
+    notes?: string
+    rrule?: string
+    // Facility booking fields (written to CalendarEvent, not Practice)
+    spaceId?: string | null
+    buildingId?: string | null
+    setupMinutes?: number | null
+    teardownMinutes?: number | null
+    description?: string | null
+  },
+  autoCreateEvent?: { calendarId: string },
+) {
+  const practice = await db.practice.create({
     data: {
       athleticTeamId: data.athleticTeamId,
       startTime: data.startTime,
@@ -492,7 +533,40 @@ export async function createPractice(data: {
       notes: data.notes || null,
       rrule: data.rrule || null,
     },
+    include: {
+      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true } } } },
+    },
   })
+
+  // Auto-create linked calendar event (like games do)
+  if (autoCreateEvent?.calendarId) {
+    const title = `${practice.athleticTeam.sport.name}: ${practice.athleticTeam.name} Practice`
+    const event = await db.calendarEvent.create({
+      data: {
+        calendarId: autoCreateEvent.calendarId,
+        title,
+        description: data.description || data.notes || null,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        locationText: data.location || null,
+        calendarStatus: 'CONFIRMED',
+        sourceModule: 'athletics',
+        sourceId: practice.id,
+        rrule: data.rrule || null,
+        // Facility booking fields
+        spaceId: data.spaceId || null,
+        buildingId: data.buildingId || null,
+        setupMinutes: data.setupMinutes ?? null,
+        teardownMinutes: data.teardownMinutes ?? null,
+      },
+    })
+    await db.practice.update({
+      where: { id: practice.id },
+      data: { calendarEventId: event.id },
+    })
+  }
+
+  return practice
 }
 
 export async function updatePractice(id: string, data: {
@@ -501,11 +575,46 @@ export async function updatePractice(id: string, data: {
   location?: string
   notes?: string
   rrule?: string | null
+  // Facility booking fields (synced to CalendarEvent)
+  spaceId?: string | null
+  buildingId?: string | null
+  setupMinutes?: number | null
+  teardownMinutes?: number | null
+  description?: string | null
 }) {
-  return db.practice.update({
+  // Separate facility fields from Practice fields
+  const { spaceId, buildingId, setupMinutes, teardownMinutes, description, ...practiceData } = data
+
+  const updated = await db.practice.update({
     where: { id },
-    data,
+    data: practiceData,
+    include: {
+      athleticTeam: { select: { id: true, name: true, sport: { select: { name: true } } } },
+    },
   })
+
+  // Sync linked CalendarEvent if it exists
+  if (updated.calendarEventId) {
+    const title = `${updated.athleticTeam.sport.name}: ${updated.athleticTeam.name} Practice`
+    await db.calendarEvent.update({
+      where: { id: updated.calendarEventId },
+      data: {
+        title,
+        description: description !== undefined ? description : undefined,
+        startTime: updated.startTime,
+        endTime: updated.endTime,
+        locationText: updated.location ?? null,
+        rrule: updated.rrule ?? null,
+        // Facility booking fields
+        ...(spaceId !== undefined ? { spaceId } : {}),
+        ...(buildingId !== undefined ? { buildingId } : {}),
+        ...(setupMinutes !== undefined ? { setupMinutes } : {}),
+        ...(teardownMinutes !== undefined ? { teardownMinutes } : {}),
+      },
+    })
+  }
+
+  return updated
 }
 
 export async function deletePractice(id: string) {

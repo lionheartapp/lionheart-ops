@@ -259,7 +259,18 @@ export const PERMISSIONS = {
   FORMS_MANAGE: 'forms:manage',
   FORMS_FERPA_READ: 'forms:ferpa:read',                     // View FERPA-protected field data in form submissions
 
+  // Facility Booking
+  FACILITIES_BOOK:               'facilities:book',                   // Book a space for own team
+  FACILITIES_BOOK_ANY:           'facilities:book:all',               // Book for any team (athletic director)
+  FACILITIES_OVERRIDE:           'facilities:override',               // Override conflicts
+  FACILITIES_VIEW_SCHEDULE:      'facilities:view-schedule',          // View space availability
+  FACILITIES_VIEW_ALL:           'facilities:view:all',               // View all bookings across all schools (reporting)
+  FACILITIES_BLOCK:              'facilities:block',                   // Block a space (maintenance)
+  FACILITIES_MANAGE_HOURS:       'facilities:manage-hours',           // Set operating hours + blackout dates
+  CALENDAR_FEED_MANAGE:          'calendar:feed:manage',              // Create/revoke iCal subscription feeds
+
   // Messaging — Phase 23
+  MESSAGING_ACCESS:              'messaging:access',
   MESSAGING_CHANNELS_CREATE:     'channels:create',
   MESSAGING_CHANNELS_MANAGE:     'channels:manage',
   MESSAGING_CHANNELS_MODERATE:   'channels:moderate',
@@ -465,11 +476,21 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.INTEGRATIONS_MANAGE,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
       PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
       PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking
+      PERMISSIONS.FACILITIES_BOOK,
+      PERMISSIONS.FACILITIES_BOOK_ANY,
+      PERMISSIONS.FACILITIES_OVERRIDE,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
+      PERMISSIONS.FACILITIES_VIEW_ALL,
+      PERMISSIONS.FACILITIES_BLOCK,
+      PERMISSIONS.FACILITIES_MANAGE_HOURS,
+      PERMISSIONS.CALENDAR_FEED_MANAGE,
     ],
     isSystem: true,
   },
@@ -561,11 +582,21 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
       PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
       PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (full — same as admin)
+      PERMISSIONS.FACILITIES_BOOK,
+      PERMISSIONS.FACILITIES_BOOK_ANY,
+      PERMISSIONS.FACILITIES_OVERRIDE,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
+      PERMISSIONS.FACILITIES_VIEW_ALL,
+      PERMISSIONS.FACILITIES_BLOCK,
+      PERMISSIONS.FACILITIES_MANAGE_HOURS,
+      PERMISSIONS.CALENDAR_FEED_MANAGE,
     ],
     isSystem: true,
   },
@@ -657,6 +688,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_CHANNELS_MANAGE,
       PERMISSIONS.MESSAGING_CHANNELS_MODERATE,
@@ -719,8 +751,13 @@ export const DEFAULT_ROLES = {
       // Phase 22: External Integrations (members can connect personal Google Calendar)
       PERMISSIONS.INTEGRATIONS_GOOGLE_CALENDAR,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (coaches are members)
+      PERMISSIONS.FACILITIES_BOOK,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
+      PERMISSIONS.CALENDAR_FEED_MANAGE,
     ],
     isSystem: true,
   },
@@ -762,8 +799,11 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.STUDENTS_READ_OWN_SCHOOL,
       PERMISSIONS.IT_DEVICE_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (teachers can view schedules)
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
     ],
     isSystem: true,
   },
@@ -790,8 +830,11 @@ export const DEFAULT_ROLES = {
       // MDM
       PERMISSIONS.IT_DEVICE_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (view only)
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
     ],
     isSystem: true,
   },
@@ -827,8 +870,17 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.USERS_READ,
       PERMISSIONS.TEAMS_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (full — AD can book for any team, override)
+      PERMISSIONS.FACILITIES_BOOK,
+      PERMISSIONS.FACILITIES_BOOK_ANY,
+      PERMISSIONS.FACILITIES_OVERRIDE,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
+      PERMISSIONS.FACILITIES_VIEW_ALL,
+      PERMISSIONS.FACILITIES_MANAGE_HOURS,
+      PERMISSIONS.CALENDAR_FEED_MANAGE,
     ],
     isSystem: true,
   },
@@ -854,8 +906,13 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.RESOURCE_REQUESTS_READ_OWN,
       PERMISSIONS.SETTINGS_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (coach can book own team spaces)
+      PERMISSIONS.FACILITIES_BOOK,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
+      PERMISSIONS.CALENDAR_FEED_MANAGE,
     ],
     isSystem: true,
   },
@@ -900,8 +957,12 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.FORMS_MANAGE,
       PERMISSIONS.FORMS_FERPA_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
+      // Facility Booking (maintenance can block spaces)
+      PERMISSIONS.FACILITIES_BLOCK,
+      PERMISSIONS.FACILITIES_VIEW_SCHEDULE,
     ],
     isSystem: true,
   },
@@ -928,6 +989,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.CALENDAR_EVENTS_READ,
       PERMISSIONS.ACADEMIC_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
     ],
@@ -1003,6 +1065,7 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.FORMS_MANAGE,
       PERMISSIONS.FORMS_FERPA_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
     ],
@@ -1051,6 +1114,7 @@ export const DEFAULT_ROLES = {
       // Knowledge Base
       PERMISSIONS.KB_READ,
       // Phase 23: Messaging
+      PERMISSIONS.MESSAGING_ACCESS,
       PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
     ],
@@ -1112,6 +1176,21 @@ export const DEFAULT_TEAMS = {
     slug: 'administration',
     name: 'Administration',
     description: 'School administration and office staff',
+  },
+  TEACHERS: {
+    slug: 'teachers',
+    name: 'Teachers',
+    description: 'Teaching faculty and instructional staff',
+  },
+  STAFF: {
+    slug: 'staff',
+    name: 'Staff',
+    description: 'General support staff and operations',
+  },
+  ATHLETICS: {
+    slug: 'athletics',
+    name: 'Athletics',
+    description: 'Coaching staff and athletic department',
   },
 } as const
 

@@ -12,6 +12,13 @@ const CreatePracticeSchema = z.object({
   location: z.string().optional(),
   notes: z.string().optional(),
   rrule: z.string().optional(),
+  calendarId: z.string().optional(),
+  // Facility booking fields (passed through to CalendarEvent)
+  spaceId: z.string().optional(),
+  buildingId: z.string().optional(),
+  setupMinutes: z.number().int().min(0).max(120).optional(),
+  teardownMinutes: z.number().int().min(0).max(120).optional(),
+  description: z.string().optional(),
 })
 
 export const GET = withAuth(async ({ searchParams }) => {
@@ -20,6 +27,7 @@ export const GET = withAuth(async ({ searchParams }) => {
 }, { permission: PERMISSIONS.ATHLETICS_READ })
 
 export const POST = withAuth(async ({ body }) => {
-  const practice = await createPractice(body)
+  const { calendarId, ...input } = body
+  const practice = await createPractice(input, calendarId ? { calendarId } : undefined)
   return NextResponse.json(ok(practice), { status: 201 })
 }, { permission: PERMISSIONS.ATHLETICS_PRACTICES_CREATE, schema: CreatePracticeSchema })

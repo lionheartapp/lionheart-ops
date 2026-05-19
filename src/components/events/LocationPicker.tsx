@@ -25,6 +25,10 @@ interface LocationPickerProps {
   value: LocationData
   onChange: (data: LocationData) => void
   error?: string
+  /** Filter spaces to specific types (e.g., ['FIELD', 'COURT', 'GYM'] for athletics) */
+  spaceTypeFilter?: string[]
+  /** Hide the off-campus toggle (e.g., when booking a facility, not a venue) */
+  hideOffCampus?: boolean
 }
 
 interface PlaceSuggestion {
@@ -43,6 +47,12 @@ interface BuildingRaw {
   isSpace?: boolean
   /** Parent group label for structured dropdown */
   groupLabel?: string
+  /** Space status (only for spaces, not buildings) */
+  status?: 'ACTIVE' | 'UNDER_MAINTENANCE' | 'CLOSED'
+  /** Space type (FIELD, COURT, GYM, etc.) */
+  spaceType?: string
+  /** Concurrent booking capacity (null = 1) */
+  capacity?: number | null
 }
 
 interface LocationGroup {
@@ -135,13 +145,16 @@ function useCampusBuildings() {
           // Merge unassigned spaces (outdoor areas, hubs, etc.)
           const unassignedSpaces = json.data.unassignedSpaces ?? json.data.unassignedAreas ?? []
           const spacesAsBuildings: BuildingRaw[] = unassignedSpaces.map(
-            (s: { id: string; name: string; rooms?: RoomRaw[] }) => ({
+            (s: { id: string; name: string; rooms?: RoomRaw[]; status?: string; spaceType?: string; capacity?: number | null }) => ({
               id: s.id,
               name: s.name,
               rooms: s.rooms ?? [],
               areas: [],
               isSpace: true,
               groupLabel: 'Outdoor & Spaces',
+              status: s.status as BuildingRaw['status'],
+              spaceType: s.spaceType,
+              capacity: s.capacity,
             })
           )
 
@@ -299,7 +312,7 @@ function RoomItem({
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export default function LocationPicker({ value, onChange, error }: LocationPickerProps) {
+export default function LocationPicker({ value, onChange, error, spaceTypeFilter, hideOffCampus }: LocationPickerProps) {
   const { buildings, loading: buildingsLoading } = useCampusBuildings()
 
   // Off-campus search state
@@ -347,10 +360,14 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
   // All groups (unfiltered) for tab labels
   const allGroups = groupBuildings(buildings)
 
-  // Filter buildings by search + active tab
+  // Filter buildings by search + active tab + space type filter
   const filteredBuildings = buildings.filter((b) => {
     if (buildingSearch && !b.name.toLowerCase().includes(buildingSearch.toLowerCase())) return false
     if (activeTab && (b.groupLabel ?? 'General') !== activeTab) return false
+    // Space type filter (only applies to spaces, not buildings)
+    if (spaceTypeFilter && spaceTypeFilter.length > 0 && b.isSpace && b.spaceType) {
+      if (!spaceTypeFilter.includes(b.spaceType)) return false
+    }
     return true
   })
 
@@ -472,7 +489,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
         </label>
 
         {/* Off Campus toggle */}
-        <button
+        {!hideOffCampus && <button
           type="button"
           onClick={handleToggle}
           className="flex items-center gap-2 cursor-pointer group"
@@ -491,7 +508,7 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
               }`}
             />
           </div>
-        </button>
+        </button>}
       </div>
 
       {/* ON CAMPUS — Building + Room dropdowns */}
@@ -536,28 +553,52 @@ export default function LocationPicker({ value, onChange, error }: LocationPicke
                     filteredBuildings.map((b) => {
                       const roomCount = b.rooms?.length ?? 0
                       const typeLabel = b.isSpace ? 'Space' : 'Building'
+                      const isBlocked = b.status === 'UNDER_MAINTENANCE' || b.status === 'CLOSED'
 
                       return (
                         <button
                           key={b.id}
                           type="button"
-                          onClick={() => handleSelectBuilding(b)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
-                            value.buildingId === b.id ? 'bg-slate-100' : 'hover:bg-slate-50'
+                          onClick={() => !isBlocked && handleSelectBuilding(b)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                            isBlocked
+                              ? 'opacity-60 cursor-not-allowed'
+                              : value.buildingId === b.id
+                                ? 'bg-slate-100 cursor-pointer'
+                                : 'hover:bg-slate-50 cursor-pointer'
                           }`}
                         >
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                            b.isSpace ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                            isBlocked
+                              ? 'bg-red-100 text-red-600'
+                              : b.isSpace ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                           }`}>
                             {b.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-800 truncate">{b.name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-medium text-slate-800 truncate">{b.name}</p>
+                              {b.status === 'UNDER_MAINTENANCE' && (
+                                <span className="text-[9px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                  Maintenance
+                                </span>
+                              )}
+                              {b.status === 'CLOSED' && (
+                                <span className="text-[9px] font-semibold text-red-700 bg-red-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                  Closed
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-slate-400">{typeLabel}</p>
                           </div>
                           {!b.isSpace && roomCount > 0 && (
                             <span className="text-[10px] text-slate-300 flex-shrink-0">
                               {roomCount} room{roomCount === 1 ? '' : 's'}
+                            </span>
+                          )}
+                          {b.isSpace && b.capacity && b.capacity > 1 && (
+                            <span className="text-[10px] text-slate-400 flex-shrink-0">
+                              {b.capacity} slots
                             </span>
                           )}
                         </button>

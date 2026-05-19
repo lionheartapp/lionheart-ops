@@ -58,6 +58,10 @@ export type NotificationType =
   // Messaging notifications
   | 'messaging_mention'
   | 'messaging_dm'
+  // Facility booking notifications
+  | 'facility_override'
+  | 'facility_cancellation'
+  | 'facility_maintenance_block'
 
 /** Exported array of all valid notification type strings (for validation). */
 export const NOTIFICATION_TYPES: NotificationType[] = [
@@ -76,6 +80,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   'inventory_low_stock',
   'task_assigned', 'task_due_soon',
   'messaging_mention', 'messaging_dm',
+  'facility_override', 'facility_cancellation', 'facility_maintenance_block',
 ]
 
 export interface CreateNotificationInput {
