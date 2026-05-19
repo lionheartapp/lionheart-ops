@@ -6,6 +6,7 @@ import { prisma, rawPrisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 import { PERMISSIONS } from '@/lib/permissions'
 import { invalidateOrgCache } from '@/lib/cache/settings-cache'
+import { geocodeAddress } from '@/lib/services/geocodingService'
 
 /**
  * PATCH /api/settings/campus/buildings/:id
@@ -70,6 +71,19 @@ export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) =
 
   if (!building) {
     return NextResponse.json(fail('NOT_FOUND', 'Building not found'), { status: 404 })
+  }
+
+  // Auto-geocode if address exists but no coordinates — persist for future loads
+  if (!building.latitude && !building.longitude && building.address) {
+    const geo = await geocodeAddress(building.address)
+    if (geo) {
+      await prisma.building.update({
+        where: { id: params.id },
+        data: { latitude: geo.lat, longitude: geo.lng },
+      })
+      ;(building as any).latitude = geo.lat
+      ;(building as any).longitude = geo.lng
+    }
   }
 
   return NextResponse.json(ok(building))

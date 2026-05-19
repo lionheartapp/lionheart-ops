@@ -123,39 +123,10 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
 
   useEffect(() => { loadData() }, [loadData])
 
-  // ── Geocode address if building has no coordinates ──
-  const [geocodedCenter, setGeocodedCenter] = useState<{ lat: number; lng: number } | null>(null)
-
-  useEffect(() => {
-    if (!building || (building.latitude && building.longitude) || !building.address) return
-    // Use Nominatim (OpenStreetMap) for free client-side geocoding
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(building.address)}`)
-      .then((r) => r.json())
-      .then((results) => {
-        if (results?.[0]) {
-          const lat = parseFloat(results[0].lat)
-          const lng = parseFloat(results[0].lon)
-          setGeocodedCenter({ lat, lng })
-          // Persist to building so future loads are instant
-          fetch(`/api/settings/campus/buildings/${building.id}`, {
-            method: 'PATCH',
-            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ latitude: lat, longitude: lng }),
-          }).catch(() => {})
-        }
-      })
-      .catch(() => {})
-  }, [building?.id, building?.latitude, building?.longitude, building?.address])
-
-  // ── Map center from building coords ──
+  // ── Map center from building coords (server auto-geocodes if address exists) ──
   const mapCenter = building?.latitude && building?.longitude
     ? { lat: building.latitude, lng: building.longitude, name: building.name, address: building.address }
-    : geocodedCenter
-    ? { lat: geocodedCenter.lat, lng: geocodedCenter.lng, name: building?.name ?? '', address: building?.address ?? null }
-    : building?.address
-    ? null // still geocoding — don't render map yet
-    : { lat: 33.4936, lng: -117.0892, name: building?.name ?? '', address: building?.address ?? null }
+    : null
 
   // ── Map building data ──────────────────────────────────────────────────────
   const mapBuildings = building?.latitude && building?.longitude
@@ -450,8 +421,11 @@ export default function DistrictBuildingDetail({ buildingId }: DistrictBuildingD
           onManageRooms={() => setRoomsDrawerOpen(true)}
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 h-[600px] flex items-center justify-center">
-          <div className="text-sm text-slate-400 animate-pulse">Loading map…</div>
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+          <MapPin className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm text-slate-500">
+            Add an address to this building to see it on the map.
+          </p>
         </div>
       )}
 
