@@ -238,7 +238,7 @@ export default function UpcomingEventsPanel({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-      className="flex flex-col h-full min-h-0 rounded-3xl overflow-hidden"
+      className="flex flex-col min-h-0 rounded-3xl overflow-hidden"
       style={{
         backgroundColor: SURFACE,
         border: `1px solid ${BORDER}`,
@@ -309,7 +309,7 @@ export default function UpcomingEventsPanel({
           />
         )}
 
-        <div className="h-full overflow-y-auto dashboard-scroll px-4 sm:px-7 pt-2 pb-8">
+        <div className="overflow-y-auto dashboard-scroll px-4 sm:px-7 pt-2 pb-4 max-h-[480px]">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -424,7 +424,7 @@ interface ItemListProps {
 
 function ItemList({ items, onEventClick, onProjectClick }: ItemListProps) {
   return (
-    <ul role="list" className="pb-12">
+    <ul role="list" className="pb-4">
       {items.map((item, idx) => {
         const { weekday, dayNum, timeRange, startDate } = formatItemRow(item)
         const isToday = startDate.toDateString() === new Date().toDateString()

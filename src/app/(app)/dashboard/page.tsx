@@ -503,7 +503,6 @@ export default function DashboardPage() {
    * routing used in /events (`handleOpenCreate`) so the dashboard's shared
    * CreateEventMenu never points users at a dead-end.
    *
-   *   ai         → /events/new/ai (Leo assistant)
    *   single     → CreateEventProjectModal (formal event project, one-time)
    *   multiday   → CreateEventProjectModal (formal event project, multi-day)
    *   recurring  → EventSeriesDrawer (admin-only)
@@ -692,7 +691,7 @@ export default function DashboardPage() {
         <motion.div variants={cardEntrance} className="lg:col-span-2 flex flex-col gap-6">
           <OnboardingChecklistWidget />
           <PlanningSeasonWidget />
-          <SinceYesterdayWidget />
+          {/* SinceYesterdayWidget hidden for now */}
 
           {/* The next two weeks / mode-specific panel */}
           {user.dashboardMode === 'admin' ? (
