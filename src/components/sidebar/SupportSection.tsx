@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import PrefetchLink from '@/components/PrefetchLink'
 import {
   ChevronDown,
+  ClipboardCheck,
   Wrench,
   Monitor,
   Video,
@@ -111,6 +112,8 @@ export default function SupportSection({
   const showFacilities = isOnMaintenanceTeam || isSuperAdmin
   const showIT = isOnITTeam || isSuperAdmin
   const showAV = isOnAVTeam || isSuperAdmin
+  const approvalCount = (facilitiesGateCount?.count ?? 0) + (avGateCount?.count ?? 0)
+  const showApprovals = isSuperAdmin || isOnMaintenanceTeam || isOnAVTeam || canManageWorkspace || approvalCount > 0
 
   // Close expandable sections when user doesn't have sub-link access
   // (prevents stale open state from impersonation or permission changes)
@@ -126,9 +129,35 @@ export default function SupportSection({
   return (
     <>
       <div className="px-1 mt-4 mb-1">
-        <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Operations</span>
+        <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Work</span>
       </div>
       <ul className="space-y-2" role="list">
+        {showApprovals && (
+          <li>
+            <PrefetchLink
+              href="/approvals"
+              onClick={closePanels}
+              className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                pathname.startsWith('/approvals')
+                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+              }`}
+              aria-current={pathname.startsWith('/approvals') ? 'page' : undefined}
+            >
+              <ClipboardCheck className={`w-5 h-5 flex-shrink-0 ${pathname.startsWith('/approvals') ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+              <span className="text-sm">Approvals</span>
+              {approvalCount > 0 && (
+                <span
+                  className="ml-auto flex-shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold leading-none"
+                  title={`${approvalCount} event${approvalCount === 1 ? '' : 's'} waiting for approval`}
+                  aria-label={`${approvalCount} event${approvalCount === 1 ? '' : 's'} waiting for approval`}
+                >
+                  {approvalCount}
+                </span>
+              )}
+            </PrefetchLink>
+          </li>
+        )}
         {/* ── Facilities / Maintenance ── */}
         {showFacilities && (
           <li>

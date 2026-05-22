@@ -2,12 +2,13 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronDown, Plus, Search, X, SlidersHorizontal, Users, Sparkles, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Plus, X, SlidersHorizontal, Users, Sparkles } from 'lucide-react'
 import type { ResolvedSearchFilter } from '@/lib/hooks/useSmartSearch'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import type { CalendarViewType } from '@/lib/hooks/useCalendar'
 import { type CalendarFilter } from './CalendarFilterPopover'
 import { EVENT_CREATE_OPTIONS, type EventCreateMode } from '@/components/events/CreateEventMenu'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 interface CategoryChip {
   id: string
@@ -33,6 +34,7 @@ interface CalendarToolbarProps {
   onNavigateBack: () => void
   onNavigateForward: () => void
   onToday: () => void
+  onDateSelect?: (date: Date) => void
   onCreateEvent: () => void
   onPlanEvent?: () => void
   /**
@@ -107,6 +109,15 @@ function formatTitle(date: Date, view: CalendarViewType): string {
   return `${months[date.getMonth()]} ${date.getFullYear()}`
 }
 
+function formatMobileTitle(date: Date, view: CalendarViewType): string {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  if (view === 'day') {
+    return `${months[date.getMonth()]} ${date.getDate()}`
+  }
+  return `${months[date.getMonth()]} ${date.getFullYear()}`
+}
+
 function getWeekDates(currentDate: Date): Date[] {
   const start = new Date(currentDate)
   start.setDate(start.getDate() - start.getDay())
@@ -133,6 +144,7 @@ export default function CalendarToolbar({
   onNavigateBack,
   onNavigateForward,
   onToday,
+  onDateSelect,
   onCreateEvent,
   onPlanEvent,
   onCreateEventProject,
@@ -188,12 +200,13 @@ export default function CalendarToolbar({
   }, [createDropdownOpen])
 
   return (
-    <div className="pb-2">
+    <div className="pb-1 sm:pb-2">
       {/* Zone 1: Navigation bar */}
-      <div className="flex items-center justify-between gap-2 pb-4 relative">
+      <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 relative">
         {/* Left: Title */}
         <h2 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight min-w-0 truncate">
-          {formatTitle(currentDate, view)}
+          <span className="hidden sm:inline">{formatTitle(currentDate, view)}</span>
+          <span className="sm:hidden">{formatMobileTitle(currentDate, view)}</span>
         </h2>
 
         {/* Center: View switcher — desktop only, absolutely centered */}
@@ -263,7 +276,7 @@ export default function CalendarToolbar({
           </div>
 
           {/* Create button with dropdown */}
-          <div ref={createBtnRef} className="relative flex items-center">
+          <div ref={createBtnRef} className="relative hidden sm:flex items-center">
             <button
               onClick={() => setCreateDropdownOpen(o => !o)}
               className={`flex items-center gap-2 pl-3 sm:pl-4 pr-3 py-2 text-white text-sm font-semibold rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${createDropdownOpen ? 'bg-slate-800' : 'bg-slate-900 hover:bg-slate-800'}`}
@@ -347,41 +360,25 @@ export default function CalendarToolbar({
       </div>
 
       {/* Zone 2: Smart search + filters */}
-      <div className="flex items-center gap-3 mt-3">
+      <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3">
         {/* Search input — full width, AI-aware */}
         <div className="relative flex-1 min-w-0">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center">
-            {aiSearchProcessing ? (
-              <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
-            ) : aiFilter ? (
-              <Sparkles className="w-4 h-4 text-blue-500" />
-            ) : (
-              <Search className="w-4 h-4 text-stone-400" />
-            )}
-          </div>
-          <input
-            type="text"
+          <SearchInput
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search events or ask anything — e.g. &quot;high school events next week&quot;"
-            className={`w-full pl-11 pr-10 py-3 text-[14px] rounded-full bg-stone-50 hover:bg-stone-100/80 focus:bg-white transition-all duration-200 placeholder:text-stone-400 focus:outline-none ${
+            onClear={() => {
+              onSearchChange('')
+              onClearAiFilter?.()
+            }}
+            placeholder="Search events"
+            className={`rounded-full border-0 bg-stone-50 hover:bg-stone-100/80 ${
               aiFilter
                 ? 'ring-2 ring-blue-200 bg-white shadow-sm'
-                : 'focus:ring-2 focus:ring-slate-900/10 focus:shadow-sm'
+                : aiSearchProcessing
+                  ? 'ring-2 ring-blue-100 bg-white'
+                  : 'focus-within:ring-2 focus-within:ring-slate-900/10 focus-within:shadow-sm'
             }`}
           />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                onSearchChange('')
-                onClearAiFilter?.()
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
-              aria-label="Clear search"
-            >
-              <X className="w-3.5 h-3.5 text-stone-400" />
-            </button>
-          )}
         </div>
 
         {/* Filter button — toggles the filter side panel */}
@@ -471,27 +468,39 @@ export default function CalendarToolbar({
 
       {/* Day column headers (week/day views only) */}
       {(view === 'week' || view === 'day') && (
-        <div className="flex pt-4">
-          <div className="w-14 flex-shrink-0" />
+        <div className="flex pt-3 sm:pt-4">
+          <div className="hidden sm:block sm:w-14 flex-shrink-0" />
           {view === 'week' && (
             <div className="flex-1 grid grid-cols-7">
               {weekDates.map((date, i) => {
                 const today = isToday(date)
+                const selected = date.getFullYear() === currentDate.getFullYear() &&
+                  date.getMonth() === currentDate.getMonth() &&
+                  date.getDate() === currentDate.getDate()
                 return (
-                  <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span className={`text-xs font-medium uppercase tracking-wider ${today ? 'text-slate-900 font-semibold' : 'text-stone-400'}`}>
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => onDateSelect?.(date)}
+                    className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors duration-200 cursor-pointer hover:bg-stone-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    aria-label={`View ${date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                    aria-current={today ? 'date' : undefined}
+                  >
+                    <span className={`text-[11px] sm:text-xs font-medium uppercase tracking-wider ${today || selected ? 'text-slate-900 font-semibold' : 'text-stone-400'}`}>
                       {dayNamesFull[date.getDay()].slice(0, 3)}
                     </span>
                     <span
                       className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-full ${
                         today
                           ? 'bg-slate-900 text-white'
+                          : selected
+                            ? 'bg-stone-100 text-slate-900'
                           : 'text-slate-900'
                       }`}
                     >
                       {date.getDate()}
                     </span>
-                  </div>
+                  </button>
                 )
               })}
             </div>

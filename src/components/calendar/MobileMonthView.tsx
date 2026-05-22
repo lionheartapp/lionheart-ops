@@ -15,7 +15,7 @@ interface MobileMonthViewProps {
   isLoading?: boolean
   onNavigateBack?: () => void
   onNavigateForward?: () => void
-  onCreateEvent?: () => void
+  onCreateEvent?: (date?: Date) => void
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -329,7 +329,7 @@ export default function MobileMonthView({ currentDate, events, onEventClick, cam
       {/* Floating action button — create event */}
       {onCreateEvent && (
         <button
-          onClick={onCreateEvent}
+          onClick={() => onCreateEvent(selectedDate)}
           className="fixed right-4 bottom-20 w-14 h-14 rounded-full shadow-lg flex items-center justify-center z-30 cursor-pointer active:scale-95 transition-transform"
           style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
           aria-label="Create event"

@@ -12,6 +12,8 @@ import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
 import { readResourceItems } from '@/lib/utils/resourceItems'
 import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import SinceYesterdayWidget from '@/components/dashboard/SinceYesterdayWidget'
 import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote, CheckSquare } from 'lucide-react'
 import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
@@ -42,6 +44,7 @@ import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import PlanningSeasonWidget from '@/components/dashboard/PlanningSeasonWidget'
 import WeatherWidget from '@/components/dashboard/WeatherWidget'
 import TasksFocusWidget from '@/components/dashboard/TasksFocusWidget'
+import TodayCommandCenter from '@/components/dashboard/TodayCommandCenter'
 import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
@@ -174,6 +177,15 @@ export default function DashboardPage() {
     )
   }, [upcomingCalEvents, externalCalEvents, upcomingProjects, upcomingStart, upcomingEnd])
 
+  const todayUpcomingCount = useMemo(() => {
+    const today = new Date()
+    return upcomingItems.filter((item) => {
+      const rawDate = item.kind === 'meeting' ? item.data.startTime : item.data.startsAt
+      const itemDate = new Date(rawDate)
+      return itemDate.toDateString() === today.toDateString()
+    }).length
+  }, [upcomingItems])
+
   const createCalendarEvent = useCreateEvent()
   const createCalendarCategory = useCreateCategory()
 
@@ -276,6 +288,60 @@ export default function DashboardPage() {
   const { data: pendingFacilityRequests } = usePendingGateApprovals('facilities', !!canApproveFacilities)
   const facilityRequestCount = pendingFacilityRequests?.length ?? 0
   const { toast } = useToast()
+
+  const openTicketCount = useMemo(
+    () => tickets.filter((t) => t.status === 'OPEN').length,
+    [tickets],
+  )
+  const inProgressTicketCount = useMemo(
+    () => tickets.filter((t) => t.status === 'IN_PROGRESS').length,
+    [tickets],
+  )
+  const avNeedsEquipmentCount = useMemo(
+    () => events.filter((event) => !event.avEquipmentList || event.avEquipmentList.length === 0).length,
+    [events],
+  )
+  const taskAttention = useMemo(() => {
+    const now = new Date()
+    const todayStart = new Date(now)
+    todayStart.setHours(0, 0, 0, 0)
+    const tomorrowEnd = new Date(todayStart)
+    tomorrowEnd.setDate(todayStart.getDate() + 2)
+    tomorrowEnd.setMilliseconds(-1)
+
+    const allTasks = [...(myTasks ?? []), ...(personalTasks ?? [])]
+    const openTasks = allTasks.filter((task) => task.status !== 'DONE')
+    const overdueTaskCount = openTasks.filter((task) => task.dueDate && new Date(task.dueDate) < todayStart).length
+    const dueSoonTaskCount = openTasks.filter((task) => {
+      if (!task.dueDate) return false
+      const due = new Date(task.dueDate)
+      return due >= todayStart && due <= tomorrowEnd
+    }).length
+
+    return { overdueTaskCount, dueSoonTaskCount }
+  }, [myTasks, personalTasks])
+  const highPriorityTicketCount = useMemo(
+    () => tickets.filter((ticket) => ticket.status !== 'RESOLVED' && (ticket.priority === 'HIGH' || ticket.priority === 'CRITICAL')).length,
+    [tickets],
+  )
+  const eventAttention = useMemo(() => {
+    let conflictCount = 0
+    let pendingEventApprovalCount = 0
+
+    for (const project of upcomingProjects) {
+      const metadata = project.metadata as { conflictReport?: { conflicts?: unknown[] } } | null
+      const conflicts = metadata?.conflictReport?.conflicts
+      if (Array.isArray(conflicts)) conflictCount += conflicts.length
+
+      const gates = project.approvalGates
+      if (!gates) continue
+      if (Object.values(gates).some((gate) => gate?.status === 'PENDING')) {
+        pendingEventApprovalCount += 1
+      }
+    }
+
+    return { conflictCount, pendingEventApprovalCount }
+  }, [upcomingProjects])
 
   const handleFacilityReject = async (projectId: string, reason: string) => {
     setFacilityProcessingIds((prev) => new Set(prev).add(projectId))
@@ -521,7 +587,7 @@ export default function DashboardPage() {
     setIsCreateDropdownOpen(false)
     setPendingCreateMode(mode)
     setYearPlanPromptOpen(true)
-  }, [router])
+  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -614,14 +680,14 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:h-full">
       {/* Greeting Section with Create Dropdown Button — pt/pb for hover glow breathing room */}
       <motion.div
-        className="mb-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
+        className="mb-4 sm:mb-6 pt-3 sm:pt-6 pb-1 sm:pb-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 flex-shrink-0 overflow-visible"
         initial="hidden"
         animate="visible"
         variants={staggerContainer(0.08, 0.05)}
       >
         <motion.div variants={fadeInUp}>
-          <p className="text-slate-600 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
+          <p className="text-slate-600 text-sm sm:text-base">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-slate-900">
             {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
           </h1>
           {isMultiSchool && (
@@ -630,7 +696,7 @@ export default function DashboardPage() {
             </p>
           )}
         </motion.div>
-        <motion.div variants={fadeInUp} className="flex items-center gap-3 self-start sm:self-end overflow-visible">
+        <motion.div variants={fadeInUp} className="flex items-center gap-2 sm:gap-3 self-start sm:self-end overflow-visible">
           {/* My Tasks button — matches bell style */}
           <motion.button
             onClick={() => setIsTasksDrawerOpen(true)}
@@ -679,6 +745,34 @@ export default function DashboardPage() {
       {canApproveFacilities && pendingFacilityRequests && pendingFacilityRequests.length > 0 && (
         <FacilityRequestsBanner requests={pendingFacilityRequests} />
       )}
+
+      <TodayCommandCenter
+        mode={user.dashboardMode}
+        firstName={user.name?.split(' ')[0] || 'there'}
+        schoolName={isMultiSchool ? (activeSchool?.name ?? 'All Schools') : undefined}
+        openTaskCount={openTaskCount}
+        unreadCount={unreadCount}
+        upcomingCount={upcomingItems.length}
+        todayEventCount={todayUpcomingCount}
+        activeTicketCount={ticketCount}
+        openTicketCount={openTicketCount}
+        inProgressTicketCount={inProgressTicketCount}
+        facilityRequestCount={facilityRequestCount}
+        avEventCount={events.length}
+        avNeedsEquipmentCount={avNeedsEquipmentCount}
+        conflictCount={eventAttention.conflictCount}
+        pendingEventApprovalCount={eventAttention.pendingEventApprovalCount}
+        overdueTaskCount={taskAttention.overdueTaskCount}
+        dueSoonTaskCount={taskAttention.dueSoonTaskCount}
+        highPriorityTicketCount={highPriorityTicketCount}
+        canApproveFacilities={canApproveFacilities}
+        isAdmin={isAdmin}
+        onOpenTasks={() => {
+          setFocusedTaskId(null)
+          setIsTasksDrawerOpen(true)
+        }}
+        onOpenLeo={() => window.dispatchEvent(new Event('open-leo-drawer'))}
+      />
 
       {/* Dashboard Panels Grid — 2/3 left (activity) + 1/3 right (focus & weather) */}
       <motion.div
@@ -966,20 +1060,18 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                <input
+                <Input
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <textarea
+                <Textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                   rows={4}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
               </div>
               <div>

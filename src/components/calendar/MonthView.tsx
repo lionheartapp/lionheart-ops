@@ -4,7 +4,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { getEventAriaLabel } from './a11y-helpers'
-import { Trophy, X, Repeat, Clock3 } from 'lucide-react'
+import { Trophy, X, Repeat, Clock3, Plus } from 'lucide-react'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
 import { useSpecialDays, SPECIAL_DAY_COLORS } from '@/lib/hooks/useAcademicCalendar'
@@ -41,6 +41,10 @@ function formatTime(dateStr: string): string {
   const ampm = h >= 12 ? 'p' : 'a'
   const hour = h % 12 || 12
   return m ? `${hour}:${m.toString().padStart(2, '0')}${ampm}` : `${hour}${ampm}`
+}
+
+function formatDayLabel(date: Date): string {
+  return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
 export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: MonthViewProps) {
@@ -190,20 +194,38 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
     e.stopPropagation()
     const btn = e.currentTarget as HTMLElement
     const rect = btn.getBoundingClientRect()
-    setPopoverPos({ top: rect.bottom + 4, left: rect.left })
+    const width = 288
+    const maxHeight = 320
+    const padding = 8
+    const left = Math.min(Math.max(padding, rect.left), window.innerWidth - width - padding)
+    const preferredTop = rect.bottom + 4
+    const top = Math.min(preferredTop, window.innerHeight - maxHeight - padding)
+    setPopoverPos({ top: Math.max(padding, top), left })
     setExpandedDay(dateKey(date))
   }, [])
 
-  // Close popover on outside click
+  const handleCreateClick = useCallback((e: React.MouseEvent, date: Date) => {
+    e.stopPropagation()
+    onDateClick(date)
+  }, [onDateClick])
+
+  // Close popover on outside click or Escape.
   useEffect(() => {
     if (!expandedDay) return
-    const handler = (e: MouseEvent) => {
+    const handleMouseDown = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setExpandedDay(null)
       }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandedDay(null)
+    }
+    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [expandedDay])
 
   return (
@@ -247,14 +269,24 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                   ref={(el) => setCellRef(date, el)}
                   role="gridcell"
                   tabIndex={isFocused ? 0 : -1}
-                  aria-label={`${date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length !== 1 ? 's' : ''}` : ''}`}
+                  aria-label={`${formatDayLabel(date)}${dayEvents.length > 0 ? `, ${dayEvents.length} event${dayEvents.length !== 1 ? 's' : ''}` : ''}`}
                   onClick={() => onDateClick(date)}
                   onKeyDown={(e) => handleGridKeyDown(e, date)}
                   onFocus={() => setFocusedDate(date)}
-                  className={`border-r border-b border-stone-100/50 last:border-r-0 p-2 cursor-pointer hover:bg-stone-50/60 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                  className={`group/day relative border-r border-b border-stone-100/50 last:border-r-0 p-2 cursor-pointer hover:bg-stone-50/60 transition-colors flex flex-col overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
                     !isCurrentMonth ? 'bg-stone-50/30' : ''
                   }`}
                 >
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={(e) => handleCreateClick(e, date)}
+                    aria-label={`Create on ${formatDayLabel(date)}`}
+                    className="absolute bottom-2 right-2 z-10 hidden h-7 w-7 items-center justify-center rounded-full border border-stone-200 bg-white/95 text-stone-500 shadow-sm opacity-0 transition-all duration-200 hover:border-slate-300 hover:bg-slate-900 hover:text-white focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 md:flex md:group-hover/day:opacity-100"
+                  >
+                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+
                   {/* Special day banner */}
                   {specialDay && (() => {
                     const sdColors = SPECIAL_DAY_COLORS[specialDay.type] || SPECIAL_DAY_COLORS.OTHER
@@ -367,6 +399,9 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                     {moreCount > 0 && (
                       <button
                         onClick={(e) => handleMoreClick(e, date)}
+                        aria-label={`Show ${moreCount} more events for ${formatDayLabel(date)}`}
+                        aria-haspopup="dialog"
+                        aria-expanded={expandedDay === dk}
                         className="w-full text-left px-2 py-0.5 text-xs font-medium text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-md transition-colors"
                       >
                         +{moreCount} more
@@ -386,6 +421,8 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
       {expandedDay && popoverPos && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
+          role="dialog"
+          aria-label="More events"
           className="fixed z-50 w-72 max-h-80 overflow-y-auto bg-white rounded-xl shadow-xl border border-stone-200 p-3 space-y-1"
           style={{ top: popoverPos.top, left: popoverPos.left }}
         >
@@ -400,9 +437,10 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
             </span>
             <button
               onClick={() => setExpandedDay(null)}
+              aria-label="Close more events"
               className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
 
