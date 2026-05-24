@@ -17,14 +17,18 @@ export default function EventsPanel({
   setIsOpen,
 }: EventsPanelProps) {
   const navLinks = [
-    { href: '/events', label: 'Events Hub', icon: Home, match: (p: string) => p === '/events' },
     { href: '/calendar', label: 'Calendar', icon: Calendar, match: (p: string) => p.startsWith('/calendar') },
+    { href: '/events', label: 'Events Hub', icon: Home, match: (p: string) => p === '/events' },
     { href: '/planning', label: 'Year Plans', icon: ScrollText, match: (p: string) => p.startsWith('/planning') },
   ]
 
   return (
     <div className="flex flex-col h-full">
       <div className="px-3 pt-10 flex-shrink-0">
+        <div className="px-3 pb-3">
+          <p className="text-[10px] font-semibold tracking-widest text-slate-500 uppercase">Calendar</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">What is coming up, what is being planned, and what needs timing.</p>
+        </div>
         <nav className="space-y-0.5" aria-label="Events navigation">
           {navLinks.map((link) => {
             const Icon = link.icon

@@ -197,7 +197,7 @@ export default function Sidebar({
   const handleEventsClick = useCallback(() => {
     if (!eventsOpen) {
       setEventsOpen(true); setSettingsOpen(false); setAthleticsOpen(false); setCalendarOpen(false); setMessagingOpen(false)
-      router.push('/events')
+      router.push('/calendar')
     } else {
       setEventsOpen(false)
     }
