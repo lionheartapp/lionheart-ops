@@ -19,7 +19,6 @@ import {
   RefreshCw,
   Maximize2,
   Minimize2,
-  Search,
 } from 'lucide-react'
 import { useCheckIn } from '@/lib/hooks/useCheckIn'
 import { useIncidents } from '@/lib/hooks/useIncidents'
@@ -29,6 +28,7 @@ import CheckInScanner from './CheckInScanner'
 import CheckInList from './CheckInList'
 import IncidentForm from './IncidentForm'
 import IncidentList from './IncidentList'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -219,17 +219,14 @@ function RosterView({ participants }: RosterViewProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 pt-4 pb-3 flex-shrink-0">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          {/* eslint-disable-next-line no-restricted-syntax -- pill-style search (rounded-full, slate-50 bg); SearchInput uses rounded-field instead */}
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search roster..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          placeholder="Search roster..."
+          size="sm"
+          className="rounded-full bg-slate-50"
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">

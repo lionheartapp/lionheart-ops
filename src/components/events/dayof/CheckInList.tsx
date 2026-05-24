@@ -8,8 +8,9 @@
  */
 
 import { useState, useMemo } from 'react'
-import { Search, QrCode, CheckCircle2, Circle, Loader2 } from 'lucide-react'
+import { QrCode, CheckCircle2, Circle, Loader2 } from 'lucide-react'
 import type { UseCheckInReturn, ParticipantStatusEntry } from '@/lib/hooks/useCheckIn'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -178,17 +179,14 @@ export default function CheckInList({ useCheckInData, onSwitchToScanner }: Check
 
       {/* ── Search ── */}
       <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          {/* eslint-disable-next-line no-restricted-syntax -- pill-style search (rounded-full, slate-50 bg); SearchInput uses rounded-field instead */}
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search participants..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          placeholder="Search participants..."
+          size="sm"
+          className="rounded-full bg-slate-50"
+        />
       </div>
 
       {/* ── Confirm undo banner ── */}

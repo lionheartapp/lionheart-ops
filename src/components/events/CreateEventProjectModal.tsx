@@ -216,10 +216,7 @@ function DateTimeBlock({
               <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">From</span>
               {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick start date'}
             </button>
-            {/* eslint-disable-next-line no-restricted-syntax -- sr-only date input is the
-                native picker target for the styled button above; <Input> would render a
-                visible field and break this UX */}
-            <input
+            <Input
               ref={startDateRef}
               type="date"
               value={form.startsAt}
@@ -242,8 +239,7 @@ function DateTimeBlock({
               <span className="text-[10px] uppercase tracking-wide text-slate-500 block mb-0.5">To</span>
               {form.endsAt ? formatDateDisplay(form.endsAt) : 'Pick end date'}
             </button>
-            {/* eslint-disable-next-line no-restricted-syntax -- sr-only native picker target */}
-            <input
+            <Input
               ref={endDateRef}
               type="date"
               value={form.endsAt}
@@ -277,8 +273,7 @@ function DateTimeBlock({
           <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
           {form.startsAt ? formatDateDisplay(form.startsAt) : 'Pick a date'}
         </button>
-        {/* eslint-disable-next-line no-restricted-syntax -- sr-only native picker target */}
-        <input
+        <Input
           ref={startDateRef}
           type="date"
           value={form.startsAt}

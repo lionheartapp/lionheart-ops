@@ -6,6 +6,9 @@ import { Lock, ShieldHalf, Trash2, ArrowLeft, ArrowRight } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import SortableList from '@/components/forms/SortableList'
 import DragHandle from '@/components/forms/DragHandle'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { getFieldTypeMeta } from '@/lib/forms/schemas'
 import type { FormPageData, FormFieldData } from './FormBuilder'
 
@@ -38,6 +41,23 @@ interface FormCanvasProps {
 function getIcon(iconName: string, className = 'w-4 h-4') {
   const Icon = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>>)[iconName]
   return Icon ? <Icon className={className} strokeWidth={1.5} /> : null
+}
+
+function SelectPreview({
+  className,
+  style,
+  label = 'Select...',
+}: {
+  className: string
+  style?: React.CSSProperties
+  label?: string
+}) {
+  return (
+    <div className={`${className} flex items-center justify-between`} style={style}>
+      <span className="truncate">{label}</span>
+      <LucideIcons.ChevronDown className="w-4 h-4 flex-shrink-0 opacity-50" />
+    </div>
+  )
 }
 
 // ─── Field preview (what the field looks like on the canvas) ─────────────
@@ -265,27 +285,19 @@ export default function FormCanvas({
               </label>
               {field.helpText && <p className={`text-xs ${textMuted} mb-1.5`}>{field.helpText}</p>}
               {(field.type === 'TEXT' || field.type === 'EMAIL' || field.type === 'PHONE' || field.type === 'URL' || field.type === 'NUMBER') && (
-                // eslint-disable-next-line no-restricted-syntax
-                <input type="text" readOnly placeholder={field.placeholder || meta.description} className={inputCls} style={inputStyle} />
+                <Input type="text" readOnly placeholder={field.placeholder || meta.description} className={inputCls} style={inputStyle} />
               )}
               {field.type === 'TEXTAREA' && (
-                // eslint-disable-next-line no-restricted-syntax
-                <textarea readOnly rows={3} placeholder={field.placeholder || ''} className={`w-full px-3.5 py-2.5 text-sm border rounded-lg resize-none ${inputText}`} style={inputStyle} />
+                <Textarea readOnly rows={3} placeholder={field.placeholder || ''} className={`w-full px-3.5 py-2.5 text-sm border rounded-lg resize-none ${inputText}`} style={inputStyle} />
               )}
               {(field.type === 'DROPDOWN' || field.type === 'RADIO' || field.type === 'MULTI_SELECT') && (
-                // eslint-disable-next-line no-restricted-syntax
-                <select disabled className={inputCls} style={inputStyle}><option>Select...</option>{field.options.map((o) => <option key={o}>{o}</option>)}</select>
+                <SelectPreview className={inputCls} style={inputStyle} />
               )}
               {field.type === 'CHECKBOX' && (
-                <label className="flex items-center gap-2.5">
-                  {/* eslint-disable-next-line no-restricted-syntax */}
-                  <input type="checkbox" disabled className="w-4 h-4 rounded" style={{ borderColor: inputBorderHex }} />
-                  <span className={`text-sm ${textSecondary}`}>Yes</span>
-                </label>
+                <Checkbox disabled label={<span className={`text-sm ${textSecondary}`}>Yes</span>} style={{ borderColor: inputBorderHex }} />
               )}
               {(field.type === 'DATE' || field.type === 'TIME') && (
-                // eslint-disable-next-line no-restricted-syntax
-                <input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={inputCls} style={inputStyle} />
+                <Input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={inputCls} style={inputStyle} />
               )}
               {field.type === 'RATING' && (
                 <div className="flex gap-1.5">{[1, 2, 3, 4, 5].map((n) => <div key={n} className="w-10 h-10 rounded-lg border flex items-center justify-center text-lg" style={{ borderColor: inputBorderHex, color: isDark ? '#94a3b8' : '#cbd5e1' }}>★</div>)}</div>
@@ -297,8 +309,7 @@ export default function FormCanvas({
                 <div className="h-24 rounded-lg border-2 border-dashed flex items-center justify-center text-xs" style={{ borderColor: inputBorderHex, backgroundColor: inputBgHex, color: isDark ? '#94a3b8' : '#94a3b8' }}>Click to sign</div>
               )}
               {(field.type === 'USER_PICKER' || field.type === 'LOCATION_PICKER' || field.type === 'ASSET_PICKER' || field.type === 'GRADE_SELECTOR' || field.type === 'SCALE') && (
-                // eslint-disable-next-line no-restricted-syntax
-                <input type="text" readOnly placeholder={meta.description} className={inputCls} style={inputStyle} />
+                <Input type="text" readOnly placeholder={meta.description} className={inputCls} style={inputStyle} />
               )}
             </div>
           )
@@ -390,12 +401,11 @@ export default function FormCanvas({
                     <div key={field.id}>
                       <label className="text-sm font-medium text-slate-700 block mb-1.5">{field.label}{field.required && <span className="text-red-400 ml-0.5">*</span>}</label>
                       {field.helpText && <p className="text-xs text-slate-400 mb-1.5">{field.helpText}</p>}
-                      {/* eslint-disable-next-line no-restricted-syntax */}
-                      {(field.type === 'TEXT' || field.type === 'EMAIL' || field.type === 'PHONE' || field.type === 'URL' || field.type === 'NUMBER' || field.type === 'USER_PICKER' || field.type === 'LOCATION_PICKER' || field.type === 'ASSET_PICKER' || field.type === 'GRADE_SELECTOR' || field.type === 'SCALE') && <input type="text" readOnly placeholder={field.placeholder || meta.description} className={cls} />}
-                      {field.type === 'TEXTAREA' && <textarea readOnly rows={3} placeholder={field.placeholder || ''} className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-lg bg-white resize-none" />}
-                      {(field.type === 'DROPDOWN' || field.type === 'RADIO' || field.type === 'MULTI_SELECT') && <select disabled className={cls}><option>Select...</option>{field.options.map((o) => <option key={o}>{o}</option>)}</select>}
-                      {field.type === 'CHECKBOX' && <label className="flex items-center gap-2.5"><input type="checkbox" disabled className="w-4 h-4 rounded border-slate-300" /><span className="text-sm text-slate-600">Yes</span></label>}
-                      {(field.type === 'DATE' || field.type === 'TIME') && <input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={cls} />}
+                      {(field.type === 'TEXT' || field.type === 'EMAIL' || field.type === 'PHONE' || field.type === 'URL' || field.type === 'NUMBER' || field.type === 'USER_PICKER' || field.type === 'LOCATION_PICKER' || field.type === 'ASSET_PICKER' || field.type === 'GRADE_SELECTOR' || field.type === 'SCALE') && <Input type="text" readOnly placeholder={field.placeholder || meta.description} className={cls} />}
+                      {field.type === 'TEXTAREA' && <Textarea readOnly rows={3} placeholder={field.placeholder || ''} className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-lg bg-white resize-none" />}
+                      {(field.type === 'DROPDOWN' || field.type === 'RADIO' || field.type === 'MULTI_SELECT') && <SelectPreview className={cls} />}
+                      {field.type === 'CHECKBOX' && <Checkbox disabled label={<span className="text-sm text-slate-600">Yes</span>} />}
+                      {(field.type === 'DATE' || field.type === 'TIME') && <Input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={cls} />}
                       {field.type === 'RATING' && <div className="flex gap-1.5">{[1,2,3,4,5].map((n) => <div key={n} className="w-10 h-10 rounded-lg border border-slate-200 text-slate-300 flex items-center justify-center text-lg">★</div>)}</div>}
                       {field.type === 'FILE' && <div className="h-20 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Drag and drop files here</div>}
                       {field.type === 'SIGNATURE' && <div className="h-24 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Click to sign</div>}
@@ -536,7 +546,7 @@ export default function FormCanvas({
           {/* Preview banner */}
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
             <p className="text-xs text-amber-800">
-              This is a preview — inputs and buttons won't work here.
+              This is a preview. Inputs and buttons won&apos;t work here.
             </p>
             {formId && (
               <a
@@ -610,13 +620,12 @@ export default function FormCanvas({
           {previewMode ? (
             <h2 className="text-lg font-bold text-slate-900">{activePage.title}</h2>
           ) : (
-            /* eslint-disable-next-line no-restricted-syntax -- inline editable page title */
-            <input
+            <Input
               type="text"
               value={activePage.title}
               onChange={(e) => onRenamePageTitle(activePage.id, e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-              className="text-lg font-bold text-slate-900 bg-transparent border-none outline-none ring-0 px-0 py-0.5 w-full"
+              className="!h-auto !w-full !border-0 !bg-transparent !px-0 !py-0.5 text-lg font-bold text-slate-900 !outline-none !ring-0"
               style={{ borderRadius: 0, boxShadow: 'none' }}
               placeholder="Page title"
             />
@@ -665,30 +674,19 @@ export default function FormCanvas({
                   {field.helpText && <p className="text-xs text-slate-400 mb-1.5">{field.helpText}</p>}
 
                   {(field.type === 'TEXT' || field.type === 'EMAIL' || field.type === 'PHONE' || field.type === 'URL' || field.type === 'NUMBER') && (
-                    // eslint-disable-next-line no-restricted-syntax -- preview render
-                    <input type="text" readOnly placeholder={field.placeholder || meta.description} className={inputCls} />
+                    <Input type="text" readOnly placeholder={field.placeholder || meta.description} className={inputCls} />
                   )}
                   {field.type === 'TEXTAREA' && (
-                    // eslint-disable-next-line no-restricted-syntax -- preview render
-                    <textarea readOnly rows={3} placeholder={field.placeholder || 'Enter text...'} className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-lg bg-white resize-none" />
+                    <Textarea readOnly rows={3} placeholder={field.placeholder || 'Enter text...'} className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-lg bg-white resize-none" />
                   )}
                   {(field.type === 'DROPDOWN' || field.type === 'RADIO' || field.type === 'MULTI_SELECT') && (
-                    // eslint-disable-next-line no-restricted-syntax -- preview render
-                    <select disabled className={inputCls}>
-                      <option>Select...</option>
-                      {field.options.map((opt) => <option key={opt}>{opt}</option>)}
-                    </select>
+                    <SelectPreview className={inputCls} />
                   )}
                   {field.type === 'CHECKBOX' && (
-                    <label className="flex items-center gap-2.5">
-                      {/* eslint-disable-next-line no-restricted-syntax -- preview */}
-                      <input type="checkbox" disabled className="w-4 h-4 rounded border-slate-300" />
-                      <span className="text-sm text-slate-600">Yes</span>
-                    </label>
+                    <Checkbox disabled label={<span className="text-sm text-slate-600">Yes</span>} />
                   )}
                   {(field.type === 'DATE' || field.type === 'TIME') && (
-                    // eslint-disable-next-line no-restricted-syntax -- preview
-                    <input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={inputCls} />
+                    <Input type={field.type === 'DATE' ? 'date' : 'time'} readOnly className={inputCls} />
                   )}
                   {field.type === 'RATING' && (
                     <div className="flex gap-1.5">
@@ -715,8 +713,7 @@ export default function FormCanvas({
                     </div>
                   )}
                   {(field.type === 'USER_PICKER' || field.type === 'LOCATION_PICKER' || field.type === 'ASSET_PICKER' || field.type === 'GRADE_SELECTOR') && (
-                    // eslint-disable-next-line no-restricted-syntax -- preview
-                    <input type="text" readOnly placeholder={meta.description} className={inputCls} />
+                    <Input type="text" readOnly placeholder={meta.description} className={inputCls} />
                   )}
                 </div>
               )

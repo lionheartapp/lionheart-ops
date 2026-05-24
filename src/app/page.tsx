@@ -13,15 +13,19 @@
  */
 
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
-import { animate, motion, MotionConfig, useInView, useReducedMotion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { animate, AnimatePresence, motion, MotionConfig, useInView, useReducedMotion } from 'framer-motion'
 import {
   ArrowRight,
   Calendar,
   Check,
+  CheckSquare,
   ChevronDown,
-  GraduationCap,
+  CreditCard,
+  FileText,
+  HardDrive,
   Headphones,
+  MessageCircle,
   MessageSquare,
   MonitorSmartphone,
   ShieldCheck,
@@ -84,6 +88,7 @@ export default function Landing() {
       <div className="min-h-screen" style={{ backgroundColor: '#ffffff', color: TEXT_PRIMARY }}>
         <Nav />
         <Hero />
+        <SchoolLifeMosaic />
         <TrustBar />
         <WhatItReplaces />
         <ModulesGrid />
@@ -213,9 +218,9 @@ function Hero() {
             color: TEXT_SECONDARY,
           }}
         >
-          Events, maintenance, IT help desk, athletics, and the AI that knows how
-          your school actually runs. One platform, one source of truth, built for
-          every classroom, hallway, and practice field.
+          Events, maintenance, IT, messaging, forms, registration — plus the AI
+          that knows how your school actually runs. One platform, one source of
+          truth, built for every classroom, hallway, and practice field.
         </motion.p>
 
         {/* CTAs — visible on first paint */}
@@ -257,6 +262,8 @@ function Hero() {
           No credit card required · Cancel anytime · Set up in minutes
         </motion.p>
 
+        <HeroProductMotion />
+
         {/* Dashboard mockup */}
         <motion.div
           initial={{ opacity: 0, y: 32 }}
@@ -268,6 +275,879 @@ function Hero() {
         </motion.div>
       </div>
     </section>
+  )
+}
+
+function HeroProductMotion() {
+  const reducedMotion = useReducedMotion()
+  const [roleIndex, setRoleIndex] = useState(0)
+
+  type Widget =
+    | { kind: 'alert'; icon: typeof Calendar; title: string; detail: string; color: string; metric: string; span?: string }
+    | { kind: 'checklist'; title: string; items: string[]; color: string; span?: string }
+    | { kind: 'score'; title: string; home: string; away: string; time: string; color: string; span?: string }
+    | { kind: 'message'; title: string; from: string; body: string; color: string; span?: string }
+    | { kind: 'conversation'; title: string; color: string; messages: Array<{ from: string; body: string; align?: 'left' | 'right' }>; span?: string }
+    | { kind: 'chart'; title: string; value: string; bars: number[]; color: string; span?: string }
+
+  const roleStacks: {
+    role: string
+    title: string
+    badge: string
+    widgets: Widget[]
+  }[] = [
+    {
+      role: 'Office',
+      title: 'Awards night is coming together',
+      badge: '3 signals',
+      widgets: [
+        {
+          kind: 'alert',
+          icon: Calendar,
+          title: 'Calendar conflict',
+          detail: 'Gym overlaps with varsity practice.',
+          color: '#6366f1',
+          metric: '6:00p',
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'checklist',
+          title: 'Approval path',
+          items: ['Principal approved', 'Facilities routed', 'Family note ready'],
+          color: '#10b981',
+        },
+        {
+          kind: 'message',
+          title: 'Leo draft',
+          from: 'Leo',
+          body: 'Move practice setup to Gym B and notify coaches?',
+          color: '#8b5cf6',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+    {
+      role: 'IT Team',
+      title: 'Device patterns are visible',
+      badge: '27 devices',
+      widgets: [
+        {
+          kind: 'chart',
+          title: 'Cart B health',
+          value: '68%',
+          bars: [58, 44, 72, 36, 68],
+          color: '#2563eb',
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'alert',
+          icon: HardDrive,
+          title: 'Asset records',
+          detail: 'Serials and rooms attached.',
+          color: '#7c3aed',
+          metric: '27',
+        },
+        {
+          kind: 'checklist',
+          title: 'Ticket routing',
+          items: ['Fleet ticket open', 'Loaners assigned', 'Teachers notified'],
+          color: '#10b981',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+    {
+      role: 'Maintenance',
+      title: 'Facilities sees the next fix',
+      badge: 'urgent',
+      widgets: [
+        {
+          kind: 'alert',
+          icon: Wrench,
+          title: 'Leak reported',
+          detail: 'Near Room 214 hallway.',
+          color: '#10b981',
+          metric: 'P1',
+        },
+        {
+          kind: 'checklist',
+          title: 'Safety steps',
+          items: ['Shutoff note found', 'Custodial routed', 'Room impact checked'],
+          color: '#ef4444',
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'message',
+          title: 'Status update',
+          from: 'Facilities',
+          body: 'Team assigned. Office gets an automatic follow-up.',
+          color: '#f59e0b',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+    {
+      role: 'Messaging',
+      title: 'The right people hear it fast',
+      badge: '3 replies',
+      widgets: [
+        {
+          kind: 'conversation',
+          title: 'Awards night thread',
+          color: '#0ea5e9',
+          messages: [
+            { from: 'Office', body: 'Gym is double-booked at 6:00.' },
+            { from: 'Coach Diaz', body: 'We can move practice to Gym B.', align: 'right' },
+            { from: 'Leo', body: 'I drafted the family update and facilities note.', align: 'right' },
+          ],
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'alert',
+          icon: MessageSquare,
+          title: 'Audience matched',
+          detail: 'Office, coaches, and facilities are linked.',
+          color: '#0ea5e9',
+          metric: '3',
+        },
+        {
+          kind: 'checklist',
+          title: 'Message status',
+          items: ['Staff thread open', 'Family note drafted', 'Read receipts live'],
+          color: '#10b981',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+    {
+      role: 'Athletics',
+      title: 'Game day details line up',
+      badge: 'tonight',
+      widgets: [
+        {
+          kind: 'score',
+          title: 'Varsity game',
+          home: 'LHS',
+          away: 'East',
+          time: '7:00p',
+          color: '#f59e0b',
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'checklist',
+          title: 'Game ops',
+          items: ['Officials confirmed', 'Gym setup routed', 'Scorer table open'],
+          color: '#6366f1',
+        },
+        {
+          kind: 'message',
+          title: 'Coach note',
+          from: 'Athletics',
+          body: 'Family update drafted with arrival time and ticket link.',
+          color: '#10b981',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+    {
+      role: 'Teachers',
+      title: 'Field trip forms are almost done',
+      badge: '5 missing',
+      widgets: [
+        {
+          kind: 'alert',
+          icon: FileText,
+          title: 'Missing forms',
+          detail: 'Guardian signatures due today.',
+          color: '#6366f1',
+          metric: '5',
+        },
+        {
+          kind: 'message',
+          title: 'Family reminder',
+          from: 'Ms. Carter',
+          body: 'Reminder text is ready with the form link.',
+          color: '#10b981',
+          span: 'sm:col-span-2',
+        },
+        {
+          kind: 'checklist',
+          title: 'Trip packet',
+          items: ['Roster ready', 'Medication note flagged', 'Office list prepared'],
+          color: '#f59e0b',
+          span: 'sm:col-span-2',
+        },
+      ],
+    },
+  ]
+  const activeRole = roleStacks[roleIndex]
+
+  useEffect(() => {
+    if (reducedMotion) return
+    const interval = window.setInterval(() => {
+      setRoleIndex((current) => (current + 1) % roleStacks.length)
+    }, 5400)
+
+    return () => window.clearInterval(interval)
+  }, [reducedMotion, roleStacks.length])
+
+  function renderWidget(widget: Widget) {
+    if (widget.kind === 'alert') {
+      const Icon = widget.icon
+      return (
+        <>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white" style={{ backgroundColor: widget.color }}>
+                <Icon className="h-4.5 w-4.5" strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+                <div className="mt-0.5 text-[12px] leading-5" style={{ color: TEXT_SECONDARY }}>{widget.detail}</div>
+              </div>
+            </div>
+            <span className="rounded-full px-2 py-1 text-[11px] font-semibold" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+              {widget.metric}
+            </span>
+          </div>
+        </>
+      )
+    }
+
+    if (widget.kind === 'checklist') {
+      return (
+        <>
+          <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+          <div className="mt-3 space-y-2">
+            {widget.items.map((item) => (
+              <div key={item} className="flex items-center gap-2 text-[12px]" style={{ color: TEXT_SECONDARY }}>
+                <Check className="h-3.5 w-3.5 shrink-0" style={{ color: widget.color }} strokeWidth={3} />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    }
+
+    if (widget.kind === 'score') {
+      return (
+        <>
+          <div className="flex items-center justify-between">
+            <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+            <span className="rounded-full px-2 py-1 text-[11px] font-semibold text-white" style={{ backgroundColor: widget.color }}>
+              {widget.time}
+            </span>
+          </div>
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+            <div className="rounded-xl py-3 text-[15px] font-bold" style={{ backgroundColor: SURFACE_ALT, color: TEXT_PRIMARY }}>{widget.home}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: TEXT_MUTED }}>vs</div>
+            <div className="rounded-xl py-3 text-[15px] font-bold" style={{ backgroundColor: SURFACE_ALT, color: TEXT_PRIMARY }}>{widget.away}</div>
+          </div>
+        </>
+      )
+    }
+
+    if (widget.kind === 'message') {
+      return (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: widget.color }} />
+            <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+          </div>
+          <p className="mt-2 text-[12px] leading-5" style={{ color: TEXT_SECONDARY }}>
+            <span className="font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.from}:</span> {widget.body}
+          </p>
+        </>
+      )
+    }
+
+    if (widget.kind === 'conversation') {
+      return (
+        <>
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl text-white" style={{ backgroundColor: widget.color }}>
+              <MessageCircle className="h-4 w-4" strokeWidth={2.5} />
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+              <div className="text-[11px] font-semibold" style={{ color: TEXT_MUTED }}>Live school-day thread</div>
+            </div>
+          </div>
+          <div className="mt-2.5 space-y-1.5">
+            {widget.messages.map((message, index) => {
+              const isLeoResponse = index === widget.messages.length - 1
+              const messageDelay = 1.05 + index * 0.42
+              const bubbleStyle = {
+                backgroundColor: message.align === 'right' ? widget.color : SURFACE_ALT,
+                color: message.align === 'right' ? '#ffffff' : TEXT_SECONDARY,
+                border: message.align === 'right' ? '1px solid rgba(255,255,255,0.2)' : `1px solid ${BORDER_SOFT}`,
+              }
+
+              return (
+                <div key={`${message.from}-${message.body}`} className={`flex ${message.align === 'right' ? 'justify-end' : 'justify-start'}`}>
+                  <div className="relative max-w-[88%]">
+                    {isLeoResponse && !reducedMotion && (
+                      <motion.div
+                        className="absolute right-0 top-0 flex h-full items-center gap-1 rounded-xl px-3"
+                        style={bubbleStyle}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 1, 1, 0] }}
+                        transition={{ duration: 1.08, delay: messageDelay, times: [0, 0.18, 0.78, 1], ease: EASE }}
+                      >
+                        {[0, 1, 2].map((dot) => (
+                          <motion.span
+                            key={dot}
+                            className="h-1.5 w-1.5 rounded-full bg-white/80"
+                            animate={{ opacity: [0.35, 1, 0.35] }}
+                            transition={{ duration: 0.7, delay: dot * 0.12, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                    <motion.div
+                      className="rounded-xl px-2.5 py-1.5"
+                      style={bubbleStyle}
+                      initial={reducedMotion ? false : { opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
+                      animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
+                      transition={{ duration: 0.32, delay: isLeoResponse ? messageDelay + 1.02 : messageDelay, ease: EASE }}
+                    >
+                      <div className="text-[9px] font-semibold uppercase tracking-[0.12em]" style={{ color: message.align === 'right' ? 'rgba(255,255,255,0.72)' : TEXT_MUTED }}>
+                        {message.from}
+                      </div>
+                      <div className="mt-0.5 text-[11px] leading-4">{message.body}</div>
+                    </motion.div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )
+    }
+
+    return (
+      <>
+        <div className="flex items-center justify-between">
+          <div className="text-[13px] font-semibold" style={{ color: TEXT_PRIMARY }}>{widget.title}</div>
+          <div className="text-[18px] font-bold" style={{ color: widget.color }}>{widget.value}</div>
+        </div>
+        <div className="mt-4 flex h-16 items-end gap-1.5">
+          {widget.bars.map((height, index) => (
+            <div key={index} className="flex-1 rounded-t-md" style={{ height: `${height}%`, backgroundColor: widget.color, opacity: 0.28 + index * 0.1 }} />
+          ))}
+        </div>
+      </>
+    )
+  }
+
+  function ScrambleBadge({ value }: { value: string }) {
+    const [displayValue, setDisplayValue] = useState(value)
+
+    useEffect(() => {
+      if (reducedMotion) {
+        setDisplayValue(value)
+        return
+      }
+
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      let frame = 0
+      const maxFrames = 14
+      const interval = window.setInterval(() => {
+        frame += 1
+        const progress = frame / maxFrames
+        const nextValue = value
+          .split('')
+          .map((char, index) => {
+            if (char === ' ') return ' '
+            if (index / value.length < progress) return char
+            return alphabet[Math.floor(Math.random() * alphabet.length)]
+          })
+          .join('')
+
+        setDisplayValue(nextValue)
+
+        if (frame >= maxFrames) {
+          window.clearInterval(interval)
+          setDisplayValue(value)
+        }
+      }, 28)
+
+      return () => window.clearInterval(interval)
+    }, [value])
+
+    return (
+      <motion.span
+        layout
+        className="ml-auto inline-flex justify-end rounded-full px-2.5 py-1 text-right text-[11px] font-semibold tabular-nums"
+        style={{
+          backgroundColor: '#fef3c7',
+          color: '#92400e',
+          whiteSpace: 'nowrap',
+        }}
+        transition={{ layout: { duration: 0.28, ease: EASE } }}
+      >
+        {displayValue}
+      </motion.span>
+    )
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, delay: 0.3, ease: EASE }}
+      className="mt-14 grid items-center gap-8 overflow-hidden rounded-2xl p-4 sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6"
+      style={{
+        backgroundColor: '#101010',
+        border: '1px solid rgba(15,15,15,0.08)',
+        boxShadow: CARD_SHADOW,
+      }}
+    >
+      <div className="px-2 py-4 sm:px-5 lg:py-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55">
+          Role-aware school-day motion
+        </p>
+        <h2
+          className="mt-4 max-w-[520px] font-semibold text-white"
+          style={{
+            fontSize: 'clamp(28px, 4vw, 48px)',
+            lineHeight: '1.02',
+            letterSpacing: 0,
+          }}
+        >
+          One school day. A different view for every team.
+        </h2>
+        <p className="mt-5 max-w-[520px] text-[15px] leading-6 text-white/70 sm:text-[16px]">
+          Office, IT, facilities, athletics, teachers, and messaging all stay
+          connected to the same day. Lionheart changes the workspace around the
+          role, so every team sees what needs attention next.
+        </p>
+
+      </div>
+
+      <div
+        className="relative h-[620px] overflow-hidden rounded-2xl p-4 sm:h-[430px] sm:p-5"
+        style={{
+          backgroundColor: '#f7f6f4',
+          border: '1px solid rgba(255,255,255,0.12)',
+        }}
+      >
+        <div
+          className="mb-4 flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{ backgroundColor: '#ffffff', border: `1px solid ${BORDER_SOFT}` }}
+        >
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#ff5f57' }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#febc2e' }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#28c840' }} />
+          <span className="ml-auto text-[11px] font-semibold" style={{ color: TEXT_MUTED }}>
+            lincoln-high.lionheartapp.com
+          </span>
+        </div>
+
+        <div
+          className="relative h-[560px] overflow-visible rounded-t-2xl rounded-b-none p-4 sm:h-[370px]"
+          style={{ backgroundColor: '#ffffff', border: `1px solid ${BORDER}` }}
+        >
+          <div className="mb-4 flex min-h-[72px] items-start justify-between gap-4 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeRole.role}-heading`}
+                initial={{ opacity: 0, y: 36, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -34, filter: 'blur(8px)' }}
+                transition={{ duration: 0.5, ease: EASE }}
+              >
+                <motion.p
+                  initial={{ clipPath: 'inset(0 100% 0 0)' }}
+                  animate={{ clipPath: 'inset(0 0% 0 0)' }}
+                  transition={{ duration: 0.5, delay: 0.08, ease: EASE }}
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                  style={{ color: TEXT_MUTED }}
+                >
+                  {activeRole.role}
+                </motion.p>
+                <motion.h3
+                  initial={{ y: 12 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.44, delay: 0.05, ease: EASE }}
+                  className="mt-1 text-[20px] font-semibold"
+                  style={{ color: TEXT_PRIMARY, letterSpacing: 0 }}
+                >
+                  {activeRole.title}
+                </motion.h3>
+              </motion.div>
+            </AnimatePresence>
+            <ScrambleBadge value={activeRole.badge} />
+          </div>
+
+          <div className="relative h-[410px] overflow-visible sm:h-[220px]" style={{ perspective: '1600px' }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeRole.role}
+                className="absolute inset-0 grid grid-cols-1 gap-3 sm:grid-cols-3"
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                variants={{
+                  hidden: {
+                    opacity: 1,
+                    x: 0,
+                    y: 360,
+                    scale: 1,
+                    rotateX: 0,
+                    rotateY: 0,
+                    rotateZ: 0,
+                    z: 0,
+                    zIndex: 1,
+                    filter: 'none',
+                  },
+                  show: {
+                    opacity: 1,
+                    x: [0, 0, 0],
+                    y: [0, 0, 0],
+                    scale: [1, 1, 1],
+                    rotateX: [0, 0, 0],
+                    rotateY: [0, 0, 0],
+                    rotateZ: [0, 0, 0],
+                    z: 0,
+                    zIndex: 1,
+                    filter: 'none',
+                    transition: {
+                      duration: 1.05,
+                      ease: [0.45, 0, 0.2, 1],
+                      times: [0, 0.58, 1],
+                      staggerChildren: 0.28,
+                      delayChildren: 0.12,
+                    },
+                  },
+                  exit: {
+                    opacity: 1,
+                    x: [0, 0, 760],
+                    y: [0, 0, 0],
+                    scale: [1, 1, 1],
+                    rotateX: [0, 0, 0],
+                    rotateY: [0, 0, 0],
+                    rotateZ: [0, 0, 0],
+                    z: 0,
+                    zIndex: 1,
+                    filter: 'none',
+                    transition: {
+                      duration: 1.2,
+                      ease: [0.45, 0, 0.2, 1],
+                      times: [0, 0.42, 1],
+                    },
+                  },
+                }}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+              {activeRole.widgets.map((widget, index) => {
+                const exitRippleDelay = index === 1 ? 0 : index === 2 ? 0.08 : 0.16
+
+                return (
+                  <motion.div
+                    key={`${activeRole.role}-${widget.title}`}
+                    variants={{
+                      hidden: {
+                        opacity: 1,
+                        scale: 1,
+                        x: 0,
+                        y: 240 + index * 20,
+                        rotateX: 0,
+                        rotateY: 0,
+                        rotateZ: 0,
+                        z: 0,
+                        zIndex: 1,
+                        boxShadow: '0 0 0 rgba(15,15,15,0)',
+                      },
+                      show: {
+                        opacity: 1,
+                        scale: [1, 1, 1],
+                        x: [0, 0, 0],
+                        y: [240 + index * 20, 0, 0],
+                        rotateX: [0, 0, 0],
+                        rotateY: [0, 0, 0],
+                        rotateZ: [0, 0, 0],
+                        z: 0,
+                        zIndex: 1,
+                        boxShadow: '0 0 0 rgba(15,15,15,0)',
+                        transition: {
+                          duration: 1,
+                          ease: [0.45, 0, 0.2, 1],
+                          times: [0, 0.58, 1],
+                          delay: index * 0.05,
+                        },
+                      },
+                      exit: {
+                        opacity: 1,
+                        scale: [1, 1, 1],
+                        x: [0, 0, 690 + index * 24],
+                        y: [0, 0, 0],
+                        rotateX: [0, 0, 0],
+                        rotateY: [0, 0, 0],
+                        rotateZ: [0, 0, 0],
+                        z: [0, 250, 250],
+                        zIndex: [1, 30 + index, 30 + index],
+                        boxShadow: '0 52px 86px rgba(15,15,15,0.24)',
+                        transition: {
+                          duration: 1,
+                          ease: [0.45, 0, 0.2, 1],
+                          times: [0, 0.45, 1],
+                          delay: exitRippleDelay,
+                        },
+                      },
+                    }}
+                    className={`${widget.span ?? ''} rounded-2xl p-3`}
+                    style={{
+                      backgroundColor: '#fbfbfa',
+                      border: `1px solid ${BORDER_SOFT}`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                  >
+                    {renderWidget(widget)}
+                  </motion.div>
+                )
+              })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2" aria-label="Role preview progress">
+          {roleStacks.map((role, index) => (
+            <span
+              key={role.role}
+              className="h-1.5 flex-1 rounded-full transition-colors duration-200"
+              style={{
+                backgroundColor: index === roleIndex ? '#0f0f0f' : 'rgba(15,15,15,0.12)',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+type SchoolLifePhoto = {
+  id: string
+  src: string
+  alt: string
+  label: string
+  audience: string
+  problem: string
+  detailTitle: string
+  detail: string
+  signals: string[]
+}
+
+const schoolLifePhotos: SchoolLifePhoto[] = [
+  {
+    id: 'teacher-support',
+    src: 'https://images.pexels.com/photos/8617967/pexels-photo-8617967.jpeg?auto=compress&cs=tinysrgb&w=1400',
+    alt: 'A teacher helping students at desks in a bright classroom.',
+    label: 'Teachers',
+    audience: 'Classroom staff',
+    problem: 'Room needs, forms, messages, and schedule changes should not live in five different places.',
+    detailTitle: 'Teachers should not have to chase five systems.',
+    detail: 'Lionheart gives staff a single place for room needs, event requests, forms, messages, approvals, and follow-up status.',
+    signals: ['Room requests', 'Student forms', 'Staff messages'],
+  },
+  {
+    id: 'front-office',
+    src: 'https://images.pexels.com/photos/34526414/pexels-photo-34526414.jpeg?auto=compress&cs=tinysrgb&w=1000',
+    alt: 'A teacher leading a class discussion in a familiar high school classroom.',
+    label: 'Office',
+    audience: 'Front office',
+    problem: 'Daily questions need clear ownership, not another email thread.',
+    detailTitle: 'The office gets fewer mystery threads.',
+    detail: 'Every request can land with the right owner, campus, room, priority, and timeline instead of disappearing into email.',
+    signals: ['Approvals', 'Owner routing', 'Status updates'],
+  },
+  {
+    id: 'athletics-staff',
+    src: 'https://images.pexels.com/photos/9935450/pexels-photo-9935450.jpeg?auto=compress&cs=tinysrgb&w=1000',
+    alt: 'High school football players in helmets competing on a field with stadium lights.',
+    label: 'Athletics',
+    audience: 'Athletics staff',
+    problem: 'Game day needs coaches, buses, venues, families, and facilities moving from the same schedule.',
+    detailTitle: 'Game day has too many moving parts for scattered tools.',
+    detail: 'Schedules, rosters, buses, venues, scores, and parent-facing updates stay connected to the same school calendar.',
+    signals: ['Team schedules', 'Game-day tasks', 'Public updates'],
+  },
+  {
+    id: 'arts-activities',
+    src: 'https://images.pexels.com/photos/8382377/pexels-photo-8382377.jpeg?auto=compress&cs=tinysrgb&w=1000',
+    alt: 'Children painting on easels during an art class.',
+    label: 'Activities',
+    audience: 'Arts and activities',
+    problem: 'Concerts, clubs, trips, and showcases all need approvals, rooms, forms, and equipment.',
+    detailTitle: 'Activities need the same operational care as academics.',
+    detail: 'Lionheart keeps rooms, equipment, forms, approvals, and day-of details attached to the event.',
+    signals: ['Event approvals', 'Equipment needs', 'Permission forms'],
+  },
+  {
+    id: 'campus-operations',
+    src: 'https://images.pexels.com/photos/33089236/pexels-photo-33089236.jpeg?auto=compress&cs=tinysrgb&w=1000',
+    alt: 'An American high school hallway with rows of lockers and warm overhead lights.',
+    label: 'Operations',
+    audience: 'Campus operations',
+    problem: 'Maintenance, IT, A/V, and admin teams need the same view of what is happening today.',
+    detailTitle: 'The hallway is where operations become real.',
+    detail: 'Tickets, assets, room schedules, staff messages, and urgent updates all connect back to the same day-of picture.',
+    signals: ['Work orders', 'IT tickets', 'Live calendar'],
+  },
+]
+
+function SchoolLifeMosaic() {
+  const [selectedId, setSelectedId] = useState(schoolLifePhotos[0].id)
+  const selectedPhoto = schoolLifePhotos.find((photo) => photo.id === selectedId) ?? schoolLifePhotos[0]
+
+  return (
+    <motion.section
+      id="school-life-section"
+      className="px-6 pb-24"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
+      <div className="max-w-[1200px] mx-auto">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 items-end mb-10">
+          <div>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-4"
+              style={{ color: TEXT_SECONDARY }}
+            >
+              Built around the school day
+            </p>
+            <h2
+              className="font-semibold max-w-[620px]"
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 54px)',
+                lineHeight: '1.04',
+                letterSpacing: 0,
+                color: TEXT_PRIMARY,
+              }}
+            >
+              Built for the teachers and staff holding the school day together.
+            </h2>
+          </div>
+
+          <p
+            className="text-[17px] max-w-[560px] lg:ml-auto"
+            style={{ color: TEXT_SECONDARY, lineHeight: 1.65 }}
+          >
+            One place for room requests, approvals, staff messages, maintenance,
+            IT help, forms, and event details — so the people serving students can
+            spend less time chasing updates.
+          </p>
+        </div>
+
+        <div
+          className="grid overflow-hidden rounded-2xl lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]"
+          style={{ border: `1px solid ${BORDER}`, boxShadow: CARD_SHADOW, backgroundColor: '#ffffff' }}
+        >
+          <div className="p-4 sm:p-5 lg:p-6">
+            <div
+              className="grid grid-cols-2 gap-2 sm:grid-cols-5 lg:grid-cols-1"
+              role="group"
+              aria-label="Choose a school staff workflow"
+            >
+              {schoolLifePhotos.map((photo) => {
+                const selected = selectedId === photo.id
+                return (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    aria-pressed={selected}
+                    aria-controls="school-life-story"
+                    aria-label={`Show ${photo.audience}: ${photo.label}`}
+                    onClick={() => setSelectedId(photo.id)}
+                    className="cursor-pointer rounded-xl p-3 text-left transition-colors duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 sm:p-4"
+                    style={{
+                      backgroundColor: selected ? TEXT_PRIMARY : SURFACE_ALT,
+                      border: `1px solid ${selected ? TEXT_PRIMARY : BORDER_SOFT}`,
+                      color: selected ? '#ffffff' : TEXT_PRIMARY,
+                    }}
+                  >
+                    <div
+                      className="text-[10px] font-semibold uppercase tracking-[0.14em]"
+                      style={{ color: selected ? 'rgba(255,255,255,0.72)' : TEXT_SECONDARY }}
+                    >
+                      {photo.audience}
+                    </div>
+                    <div className="mt-1 text-[14px] font-semibold sm:text-[15px]">
+                      {photo.label}
+                    </div>
+                    <p
+                      className="mt-2 hidden text-[13px] leading-snug lg:block"
+                      style={{ color: selected ? 'rgba(255,255,255,0.72)' : TEXT_SECONDARY }}
+                    >
+                      {photo.problem}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="grid overflow-hidden border-t lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,0.8fr)] lg:border-l lg:border-t-0" style={{ borderColor: BORDER_SOFT }}>
+            <motion.div
+              key={selectedPhoto.id}
+              initial={{ opacity: 0.2, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, ease: EASE }}
+              className="relative min-h-[280px] sm:min-h-[360px] lg:min-h-[620px]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- Remote marketing photos avoid touching shared Next image config in this pass. */}
+              <img
+                src={selectedPhoto.src}
+                alt={selectedPhoto.alt}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </motion.div>
+
+            <motion.div
+              key={`${selectedPhoto.id}-copy`}
+              id="school-life-story"
+              role="region"
+              aria-live="polite"
+              aria-label={`${selectedPhoto.audience} workflow`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="flex flex-col justify-end p-6 sm:p-8"
+              style={{ backgroundColor: '#0f0f0f', color: '#ffffff' }}
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                {selectedPhoto.audience}
+              </div>
+              <h3 className="mt-3 max-w-[620px] text-[28px] font-semibold leading-[1.05] sm:text-[36px]">
+                {selectedPhoto.detailTitle}
+              </h3>
+              <p className="mt-4 max-w-[580px] text-[15px] leading-6 sm:text-[16px]" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                {selectedPhoto.detail}
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {selectedPhoto.signals.map((signal) => (
+                  <span
+                    key={signal}
+                    className="rounded-full px-3 py-1.5 text-[12px] font-semibold"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.18)', color: '#ffffff' }}
+                  >
+                    {signal}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
   )
 }
 
@@ -283,10 +1163,10 @@ function TrustBar() {
     value?: string
   }
   const stats: Stat[] = [
-    { count: 8, label: 'integrated modules' },
+    { count: 12, label: 'integrated modules' },
     { count: 30, suffix: ' days', label: 'free trial, no card' },
     { value: 'K–12', label: 'public, private, charter' },
-    { value: 'Multi-campus', label: 'single-school to district' },
+    { value: 'Multi-school', label: 'from one school to many' },
   ]
   return (
     <motion.section
@@ -338,9 +1218,11 @@ function WhatItReplaces() {
   const legacy = [
     'Airtable for room requests',
     'ClickUp for maintenance tickets',
-    'Google Sheets for athletic rosters',
-    'Email threads for event approvals',
-    'WhatsApp for A/V coordination',
+    'Slack / Teams for staff comms',
+    'SignUpGenius / Eventbrite for camps',
+    'Google Forms for permission slips',
+    'HUDL for athletic rosters',
+    'GoGuardian for Chromebook fleet',
     'Paper binders for compliance',
   ]
   return (
@@ -452,7 +1334,7 @@ function WhatItReplaces() {
               </div>
             </div>
             <ul className="space-y-2.5">
-              {['Rooms + events', 'Maintenance + PM', 'IT + devices', 'Athletics + rosters', 'A/V + coordination', 'Compliance'].map((item) => (
+              {['Rooms + events', 'Maintenance + PM', 'IT + devices', 'Messaging + channels', 'Forms + submissions', 'Registration + payments', 'Athletics + rosters', 'Compliance'].map((item) => (
                 <li
                   key={item}
                   className="flex items-center gap-3 text-[14px]"
@@ -487,12 +1369,7 @@ function ModulesGrid() {
     {
       icon: MonitorSmartphone,
       title: 'IT Help Desk',
-      description: 'Tickets, devices, Chromebook fleet management, roster sync, and student password self-service.',
-    },
-    {
-      icon: Trophy,
-      title: 'Athletics',
-      description: 'Sports, teams, rosters, schedules, scoring, and tournaments for every level from elementary to varsity.',
+      description: 'Tickets, devices, roster sync, student password self-service, and SLA tracking — built for K-12 IT.',
     },
     {
       icon: Headphones,
@@ -500,9 +1377,14 @@ function ModulesGrid() {
       description: 'Equipment requests, inventory, and day-of production coordination for events that need more than a mic.',
     },
     {
-      icon: GraduationCap,
-      title: 'Academic Calendar',
-      description: 'Define terms, breaks, and cycle days so the whole school reads from the same source.',
+      icon: FileText,
+      title: 'Forms',
+      description: 'Build permission slips, surveys, and registration forms with QR codes, conditional logic, and approval workflows.',
+    },
+    {
+      icon: CheckSquare,
+      title: 'Approvals',
+      description: 'Multi-step approval workflows per calendar, resource, or request type. Configurable, not hard-coded.',
     },
     {
       icon: ShieldCheck,
@@ -514,6 +1396,30 @@ function ModulesGrid() {
       title: 'Leo AI',
       description: 'An institutional memory that answers "who, what, when" about your school in plain English.',
       isAi: true,
+    },
+    {
+      icon: MessageCircle,
+      title: 'Messaging',
+      description: 'DMs, channels, threads, reactions, and push to mobile. Replace Slack and Teams for staff comms.',
+      isAddOn: true,
+    },
+    {
+      icon: Trophy,
+      title: 'Athletics',
+      description: 'Season planning, rosters, schedules, stats, tournaments, and public roster pages.',
+      isAddOn: true,
+    },
+    {
+      icon: CreditCard,
+      title: 'Registration + Payments',
+      description: 'Stripe-powered registration for events, camps, and programs. Magic-link parent signups, discount codes, refunds.',
+      isAddOn: true,
+    },
+    {
+      icon: HardDrive,
+      title: 'IT Fleet Manager',
+      description: 'Chromebook fleet, damage tracking, loaners, MDM, content filtering, summer mode, and eRate reporting.',
+      isAddOn: true,
     },
   ]
 
@@ -533,7 +1439,7 @@ function ModulesGrid() {
             className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-4"
             style={{ color: TEXT_MUTED }}
           >
-            Eight modules · One workspace
+            Twelve modules · One workspace
           </p>
           <h2
             className="font-semibold mx-auto max-w-[820px]"
@@ -563,6 +1469,18 @@ function ModulesGrid() {
                   boxShadow: CARD_SHADOW,
                 }}
               >
+                {m.isAddOn && (
+                  <span
+                    className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.12em]"
+                    style={{
+                      backgroundColor: 'rgba(15,15,15,0.05)',
+                      color: TEXT_MUTED,
+                      letterSpacing: '0.08em',
+                    }}
+                  >
+                    Add-on
+                  </span>
+                )}
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
                   style={
@@ -721,4 +1639,3 @@ function DeepDiveMaintenance() {
     </motion.section>
   )
 }
-

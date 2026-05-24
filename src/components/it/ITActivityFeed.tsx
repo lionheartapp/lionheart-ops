@@ -6,6 +6,8 @@ import { queryOptions, queryKeys } from '@/lib/queries'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { StatusBadge } from './ITStatusBadge'
 import { Send, Lock, MessageSquare, ArrowRight, UserPlus } from 'lucide-react'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
 import { formatDateTimeWithTz } from '@/lib/utils/date-format'
 
 interface Activity {
@@ -154,7 +156,7 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
       {/* Comment form */}
       <div className="border-t border-slate-200/50 pt-3 mt-3">
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -165,7 +167,8 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
               }
             }}
             placeholder={isInternal ? 'Add internal note...' : 'Add a comment...'}
-            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+            size="sm"
+            className="flex-1 text-sm focus:ring-blue-400/40 focus:border-blue-300"
           />
           <button
             onClick={() => postComment.mutate()}
@@ -177,11 +180,9 @@ export default function ITActivityFeed({ ticketId, isPrivileged }: ITActivityFee
         </div>
         {isPrivileged && (
           <label className="flex items-center gap-2 mt-2 cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={isInternal}
               onChange={(e) => setIsInternal(e.target.checked)}
-              className="rounded border-slate-300 text-amber-500 focus:ring-amber-400/40"
             />
             <span className="text-xs text-slate-500 flex items-center gap-1">
               <Lock className="w-3 h-3" />

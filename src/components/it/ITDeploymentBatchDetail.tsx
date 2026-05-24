@@ -6,13 +6,16 @@ import { queryOptions, queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import {
-  ArrowLeft, Play, CheckCircle2, XCircle, Ban, Search,
+  ArrowLeft, Play, CheckCircle2, XCircle, Ban,
   Users, Truck, Package, Loader2, RefreshCw, FileWarning,
 } from 'lucide-react'
 import type { BatchDetail, BatchItem, BatchProgress, StudentSearchResult } from './deployment/deployment-types'
 import { CONDITION_OPTIONS } from './deployment/deployment-types'
 import { StatusBadge, ItemStatusBadge, ConditionBadge } from './deployment/DeploymentBadges'
 import { BatchDetailSkeleton } from './deployment/BatchDetailSkeleton'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
 
 // ─── Props ─────────────────────────────────────────────────────────────────
 
@@ -203,20 +206,12 @@ export default function ITDeploymentBatchDetail({
     }
   }, [defaultFees])
 
-  // ─── Render ───────────────────────────────────────────────────────────
-
-  if (isLoading || !batch) return <BatchDetailSkeleton />
-
-  const isDeployment = batch.batchType === 'DEPLOYMENT'
-  const isDraft = batch.status === 'DRAFT'
-  const isInProgress = batch.status === 'IN_PROGRESS'
-  const isActive = isDraft || isInProgress
-
   // Filter items by search
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return batch.items
+    const items = batch?.items ?? []
+    if (!searchQuery.trim()) return items
     const q = searchQuery.toLowerCase()
-    return batch.items.filter((item) => {
+    return items.filter((item) => {
       const assetTag = item.device?.assetTag?.toLowerCase() || ''
       const make = item.device?.make?.toLowerCase() || ''
       const model = item.device?.model?.toLowerCase() || ''
@@ -225,7 +220,16 @@ export default function ITDeploymentBatchDetail({
         : ''
       return assetTag.includes(q) || make.includes(q) || model.includes(q) || studentName.includes(q)
     })
-  }, [batch.items, searchQuery])
+  }, [batch?.items, searchQuery])
+
+  // ─── Render ───────────────────────────────────────────────────────────
+
+  if (isLoading || !batch) return <BatchDetailSkeleton />
+
+  const isDeployment = batch.batchType === 'DEPLOYMENT'
+  const isDraft = batch.status === 'DRAFT'
+  const isInProgress = batch.status === 'IN_PROGRESS'
+  const isActive = isDraft || isInProgress
 
   const totalItems = progress?.total ?? batch.items.length
   const processedItems = progress?.processed ?? batch.items.filter((i) => i.status === 'PROCESSED').length
@@ -373,14 +377,13 @@ export default function ITDeploymentBatchDetail({
 
       {/* Search */}
       {batch.items.length > 0 && (
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
+        <div className="max-w-sm">
+          <SearchInput
+            size="sm"
             placeholder="Search by asset tag, student name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+            onClear={() => setSearchQuery('')}
           />
         </div>
       )}
@@ -445,14 +448,13 @@ export default function ITDeploymentBatchDetail({
                       <td className="px-4 py-3">
                         {assigningItemId === item.id ? (
                           <div className="space-y-1.5 min-w-[200px]">
-                            <div className="relative">
-                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                              <input
-                                type="text"
+                            <div>
+                              <SearchInput
+                                size="sm"
                                 placeholder="Search students..."
                                 value={assignSearch}
                                 onChange={(e) => setAssignSearch(e.target.value)}
-                                className="w-full pl-8 pr-3 py-1.5 rounded-md border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                                onClear={() => setAssignSearch('')}
                                 autoFocus
                               />
                             </div>
@@ -519,15 +521,12 @@ export default function ITDeploymentBatchDetail({
                             {item.status === 'PROCESSED' && item.condition ? (
                               <ConditionBadge condition={item.condition} />
                             ) : isActive && canProcess && item.status === 'PENDING' ? (
-                              <select
+                              <Select
+                                size="sm"
                                 value={itemConditions[item.id] || ''}
-                                onChange={(e) => handleConditionChange(item.id, e.target.value)}
-                                className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-400/40 cursor-pointer"
-                              >
-                                {CONDITION_OPTIONS.map((o) => (
-                                  <option key={o.value} value={o.value}>{o.label}</option>
-                                ))}
-                              </select>
+                                onChange={(value) => handleConditionChange(item.id, value)}
+                                options={CONDITION_OPTIONS}
+                              />
                             ) : (
                               <span className="text-xs text-slate-400">—</span>
                             )}
@@ -539,14 +538,15 @@ export default function ITDeploymentBatchDetail({
                                 ${(item.damageFeeCents / 100).toFixed(2)}
                               </span>
                             ) : isActive && canProcess && item.status === 'PENDING' ? (
-                              <input
+                              <Input
+                                size="sm"
                                 type="number"
                                 step="0.01"
                                 min="0"
                                 value={itemFees[item.id] || ''}
                                 onChange={(e) => setItemFees((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                 placeholder="0.00"
-                                className="w-20 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-400/40"
+                                className="w-20 text-xs text-slate-700"
                               />
                             ) : (
                               <span className="text-xs text-slate-400">—</span>
@@ -623,24 +623,22 @@ export default function ITDeploymentBatchDetail({
                 {/* Collection inline controls for mobile */}
                 {!isDeployment && isActive && canProcess && item.status === 'PENDING' && (
                   <div className="flex flex-col gap-2 pt-1">
-                    <select
+                    <Select
+                      size="sm"
                       value={itemConditions[item.id] || ''}
-                      onChange={(e) => handleConditionChange(item.id, e.target.value)}
-                      className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 cursor-pointer"
-                    >
-                      {CONDITION_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
+                      onChange={(value) => handleConditionChange(item.id, value)}
+                      options={CONDITION_OPTIONS}
+                    />
                     <div className="flex gap-2">
-                      <input
+                      <Input
+                        size="sm"
                         type="number"
                         step="0.01"
                         min="0"
                         value={itemFees[item.id] || ''}
                         onChange={(e) => setItemFees((prev) => ({ ...prev, [item.id]: e.target.value }))}
                         placeholder="Fee"
-                        className="flex-1 rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs"
+                        className="flex-1 text-xs"
                       />
                       <button
                         onClick={() => handleProcessItem(item)}

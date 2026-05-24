@@ -6,6 +6,8 @@ import { motion, MotionConfig } from 'framer-motion'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import PublicNav from '@/components/public/PublicNav'
 import PublicFooter from '@/components/public/PublicFooter'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Topics ───────────────────────────────────────────────────────────────
 // Each topic maps the ?topic= URL param to page copy + default subject.
@@ -214,7 +216,7 @@ function ContactFormInner() {
                     >
                       Name <span className="text-red-500">*</span>
                     </label>
-                    <input
+                    <Input
                       id="contact-name"
                       type="text"
                       value={name}
@@ -232,7 +234,7 @@ function ContactFormInner() {
                     >
                       Email <span className="text-red-500">*</span>
                     </label>
-                    <input
+                    <Input
                       id="contact-email"
                       type="email"
                       value={email}
@@ -255,7 +257,7 @@ function ContactFormInner() {
                       (optional)
                     </span>
                   </label>
-                  <input
+                  <Input
                     id="contact-subject"
                     type="text"
                     value={subject}
@@ -273,7 +275,7 @@ function ContactFormInner() {
                   >
                     Message <span className="text-red-500">*</span>
                   </label>
-                  <textarea
+                  <Textarea
                     id="contact-message"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}

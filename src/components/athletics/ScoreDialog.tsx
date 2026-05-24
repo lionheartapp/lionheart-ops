@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { Input } from '@/components/ui/Input'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { useToast } from '@/components/Toast'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface Game {
   id: string
@@ -28,6 +32,7 @@ interface ScoreDialogProps {
 }
 
 export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlayerStats }: ScoreDialogProps) {
+  const { toast } = useToast()
   const [homeScore, setHomeScore] = useState('')
   const [awayScore, setAwayScore] = useState('')
   const [isFinal, setIsFinal] = useState(false)
@@ -68,12 +73,14 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
       const token = localStorage.getItem('auth-token')
       const res = await fetch(`/api/athletics/games/${game.id}/score`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), Authorization: `Bearer ${token}` },
         body: JSON.stringify({ homeScore: h, awayScore: a, isFinal }),
       })
       if (handleAuthResponse(res)) return
       const data = await res.json()
       if (!data.ok) { setError(data.error?.message || 'Failed to save score'); return }
+      toast(isFinal ? 'Final score saved' : 'Score saved', 'success')
       onSaved()
       onClose()
     } catch {
@@ -84,7 +91,7 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
   }
 
   return (
-    <div className="fixed inset-0 z-modal overflow-y-auto">
+    <div className="fixed inset-0 z-[70] overflow-y-auto">
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
         onClick={onClose}
@@ -116,37 +123,36 @@ export default function ScoreDialog({ isOpen, onClose, onSaved, game, onOpenPlay
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-xs font-medium text-stone-500 mb-1.5">Home Score</label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={homeScore}
                   onChange={(e) => setHomeScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-stone-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
+                  hasError={Boolean(error)}
+                  className="text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-stone-500 mb-1.5">Away Score</label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   value={awayScore}
                   onChange={(e) => setAwayScore(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-stone-300 rounded-lg focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10 text-center text-lg font-semibold"
+                  hasError={Boolean(error)}
+                  className="text-center text-lg font-semibold"
                   placeholder="0"
                 />
               </div>
             </div>
 
-            <label className="flex items-center gap-2 mb-5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isFinal}
-                onChange={(e) => setIsFinal(e.target.checked)}
-                className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
-              />
-              <span className="text-sm text-stone-700">Mark as final</span>
-            </label>
+            <Checkbox
+              checked={isFinal}
+              onChange={(e) => setIsFinal(e.target.checked)}
+              label="Mark as final"
+              className="mb-5"
+            />
 
             {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 

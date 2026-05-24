@@ -8,6 +8,8 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface PlanningSeasonAdminProps {
   season: PlanningSeason
@@ -331,11 +333,9 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
                 <tr className="border-b border-slate-200/50 text-left">
                   <th className="px-4 py-3 w-10">
                     {batchableSubmissions.length > 0 && (
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={allBatchableSelected}
                         onChange={toggleSelectAll}
-                        className="rounded border-slate-300 cursor-pointer"
                         title="Select all pending submissions"
                       />
                     )}
@@ -353,11 +353,9 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
                   <tr key={sub.id} className="hover:bg-white/40 transition-colors">
                     <td className="px-4 py-3">
                       {sub.submissionStatus === 'SUBMITTED' ? (
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selectedIds.has(sub.id)}
                           onChange={() => toggleSelect(sub.id)}
-                          className="rounded border-slate-300 cursor-pointer"
                         />
                       ) : (
                         <span className="w-4 inline-block" />
@@ -413,12 +411,12 @@ export default function PlanningSeasonAdmin({ season, onSelectSubmission }: Plan
         >
           <div className="mt-3">
             <label className="block text-sm font-medium text-slate-700 mb-1">Notes (optional)</label>
-            <textarea
+            <Textarea
               value={reviewNotes}
               onChange={(e) => setReviewNotes(e.target.value)}
               placeholder="Add review notes..."
               rows={3}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full text-sm resize-none"
             />
           </div>
         </ConfirmDialog>

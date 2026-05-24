@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { FileInput } from '@/components/ui/FileInput'
 
 export interface ParsedPlayer {
   firstName: string
@@ -57,7 +58,6 @@ export default function RosterCSVImport({
   onErrorChange,
   onResetUpload,
 }: RosterCSVImportProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const downloadTemplate = useCallback(() => {
     const csv = CSV_HEADERS.join(',') + '\nJohn,Doe,23,Guard,10th,6\'1",185\nJane,Smith,7,Forward,11th,5\'9",160\n'
@@ -134,8 +134,8 @@ export default function RosterCSVImport({
     onParsed(players)
   }, [onErrorChange, onParsed])
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = useCallback((files: File[]) => {
+    const file = files[0]
     if (!file) return
 
     onErrorChange('')
@@ -158,8 +158,6 @@ export default function RosterCSVImport({
       if (typeof text === 'string') parseCSV(text)
     }
     reader.readAsText(file)
-    // Reset input so re-selecting the same file works
-    e.target.value = ''
   }, [onErrorChange, onParsed, onFileNameChange, parseCSV])
 
   return (
@@ -180,18 +178,12 @@ export default function RosterCSVImport({
       </button>
 
       {/* File drop zone */}
-      <input
-        ref={fileInputRef}
-        type="file"
+      <FileInput
         accept=".csv"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        className="w-full flex flex-col items-center gap-3 px-4 py-8 border-2 border-dashed border-stone-200 rounded-xl hover:border-stone-400 hover:bg-stone-50/30 transition-colors cursor-pointer"
+        onFiles={handleFileSelect}
+        className="px-4 py-8 border-stone-200 hover:border-stone-400 hover:bg-stone-50/30"
       >
+        <div className="flex flex-col items-center gap-3">
         <div className="p-3 rounded-full bg-stone-100">
           <FileSpreadsheet className="w-6 h-6 text-stone-400" />
         </div>
@@ -203,7 +195,8 @@ export default function RosterCSVImport({
             Columns: First Name, Last Name, Jersey Number, Position, Grade, Height, Weight
           </p>
         </div>
-      </button>
+        </div>
+      </FileInput>
 
       {/* Parse error */}
       {uploadError && !uploadResult && (

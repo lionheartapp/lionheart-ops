@@ -529,14 +529,14 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
               {isDone ? <CheckCircle2 className="w-6 h-6 text-green-600" /> : <Circle className="w-6 h-6 text-slate-300 hover:text-indigo-500 transition-colors" />}
             </button>
             {isPersonal ? (
-              <input
+              <Input
                 type="text"
                 defaultValue={task.title}
                 onBlur={(e) => {
                   const v = e.target.value.trim()
                   if (v && v !== task.title) onUpdate({ title: v })
                 }}
-                className={`flex-1 text-lg font-semibold bg-transparent border-none outline-none ${isDone ? 'text-slate-400 line-through' : 'text-slate-900'}`}
+                className={`h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-lg font-semibold shadow-none focus:ring-0 ${isDone ? 'text-slate-400 line-through' : 'text-slate-900'}`}
               />
             ) : (
               <p className={`flex-1 text-lg font-semibold ${isDone ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{task.title}</p>
@@ -643,7 +643,7 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
                             aria-label={subDone ? 'Mark subtask incomplete' : 'Mark subtask complete'}>
                             {subDone ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Circle className="w-4 h-4 text-slate-300 hover:text-indigo-500 transition-colors" />}
                           </button>
-                          <input
+                          <Input
                             type="text"
                             defaultValue={sub.title}
                             onBlur={(e) => {
@@ -651,7 +651,7 @@ function TaskDetailScreen({ task, onBack, onToggle, onUpdate, onDelete, onAddSub
                               if (v && v !== sub.title) onUpdateSubtask(sub.id, v)
                             }}
                             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-                            className={`flex-1 text-sm bg-transparent border-none outline-none ${subDone ? 'text-slate-400 line-through' : 'text-slate-800'}`}
+                            className={`h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none focus:ring-0 ${subDone ? 'text-slate-400 line-through' : 'text-slate-800'}`}
                           />
                           <button type="button" onClick={() => onDeleteSubtask(sub.id)}
                             className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-slate-400 hover:text-red-500 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded"

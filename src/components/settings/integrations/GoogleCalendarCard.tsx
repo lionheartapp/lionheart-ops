@@ -18,6 +18,7 @@ import { BrandLogo } from './BrandLogo'
 import { StatusPill } from './StatusPill'
 import { ConfigRequiredBanner } from './ConfigRequiredBanner'
 import { formatRelative } from './integration-types'
+import { Checkbox } from '@/components/ui/Checkbox'
 import type { IntegrationStatusData } from './integration-types'
 
 interface GoogleCalendarInfo {
@@ -241,8 +242,7 @@ export function GoogleCalendarCard({
                         className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer"
                       >
                         <div className="relative flex items-center">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={cal.selected}
                             onChange={() => toggleCalendar(cal.id)}
                             className="sr-only"

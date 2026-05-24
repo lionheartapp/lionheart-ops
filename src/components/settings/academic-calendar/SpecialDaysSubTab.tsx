@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/components/Toast'
 import { IllustrationCalendar } from '@/components/illustrations'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import type { SchoolOption, DeleteTarget, SpecialDay } from './academic-calendar-types'
 import { apiFetch, SPECIAL_DAY_TYPES, getSpecialDayBadge, formatDate } from './academic-calendar-types'
 
@@ -57,22 +60,22 @@ export function SpecialDaysSubTab({ schools, activeSchoolId, isMultiSchool, onRe
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center gap-3">
-              <input
+              <Input
                 type="text"
                 placeholder="Name (e.g., Thanksgiving Break, Teacher In-Service)"
                 aria-label="Special day name"
                 value={specialDayForm.name}
                 onChange={(e) => setSpecialDayForm((f) => ({ ...f, name: e.target.value }))}
-                className="flex-1 px-0 py-1 bg-transparent border-none text-base font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                className="!h-auto flex-1 !border-0 !bg-transparent !px-0 !py-1 text-base font-semibold text-slate-900 placeholder:font-normal !outline-none !ring-0"
               />
-              <select
-                aria-label="Special day type"
-                value={specialDayForm.specialDayType}
-                onChange={(e) => setSpecialDayForm((f) => ({ ...f, specialDayType: e.target.value }))}
-                className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 appearance-none pr-7 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_8px_center]"
-              >
-                {SPECIAL_DAY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <div className="w-44">
+                <Select
+                  size="sm"
+                  value={specialDayForm.specialDayType}
+                  onChange={(value) => setSpecialDayForm((f) => ({ ...f, specialDayType: value }))}
+                  options={SPECIAL_DAY_TYPES}
+                />
+              </div>
             </div>
           </div>
 
@@ -101,24 +104,22 @@ export function SpecialDaysSubTab({ schools, activeSchoolId, isMultiSchool, onRe
               </div>
 
               <div className="flex items-center gap-2 ml-auto">
-                <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition select-none">
-                  <input
-                    type="checkbox"
-                    checked={specialDayForm.isAllSchools}
-                    onChange={(e) => setSpecialDayForm((f) => ({ ...f, isAllSchools: e.target.checked, schoolId: '' }))}
-                    className="rounded text-blue-600 border-slate-300 focus:ring-blue-500 focus:ring-offset-0"
-                  />
-                  All schools
-                </label>
+                <Checkbox
+                  checked={specialDayForm.isAllSchools}
+                  onChange={(e) => setSpecialDayForm((f) => ({ ...f, isAllSchools: e.target.checked, schoolId: '' }))}
+                  label="All schools"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition select-none"
+                />
                 {!specialDayForm.isAllSchools && isMultiSchool && (
-                  <select
-                    value={specialDayForm.schoolId}
-                    onChange={(e) => setSpecialDayForm((f) => ({ ...f, schoolId: e.target.value }))}
-                    className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 appearance-none pr-7 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_8px_center]"
-                  >
-                    <option value="">Select school...</option>
-                    {schools.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
+                  <div className="w-44">
+                    <Select
+                      size="sm"
+                      value={specialDayForm.schoolId}
+                      onChange={(value) => setSpecialDayForm((f) => ({ ...f, schoolId: value }))}
+                      placeholder="Select school..."
+                      options={schools.map((s) => ({ value: s.id, label: s.name }))}
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -127,18 +128,18 @@ export function SpecialDaysSubTab({ schools, activeSchoolId, isMultiSchool, onRe
             {specialDayMode === 'single' ? (
               <div>
                 <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5 block">Date</span>
-                <input type="date" aria-label="Date" value={specialDayForm.date} onChange={(e) => setSpecialDayForm((f) => ({ ...f, date: e.target.value }))} className="w-full max-w-xs px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+                <Input type="date" aria-label="Date" value={specialDayForm.date} onChange={(e) => setSpecialDayForm((f) => ({ ...f, date: e.target.value }))} className="w-full max-w-xs text-sm" />
               </div>
             ) : (
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5 block">Start</span>
-                  <input type="date" aria-label="Start date" value={specialDayForm.date} onChange={(e) => setSpecialDayForm((f) => ({ ...f, date: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+                  <Input type="date" aria-label="Start date" value={specialDayForm.date} onChange={(e) => setSpecialDayForm((f) => ({ ...f, date: e.target.value }))} className="w-full text-sm" />
                 </div>
                 <span className="text-slate-300 text-xs pb-2.5">to</span>
                 <div className="flex-1">
                   <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5 block">End</span>
-                  <input type="date" aria-label="End date" value={specialDayForm.endDate} onChange={(e) => setSpecialDayForm((f) => ({ ...f, endDate: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+                  <Input type="date" aria-label="End date" value={specialDayForm.endDate} onChange={(e) => setSpecialDayForm((f) => ({ ...f, endDate: e.target.value }))} className="w-full text-sm" />
                 </div>
               </div>
             )}

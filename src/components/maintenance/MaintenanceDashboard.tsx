@@ -24,6 +24,7 @@ import {
   Monitor,
   Timer,
 } from 'lucide-react'
+import { Textarea } from '@/components/ui/Textarea'
 import { staggerContainer, fadeInUp, cardEntrance } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import CampusComparisonWidget from './CampusComparisonWidget'
@@ -295,11 +296,11 @@ function FacilityRequestCard({
         </div>
       ) : (
         <div className="space-y-2 mt-3">
-          <textarea
+          <Textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="Reason for rejection (required)..."
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"
+            className="w-full text-sm focus:ring-red-300 focus:border-red-400 resize-none"
             rows={2}
             autoFocus
           />

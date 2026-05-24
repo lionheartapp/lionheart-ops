@@ -3,16 +3,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, Search, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
+import { Plus, Eye, Edit2, Trash2, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { SearchInput } from '@/components/ui/SearchInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import TournamentDetail from '@/components/athletics/TournamentDetail'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
-import { IllustrationAthletics } from '@/components/illustrations'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Sport {
   id: string
@@ -56,10 +57,10 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
   // ─── Cached Data ──────────────────────────────────────────────────
 
   const { data: tournamentsData, isLoading: loading } = useQuery(queryOptions.athleticsTournaments())
-  const tournaments = (tournamentsData ?? []) as Tournament[]
+  const tournaments = useMemo(() => (tournamentsData ?? []) as Tournament[], [tournamentsData])
 
   const { data: sportsData } = useQuery(queryOptions.athleticsSports())
-  const sports = (sportsData ?? []) as Sport[]
+  const sports = useMemo(() => (sportsData ?? []) as Sport[], [sportsData])
 
   const invalidateTournaments = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTournaments.all })
@@ -208,13 +209,12 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
-          <input
-            type="text"
-            placeholder="Search tournaments..."
+          <SearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
+            onClear={() => setSearch('')}
+            placeholder="Search tournaments..."
+            size="sm"
           />
         </div>
         <div className="w-full sm:w-44">
@@ -246,14 +246,15 @@ export default function TournamentsSection({ activeCampusId, canWrite = false }:
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           {tournaments.length === 0 ? (
-            <>
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <p className="text-base font-semibold text-stone-700 mb-1">No tournaments yet</p>
-              <p className="text-sm text-stone-500">Create one to get started.</p>
-            </>
+            <EmptyState
+              icon={Trophy}
+              title="No tournaments yet"
+              body="Create a bracket or tournament when the season needs one."
+              primaryAction={canWrite ? { label: 'Create tournament', onClick: openCreate } : undefined}
+              className="py-4"
+            />
           ) : (
             <>
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
               <p className="text-base font-semibold text-stone-700 mb-1">No tournaments match your search</p>
               <p className="text-sm text-stone-500">Try a different search term</p>
             </>

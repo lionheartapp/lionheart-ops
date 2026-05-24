@@ -71,12 +71,18 @@ export default function AboutPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">What Lionheart Does</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { title: 'IT Help Desk', desc: 'Structured ticketing for hardware, software, and network issues with SLA tracking.' },
-                { title: 'Maintenance Management', desc: 'Work order routing, asset tracking, and compliance calendars for facilities teams.' },
-                { title: 'Athletics Coordination', desc: 'Schedule games and practices, manage rosters, track stats, and share public schedules.' },
-                { title: 'Campus Calendar', desc: 'Shared event calendar with approval workflows across departments and buildings.' },
-                { title: 'Compliance Tracking', desc: 'Stay on top of fire inspections, HVAC service records, and regulatory deadlines.' },
-                { title: 'Multi-Campus Support', desc: 'Manage multiple school buildings under one organization with campus-level filtering.' },
+                { title: 'Events & Calendar', desc: 'Plan, approve, and run every school event with conflict detection and parent-facing calendars.' },
+                { title: 'IT Help Desk', desc: 'Structured ticketing for hardware, software, and network issues with SLA tracking and roster sync.' },
+                { title: 'Maintenance Management', desc: 'Work order routing, asset tracking, preventive maintenance schedules, and compliance calendars.' },
+                { title: 'Forms & Submissions', desc: 'Build permission slips, surveys, and sign-ups with QR codes, conditional logic, and approval workflows.' },
+                { title: 'Approval Workflows', desc: 'Multi-step approval rules per calendar, resource, or request type — configurable, not hard-coded.' },
+                { title: 'Messaging', desc: 'Replace Slack and Teams for staff comms with DMs, channels, threads, and push to mobile.' },
+                { title: 'Registration + Payments', desc: 'Stripe-powered registration for events, camps, and programs with magic-link parent signups.' },
+                { title: 'Athletics Coordination', desc: 'Season planning, schedules, rosters, stats, tournaments, and public-facing roster pages.' },
+                { title: 'IT Fleet Manager', desc: 'Chromebook fleet, damage tracking, loaners, MDM, content filtering, summer mode, and eRate.' },
+                { title: 'Mobile App', desc: 'Role-based bottom tabs, push notifications, pull-to-refresh — built for the people on the move.' },
+                { title: 'Leo AI', desc: 'Institutional memory that answers "who, what, when" about your school in plain English.' },
+                { title: 'Multi-School Support', desc: 'Manage anything from a single school to a full Pride of schools under one banner, with unlimited campuses per school.' },
               ].map((item, idx) => (
                 <div
                   key={idx}

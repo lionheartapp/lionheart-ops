@@ -3,11 +3,12 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { SearchInput } from '@/components/ui/SearchInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
@@ -343,16 +344,13 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-4">
         <div className="relative flex-1 max-w-xs w-full">
           <label className="block text-xs font-medium text-slate-500 mb-1.5">Search</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search teams..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+            placeholder="Search teams..."
+            size="sm"
+          />
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <div className="w-full sm:w-44">
@@ -384,10 +382,20 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition sm:ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Add Team
+            Create team
           </button>
         )}
       </div>
+
+      {!loading && displayTeams.length > 0 && (
+        <div className="mb-4 rounded-2xl border border-stone-200/70 bg-white/70 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <span className="font-semibold text-slate-900">{displayTeams.length} team{displayTeams.length !== 1 ? 's' : ''}</span>
+            <span className="text-stone-500">{sports.length} sport{sports.length !== 1 ? 's' : ''}</span>
+            <span className="text-stone-500">{seasons.length} season{seasons.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       {loading ? (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { UserPlus, Shield, Trash2, Pencil, X } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 
 type Admin = {
   id: string
@@ -155,14 +156,14 @@ export default function AdminsPage() {
           </div>
           {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
+            <Input
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Name"
               className="ui-input-bordered"
             />
-            <input
+            <Input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -170,7 +171,7 @@ export default function AdminsPage() {
               className="ui-input-bordered"
               required
             />
-            <input
+            <Input
               type="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -219,7 +220,7 @@ export default function AdminsPage() {
                 {editId === admin.id ? (
                   <>
                     <td className="px-5 py-3">
-                      <input
+                      <Input
                         type="text"
                         value={editForm.name}
                         onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
@@ -240,7 +241,7 @@ export default function AdminsPage() {
                       />
                     </td>
                     <td className="px-5 py-3 hidden md:table-cell">
-                      <input
+                      <Input
                         type="password"
                         value={editForm.password}
                         onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}

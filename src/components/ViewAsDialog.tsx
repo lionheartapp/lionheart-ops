@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 type UserRow = {
   id: string
@@ -172,25 +174,25 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
               <div className="px-5 py-3 border-b border-slate-100 flex gap-3">
                 <div className="flex-1 relative">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search by name or email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                    size="sm"
+                    className="w-full pl-9 text-sm focus:ring-blue-400/40 focus:border-blue-300"
                     autoFocus
                   />
                 </div>
-                <select
+                <Select
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 bg-white cursor-pointer"
-                >
-                  <option value="">All Roles</option>
-                  {roles.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
+                  onChange={setRoleFilter}
+                  options={[
+                    { value: '', label: 'All Roles' },
+                    ...roles.map((r) => ({ value: r, label: r })),
+                  ]}
+                  size="sm"
+                />
               </div>
 
               {/* User list */}

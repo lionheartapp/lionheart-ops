@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import {
   Upload,
@@ -23,6 +23,7 @@ import {
 } from '@/lib/hooks/useEventSchedule'
 import { useToast } from '@/components/Toast'
 import { formatFileSize } from '@/lib/schedule-utils'
+import { FileInput } from '@/components/ui/FileInput'
 
 // ─── File icon helper ────────────────────────────────────────────────────────
 
@@ -55,9 +56,7 @@ export function BlockFilesTab({ eventProjectId, blockId }: BlockFilesTabProps) {
   const { data: attachments, isLoading } = useBlockAttachments(eventProjectId, blockId)
   const uploadMutation = useUploadBlockAttachment(eventProjectId, blockId)
   const deleteMutation = useDeleteBlockAttachment(eventProjectId, blockId)
-  const [isDragOver, setIsDragOver] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<{ name: string; progress: number } | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
   async function handleFiles(files: FileList | File[]) {
@@ -108,24 +107,6 @@ export function BlockFilesTab({ eventProjectId, blockId }: BlockFilesTabProps) {
     }
   }
 
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault()
-    setIsDragOver(true)
-  }
-
-  function handleDragLeave(e: React.DragEvent) {
-    e.preventDefault()
-    setIsDragOver(false)
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault()
-    setIsDragOver(false)
-    if (e.dataTransfer.files?.length) {
-      handleFiles(e.dataTransfer.files)
-    }
-  }
-
   function getUploaderName(att: ScheduleBlockAttachment): string {
     if (!att.uploadedBy) return 'Unknown'
     const { firstName, lastName, name } = att.uploadedBy
@@ -136,38 +117,20 @@ export function BlockFilesTab({ eventProjectId, blockId }: BlockFilesTabProps) {
   return (
     <div className="space-y-4">
       {/* Upload dropzone */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`relative border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-          isDragOver
-            ? 'border-blue-400 bg-blue-50/50'
-            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-        }`}
+      <FileInput
+        multiple
+        onFiles={handleFiles}
+        compact
+        className="relative rounded-xl border-slate-200 p-6 text-center hover:border-slate-300 hover:bg-slate-50/50"
       >
-        {/* eslint-disable-next-line no-restricted-syntax -- hidden native file picker triggered by the styled drop zone above */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.length) {
-              handleFiles(e.target.files)
-              e.target.value = ''
-            }
-          }}
-        />
-        <div className={`w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center ${isDragOver ? 'bg-blue-100' : 'bg-slate-100'}`}>
-          <Upload className={`w-5 h-5 ${isDragOver ? 'text-blue-500' : 'text-slate-400'}`} />
+        <div className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center bg-slate-100">
+          <Upload className="w-5 h-5 text-slate-400" />
         </div>
         <p className="text-sm font-medium text-slate-700">
           <span className="text-blue-600">Click to upload</span> or drag and drop
         </p>
         <p className="text-xs text-slate-400 mt-1">Any file type up to 50MB</p>
-      </div>
+      </FileInput>
 
       {/* Upload progress */}
       {uploadProgress && (

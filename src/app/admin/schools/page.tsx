@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, ChevronLeft, ChevronRight, Building2 } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 
 export default function SchoolsPage() {
   const router = useRouter()
@@ -42,12 +43,12 @@ export default function SchoolsPage() {
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input
+          <Input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search schools..."
-            className="ui-input-bordered pl-10"
+            className="pl-10"
           />
         </div>
         <FloatingDropdown

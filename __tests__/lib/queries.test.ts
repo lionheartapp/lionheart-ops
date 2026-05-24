@@ -33,22 +33,22 @@ describe('queryKeys', () => {
 
   it('athleticsDashboard.campus with campusId', () => {
     const key = queryKeys.athleticsDashboard.campus('campus-1')
-    expect(key).toEqual(['athletics-dashboard', 'campus-1'])
+    expect(key).toEqual(['athletics-dashboard', 'campus-1', 'default'])
   })
 
   it('athleticsDashboard.campus without campusId defaults to "all"', () => {
     const key = queryKeys.athleticsDashboard.campus(null)
-    expect(key).toEqual(['athletics-dashboard', 'all'])
+    expect(key).toEqual(['athletics-dashboard', 'all', 'default'])
   })
 
   it('athleticsTeams.filtered uses empty strings for undefined params', () => {
     const key = queryKeys.athleticsTeams.filtered()
-    expect(key).toEqual(['athletics-teams', { sportId: '', seasonId: '' }])
+    expect(key).toEqual(['athletics-teams', { sportId: '', seasonId: '', scope: 'default' }])
   })
 
   it('athleticsTeams.filtered with specific values', () => {
     const key = queryKeys.athleticsTeams.filtered('sport-1', 'season-1')
-    expect(key).toEqual(['athletics-teams', { sportId: 'sport-1', seasonId: 'season-1' }])
+    expect(key).toEqual(['athletics-teams', { sportId: 'sport-1', seasonId: 'season-1', scope: 'default' }])
   })
 
   it('itTickets.filtered with filters', () => {

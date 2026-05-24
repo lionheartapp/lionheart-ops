@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface CancellationNotifyDialogProps {
   isOpen: boolean
@@ -54,12 +55,12 @@ export default function CancellationNotifyDialog({ isOpen, onClose }: Cancellati
               <p id="cancellation-notify-title" className="text-sm text-slate-700 leading-relaxed">
                 Would you like to send cancellation emails to the guests of this event?
               </p>
-              <textarea
+              <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Add a message (optional)"
                 aria-label="Cancellation message"
-                className="mt-3 w-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900 resize-none"
+                className="mt-3 w-full text-sm text-slate-900 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900 resize-none"
                 rows={2}
               />
             </div>

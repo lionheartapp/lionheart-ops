@@ -219,7 +219,7 @@ export default function MessagingShell() {
   // -------------------------------------------------------------------------
   if (isMobile) {
     return (
-      <div className="ui-glass h-[calc(100vh-64px)] rounded-xl overflow-hidden relative">
+      <div className="h-[calc(100dvh-44px-var(--safe-area-top)-56px-var(--safe-area-bottom)-24px)] overflow-hidden relative bg-white">
         <AnimatePresence mode="wait">
           {/* Mobile: Channel list view */}
           {mobileView === 'channels' && (
@@ -231,15 +231,12 @@ export default function MessagingShell() {
               transition={{ type: 'tween', duration: 0.2 }}
               className="absolute inset-0 z-10 bg-white flex flex-col"
             >
-              <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3 flex-shrink-0">
-                <MessageSquare className="w-5 h-5 text-slate-500" />
-                <h1 className="text-sm font-semibold text-slate-700">Messaging</h1>
-              </div>
               <div className="flex-1 overflow-y-auto">
                 <ChannelList
                   activeChannelId={activeChannelId}
                   onSelectChannel={handleSelectChannel}
                   onBrowseChannels={() => setBrowseMode(true)}
+                  headerLabel="Inbox"
                 />
               </div>
             </motion.div>

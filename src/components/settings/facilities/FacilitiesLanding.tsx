@@ -9,6 +9,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import RowActionMenu from '@/components/RowActionMenu'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -536,14 +537,14 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
                   Create a district to manage district-level offices and buildings.
                 </div>
                 <div className="flex items-center justify-center gap-2 max-w-sm mx-auto">
-                  {/* eslint-disable-next-line no-restricted-syntax -- inline create, not a form field */}
-                  <input
+                  <Input
                     type="text"
                     placeholder="District name"
                     value={districtName}
                     onChange={(e) => setDistrictName(e.target.value)}
                     disabled={creatingDistrict}
-                    className="flex-1 h-11 px-4 text-sm rounded-full border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50"
+                    size="sm"
+                    className="flex-1 h-11 rounded-full text-sm"
                   />
                   <button
                     onClick={handleCreateDistrict}

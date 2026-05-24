@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Camera, X, Loader2, Plus } from 'lucide-react'
+import { FileInput } from '@/components/ui/FileInput'
 
 interface ImageUploadProps {
   entityType: 'building' | 'area' | 'room'
@@ -25,7 +26,6 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false)
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const getAuthHeaders = () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -37,12 +37,9 @@ export default function ImageUpload({
     }
   }
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = async (files: File[]) => {
+    const file = files[0]
     if (!file) return
-
-    // Reset file input so the same file can be selected again
-    if (fileInputRef.current) fileInputRef.current.value = ''
 
     // Validate
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -168,11 +165,12 @@ export default function ImageUpload({
 
         {/* Add photo button */}
         {canAddMore && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
+          <FileInput
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onFiles={handleFileSelect}
             disabled={uploading}
-            className="aspect-[4/3] rounded-lg border-2 border-dashed border-slate-300 hover:border-primary-400 hover:bg-primary-50/50 flex flex-col items-center justify-center gap-1.5 text-slate-400 hover:text-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            compact
+            className="aspect-[4/3] rounded-lg border-slate-300 hover:border-primary-400 hover:bg-primary-50/50 text-slate-400 hover:text-primary-500"
           >
             {uploading ? (
               <>
@@ -185,18 +183,9 @@ export default function ImageUpload({
                 <span className="text-xs">Add Photo</span>
               </>
             )}
-          </button>
+          </FileInput>
         )}
       </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
 
       {/* Error message */}
       {error && (

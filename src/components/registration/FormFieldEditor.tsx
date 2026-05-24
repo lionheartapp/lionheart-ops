@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Trash2, ChevronDown, ChevronUp, Plus, X } from 'lucide-react'
 import type { FormField } from '@/lib/hooks/useRegistrationForm'
 import DragHandle from '@/components/forms/DragHandle'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 // ─── Input type options ────────────────────────────────────────────────────────
 
@@ -77,26 +79,24 @@ export function FormFieldEditor({ field, onChange, onRemove, dragListeners, drag
         {/* Input type selector */}
         <div className="w-36 flex-shrink-0">
           <label className="block text-xs font-medium text-slate-500 mb-1">Type</label>
-          <select
+          <Select
+            size="sm"
             value={field.inputType}
-            onChange={(e) => update({ inputType: e.target.value as FormField['inputType'] })}
-            className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer"
-          >
-            {INPUT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+            onChange={(value) => update({ inputType: value as FormField['inputType'] })}
+            options={INPUT_TYPES}
+          />
         </div>
 
         {/* Label */}
         <div className="flex-1">
           <label className="block text-xs font-medium text-slate-500 mb-1">Label *</label>
-          <input
+          <Input
+            size="sm"
             type="text"
             value={field.label}
             onChange={(e) => update({ label: e.target.value })}
             placeholder="Field label"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full text-sm"
           />
         </div>
 
@@ -144,12 +144,13 @@ export function FormFieldEditor({ field, onChange, onRemove, dragListeners, drag
           Help text (optional)
         </button>
         {showHelpText && (
-          <input
+          <Input
+            size="sm"
             type="text"
             value={field.helpText ?? ''}
             onChange={(e) => update({ helpText: e.target.value || null })}
             placeholder="Displayed below the field as guidance"
-            className="mt-1.5 w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="mt-1.5 w-full text-sm"
           />
         )}
       </div>
@@ -166,12 +167,13 @@ export function FormFieldEditor({ field, onChange, onRemove, dragListeners, drag
             Placeholder text (optional)
           </button>
           {showPlaceholder && (
-            <input
+            <Input
+              size="sm"
               type="text"
               value={field.placeholder ?? ''}
               onChange={(e) => update({ placeholder: e.target.value || null })}
               placeholder="Grayed-out hint inside the field"
-              className="mt-1.5 w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1.5 w-full text-sm"
             />
           )}
         </div>
@@ -183,12 +185,13 @@ export function FormFieldEditor({ field, onChange, onRemove, dragListeners, drag
           <span className="text-xs font-medium text-slate-600">Options</span>
           {(field.options ?? []).map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
-              <input
+              <Input
+                size="sm"
                 type="text"
                 value={opt.label}
                 onChange={(e) => handleOptionChange(i, { label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
                 placeholder={`Option ${i + 1}`}
-                className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="flex-1 text-sm"
               />
               <button
                 type="button"

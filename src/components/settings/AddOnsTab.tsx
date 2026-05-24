@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 import { useToast } from '@/components/Toast'
-import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users, MessageSquare } from 'lucide-react'
+import { Trophy, Building2, X, Check, Plus, Settings2, Loader2, Users, MessageSquare, Shield } from 'lucide-react'
+import { fetchApi } from '@/lib/api-client'
 import type { LucideIcon } from 'lucide-react'
 
 interface ModuleDefinition {
@@ -17,6 +18,8 @@ interface ModuleDefinition {
   scope: 'org' | 'campus'
   /** Monthly price in dollars (0 = free) */
   price: number
+  /** What the price is per — defaults to 'campus' */
+  priceUnit?: 'campus' | 'user'
   /** Trial duration in days (0 = no trial) */
   trialDays: number
   features: string[]
@@ -39,7 +42,8 @@ const MODULE_REGISTRY: ModuleDefinition[] = [
     color: '#6366f1',
     gradient: 'from-indigo-500 to-blue-500',
     scope: 'org',
-    price: 99,
+    price: 5,
+    priceUnit: 'user',
     trialDays: 30,
     features: [
       'Public & private channels',
@@ -222,6 +226,210 @@ function CampusConfigModal({
   )
 }
 
+interface RoleWithPermissions {
+  id: string
+  name: string
+  slug: string
+  isSystem: boolean
+  permissionIds: string[]
+}
+
+interface PermissionRecord {
+  id: string
+  resource: string
+  action: string
+  scope: string | null
+}
+
+function MessagingAccessModal({
+  mod,
+  onClose,
+}: {
+  mod: ModuleDefinition
+  onClose: () => void
+}) {
+  const Icon = mod.icon
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const [togglingRoleId, setTogglingRoleId] = useState<string | null>(null)
+
+  // Fetch all permissions to find the messaging:access permission ID
+  const { data: permissions = [] } = useQuery<PermissionRecord[]>({
+    queryKey: ['permissions'],
+    queryFn: () => fetchApi<PermissionRecord[]>('/api/settings/permissions'),
+    staleTime: 10 * 60_000,
+  })
+
+  const messagingAccessPermId = permissions.find(
+    (p) => p.resource === 'messaging' && p.action === 'access' && !p.scope
+  )?.id
+
+  // Fetch all roles
+  const { data: roles = [], isLoading: rolesLoading } = useQuery<Array<{ id: string; name: string; slug: string; isSystem: boolean; _count: { permissions: number; users: number } }>>({
+    queryKey: ['roles'],
+    queryFn: () => fetchApi('/api/settings/roles'),
+    staleTime: 60_000,
+  })
+
+  // Fetch each role's permissions to check for messaging:access
+  const roleDetailQueries = roles.map((role) => ({
+    queryKey: ['role', role.id],
+    queryFn: () => fetchApi<RoleWithPermissions>(`/api/settings/roles/${role.id}`),
+    staleTime: 60_000,
+    enabled: !!messagingAccessPermId,
+  }))
+
+  const { data: roleDetails = [] } = useQuery({
+    queryKey: ['role-details-for-messaging', roles.map((r) => r.id).join(','), messagingAccessPermId],
+    queryFn: async () => {
+      if (!messagingAccessPermId || roles.length === 0) return []
+      const details = await Promise.all(
+        roles.map((role) =>
+          fetchApi<RoleWithPermissions>(`/api/settings/roles/${role.id}`)
+        )
+      )
+      return details
+    },
+    enabled: !!messagingAccessPermId && roles.length > 0,
+    staleTime: 60_000,
+  })
+
+  const handleToggleRole = async (role: RoleWithPermissions, hasAccess: boolean) => {
+    if (!messagingAccessPermId) return
+    setTogglingRoleId(role.id)
+
+    try {
+      const newPermissionIds = hasAccess
+        ? role.permissionIds.filter((id) => id !== messagingAccessPermId)
+        : [...role.permissionIds, messagingAccessPermId]
+
+      await fetchApi(`/api/settings/roles/${role.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ permissionIds: newPermissionIds }),
+      })
+
+      queryClient.invalidateQueries({ queryKey: ['role-details-for-messaging'] })
+      queryClient.invalidateQueries({ queryKey: ['roles'] })
+      toast(
+        hasAccess
+          ? `Messaging access removed from ${role.name}`
+          : `Messaging access granted to ${role.name}`,
+        'success'
+      )
+    } catch {
+      toast('Failed to update role', 'error')
+    } finally {
+      setTogglingRoleId(null)
+    }
+  }
+
+  const enabledCount = roleDetails.filter(
+    (rd) => messagingAccessPermId && rd.permissionIds.includes(messagingAccessPermId)
+  ).length
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative ui-glass-overlay rounded-2xl w-full max-w-md overflow-hidden">
+        {/* Header with gradient */}
+        <div className={`bg-gradient-to-br ${mod.gradient} px-6 py-5`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">{mod.name}</h3>
+                <p className="text-sm text-white/80">Manage access by role</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Role list */}
+        <div className="px-6 py-4">
+          <p className="text-xs text-slate-500 mb-3">
+            Users in enabled roles can access messaging. Billed at ${mod.price}/mo per user with access.
+          </p>
+
+          {rolesLoading || roleDetails.length === 0 ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 rounded-xl bg-slate-100 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {roleDetails.map((role) => {
+                const hasAccess = messagingAccessPermId
+                  ? role.permissionIds.includes(messagingAccessPermId)
+                  : false
+                const isToggling = togglingRoleId === role.id
+                const matchingListRole = roles.find((r) => r.id === role.id)
+                const userCount = matchingListRole?._count?.users ?? 0
+
+                return (
+                  <button
+                    key={role.id}
+                    onClick={() => handleToggleRole(role, hasAccess)}
+                    disabled={isToggling}
+                    className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 disabled:opacity-60 cursor-pointer ${
+                      hasAccess
+                        ? 'bg-indigo-50 border border-indigo-200 hover:bg-indigo-100/80'
+                        : 'bg-slate-50 border border-transparent hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        hasAccess ? 'bg-indigo-100' : 'bg-slate-200/70'
+                      }`}>
+                        <Shield className={`w-4 h-4 ${hasAccess ? 'text-indigo-600' : 'text-slate-400'}`} />
+                      </div>
+                      <div className="text-left">
+                        <span className={`text-sm font-medium block ${hasAccess ? 'text-slate-900' : 'text-slate-600'}`}>
+                          {role.name}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {userCount} {userCount === 1 ? 'user' : 'users'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {isToggling ? (
+                        <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                      ) : hasAccess ? (
+                        <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-slate-300" />
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+          <p className="text-xs text-slate-400 text-center">
+            {enabledCount} of {roleDetails.length} role{roleDetails.length !== 1 ? 's' : ''} have messaging access
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AddOnsTab() {
   const { data: modules = [], isLoading: modulesLoading } = useModules()
   const { data: campuses = [], isLoading: campusesLoading } = useQuery({
@@ -233,6 +441,7 @@ export default function AddOnsTab() {
   const { toast } = useToast()
   const [togglingKey, setTogglingKey] = useState<string | null>(null)
   const [configModuleId, setConfigModuleId] = useState<string | null>(null)
+  const [messagingAccessOpen, setMessagingAccessOpen] = useState(false)
 
   const mutation = useMutation({
     mutationFn: ({ moduleId, enabled, campusId }: { moduleId: string; enabled: boolean; campusId?: string }) =>
@@ -332,7 +541,7 @@ export default function AddOnsTab() {
                   {/* Pricing */}
                   <div className="flex items-baseline gap-1 mb-3">
                     <span className="text-2xl font-bold text-slate-900">${mod.price}</span>
-                    <span className="text-sm text-slate-500">/mo per campus</span>
+                    <span className="text-sm text-slate-500">/mo per {mod.priceUnit || 'campus'}</span>
                   </div>
 
                   {/* Feature list */}
@@ -364,15 +573,25 @@ export default function AddOnsTab() {
                       </button>
                     )
                   ) : (
-                    /* Org-scoped: simple toggle button */
+                    /* Org-scoped: active state button */
                     isOrgEnabled ? (
-                      <a
-                        href="/settings?tab=members"
-                        className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
-                      >
-                        <Users className="w-4 h-4" />
-                        Configure Roles
-                      </a>
+                      mod.id === 'messaging' ? (
+                        <button
+                          onClick={() => setMessagingAccessOpen(true)}
+                          className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                        >
+                          <Users className="w-4 h-4" />
+                          Manage Access
+                        </button>
+                      ) : (
+                        <a
+                          href="/settings?tab=members"
+                          className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                        >
+                          <Users className="w-4 h-4" />
+                          Configure Roles
+                        </a>
+                      )
                     ) : (
                       <button
                         onClick={() => handleToggle(mod.id, false)}
@@ -420,6 +639,14 @@ export default function AddOnsTab() {
           togglingKey={togglingKey}
           onToggle={handleToggle}
           onClose={() => setConfigModuleId(null)}
+        />
+      )}
+
+      {/* Messaging access modal */}
+      {messagingAccessOpen && (
+        <MessagingAccessModal
+          mod={MODULE_REGISTRY.find((m) => m.id === 'messaging')!}
+          onClose={() => setMessagingAccessOpen(false)}
         />
       )}
     </div>

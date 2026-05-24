@@ -31,6 +31,7 @@ import PPESafetyPanel from './PPESafetyPanel'
 import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
 import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
 import type { CategoryFieldType } from '@prisma/client'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -218,7 +219,7 @@ function EstimatedCostField({
       {editing ? (
         <div className="flex items-center gap-1.5">
           <span className="text-sm text-slate-500">$</span>
-          <input
+          <Input
             type="number"
             step="0.01"
             min="0"
@@ -229,7 +230,8 @@ function EstimatedCostField({
               if (e.key === 'Escape') handleCancel()
             }}
             autoFocus
-            className="w-24 px-2 py-1 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            size="sm"
+            className="w-24 text-sm"
             placeholder="0.00"
           />
           <button

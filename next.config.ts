@@ -20,7 +20,11 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverExternalPackages: ['mjml', 'mjml-core', 'mjml-preset-core', 'pino', 'pino-pretty'],
+  turbopack: {
+    root: process.cwd(),
+  },
   poweredByHeader: false,
+  devIndicators: false,
   compress: true,
   reactStrictMode: true,
   images: {

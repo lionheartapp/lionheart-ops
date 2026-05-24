@@ -17,7 +17,7 @@
  * react without a prop drill.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CalendarSidebarData, SettingsTab } from './types'
 import type { AthleticsCampus } from './types'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -150,6 +150,18 @@ export function useSidebarSelectionState(
   const handleAthleticsTabClick = useCallback((tab: string) => {
     setAthleticsActiveTab(tab)
     emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab })
+  }, [])
+
+  useEffect(() => {
+    const handleAthleticsTabChange = (event: Event) => {
+      const tab = (event as CustomEvent<{ tab?: string }>).detail?.tab
+      if (tab) setAthleticsActiveTab(tab)
+    }
+
+    window.addEventListener(AppEventName.ATHLETICS_TAB_CHANGE, handleAthleticsTabChange)
+    return () => {
+      window.removeEventListener(AppEventName.ATHLETICS_TAB_CHANGE, handleAthleticsTabChange)
+    }
   }, [])
 
   const handleCreateCalendar = useCallback(() => {

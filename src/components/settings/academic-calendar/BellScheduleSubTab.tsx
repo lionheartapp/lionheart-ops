@@ -4,6 +4,9 @@ import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/components/Toast'
 import { IllustrationCalendar } from '@/components/illustrations'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import type { SchoolOption, DeleteTarget, BellSchedule, BellSchedulePeriod } from './academic-calendar-types'
 import { apiFetch, WEEKDAYS, DAY_LABELS } from './academic-calendar-types'
 
@@ -119,23 +122,20 @@ export function BellScheduleSubTab({ schools, activeSchoolId, isMultiSchool, onR
           {/* Form header */}
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 space-y-3">
             <div className="flex items-center gap-3">
-              <input
+              <Input
                 type="text"
                 placeholder="Schedule name (e.g., Regular, Block Day, Assembly)"
                 aria-label="Schedule name"
                 value={scheduleForm.name}
                 onChange={(e) => setScheduleForm((f) => ({ ...f, name: e.target.value }))}
-                className="flex-1 px-0 py-1 bg-transparent border-none text-base font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                className="!h-auto flex-1 !border-0 !bg-transparent !px-0 !py-1 text-base font-semibold text-slate-900 placeholder:font-normal !outline-none !ring-0"
               />
-              <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition whitespace-nowrap select-none">
-                <input
-                  type="checkbox"
-                  checked={scheduleForm.isDefault}
-                  onChange={(e) => setScheduleForm((f) => ({ ...f, isDefault: e.target.checked }))}
-                  className="rounded text-blue-600 border-slate-300 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                Default
-              </label>
+              <Checkbox
+                checked={scheduleForm.isDefault}
+                onChange={(e) => setScheduleForm((f) => ({ ...f, isDefault: e.target.checked }))}
+                label="Default"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition whitespace-nowrap select-none"
+              />
             </div>
 
             {/* School picker + Day-of-week picker */}
@@ -143,14 +143,14 @@ export function BellScheduleSubTab({ schools, activeSchoolId, isMultiSchool, onR
               {isMultiSchool && (
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">School</span>
-                  <select
-                    value={scheduleForm.schoolId}
-                    onChange={(e) => setScheduleForm((f) => ({ ...f, schoolId: e.target.value }))}
-                    className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 appearance-none pr-7 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_8px_center]"
-                  >
-                    <option value="">All Schools</option>
-                    {schools.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
+                  <div className="w-44">
+                    <Select
+                      size="sm"
+                      value={scheduleForm.schoolId}
+                      onChange={(value) => setScheduleForm((f) => ({ ...f, schoolId: value }))}
+                      options={[{ value: '', label: 'All Schools' }, ...schools.map((s) => ({ value: s.id, label: s.name }))]}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -196,29 +196,29 @@ export function BellScheduleSubTab({ schools, activeSchoolId, isMultiSchool, onR
                   <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-medium flex items-center justify-center flex-shrink-0">
                     {idx + 1}
                   </span>
-                  <input
+                  <Input
                     type="text"
                     placeholder="Period name"
                     aria-label="Period name"
                     value={period.name}
                     onChange={(e) => updatePeriod(idx, 'name', e.target.value)}
-                    className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition"
+                    className="flex-1 min-w-0 text-sm"
                   />
                 </div>
-                <input
+                <Input
                   type="time"
                   aria-label="Start time"
                   value={period.startTime}
                   onChange={(e) => updatePeriod(idx, 'startTime', e.target.value)}
-                  className="w-[130px] px-3 py-2 border border-slate-200 rounded-lg text-sm text-center tabular-nums focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition"
+                  className="w-[130px] text-center text-sm tabular-nums"
                 />
                 <span className="text-slate-300 text-xs">to</span>
-                <input
+                <Input
                   type="time"
                   aria-label="End time"
                   value={period.endTime}
                   onChange={(e) => updatePeriod(idx, 'endTime', e.target.value)}
-                  className="w-[130px] px-3 py-2 border border-slate-200 rounded-lg text-sm text-center tabular-nums focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition"
+                  className="w-[130px] text-center text-sm tabular-nums"
                 />
                 <button
                   onClick={() => removePeriod(idx)}

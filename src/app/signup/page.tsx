@@ -5,6 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react'
 import { motion, MotionConfig } from 'framer-motion'
 import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
+import { Input } from '@/components/ui/Input'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 const showcaseCardVariants = {
@@ -134,7 +135,7 @@ export default function SignupPage() {
               <label htmlFor="name" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 Your Name
               </label>
-              <input
+              <Input
                 id="name"
                 type="text"
                 value={name}
@@ -150,7 +151,7 @@ export default function SignupPage() {
               <label htmlFor="email" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 Email Address
               </label>
-              <input
+              <Input
                 id="email"
                 type="email"
                 value={email}
@@ -177,7 +178,7 @@ export default function SignupPage() {
               <label htmlFor="school" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 School Name
               </label>
-              <input
+              <Input
                 id="school"
                 type="text"
                 value={schoolName}
@@ -193,7 +194,7 @@ export default function SignupPage() {
               <label htmlFor="website" className="block text-sm font-medium mb-1.5" style={{ color: '#1a1915' }}>
                 School Website <span className="text-slate-400 font-normal">(optional)</span>
               </label>
-              <input
+              <Input
                 id="website"
                 type="text"
                 value={website}

@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import PasswordInput from '@/components/PasswordInput'
+import { Input } from '@/components/ui/Input'
 import { validatePassword } from '@/lib/validation/password'
 
 function ResetPasswordContent() {
@@ -135,13 +136,13 @@ function ResetPasswordContent() {
             Confirm new password
           </label>
           <div className="relative mt-1">
-            <input
+            <Input
               id="rp-confirm"
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repeat your new password"
-              className="block w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+              className="block w-full pr-12 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
               required
               autoComplete="new-password"
             />

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { X, AlertCircle, Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 interface SigninModalProps {
   onClose: () => void
@@ -92,13 +93,13 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                 School Subdomain
               </label>
               <div className="relative">
-                <input
+                <Input
                   id="subdomain-signin"
                   type="text"
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="ui-input-bordered pr-48"
+                  className="pr-48"
                   aria-describedby="subdomain-hint"
                   required
                 />
@@ -107,12 +108,12 @@ export default function SigninModal({ onClose }: SigninModalProps) {
                 </span>
               </div>
               <p id="subdomain-hint" className="text-xs text-slate-500 mt-1">
-                Enter your school's subdomain
+                Enter your school&apos;s subdomain
               </p>
             </div>
 
             <p className="text-xs sm:text-sm text-slate-600 text-center bg-primary-50 rounded-lg p-3">
-              You'll be redirected to your school's branded login page
+              You&apos;ll be redirected to your school&apos;s branded login page
             </p>
 
             <button
@@ -136,7 +137,7 @@ export default function SigninModal({ onClose }: SigninModalProps) {
 
           <div className="mt-6 pt-6 border-t border-slate-200">
             <p className="text-sm text-slate-600 text-center">
-              Don't have an account yet?
+              Don&apos;t have an account yet?
             </p>
             <button
               onClick={() => {

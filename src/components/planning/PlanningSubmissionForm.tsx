@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface PlanningSubmissionFormProps {
   seasonId: string
@@ -146,48 +149,48 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Event Title</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Spring Concert" />
+        <Input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="Spring Concert" />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Describe the event..." />
+        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Describe the event..." />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Preferred Date</label>
-          <input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} required className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          <Input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} required />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Alternate Date 1</label>
-          <input type="date" value={alternateDate1} onChange={(e) => setAlternateDate1(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          <Input type="date" value={alternateDate1} onChange={(e) => setAlternateDate1(e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Alternate Date 2</label>
-          <input type="date" value={alternateDate2} onChange={(e) => setAlternateDate2(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          <Input type="date" value={alternateDate2} onChange={(e) => setAlternateDate2(e.target.value)} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Duration (minutes)</label>
-          <input type="number" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 60)} min={15} max={1440} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          <Input type="number" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 60)} min={15} max={1440} />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Expected Attendance</label>
-          <input type="number" value={expectedAttendance} onChange={(e) => setExpectedAttendance(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="100" />
+          <Input type="number" value={expectedAttendance} onChange={(e) => setExpectedAttendance(e.target.value)} placeholder="100" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Estimated Budget ($)</label>
-          <input type="number" value={estimatedBudget} onChange={(e) => setEstimatedBudget(e.target.value)} step="0.01" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="500.00" />
+          <Input type="number" value={estimatedBudget} onChange={(e) => setEstimatedBudget(e.target.value)} step="0.01" placeholder="500.00" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Target Audience</label>
-          <input type="text" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Students, Parents" />
+          <Input type="text" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} placeholder="Students, Parents" />
         </div>
         <div>
           <FloatingDropdown
@@ -202,10 +205,7 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
           />
         </div>
         <div className="flex items-end">
-          <label className="flex items-center gap-2 text-sm text-slate-700 pb-2">
-            <input type="checkbox" checked={isOutdoor} onChange={(e) => setIsOutdoor(e.target.checked)} className="rounded" />
-            Outdoor event
-          </label>
+          <Checkbox checked={isOutdoor} onChange={(e) => setIsOutdoor(e.target.checked)} label="Outdoor event" className="pb-2" />
         </div>
       </div>
 
@@ -232,12 +232,13 @@ export default function PlanningSubmissionForm({ seasonId, onSubmit, onCancel, i
         {resourceNeeds.map((r) => (
           <div key={r.resourceType} className="flex items-center gap-2 mb-2">
             <span className="text-xs font-medium text-slate-600 w-24">{RESOURCE_TYPES.find((t) => t.value === r.resourceType)?.label}</span>
-            <input
+            <Input
               type="text"
               value={r.details}
               onChange={(e) => updateResourceDetails(r.resourceType, e.target.value)}
               placeholder="Details..."
-              className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm"
+              className="flex-1"
+              size="sm"
             />
           </div>
         ))}

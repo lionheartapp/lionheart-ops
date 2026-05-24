@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { Input } from '@/components/ui/Input'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -163,7 +164,7 @@ export default function ConfirmDialog({
                   To confirm this, type &ldquo;<span className="font-semibold">{requireText}</span>&rdquo;
                 </label>
                 <div className="relative mt-3">
-                  <input
+                  <Input
                     id={confirmInputId}
                     value={confirmInput}
                     onChange={(event) => setConfirmInput(event.target.value)}
@@ -172,7 +173,7 @@ export default function ConfirmDialog({
                     spellCheck={false}
                     aria-describedby={`${confirmHintId} ${confirmStatusId}`}
                     aria-invalid={hasTypedSomething && !matchesRequireText}
-                    className={`w-full rounded-lg border bg-white px-3 py-2.5 pr-10 text-sm text-slate-900 shadow-sm focus:outline-none focus-visible:ring-2 transition-colors ${
+                    className={`pr-10 text-sm ${
                       matchesRequireText
                         ? 'border-emerald-400 focus-visible:ring-emerald-200'
                         : hasTypedSomething

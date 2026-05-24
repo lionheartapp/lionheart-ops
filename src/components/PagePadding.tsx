@@ -1,9 +1,9 @@
 import { ReactNode } from 'react'
 
 /** Standard content padding for dashboard pages. */
-export default function PagePadding({ children }: { children: ReactNode }) {
+export default function PagePadding({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className="relative pl-4 pr-4 sm:px-10 pt-6 lg:pt-8 pb-10 min-h-full">
+    <div className={`relative pl-4 pr-4 sm:px-10 pt-6 lg:pt-8 pb-10 min-h-full ${className}`}>
       {children}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { RRule } from 'rrule'
 import { Repeat, ChevronDown } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -90,8 +91,7 @@ function configToRRule(config: RecurrenceConfig, eventStartDate: string): string
   const [y, m, d] = eventStartDate.split('-').map(Number)
   const dtstart = new Date(Date.UTC(y, m - 1, d))
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const options: Record<string, any> = {
+  const options: ConstructorParameters<typeof RRule>[0] = {
     freq: FREQ_MAP[config.frequency],
     interval: config.interval,
     dtstart,
@@ -316,21 +316,22 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           </span>
         </button>
 
-        <div className="relative">
-          <input
-            type="checkbox"
-            id="recurrence-toggle"
-            checked={isEnabled}
-            onChange={toggleEnabled}
-            className="sr-only peer"
-            aria-label="Enable recurrence"
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isEnabled}
+          aria-label="Enable recurrence"
+          onClick={toggleEnabled}
+          className={`relative block w-9 h-5 rounded-full transition-colors cursor-pointer ${
+            isEnabled ? 'bg-primary-600' : 'bg-slate-200'
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-subtle transition-transform ${
+              isEnabled ? 'translate-x-4' : ''
+            }`}
           />
-          <label
-            htmlFor="recurrence-toggle"
-            className="block w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-primary-600 transition-colors cursor-pointer"
-          />
-          <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-subtle transition-transform peer-checked:translate-x-4 pointer-events-none" />
-        </div>
+        </button>
       </div>
 
       {/* Config panel */}
@@ -339,7 +340,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
           {/* Frequency + Interval */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500 flex-shrink-0">Every</span>
-            <input
+            <Input
               type="number"
               min={1}
               max={99}
@@ -472,7 +473,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
               {config.endType === 'count' && (
                 <div className="flex items-center gap-2 pl-1">
                   <span className="text-sm text-slate-500">After</span>
-                  <input
+                  <Input
                     type="number"
                     min={1}
                     max={999}
@@ -489,7 +490,7 @@ export default function RecurrenceBuilder({ value, onChange, eventStartDate }: R
               {config.endType === 'until' && (
                 <div className="flex items-center gap-2 pl-1">
                   <span className="text-sm text-slate-500">Until</span>
-                  <input
+                  <Input
                     type="date"
                     value={config.until}
                     min={eventStartDate}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
+import { Input } from '@/components/ui/Input'
 
 interface LocationComboboxProps {
   value: string
@@ -68,14 +69,14 @@ export function LocationCombobox({
 
   return (
     <div ref={containerRef} className="relative" role="combobox" aria-expanded={open} aria-haspopup="listbox">
-      <input
+      <Input
         ref={inputRef}
         type="text"
         placeholder="Location"
         value={query}
         onChange={handleInputChange}
         onFocus={() => { if (query.length > 0 || locations.length > 0) setOpen(true) }}
-        className="peer w-full px-3.5 py-3.5 text-sm text-slate-900 placeholder-transparent outline-none border border-slate-300 rounded-lg bg-white transition-colors focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
+        className="peer text-sm placeholder-transparent"
         aria-label="Event location"
         aria-autocomplete="list"
       />

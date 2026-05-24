@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -153,17 +154,12 @@ export default function ITERateTab({ canManage }: ITERateTabProps) {
       {/* ── Header Row ── */}
       <motion.div variants={fadeInUp} className="flex items-center justify-between flex-wrap gap-3">
         <div className="relative">
-          <select
+          <Select
             value={schoolYear}
-            onChange={(e) => setSchoolYear(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white appearance-none pr-8 cursor-pointer"
-          >
-            {getSchoolYearOptions().map((sy) => (
-              <option key={sy} value={sy}>
-                {sy}
-              </option>
-            ))}
-          </select>
+            onChange={setSchoolYear}
+            options={getSchoolYearOptions().map((sy) => ({ value: sy, label: sy }))}
+            size="sm"
+          />
           <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
         </div>
 

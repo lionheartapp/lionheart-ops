@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Search, ArrowRight, X } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import type { HelpArticle } from '@/lib/help/types'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 interface HelpSearchProps {
   articles: HelpArticle[]
@@ -49,33 +50,17 @@ export function HelpSearch({
       <label htmlFor="help-search" className="sr-only">
         Search the knowledge base
       </label>
-      <div className="relative">
-        <Search
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"
-          aria-hidden
-        />
-        <input
-          id="help-search"
-          type="search"
-          value={query}
-          autoFocus={autoFocus}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="w-full pl-12 pr-12 py-4 rounded-xl border border-slate-200 bg-white text-[15px] text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-colors duration-200"
-          aria-controls="help-search-results"
-          aria-expanded={results.length > 0}
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
-            aria-label="Clear search"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+      <SearchInput
+        id="help-search"
+        value={query}
+        autoFocus={autoFocus}
+        onChange={(e) => setQuery(e.target.value)}
+        onClear={() => setQuery('')}
+        placeholder={placeholder}
+        className="shadow-sm"
+        aria-controls="help-search-results"
+        aria-expanded={results.length > 0}
+      />
 
       {results.length > 0 && (
         <div

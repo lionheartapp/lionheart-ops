@@ -4,14 +4,14 @@ import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 const STEPS = [
-  { number: 1, label: 'School Info', subtitle: 'Tell us about your school' },
+  { number: 1, label: 'Structure', subtitle: 'School and location setup' },
   { number: 2, label: 'Add Members', subtitle: 'Invite your team' },
   { number: 3, label: 'Setup Complete', subtitle: 'Finalize your workspace' },
 ]
 
 const TAGLINES: Record<number, string> = {
-  1: 'Let\u2019s get to know your school',
-  2: 'Your team will love this',
+  1: 'Map the basics once',
+  2: 'Bring the right people in',
   3: 'Almost there!',
 }
 
@@ -25,9 +25,8 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
     <>
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex flex-col justify-between p-8 xl:p-10 relative overflow-hidden min-h-screen" style={{ backgroundColor: '#0b0b0e' }}>
-        {/* Ambient gradient orbs */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full pointer-events-none opacity-25" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', filter: 'blur(120px)' }} />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full pointer-events-none opacity-15" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', filter: 'blur(120px)' }} />
+        <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
+        <div className="absolute inset-y-0 right-0 w-px bg-white/10" />
 
         <div className="relative z-10">
           {/* Logo */}

@@ -1,8 +1,8 @@
 /**
  * Onboarding School Info API
  *
- * GET /api/onboarding/school-info — Fetch current org details
- * PATCH /api/onboarding/school-info — Update org school info during onboarding
+ * GET /api/onboarding/school-info — Fetch current org, primary school, and primary campus details
+ * PATCH /api/onboarding/school-info — Update org structure details during onboarding
  *
  * Requires authentication.
  *
@@ -16,14 +16,14 @@
  *   • `gradeRange` was a free-text field on Organization. It has no stable
  *     home post-inversion (grade level is now per-Campus and enum-typed),
  *     so we accept it in the payload for contract stability but no longer
- *     persist it. This is intentional — the onboarding UI should be
- *     updated in a later pass to drop the field.
+ *     persist it.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
+// eslint-disable-next-line no-restricted-imports -- Onboarding reads and writes several org-scoped records after deriving orgId from the authenticated request.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail, isAuthError } from '@/lib/api-response'
 import { assertCan } from '@/lib/auth/permissions'
@@ -33,12 +33,18 @@ import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 
 const UpdateSchoolInfoSchema = z.object({
+  schoolName: z.string().min(2).max(120).nullable().optional(),
+  campusName: z.string().min(2).max(120).nullable().optional(),
+  campusAddress: z.string().max(400).nullable().optional(),
+  campusKind: z.enum(['HEADQUARTERS', 'CAMPUS', 'SATELLITE']).optional(),
+  campusGradeLevel: z.enum(['ELEMENTARY', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL']).nullable().optional(),
   phone: z.string().max(40).nullable().optional(),
   physicalAddress: z.string().max(400).nullable().optional(),
   district: z.string().max(160).nullable().optional(),
   gradeRange: z.string().max(80).nullable().optional(),
   principalName: z.string().max(120).nullable().optional(),
   principalEmail: z.string().email().max(255).nullable().optional(),
+  principalPhone: z.string().max(40).nullable().optional(),
   institutionType: z.enum(['PUBLIC', 'PRIVATE', 'CHARTER', 'HYBRID']).optional(),
   studentCount: z.number().int().min(0).max(1000000).nullable().optional(),
   staffCount: z.number().int().min(0).max(1000000).nullable().optional(),
@@ -54,11 +60,14 @@ async function getPrimarySchool(orgId: string) {
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     select: {
       id: true,
+      name: true,
       address: true,
       latitude: true,
       longitude: true,
+      color: true,
       principalName: true,
       principalEmail: true,
+      principalPhone: true,
       institutionType: true,
     },
   })
@@ -73,6 +82,36 @@ async function getPrimaryDistrict(orgId: string) {
     orderBy: [{ isDefault: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
     select: { id: true, name: true },
   })
+}
+
+/**
+ * Fetch the primary campus for onboarding. Headquarters wins; otherwise fall
+ * back to the first active campus.
+ */
+async function getPrimaryCampus(orgId: string) {
+  const select = {
+    id: true,
+    name: true,
+    address: true,
+    latitude: true,
+    longitude: true,
+    gradeLevel: true,
+    campusKind: true,
+    schoolId: true,
+  } as const
+
+  return (
+    (await rawPrisma.campus.findFirst({
+      where: { organizationId: orgId, deletedAt: null, campusKind: 'HEADQUARTERS' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select,
+    })) ??
+    rawPrisma.campus.findFirst({
+      where: { organizationId: orgId, deletedAt: null },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select,
+    })
+  )
 }
 
 export async function GET(req: NextRequest) {
@@ -100,20 +139,28 @@ export async function GET(req: NextRequest) {
 
         if (!org) return null
 
-        const [primarySchool, primaryDistrict] = await Promise.all([
+        const [primarySchool, primaryDistrict, primaryCampus] = await Promise.all([
           getPrimarySchool(orgId),
           getPrimaryDistrict(orgId),
+          getPrimaryCampus(orgId),
         ])
 
         return {
           ...org,
-          physicalAddress: primarySchool?.address ?? null,
-          latitude: primarySchool?.latitude ?? null,
-          longitude: primarySchool?.longitude ?? null,
+          schoolName: primarySchool?.name ?? org.name,
+          physicalAddress: primarySchool?.address ?? primaryCampus?.address ?? null,
+          latitude: primarySchool?.latitude ?? primaryCampus?.latitude ?? null,
+          longitude: primarySchool?.longitude ?? primaryCampus?.longitude ?? null,
           principalName: primarySchool?.principalName ?? null,
           principalEmail: primarySchool?.principalEmail ?? null,
+          principalPhone: primarySchool?.principalPhone ?? null,
           institutionType: primarySchool?.institutionType ?? null,
+          schoolColor: primarySchool?.color ?? null,
           district: primaryDistrict?.name ?? null,
+          campusName: primaryCampus?.name ?? 'Main Campus',
+          campusAddress: primaryCampus?.address ?? primarySchool?.address ?? null,
+          campusKind: primaryCampus?.campusKind ?? 'HEADQUARTERS',
+          campusGradeLevel: primaryCampus?.gradeLevel ?? null,
           // Legacy — no longer persisted. See file header.
           gradeRange: null as string | null,
         }
@@ -152,11 +199,13 @@ export async function PATCH(req: NextRequest) {
 
     const data = validation.data
 
-    // Auto-geocode the address if it changed. The result is persisted on the
-    // primary School (post-inversion) rather than Organization.
+    // Auto-geocode the address if it changed. Campus is the physical location
+    // in the new hierarchy, while School keeps a compatibility address for
+    // older settings and lookup surfaces.
     let geoData: { latitude: number; longitude: number } | null = null
-    if (data.physicalAddress) {
-      const geo = await geocodeAddress(data.physicalAddress)
+    const addressForLocation = data.campusAddress ?? data.physicalAddress
+    if (addressForLocation) {
+      const geo = await geocodeAddress(addressForLocation)
       if (geo) {
         geoData = { latitude: geo.lat, longitude: geo.lng }
       }
@@ -170,9 +219,11 @@ export async function PATCH(req: NextRequest) {
 
     // Bucket 2 — primary School fields (address, geo, principal, institutionType).
     const schoolData: Record<string, unknown> = {}
-    if (data.physicalAddress !== undefined) schoolData.address = data.physicalAddress
+    if (data.schoolName !== undefined && data.schoolName) schoolData.name = data.schoolName
+    if (addressForLocation !== undefined) schoolData.address = addressForLocation
     if (data.principalName !== undefined) schoolData.principalName = data.principalName
     if (data.principalEmail !== undefined) schoolData.principalEmail = data.principalEmail
+    if (data.principalPhone !== undefined) schoolData.principalPhone = data.principalPhone
     if (data.institutionType !== undefined) schoolData.institutionType = data.institutionType
     if (geoData) {
       schoolData.latitude = geoData.latitude
@@ -210,9 +261,66 @@ export async function PATCH(req: NextRequest) {
         await rawPrisma.school.create({
           data: {
             organizationId: orgId,
-            name: org?.name ?? 'Main School',
+            name: data.schoolName || org?.name || 'Main School',
             sortOrder: 0,
             ...schoolData,
+          },
+        })
+      }
+    }
+
+    // Bucket 2b — primary Campus fields (name, address, grade band, kind).
+    const campusTouched = [
+      data.campusName,
+      data.campusAddress,
+      data.campusKind,
+      data.campusGradeLevel,
+    ].some((value) => value !== undefined)
+
+    if (campusTouched) {
+      const primaryCampus = await rawPrisma.campus.findFirst({
+        where: { organizationId: orgId, deletedAt: null, campusKind: 'HEADQUARTERS' },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true, schoolId: true },
+      }) ?? await rawPrisma.campus.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true, schoolId: true },
+      })
+
+      const primarySchool = await rawPrisma.school.findFirst({
+        where: { organizationId: orgId, deletedAt: null },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { id: true },
+      })
+
+      const campusData: Record<string, unknown> = {}
+      if (data.campusName !== undefined && data.campusName) campusData.name = data.campusName
+      if (data.campusAddress !== undefined) campusData.address = data.campusAddress
+      if (data.campusKind !== undefined) campusData.campusKind = data.campusKind
+      if (data.campusGradeLevel !== undefined) campusData.gradeLevel = data.campusGradeLevel
+      if (geoData) {
+        campusData.latitude = geoData.latitude
+        campusData.longitude = geoData.longitude
+      }
+
+      if (primaryCampus) {
+        await rawPrisma.campus.update({
+          where: { id: primaryCampus.id },
+          data: campusData,
+        })
+      } else {
+        await rawPrisma.campus.create({
+          data: {
+            organizationId: orgId,
+            schoolId: primarySchool?.id ?? null,
+            name: data.campusName || 'Main Campus',
+            address: data.campusAddress ?? null,
+            campusKind: data.campusKind ?? 'HEADQUARTERS',
+            gradeLevel: data.campusGradeLevel ?? null,
+            isActive: true,
+            sortOrder: 0,
+            ...campusData,
           },
         })
       }

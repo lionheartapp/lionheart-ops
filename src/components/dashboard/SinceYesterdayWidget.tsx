@@ -141,7 +141,7 @@ export default function SinceYesterdayWidget() {
         ) : isError ? (
           <ErrorState onRetry={() => refetch()} />
         ) : visibleItems.length === 0 ? (
-          <AllClearState />
+          <AllClearState anchorLabel={anchorLabel} />
         ) : (
           <ul className="space-y-1" role="list">
             <AnimatePresence mode="popLayout">
@@ -268,7 +268,7 @@ function DiffRow({
 
 // ─── All clear state ─────────────────────────────────────────────────────────
 
-function AllClearState() {
+function AllClearState({ anchorLabel }: { anchorLabel: string | null }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -286,13 +286,13 @@ function AllClearState() {
         className="text-[14px] font-semibold"
         style={{ color: TEXT_PRIMARY }}
       >
-        Nothing new since 4:30 PM
+        {anchorLabel ? `Nothing new ${anchorLabel.toLowerCase()}` : 'Nothing new'}
       </p>
       <p
-        className="mt-1 text-[12.5px]"
+        className="mt-1 text-[12.5px] max-w-xs"
         style={{ color: TEXT_SECONDARY }}
       >
-        You're all caught up. Enjoy the calm.
+        No new tickets, events, or updates. You&rsquo;re all caught up.
       </p>
     </motion.div>
   )

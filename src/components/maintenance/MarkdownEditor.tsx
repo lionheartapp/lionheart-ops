@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Bold, Italic, Link2, Code, Heading2, List, ListOrdered, Eye, EyeOff } from 'lucide-react'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface MarkdownEditorProps {
   value: string
@@ -139,10 +140,10 @@ export default function MarkdownEditor({
 
       {/* Editor + Preview */}
       <div className={showPreview ? 'grid grid-cols-2 divide-x divide-slate-200' : ''}>
-        <textarea
+        <Textarea
           ref={textareaRef}
           id={id}
-          className="w-full px-3 py-2.5 font-mono text-xs leading-relaxed resize-none focus:outline-none bg-white"
+          className="w-full border-0 font-mono text-xs leading-relaxed resize-none bg-white focus:ring-0"
           rows={rows}
           value={value}
           onChange={(e) => onChange(e.target.value)}

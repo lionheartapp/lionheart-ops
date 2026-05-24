@@ -14,6 +14,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { IllustrationDevices } from '@/components/illustrations'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import ITErrorState from './ITErrorState'
 
 // ─── Types ──────────────────────────────────────────────────────────────
@@ -373,12 +375,12 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
                       ) : (
                         <div className="relative">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                          <input
+                          <Input
                             type="text"
                             placeholder="Search student by name..."
                             value={studentSearch}
                             onChange={(e) => setStudentSearch(e.target.value)}
-                            className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                            className="w-full pl-8 text-sm"
                           />
                           {searchingStudents && (
                             <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 animate-spin" />
@@ -419,24 +421,24 @@ export default function ITLoanersTab({ canManage, canCheckout, canCheckin }: ITL
                     {/* Due Date */}
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">Due Date</label>
-                      <input
+                      <Input
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                        className="w-full text-sm"
                       />
                     </div>
 
                     {/* Notes */}
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">Notes (optional)</label>
-                      <textarea
+                      <Textarea
                         value={checkoutNotes}
                         onChange={(e) => setCheckoutNotes(e.target.value)}
                         rows={2}
                         placeholder="Reason for checkout, condition notes..."
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow resize-none"
+                        className="w-full text-sm resize-none"
                       />
                     </div>
 

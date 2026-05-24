@@ -7,6 +7,7 @@ import { fetchApi } from '@/lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 import type { OrgUser } from './people-types'
 import { getUserName, getInitials } from './people-types'
+import { Input } from '@/components/ui/Input'
 
 interface UserSearchDropdownProps {
   excludeIds: Set<string>
@@ -58,8 +59,7 @@ export function UserSearchDropdown({ excludeIds, onSelect, placeholder }: UserSe
     <div ref={wrapperRef} className="relative">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        {/* eslint-disable-next-line no-restricted-syntax -- search-with-toggle pattern (custom right button switches between chevron and clear); SearchInput's built-in clear doesn't cover this */}
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={search}
@@ -67,7 +67,8 @@ export function UserSearchDropdown({ excludeIds, onSelect, placeholder }: UserSe
           onFocus={() => setIsOpen(true)}
           onClick={() => setIsOpen(true)}
           placeholder={placeholder ?? 'Search by name or email...'}
-          className="w-full pl-10 pr-10 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
+          size="sm"
+          className="w-full pl-10 pr-10 text-sm"
         />
         <button
           onClick={() => {

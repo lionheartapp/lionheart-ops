@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import MobileTabBar from './MobileTabBar'
 import MobileHeader from './MobileHeader'
@@ -33,6 +34,11 @@ export default function MobileShell({
 }: MobileShellProps) {
   const queryClient = useQueryClient()
   const perms = useSidebarPermissions()
+  const pathname = usePathname()
+  const isCalendarSurface = pathname?.startsWith('/calendar')
+  const isMessagingSurface = pathname?.startsWith('/messaging')
+  const isDashboardSurface = pathname === '/dashboard' || pathname === '/'
+  const isFullBleedSurface = isCalendarSurface || isMessagingSurface || isDashboardSurface
 
   return (
     <MobileHeaderProvider>
@@ -45,7 +51,11 @@ export default function MobileShell({
 
       {/* Scrollable content with pull-to-refresh */}
       <PullToRefresh onRefresh={async () => { await queryClient.invalidateQueries() }}>
-        <div className="relative pl-4 pr-4 flex flex-col min-h-full pt-[calc(44px+var(--safe-area-top)+8px)] pb-[calc(56px+var(--safe-area-bottom)+16px)]">
+        <div
+          className={`relative flex flex-col min-h-full pt-[calc(44px+var(--safe-area-top)+8px)] pb-[calc(56px+var(--safe-area-bottom)+16px)] ${
+            isFullBleedSurface ? 'px-0 bg-white' : 'pl-4 pr-4'
+          }`}
+        >
           <MobilePageTransition>
             {children}
           </MobilePageTransition>
@@ -63,6 +73,8 @@ export default function MobileShell({
         canManageIT={perms.canManageIT}
         canSubmitIT={perms.canSubmitIT}
         canManageWorkspace={perms.canManageWorkspace}
+        athleticsEnabled={perms.athleticsEnabled}
+        canWriteAthletics={perms.canWriteAthletics}
         userName={userName || 'User'}
         userEmail={userEmail || ''}
         userAvatar={userAvatar || undefined}

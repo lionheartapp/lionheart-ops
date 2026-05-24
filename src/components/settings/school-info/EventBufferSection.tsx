@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Clock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 
 export default function EventBufferSection() {
   const [bufferMinutes, setBufferMinutes] = useState<number | null>(null)
@@ -73,14 +74,15 @@ export default function EventBufferSection() {
             Minimum minutes between events at the same location. Set to 0 to disable.
           </p>
           <div className="flex items-center gap-3 mt-2">
-            <input
+            <Input
               id="event-buffer"
               type="number"
               min={0}
               max={480}
               value={bufferMinutes}
               onChange={(e) => setBufferMinutes(Math.max(0, Math.min(480, parseInt(e.target.value) || 0)))}
-              className="w-24 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+              size="sm"
+              className="w-24 text-sm focus:ring-blue-400/40 focus:border-blue-300"
             />
             <span className="text-sm text-slate-500">minutes</span>
             {isDirty && (

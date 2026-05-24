@@ -27,7 +27,7 @@ export default {
       //   h-field-sm             → compact height for tabular / dense UIs
       // ─────────────────────────────────────────────────────────────────────
       borderRadius: {
-        field: '0.5rem',          // 8px — change here to retune all field corners
+        field: '0.75rem',         // 12px — change here to retune all field corners
         'field-panel': '0.75rem', // 12px — dropdown panels
       },
       height: {

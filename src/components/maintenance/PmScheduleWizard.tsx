@@ -24,6 +24,9 @@ import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
 import { PM_RECURRENCE_TYPES, PM_RECURRENCE_LABELS } from '@/lib/types/pm-schedule'
 import type { CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -292,26 +295,26 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
               <label htmlFor="pm-name" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Schedule Name <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 id="pm-name"
                 type="text"
                 aria-required="true"
                 value={formData.name}
                 onChange={(e) => update({ name: e.target.value })}
                 placeholder="e.g. HVAC Filter Replacement"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
+                className="w-full text-sm"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Description
               </label>
-              <textarea
+              <Textarea
                 value={formData.description}
                 onChange={(e) => update({ description: e.target.value })}
-                placeholder="Optional — describe what this PM task involves"
+                placeholder="Optional - describe what this PM task involves"
                 rows={3}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
+                className="w-full text-sm resize-none"
               />
             </div>
           </div>
@@ -336,14 +339,14 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                 <label htmlFor="pm-interval" className="block text-sm font-medium text-slate-700 mb-1.5">
                   Interval (days) <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   id="pm-interval"
                   type="number"
                   min="1"
                   aria-required="true"
                   value={formData.intervalDays}
                   onChange={(e) => update({ intervalDays: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
+                  className="w-full text-sm"
                 />
               </div>
             )}
@@ -376,35 +379,27 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
               <label htmlFor="pm-advance-notice" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Advance Notice (days)
               </label>
-              <input
+              <Input
                 id="pm-advance-notice"
                 type="number"
                 min="0"
                 aria-describedby="pm-advance-notice-help"
                 value={formData.advanceNoticeDays}
                 onChange={(e) => update({ advanceNoticeDays: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
+                className="w-full text-sm"
               />
               <p id="pm-advance-notice-help" className="text-xs text-slate-500 mt-1">
                 How many days before the due date to show this task as upcoming
               </p>
             </div>
 
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.avoidSchoolYear}
-                onChange={(e) => update({ avoidSchoolYear: e.target.checked })}
-                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400"
-              />
-              <div>
-                <span className="text-sm font-medium text-slate-700">Avoid School Year</span>
-                <p className="text-xs text-slate-500">
-                  PM tickets that fall inside an active academic year are pushed to the day after it ends.
-                  Requires academic years to be configured in Settings → Academic Calendar.
-                </p>
-              </div>
-            </label>
+            <Checkbox
+              checked={formData.avoidSchoolYear}
+              onChange={(e) => update({ avoidSchoolYear: e.target.checked })}
+              label={<span className="text-sm font-medium text-slate-700">Avoid School Year</span>}
+              description="PM tickets that fall inside an active academic year are pushed to the day after it ends. Requires academic years to be configured in Settings > Academic Calendar."
+              className="items-start"
+            />
           </div>
         )
 
@@ -417,7 +412,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
 
             {/* Add item input */}
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 value={newChecklistItem}
                 onChange={(e) => setNewChecklistItem(e.target.value)}
@@ -428,7 +423,7 @@ export default function PmScheduleWizard({ onComplete, onCancel }: PmScheduleWiz
                   }
                 }}
                 placeholder="e.g. Replace air filter, Check belt tension"
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors"
+                className="flex-1 text-sm"
               />
               <button
                 type="button"

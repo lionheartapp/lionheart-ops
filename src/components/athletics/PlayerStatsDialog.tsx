@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { X } from 'lucide-react'
+import { BarChart3, Users, X } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
-import { IllustrationAthletics } from '@/components/illustrations'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/Toast'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface Game {
   id: string
@@ -19,9 +22,23 @@ interface Game {
 
 interface RosterPlayer {
   id: string
+  athleteId: string
   firstName: string
   lastName: string
   jerseyNumber: string | null
+}
+
+interface AthleteRosterResponse {
+  id: string
+  firstName: string
+  lastName: string
+  rosters?: Array<{
+    id: string
+    athleteId: string
+    athleticTeamId: string
+    jerseyNumber: string | null
+    isActive: boolean
+  }>
 }
 
 interface StatConfig {
@@ -45,6 +62,7 @@ interface PlayerStatsDialogProps {
 }
 
 export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: PlayerStatsDialogProps) {
+  const { toast } = useToast()
   const [roster, setRoster] = useState<RosterPlayer[]>([])
   const [statConfigs, setStatConfigs] = useState<StatConfig[]>([])
   const [existingStats, setExistingStats] = useState<ExistingStat[]>([])
@@ -67,13 +85,16 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
         // Fetch roster, stat configs, and existing stats in parallel
         const [rosterRes, configRes, statsRes] = await Promise.all([
           fetch(`/api/athletics/roster?teamId=${game.athleticTeamId}&isActive=true`, {
+            credentials: 'include',
             headers: { Authorization: `Bearer ${token}` },
           }),
           // Need the sport ID — get it from the game's team
           fetch(`/api/athletics/teams/${game.athleticTeamId}`, {
+            credentials: 'include',
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`/api/athletics/games/${game.id}/stats`, {
+            credentials: 'include',
             headers: { Authorization: `Bearer ${token}` },
           }),
         ])
@@ -86,13 +107,28 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
           statsRes.json(),
         ])
 
-        const rosterList: RosterPlayer[] = rosterData.ok ? rosterData.data : []
+        const rosterList: RosterPlayer[] = rosterData.ok
+          ? (rosterData.data as AthleteRosterResponse[])
+            .map((athlete) => {
+              const teamRoster = athlete.rosters?.find((roster) => roster.athleticTeamId === game.athleticTeamId && roster.isActive)
+              if (!teamRoster) return null
+              return {
+                id: teamRoster.id,
+                athleteId: athlete.id,
+                firstName: athlete.firstName,
+                lastName: athlete.lastName,
+                jerseyNumber: teamRoster.jerseyNumber,
+              }
+            })
+            .filter((player): player is RosterPlayer => Boolean(player))
+          : []
         setRoster(rosterList)
 
         const sportId = teamData.ok ? teamData.data.sportId : null
 
         if (sportId) {
           const cfgRes = await fetch(`/api/athletics/sports/${sportId}/stat-configs`, {
+            credentials: 'include',
             headers: { Authorization: `Bearer ${token}` },
           })
           if (!handleAuthResponse(cfgRes)) {
@@ -149,19 +185,22 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
 
     try {
       // Collect all non-empty stat entries
-      const stats: Array<{ rosterId: string; statKey: string; statValue: number }> = []
+      const stats: Array<{ athleteId: string; rosterId: string; statKey: string; statValue: number }> = []
       for (const [rosterId, keyMap] of Object.entries(values)) {
+        const player = roster.find((item) => item.id === rosterId)
+        if (!player) continue
         for (const [statKey, val] of Object.entries(keyMap)) {
           const num = parseFloat(val)
           if (!isNaN(num)) {
-            stats.push({ rosterId, statKey, statValue: num })
+            stats.push({ athleteId: player.athleteId, rosterId, statKey, statValue: num })
           }
         }
       }
 
       const res = await fetch(`/api/athletics/games/${game.id}/stats`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), Authorization: `Bearer ${token}` },
         body: JSON.stringify({ stats }),
       })
 
@@ -172,6 +211,7 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
         return
       }
 
+      toast('Player stats saved', 'success')
       onSaved()
       onClose()
     } catch {
@@ -186,12 +226,15 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
   const scoreDisplay = game.homeScore != null && game.awayScore != null
     ? `${game.homeScore} - ${game.awayScore}${game.homeAway === 'AWAY' ? ' (Away)' : ''}`
     : null
+  const enteredStatCount = Object.values(values).reduce((total, keyMap) => {
+    return total + Object.values(keyMap).filter((value) => value.trim() !== '' && !Number.isNaN(Number(value))).length
+  }, 0)
   const dateStr = new Date(game.startTime).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
   })
 
   return (
-    <div className="fixed inset-0 z-modal overflow-y-auto">
+    <div className="fixed inset-0 z-[70] overflow-y-auto">
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
         onClick={onClose}
@@ -229,6 +272,16 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                 </>
               )}
             </div>
+            {!loading && statConfigs.length > 0 && roster.length > 0 && (
+              <div className="mb-4 rounded-2xl border border-stone-200 bg-stone-50/70 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-900">
+                  {enteredStatCount} {enteredStatCount === 1 ? 'stat' : 'stats'} entered
+                </p>
+                <p className="mt-0.5 text-xs text-stone-500">
+                  Leave a cell blank if a player did not record that stat.
+                </p>
+              </div>
+            )}
 
             {loading ? (
               <div className="space-y-3 py-4">
@@ -237,19 +290,19 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                 ))}
               </div>
             ) : statConfigs.length === 0 ? (
-              <div className="text-center py-8">
-                <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-                <p className="text-sm text-stone-500 mb-1">No stat categories configured for this sport.</p>
-                <p className="text-xs text-stone-400">
-                  Go to the Stats tab and set up stat categories first.
-                </p>
-              </div>
+              <EmptyState
+                icon={BarChart3}
+                title="No stat categories"
+                body="Set up this sport's stat categories in the Stats tab first."
+                className="py-8"
+              />
             ) : roster.length === 0 ? (
-              <div className="text-center py-8">
-                <IllustrationAthletics className="w-32 h-24 mx-auto mb-1" />
-                <p className="text-sm text-stone-500">No players on this team&apos;s roster.</p>
-                <p className="text-xs text-stone-400">Add players in the Roster tab first.</p>
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No players on this roster"
+                body="Add players in the Roster tab before entering game stats."
+                className="py-8"
+              />
             ) : (
               <div className="overflow-x-auto -mx-6 px-6">
                 <table className="min-w-full divide-y divide-stone-100">
@@ -285,12 +338,14 @@ export default function PlayerStatsDialog({ isOpen, onClose, onSaved, game }: Pl
                         </td>
                         {statConfigs.map((cfg) => (
                           <td key={cfg.statKey} className="px-3 py-2">
-                            <input
+                            <Input
                               type="number"
                               step="any"
+                              min="0"
                               value={values[player.id]?.[cfg.statKey] || ''}
                               onChange={(e) => handleCellChange(player.id, cfg.statKey, e.target.value)}
-                              className="w-full px-2 py-1.5 text-sm text-center border border-stone-200 rounded-md focus:outline-none focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
+                              size="sm"
+                              className="text-center"
                               placeholder="—"
                             />
                           </td>

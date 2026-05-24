@@ -16,6 +16,7 @@ import {
 import CampusShapeIndicator, { buildCampusShapeMap, getShapeIndex } from '@/components/calendar/CampusShapeIndicator'
 import MeetWithSection from '@/components/calendar/MeetWithSection'
 import type { MeetWithPerson } from '@/lib/hooks/useMeetWith'
+import { Input } from '@/components/ui/Input'
 import type { CalendarSidebarData } from './types'
 import { COLOR_PRESETS } from './constants'
 
@@ -208,7 +209,7 @@ export default function CalendarPanel({
                               className="w-3 h-3 rounded-sm flex-shrink-0"
                               style={{ backgroundColor: cal.color }}
                             />
-                            <input
+                            <Input
                               type="text"
                               value={renameValue}
                               onChange={(e) => setRenameValue(e.target.value)}
@@ -217,7 +218,8 @@ export default function CalendarPanel({
                                 if (e.key === 'Escape') handleRenameCancel()
                               }}
                               onBlur={() => handleRenameSubmit(cal.id)}
-                              className="flex-1 min-w-0 px-2 py-0.5 text-sm border border-primary-300 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-200 bg-white text-slate-700"
+                              size="sm"
+                              className="h-auto min-h-0 flex-1 rounded-md px-2 py-0.5 text-sm text-slate-700 focus:ring-primary-100"
                               autoFocus
                             />
                           </div>

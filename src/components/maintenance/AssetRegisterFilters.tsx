@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { X, Search, SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
 
 export type AssetStatusFilter = 'ACTIVE' | 'INACTIVE' | 'DECOMMISSIONED' | 'PENDING_DISPOSAL' | ''
 export type AssetCategoryFilter =
@@ -100,13 +102,13 @@ export default function AssetRegisterFilters({
 }: AssetRegisterFiltersProps) {
   const { data: locationOptions = [] } = useCampusLocations()
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const localSearchRef = useRef(filters.search)
+  const [localSearch, setLocalSearch] = useState(filters.search)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const filterBtnRef = useRef<HTMLButtonElement>(null)
   const filterPopoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    localSearchRef.current = filters.search
+    setLocalSearch(filters.search)
   }, [filters.search])
 
   // Close popover on outside click
@@ -132,7 +134,7 @@ export default function AssetRegisterFilters({
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
-    localSearchRef.current = value
+    setLocalSearch(value)
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
       update({ search: value })
@@ -141,9 +143,7 @@ export default function AssetRegisterFilters({
 
   function handleSearchClear() {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
-    localSearchRef.current = ''
-    const searchInput = document.getElementById('asset-search') as HTMLInputElement | null
-    if (searchInput) searchInput.value = ''
+    setLocalSearch('')
     update({ search: '' })
   }
 
@@ -174,35 +174,20 @@ export default function AssetRegisterFilters({
 
   const dropdownFilterCount = countActiveDropdownFilters(filters)
 
-  const selectClass = 'w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer'
-
   return (
     <div className="flex items-center gap-3 pb-2">
       {/* KB-style search bar */}
-      <div className="group relative flex-1 max-w-[768px]">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-          <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
-        </div>
-        <input
+      <div className="flex-1 max-w-[768px]">
+        <SearchInput
           id="asset-search"
-          type="search"
-          defaultValue={filters.search}
+          value={localSearch}
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
+          onClear={handleSearchClear}
           placeholder="Search assets..."
-          className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
           aria-label="Search assets"
+          className="rounded-full"
         />
-        {filters.search && (
-          <button
-            type="button"
-            onClick={handleSearchClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-            aria-label="Clear search"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* Filter button */}
@@ -234,89 +219,71 @@ export default function AssetRegisterFilters({
             {/* Category */}
             <div>
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
-              <select
+              <Select<AssetCategoryFilter>
                 value={filters.category}
-                onChange={(e) => update({ category: e.target.value as AssetCategoryFilter })}
-                className={selectClass}
-              >
-                <option value="">All Categories</option>
-                {CATEGORY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+                onChange={(value) => update({ category: value })}
+                options={[{ value: '', label: 'All Categories' }, ...CATEGORY_OPTIONS]}
+                size="sm"
+              />
             </div>
 
             {/* Building */}
             {buildingOptions.length > 0 && (
               <div>
                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Building</label>
-                <select
+                <Select
                   value={filters.buildingId}
-                  onChange={(e) => update({ buildingId: e.target.value, areaId: '', roomId: '' })}
-                  className={selectClass}
-                >
-                  <option value="">All Buildings</option>
-                  {buildingOptions.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  onChange={(value) => update({ buildingId: value, areaId: '', roomId: '' })}
+                  options={[{ value: '', label: 'All Buildings' }, ...buildingOptions]}
+                  size="sm"
+                />
               </div>
             )}
 
             {/* Status */}
             <div>
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
-              <select
+              <Select<AssetStatusFilter>
                 value={filters.status}
-                onChange={(e) => update({ status: e.target.value as AssetStatusFilter })}
-                className={selectClass}
-              >
-                <option value="">All Statuses</option>
-                {STATUS_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+                onChange={(value) => update({ status: value })}
+                options={[{ value: '', label: 'All Statuses' }, ...STATUS_OPTIONS]}
+                size="sm"
+              />
             </div>
 
             {/* Warranty Status */}
             <div>
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Warranty</label>
-              <select
+              <Select<WarrantyStatusFilter>
                 value={filters.warrantyStatus}
-                onChange={(e) => update({ warrantyStatus: e.target.value as WarrantyStatusFilter })}
-                className={selectClass}
-              >
-                <option value="">Any Warranty</option>
-                {WARRANTY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
+                onChange={(value) => update({ warrantyStatus: value })}
+                options={[{ value: '', label: 'Any Warranty' }, ...WARRANTY_OPTIONS]}
+                size="sm"
+              />
             </div>
 
             {/* Sort By + Direction row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Sort By</label>
-                <select
+                <Select<AssetSortField>
                   value={filters.sortField}
-                  onChange={(e) => update({ sortField: e.target.value as AssetSortField })}
-                  className={selectClass}
-                >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  onChange={(value) => update({ sortField: value })}
+                  options={SORT_OPTIONS}
+                  size="sm"
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Direction</label>
-                <select
+                <Select<AssetSortDir>
                   value={filters.sortDir}
-                  onChange={(e) => update({ sortDir: e.target.value as AssetSortDir })}
-                  className={selectClass}
-                >
-                  <option value="asc">Ascending</option>
-                  <option value="desc">Descending</option>
-                </select>
+                  onChange={(value) => update({ sortDir: value })}
+                  options={[
+                    { value: 'asc', label: 'Ascending' },
+                    { value: 'desc', label: 'Descending' },
+                  ]}
+                  size="sm"
+                />
               </div>
             </div>
 

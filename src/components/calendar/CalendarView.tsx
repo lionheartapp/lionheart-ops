@@ -55,7 +55,7 @@ import CalendarFilterPanel from './CalendarFilterPanel'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
 import { useSmartSearch } from '@/lib/hooks/useSmartSearch'
-import { Download } from 'lucide-react'
+import { Download, Plus } from 'lucide-react'
 import { MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
@@ -781,6 +781,20 @@ export default function CalendarView() {
     setIsCreateOpen(true)
   }, [])
 
+  const handleMobileCreate = useCallback((date?: Date) => {
+    const baseDate = date ?? currentDate
+    const now = new Date()
+    const start = new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      now.getHours() + 1,
+      0,
+    )
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    openChoiceModal(start, end)
+  }, [currentDate, openChoiceModal])
+
   // ── Event CRUD hook ──────────────────────────────────────────────────
   const {
     handleSubmitEvent,
@@ -904,7 +918,7 @@ export default function CalendarView() {
     <MotionConfig reducedMotion="user">
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white">
       {/* Header area — stays fixed, white bg, shadow at bottom edge */}
-      <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-5 sm:pt-6 pb-5 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
+      <div className="flex-shrink-0 bg-white px-4 sm:px-10 pt-3 sm:pt-6 pb-3 sm:pb-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative z-10">
         <CalendarToolbar
           currentDate={currentDate}
           view={view}
@@ -912,6 +926,7 @@ export default function CalendarView() {
           onNavigateBack={goPrev}
           onNavigateForward={goNext}
           onToday={goToToday}
+          onDateSelect={setCurrentDate}
           onCreateEvent={handleCreateEvent}
           onPlanEvent={handlePlanEvent}
           onCreateEventProject={handleCreateEventProject}
@@ -950,7 +965,7 @@ export default function CalendarView() {
         />
 
         {/* Export CSV — subtle text link, not a prominent button */}
-        <div className="flex justify-end mt-1">
+        <div className="hidden sm:flex justify-end mt-1">
           <button
             onClick={() => {
               window.open('/api/settings/export/events', '_blank')
@@ -1034,7 +1049,7 @@ export default function CalendarView() {
                 isLoading={showSkeletons}
                 onNavigateBack={goPrev}
                 onNavigateForward={goNext}
-                onCreateEvent={handleCreateEvent}
+                onCreateEvent={handleMobileCreate}
               />
             ) : (
               <MonthView
@@ -1050,18 +1065,33 @@ export default function CalendarView() {
             )
           )}
           {view === 'week' && (
-            <WeekView
-              currentDate={currentDate}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-              onSlotClick={handleSlotClick}
-              onDragReschedule={handleDragReschedule}
-              onResize={handleResize}
-              campusShapeMap={campusShapeMap}
-              meetWithPeople={meetWithPeople}
-              meetWithEvents={meetWithEvents}
-              isLoading={showSkeletons}
-            />
+            isMobile ? (
+              <DayView
+                currentDate={currentDate}
+                events={filteredEvents}
+                onEventClick={handleEventClick}
+                onSlotClick={handleSlotClick}
+                onDragReschedule={handleDragReschedule}
+                onResize={handleResize}
+                campusShapeMap={campusShapeMap}
+                meetWithPeople={meetWithPeople}
+                meetWithEvents={meetWithEvents}
+                isLoading={showSkeletons}
+              />
+            ) : (
+              <WeekView
+                currentDate={currentDate}
+                events={filteredEvents}
+                onEventClick={handleEventClick}
+                onSlotClick={handleSlotClick}
+                onDragReschedule={handleDragReschedule}
+                onResize={handleResize}
+                campusShapeMap={campusShapeMap}
+                meetWithPeople={meetWithPeople}
+                meetWithEvents={meetWithEvents}
+                isLoading={showSkeletons}
+              />
+            )
           )}
           {view === 'day' && (
             <DayView
@@ -1088,6 +1118,18 @@ export default function CalendarView() {
           )}
         </div>
       </div>
+
+      {isMobile && view !== 'month' && (
+        <button
+          type="button"
+          onClick={() => handleMobileCreate()}
+          className="fixed right-4 bottom-20 z-30 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
+          style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
+          aria-label="Create calendar item"
+        >
+          <Plus className="h-6 w-6 text-white" strokeWidth={2.5} aria-hidden="true" />
+        </button>
+      )}
 
       {/* Panels */}
       <EventDetailPanel

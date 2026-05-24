@@ -7,6 +7,7 @@ import type { CalendarData, CalendarEventData, CalendarCategoryData } from '@/li
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { FloatingInput, FloatingTextarea, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 import RecurrenceBuilder from './RecurrenceBuilder'
 import AttendeePicker, { type AttendeeSelection } from './AttendeePicker'
 import ExternalConflictDialog, { type ExternalConflict } from './ExternalConflictDialog'
@@ -433,13 +434,13 @@ export default function EventCreatePanel({
                           Cancel
                         </button>
                       </div>
-                      <input
+                      <Input
                         type="text"
                         placeholder="Category name"
                         aria-label="Category name"
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900"
+                        className="w-full text-sm"
                         autoFocus
                       />
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -491,20 +492,19 @@ export default function EventCreatePanel({
               )}
 
               {/* All-day toggle */}
-              <label htmlFor="allDay" className="flex items-center justify-between cursor-pointer">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.isAllDay}
+                onClick={() => setForm((p) => ({ ...p, isAllDay: !p.isAllDay }))}
+                className="flex w-full items-center justify-between cursor-pointer text-left"
+              >
                 <span className="text-sm text-slate-700">All-day</span>
                 <div className="relative">
-                  <input
-                    type="checkbox"
-                    id="allDay"
-                    checked={form.isAllDay}
-                    onChange={(e) => setForm((p) => ({ ...p, isAllDay: e.target.checked }))}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-slate-900 transition-colors" />
-                  <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
+                  <div className={`w-9 h-5 rounded-full transition-colors ${form.isAllDay ? 'bg-slate-900' : 'bg-slate-200'}`} />
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form.isAllDay ? 'translate-x-4' : ''}`} />
                 </div>
-              </label>
+              </button>
 
               {/* Date & Time */}
               <div className="space-y-3">
@@ -519,7 +519,7 @@ export default function EventCreatePanel({
                       >
                         {formatDateDisplay(startDate)}
                       </button>
-                      <input
+                      <Input
                         ref={startDateRef}
                         type="date"
                         value={startDate}
@@ -548,7 +548,7 @@ export default function EventCreatePanel({
                       >
                         + end date
                       </button>
-                      <input
+                      <Input
                         ref={endDateAddRef}
                         type="date"
                         value={endDate}
@@ -570,7 +570,7 @@ export default function EventCreatePanel({
                       >
                         {formatDateDisplay(startDate)}
                       </button>
-                      <input
+                      <Input
                         ref={startDateRef}
                         type="date"
                         value={startDate}
@@ -592,7 +592,7 @@ export default function EventCreatePanel({
                       >
                         to {formatDateDisplay(endDate)}
                       </button>
-                      <input
+                      <Input
                         ref={endDateRef}
                         type="date"
                         value={endDate}

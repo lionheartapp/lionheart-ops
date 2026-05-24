@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders, fetchApi } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { FileInput } from '@/components/ui/FileInput'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/Toast'
 import DynamicCategoryField from '@/components/shared/DynamicCategoryField'
 import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
@@ -178,7 +181,6 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   const [photos, setPhotos] = useState<string[]>([])
   const [photoUploading, setPhotoUploading] = useState<{ id: string; preview: string; status: 'uploading' | 'done' | 'error' }[]>([])
   const [photoError, setPhotoError] = useState('')
-  const photoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const win = getWindowWithSpeech()
@@ -409,7 +411,7 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
   )
 
   const handlePhotoFiles = useCallback(
-    (files: FileList | null) => {
+    (files: FileList | File[] | null) => {
       if (!files) return
       setPhotoError('')
 
@@ -496,12 +498,12 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
             <span className="text-sm font-medium text-indigo-900">Quick Describe</span>
             <span className="text-xs text-indigo-500">AI-powered</span>
           </div>
-          <textarea
+          <Textarea
             value={quickDescribe}
             onChange={(e) => setQuickDescribe(e.target.value)}
             placeholder="Describe the issue in your own words... e.g. 'Wi-Fi is down in the library, 30 students can't connect'"
             rows={2}
-            className="w-full px-3 py-2 rounded-lg border border-indigo-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent transition-shadow resize-none"
+            className="border-indigo-200 focus:border-indigo-400 focus:ring-indigo-100"
           />
           <div className="flex items-center gap-3 mt-2">
             <button
@@ -614,16 +616,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {issueType === 'ACCOUNT_PASSWORD' && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Password Issue Type</label>
-            <select
+            <Select
               value={passwordSubType}
-              onChange={(e) => setPasswordSubType(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">Select...</option>
-              {PASSWORD_SUB_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+              onChange={setPasswordSubType}
+              options={[{ value: '', label: 'Select...' }, ...PASSWORD_SUB_TYPES]}
+            />
           </div>
         )}
 
@@ -631,16 +628,11 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {issueType === 'DISPLAY_AV' && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">A/V Equipment</label>
-            <select
+            <Select
               value={avSubType}
-              onChange={(e) => setAvSubType(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">Select...</option>
-              {AV_SUB_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+              onChange={setAvSubType}
+              options={[{ value: '', label: 'Select...' }, ...AV_SUB_TYPES]}
+            />
           </div>
         )}
 
@@ -722,29 +714,19 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
           </div>
 
           {photos.length < MAX_PHOTOS && (
-            <div
-              onClick={() => photoInputRef.current?.click()}
-              onDrop={(e) => {
-                e.preventDefault()
-                handlePhotoFiles(e.dataTransfer.files)
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              className="rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 p-4 text-center transition-all cursor-pointer"
+            <FileInput
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              maxSize={10 * 1024 * 1024}
+              onFiles={handlePhotoFiles}
+              className="rounded-xl hover:border-blue-300 hover:bg-blue-50/30"
             >
               <div className="flex flex-col items-center gap-1.5">
                 <Camera className="w-6 h-6 text-slate-400" />
                 <p className="text-sm text-slate-600">Add photos to help diagnose the issue</p>
                 <p className="text-xs text-slate-400">JPG, PNG, WebP up to 10MB each</p>
               </div>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                onChange={(e) => handlePhotoFiles(e.target.files)}
-                className="hidden"
-              />
-            </div>
+            </FileInput>
           )}
 
           {photoError && (
@@ -815,62 +797,50 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {canManage && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
-            <select
+            <Select
               value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              {PRIORITIES.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+              onChange={setPriority}
+              options={PRIORITIES}
+            />
           </div>
         )}
 
         {/* Location: Building → Area → Room */}
         <div className="space-y-3">
           <label className="block text-sm font-medium text-slate-700">Location (optional)</label>
-          <select
+          <Select
             value={buildingId}
-            onChange={(e) => {
-              setBuildingId(e.target.value)
+            onChange={(value) => {
+              setBuildingId(value)
               setAreaId('')
               setRoomId('')
             }}
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            <option value="">Select building...</option>
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'Select building...' },
+              ...buildings.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
 
           {areas.length > 0 && (
-            <select
+            <Select
               value={areaId}
-              onChange={(e) => { setAreaId(e.target.value); setRoomId('') }}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">Select area...</option>
-              {areas.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </select>
+              onChange={(value) => { setAreaId(value); setRoomId('') }}
+              options={[
+                { value: '', label: 'Select area...' },
+                ...areas.map((a) => ({ value: a.id, label: a.name })),
+              ]}
+            />
           )}
 
           {rooms.length > 0 && (
-            <select
+            <Select
               value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">Select room...</option>
-              {rooms.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.displayName || r.roomNumber || r.id}
-                </option>
-              ))}
-            </select>
+              onChange={setRoomId}
+              options={[
+                { value: '', label: 'Select room...' },
+                ...rooms.map((r) => ({ value: r.id, label: r.displayName || r.roomNumber || r.id })),
+              ]}
+            />
           )}
         </div>
 
@@ -878,16 +848,14 @@ export default function ITTicketCreateDrawer({ isOpen, onClose, canManage }: ITT
         {schools.length > 1 && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Campus</label>
-            <select
+            <Select
               value={schoolId}
-              onChange={(e) => setSchoolId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">Select campus...</option>
-              {schools.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+              onChange={setSchoolId}
+              options={[
+                { value: '', label: 'Select campus...' },
+                ...schools.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+            />
           </div>
         )}
 

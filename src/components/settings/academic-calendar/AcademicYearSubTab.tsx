@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/components/Toast'
 import { IllustrationCalendar } from '@/components/illustrations'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
 import type { SchoolOption, DeleteTarget, AcademicYear, Term } from './academic-calendar-types'
 import { apiFetch, formatDate } from './academic-calendar-types'
 
@@ -108,23 +110,20 @@ export function AcademicYearSubTab({ schools, activeSchoolId, onRequestDelete, s
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 space-y-3">
             <div className="flex items-center gap-3">
-              <input
+              <Input
                 type="text"
                 placeholder="Year name (e.g., 2026-2027)"
                 aria-label="Year name"
                 value={yearForm.name}
                 onChange={(e) => setYearForm((f) => ({ ...f, name: e.target.value }))}
-                className="flex-1 px-0 py-1 bg-transparent border-none text-base font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
+                className="!h-auto flex-1 !border-0 !bg-transparent !px-0 !py-1 text-base font-semibold text-slate-900 placeholder:font-normal !outline-none !ring-0"
               />
-              <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 cursor-pointer hover:bg-slate-50 transition whitespace-nowrap select-none">
-                <input
-                  type="checkbox"
-                  checked={yearForm.isCurrent}
-                  onChange={(e) => setYearForm((f) => ({ ...f, isCurrent: e.target.checked }))}
-                  className="rounded text-green-600 border-slate-300 focus:ring-green-500 focus:ring-offset-0"
-                />
-                Current Year
-              </label>
+              <Checkbox
+                checked={yearForm.isCurrent}
+                onChange={(e) => setYearForm((f) => ({ ...f, isCurrent: e.target.checked }))}
+                label="Current Year"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition whitespace-nowrap select-none"
+              />
             </div>
           </div>
 
@@ -135,9 +134,9 @@ export function AcademicYearSubTab({ schools, activeSchoolId, onRequestDelete, s
               <span className="flex-1 text-[11px] font-medium text-slate-400 uppercase tracking-wider">End Date</span>
             </div>
             <div className="flex items-center gap-2">
-              <input type="date" aria-label="Start date" value={yearForm.startDate} onChange={(e) => setYearForm((f) => ({ ...f, startDate: e.target.value }))} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+              <Input type="date" aria-label="Start date" value={yearForm.startDate} onChange={(e) => setYearForm((f) => ({ ...f, startDate: e.target.value }))} className="flex-1 text-sm" />
               <span className="text-slate-300 text-xs">to</span>
-              <input type="date" aria-label="End date" value={yearForm.endDate} onChange={(e) => setYearForm((f) => ({ ...f, endDate: e.target.value }))} className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+              <Input type="date" aria-label="End date" value={yearForm.endDate} onChange={(e) => setYearForm((f) => ({ ...f, endDate: e.target.value }))} className="flex-1 text-sm" />
             </div>
           </div>
 
@@ -185,9 +184,9 @@ export function AcademicYearSubTab({ schools, activeSchoolId, onRequestDelete, s
                 {showTermForm === year.id && (
                   <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 space-y-2">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <input type="text" placeholder="Term name (e.g., Semester 1)" aria-label="Term name" value={termForm.name} onChange={(e) => setTermForm((f) => ({ ...f, name: e.target.value }))} className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
-                      <input type="date" aria-label="Term start" value={termForm.startDate} onChange={(e) => setTermForm((f) => ({ ...f, startDate: e.target.value }))} className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
-                      <input type="date" aria-label="Term end" value={termForm.endDate} onChange={(e) => setTermForm((f) => ({ ...f, endDate: e.target.value }))} className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-200 transition" />
+                      <Input type="text" placeholder="Term name (e.g., Semester 1)" aria-label="Term name" value={termForm.name} onChange={(e) => setTermForm((f) => ({ ...f, name: e.target.value }))} className="text-sm" />
+                      <Input type="date" aria-label="Term start" value={termForm.startDate} onChange={(e) => setTermForm((f) => ({ ...f, startDate: e.target.value }))} className="text-sm" />
+                      <Input type="date" aria-label="Term end" value={termForm.endDate} onChange={(e) => setTermForm((f) => ({ ...f, endDate: e.target.value }))} className="text-sm" />
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => createTermMut.mutate({ academicYearId: year.id, ...termForm })} disabled={createTermMut.isPending || !termForm.name} className="px-4 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
@@ -206,9 +205,9 @@ export function AcademicYearSubTab({ schools, activeSchoolId, onRequestDelete, s
                         editingTerm === term.id ? (
                           <div key={term.id} className="flex items-center gap-2 px-3 py-2 bg-blue-50/50 rounded-lg border border-blue-100">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                            <input type="text" aria-label="Term name" value={termForm.name} onChange={(e) => setTermForm((f) => ({ ...f, name: e.target.value }))} className="flex-1 min-w-0 px-2 py-1 border border-slate-200 rounded-md text-sm bg-white focus:border-slate-400 focus:outline-none" />
-                            <input type="date" aria-label="Term start" value={termForm.startDate} onChange={(e) => setTermForm((f) => ({ ...f, startDate: e.target.value }))} className="w-[130px] px-2 py-1 border border-slate-200 rounded-md text-sm bg-white focus:border-slate-400 focus:outline-none" />
-                            <input type="date" aria-label="Term end" value={termForm.endDate} onChange={(e) => setTermForm((f) => ({ ...f, endDate: e.target.value }))} className="w-[130px] px-2 py-1 border border-slate-200 rounded-md text-sm bg-white focus:border-slate-400 focus:outline-none" />
+                            <Input type="text" size="sm" aria-label="Term name" value={termForm.name} onChange={(e) => setTermForm((f) => ({ ...f, name: e.target.value }))} className="flex-1 min-w-0 text-sm" />
+                            <Input type="date" size="sm" aria-label="Term start" value={termForm.startDate} onChange={(e) => setTermForm((f) => ({ ...f, startDate: e.target.value }))} className="w-[130px] text-sm" />
+                            <Input type="date" size="sm" aria-label="Term end" value={termForm.endDate} onChange={(e) => setTermForm((f) => ({ ...f, endDate: e.target.value }))} className="w-[130px] text-sm" />
                             <button onClick={() => updateTermMut.mutate({ id: term.id, data: termForm })} disabled={updateTermMut.isPending} className="px-2.5 py-1 bg-slate-900 text-white text-xs font-medium rounded-full hover:bg-slate-800 disabled:opacity-50 cursor-pointer">
                               {updateTermMut.isPending ? '...' : 'Save'}
                             </button>

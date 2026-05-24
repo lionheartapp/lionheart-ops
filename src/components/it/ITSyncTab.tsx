@@ -18,6 +18,7 @@ import {
   Settings,
   Play,
 } from 'lucide-react'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -388,24 +389,18 @@ export default function ITSyncTab({ canManage }: ITSyncTabProps) {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <select
+          <Select
             value={providerFilter}
-            onChange={(e) => { setProviderFilter(e.target.value); setPage(0) }}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            {PROVIDER_FILTER_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-          <select
+            onChange={(next) => { setProviderFilter(next); setPage(0) }}
+            options={PROVIDER_FILTER_OPTIONS}
+            size="sm"
+          />
+          <Select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(0) }}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-          >
-            {STATUS_FILTER_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            onChange={(next) => { setStatusFilter(next); setPage(0) }}
+            options={STATUS_FILTER_OPTIONS}
+            size="sm"
+          />
         </div>
 
         {jobs.length === 0 ? (

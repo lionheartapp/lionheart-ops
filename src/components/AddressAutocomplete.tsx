@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { getAuthHeaders } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 
 interface Suggestion {
   description: string
@@ -112,7 +113,7 @@ export default function AddressAutocomplete({ value, onChange, className = 'ui-i
   return (
     <div ref={wrapperRef} className="relative">
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           className={className}
           value={value}

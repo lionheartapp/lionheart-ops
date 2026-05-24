@@ -80,12 +80,12 @@ export const queryKeys = {
   },
   athleticsDashboard: {
     all: ['athletics-dashboard'] as const,
-    campus: (campusId?: string | null) => ['athletics-dashboard', campusId ?? 'all'] as const,
+    campus: (campusId?: string | null, scope?: string) => ['athletics-dashboard', campusId ?? 'all', scope ?? 'default'] as const,
   },
   athleticsTeams: {
     all: ['athletics-teams'] as const,
-    filtered: (sportId?: string, seasonId?: string) =>
-      ['athletics-teams', { sportId: sportId ?? '', seasonId: seasonId ?? '' }] as const,
+    filtered: (sportId?: string, seasonId?: string, scope?: string) =>
+      ['athletics-teams', { sportId: sportId ?? '', seasonId: seasonId ?? '', scope: scope ?? 'default' }] as const,
   },
   athleticsSeasons: {
     all: ['athletics-seasons'] as const,
@@ -97,13 +97,13 @@ export const queryKeys = {
   },
   athleticsGames: {
     all: ['athletics-games'] as const,
-    byTeam: (teamId?: string) =>
-      ['athletics-games', { teamId: teamId ?? '' }] as const,
+    byTeam: (teamId?: string, scope?: string) =>
+      ['athletics-games', { teamId: teamId ?? '', scope: scope ?? 'default' }] as const,
   },
   athleticsPractices: {
     all: ['athletics-practices'] as const,
-    byTeam: (teamId?: string) =>
-      ['athletics-practices', { teamId: teamId ?? '' }] as const,
+    byTeam: (teamId?: string, scope?: string) =>
+      ['athletics-practices', { teamId: teamId ?? '', scope: scope ?? 'default' }] as const,
   },
   athleticsRoster: {
     all: ['athletics-roster'] as const,
@@ -491,21 +491,25 @@ export const queryOptions = {
     staleTime: 10 * 60_000,
   }),
 
-  athleticsDashboard: (campusId?: string | null) => ({
-    queryKey: queryKeys.athleticsDashboard.campus(campusId),
+  athleticsDashboard: (campusId?: string | null, scope?: string) => ({
+    queryKey: queryKeys.athleticsDashboard.campus(campusId, scope),
     queryFn: () => {
-      const params = campusId ? `?campusId=${campusId}` : ''
-      return fetchApi<unknown>(`/api/athletics/dashboard${params}`)
+      const params = new URLSearchParams()
+      if (campusId) params.set('campusId', campusId)
+      if (scope) params.set('scope', scope)
+      const qs = params.toString()
+      return fetchApi<unknown>(`/api/athletics/dashboard${qs ? `?${qs}` : ''}`)
     },
     staleTime: 2 * 60_000,
   }),
 
-  athleticsTeams: (sportId?: string, seasonId?: string) => ({
-    queryKey: queryKeys.athleticsTeams.filtered(sportId, seasonId),
+  athleticsTeams: (sportId?: string, seasonId?: string, scope?: string) => ({
+    queryKey: queryKeys.athleticsTeams.filtered(sportId, seasonId, scope),
     queryFn: () => {
       const params = new URLSearchParams()
       if (sportId) params.set('sportId', sportId)
       if (seasonId) params.set('seasonId', seasonId)
+      if (scope) params.set('scope', scope)
       const qs = params.toString()
       return fetchApi<unknown[]>(`/api/athletics/teams${qs ? `?${qs}` : ''}`)
     },
@@ -527,20 +531,26 @@ export const queryOptions = {
     staleTime: 5 * 60_000,
   }),
 
-  athleticsGames: (teamId?: string) => ({
-    queryKey: queryKeys.athleticsGames.byTeam(teamId),
+  athleticsGames: (teamId?: string, scope?: string) => ({
+    queryKey: queryKeys.athleticsGames.byTeam(teamId, scope),
     queryFn: () => {
-      const param = teamId ? `?teamId=${teamId}` : ''
-      return fetchApi<unknown[]>(`/api/athletics/games${param}`)
+      const params = new URLSearchParams()
+      if (teamId) params.set('teamId', teamId)
+      if (scope) params.set('scope', scope)
+      const qs = params.toString()
+      return fetchApi<unknown[]>(`/api/athletics/games${qs ? `?${qs}` : ''}`)
     },
     staleTime: 5 * 60_000,
   }),
 
-  athleticsPractices: (teamId?: string) => ({
-    queryKey: queryKeys.athleticsPractices.byTeam(teamId),
+  athleticsPractices: (teamId?: string, scope?: string) => ({
+    queryKey: queryKeys.athleticsPractices.byTeam(teamId, scope),
     queryFn: () => {
-      const param = teamId ? `?teamId=${teamId}` : ''
-      return fetchApi<unknown[]>(`/api/athletics/practices${param}`)
+      const params = new URLSearchParams()
+      if (teamId) params.set('teamId', teamId)
+      if (scope) params.set('scope', scope)
+      const qs = params.toString()
+      return fetchApi<unknown[]>(`/api/athletics/practices${qs ? `?${qs}` : ''}`)
     },
     staleTime: 5 * 60_000,
   }),

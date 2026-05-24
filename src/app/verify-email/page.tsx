@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Clock, Mail, RefreshCw, ArrowLeft } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 type PageState =
   | 'check-email'      // No token, no error — user just signed up
@@ -232,28 +233,28 @@ function ResendForm({
         <label htmlFor="verify-email" className="block text-xs font-medium text-slate-700 mb-1">
           Email address
         </label>
-        <input
+        <Input
           id="verify-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="you@school.edu"
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
+          className="w-full text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
         />
       </div>
       <div>
         <label htmlFor="verify-org" className="block text-xs font-medium text-slate-700 mb-1">
           Organization ID
         </label>
-        <input
+        <Input
           id="verify-org"
           type="text"
           value={orgId}
           onChange={(e) => setOrgId(e.target.value)}
           required
           placeholder="Organization ID from your signup"
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
+          className="w-full text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus-visible:ring-1 focus-visible:ring-slate-900/10"
         />
       </div>
       {errorMsg && (

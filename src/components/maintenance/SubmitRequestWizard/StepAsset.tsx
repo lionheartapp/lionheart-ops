@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Search, X, ChevronRight, Tag } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { getAuthHeaders } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -218,14 +219,14 @@ export default function StepAsset({
         <div className="relative">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            <input
+            <Input
               type="text"
               value={query}
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setIsDropdownOpen(true)}
               onBlur={() => setTimeout(() => setIsDropdownOpen(false), 150)}
               placeholder="Search by asset name, number, or make..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full pl-9 text-sm text-slate-900 placeholder-slate-400"
             />
             {isLoading && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -303,7 +304,7 @@ export default function StepAsset({
           <div className="flex gap-2">
             <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden flex-1">
               <span className="px-2 py-2 text-xs font-mono text-slate-400 bg-slate-50 border-r border-slate-200">AST-</span>
-              <input
+              <Input
                 type="text"
                 value={manualNumber}
                 onChange={(e) => {
@@ -314,7 +315,8 @@ export default function StepAsset({
                   if (e.key === 'Enter') handleManualLookup()
                 }}
                 placeholder="0001"
-                className="flex-1 px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none font-mono"
+                size="sm"
+                className="flex-1 border-0 text-sm text-slate-900 font-mono focus:ring-0"
               />
             </div>
             <button

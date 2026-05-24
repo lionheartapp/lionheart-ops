@@ -1,28 +1,61 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload, AlertCircle, Loader2, Sparkles } from 'lucide-react'
+import { Upload, AlertCircle, Loader2, Sparkles, Building2, GraduationCap, MapPin, Palette, ArrowRight } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { motion } from 'framer-motion'
 import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
 
 interface SchoolData {
   name: string
+  schoolName: string
+  campusName: string
+  campusAddress: string
+  campusKind: string
+  campusGradeLevel: string
   logo?: string
   primaryColor?: string
   phone?: string
-  address?: string
-  gradeRange?: string
+  district?: string
+  principalName?: string
+  principalEmail?: string
+  principalPhone?: string
   institutionType?: string
 }
 
 const AI_STATUS_MESSAGES = [
-  'Searching the web...',
-  'Found your school!',
-  'Pulling in details...',
+  'Searching public sources...',
+  'Finding institution details...',
+  'Checking location data...',
 ]
+
+const STRUCTURE_STEPS = [
+  'Account',
+  'School',
+  'Location',
+]
+
+function FieldLabel({
+  htmlFor,
+  children,
+  required = false,
+}: {
+  htmlFor: string
+  children: ReactNode
+  required?: boolean
+}) {
+  return (
+    <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-slate-900">
+      <span>{children}</span>
+      {required && <span className="ml-1 text-red-500" aria-label="required">*</span>}
+    </label>
+  )
+}
 
 const containerVariants = {
   hidden: {},
@@ -39,12 +72,19 @@ export default function SchoolInfoPage() {
   const [highlightedFields, setHighlightedFields] = useState<Set<string>>(new Set())
   const [data, setData] = useState<SchoolData>({
     name: '',
+    schoolName: '',
+    campusName: 'Main location',
+    campusAddress: '',
+    campusKind: 'HEADQUARTERS',
+    campusGradeLevel: '',
     logo: '',
     primaryColor: '#2563eb',
     phone: '',
-    address: '',
-    gradeRange: '',
-    institutionType: 'Public',
+    district: '',
+    principalName: '',
+    principalEmail: '',
+    principalPhone: '',
+    institutionType: 'PUBLIC',
   })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -100,9 +140,10 @@ export default function SchoolInfoPage() {
             if (schoolData.logo) { next.logo = schoolData.logo; fieldsToHighlight.push('logo') }
             if (schoolData.colors?.primary) { next.primaryColor = schoolData.colors.primary; fieldsToHighlight.push('color') }
             if (schoolData.phone) { next.phone = schoolData.phone; fieldsToHighlight.push('phone') }
-            if (schoolData.address) { next.address = schoolData.address; fieldsToHighlight.push('address') }
-            if (schoolData.gradeRange) { next.gradeRange = schoolData.gradeRange; fieldsToHighlight.push('gradeRange') }
+            if (schoolData.address && !next.campusAddress) { next.campusAddress = schoolData.address; fieldsToHighlight.push('address') }
             if (schoolData.institutionType) { next.institutionType = schoolData.institutionType.toUpperCase(); fieldsToHighlight.push('type') }
+            if (schoolData.principalName) { next.principalName = schoolData.principalName; fieldsToHighlight.push('principal') }
+            if (schoolData.principalEmail) { next.principalEmail = schoolData.principalEmail; fieldsToHighlight.push('principal') }
             return next
           })
 
@@ -147,11 +188,18 @@ export default function SchoolInfoPage() {
           setData((prev) => ({
             ...prev,
             name: org.name || '',
+            schoolName: org.schoolName || org.name || '',
+            campusName: org.campusName || 'Main location',
+            campusAddress: org.campusAddress || org.physicalAddress || '',
+            campusKind: org.campusKind || 'HEADQUARTERS',
+            campusGradeLevel: org.campusGradeLevel || '',
             logo: org.logoUrl || '',
-            primaryColor: org.primaryColor || '#2563eb',
+            primaryColor: org.schoolColor || org.primaryColor || '#2563eb',
             phone: org.phone || '',
-            address: org.physicalAddress || '',
-            gradeRange: org.gradeRange || '',
+            district: org.district || '',
+            principalName: org.principalName || '',
+            principalEmail: org.principalEmail || '',
+            principalPhone: org.principalPhone || '',
             institutionType: org.institutionType || 'PUBLIC',
           }))
 
@@ -172,8 +220,8 @@ export default function SchoolInfoPage() {
     fetchOrgInfo()
   }, [performSchoolLookup])
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleLogoUpload = (files: File[]) => {
+    const file = files[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
@@ -187,7 +235,7 @@ export default function SchoolInfoPage() {
   }
 
   const handleAddressBlur = async () => {
-    const address = data.address?.trim()
+    const address = data.campusAddress?.trim()
     if (!address || address.length < 5) {
       setAddressValidation(null)
       return
@@ -239,6 +287,21 @@ export default function SchoolInfoPage() {
         })
       )
 
+      if (!data.schoolName.trim()) {
+        setError('School name is required')
+        return
+      }
+
+      if (!data.campusName.trim()) {
+        setError('Location name is required')
+        return
+      }
+
+      if (!data.campusAddress.trim()) {
+        setError('Address is required')
+        return
+      }
+
       const response = await fetch('/api/onboarding/school-info', {
         method: 'PATCH',
         headers: {
@@ -246,9 +309,16 @@ export default function SchoolInfoPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          schoolName: data.schoolName || data.name || null,
+          campusName: data.campusName || null,
+          campusAddress: data.campusAddress || null,
+          campusKind: data.campusKind || 'HEADQUARTERS',
+          campusGradeLevel: data.campusGradeLevel || null,
           phone: data.phone || null,
-          physicalAddress: data.address || null,
-          gradeRange: data.gradeRange || null,
+          district: data.district || null,
+          principalName: data.principalName || null,
+          principalEmail: data.principalEmail || null,
+          principalPhone: data.principalPhone || null,
           institutionType: data.institutionType || null,
         }),
       })
@@ -318,11 +388,17 @@ export default function SchoolInfoPage() {
 
       {/* Title */}
       <AnimatedFormField>
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900">Let&apos;s set up your school</h2>
-          <p className="text-slate-600 mt-2">
-            We&apos;ve pre-filled what we could find. Feel free to update any information.
-          </p>
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
+            <Sparkles className="h-3.5 w-3.5" />
+            Your workspace is almost ready
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900">Make it feel like home</h2>
+            <p className="text-slate-600 mt-2">
+              Confirm the essentials now. You can refine the rest once you are inside.
+            </p>
+          </div>
         </div>
       </AnimatedFormField>
 
@@ -333,208 +409,311 @@ export default function SchoolInfoPage() {
         </div>
       )}
 
-      {/* Branded Preview Card */}
-      {data.name && (
-        <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="rounded-lg p-6 text-white border border-opacity-20"
+      {/* Workspace Preview */}
+      <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
+        <motion.div
+          initial={{ scale: 0.96, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-medium"
+        >
+          <div
+            className="p-5 sm:p-6 text-white"
             style={{
               backgroundColor: data.primaryColor || '#2563eb',
-              borderColor: 'rgba(255,255,255,0.1)',
             }}
           >
-            <div className="flex items-center gap-4">
-              {data.logo ? (
-                <img
-                  src={data.logo}
-                  alt={data.name}
-                  className="w-16 h-16 bg-white rounded-lg p-2 object-contain"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }}
-                />
-              ) : null}
-              <div className={`w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400 text-lg font-bold ${data.logo ? 'hidden' : ''}`}>
-                {data.name?.charAt(0) || '?'}
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4 min-w-0">
+                {data.logo ? (
+                  <img
+                    src={data.logo}
+                    alt={data.name || 'School logo'}
+                    className="w-16 h-16 bg-white rounded-lg p-2 object-contain flex-shrink-0"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }}
+                  />
+                ) : null}
+                <div className={`w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400 text-lg font-bold flex-shrink-0 ${data.logo ? 'hidden' : ''}`}>
+                  {(data.name || data.schoolName || '?').charAt(0)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Launching</p>
+                  <h3 className="text-2xl font-bold truncate">{data.name || 'Your organization'}</h3>
+                  <p className="text-sm text-white/80 truncate">
+                    {data.schoolName || 'Your school'} · {data.campusName || 'Main location'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">{data.name}</h3>
-                <p className="text-white text-opacity-80">is ready to go</p>
+              <div className="flex items-center gap-2 text-sm font-semibold text-white/90">
+                {STRUCTURE_STEPS.map((step, index) => (
+                  <div key={step} className="flex items-center gap-2">
+                    <span className="rounded-full bg-white/15 px-2.5 py-1">{step}</span>
+                    {index < STRUCTURE_STEPS.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-white/50" />}
+                  </div>
+                ))}
               </div>
             </div>
-          </motion.div>
-        </AnimatedFormField>
-      )}
+          </div>
+          <div className="grid grid-cols-1 divide-y divide-slate-100 text-sm sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">School</p>
+              <p className="font-semibold text-slate-900 truncate">{data.schoolName || 'Ready to name'}</p>
+            </div>
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">Location</p>
+              <p className="font-semibold text-slate-900 truncate">{data.campusName || 'Main location'}</p>
+            </div>
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">Brand</p>
+              <p className="font-semibold text-slate-900 truncate">{data.logo ? 'Logo added' : 'Color ready'}</p>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatedFormField>
 
       {/* Form Fields */}
-      <div className="space-y-6">
-        {/* Logo */}
-        <AnimatedFormField highlight={highlightedFields.has('logo')}>
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-1.5">
-              Logo
-            </label>
-            <div className="flex items-center gap-4">
-              {data.logo ? (
-                <img
-                  src={data.logo}
-                  alt="logo"
-                  className="w-20 h-20 bg-slate-100 rounded-lg p-1 object-contain border border-slate-200"
-                  onError={(e) => {
-                    // External logo URL is broken — clear it so user knows to upload
-                    e.currentTarget.style.display = 'none'
-                    setData((prev) => ({ ...prev, logo: '' }))
-                  }}
-                />
-              ) : (
-                <div className="w-20 h-20 bg-slate-100 rounded-lg border border-slate-200 border-dashed flex items-center justify-center text-slate-400">
-                  <span className="text-xs">No logo</span>
-                </div>
-              )}
-              <label className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.currentTarget.parentElement?.querySelector('input')?.click()
-                  }}
-                  className="px-4 py-2 bg-slate-100 text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-200 transition flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload Logo
-                </button>
-              </label>
+      <div className="space-y-5">
+        <AnimatedFormField>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 1</p>
+                <h3 className="text-base font-semibold text-slate-900">Account basics</h3>
+              </div>
             </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="phone">Main Phone</FieldLabel>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={data.phone}
+                  onChange={(e) => setData((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="district">District</FieldLabel>
+                <Input
+                  id="district"
+                  value={data.district}
+                  onChange={(e) => setData((prev) => ({ ...prev, district: e.target.value }))}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+          </section>
         </AnimatedFormField>
 
-        {/* Primary Color */}
-        <AnimatedFormField highlight={highlightedFields.has('color')}>
-          <div>
-            <label htmlFor="color" className="block text-sm font-medium text-slate-900 mb-1.5">
-              Primary Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                id="color"
-                type="color"
-                value={data.primaryColor}
-                onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
-              />
-              <input
-                type="text"
-                value={data.primaryColor}
-                onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
-                placeholder="#2563eb"
-              />
+        <AnimatedFormField highlight={highlightedFields.has('type') || highlightedFields.has('principal')}>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 2</p>
+                <h3 className="text-base font-semibold text-slate-900">Your school</h3>
+                <p className="mt-0.5 text-sm text-slate-500">This is how your school will appear across Lionheart.</p>
+              </div>
             </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <FieldLabel htmlFor="schoolName" required>School Name</FieldLabel>
+                <Input
+                  id="schoolName"
+                  value={data.schoolName}
+                  onChange={(e) => setData((prev) => ({ ...prev, schoolName: e.target.value }))}
+                  placeholder="School name"
+                />
+              </div>
+              <FloatingDropdown
+                id="type"
+                label="Institution Type"
+                value={data.institutionType || ''}
+                onChange={(value) => setData((prev) => ({ ...prev, institutionType: value }))}
+                required
+                options={[
+                  { value: 'PUBLIC', label: 'Public' },
+                  { value: 'PRIVATE', label: 'Private' },
+                  { value: 'CHARTER', label: 'Charter' },
+                  { value: 'HYBRID', label: 'Hybrid' },
+                ]}
+              />
+              <div>
+                <FieldLabel htmlFor="principalName">Principal or Main Contact</FieldLabel>
+                <Input
+                  id="principalName"
+                  value={data.principalName}
+                  onChange={(e) => setData((prev) => ({ ...prev, principalName: e.target.value }))}
+                  placeholder="Name"
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="principalEmail">Contact Email</FieldLabel>
+                <Input
+                  id="principalEmail"
+                  type="email"
+                  value={data.principalEmail}
+                  onChange={(e) => setData((prev) => ({ ...prev, principalEmail: e.target.value }))}
+                  placeholder="name@school.edu"
+                />
+              </div>
+              <div>
+                <FieldLabel htmlFor="principalPhone">Contact Phone</FieldLabel>
+                <Input
+                  id="principalPhone"
+                  type="tel"
+                  value={data.principalPhone}
+                  onChange={(e) => setData((prev) => ({ ...prev, principalPhone: e.target.value }))}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+          </section>
         </AnimatedFormField>
 
-        {/* School Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <AnimatedFormField highlight={highlightedFields.has('phone')}>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-1.5">
-                Phone
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                value={data.phone}
-                onChange={(e) => setData((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="(555) 123-4567"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
+        <AnimatedFormField highlight={highlightedFields.has('address')}>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 3</p>
+                <h3 className="text-base font-semibold text-slate-900">Location</h3>
+                <p className="mt-0.5 text-sm text-slate-500">Where requests, rooms, buildings, and day-to-day work will be organized.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <FieldLabel htmlFor="campusName" required>Location Name</FieldLabel>
+                <Input
+                  id="campusName"
+                  value={data.campusName}
+                  onChange={(e) => setData((prev) => ({ ...prev, campusName: e.target.value }))}
+                  placeholder="Main location"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <FieldLabel htmlFor="campusAddress" required>Address</FieldLabel>
+                <Input
+                  id="campusAddress"
+                  type="text"
+                  value={data.campusAddress}
+                  onChange={(e) => {
+                    setData((prev) => ({ ...prev, campusAddress: e.target.value }))
+                    setAddressValidation(null)
+                  }}
+                  onBlur={handleAddressBlur}
+                  placeholder="123 Main St, City, State"
+                />
+                {validatingAddress && (
+                  <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Verifying address...
+                  </p>
+                )}
+                {addressValidation?.suggestion && (
+                  <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+                    <p className="text-xs text-green-800 font-medium mb-1">Verified address:</p>
+                    <p className="text-sm text-green-900">{addressValidation.formattedAddress}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setData((prev) => ({ ...prev, campusAddress: addressValidation.formattedAddress }))
+                        setAddressValidation({ ...addressValidation, suggestion: undefined })
+                      }}
+                      className="mt-1.5 text-xs font-medium text-green-700 hover:text-green-800 underline"
+                    >
+                      Use this address
+                    </button>
+                  </div>
+                )}
+                {addressValidation && !addressValidation.suggestion && addressValidation.valid && (
+                  <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">Address verified</p>
+                )}
+              </div>
+              <FloatingDropdown
+                id="campusGradeLevel"
+                label="Grades at this location (optional)"
+                value={data.campusGradeLevel || ''}
+                onChange={(value) => setData((prev) => ({ ...prev, campusGradeLevel: value }))}
+                placeholder="Select when relevant"
+                options={[
+                  { value: '', label: 'Not grade-specific' },
+                  { value: 'ELEMENTARY', label: 'Elementary' },
+                  { value: 'MIDDLE_SCHOOL', label: 'Middle School' },
+                  { value: 'HIGH_SCHOOL', label: 'High School' },
+                ]}
               />
             </div>
-          </AnimatedFormField>
+          </section>
+        </AnimatedFormField>
 
-          <AnimatedFormField highlight={highlightedFields.has('address')}>
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-slate-900 mb-1.5">
-                Address
-              </label>
-              <input
-                id="address"
-                type="text"
-                value={data.address}
-                onChange={(e) => {
-                  setData((prev) => ({ ...prev, address: e.target.value }))
-                  setAddressValidation(null)
-                }}
-                onBlur={handleAddressBlur}
-                placeholder="123 Main St, City, State"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
-              />
-              {validatingAddress && (
-                <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Verifying address...
-                </p>
-              )}
-              {addressValidation?.suggestion && (
-                <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-                  <p className="text-xs text-green-800 font-medium mb-1">Verified address:</p>
-                  <p className="text-sm text-green-900">{addressValidation.formattedAddress}</p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setData((prev) => ({ ...prev, address: addressValidation.formattedAddress }))
-                      setAddressValidation({ ...addressValidation, suggestion: undefined })
-                    }}
-                    className="mt-1.5 text-xs font-medium text-green-700 hover:text-green-800 underline"
-                  >
-                    Use this address
-                  </button>
+        <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <Palette className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Finish</p>
+                <h3 className="text-base font-semibold text-slate-900">Brand touch</h3>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-1.5">Logo</label>
+                <div className="flex items-center gap-4">
+                  {data.logo ? (
+                    <img
+                      src={data.logo}
+                      alt="logo"
+                      className="w-20 h-20 bg-slate-100 rounded-lg p-1 object-contain border border-slate-200"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        setData((prev) => ({ ...prev, logo: '' }))
+                      }}
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-slate-100 rounded-lg border border-slate-200 border-dashed flex items-center justify-center text-slate-400">
+                      <span className="text-xs">No logo</span>
+                    </div>
+                  )}
+                  <FileInput accept="image/*" compact onFiles={handleLogoUpload} className="border-solid px-4 py-2">
+                    <span className="text-slate-900 text-sm font-medium flex items-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </span>
+                  </FileInput>
                 </div>
-              )}
-              {addressValidation && !addressValidation.suggestion && addressValidation.valid && (
-                <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
-                  ✓ Address verified
-                </p>
-              )}
+              </div>
+              <div>
+                <label htmlFor="color" className="block text-sm font-medium text-slate-900 mb-1.5">Primary Color</label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="color"
+                    type="color"
+                    value={data.primaryColor}
+                    onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
+                    className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
+                  />
+                  <Input
+                    type="text"
+                    value={data.primaryColor}
+                    onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
+                    className="flex-1"
+                    placeholder="#2563eb"
+                  />
+                </div>
+              </div>
             </div>
-          </AnimatedFormField>
-
-          <AnimatedFormField highlight={highlightedFields.has('gradeRange')}>
-            <div>
-              <label htmlFor="gradeRange" className="block text-sm font-medium text-slate-900 mb-1.5">
-                Grade Range
-              </label>
-              <input
-                id="gradeRange"
-                type="text"
-                value={data.gradeRange}
-                onChange={(e) => setData((prev) => ({ ...prev, gradeRange: e.target.value }))}
-                placeholder="K-5, 6-8, 9-12"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
-              />
-            </div>
-          </AnimatedFormField>
-
-          <AnimatedFormField highlight={highlightedFields.has('type')}>
-            <FloatingDropdown
-              id="type"
-              label="Institution Type"
-              value={data.institutionType || ''}
-              onChange={(value) => setData((prev) => ({ ...prev, institutionType: value }))}
-              options={[
-                { value: 'PUBLIC', label: 'Public' },
-                { value: 'PRIVATE', label: 'Private' },
-                { value: 'CHARTER', label: 'Charter' },
-                { value: 'HYBRID', label: 'Hybrid' },
-              ]}
-            />
-          </AnimatedFormField>
-        </div>
+          </section>
+        </AnimatedFormField>
       </div>
 
       {/* Actions */}

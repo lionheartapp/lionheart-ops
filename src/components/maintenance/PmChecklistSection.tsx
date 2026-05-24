@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { CheckCircle2, ClipboardList, Loader2 } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 interface PmChecklistSectionProps {
   ticketId: string
@@ -135,8 +136,7 @@ export default function PmChecklistSection({
             >
               {/* Checkbox */}
               <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={isChecked}
                   onChange={() => handleToggle(index)}
                   disabled={!canEdit || loadingIndex !== null}

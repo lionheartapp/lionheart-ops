@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Plus, X, Upload, Link2, Image as ImageIcon } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { Plus, X, Link2, Image as ImageIcon } from 'lucide-react'
 import { AV_EQUIPMENT_TAGS, DOC_LINK_TYPES } from '@/lib/constants/inventory'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -56,13 +59,6 @@ export default function StepDetails({
   const [newTagInput, setNewTagInput] = useState('')
   const [showNewTag, setShowNewTag] = useState(false)
 
-  // Image upload
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [dragOver, setDragOver] = useState(false)
-
-  const inputClass =
-    'w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors'
-
   // ── Serial Numbers ──
 
   const handleAddSerial = () => {
@@ -98,16 +94,6 @@ export default function StepDetails({
       reader.readAsDataURL(file)
     },
     [onImageChange]
-  )
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setDragOver(false)
-      const file = e.dataTransfer.files?.[0]
-      if (file) handleImageFile(file)
-    },
-    [handleImageFile]
   )
 
   const handlePaste = useCallback(
@@ -174,12 +160,11 @@ export default function StepDetails({
             <label htmlFor="av-manufacturer" className="block text-sm font-medium text-slate-700 mb-1">
               Manufacturer
             </label>
-            <input
+            <Input
               id="av-manufacturer"
               type="text"
               value={manufacturer}
               onChange={(e) => onManufacturerChange(e.target.value)}
-              className={inputClass}
               placeholder="e.g., Chauvet, Shure"
             />
           </div>
@@ -187,12 +172,11 @@ export default function StepDetails({
             <label htmlFor="av-model" className="block text-sm font-medium text-slate-700 mb-1">
               Model
             </label>
-            <input
+            <Input
               id="av-model"
               type="text"
               value={model}
               onChange={(e) => onModelChange(e.target.value)}
-              className={inputClass}
               placeholder="e.g., COLORado 1-Quad"
             />
           </div>
@@ -228,12 +212,12 @@ export default function StepDetails({
           )}
 
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={serialInput}
               onChange={(e) => setSerialInput(e.target.value)}
               onKeyDown={handleSerialKeyDown}
-              className={`flex-1 ${inputClass}`}
+              className="flex-1"
               placeholder="Enter serial number and press Enter"
             />
             <button
@@ -276,35 +260,19 @@ export default function StepDetails({
               </button>
             </div>
           ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault()
-                setDragOver(true)
+            <FileInput
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              maxSize={5 * 1024 * 1024}
+              onFiles={(files) => {
+                const file = files[0]
+                if (file) handleImageFile(file)
               }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              className={`w-[200px] h-[200px] flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-                dragOver
-                  ? 'border-indigo-400 bg-indigo-50'
-                  : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'
-              }`}
+              className="w-[200px] h-[200px]"
             >
               <ImageIcon className="w-10 h-10 text-slate-300" />
               <span className="text-xs text-slate-500">Upload Image</span>
-            </div>
+            </FileInput>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleImageFile(file)
-              e.target.value = ''
-            }}
-          />
         </div>
 
         {/* Documentation */}
@@ -348,31 +316,23 @@ export default function StepDetails({
             <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
               <Link2 className="w-4 h-4" /> Add External Link
             </div>
-            <input
+            <Input
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              className={inputClass}
               placeholder="Documentation URL (e.g., https://example.com/manual.pdf)"
             />
-            <input
+            <Input
               type="text"
               value={linkTitle}
               onChange={(e) => setLinkTitle(e.target.value)}
-              className={inputClass}
               placeholder="Title (e.g., User Manual)"
             />
-            <select
+            <Select
               value={linkType}
-              onChange={(e) => setLinkType(e.target.value)}
-              className={`${inputClass} cursor-pointer`}
-            >
-              {DOC_LINK_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              onChange={setLinkType}
+              options={[...DOC_LINK_TYPES]}
+            />
             <button
               type="button"
               onClick={handleAddLink}
@@ -427,7 +387,7 @@ export default function StepDetails({
             {/* New Tag button/input */}
             {showNewTag ? (
               <div className="flex items-center gap-1">
-                <input
+                <Input
                   type="text"
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
@@ -438,7 +398,8 @@ export default function StepDetails({
                     }
                     if (e.key === 'Escape') setShowNewTag(false)
                   }}
-                  className="px-2.5 py-1 text-xs border border-slate-200 rounded-full bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 w-28"
+                  className="w-28 rounded-full"
+                  size="sm"
                   placeholder="Tag name"
                   autoFocus
                 />

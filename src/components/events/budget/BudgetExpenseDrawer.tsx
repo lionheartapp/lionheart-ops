@@ -8,13 +8,14 @@
  * Uses the DetailDrawer pattern with footer prop.
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
+import { FileInput } from '@/components/ui/FileInput'
 import { useToast } from '@/components/Toast'
 import { useGetReceiptUploadUrl } from '@/lib/hooks/useBudget'
 import type { BudgetCategoryRow, BudgetLineItemRow, BudgetLineItemInput } from '@/lib/types/budget'
@@ -75,7 +76,6 @@ export function BudgetExpenseDrawer({
 }: BudgetExpenseDrawerProps) {
   const { toast } = useToast()
   const getReceiptUrl = useGetReceiptUploadUrl(eventProjectId)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState<ExpenseFormValues>({
     categoryId: '',
@@ -139,8 +139,8 @@ export function BudgetExpenseDrawer({
   // Collect known vendors from the categories data (we don't have that here,
   // so vendor is a simple text input — autocomplete is a nice-to-have)
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  async function handleFileChange(files: File[]) {
+    const file = files[0]
     if (!file) return
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -198,7 +198,6 @@ export function BudgetExpenseDrawer({
       toast('Failed to upload receipt', 'error')
     } finally {
       setUploadingReceipt(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -409,25 +408,19 @@ export function BudgetExpenseDrawer({
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
+            <FileInput
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onFiles={handleFileChange}
               disabled={uploadingReceipt}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 text-sm text-slate-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              compact
+              className="inline-flex w-auto border-0 bg-transparent p-0"
             >
-              <Upload className="w-4 h-4" />
-              {uploadingReceipt ? 'Uploading…' : 'Upload Receipt'}
-            </button>
+              <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-slate-300 text-sm text-slate-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition cursor-pointer">
+                <Upload className="w-4 h-4" />
+                {uploadingReceipt ? 'Uploading…' : 'Upload Receipt'}
+              </span>
+            </FileInput>
           )}
-
-          {/* eslint-disable-next-line no-restricted-syntax -- hidden native picker triggered by the styled button above; <FileInput> would replace the entire receipt-preview UX */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            className="hidden"
-            onChange={handleFileChange}
-          />
           <p className="mt-1.5 text-xs text-slate-400">JPG, PNG, WebP or PDF · max 10 MB</p>
         </div>
       </form>

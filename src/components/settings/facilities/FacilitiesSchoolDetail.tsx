@@ -24,6 +24,8 @@ import SchoolsManagement, {
   type SchoolsManagementHandle,
 } from '@/components/settings/SchoolsManagement'
 import { AddCampusDrawer, EditCampusDrawer } from '@/components/settings/campus/CampusFormDrawers'
+import { FileInput } from '@/components/ui/FileInput'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -150,7 +152,6 @@ export default function FacilitiesSchoolDetail({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const logoInputRef = useRef<HTMLInputElement>(null)
 
   const schoolsHandleRef = useRef<SchoolsManagementHandle>(null)
 
@@ -336,8 +337,8 @@ export default function FacilitiesSchoolDetail({
   }, [])
 
   // ─── Logo upload ────────────────────────────────────────────────────────
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleLogoUpload = async (files: File[]) => {
+    const file = files[0]
     if (!file || !school) return
     if (!file.type.startsWith('image/')) return
     if (file.size > 2 * 1024 * 1024) return // 2MB limit
@@ -356,8 +357,6 @@ export default function FacilitiesSchoolDetail({
       }
     }
     reader.readAsDataURL(file)
-    // Reset so the same file can be re-selected
-    e.target.value = ''
   }
 
   // ─── Derived state ───────────────────────────────────────────────────────
@@ -488,30 +487,28 @@ export default function FacilitiesSchoolDetail({
         {/* School info row */}
         <div className="relative flex items-center gap-5 flex-wrap mb-6">
           {/* Logo with upload */}
-          <button
-            type="button"
-            onClick={() => logoInputRef.current?.click()}
-            className={`relative w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl flex-shrink-0 overflow-hidden group cursor-pointer ring-2 ring-white/20 shadow-xl ${school.logoUrl ? 'bg-white' : 'text-white'}`}
-            style={school.logoUrl ? undefined : { backgroundColor: 'rgba(255,255,255,0.15)' }}
-            title="Upload school logo"
-          >
-            {school.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={school.logoUrl} alt={school.name} className="w-full h-full object-contain p-1.5" />
-            ) : (
-              getInitials(school.name)
-            )}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
-              <Camera className="w-5 h-5 text-white" />
-            </div>
-          </button>
-          <input
-            ref={logoInputRef}
-            type="file"
+          <FileInput
             accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleLogoUpload}
-          />
+            onFiles={handleLogoUpload}
+            compact
+            className={`relative w-16 h-16 rounded-2xl border-0 p-0 flex-shrink-0 overflow-hidden group cursor-pointer ring-2 ring-white/20 shadow-xl ${school.logoUrl ? 'bg-white' : 'text-white'}`}
+          >
+            <span
+              className="relative flex h-16 w-16 items-center justify-center rounded-2xl font-bold text-xl"
+              style={school.logoUrl ? undefined : { backgroundColor: 'rgba(255,255,255,0.15)' }}
+              title="Upload school logo"
+            >
+              {school.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={school.logoUrl} alt={school.name} className="w-full h-full object-contain p-1.5" />
+              ) : (
+                getInitials(school.name)
+              )}
+              <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                <Camera className="w-5 h-5 text-white" />
+              </span>
+            </span>
+          </FileInput>
 
           <div className="flex-1 min-w-[220px]">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -580,16 +577,14 @@ export default function FacilitiesSchoolDetail({
         <span className="text-xs text-slate-400 hidden sm:inline">&middot; Click a campus to manage its buildings and spaces</span>
         {campuses.length > 0 && (
           <div className="flex items-center gap-2 ml-auto">
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search…"
-                className="w-44 pl-9 pr-3 py-1.5 text-sm bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-colors"
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClear={() => setSearch('')}
+              placeholder="Search…"
+              size="sm"
+              className="w-44 rounded-full"
+            />
             <span className="text-xs text-slate-400 tabular-nums">
               {filteredCampuses.length} of {campuses.length}
             </span>

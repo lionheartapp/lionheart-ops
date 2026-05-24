@@ -10,6 +10,8 @@ import {
   Laptop, Code, KeyRound, WifiIcon, Projector, HelpCircle,
   Zap, Droplets, Wind, Hammer, SprayCan, Trees,
 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -296,13 +298,13 @@ function SubFormContent() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Room / Location *</label>
-                <input
+                <Input
                   type="text"
                   value={roomText}
                   onChange={(e) => setRoomText(e.target.value)}
                   placeholder="e.g., Room 204, Library, Gym"
                   required
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                  className="w-full text-sm"
                 />
               </div>
 
@@ -332,13 +334,13 @@ function SubFormContent() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Describe the problem *</label>
-                <textarea
+                <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What's happening? What have you tried?"
                   required
                   rows={3}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 resize-none"
+                  className="w-full text-sm resize-none"
                 />
               </div>
 
@@ -429,13 +431,13 @@ function SubFormContent() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Room / Location *</label>
-                <input
+                <Input
                   type="text"
                   value={roomText}
                   onChange={(e) => setRoomText(e.target.value)}
                   placeholder="e.g., Room 204, Library, Gym"
                   required
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+                  className="w-full text-sm"
                 />
               </div>
 
@@ -465,13 +467,13 @@ function SubFormContent() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">What&apos;s the issue? *</label>
-                <input
+                <Input
                   type="text"
                   value={maintTitle}
                   onChange={(e) => setMaintTitle(e.target.value)}
                   placeholder="e.g., Leaking faucet, broken window, no heat"
                   required
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+                  className="w-full text-sm"
                 />
               </div>
 
@@ -479,12 +481,12 @@ function SubFormContent() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Details <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
-                <textarea
+                <Textarea
                   value={maintDescription}
                   onChange={(e) => setMaintDescription(e.target.value)}
                   placeholder="Any additional details..."
                   rows={3}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 resize-none"
+                  className="w-full text-sm resize-none"
                 />
               </div>
 

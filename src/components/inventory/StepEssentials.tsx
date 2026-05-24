@@ -6,6 +6,10 @@ import { useQuery } from '@tanstack/react-query'
 import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { fetchApi } from '@/lib/api-client'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -233,9 +237,6 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
 
   const totalQuantity = locations.reduce((sum, loc) => sum + loc.quantity, 0)
 
-  const inputClass =
-    'w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors'
-
   return (
     <div className="space-y-8">
       {/* ── Basic Information ── */}
@@ -247,12 +248,13 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
           <label htmlFor="av-name" className="block text-sm font-medium text-slate-700 mb-1">
             Name <span className="text-red-500">*</span>
           </label>
-          <input
+          <Input
             id="av-name"
             type="text"
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
-            className={`${inputClass} ${nameError ? 'border-red-300 bg-red-50' : ''}`}
+            hasError={!!nameError}
+            className={nameError ? 'bg-red-50' : ''}
             placeholder="e.g., LED Par Light"
           />
           {nameError && <p className="mt-1 text-xs text-red-600">{nameError}</p>}
@@ -263,12 +265,11 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
           <label htmlFor="av-desc" className="block text-sm font-medium text-slate-700 mb-1">
             Description
           </label>
-          <textarea
+          <Textarea
             id="av-desc"
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
             rows={3}
-            className={inputClass}
             placeholder="Describe the equipment..."
           />
         </div>
@@ -281,20 +282,18 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
           <p className="text-xs text-slate-500 mb-1.5">
             Receives an email when someone requests to check out this equipment.
           </p>
-          <select
-            id="av-owner"
+          <Select
             value={ownerId ?? ''}
-            onChange={(e) => onOwnerChange(e.target.value || null)}
-            className={`${inputClass} cursor-pointer`}
-          >
-            <option value="">— Select owner —</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {[u.firstName, u.lastName].filter(Boolean).join(' ') || u.email}
-                {u.email ? ` (${u.email})` : ''}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => onOwnerChange(value || null)}
+            options={[
+              { value: '', label: 'Select owner' },
+              ...users.map((u) => ({
+                value: u.id,
+                label: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email,
+                subtitle: u.email,
+              })),
+            ]}
+          />
         </div>
       </section>
 
@@ -320,17 +319,17 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
                   <div className="grid grid-cols-[80px_1fr] gap-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-600 mb-1">Qty</label>
-                      <input
+                      <Input
                         type="number"
                         min="1"
                         value={editQty}
                         onChange={(e) => setEditQty(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
+                        size="sm"
                       />
                     </div>
                     <div className="relative" ref={editDropdownRef}>
                       <label className="block text-xs font-medium text-slate-600 mb-1">Location</label>
-                      <input
+                      <Input
                         type="text"
                         value={editLocationSearch}
                         onChange={(e) => {
@@ -339,8 +338,8 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
                           setEditLocationId('')
                         }}
                         onFocus={() => setShowEditLocationDropdown(true)}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
                         placeholder="Select or type location"
+                        size="sm"
                       />
                       {showEditLocationDropdown && filteredEditLocations.length > 0 && (
                         <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
@@ -366,12 +365,12 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Usage</label>
-                    <input
+                    <Input
                       type="text"
                       value={editUsage}
                       onChange={(e) => setEditUsage(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 focus:border-indigo-400 transition-colors"
                       placeholder="e.g., For basketball games"
+                      size="sm"
                     />
                   </div>
                   <div className="flex items-center gap-2 justify-end">
@@ -442,17 +441,17 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
         <div className="grid grid-cols-[80px_1fr_1fr_40px] gap-3 items-end">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Quantity</label>
-            <input
+            <Input
               type="number"
               min="1"
               value={newQty}
               onChange={(e) => setNewQty(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+              size="sm"
             />
           </div>
           <div className="relative" ref={dropdownRef}>
             <label className="block text-xs font-medium text-slate-600 mb-1">Location</label>
-            <input
+            <Input
               type="text"
               value={locationSearch}
               onChange={(e) => {
@@ -461,8 +460,8 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
                 setNewLocationId('')
               }}
               onFocus={() => setShowLocationDropdown(true)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
               placeholder="Select or type location"
+              size="sm"
             />
             {showLocationDropdown && filteredLocations.length > 0 && (
               <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg">
@@ -487,12 +486,12 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Usage</label>
-            <input
+            <Input
               type="text"
               value={newUsage}
               onChange={(e) => setNewUsage(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
               placeholder="e.g., For basketball games"
+              size="sm"
             />
           </div>
           <button
@@ -515,33 +514,24 @@ const StepEssentials = forwardRef<StepEssentialsHandle, StepEssentialsProps>(fun
       <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900">Checkout</h3>
 
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={allowCheckout}
-            onChange={(e) => onCheckoutChange(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-          />
-          <span className="text-sm text-slate-700">Allow staff to checkout</span>
-        </label>
+        <Checkbox
+          checked={allowCheckout}
+          onChange={(e) => onCheckoutChange(e.target.checked)}
+          label="Allow staff to checkout"
+        />
 
         <div>
           <label htmlFor="av-category" className="block text-sm font-medium text-slate-700 mb-1">
             Category
           </label>
-          <select
-            id="av-category"
+          <Select
             value={category}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className={`${inputClass} cursor-pointer`}
-          >
-            <option value="">None</option>
-            {INVENTORY_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+            onChange={onCategoryChange}
+            options={[
+              { value: '', label: 'None' },
+              ...INVENTORY_CATEGORIES.map((cat) => ({ value: cat, label: cat })),
+            ]}
+          />
         </div>
       </section>
     </div>

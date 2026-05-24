@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Package, AlertTriangle } from 'lucide-react'
+import { Package, AlertTriangle } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { queryOptions } from '@/lib/queries'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import type { FieldDefinition } from '@/lib/services/categoryFieldLibrary'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -54,12 +59,11 @@ export default function DynamicCategoryField({
       return (
         <div>
           {label}
-          <textarea
+          <Textarea
             value={(value as string) ?? ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.description}
             rows={3}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow resize-none"
           />
         </div>
       )
@@ -67,13 +71,13 @@ export default function DynamicCategoryField({
       return (
         <div>
           {label}
-          <input
+          <Input
             type="number"
             min={1}
             value={(value as number) ?? ''}
             onChange={(e) => onChange(e.target.value ? parseInt(e.target.value, 10) : null)}
             placeholder="Enter a number"
-            className="w-full max-w-[140px] px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+            className="max-w-[140px]"
           />
         </div>
       )
@@ -81,16 +85,14 @@ export default function DynamicCategoryField({
       return (
         <div>
           {label}
-          <select
+          <Select
             value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value || null)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
-          >
-            <option value="">Select...</option>
-            {(field.options ?? []).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
+            onChange={(next) => onChange(next || null)}
+            options={[
+              { value: '', label: 'Select...' },
+              ...(field.options ?? []).map((opt) => ({ value: opt, label: opt })),
+            ]}
+          />
         </div>
       )
     case 'user-picker':
@@ -126,11 +128,9 @@ function CheckboxField({
           : 'border-slate-200 bg-white hover:border-slate-300'
       }`}
     >
-      <input
-        type="checkbox"
+      <Checkbox
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
       />
       <div>
         <div className="flex items-center gap-1.5">
@@ -169,18 +169,18 @@ function UserPickerField({
   return (
     <div>
       {label}
-      <select
+      <Select
         value={(value as string) ?? ''}
-        onChange={(e) => onChange(e.target.value || null)}
-        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
-      >
-        <option value="">Select a person...</option>
-        {members.map((m) => (
-          <option key={m.id} value={m.id}>
-            {m.firstName} {m.lastName} ({m.email})
-          </option>
-        ))}
-      </select>
+        onChange={(next) => onChange(next || null)}
+        options={[
+          { value: '', label: 'Select a person...' },
+          ...members.map((m) => ({
+            value: m.id,
+            label: `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim() || m.email,
+            subtitle: m.email,
+          })),
+        ]}
+      />
     </div>
   )
 }
@@ -264,16 +264,15 @@ function AssetPickerField({
   return (
     <div>
       {label}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={module === 'MAINTENANCE' ? 'Search assets (name or AST-XXXX)...' : 'Search devices...'}
-          className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onClear={() => {
+          setSearch('')
+          setResults([])
+        }}
+        placeholder={module === 'MAINTENANCE' ? 'Search assets (name or AST-XXXX)...' : 'Search devices...'}
+      />
       {results.length > 0 && (
         <div className="mt-1 border border-slate-200 rounded-xl bg-white shadow-lg max-h-48 overflow-y-auto">
           {results.map((asset) => (

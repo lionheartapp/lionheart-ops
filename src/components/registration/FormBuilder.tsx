@@ -14,6 +14,7 @@ import { CommonFieldPicker, COMMON_FIELDS } from './CommonFieldPicker'
 import { SectionEditor } from './SectionEditor'
 import { PublicFormStylePanel, type PublicFormStyleConfig } from './PublicFormStylePanel'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
             <div className="space-y-2 mt-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Base Price ($)</label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   step="0.01"
@@ -127,12 +128,12 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
                     onChange({ basePrice: isNaN(dollars) ? null : Math.round(dollars * 100) })
                   }}
                   placeholder="0.00"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full text-sm"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Deposit % (optional)</label>
-                <input
+                <Input
                   type="number"
                   min="0"
                   max="100"
@@ -142,7 +143,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
                     onChange({ depositPercent: isNaN(val) ? null : val })
                   }}
                   placeholder="Leave blank to require full payment"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full text-sm"
                 />
               </div>
             </div>
@@ -155,7 +156,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
             <Users className="w-4 h-4 text-slate-400" />
             <label className="text-sm font-medium text-slate-700">Max Capacity (optional)</label>
           </div>
-          <input
+          <Input
             type="number"
             min="1"
             value={config.maxCapacity ?? ''}
@@ -164,7 +165,7 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
               onChange({ maxCapacity: isNaN(val) ? null : val })
             }}
             placeholder="Unlimited"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full text-sm"
           />
 
           {/* Waitlist toggle */}
@@ -217,20 +218,20 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
           <div className="space-y-2">
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Opens at</label>
-              <input
+              <Input
                 type="datetime-local"
                 value={config.openAt ? config.openAt.slice(0, 16) : ''}
                 onChange={(e) => onChange({ openAt: e.target.value ? `${e.target.value}:00Z` : null })}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full text-sm"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Closes at</label>
-              <input
+              <Input
                 type="datetime-local"
                 value={config.closeAt ? config.closeAt.slice(0, 16) : ''}
                 onChange={(e) => onChange({ closeAt: e.target.value ? `${e.target.value}:00Z` : null })}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full text-sm"
               />
             </div>
           </div>
@@ -269,21 +270,21 @@ function FormSettingsPanel({ config, onChange }: FormSettingsPanelProps) {
           )}
 
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               value={newCode}
               onChange={(e) => setNewCode(e.target.value.toUpperCase())}
               placeholder="CODE"
-              className="w-24 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"
+              className="w-24 text-sm font-mono"
             />
-            <input
+            <Input
               type="number"
               value={newPercent}
               onChange={(e) => setNewPercent(e.target.value)}
               placeholder="% off"
               min="0"
               max="100"
-              className="w-20 text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-20 text-sm"
             />
             <button
               type="button"

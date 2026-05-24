@@ -9,6 +9,8 @@ import {
   MapPin,
 } from 'lucide-react'
 import FormRenderer from '@/components/forms/FormRenderer'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import type { FormFieldData } from '@/components/forms/FormFieldRenderer'
 import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
 
@@ -272,12 +274,12 @@ export default function QrScanPage() {
                 <label className="block text-sm font-medium text-[#1a1915] mb-1">
                   Your name <span className="text-[#a8a49d] font-normal">(optional)</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={submitterName}
                   onChange={(e) => setSubmitterName(e.target.value)}
                   placeholder="So the team knows who submitted"
-                  className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] bg-white px-3 py-2.5 text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/20 focus:outline-none transition-colors"
+                  className="w-full text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-blue-400/20"
                 />
               </div>
 
@@ -286,13 +288,13 @@ export default function QrScanPage() {
                 <label className="block text-sm font-medium text-[#1a1915] mb-1">
                   What&apos;s the issue? <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Brief summary"
                   required
-                  className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] bg-white px-3 py-2.5 text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/20 focus:outline-none transition-colors"
+                  className="w-full text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-blue-400/20"
                 />
               </div>
 
@@ -301,13 +303,13 @@ export default function QrScanPage() {
                 <label className="block text-sm font-medium text-[#1a1915] mb-1">
                   Details <span className="text-red-500">*</span>
                 </label>
-                <textarea
+                <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What happened? What have you tried?"
                   required
                   rows={3}
-                  className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] bg-white px-3 py-2.5 text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/20 focus:outline-none transition-colors resize-none"
+                  className="w-full text-sm text-[#1a1915] placeholder:text-[#a8a49d] focus:border-blue-400/60 focus:ring-blue-400/20 resize-none"
                 />
               </div>
 

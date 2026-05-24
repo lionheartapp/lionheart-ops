@@ -8,6 +8,7 @@ import MatchResultDialog from '@/components/athletics/MatchResultDialog'
 import SingleEliminationBracket from '@/components/athletics/SingleEliminationBracket'
 import RoundRobinGrid from '@/components/athletics/RoundRobinGrid'
 import SportIcon from '@/components/athletics/SportIcon'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { IllustrationAthletics } from '@/components/illustrations'
 
 interface BracketTeam {
@@ -276,11 +277,9 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                           : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
                       }`}
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />
@@ -332,11 +331,9 @@ export default function TournamentDetail({ tournamentId, onBack }: TournamentDet
                           : 'border-stone-200/30 bg-white/60 backdrop-blur-sm hover:border-stone-300/40'
                       }`}
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={checked}
                         onChange={() => toggleTeam(team.id)}
-                        className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
                       />
                       <div className="flex items-center gap-2 min-w-0">
                         <SportIcon sport={team.sport?.name || ''} size={14} style={{ color: team.sport?.color || '#6a6864' }} className="flex-shrink-0" />

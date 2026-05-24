@@ -24,6 +24,7 @@ import HoldReasonDialog from './HoldReasonDialog'
 import { AlertTriangle, ChevronDown, ChevronRight, CheckCircle2, XCircle } from 'lucide-react'
 import ITErrorState from './ITErrorState'
 import ITSearchFilterBar from './ITSearchFilterBar'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 interface ITKanbanBoardProps {
   onTicketClick: (id: string) => void
@@ -284,15 +285,12 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
           ]}
         />
         <div className="flex items-center gap-3 mt-2 px-1">
-          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
-            <input
-              type="checkbox"
+          <Checkbox
               checked={filterUnassigned}
               onChange={(e) => setFilterUnassigned(e.target.checked)}
-              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-            />
-            Unassigned only
-          </label>
+            label="Unassigned only"
+            className="text-sm text-slate-600"
+          />
           {hasActiveFilters && (
             <button
               onClick={() => {

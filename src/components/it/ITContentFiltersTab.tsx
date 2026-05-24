@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { IllustrationSecurity } from '@/components/illustrations'
+import { Select } from '@/components/ui/Select'
 import {
   Shield,
   ShieldAlert,
@@ -370,40 +371,37 @@ export default function ITContentFiltersTab({
           <h3 className="text-sm font-semibold text-slate-900">Filter Events</h3>
           <div className="flex flex-wrap gap-2">
             {/* Platform filter */}
-            <select
+            <Select
               value={platformFilter}
-              onChange={(e) => { setPlatformFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">All Platforms</option>
-              {PLATFORMS.map((p) => (
-                <option key={p.key} value={p.key}>{p.label}</option>
-              ))}
-            </select>
+              onChange={(next) => { setPlatformFilter(next); setPage(0) }}
+              options={[
+                { value: '', label: 'All Platforms' },
+                ...PLATFORMS.map((p) => ({ value: p.key, label: p.label })),
+              ]}
+              size="sm"
+            />
 
             {/* Type filter */}
-            <select
+            <Select
               value={typeFilter}
-              onChange={(e) => { setTypeFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">All Types</option>
-              {EVENT_TYPES.map((t) => (
-                <option key={t.key} value={t.key}>{t.label}</option>
-              ))}
-            </select>
+              onChange={(next) => { setTypeFilter(next); setPage(0) }}
+              options={[
+                { value: '', label: 'All Types' },
+                ...EVENT_TYPES.map((t) => ({ value: t.key, label: t.label })),
+              ]}
+              size="sm"
+            />
 
             {/* Disposition filter */}
-            <select
+            <Select
               value={dispositionFilter}
-              onChange={(e) => { setDispositionFilter(e.target.value); setPage(0) }}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">All Dispositions</option>
-              {DISPOSITIONS.map((d) => (
-                <option key={d.key} value={d.key}>{d.label}</option>
-              ))}
-            </select>
+              onChange={(next) => { setDispositionFilter(next); setPage(0) }}
+              options={[
+                { value: '', label: 'All Dispositions' },
+                ...DISPOSITIONS.map((d) => ({ value: d.key, label: d.label })),
+              ]}
+              size="sm"
+            />
           </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { MapPinOff, Plus, Search } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 /**
  * Shape the combobox needs from each suggestion. Kept small on purpose so
@@ -112,7 +113,7 @@ export default function NameCombobox({
     <div ref={containerRef} className="relative">
       {/* Floating-label input, styled to match FloatingInput visually */}
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           id={id}
           type="text"
@@ -131,7 +132,7 @@ export default function NameCombobox({
           onKeyDown={(e) => {
             if (e.key === 'Escape') { setOpen(false); (e.target as HTMLInputElement).blur() }
           }}
-          className="peer w-full px-4 pt-5 pb-2 text-sm rounded-xl bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-400 focus:outline-none focus:ring-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="peer pt-5 pb-2 text-sm focus:ring-0"
         />
         <label
           htmlFor={id}

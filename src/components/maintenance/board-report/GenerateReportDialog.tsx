@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, FileText, Loader2, Sparkles } from 'lucide-react'
 import { scaleIn } from '@/lib/animations'
+import { Select } from '@/components/ui/Select'
 
 interface GenerateReportDialogProps {
   isOpen: boolean
@@ -144,30 +145,18 @@ export function GenerateReportDialog({
                     Report Period
                   </label>
                   <div className="flex gap-2">
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    <Select
+                      value={String(selectedMonth)}
+                      onChange={(next) => setSelectedMonth(Number(next))}
                       disabled={loading}
-                      className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
-                    >
-                      {months.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(Number(e.target.value))}
+                      options={months.map((m) => ({ value: String(m.value), label: m.label }))}
+                    />
+                    <Select
+                      value={String(selectedYear)}
+                      onChange={(next) => setSelectedYear(Number(next))}
                       disabled={loading}
-                      className="w-28 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:opacity-60"
-                    >
-                      {years.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
+                      options={years.map((y) => ({ value: String(y), label: String(y) }))}
+                    />
                   </div>
                   <p className="mt-1.5 text-xs text-slate-400">
                     {formatMonthYear(selectedYear, selectedMonth)} — full month

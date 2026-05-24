@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { fetchApi } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 import ERateFundingYearDetail from './ERateFundingYearDetail'
 
 // ─── Types ──────────────────────────────────────────────────────────────
@@ -456,7 +457,7 @@ function BenOnboardingCard({
               <label htmlFor="ben-input" className="sr-only">
                 Billed Entity Number
               </label>
-              <input
+              <Input
                 id="ben-input"
                 type="text"
                 inputMode="numeric"
@@ -467,7 +468,8 @@ function BenOnboardingCard({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') onSubmit()
                 }}
-                className={`w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                size="sm"
+                className={`w-full text-sm ${
                   benError ? 'border-red-300' : 'border-slate-200'
                 }`}
                 aria-invalid={Boolean(benError)}

@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { useToast } from '@/components/Toast'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { X, Loader2 } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────
@@ -125,12 +127,11 @@ export default function ITVendorRepairDialog({
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Vendor Name <span className="text-red-400">*</span>
             </label>
-            <input
+            <Input
               type="text"
               value={form.vendorName}
               onChange={(e) => handleChange('vendorName', e.target.value)}
               placeholder="e.g. TechRepairs Inc."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
@@ -140,22 +141,20 @@ export default function ITVendorRepairDialog({
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Sent Date
               </label>
-              <input
+              <Input
                 type="date"
                 value={form.sentDate}
                 onChange={(e) => handleChange('sentDate', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Received Date
               </label>
-              <input
+              <Input
                 type="date"
                 value={form.receivedDate}
                 onChange={(e) => handleChange('receivedDate', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
               />
             </div>
           </div>
@@ -170,14 +169,14 @@ export default function ITVendorRepairDialog({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                   $
                 </span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   min="0"
                   value={form.estimatedCost}
                   onChange={(e) => handleChange('estimatedCost', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -189,14 +188,14 @@ export default function ITVendorRepairDialog({
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
                   $
                 </span>
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   min="0"
                   value={form.actualCost}
                   onChange={(e) => handleChange('actualCost', e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                  className="pl-7"
                 />
               </div>
             </div>
@@ -207,12 +206,11 @@ export default function ITVendorRepairDialog({
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Invoice Number
             </label>
-            <input
+            <Input
               type="text"
               value={form.invoiceNumber}
               onChange={(e) => handleChange('invoiceNumber', e.target.value)}
               placeholder="INV-12345"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
@@ -221,12 +219,11 @@ export default function ITVendorRepairDialog({
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Receipt URL
             </label>
-            <input
+            <Input
               type="url"
               value={form.receiptUrl}
               onChange={(e) => handleChange('receiptUrl', e.target.value)}
               placeholder="https://..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
             />
           </div>
 
@@ -235,12 +232,11 @@ export default function ITVendorRepairDialog({
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Notes
             </label>
-            <textarea
+            <Textarea
               rows={3}
               value={form.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Additional repair details..."
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow resize-none"
             />
           </div>
         </div>

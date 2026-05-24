@@ -462,3 +462,61 @@ export type PrismaDelegate = {
 }
 
 export type OrgPrismaClient = Record<string, PrismaDelegate>
+
+// ─── Cross-org game queries ─────────────────────────────────────────────────
+// Conference games are dual-scoped: they have homeOrganizationId AND
+// awayOrganizationId. The standard org-scoped extension filters by
+// organizationId only, so conference games where the current org is the
+// away team would be excluded. This helper queries via rawPrisma with an
+// explicit OR condition, keeping the cross-org access pattern contained
+// in one place rather than scattered across the codebase.
+//
+// Call site: use inside runWithOrgContext — it reads the current orgId.
+
+/**
+ * Find games where the current org is either home or away.
+ * Use this for conference schedule views where cross-org games must appear.
+ *
+ * @param args - Standard Prisma findMany args (where, include, orderBy, etc.)
+ *               Any existing `where` conditions are merged with the OR clause.
+ */
+export async function findCrossOrgGames(
+	args?: Parameters<typeof rawPrisma.game.findMany>[0],
+): Promise<Awaited<ReturnType<typeof rawPrisma.game.findMany>>> {
+	const orgId = getOrgContextId()
+	const existingWhere = args?.where ?? {}
+
+	return rawPrisma.game.findMany({
+		...args,
+		where: {
+			...existingWhere,
+			OR: [
+				{ homeOrganizationId: orgId },
+				{ awayOrganizationId: orgId },
+			],
+			// Respect soft-delete: only return non-deleted games
+			// (Game is not in softDeleteModels, so no deletedAt filter needed)
+		},
+	})
+}
+
+/**
+ * Count games where the current org is either home or away.
+ */
+export async function countCrossOrgGames(
+	args?: Parameters<typeof rawPrisma.game.count>[0],
+): Promise<Awaited<ReturnType<typeof rawPrisma.game.count>>> {
+	const orgId = getOrgContextId()
+	const existingWhere = args?.where ?? {}
+
+	return rawPrisma.game.count({
+		...args,
+		where: {
+			...existingWhere,
+			OR: [
+				{ homeOrganizationId: orgId },
+				{ awayOrganizationId: orgId },
+			],
+		},
+	})
+}

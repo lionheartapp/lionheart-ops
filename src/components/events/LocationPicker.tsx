@@ -692,8 +692,7 @@ export default function LocationPicker({ value, onChange, error, spaceTypeFilter
               }`}
             >
               <Navigation className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              {/* eslint-disable-next-line no-restricted-syntax -- bare typing surface inside a custom-styled wrapper with autocomplete suggestions; SearchInput's magnifying-glass icon doesn't fit (we use Navigation here for an address picker) */}
-              <input
+              <Input
                 type="text"
                 value={addressQuery}
                 onChange={(e) => {
@@ -706,7 +705,8 @@ export default function LocationPicker({ value, onChange, error, spaceTypeFilter
                 }}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 placeholder="Search for a venue or address..."
-                className="bg-transparent text-sm text-slate-900 outline-none flex-1 placeholder:text-slate-400"
+                size="sm"
+                className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-900 shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
               />
               {placesLoading && <Loader2 className="w-3.5 h-3.5 text-slate-300 animate-spin" />}
             </div>

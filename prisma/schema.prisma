@@ -244,6 +244,13 @@ model Organization {
   blackoutDates                    BlackoutDate[]
   bookingOverrides                 BookingOverride[]
   calendarFeeds                    CalendarFeed[]
+  // Conference module relations
+  foundedConferences               Conference[]                      @relation("FoundingOrgConferences")
+  conferenceMemberships            ConferenceMembership[]
+  conferenceTeamParticipations     ConferenceTeamParticipation[]
+  homeGames                        Game[]                            @relation("HomeGames")
+  awayGames                        Game[]                            @relation("AwayGames")
+  redeemedConferenceInvites        ConferenceInvite[]                @relation("RedeemedConferenceInvites")
 
   @@index([onboardingStatus])
 }
@@ -419,6 +426,8 @@ model User {
   // Facility Booking module
   bookingOverrides                 BookingOverride[]
   calendarFeeds                    CalendarFeed[]
+  // Conference module relations
+  conferenceAdminRoles             ConferenceAdmin[]
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -2273,6 +2282,7 @@ model AthleticSeason {
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sport        Sport          @relation(fields: [sportId], references: [id], onDelete: Cascade)
   teams        AthleticTeam[]
+  conferenceTeamParticipations ConferenceTeamParticipation[]
 
   @@index([organizationId])
   @@index([sportId])
@@ -2305,6 +2315,7 @@ model AthleticTeam {
   awayBrackets  TournamentBracket[] @relation("BracketTeam2")
   winBrackets   TournamentBracket[] @relation("BracketWinner")
   roster        AthleticRoster[]
+  conferenceParticipations ConferenceTeamParticipation[]
 
   @@index([organizationId])
   @@index([sportId])
@@ -2334,12 +2345,20 @@ model Game {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
+  // Cross-org conference support
+  conferenceId             String?     // null = non-conference game
+  homeOrganizationId       String?     // backfilled from organizationId; null until migration runs
+  awayOrganizationId       String?     // null when away team is unaffiliated / non-Lionheart
+
   organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   athleticTeam         AthleticTeam       @relation("GameOwningTeam", fields: [athleticTeamId], references: [id], onDelete: Cascade)
   opponentAthleticTeam AthleticTeam?      @relation("GameOpponentTeam", fields: [opponentAthleticTeamId], references: [id], onDelete: SetNull)
   calendarEvent        CalendarEvent?     @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
   bracketEntry         TournamentBracket? @relation("BracketGame")
   playerStats          PlayerGameStat[]
+  conference           Conference?        @relation(fields: [conferenceId], references: [id], onDelete: SetNull)
+  homeOrganization     Organization?      @relation("HomeGames", fields: [homeOrganizationId], references: [id], onDelete: Cascade)
+  awayOrganization     Organization?      @relation("AwayGames", fields: [awayOrganizationId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([athleticTeamId])
@@ -2347,6 +2366,9 @@ model Game {
   @@index([organizationId, startTime])
   @@index([athleticTeamId, startTime])
   @@index([calendarEventId])
+  @@index([conferenceId])
+  @@index([homeOrganizationId])
+  @@index([awayOrganizationId])
 }
 
 model Practice {
@@ -6837,4 +6859,145 @@ model CalendarFeed {
 
   @@index([token])
   @@index([userId])
+}
+
+// ─── Conference Layer ───────────────────────────────────────────────────────────
+// Cross-organization sharing for athletic conferences, regional events, etc.
+
+enum ConferenceStatus {
+  ACTIVE
+  ARCHIVED
+  PENDING
+}
+
+enum ConferenceVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum ConferenceMembershipStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  LEFT
+}
+
+enum ConferenceRole {
+  OWNER
+  ADMIN
+  SCHEDULER
+}
+
+model Conference {
+  id            String               @id @default(cuid())
+  slug          String               @unique
+  name          String
+  shortName     String?
+  description   String?
+  logoUrl       String?
+  primaryColor  String?
+  status        ConferenceStatus     @default(ACTIVE)
+  visibility    ConferenceVisibility @default(PUBLIC)
+  foundingOrgId String
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  deletedAt     DateTime?
+
+  foundingOrg        Organization                @relation("FoundingOrgConferences", fields: [foundingOrgId], references: [id], onDelete: Restrict)
+  memberships        ConferenceMembership[]
+  teamParticipations ConferenceTeamParticipation[]
+  games              Game[]
+  admins             ConferenceAdmin[]
+  invites            ConferenceInvite[]
+
+  @@index([slug])
+  @@index([foundingOrgId])
+  @@index([status])
+}
+
+model ConferenceMembership {
+  id             String                     @id @default(cuid())
+  conferenceId   String
+  organizationId String
+  status         ConferenceMembershipStatus @default(PENDING)
+  invitedBy      String?
+  invitedAt      DateTime                   @default(now())
+  acceptedAt     DateTime?
+  leftAt         DateTime?
+  notes          String?
+
+  conference   Conference   @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([conferenceId, organizationId])
+  @@index([organizationId])
+  @@index([status])
+}
+
+model ConferenceTeamParticipation {
+  id              String   @id @default(cuid())
+  conferenceId    String
+  organizationId  String
+  athleticTeamId  String
+  seasonId        String
+  joinedAt        DateTime @default(now())
+  leftAt          DateTime?
+
+  conference   Conference     @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam AthleticTeam   @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  season       AthleticSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([conferenceId, athleticTeamId, seasonId])
+  @@index([organizationId])
+  @@index([athleticTeamId])
+  @@index([seasonId])
+}
+
+model ConferenceAdmin {
+  id           String         @id @default(cuid())
+  conferenceId String
+  userId       String
+  role         ConferenceRole @default(ADMIN)
+  grantedAt    DateTime       @default(now())
+  grantedBy    String?
+
+  conference Conference @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conferenceId, userId])
+  @@index([userId])
+}
+
+/// External conference invite — for schools not yet on Lionheart.
+/// When the invited school signs up via the invite link, the signup flow
+/// reads the token and auto-creates a ConferenceMembership.
+model ConferenceInvite {
+  id             String   @id @default(cuid())
+  conferenceId   String
+  schoolName     String                  // Name of the school being invited
+  contactEmail   String                  // Email address to send the invite to
+  contactName    String?                 // Name of the contact person
+  token          String   @unique        // Unique token for the invite link
+  status         ConferenceInviteStatus @default(PENDING)
+  invitedBy      String                  // userId who sent the invite
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime               // Invite expires after 30 days
+  acceptedAt     DateTime?
+  /// Set when the invited school completes signup — links to the new org
+  redeemedOrgId  String?
+
+  conference   Conference    @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  redeemedOrg  Organization? @relation("RedeemedConferenceInvites", fields: [redeemedOrgId], references: [id], onDelete: SetNull)
+
+  @@index([conferenceId])
+  @@index([token])
+  @@index([contactEmail])
+}
+
+enum ConferenceInviteStatus {
+  PENDING       // Sent, waiting for signup
+  REDEEMED      // School signed up and joined the conference
+  EXPIRED       // Past 30 days without action
+  CANCELLED     // Manually cancelled by conference admin
 }

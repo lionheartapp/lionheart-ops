@@ -278,9 +278,76 @@ export const PERMISSIONS = {
   MESSAGING_DMS_SEND:            'dms:send',
   // Note: integrations:manage for messaging reuses PERMISSIONS.INTEGRATIONS_MANAGE (line 254)
 
+  // Organization-level conference management (org admin decides to join/leave)
+  ORG_JOIN_CONFERENCE: 'organization:join_conference',
+  ORG_LEAVE_CONFERENCE: 'organization:leave_conference',
+
   // Wildcard (Super Admin)
   ALL: '*:*',
 } as const
+
+/**
+ * Conference Permission System
+ *
+ * Conference permissions are SEPARATE from org permissions. A user's org role
+ * does NOT grant conference rights — they must be explicitly granted via
+ * ConferenceAdmin records. This prevents privilege escalation through
+ * conference membership.
+ *
+ * These constants are checked by canActInConference() in
+ * src/lib/auth/conference-permissions.ts — not by the org-level can().
+ */
+export const CONFERENCE_PERMISSIONS = {
+  // Membership management
+  INVITE_ORG: 'conference:invite_org',
+  REMOVE_ORG: 'conference:remove_org',
+  APPROVE_MEMBERSHIP: 'conference:approve_membership',
+
+  // Settings
+  UPDATE_SETTINGS: 'conference:update_settings',
+  DISSOLVE: 'conference:dissolve',
+
+  // Schedule
+  SCHEDULE_GAME: 'conference:schedule_game',
+  EDIT_GAME: 'conference:edit_game',
+  CANCEL_GAME: 'conference:cancel_game',
+  ENTER_SCORE: 'conference:enter_score',
+
+  // Teams
+  ADD_TEAM: 'conference:add_team',
+  REMOVE_TEAM: 'conference:remove_team',
+
+  // Read
+  READ_SCHEDULE: 'conference:read_schedule',
+  READ_STANDINGS: 'conference:read_standings',
+  READ_MEMBERS: 'conference:read_members',
+
+  // Admin management
+  MANAGE_ADMINS: 'conference:manage_admins',
+} as const
+
+export type ConferencePermissionValue = typeof CONFERENCE_PERMISSIONS[keyof typeof CONFERENCE_PERMISSIONS]
+
+/**
+ * Maps ConferenceRole enum values to their granted permissions.
+ * OWNER gets everything. ADMIN gets everything except dissolve.
+ * SCHEDULER can only manage games and read data.
+ */
+export const CONFERENCE_ROLE_PERMISSIONS: Record<string, readonly string[]> = {
+  OWNER: Object.values(CONFERENCE_PERMISSIONS),
+  ADMIN: Object.values(CONFERENCE_PERMISSIONS).filter(
+    (p) => p !== CONFERENCE_PERMISSIONS.DISSOLVE
+  ),
+  SCHEDULER: [
+    CONFERENCE_PERMISSIONS.SCHEDULE_GAME,
+    CONFERENCE_PERMISSIONS.EDIT_GAME,
+    CONFERENCE_PERMISSIONS.CANCEL_GAME,
+    CONFERENCE_PERMISSIONS.ENTER_SCORE,
+    CONFERENCE_PERMISSIONS.READ_SCHEDULE,
+    CONFERENCE_PERMISSIONS.READ_STANDINGS,
+    CONFERENCE_PERMISSIONS.READ_MEMBERS,
+  ],
+}
 
 export type PermissionKey = keyof typeof PERMISSIONS
 export type PermissionValue = typeof PERMISSIONS[PermissionKey]
@@ -831,7 +898,6 @@ export const DEFAULT_ROLES = {
       PERMISSIONS.IT_DEVICE_READ,
       // Phase 23: Messaging
       PERMISSIONS.MESSAGING_ACCESS,
-      PERMISSIONS.MESSAGING_CHANNELS_CREATE,
       PERMISSIONS.MESSAGING_DMS_SEND,
       // Facility Booking (view only)
       PERMISSIONS.FACILITIES_VIEW_SCHEDULE,

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Check, X, ChevronDown, Loader2, RotateCcw, FileText, Image, DollarSign, Clock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { expandCollapse } from '@/lib/animations'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -277,12 +278,12 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
                     Rejection Note <span className="text-red-500">*</span>
                     <span className="text-slate-400 font-normal ml-1">— explain what needs to be corrected</span>
                   </label>
-                  <textarea
+                  <Textarea
                     value={rejectionNote}
                     onChange={(e) => setRejectionNote(e.target.value)}
                     placeholder="Describe what needs to be fixed or completed before approval..."
                     rows={3}
-                    className="w-full px-3 py-2.5 border border-red-200 rounded-xl text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus:border-red-400 placeholder:text-slate-400"
+                    className="border-red-200 text-sm focus:border-red-400 focus:ring-red-100"
                   />
                   {sendBackError && (
                     <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-xl">{sendBackError}</p>

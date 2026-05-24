@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff, Check, X } from 'lucide-react'
-import { PASSWORD_RULES, validatePassword } from '@/lib/validation/password'
+import { validatePassword } from '@/lib/validation/password'
+import { Input } from '@/components/ui/Input'
 
 // ─── Props ─────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ export default function PasswordInput({
   const { results } = validatePassword(value)
   const hasContent = value.length > 0
   const showIndicators = showRules && (hasContent || touched)
+  const hasError = showErrorsAfterBlur && touched && hasContent && results.some((r) => !r.passed)
 
   // Only show rules that are relevant — hide max-length unless they're near it
   const visibleResults = results.filter((r) => {
@@ -56,7 +58,7 @@ export default function PasswordInput({
 
       {/* Input with toggle */}
       <div className="relative">
-        <input
+        <Input
           id={id}
           type={showPassword ? 'text' : 'password'}
           value={value}
@@ -65,7 +67,9 @@ export default function PasswordInput({
           required={required}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 pr-12 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors duration-200"
+          className="pr-12"
+          hasError={hasError}
+          aria-invalid={hasError}
         />
         <button
           type="button"

@@ -12,6 +12,7 @@ import {
   UserPlus, UserMinus, Trash2, Loader2,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { Input } from '@/components/ui/Input'
 
 interface ITDeviceDetailDrawerProps {
   deviceId: string | null
@@ -295,12 +296,13 @@ export default function ITDeviceDetailDrawer({ deviceId, isOpen, onClose, canMan
               <div className="mt-3 space-y-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search students by name or ID..."
                     value={assignSearch}
                     onChange={(e) => setAssignSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    size="sm"
+                    className="pl-9 text-sm"
                     autoFocus
                   />
                 </div>

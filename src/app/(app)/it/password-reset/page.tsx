@@ -13,6 +13,7 @@ import {
   AlertCircle,
   GraduationCap,
 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -294,7 +295,7 @@ export default function PasswordResetPage() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       School Slug
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={schoolSlug}
                       onChange={(e) => {
@@ -302,7 +303,7 @@ export default function PasswordResetPage() {
                         setError(null)
                       }}
                       placeholder="e.g. linfield"
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full text-sm"
                       autoFocus
                       onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
                     />
@@ -358,12 +359,12 @@ export default function PasswordResetPage() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Student ID
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={studentId}
                       onChange={(e) => { setStudentId(e.target.value); setError(null) }}
                       placeholder="Enter your student ID"
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full text-sm"
                       autoFocus
                     />
                   </div>
@@ -372,12 +373,12 @@ export default function PasswordResetPage() {
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Email Address
                     </label>
-                    <input
+                    <Input
                       type="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(null) }}
                       placeholder="your.email@school.edu"
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                      className="w-full text-sm"
                       onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
                     />
                   </div>
@@ -447,12 +448,12 @@ export default function PasswordResetPage() {
                       New Password
                     </label>
                     <div className="relative">
-                      <input
+                      <Input
                         type={showPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => { setNewPassword(e.target.value); setError(null) }}
                         placeholder="Enter new password"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                        className="w-full pr-12 text-sm"
                         autoFocus
                       />
                       <button
@@ -484,12 +485,12 @@ export default function PasswordResetPage() {
                       Confirm Password
                     </label>
                     <div className="relative">
-                      <input
+                      <Input
                         type={showConfirm ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => { setConfirmPassword(e.target.value); setError(null) }}
                         placeholder="Confirm new password"
-                        className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-shadow"
+                        className="w-full pr-12 text-sm"
                         onKeyDown={(e) => e.key === 'Enter' && handleReset()}
                       />
                       <button

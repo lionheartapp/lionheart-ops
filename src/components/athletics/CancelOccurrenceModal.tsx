@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { CloudRain, Calendar, Bell } from 'lucide-react'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Select } from '@/components/ui/Select'
 
 interface CancelOccurrenceModalProps {
@@ -97,46 +98,37 @@ export default function CancelOccurrenceModal({
 
           {/* Options */}
           <div className="space-y-3">
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
+            <Checkbox
                 checked={notify}
                 onChange={(e) => setNotify(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                label={(
+                  <span className="flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-sm text-slate-700">Notify team members</span>
+                  </span>
+                )}
               />
-              <div className="flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-sm text-slate-700">Notify team members</span>
-              </div>
-            </label>
 
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
+            <Checkbox
                 checked={reschedule}
                 onChange={(e) => setReschedule(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                label={(
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-sm text-slate-700">Reschedule to another date</span>
+                  </span>
+                )}
               />
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-sm text-slate-700">Reschedule to another date</span>
-              </div>
-            </label>
 
             {/* Bulk outdoor cancellation — admin only, weather reason, outdoor space */}
             {isAdmin && isOutdoor && reason === 'weather' && (
-              <label className="flex items-center gap-2.5 cursor-pointer bg-amber-50 border border-amber-100 rounded-lg p-3 -mx-1">
-                <input
-                  type="checkbox"
+              <Checkbox
                   checked={cancelAllOutdoor}
                   onChange={(e) => setCancelAllOutdoor(e.target.checked)}
-                  className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                  className="bg-amber-50 border border-amber-100 rounded-lg p-3 -mx-1"
+                  label={<span className="text-sm font-medium text-amber-800">Cancel all outdoor practices today</span>}
+                  description="Affects all teams with outdoor bookings on this date"
                 />
-                <div>
-                  <span className="text-sm font-medium text-amber-800">Cancel all outdoor practices today</span>
-                  <p className="text-xs text-amber-600 mt-0.5">Affects all teams with outdoor bookings on this date</p>
-                </div>
-              </label>
             )}
           </div>
         </div>

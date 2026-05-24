@@ -7,12 +7,15 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { useSidebarTyping } from '@/lib/hooks/useSidebarTyping'
 import ChannelListItem from './ChannelListItem'
 import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, MessageCircle, Compass } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 interface ChannelListProps {
   activeChannelId: string | null
   onSelectChannel: (channelId: string) => void
   onCompose?: () => void
   onBrowseChannels?: () => void
+  headerLabel?: string
 }
 
 function SkeletonItem() {
@@ -85,12 +88,13 @@ function InlineCreateChannel({
           ? <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           : <Hash className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
         }
-        <input
+        <Input
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="channel-name"
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+          size="sm"
+          className="h-8 flex-1 border-0 bg-transparent px-0 shadow-none focus:ring-0"
         />
         <button
           type="button"
@@ -246,12 +250,14 @@ function InlineNewDM({
         </div>
       )}
 
-      <input
+      <SearchInput
         autoFocus
         value={search}
         onChange={(e) => handleSearch(e.target.value)}
+        onClear={() => handleSearch('')}
         placeholder="Search people..."
-        className="w-full text-sm bg-transparent outline-none placeholder:text-slate-400"
+        size="sm"
+        className="border-0 bg-transparent px-0 shadow-none focus-within:ring-0"
       />
 
       {searching && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin mt-1.5" />}
@@ -365,7 +371,13 @@ function SectionHeader({
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function ChannelList({ activeChannelId, onSelectChannel, onCompose, onBrowseChannels }: ChannelListProps) {
+export default function ChannelList({
+  activeChannelId,
+  onSelectChannel,
+  onCompose,
+  onBrowseChannels,
+  headerLabel = 'Messaging',
+}: ChannelListProps) {
   const { data: channels, isLoading } = useChannels()
   const { user, orgId } = useAuth()
   const typingMap = useSidebarTyping(orgId || '', user?.id || '')
@@ -425,7 +437,7 @@ export default function ChannelList({ activeChannelId, onSelectChannel, onCompos
     <div className="flex flex-col h-full">
       {/* Top bar with compose button */}
       <div className="flex items-center justify-between px-3 py-3 border-b border-slate-100">
-        <span className="text-sm font-semibold text-slate-800">Messaging</span>
+        <span className="text-sm font-semibold text-slate-800">{headerLabel}</span>
         <button
           onClick={() => { onCompose ? onCompose() : setShowNewDM(true); setShowCreateChannel(false) }}
           className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md cursor-pointer transition-colors"

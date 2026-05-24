@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CalendarPlus, Clock, MapPin, Check, AlertTriangle, X, Wrench, Tag, AlertCircle, Users, ClipboardList, Calendar } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 import type { ActionConfirmation as ActionConfirmationType, ConfirmationCardData } from '@/lib/types/assistant'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -81,7 +82,7 @@ export default function RichConfirmationCard({
           {/* Editable Title */}
           <div>
             {isEditingTitle ? (
-              <input
+              <Input
                 autoFocus
                 type="text"
                 value={editedTitle}
@@ -92,7 +93,8 @@ export default function RichConfirmationCard({
                     setIsEditingTitle(false)
                   }
                 }}
-                className="w-full text-sm font-semibold text-slate-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                size="sm"
+                className="w-full text-sm font-semibold text-slate-900 border-blue-300 focus:ring-blue-400/40"
               />
             ) : (
               <button
@@ -172,7 +174,7 @@ export default function RichConfirmationCard({
           {/* Editable Title */}
           <div>
             {isEditingTitle ? (
-              <input
+              <Input
                 autoFocus
                 type="text"
                 value={editedTitle}
@@ -183,7 +185,8 @@ export default function RichConfirmationCard({
                     setIsEditingTitle(false)
                   }
                 }}
-                className="w-full text-sm font-semibold text-slate-900 border border-blue-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                size="sm"
+                className="w-full text-sm font-semibold text-slate-900 border-blue-300 focus:ring-blue-400/40"
               />
             ) : (
               <button

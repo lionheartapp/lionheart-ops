@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Users, CalendarDays } from 'lucide-react'
 
@@ -18,6 +19,17 @@ export default function SlotChoiceModal({
   onChooseMeeting,
   onChoosePlanEvent,
 }: SlotChoiceModalProps) {
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -38,13 +50,19 @@ export default function SlotChoiceModal({
             exit={{ opacity: 0, scale: 0.94, y: 8 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="slot-choice-title"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden pointer-events-auto">
+            <div
+              className="bg-white rounded-2xl shadow-2xl border border-slate-200/80 w-80 overflow-hidden pointer-events-auto"
+              onClick={(event) => event.stopPropagation()}
+            >
               {/* Header */}
               <div className="px-5 pt-5 pb-4 border-b border-slate-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-900">What are you creating?</h3>
+                    <h3 id="slot-choice-title" className="text-base font-semibold text-slate-900">What are you creating?</h3>
                     {slotStart && (
                       <p className="text-xs text-slate-400 mt-0.5">
                         {slotStart.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
@@ -53,9 +71,10 @@ export default function SlotChoiceModal({
                   </div>
                   <button
                     onClick={onClose}
+                    aria-label="Close create choices"
                     className="p-1.5 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>

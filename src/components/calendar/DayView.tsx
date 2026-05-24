@@ -28,13 +28,37 @@ interface DayViewProps {
 }
 
 const HOUR_HEIGHT = 64
-const START_HOUR = 0
+const START_HOUR = 6
 const END_HOUR = 24
+const DEFAULT_VISIBLE_HOUR = 7
 
 function formatHour(hour: number): string {
   const ampm = hour >= 12 ? 'pm' : 'am'
   const h = hour % 12 || 12
   return `${h} ${ampm}`
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+}
+
+function getInitialScrollHour(currentDate: Date, timedEvents: CalendarEventData[]): number {
+  const now = new Date()
+  if (isSameDay(currentDate, now)) {
+    return Math.max(START_HOUR, Math.min(END_HOUR - 1, now.getHours() - 1))
+  }
+
+  const firstEvent = timedEvents
+    .map((event) => new Date(event.startTime))
+    .sort((a, b) => a.getTime() - b.getTime())[0]
+
+  if (firstEvent) {
+    return Math.max(START_HOUR, Math.min(END_HOUR - 1, firstEvent.getHours() - 1))
+  }
+
+  return DEFAULT_VISIBLE_HOUR
 }
 
 export default function DayView({ currentDate, events, onEventClick, onSlotClick, onDragReschedule, onResize, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: DayViewProps) {
@@ -79,12 +103,19 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
   }, [dayEvents])
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const now = new Date()
-      const scrollTo = (now.getHours() - START_HOUR - 1) * HOUR_HEIGHT
-      scrollRef.current.scrollTop = Math.max(0, scrollTo)
+    const scrollToUsefulHour = () => {
+      if (!scrollRef.current) return
+      scrollRef.current.scrollTop = getInitialScrollHour(currentDate, timedEvents) * HOUR_HEIGHT
     }
-  }, [])
+
+    const frame = requestAnimationFrame(scrollToUsefulHour)
+    const timeout = window.setTimeout(scrollToUsefulHour, 120)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(timeout)
+    }
+  }, [currentDate, timedEvents])
 
   const hasMeetWith = meetWithPeople.length > 0
   const subColumns = hasMeetWith
@@ -94,10 +125,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
 
   const now = new Date()
-  const isToday =
-    currentDate.getFullYear() === now.getFullYear() &&
-    currentDate.getMonth() === now.getMonth() &&
-    currentDate.getDate() === now.getDate()
+  const isToday = isSameDay(currentDate, now)
   const nowMinutes = (now.getHours() - START_HOUR) * 60 + now.getMinutes()
   const nowTop = (nowMinutes / 60) * HOUR_HEIGHT
   const showNowLine = isToday && now.getHours() >= START_HOUR && now.getHours() < END_HOUR
@@ -180,7 +208,7 @@ export default function DayView({ currentDate, events, onEventClick, onSlotClick
               <div
                 key={hour}
                 className="absolute right-3 text-xs text-stone-400 tabular-nums"
-                style={{ top: (hour - START_HOUR) * HOUR_HEIGHT - 7 }}
+                style={{ top: Math.max(8, (hour - START_HOUR) * HOUR_HEIGHT - 7) }}
               >
                 {formatHour(hour)}
               </div>

@@ -124,7 +124,7 @@ export default function TasksFocusWidget({
       <button
         type="button"
         onClick={onViewAll}
-        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
+        className="mt-3 inline-flex min-h-10 items-center gap-1 rounded-md pr-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
       >
         View all tasks
         <ArrowRight className="w-3 h-3" aria-hidden />

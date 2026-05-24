@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { getAthletes, createAthlete, addAthleteToTeam } from '@/lib/services/athleticsService'
+import { getAthletes, getTeams, createAthlete, addAthleteToTeam } from '@/lib/services/athleticsService'
 
 const CreateSchema = z.object({
   athleticTeamId: z.string().min(1),
@@ -19,17 +19,52 @@ const CreateSchema = z.object({
   userId: z.string().nullable().optional(),
 })
 
-export const GET = withAuth(async ({ searchParams }) => {
-  const isActive = searchParams.get('isActive')
+type Team = Awaited<ReturnType<typeof getTeams>>[number]
+type Athlete = Awaited<ReturnType<typeof getAthletes>>[number]
+type AthleteRoster = Athlete['rosters'][number]
 
-  const athletes = await getAthletes({
+export const GET = withAuth(async ({ searchParams, ctx, permissions }) => {
+  const isActive = searchParams.get('isActive')
+  const teamId = searchParams.get('teamId') || undefined
+
+  const [athletes, teams] = await Promise.all([
+    getAthletes({
     isActive: isActive != null ? isActive === 'true' : undefined,
-  })
-  return NextResponse.json(ok(athletes))
+    }),
+    getTeams(),
+  ])
+
+  const canManageTeams = await permissions.can(PERMISSIONS.ATHLETICS_TEAMS_MANAGE)
+  const assignedTeams = teams.filter((team: Team) => team.coachUserId === ctx.userId)
+  const assignedTeamIds = new Set(assignedTeams.map((team: Team) => team.id))
+  const assignedSportIds = new Set(assignedTeams.map((team: Team) => team.sport.id))
+  const visibleTeamIds = canManageTeams
+    ? new Set(teams.map((team: Team) => team.id))
+    : searchParams.get('scope') === 'sport'
+      ? new Set(teams.filter((team: Team) => assignedSportIds.has(team.sport.id)).map((team: Team) => team.id))
+      : assignedTeamIds
+
+  const scopedAthletes = athletes.filter((athlete: Athlete) =>
+    athlete.rosters?.some((roster: AthleteRoster) =>
+      (!teamId || roster.athleticTeamId === teamId) &&
+      visibleTeamIds.has(roster.athleticTeamId)
+    )
+  )
+
+  return NextResponse.json(ok(scopedAthletes))
 }, { permission: PERMISSIONS.ATHLETICS_READ })
 
-export const POST = withAuth(async ({ body }) => {
+export const POST = withAuth(async ({ body, ctx, permissions }) => {
   try {
+    const canManageTeams = await permissions.can(PERMISSIONS.ATHLETICS_TEAMS_MANAGE)
+    if (!canManageTeams) {
+      const teams = await getTeams()
+      const team = teams.find((item: Team) => item.id === body.athleticTeamId)
+      if (!team || team.coachUserId !== ctx.userId) {
+        return NextResponse.json(fail('FORBIDDEN', 'Coaches can only add players to assigned teams'), { status: 403 })
+      }
+    }
+
     // Create the athlete record
     const athlete = await createAthlete({
       firstName: body.firstName,

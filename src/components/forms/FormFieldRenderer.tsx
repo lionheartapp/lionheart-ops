@@ -1,5 +1,10 @@
 'use client'
 
+import { Checkbox } from '@/components/ui/Checkbox'
+import { FileInput, SelectedFileChip } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import type { FormFieldType } from '@/lib/forms/schemas'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,17 +31,6 @@ interface FormFieldRendererProps {
   disabled?: boolean
 }
 
-// ─── Shared input classes ─────────────────────────────────────────────────────
-
-const baseInput = [
-  'w-full rounded-xl border border-[rgba(17,15,10,0.1)] bg-white',
-  'px-3 py-2.5 text-sm text-[#1a1915]',
-  'placeholder:text-[#a8a49d]',
-  'focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/20 focus:outline-none',
-  'transition-colors duration-200',
-  'disabled:bg-[#fafaf9] disabled:text-[#a8a49d]',
-].join(' ')
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FormFieldRenderer({
@@ -50,9 +44,8 @@ export default function FormFieldRenderer({
   if (t === 'TEXT' || t === 'EMAIL' || t === 'PHONE') {
     const inputType = t === 'EMAIL' ? 'email' : t === 'PHONE' ? 'tel' : 'text'
     return (
-      <input
+      <Input
         type={inputType}
-        className={baseInput}
         placeholder={field.placeholder || ''}
         value={(value as string) ?? ''}
         onChange={(e) => onChange(e.target.value)}
@@ -63,9 +56,8 @@ export default function FormFieldRenderer({
 
   if (t === 'TEXTAREA') {
     return (
-      <textarea
+      <Textarea
         rows={3}
-        className={baseInput}
         placeholder={field.placeholder || ''}
         value={(value as string) ?? ''}
         onChange={(e) => onChange(e.target.value)}
@@ -76,11 +68,10 @@ export default function FormFieldRenderer({
 
   if (t === 'NUMBER') {
     return (
-      <input
+      <Input
         type="number"
-        className={baseInput}
         placeholder={field.placeholder || ''}
-        value={(value as string) ?? ''}
+        value={(value as string | number) ?? ''}
         onChange={(e) =>
           onChange(e.target.value === '' ? '' : Number(e.target.value))
         }
@@ -91,9 +82,8 @@ export default function FormFieldRenderer({
 
   if (t === 'DATE') {
     return (
-      <input
+      <Input
         type="date"
-        className={baseInput}
         value={(value as string) ?? ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -103,19 +93,15 @@ export default function FormFieldRenderer({
 
   if (t === 'DROPDOWN') {
     return (
-      <select
-        className={`${baseInput} cursor-pointer`}
+      <Select
         value={(value as string) ?? ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
+        options={[
+          { value: '', label: field.placeholder || 'Select...' },
+          ...(field.options || []).map((o) => ({ value: o, label: o })),
+        ]}
         disabled={disabled}
-      >
-        <option value="">{field.placeholder || 'Select\u2026'}</option>
-        {(field.options || []).map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
+      />
     )
   }
 
@@ -124,21 +110,18 @@ export default function FormFieldRenderer({
     return (
       <div className="space-y-1.5">
         {(field.options || []).map((o) => (
-          <label key={o} className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-[rgba(17,15,10,0.15)] text-blue-500 focus:ring-blue-400/40 cursor-pointer"
-              checked={selected.includes(o)}
-              disabled={disabled}
-              onChange={(e) => {
-                const next = e.target.checked
-                  ? [...selected, o]
-                  : selected.filter((s) => s !== o)
-                onChange(next)
-              }}
-            />
-            <span className="text-sm text-[#1a1915]">{o}</span>
-          </label>
+          <Checkbox
+            key={o}
+            checked={selected.includes(o)}
+            disabled={disabled}
+            onChange={(e) => {
+              const next = e.target.checked
+                ? [...selected, o]
+                : selected.filter((s) => s !== o)
+              onChange(next)
+            }}
+            label={o}
+          />
         ))}
       </div>
     )
@@ -146,33 +129,30 @@ export default function FormFieldRenderer({
 
   if (t === 'CHECKBOX') {
     return (
-      <label className="inline-flex items-center gap-2.5 cursor-pointer">
-        <input
-          type="checkbox"
-          className="h-4 w-4 rounded border-[rgba(17,15,10,0.15)] text-blue-500 focus:ring-blue-400/40 cursor-pointer"
-          checked={!!value}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.checked)}
-        />
-        <span className="text-sm text-[#1a1915]">
-          {field.checkboxLabel || 'Yes'}
-        </span>
-      </label>
+      <Checkbox
+        checked={!!value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        label={field.checkboxLabel || 'Yes'}
+      />
     )
   }
 
   if (t === 'FILE') {
+    const selectedFileName = typeof value === 'string' && value ? value : null
     return (
-      <div className={`${baseInput} flex items-center gap-2`}>
-        <input
-          type="file"
-          className="text-sm text-[#6a6864] file:mr-3 file:rounded-full file:border-0 file:bg-[#f5f4f0] file:px-3 file:py-1 file:text-sm file:font-medium file:text-[#1a1915] file:cursor-pointer hover:file:bg-[#eae8e2]"
+      <div className="space-y-2">
+        <FileInput
           disabled={disabled}
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            onChange(file?.name ?? null)
-          }}
+          compact
+          onFiles={(files) => onChange(files[0]?.name ?? null)}
         />
+        {selectedFileName && (
+          <SelectedFileChip
+            file={{ name: selectedFileName }}
+            onRemove={disabled ? undefined : () => onChange(null)}
+          />
+        )}
       </div>
     )
   }
@@ -180,8 +160,8 @@ export default function FormFieldRenderer({
   // Placeholder renders for special field types (will be fully implemented in later phases)
   if (t === 'SIGNATURE') {
     return (
-      <div className={`${baseInput} h-24 flex items-center justify-center text-[#a8a49d] text-sm`}>
-        Signature pad — available after form submission
+      <div className="flex h-24 w-full items-center justify-center rounded-field border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-400">
+        Signature pad - available after form submission
       </div>
     )
   }
@@ -193,33 +173,27 @@ export default function FormFieldRenderer({
       LOCATION_PICKER: 'Select a location',
     }
     return (
-      <select
-        className={`${baseInput} cursor-pointer`}
+      <Select
         value={(value as string) ?? ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
+        options={[{ value: '', label: `${labels[t]}...` }]}
         disabled={disabled}
-      >
-        <option value="">{labels[t]}\u2026</option>
-      </select>
+      />
     )
   }
 
   if (t === 'GRADE_SELECTOR') {
     const grades = ['Pre-K', 'K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     return (
-      <select
-        className={`${baseInput} cursor-pointer`}
+      <Select
         value={(value as string) ?? ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
+        options={[
+          { value: '', label: 'Select grade...' },
+          ...grades.map((g) => ({ value: g, label: g })),
+        ]}
         disabled={disabled}
-      >
-        <option value="">Select grade\u2026</option>
-        {grades.map((g) => (
-          <option key={g} value={g}>
-            {g}
-          </option>
-        ))}
-      </select>
+      />
     )
   }
 

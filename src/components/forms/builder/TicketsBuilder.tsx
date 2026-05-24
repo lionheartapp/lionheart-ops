@@ -659,8 +659,7 @@ export default function TicketsBuilder({ formDefinitionId }: TicketsBuilderProps
               Total seats/spots available across all ticket types. Each ticket sold (Adult, Child, Senior, etc.) takes one spot from this shared pool.
             </p>
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line no-restricted-syntax -- builder setting */}
-              <input
+              <Input
                 type="number"
                 min="1"
                 value={config?.maxCapacity ?? ''}
@@ -669,7 +668,8 @@ export default function TicketsBuilder({ formDefinitionId }: TicketsBuilderProps
                   updateConfigMutation.mutate({ maxCapacity: isNaN(val) ? null : val })
                 }}
                 placeholder="Unlimited"
-                className="w-32 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                size="sm"
+                className="w-32 text-sm focus:ring-indigo-400"
               />
               <span className="text-xs text-slate-400">
                 {totalSold > 0 && `${totalSold} sold`}

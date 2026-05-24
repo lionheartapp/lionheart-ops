@@ -17,6 +17,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import SignatureCanvas from 'react-signature-canvas'
 import { Pen, Type, RotateCcw } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -171,12 +172,12 @@ export default function SignatureField({
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
               Full name
             </label>
-            <input
+            <Input
               type="text"
               value={typedName}
               onChange={handleTypeChange}
               placeholder="Type your full name"
-              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all"
+              className="text-sm focus:ring-blue-100"
             />
           </div>
 

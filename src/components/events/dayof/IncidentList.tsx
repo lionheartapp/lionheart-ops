@@ -20,6 +20,7 @@ import {
 import type { IncidentListItem, OfflineIncident } from '@/lib/hooks/useIncidents'
 import type { EventIncidentWithParticipants } from '@/lib/types/events-phase21'
 import type { EventIncidentType, EventIncidentSeverity } from '@/lib/types/events-phase21'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -226,31 +227,29 @@ interface FilterBarProps {
 function FilterBar({ typeFilter, severityFilter, onTypeChange, onSeverityChange }: FilterBarProps) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {/* Type filter */}
-      {/* eslint-disable-next-line no-restricted-syntax -- pill-style filter (rounded-full, compact); needs PillSelect primitive */}
-      <select
+      <Select<EventIncidentType | 'ALL'>
         value={typeFilter}
-        onChange={(e) => onTypeChange(e.target.value as EventIncidentType | 'ALL')}
-        className="text-xs border border-slate-200 rounded-full px-3 py-1.5 bg-white text-slate-600 focus:outline-none cursor-pointer"
-      >
-        <option value="ALL">All Types</option>
-        {Object.entries(TYPE_LABELS).map(([v, l]) => (
-          <option key={v} value={v}>{l}</option>
-        ))}
-      </select>
-
-      {/* Severity filter */}
-      {/* eslint-disable-next-line no-restricted-syntax -- pill-style filter (rounded-full, compact); needs PillSelect primitive */}
-      <select
+        onChange={onTypeChange}
+        size="sm"
+        options={[
+          { value: 'ALL', label: 'All Types' },
+          ...Object.entries(TYPE_LABELS).map(([value, label]) => ({
+            value: value as EventIncidentType,
+            label,
+          })),
+        ]}
+      />
+      <Select<EventIncidentSeverity | 'ALL'>
         value={severityFilter}
-        onChange={(e) => onSeverityChange(e.target.value as EventIncidentSeverity | 'ALL')}
-        className="text-xs border border-slate-200 rounded-full px-3 py-1.5 bg-white text-slate-600 focus:outline-none cursor-pointer"
-      >
-        <option value="ALL">All Severities</option>
-        <option value="MINOR">Minor</option>
-        <option value="MODERATE">Moderate</option>
-        <option value="SERIOUS">Serious</option>
-      </select>
+        onChange={onSeverityChange}
+        size="sm"
+        options={[
+          { value: 'ALL', label: 'All Severities' },
+          { value: 'MINOR', label: 'Minor' },
+          { value: 'MODERATE', label: 'Moderate' },
+          { value: 'SERIOUS', label: 'Serious' },
+        ]}
+      />
     </div>
   )
 }

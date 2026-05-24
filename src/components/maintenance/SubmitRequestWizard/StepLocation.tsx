@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, MapPin, X, ChevronRight, Building2 } from 'lucide-react'
 import { useCampusLocations, type CampusLocationOption } from '@/lib/hooks/useCampusLocations'
 import { dropdownVariants } from '@/lib/animations'
+import { Input } from '@/components/ui/Input'
 
 interface StepLocationProps {
   buildingId: string | null
@@ -126,7 +127,7 @@ export default function StepLocation({
             <>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <input
+                <Input
                   type="text"
                   value={query}
                   onChange={(e) => {
@@ -136,7 +137,7 @@ export default function StepLocation({
                   onFocus={() => setIsOpen(true)}
                   onBlur={() => setTimeout(() => setIsOpen(false), 150)}
                   placeholder="Search rooms, areas, or buildings..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+                  className="w-full pl-9 text-sm text-slate-900 placeholder-slate-400"
                 />
               </div>
 

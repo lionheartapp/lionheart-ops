@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, X, Check, Loader2, Upload, ImageIcon } from 'lucide-react'
+import { Camera, X, Check, Loader2, ImageIcon } from 'lucide-react'
 import { cardEntrance } from '@/lib/animations'
 import { getAuthHeaders } from '@/lib/api-client'
+import { FileInput } from '@/components/ui/FileInput'
 
 export interface UploadedPhoto {
   url: string
@@ -37,9 +38,7 @@ export default function StepPhotos({
   onAiCategoryDetected,
 }: StepPhotosProps) {
   const [uploading, setUploading] = useState<PhotoState[]>([])
-  const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const totalCount = photos.length + uploading.filter((u) => u.status === 'uploading').length
 
@@ -136,7 +135,7 @@ export default function StepPhotos({
   )
 
   const handleFiles = useCallback(
-    (files: FileList | null) => {
+    (files: File[] | null) => {
       if (!files) return
       setError('')
 
@@ -146,7 +145,7 @@ export default function StepPhotos({
         return
       }
 
-      const toUpload = Array.from(files).slice(0, available)
+      const toUpload = files.slice(0, available)
       const isFirstPhoto = photos.length === 0
 
       for (let i = 0; i < toUpload.length; i++) {
@@ -184,32 +183,19 @@ export default function StepPhotos({
 
       {/* Upload area */}
       {photos.length < MAX_PHOTOS && (
-        <div
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragOver(false)
-            handleFiles(e.dataTransfer.files)
-          }}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-          onDragLeave={() => setDragOver(false)}
-          onClick={() => inputRef.current?.click()}
-          className={`
-            relative rounded-xl border-2 border-dashed p-6 text-center transition-all cursor-pointer
-            ${dragOver
-              ? 'border-primary-400 bg-primary-50'
-              : 'border-slate-200 hover:border-primary-300 hover:bg-primary-50/30'
-            }
-          `}
+        <FileInput
+          accept={[...ALLOWED_TYPES, 'image/*'].join(',')}
+          capture="environment"
+          multiple
+          maxSize={MAX_SIZE}
+          onFiles={handleFiles}
+          className="p-6 border-slate-200 hover:border-primary-300 hover:bg-primary-50/30"
         >
           <div className="flex flex-col items-center gap-2">
-            {dragOver ? (
-              <Upload className="w-8 h-8 text-primary-500" />
-            ) : (
-              <Camera className="w-8 h-8 text-slate-400" />
-            )}
+            <Camera className="w-8 h-8 text-slate-400" />
             <div>
               <p className="text-sm font-medium text-slate-700">
-                {dragOver ? 'Drop photos here' : 'Add Photos'}
+                Add Photos
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
                 Tap to open camera or choose from library · JPG, PNG, WebP, HEIC up to 10MB
@@ -217,16 +203,7 @@ export default function StepPhotos({
             </div>
           </div>
 
-          <input
-            ref={inputRef}
-            type="file"
-            accept={[...ALLOWED_TYPES, 'image/*'].join(',')}
-            capture="environment"
-            multiple
-            onChange={(e) => handleFiles(e.target.files)}
-            className="hidden"
-          />
-        </div>
+        </FileInput>
       )}
 
       {error && (

@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, CalendarDays, Trash2, Edit2, Trophy, ClipboardList } from 'lucide-react'
+import { CalendarDays, Trash2, Edit2, Trophy, ClipboardList, AlertTriangle, CheckCircle2, MapPin, PlayCircle, type LucideIcon } from 'lucide-react'
 import { RRule } from 'rrule'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { getAuthHeaders } from '@/lib/api-client'
 import { ScheduleSkeleton } from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -16,6 +18,7 @@ import PracticeDrawer from '@/components/athletics/PracticeDrawer'
 import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
 import ScoreDialog from '@/components/athletics/ScoreDialog'
 import PlayerStatsDialog from '@/components/athletics/PlayerStatsDialog'
+import MobileGameDayMode from '@/components/athletics/MobileGameDayMode'
 import { IllustrationCalendar } from '@/components/illustrations'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,6 +75,14 @@ interface Calendar {
   id: string
   name: string
   calendarType: string
+}
+
+interface AthleticsDashboardMeta {
+  viewer?: {
+    canViewAll: boolean
+    assignedTeamCount: number
+    primarySportName: string | null
+  }
 }
 
 type AgendaItem =
@@ -291,24 +302,30 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
+  const [scheduleScope, setScheduleScope] = useState<'mine' | 'sport'>('mine')
 
   // ─── Cached Data ──────────────────────────────────────────────────
 
-  const { data: teamsData, isLoading: loading } = useQuery(queryOptions.athleticsTeams())
-  const teams = (teamsData ?? []) as Team[]
+  const { data: dashboardMeta } = useQuery(queryOptions.athleticsDashboard(activeCampusId, scheduleScope))
+  const viewer = (dashboardMeta as AthleticsDashboardMeta | undefined)?.viewer
+  const isCoachView = Boolean(viewer && !viewer.canViewAll && viewer.assignedTeamCount > 0)
+  const primarySportName = viewer?.primarySportName ?? 'sport'
+
+  const { data: teamsData, isLoading: loading } = useQuery(queryOptions.athleticsTeams(undefined, undefined, scheduleScope))
+  const teams = useMemo(() => (teamsData ?? []) as Team[], [teamsData])
 
   const { data: allCalendars } = useQuery(queryOptions.calendars())
   const calendars = ((allCalendars ?? []) as Calendar[]).filter(c => c.calendarType === 'ATHLETICS')
 
   const { data: gamesData, isLoading: gamesLoading } = useQuery(
-    queryOptions.athleticsGames(selectedTeamId || undefined)
+    queryOptions.athleticsGames(selectedTeamId || undefined, scheduleScope)
   )
-  const games = (gamesData ?? []) as Game[]
+  const games = useMemo(() => (gamesData ?? []) as Game[], [gamesData])
 
   const { data: practicesData, isLoading: practicesLoading } = useQuery(
-    queryOptions.athleticsPractices(selectedTeamId || undefined)
+    queryOptions.athleticsPractices(selectedTeamId || undefined, scheduleScope)
   )
-  const practices = (practicesData ?? []) as Practice[]
+  const practices = useMemo(() => (practicesData ?? []) as Practice[], [practicesData])
 
   const loadingSchedule = gamesLoading || practicesLoading
 
@@ -324,6 +341,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   const [editingPractice, setEditingPractice] = useState<Practice | null>(null)
   const [scoreGame, setScoreGame] = useState<Game | null>(null)
   const [playerStatsGame, setPlayerStatsGame] = useState<Game | null>(null)
+  const [gameDayTarget, setGameDayTarget] = useState<{ game: Game; viewpoint: GameViewpoint } | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'game' | 'practice'; id: string; name: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -355,6 +373,12 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       color: t.sport.color,
     }))
   }, [displayTeams])
+
+  useEffect(() => {
+    if (selectedTeamId && !displayTeams.some((team) => team.id === selectedTeamId)) {
+      setSelectedTeamId('')
+    }
+  }, [displayTeams, selectedTeamId])
 
   // Reset team selection when campus changes and team is no longer available
   useEffect(() => {
@@ -392,6 +416,11 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   // ─── Build agenda ─────────────────────────────────────────────────
 
   const showingAllTeams = !selectedTeamId
+  const scheduleScopeLabel = isCoachView
+    ? scheduleScope === 'sport'
+      ? `Across ${primarySportName}`
+      : 'Across my teams'
+    : 'Across all teams'
 
   const agendaItems = useMemo(() => {
     const items: AgendaItem[] = []
@@ -421,6 +450,30 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   // record flips correctly regardless of which side of each game they were on.
   const record = useMemo(() => calcRecord(games, selectedTeamId || null), [games, selectedTeamId])
   const selectedTeam = displayTeams.find((t) => t.id === selectedTeamId)
+  const gamesMissingVenue = displayGames.filter((g) => !g.venue?.trim()).length
+  const scoresDue = displayGames.filter((g) => new Date(g.endTime) < new Date() && !g.isFinal).length
+  const upcomingCount = agendaItems.filter((item) => item.sortTime >= Date.now()).length
+  const coachGameDayGame = useMemo(() => {
+    const now = Date.now()
+    const todayKey = getTodayKey()
+    const sortedGames = [...displayGames].sort(
+      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    )
+
+    const todaysGames = sortedGames.filter((game) => toDateKey(game.startTime) === todayKey)
+    const activeTodayGame = todaysGames.find((game) => !game.isFinal) ?? todaysGames[0]
+    if (activeTodayGame) return activeTodayGame
+
+    const nextGame = sortedGames.find((game) => new Date(game.startTime).getTime() >= now)
+    if (nextGame) return nextGame
+
+    return [...sortedGames]
+      .reverse()
+      .find((game) => new Date(game.endTime).getTime() < now && !game.isFinal) ?? null
+  }, [displayGames])
+  const coachGameDayViewpoint = coachGameDayGame
+    ? resolveGameViewpoint(coachGameDayGame, selectedTeamId || null, displayTeamIds)
+    : null
 
   // Group by date
   const groupedByDate = useMemo(() => {
@@ -458,6 +511,35 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
     setPracticeDrawerOpen(true)
   }
 
+  const openGameDay = useCallback((game: Game, viewpoint: GameViewpoint) => {
+    setGameDayTarget({ game, viewpoint })
+
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    url.searchParams.set('gameDay', game.id)
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [])
+
+  const closeGameDay = useCallback(() => {
+    setGameDayTarget(null)
+
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    url.searchParams.delete('gameDay')
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || gameDayTarget || !displayGames.length) return
+    const gameDayId = new URLSearchParams(window.location.search).get('gameDay')
+    if (!gameDayId) return
+
+    const game = displayGames.find((item) => item.id === gameDayId)
+    if (!game) return
+
+    openGameDay(game, resolveGameViewpoint(game, selectedTeamId || null, displayTeamIds))
+  }, [displayGames, displayTeamIds, gameDayTarget, openGameDay, selectedTeamId])
+
   const handleDelete = async () => {
     if (!deleteTarget) return
     setDeleting(true)
@@ -467,7 +549,8 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
         : `/api/athletics/practices/${deleteTarget.id}`
       const res = await fetch(endpoint, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        headers: { ...getAuthHeaders(), Authorization: `Bearer ${token}` },
       })
       if (handleAuthResponse(res)) return
       setDeleteTarget(null)
@@ -488,7 +571,28 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-5">
+      <div className="hidden lg:flex flex-col lg:flex-row items-start lg:items-end gap-3 mb-5">
+        {isCoachView && (
+          <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
+            {([
+              { key: 'mine' as const, label: 'My teams' },
+              { key: 'sport' as const, label: `All ${primarySportName}` },
+            ]).map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setScheduleScope(item.key)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer ${
+                  scheduleScope === item.key
+                    ? 'bg-slate-950 text-white'
+                    : 'text-stone-500 hover:text-slate-950'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="w-full sm:w-64">
           <FloatingDropdown
             id="schedule-team"
@@ -523,27 +627,67 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
           ))}
         </div>
 
-        {canWrite && (
-          <div className="flex gap-2 sm:ml-auto">
-            <button
-              type="button"
-              onClick={openGameCreate}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              Add Game
-            </button>
-            <button
-              type="button"
-              onClick={openPracticeCreate}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-stone-700 border border-stone-200 rounded-full hover:bg-stone-50 transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              Add Practice
-            </button>
-          </div>
-        )}
       </div>
+
+      {isCoachView && (
+        <div className="mb-4 inline-flex w-full rounded-full bg-white/70 p-1 ring-1 ring-stone-200/70 lg:hidden">
+          {([
+            { key: 'mine' as const, label: 'My teams' },
+            { key: 'sport' as const, label: `All ${primarySportName}` },
+          ]).map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setScheduleScope(item.key)}
+              className={`min-h-10 flex-1 rounded-full px-3 text-sm font-semibold transition-colors duration-200 cursor-pointer ${
+                scheduleScope === item.key
+                  ? 'bg-slate-950 text-white'
+                  : 'text-stone-500'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loadingSchedule && displayTeams.length > 0 && (
+        <MobileGameDayMode
+          game={coachGameDayGame}
+          viewpoint={coachGameDayViewpoint}
+          canWrite={canWrite}
+          onCreateGame={openGameCreate}
+          onEdit={coachGameDayGame ? () => openGameEdit(coachGameDayGame) : undefined}
+          onScore={coachGameDayGame ? () => setScoreGame(coachGameDayGame) : undefined}
+          onPlayerStats={coachGameDayGame ? () => setPlayerStatsGame(coachGameDayGame) : undefined}
+          onSaved={refreshSchedule}
+        />
+      )}
+
+      {!loadingSchedule && displayTeams.length > 0 && (
+        <div className="hidden lg:grid lg:grid-cols-3 gap-3 mb-5">
+          <ScheduleSignal
+            icon={CalendarDays}
+            label="Upcoming"
+            value={upcomingCount}
+            description={showingAllTeams ? scheduleScopeLabel : selectedTeam?.name ?? 'Selected team'}
+          />
+          <ScheduleSignal
+            icon={gamesMissingVenue ? AlertTriangle : CheckCircle2}
+            label="Missing venue"
+            value={gamesMissingVenue}
+            description={gamesMissingVenue ? 'Needs a location' : 'Locations are set'}
+            tone={gamesMissingVenue ? 'warning' : 'success'}
+          />
+          <ScheduleSignal
+            icon={scoresDue ? AlertTriangle : Trophy}
+            label="Scores due"
+            value={scoresDue}
+            description={scoresDue ? 'Final score needed' : 'No late scores'}
+            tone={scoresDue ? 'warning' : 'neutral'}
+          />
+        </div>
+      )}
 
       {/* Season Record Banner */}
       {selectedTeamId && selectedTeam && !loadingSchedule && (
@@ -582,24 +726,26 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
       ) : loadingSchedule ? (
         <ScheduleSkeleton groups={2} />
       ) : agendaItems.length === 0 ? (
-        <div className="ui-glass p-8 text-center">
-          <IllustrationCalendar className="w-48 h-40 mx-auto mb-2" />
-          <p className="text-base font-semibold text-stone-700 mb-1">No games or practices scheduled</p>
-          <p className="text-sm text-stone-500 mb-4">Get started by creating a game or practice</p>
+        <div className="ui-glass p-6 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-500 shadow-sm">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+          <p className="text-base font-semibold text-stone-700 mb-1">Nothing scheduled yet</p>
+          <p className="text-sm text-stone-500 mb-4">Add the next game or practice for this view.</p>
           <div className="flex gap-3 justify-center">
             <button
               type="button"
               onClick={openGameCreate}
               className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
             >
-              Add Game
+              <span><span className="hidden sm:inline">Schedule </span>game</span>
             </button>
             <button
               type="button"
               onClick={openPracticeCreate}
               className="px-5 py-2.5 rounded-full bg-white border border-stone-200 text-stone-700 text-sm font-medium hover:bg-stone-50 transition-colors active:scale-[0.97] cursor-pointer"
             >
-              Add Practice
+              <span><span className="hidden sm:inline">Schedule </span>practice</span>
             </button>
           </div>
         </div>
@@ -630,7 +776,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
               }
 
               return (
-                <div key={group.date}>
+                <div key={group.date} className={isPast ? 'hidden lg:block' : undefined}>
                   {todayDivider}
                   <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${
                     isToday
@@ -658,6 +804,7 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
                               game={item.data}
                               viewpoint={viewpoint}
                               showTeamName={showingAllTeams}
+                              onLaunchGameDay={() => openGameDay(item.data, viewpoint)}
                               onEdit={() => openGameEdit(item.data)}
                               onScore={() => setScoreGame(item.data)}
                               onPlayerStats={() => setPlayerStatsGame(item.data)}
@@ -727,6 +874,27 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
         game={playerStatsGame}
       />
 
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {gameDayTarget && (
+            <MobileGameDayMode
+              key={gameDayTarget.game.id}
+              game={gameDayTarget.game}
+              viewpoint={gameDayTarget.viewpoint}
+              canWrite={canWrite}
+              onCreateGame={openGameCreate}
+              onEdit={() => openGameEdit(gameDayTarget.game)}
+              onScore={() => setScoreGame(gameDayTarget.game)}
+              onPlayerStats={() => setPlayerStatsGame(gameDayTarget.game)}
+              onSaved={refreshSchedule}
+              presentation="fullscreen"
+              onExitFullScreen={closeGameDay}
+            />
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -744,10 +912,40 @@ export default function ScheduleSection({ activeCampusId, canWrite = false }: Sc
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
+function ScheduleSignal({ icon: Icon, label, value, description, tone = 'neutral' }: {
+  icon: LucideIcon
+  label: string
+  value: number
+  description: string
+  tone?: 'neutral' | 'warning' | 'success'
+}) {
+  const toneClasses = {
+    neutral: 'border-stone-200 bg-white text-stone-500',
+    warning: 'border-amber-200 bg-amber-50 text-amber-700',
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  }
+
+  return (
+    <div className="rounded-2xl border border-stone-200/70 bg-white/70 p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${toneClasses[tone]}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-2xl font-bold leading-none text-slate-950 tabular-nums">{value}</p>
+          <p className="mt-1 text-xs font-semibold text-stone-500">{label}</p>
+        </div>
+      </div>
+      <p className="mt-3 truncate text-xs text-stone-500">{description}</p>
+    </div>
+  )
+}
+
 interface GameRowProps {
   game: Game
   viewpoint: GameViewpoint
   showTeamName?: boolean
+  onLaunchGameDay: () => void
   onEdit: () => void
   onScore: () => void
   onPlayerStats: () => void
@@ -758,6 +956,7 @@ function GameRow({
   game,
   viewpoint,
   showTeamName,
+  onLaunchGameDay,
   onEdit,
   onScore,
   onPlayerStats,
@@ -769,45 +968,101 @@ function GameRow({
   const score = viewpoint.scoreDisplay
   const homeAwayLabel =
     viewpoint.homeAway === 'HOME' ? 'Home' : viewpoint.homeAway === 'AWAY' ? 'Away' : 'Neutral'
+  const isPast = new Date(game.endTime) < new Date()
+  const missingVenue = !game.venue?.trim()
+  const scoreDue = isPast && !game.isFinal
+  const primaryActionLabel = game.isFinal ? 'Review game' : scoreDue ? 'Add score' : 'Launch game'
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50/50 transition-colors">
-      <SportIcon sport={sportName} size={16} style={{ color: sportColor }} className="flex-shrink-0" />
-      <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-600 bg-stone-100 rounded">
-        Game
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          {showTeamName && viewpoint.team && (
-            <span className="text-xs font-medium text-stone-500">{viewpoint.team.name}</span>
-          )}
-          <span className="font-medium text-slate-900 text-sm">
-            {prefix} {viewpoint.opponentLabel}
-          </span>
-          <span className="text-[11px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 font-medium">
-            {homeAwayLabel}
-          </span>
-          {score && (
-            <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-              game.isFinal ? 'bg-green-50 text-green-700' : 'bg-stone-100 text-stone-600'
-            }`}>
-              {score}{game.isFinal ? ' ✓' : ''}
+    <div className="px-4 py-4 transition-colors hover:bg-stone-50/50 lg:flex lg:items-center lg:gap-3 lg:py-3">
+      <div className="flex items-start gap-3 lg:flex-1 lg:items-center">
+        <SportIcon sport={sportName} size={16} style={{ color: sportColor }} className="mt-1 flex-shrink-0 lg:mt-0" />
+        <span className="mt-0.5 inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-600 bg-stone-100 rounded lg:mt-0">
+          Game
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {showTeamName && viewpoint.team && (
+              <span className="text-xs font-medium text-stone-500">{viewpoint.team.name}</span>
+            )}
+            <span className="font-medium text-slate-900 text-sm">
+              {prefix} {viewpoint.opponentLabel}
             </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-stone-500">
-          <span>{formatTime(game.startTime)}–{formatTime(game.endTime)}</span>
-          {game.venue && <><span className="text-stone-300">·</span><span>{game.venue}</span></>}
+            <span className="text-[11px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 font-medium">
+              {homeAwayLabel}
+            </span>
+            {score && (
+              <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                game.isFinal ? 'bg-green-50 text-green-700' : 'bg-stone-100 text-stone-600'
+              }`}>
+                {score}{game.isFinal ? ' ✓' : ''}
+              </span>
+            )}
+            {missingVenue && (
+              <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold">
+                <AlertTriangle className="w-3 h-3" />
+                Venue needed
+              </span>
+            )}
+            {scoreDue && (
+              <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold">
+                <Trophy className="w-3 h-3" />
+                Score due
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-500">
+            <span>{formatTime(game.startTime)}–{formatTime(game.endTime)}</span>
+            {game.venue && <><span className="text-stone-300">·</span><span className="inline-flex min-w-0 max-w-full items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" />{game.venue}</span></>}
+          </div>
         </div>
       </div>
-      <RowActionMenu
-        items={[
-          { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: onEdit },
-          { label: 'Score', icon: <Trophy className="w-4 h-4" />, onClick: onScore },
-          { label: 'Player Stats', icon: <ClipboardList className="w-4 h-4" />, onClick: onPlayerStats },
-          { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: onDelete, variant: 'danger' },
-        ]}
-      />
+      <div className="mt-3 grid grid-cols-2 gap-2 lg:hidden">
+        <button
+          type="button"
+          onClick={onScore}
+          className="min-h-11 rounded-xl bg-slate-950 px-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-slate-800 active:scale-[0.98] cursor-pointer"
+        >
+          {scoreDue ? 'Add score' : score ? 'Edit score' : 'Score'}
+        </button>
+        <button
+          type="button"
+          onClick={onPlayerStats}
+          className="min-h-11 rounded-xl border border-stone-200 bg-white px-3 text-sm font-semibold text-slate-900 transition-colors duration-200 hover:bg-stone-50 active:scale-[0.98] cursor-pointer"
+        >
+          Stats
+        </button>
+      </div>
+      <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <button
+          type="button"
+          onClick={scoreDue ? onScore : onLaunchGameDay}
+          className={`inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors duration-200 cursor-pointer ${
+            game.isFinal
+              ? 'border border-stone-200 bg-white text-slate-900 hover:bg-stone-50'
+              : scoreDue
+                ? 'bg-rose-600 text-white hover:bg-rose-700'
+                : 'bg-slate-950 text-white hover:bg-slate-800'
+          }`}
+        >
+          {game.isFinal ? <Trophy className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+          {primaryActionLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onPlayerStats}
+          className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-stone-200 bg-white px-4 text-sm font-semibold text-slate-900 transition-colors duration-200 hover:bg-stone-50 cursor-pointer"
+        >
+          <ClipboardList className="h-4 w-4" />
+          Stats
+        </button>
+        <RowActionMenu
+          items={[
+            { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: onEdit },
+            { label: 'Delete', icon: <Trash2 className="w-4 h-4" />, onClick: onDelete, variant: 'danger' },
+          ]}
+        />
+      </div>
     </div>
   )
 }

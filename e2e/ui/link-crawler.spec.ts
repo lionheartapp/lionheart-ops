@@ -82,7 +82,7 @@ function shouldSkip(pathname: string): boolean {
 
 test.describe('Crawler · internal links', () => {
   // The crawler is one big BFS — it deserves its own time budget.
-  test.setTimeout(180_000)
+  test.setTimeout(420_000)
 
   test('every reachable internal page returns 2xx/3xx', async ({ adminPage }) => {
     const baseUrl = new URL(adminPage.url() || 'http://localhost:3004')

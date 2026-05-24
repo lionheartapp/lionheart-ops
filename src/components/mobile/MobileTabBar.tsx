@@ -12,6 +12,7 @@ import {
   ClipboardCheck,
   TicketCheck,
   Menu,
+  Trophy,
 } from 'lucide-react'
 import { haptic } from '@/lib/haptics'
 import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
@@ -33,6 +34,8 @@ interface MobileTabBarProps {
   canManageIT: boolean
   canSubmitIT: boolean
   canManageWorkspace: boolean
+  athleticsEnabled: boolean
+  canWriteAthletics: boolean
   // User info
   userName: string
   userEmail: string
@@ -64,6 +67,8 @@ export default function MobileTabBar({
   canManageIT,
   canSubmitIT,
   canManageWorkspace,
+  athleticsEnabled,
+  canWriteAthletics,
   userName,
   userEmail,
   userAvatar,
@@ -129,6 +134,14 @@ export default function MobileTabBar({
         href: '/maintenance',
         activeRoutes: ['/maintenance'],
       })
+    } else if (athleticsEnabled && canWriteAthletics) {
+      list.push({
+        id: 'athletics',
+        icon: Trophy,
+        label: 'Athletics',
+        href: '/athletics',
+        activeRoutes: ['/athletics'],
+      })
     } else {
       // Everyone else (teachers, staff) gets Tickets (submit + my tickets)
       list.push({
@@ -155,6 +168,8 @@ export default function MobileTabBar({
     isSuperAdmin,
     isOnITTeam,
     isOnMaintenanceTeam,
+    athleticsEnabled,
+    canWriteAthletics,
   ])
 
   const isActive = useCallback(
@@ -181,28 +196,17 @@ export default function MobileTabBar({
     <>
       {/* Tab Bar */}
       <nav
-        className="mobile-tab-bar lg:hidden fixed bottom-0 inset-x-0 z-mobilenav"
-        style={{
-          background: 'rgba(253, 252, 249, 0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(17, 15, 10, 0.06)',
-          paddingBottom: 'var(--safe-area-bottom)',
-        }}
+        className="mobile-tab-bar lg:hidden fixed bottom-0 inset-x-0 z-mobilenav px-3"
+        style={{ paddingBottom: 'var(--safe-area-bottom)' }}
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* SVG gradient definition for active tab icons */}
-        <svg width="0" height="0" className="absolute" aria-hidden="true">
-          <defs>
-            <linearGradient id="tab-icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#6366F1" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <div className="flex items-center justify-around h-14">
+        <div
+          className="relative mx-auto flex h-16 max-w-[440px] items-center justify-around rounded-t-[28px] border border-black/[0.06] bg-white/95 pl-1 backdrop-blur-xl"
+          style={{
+            WebkitBackdropFilter: 'blur(20px)',
+          }}
+        >
           {tabs.map((tab) => {
             const Icon = tab.icon
             const active = isActive(tab)
@@ -211,40 +215,32 @@ export default function MobileTabBar({
               <button
                 key={tab.id}
                 onClick={() => handleTabPress(tab)}
-                className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[44px] min-h-[44px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-lg transition-colors"
+                className="relative flex h-full min-h-[56px] min-w-[44px] flex-1 cursor-pointer items-center justify-center rounded-2xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
                 aria-label={tab.label}
                 aria-current={active ? 'page' : undefined}
               >
-                <div className="relative">
+                {active && (
+                  <motion.div
+                    layoutId="mobile-tab-active-square"
+                    className="absolute left-[calc(50%-22px)] top-[calc(50%-22px)] z-0 h-11 w-11 rounded-xl bg-slate-950"
+                    transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.75 }}
+                  />
+                )}
+                <div className="relative z-10">
                   <Icon
-                    className="w-[22px] h-[22px]"
-                    style={active ? { stroke: 'url(#tab-icon-gradient)' } : undefined}
-                    strokeWidth={active ? 2.2 : 1.8}
+                    className={`h-[23px] w-[23px] transition-colors duration-200 ${
+                      active ? 'text-white' : 'text-slate-900'
+                    }`}
+                    strokeWidth={active ? 2.35 : 2}
                     aria-hidden="true"
                   />
-                  {/* Unread badge */}
                   {tab.badge != null && tab.badge > 0 && (
-                    <span className="absolute -top-1 -right-2 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold bg-red-500 text-white">
+                    <span className="absolute -right-2 -top-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                       {tab.badge > 99 ? '99+' : tab.badge}
                     </span>
                   )}
                 </div>
-                <span
-                  className={`text-[10px] mt-0.5 leading-tight ${
-                    active ? 'font-semibold text-primary-600' : 'font-medium text-slate-400'
-                  }`}
-                >
-                  {tab.label}
-                </span>
-                {/* Active indicator dot */}
-                {active && (
-                  <motion.div
-                    layoutId="mobile-tab-indicator"
-                    className="absolute -bottom-0.5 w-1 h-1 rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #3B82F6, #6366F1)' }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
+                <span className="sr-only">{tab.label}</span>
               </button>
             )
           })}
@@ -335,6 +331,7 @@ function MoreSheet({
               style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
             >
               {userAvatar ? (
+                // eslint-disable-next-line @next/next/no-img-element -- User avatars may come from tenant storage or external identity providers.
                 <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white text-sm font-semibold">

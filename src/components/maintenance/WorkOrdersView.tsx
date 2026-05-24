@@ -11,6 +11,7 @@ import { STATUS_LABELS } from '@/lib/constants/maintenance'
 import { staggerContainer, fadeInUp, expandCollapse } from '@/lib/animations'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { Checkbox } from '@/components/ui/Checkbox'
 import WorkOrdersFilters, {
   DEFAULT_FILTERS,
   type WorkOrdersFilterState,
@@ -325,11 +326,9 @@ export default function WorkOrdersView({ schoolIdFilter, initialStatus, initialP
           {/* Specialty toggle — shown only for technicians (canClaim but not canManage) */}
           {canClaim && !canManage && (
             <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
               />
               Show all (including other specialties)
             </label>

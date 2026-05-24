@@ -12,6 +12,8 @@ import {
   CheckCircle2, XCircle, PauseCircle, PlayCircle, Loader2,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
 import type { CategoryFieldType } from '@prisma/client'
 import { formatDateTimeWithTz } from '@/lib/utils/date-format'
@@ -294,13 +296,13 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                 {/* Search input */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                  <input
+                  <Input
                     type="text"
                     value={assignSearch}
                     onChange={(e) => setAssignSearch(e.target.value)}
                     placeholder="Search members..."
                     autoFocus
-                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 bg-white"
+                    className="w-full pl-9 text-sm"
                   />
                 </div>
 
@@ -382,28 +384,28 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                 <div className="space-y-2">
                   {pendingStatus === 'ON_HOLD' ? (
                     <>
-                      <select
+                      <Select
                         value={holdReason}
-                        onChange={(e) => setHoldReason(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 bg-white"
-                      >
-                        <option value="">Select hold reason...</option>
-                        <option value="PARTS">Waiting for parts</option>
-                        <option value="VENDOR">Waiting for vendor</option>
-                        <option value="USER_AVAILABILITY">User unavailable</option>
-                        <option value="THIRD_PARTY">Third party dependency</option>
-                        <option value="OTHER">Other</option>
-                      </select>
-                      <input
+                        onChange={setHoldReason}
+                        options={[
+                          { value: '', label: 'Select hold reason...' },
+                          { value: 'PARTS', label: 'Waiting for parts' },
+                          { value: 'VENDOR', label: 'Waiting for vendor' },
+                          { value: 'USER_AVAILABILITY', label: 'User unavailable' },
+                          { value: 'THIRD_PARTY', label: 'Third party dependency' },
+                          { value: 'OTHER', label: 'Other' },
+                        ]}
+                      />
+                      <Input
                         type="text"
                         value={transitionNote}
                         onChange={(e) => setTransitionNote(e.target.value)}
                         placeholder="Additional notes (optional)..."
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                        className="w-full text-sm"
                       />
                     </>
                   ) : (
-                    <input
+                    <Input
                       type="text"
                       value={transitionNote}
                       onChange={(e) => setTransitionNote(e.target.value)}
@@ -412,7 +414,7 @@ export default function ITTicketDetail({ ticketId, isOpen, onClose, canManage, m
                           ? 'Cancellation reason...'
                           : 'Resolution note (optional)...'
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                      className="w-full text-sm"
                     />
                   )}
                   <div className="flex gap-2">

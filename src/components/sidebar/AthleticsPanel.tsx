@@ -2,14 +2,15 @@
 
 import { useMemo } from 'react'
 import CampusShapeIndicator from '@/components/calendar/CampusShapeIndicator'
-import { LayoutDashboard, Settings2, CalendarDays, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Settings2, CalendarDays, BarChart3, Globe } from 'lucide-react'
 import type { AthleticsCampus } from './types'
 
 const ATHLETICS_TABS = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'manage', label: 'Manage', icon: Settings2 },
+  { key: 'overview', label: 'Today', icon: LayoutDashboard },
+  { key: 'manage', label: 'Teams', icon: Settings2 },
   { key: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { key: 'stats', label: 'Stats', icon: BarChart3 },
+  { key: 'stats', label: 'Results', icon: BarChart3 },
+  { key: 'leagues', label: 'Leagues', icon: Globe },
 ]
 
 interface AthleticsPanelProps {

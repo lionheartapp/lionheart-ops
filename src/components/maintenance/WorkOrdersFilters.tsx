@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Search, SlidersHorizontal, ChevronDown, Check } from 'lucide-react'
+import { X, SlidersHorizontal } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select, type SelectOption } from '@/components/ui/Select'
 import FilterBottomSheet from './FilterBottomSheet'
 
 export type MaintenanceStatus =
@@ -118,7 +121,7 @@ export default function WorkOrdersFilters({
   boardView,
 }: WorkOrdersFiltersProps) {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const localSearchRef = useRef(filters.search)
+  const [localSearch, setLocalSearch] = useState(filters.search)
   const [bottomSheetOpen, setBottomSheetOpen] = useState(false)
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false)
   const filterBtnRef = useRef<HTMLButtonElement>(null)
@@ -126,7 +129,7 @@ export default function WorkOrdersFilters({
 
   // Sync local search ref when filters change from parent (e.g. clear)
   useEffect(() => {
-    localSearchRef.current = filters.search
+    setLocalSearch(filters.search)
   }, [filters.search])
 
   // Close popover on outside click
@@ -152,7 +155,7 @@ export default function WorkOrdersFilters({
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
-    localSearchRef.current = value
+    setLocalSearch(value)
 
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
@@ -162,9 +165,7 @@ export default function WorkOrdersFilters({
 
   const handleSearchClear = useCallback(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
-    localSearchRef.current = ''
-    const searchInput = document.getElementById('wo-search') as HTMLInputElement | null
-    if (searchInput) searchInput.value = ''
+    setLocalSearch('')
     update({ search: '' })
   }, [filters])
 
@@ -177,9 +178,7 @@ export default function WorkOrdersFilters({
 
   function clearFilters() {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
-    localSearchRef.current = ''
-    const searchInput = document.getElementById('wo-search') as HTMLInputElement | null
-    if (searchInput) searchInput.value = ''
+    setLocalSearch('')
     onChange({ ...DEFAULT_FILTERS, schoolId: filters.schoolId })
   }
 
@@ -188,35 +187,37 @@ export default function WorkOrdersFilters({
   }
 
   const dropdownFilterCount = countActiveDropdownFilters(filters)
+  const statusSelectOptions: SelectOption<MaintenanceStatus | ''>[] = [
+    { value: '', label: 'All Statuses' },
+    ...STATUS_OPTIONS,
+  ]
+  const prioritySelectOptions: SelectOption<MaintenancePriority | ''>[] = [
+    { value: '', label: 'All Priorities' },
+    ...PRIORITY_OPTIONS,
+  ]
+  const categorySelectOptions: SelectOption<MaintenanceCategory | ''>[] = [
+    { value: '', label: 'All Categories' },
+    ...CATEGORY_OPTIONS,
+  ]
+  const technicianSelectOptions: SelectOption[] = [
+    { value: '', label: 'All Technicians' },
+    ...technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` })),
+  ]
 
   // ─── "My Board" — search only, no filters ───────────────────────────────────
   if (boardView === 'my-board') {
     return (
-      <div className="group relative pb-2 max-w-[768px]">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5" style={{ top: 0, bottom: '0.5rem' }}>
-          <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
-        </div>
-        <input
+      <div className="pb-2 max-w-[768px]">
+        <SearchInput
           id="wo-search"
-          type="search"
-          defaultValue={filters.search}
+          value={localSearch}
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
+          onClear={handleSearchClear}
           placeholder="Search tickets..."
-          className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
           aria-label="Search work orders"
+          className="rounded-full"
         />
-        {filters.search && (
-          <button
-            type="button"
-            onClick={handleSearchClear}
-            className="absolute right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-            style={{ top: 0, bottom: '0.5rem', display: 'flex', alignItems: 'center' }}
-            aria-label="Clear search"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
     )
   }
@@ -228,30 +229,17 @@ export default function WorkOrdersFilters({
         {/* Desktop */}
         <div className="hidden lg:flex items-center gap-3 pb-2">
           {/* KB-style search bar */}
-          <div className="group relative flex-1 max-w-[768px]">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-              <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
-            </div>
-            <input
+          <div className="flex-1 max-w-[768px]">
+            <SearchInput
               id="wo-search"
-              type="search"
-              defaultValue={filters.search}
+              value={localSearch}
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
+              onClear={handleSearchClear}
               placeholder="Search tickets..."
-              className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
               aria-label="Search work orders"
+              className="rounded-full"
             />
-            {filters.search && (
-              <button
-                type="button"
-                onClick={handleSearchClear}
-                className="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                aria-label="Clear search"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
           </div>
 
           {/* Filter button */}
@@ -283,75 +271,56 @@ export default function WorkOrdersFilters({
                 {/* Status */}
                 <div>
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
-                  <select
+                  <Select<MaintenanceStatus | ''>
                     value={filters.status}
-                    onChange={(e) => update({ status: e.target.value as MaintenanceStatus | '' })}
-                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-                  >
-                    <option value="">All Statuses</option>
-                    {STATUS_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => update({ status: value })}
+                    options={statusSelectOptions}
+                    size="sm"
+                  />
                 </div>
 
                 {/* Priority */}
                 <div>
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Priority</label>
-                  <select
+                  <Select<MaintenancePriority | ''>
                     value={filters.priority}
-                    onChange={(e) => update({ priority: e.target.value as MaintenancePriority | '' })}
-                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-                  >
-                    <option value="">All Priorities</option>
-                    {PRIORITY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => update({ priority: value })}
+                    options={prioritySelectOptions}
+                    size="sm"
+                  />
                 </div>
 
                 {/* Category */}
                 <div>
                   <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Category</label>
-                  <select
+                  <Select<MaintenanceCategory | ''>
                     value={filters.category}
-                    onChange={(e) => update({ category: e.target.value as MaintenanceCategory | '' })}
-                    className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-                  >
-                    <option value="">All Categories</option>
-                    {CATEGORY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => update({ category: value })}
+                    options={categorySelectOptions}
+                    size="sm"
+                  />
                 </div>
 
                 {/* Technician */}
                 {technicians.length > 0 && (
                   <div>
                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Technician</label>
-                    <select
+                    <Select
                       value={filters.assignedToId}
-                      onChange={(e) => update({ assignedToId: e.target.value })}
-                      className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-                    >
-                      <option value="">All Technicians</option>
-                      {technicians.map((t) => (
-                        <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
-                      ))}
-                    </select>
+                      onChange={(value) => update({ assignedToId: value })}
+                      options={technicianSelectOptions}
+                      size="sm"
+                    />
                   </div>
                 )}
 
                 {/* Unassigned only toggle */}
-                <label className="flex items-center gap-2.5 pt-1 text-sm text-slate-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={filters.unassigned}
-                    onChange={(e) => update({ unassigned: e.target.checked })}
-                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
-                  />
-                  Unassigned only
-                </label>
+                <Checkbox
+                  checked={filters.unassigned}
+                  onChange={(e) => update({ unassigned: e.target.checked })}
+                  label="Unassigned only"
+                  className="pt-1"
+                />
 
                 {/* Clear / Apply row */}
                 {dropdownFilterCount > 0 && (
@@ -371,18 +340,15 @@ export default function WorkOrdersFilters({
 
         {/* Mobile */}
         <div className="flex lg:hidden items-center gap-2 pb-3">
-          <div className="group relative flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
-            </div>
-            <input
-              type="search"
-              defaultValue={filters.search}
+          <div className="flex-1 min-w-0">
+            <SearchInput
+              value={localSearch}
               onChange={handleSearchChange}
               onKeyDown={handleSearchKeyDown}
+              onClear={handleSearchClear}
               placeholder="Search tickets..."
-              className="w-full h-10 pl-10 pr-10 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-all duration-200"
               aria-label="Search work orders"
+              className="h-10 rounded-full"
             />
           </div>
           <button
@@ -468,26 +434,23 @@ export default function WorkOrdersFilters({
           />
         )}
         <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <input
+          <SearchInput
             id="wo-search"
-            type="text"
-            defaultValue={filters.search}
+            value={localSearch}
             onChange={handleSearchChange}
+            onKeyDown={handleSearchKeyDown}
+            onClear={handleSearchClear}
             placeholder="Search tickets..."
-            className="ui-input pl-8"
             aria-label="Search work orders"
+            size="sm"
           />
         </div>
-        <label className="flex items-center gap-1.5 pb-2.5 text-sm text-slate-600 cursor-pointer select-none whitespace-nowrap">
-          <input
-            type="checkbox"
-            checked={filters.unassigned}
-            onChange={(e) => update({ unassigned: e.target.checked })}
-            className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
-          />
-          Unassigned only
-        </label>
+        <Checkbox
+          checked={filters.unassigned}
+          onChange={(e) => update({ unassigned: e.target.checked })}
+          label="Unassigned only"
+          className="pb-2.5 whitespace-nowrap"
+        />
         {active && (
           <button
             onClick={clearFilters}

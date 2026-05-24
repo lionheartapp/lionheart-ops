@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Bug, Send, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface ReportBugDialogProps {
   isOpen: boolean
@@ -142,14 +144,14 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                       <label htmlFor="bug-subject" className="block text-sm font-medium text-slate-700 mb-1.5">
                         Subject
                       </label>
-                      <input
+                      <Input
                         ref={subjectRef}
                         id="bug-subject"
                         type="text"
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="Brief summary of the issue"
-                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-slate-400"
+                        className="text-sm focus:border-primary-400 focus:ring-primary-100"
                         required
                       />
                     </div>
@@ -159,13 +161,13 @@ export default function ReportBugDialog({ isOpen, onClose }: ReportBugDialogProp
                       <label htmlFor="bug-description" className="block text-sm font-medium text-slate-700 mb-1.5">
                         What happened?
                       </label>
-                      <textarea
+                      <Textarea
                         id="bug-description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Describe the bug: what you expected vs. what happened, and any steps to reproduce it."
                         rows={4}
-                        className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 focus:border-primary-400 transition-colors duration-200 placeholder:text-slate-400 resize-none"
+                        className="text-sm focus:border-primary-400 focus:ring-primary-100"
                         required
                       />
                     </div>

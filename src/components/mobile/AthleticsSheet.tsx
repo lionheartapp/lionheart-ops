@@ -21,8 +21,8 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
   const items = [
     {
       icon: <LayoutDashboard className="w-5 h-5" />,
-      label: 'Overview',
-      description: 'Athletics dashboard',
+      label: 'Today',
+      description: 'What needs attention',
       onClick: () => {
         emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'overview' })
         router.push('/athletics')
@@ -30,7 +30,7 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
     },
     {
       icon: <Settings2 className="w-5 h-5" />,
-      label: 'Manage',
+      label: 'Teams',
       description: 'Sports, teams, and rosters',
       onClick: () => {
         emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'manage' })
@@ -48,8 +48,8 @@ export default function AthleticsSheet({ open, onClose }: AthleticsSheetProps) {
     },
     {
       icon: <BarChart3 className="w-5 h-5" />,
-      label: 'Stats',
-      description: 'Player statistics',
+      label: 'Results',
+      description: 'Scores, standings, and stats',
       onClick: () => {
         emitAppEvent(AppEventName.ATHLETICS_TAB_CHANGE, { tab: 'stats' })
         router.push('/athletics')

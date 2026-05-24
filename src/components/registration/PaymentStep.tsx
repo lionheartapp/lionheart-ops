@@ -23,6 +23,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { Loader2, Tag, AlertCircle, CreditCard } from 'lucide-react'
 import type { DiscountCode } from '@/lib/hooks/useRegistrationForm'
+import { Input } from '@/components/ui/Input'
 
 // ─── Stripe instance (singleton) ─────────────────────────────────────────────
 
@@ -345,7 +346,7 @@ export default function PaymentStep({
               Discount code (optional)
             </label>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 value={discountCode}
                 onChange={(e) => {
@@ -353,7 +354,8 @@ export default function PaymentStep({
                   setDiscountError('')
                 }}
                 placeholder="ENTER CODE"
-                className="flex-1 px-3.5 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 uppercase"
+                size="sm"
+                className="flex-1 text-sm font-mono uppercase focus:ring-blue-100"
               />
               <button
                 type="button"

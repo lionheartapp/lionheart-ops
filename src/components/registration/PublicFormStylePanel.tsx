@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Paintbrush, ChevronDown, Eye } from 'lucide-react'
 import { readableTextColor } from '@/lib/forms/schemas'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,17 +117,17 @@ export function PublicFormStylePanel({ config, onChange }: PublicFormStylePanelP
               CTA Button Color
             </label>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 type="color"
                 value={ctaColor}
                 onChange={(e) => onChange({ publicCtaColor: e.target.value })}
-                className="h-9 w-10 rounded-lg cursor-pointer border border-[rgba(17,15,10,0.08)]"
+                className="h-9 w-10 cursor-pointer"
               />
-              <input
+              <Input
                 type="text"
                 value={ctaColor}
                 onChange={(e) => onChange({ publicCtaColor: e.target.value })}
-                className="w-24 rounded-xl border border-[rgba(17,15,10,0.1)] px-2 py-1.5 text-sm font-mono text-[#1a1915]"
+                className="w-24 text-sm font-mono text-[#1a1915]"
               />
               {/* Preview chip */}
               <span
@@ -164,17 +165,17 @@ export function PublicFormStylePanel({ config, onChange }: PublicFormStylePanelP
                 Page Background Color
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type="color"
                   value={bgColor}
                   onChange={(e) => onChange({ publicBgColor: e.target.value })}
-                  className="h-9 w-10 rounded-lg cursor-pointer border border-[rgba(17,15,10,0.08)]"
+                  className="h-9 w-10 cursor-pointer"
                 />
-                <input
+                <Input
                   type="text"
                   value={bgColor}
                   onChange={(e) => onChange({ publicBgColor: e.target.value })}
-                  className="w-24 rounded-xl border border-[rgba(17,15,10,0.1)] px-2 py-1.5 text-sm font-mono text-[#1a1915]"
+                  className="w-24 text-sm font-mono text-[#1a1915]"
                 />
               </div>
               <div className="mt-2 flex flex-wrap gap-1">
@@ -206,14 +207,14 @@ export function PublicFormStylePanel({ config, onChange }: PublicFormStylePanelP
                 <label className="text-xs font-medium text-[#6a6864] mb-1.5 block">
                   Image URL
                 </label>
-                <input
+                <Input
                   type="url"
                   value={config.publicImageUrl ?? ''}
                   onChange={(e) =>
                     onChange({ publicImageUrl: e.target.value || null })
                   }
                   placeholder="https://..."
-                  className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2 text-sm font-mono text-[#1a1915] placeholder:text-[#a8a49d]"
+                  className="w-full text-sm font-mono text-[#1a1915] placeholder:text-[#a8a49d]"
                 />
               </div>
 

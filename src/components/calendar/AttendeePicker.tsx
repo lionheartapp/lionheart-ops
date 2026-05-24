@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { usePeopleSearch, useAllPeople, type PeopleSearchResult } from '@/lib/hooks/useMeetWith'
+import { Input } from '@/components/ui/Input'
 
 export interface AttendeeSelection {
   id: string
@@ -98,14 +99,15 @@ function AttendeePickerSearch({ value, onChange, compact }: AttendeePickerProps)
       )}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => { setQuery(e.target.value); if (e.target.value.length >= 2) setShowResults(true) }}
           onFocus={() => { if (query.length >= 2) setShowResults(true) }}
           placeholder="Add attendees..."
-          className={`w-full pl-9 pr-3 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900 placeholder-slate-400 ${compact ? 'py-2' : 'py-3'}`}
+          size={compact ? 'sm' : 'default'}
+          className="pl-9 pr-3 text-sm"
           role="combobox" aria-expanded={showResults} aria-haspopup="listbox" aria-autocomplete="list"
         />
       </div>
@@ -211,13 +213,14 @@ function AttendeePickerDropdown({ value, onChange, compact }: AttendeePickerProp
           <div className="p-2 border-b border-slate-100">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-              <input
+              <Input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search people..."
-                className="w-full pl-8 pr-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 focus:border-slate-900 placeholder-slate-400"
+                size="sm"
+                className="pl-8 pr-3 text-sm bg-slate-50"
               />
             </div>
           </div>

@@ -23,6 +23,7 @@ import {
   ArchiveRestore,
   AlertTriangle,
 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
@@ -261,13 +262,13 @@ export default function FormsHub() {
             <div className="flex justify-end">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                {/* eslint-disable-next-line no-restricted-syntax -- inline search within a hub list, not a form field */}
-                <input
+                <Input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search..."
-                  className="w-40 pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
+                  size="sm"
+                  className="w-40 h-8 pl-8 text-xs rounded-full focus:ring-slate-900/10"
                 />
               </div>
             </div>

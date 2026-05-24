@@ -3,14 +3,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, Search, Users, Upload, UserPlus } from 'lucide-react'
+import { Plus, Users, Upload, UserPlus } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { SearchInput } from '@/components/ui/SearchInput'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import SportIcon, { GlassSportTile } from '@/components/athletics/SportIcon'
-import { IllustrationAthletics, IllustrationTeam } from '@/components/illustrations'
+import { IllustrationTeam } from '@/components/illustrations'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 import type { Team, RosterPlayer, OrgUser } from './roster/roster-types'
 import RosterPlayerForm from './roster/RosterPlayerForm'
@@ -34,12 +36,12 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
   // ─── Cached Data ──────────────────────────────────────────────────
 
   const { data: teamsData, isLoading: loading } = useQuery(queryOptions.athleticsTeams())
-  const teams = (teamsData ?? []) as Team[]
+  const teams = useMemo(() => (teamsData ?? []) as Team[], [teamsData])
 
   const { data: rosterData, isLoading: loadingRoster } = useQuery(
     queryOptions.athleticsRoster(selectedTeamId || undefined)
   )
-  const roster = (rosterData ?? []) as RosterPlayer[]
+  const roster = useMemo(() => (rosterData ?? []) as RosterPlayer[], [rosterData])
 
   const { data: usersData } = useQuery({
     ...queryOptions.members(),
@@ -360,16 +362,13 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
 
         <div className="w-full sm:w-52">
           <label className="block text-xs font-medium text-slate-500 mb-1.5">Search</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search players..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+            placeholder="Search players..."
+            size="sm"
+          />
         </div>
 
         {canWrite && (
@@ -379,10 +378,24 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition sm:ml-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Add Player
+            Add athlete
           </button>
         )}
       </div>
+
+      {!loadingRoster && (selectedTeamId || search) && (
+        <div className="mb-4 rounded-2xl border border-stone-200/70 bg-white/70 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <span className="font-semibold text-slate-900">{filteredRoster.length} athlete{filteredRoster.length !== 1 ? 's' : ''}</span>
+            {selectedTeamId && (
+              <span className="text-stone-500">
+                {displayTeams.find((team) => team.id === selectedTeamId)?.name ?? 'Selected team'}
+              </span>
+            )}
+            {search && <span className="text-stone-500">Search: {search}</span>}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       {!selectedTeamId && !search ? (
@@ -473,18 +486,13 @@ export default function RosterSection({ activeCampusId, canWrite = false, canMan
       ) : filteredRoster.length === 0 ? (
         <div className="ui-glass p-8 text-center">
           {roster.length === 0 ? (
-            <>
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <p className="text-base font-semibold text-stone-700 mb-1">No players on this roster</p>
-              <p className="text-sm text-stone-500 mb-4">Get started by adding a player</p>
-              <button
-                type="button"
-                onClick={openCreate}
-                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
-              >
-                Add First Player
-              </button>
-            </>
+            <EmptyState
+              icon={UserPlus}
+              title="No players on this roster"
+              body="Add athletes to make scoring, stats, and game-day checks useful."
+              primaryAction={canWrite ? { label: 'Add player', onClick: openCreate } : undefined}
+              className="py-4"
+            />
           ) : (
             <>
               <p className="text-base font-semibold text-stone-700 mb-1">No matching players</p>

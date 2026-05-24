@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { Calendar, MapPin, Loader2, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { readableTextColor } from '@/lib/forms/schemas'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,16 +56,6 @@ interface PublicRegistrationFormProps {
   status: string
 }
 
-// ─── Shared input class ───────────────────────────────────────────────────────
-
-const inputClass = [
-  'w-full rounded-xl border border-[rgba(17,15,10,0.1)] bg-white',
-  'px-3 py-2.5 text-sm text-[#1a1915]',
-  'placeholder:text-[#a8a49d]',
-  'focus:border-blue-400/60 focus:ring-2 focus:ring-blue-400/20 focus:outline-none',
-  'transition-colors duration-200',
-].join(' ')
-
 // ─── Field Renderer ───────────────────────────────────────────────────────────
 
 function PublicField({
@@ -77,9 +71,8 @@ function PublicField({
 
   if (t === 'TEXT' || t === 'EMAIL' || t === 'PHONE') {
     return (
-      <input
+      <Input
         type={t === 'EMAIL' ? 'email' : t === 'PHONE' ? 'tel' : 'text'}
-        className={inputClass}
         placeholder={field.placeholder || ''}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -90,9 +83,8 @@ function PublicField({
 
   if (t === 'TEXTAREA') {
     return (
-      <textarea
+      <Textarea
         rows={3}
-        className={inputClass}
         placeholder={field.placeholder || ''}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -103,9 +95,8 @@ function PublicField({
 
   if (t === 'NUMBER') {
     return (
-      <input
+      <Input
         type="number"
-        className={inputClass}
         placeholder={field.placeholder || ''}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -116,9 +107,8 @@ function PublicField({
 
   if (t === 'DATE') {
     return (
-      <input
+      <Input
         type="date"
-        className={inputClass}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={field.required}
@@ -131,38 +121,30 @@ function PublicField({
       ? (field.options as Array<{ label: string; value: string }>)
       : []
     return (
-      <select
-        className={`${inputClass} cursor-pointer`}
+      <Select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={field.required}
-      >
-        <option value="">{field.placeholder || 'Select\u2026'}</option>
-        {opts.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
+        onChange={onChange}
+        options={[
+          { value: '', label: field.placeholder || 'Select...' },
+          ...opts,
+        ]}
+      />
     )
   }
 
   if (t === 'CHECKBOX') {
     return (
-      <label className="inline-flex items-center gap-2.5 cursor-pointer">
-        <input
-          type="checkbox"
-          className="h-4 w-4 rounded border-[rgba(17,15,10,0.15)] text-blue-500 cursor-pointer"
-          checked={value === 'true'}
-          onChange={(e) => onChange(e.target.checked ? 'true' : '')}
-        />
-        <span className="text-sm text-[#1a1915]">Yes</span>
-      </label>
+      <Checkbox
+        checked={value === 'true'}
+        onChange={(e) => onChange(e.target.checked ? 'true' : '')}
+        label="Yes"
+      />
     )
   }
 
   return (
-    <input
+    <Input
       type="text"
-      className={inputClass}
       placeholder={field.placeholder || ''}
       value={value}
       onChange={(e) => onChange(e.target.value)}

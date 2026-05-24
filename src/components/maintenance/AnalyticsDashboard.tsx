@@ -21,6 +21,7 @@ import TechnicianWorkloadChart from './charts/TechnicianWorkloadChart'
 import LaborHoursChart from './charts/LaborHoursChart'
 import CostByBuildingChart from './charts/CostByBuildingChart'
 import CategoryBreakdownChart from './charts/CategoryBreakdownChart'
+import { Select } from '@/components/ui/Select'
 import type {
   AllAnalyticsResult,
   PmComplianceResult,
@@ -262,18 +263,15 @@ export default function AnalyticsDashboard() {
 
           {/* Controls */}
           <div className="flex items-center gap-3">
-            <select
+            <Select
               value={selectedCampusId}
-              onChange={(e) => setSelectedCampusId(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 text-slate-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
-            >
-              <option value="">All Campuses</option>
-              {campuses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCampusId}
+              options={[
+                { value: '', label: 'All Campuses' },
+                ...campuses.map((c) => ({ value: c.id, label: c.name })),
+              ]}
+              size="sm"
+            />
             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium">
               Last 6 months
             </span>

@@ -50,6 +50,8 @@ export type EmailTemplate =
   | 'it_ticket_done'
   | 'it_ticket_urgent'
   | 'mfa_email_code'
+  | 'conference_invite'
+  | 'conference_invite_existing'
 
 type TemplateVars = Record<string, string | undefined>
 
@@ -637,6 +639,38 @@ function getTemplateMjml(template: EmailTemplate, vars: TemplateVars): string {
         ].join('\n'),
       })
 
+    // ── Conference invites ───────────────────────────────────────────────
+    case 'conference_invite':
+      return wrapLayout({
+        previewText: '{{inviterOrgName}} invited {{schoolName}} to join {{conferenceName}}',
+        content: [
+          heroHeading("You're invited", 'Join an athletic<br />conference on Lionheart.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{inviterOrgName}}</strong> invited <strong style="color:${B.nearBlack};">{{schoolName}}</strong> to join the <strong style="color:${B.nearBlack};">{{conferenceName}}</strong> athletic conference.`
+          ),
+          ledeText(
+            `Lionheart is a platform that helps schools manage operations, athletics, and events. As a conference member, your teams will share schedules and scores automatically — no more double-entry or emailing PDFs.`
+          ),
+          ledeText(`Your school gets a <strong style="color:${B.nearBlack};">free 30-day trial</strong> — no credit card required.`),
+          centeredCta('Join conference & start free trial', '{{signupUrl}}'),
+          microNote(`This invitation expires in 30 days. Only game schedules and team names are shared — rosters and student data stay private to your school.`),
+        ].join('\n'),
+      })
+
+    case 'conference_invite_existing':
+      return wrapLayout({
+        previewText: '{{inviterOrgName}} invited your school to join {{conferenceName}}',
+        content: [
+          heroHeading("You're invited", 'Join an athletic<br />conference.'),
+          ledeText(
+            `<strong style="color:${B.nearBlack};">{{inviterOrgName}}</strong> invited your school to join the <strong style="color:${B.nearBlack};">{{conferenceName}}</strong> athletic conference on Lionheart.`
+          ),
+          ledeText(`As a member, your teams will share game schedules and scores with other conference schools automatically.`),
+          centeredCta('View invitation', '{{invitationUrl}}'),
+          microNote(`Only game schedules and team names are shared. Rosters, stats, and internal data stay private to your school.`),
+        ].join('\n'),
+      })
+
     default:
       throw new Error(`Unknown email template: ${template}`)
   }
@@ -684,6 +718,8 @@ const SUBJECTS: Record<EmailTemplate, string> = {
   it_ticket_done: 'IT request {{ticketNumber}} resolved',
   it_ticket_urgent: 'URGENT IT request: {{ticketNumber}}',
   mfa_email_code: 'Your sign-in code: {{code}}',
+  conference_invite: '{{inviterOrgName}} invited you to join {{conferenceName}}',
+  conference_invite_existing: '{{inviterOrgName}} invited your school to join {{conferenceName}}',
 }
 
 const TEXT_BODIES: Record<EmailTemplate, string> = {
@@ -716,6 +752,8 @@ const TEXT_BODIES: Record<EmailTemplate, string> = {
   it_ticket_done: 'IT request {{ticketNumber}} "{{ticketTitle}}" has been resolved and closed. View: {{ticketLink}}',
   it_ticket_urgent: 'URGENT: IT request {{ticketNumber}} "{{ticketTitle}}" requires immediate attention. Category: {{category}}. View: {{ticketLink}}',
   mfa_email_code: 'Your Lionheart sign-in code is {{code}}. It expires in 5 minutes. If you did not request this, ignore this email.',
+  conference_invite: '{{inviterOrgName}} invited {{schoolName}} to join the {{conferenceName}} athletic conference on Lionheart. Start your free 30-day trial: {{signupUrl}}',
+  conference_invite_existing: '{{inviterOrgName}} invited your school to join the {{conferenceName}} athletic conference on Lionheart. View the invitation: {{invitationUrl}}',
 }
 
 /**

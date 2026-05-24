@@ -10,6 +10,8 @@ interface FileInputProps {
   onFiles: (files: File[]) => void
   /** Accepted file types — passed straight to the underlying input's `accept` attr. */
   accept?: string
+  /** Optional capture hint for mobile camera/file sources. */
+  capture?: boolean | 'user' | 'environment'
   /** Allow selecting more than one file at once. Default false. */
   multiple?: boolean
   /** Per-file size limit in bytes. Files over this trigger an error and are not emitted. */
@@ -67,6 +69,7 @@ function formatBytes(bytes: number): string {
 export function FileInput({
   onFiles,
   accept,
+  capture,
   multiple = false,
   maxSize,
   disabled = false,
@@ -174,6 +177,7 @@ export function FileInput({
         ref={inputRef}
         type="file"
         accept={accept}
+        capture={capture}
         multiple={multiple}
         disabled={isLocked}
         onChange={onInputChange}

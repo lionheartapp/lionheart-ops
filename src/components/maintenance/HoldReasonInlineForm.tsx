@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { Loader2, Pause, X } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { expandCollapse } from '@/lib/animations'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -80,18 +82,15 @@ export default function HoldReasonInlineForm({
           <label className="block text-xs font-medium text-amber-800 mb-1">
             Hold Reason <span className="text-red-500">*</span>
           </label>
-          <select
+          <Select
             value={holdReason}
-            onChange={(e) => setHoldReason(e.target.value as HoldReason | '')}
-            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 cursor-pointer"
-          >
-            <option value="">Select a reason...</option>
-            {HOLD_REASON_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => setHoldReason(next as HoldReason | '')}
+            options={[
+              { value: '', label: 'Select a reason...' },
+              ...HOLD_REASON_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label })),
+            ]}
+            size="sm"
+          />
           {holdReason && (
             <p className="text-xs text-amber-600 mt-1">
               {HOLD_REASON_OPTIONS.find((o) => o.value === holdReason)?.description}
@@ -104,12 +103,12 @@ export default function HoldReasonInlineForm({
           <label className="block text-xs font-medium text-amber-800 mb-1">
             Additional Note <span className="text-slate-400">(optional)</span>
           </label>
-          <textarea
+          <Textarea
             value={holdNote}
             onChange={(e) => setHoldNote(e.target.value)}
             placeholder="Add context for the team..."
             rows={2}
-            className="w-full px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 placeholder:text-slate-400"
+            className="w-full text-sm resize-none focus-visible:ring-amber-400 placeholder:text-slate-400"
           />
         </div>
 

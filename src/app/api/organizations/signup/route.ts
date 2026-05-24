@@ -35,6 +35,7 @@ import { ZodError } from 'zod'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
 import { sendVerificationEmail } from '@/lib/services/emailService'
+import { redeemConferenceInvite } from '@/lib/services/conferenceInviteService'
 import { getIp } from '@/lib/services/auditService'
 import { signupRateLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
@@ -64,6 +65,19 @@ export async function POST(req: NextRequest) {
       where: { id: result.id },
       data: { onboardingStatus: 'ONBOARDING' },
     })
+
+    // Auto-redeem conference invite if the signup was triggered by one.
+    // The conferenceInvite token comes from the signup URL query param.
+    if (body.conferenceInvite) {
+      try {
+        const conference = await redeemConferenceInvite(body.conferenceInvite, result.id)
+        if (conference) {
+          log.info({ orgId: result.id, conferenceName: conference.name }, 'Auto-joined conference via invite')
+        }
+      } catch (err) {
+        log.warn({ err, orgId: result.id }, 'Conference invite redemption failed — non-blocking')
+      }
+    }
 
     // Generate JWT token for auto-login after signup
     const token = await signAuthToken({

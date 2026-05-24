@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { EventScheduleSection } from '@/lib/hooks/useEventSchedule'
 import { formatDuration, formatTime12 } from '@/lib/schedule-utils'
+import { Input } from '@/components/ui/Input'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -83,8 +84,7 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
         </button>
         <FolderOpen className="w-4 h-4 text-slate-400" />
         {isEditing ? (
-          /* eslint-disable-next-line no-restricted-syntax -- inline rename: borderless underline-style edit field, must look like the heading it replaces */
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={editValue}
@@ -94,7 +94,8 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
               if (e.key === 'Enter') handleSave()
               if (e.key === 'Escape') { setEditValue(section.title); setIsEditing(false) }
             }}
-            className="text-sm font-semibold text-slate-900 bg-transparent border-b border-indigo-400 outline-none px-0 py-0"
+            size="sm"
+            className="h-auto min-h-0 border-0 border-b border-indigo-400 bg-transparent px-0 py-0 text-sm font-semibold text-slate-900 shadow-none outline-none focus:ring-0"
           />
         ) : (
           <h4
@@ -107,8 +108,7 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
         )}
         {/* Time span — clickable to edit start time */}
         {isEditingTime ? (
-          /* eslint-disable-next-line no-restricted-syntax -- inline pill-style time edit (indigo-tinted) that replaces a small time chip */
-          <input
+          <Input
             ref={timeInputRef}
             type="time"
             defaultValue={section.startTime}
@@ -117,7 +117,8 @@ export function SectionHeader({ section, blockCount, totalDuration, timeSpan, on
               if (e.key === 'Enter') handleTimeSave((e.target as HTMLInputElement).value)
               if (e.key === 'Escape') setIsEditingTime(false)
             }}
-            className="text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-100"
+            size="sm"
+            className="h-auto min-h-0 w-auto bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-600 focus:ring-indigo-100"
           />
         ) : (
           <button

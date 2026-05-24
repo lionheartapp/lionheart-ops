@@ -35,6 +35,7 @@ export class ApiClient {
       baseURL: env.baseUrl,
       extraHTTPHeaders: {
         'content-type': 'application/json',
+        'x-e2e-run': process.env.GITHUB_RUN_ID || 'local',
       },
     })
     return new ApiClient(ctx, organizationId)
@@ -56,6 +57,7 @@ export class ApiClient {
           password: creds.password,
           organizationId: creds.organizationId,
         },
+        headers: { 'x-e2e-run': process.env.GITHUB_RUN_ID || 'local' },
       })
       if (res.status() !== 429) break
       // Rate limited — wait and retry

@@ -106,7 +106,7 @@ async function seedCalendarEvents() {
     { calendarId: CAL_MAIN_CAMPUS, title: 'Board of Directors Meeting', startTime: futureDate(5, 18, 0), endTime: futureDate(5, 20, 0), locationText: 'Conference Room A' },
     { calendarId: CAL_MAIN_CAMPUS, title: 'Spring Open House', startTime: futureDate(10, 10, 0), endTime: futureDate(10, 14, 0), locationText: 'Main Campus', description: 'Annual open house for prospective families. Tours, demos, and Q&A sessions.' },
     { calendarId: CAL_MAIN_CAMPUS, title: 'Teacher Professional Development', startTime: futureDate(7, 8, 30), endTime: futureDate(7, 15, 30), locationText: 'Library', description: 'Full-day PD session on curriculum alignment.' },
-    { calendarId: CAL_MAIN_CAMPUS, title: 'Chapel Service', startTime: futureDate(2, 10, 0), endTime: futureDate(2, 10, 45), locationText: 'Chapel' },
+    { calendarId: CAL_MAIN_CAMPUS, title: 'Morning Assembly', startTime: futureDate(2, 10, 0), endTime: futureDate(2, 10, 45), locationText: 'Main Auditorium' },
     { calendarId: CAL_MAIN_CAMPUS, title: 'Senior Class Trip Planning', startTime: futureDate(4, 14, 0), endTime: futureDate(4, 15, 0), locationText: 'Room 204', attendeeIds: [USER2_ID] },
     { calendarId: CAL_MAIN_CAMPUS, title: 'Spring Band Concert', startTime: futureDate(14, 19, 0), endTime: futureDate(14, 21, 0), locationText: 'Performing Arts Center' },
     // Sanger Campus events
@@ -230,8 +230,8 @@ async function seedAthletics() {
   // ── Games (with scores for past games)
   console.log('  Creating games...')
   const opponents = [
-    'Heritage Christian', 'Valley Christian', 'Riverside Prep', 'Calvary Chapel',
-    'Ontario Christian', 'Arrowhead Christian', 'Aquinas', 'St. Lucy\'s',
+    'Heritage Academy', 'Valley Academy', 'Riverside Prep', 'Canyon Prep',
+    'Ontario Academy', 'Arrowhead Academy', 'Summit Prep', 'Lucy Academy',
     'Damien', 'San Dimas', 'Bonita', 'Covina',
   ]
 

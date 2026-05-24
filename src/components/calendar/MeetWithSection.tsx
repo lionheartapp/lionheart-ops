@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, Users } from 'lucide-react'
 import { usePeopleSearch, MEET_WITH_COLORS, type MeetWithPerson, type PeopleSearchResult } from '@/lib/hooks/useMeetWith'
+import { Input } from '@/components/ui/Input'
 
 interface MeetWithSectionProps {
   people: MeetWithPerson[]
@@ -90,7 +91,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
           <div ref={containerRef} className="relative">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-              <input
+              <Input
                 ref={inputRef}
                 type="text"
                 value={query}
@@ -103,7 +104,8 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                 }}
                 placeholder="Search people..."
                 disabled={people.length >= 5}
-                className="w-full h-9 pl-8 pr-3 text-sm text-slate-900 bg-white border border-slate-200 rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-primary-400 focus:border-primary-400 placeholder-slate-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                size="sm"
+                className="h-9 rounded-full pl-8 pr-3 text-sm"
               />
             </div>
 

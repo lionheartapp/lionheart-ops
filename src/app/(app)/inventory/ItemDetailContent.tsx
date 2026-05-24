@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowDownCircle, Pencil, Trash2, ClipboardList } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
+import { Textarea } from '@/components/ui/Textarea'
 import type { InventoryItem } from './inventory-types'
 import { getStockStatus } from './inventory-utils'
 import StockBadge from './StockBadge'
@@ -156,12 +157,12 @@ export default function ItemDetailContent({ item, onEdit, onDelete, onCheckoutSu
             >
               <div className="ui-glass p-4 rounded-xl space-y-3">
                 <h4 className="text-sm font-semibold text-slate-700">Confirm Check In</h4>
-                <textarea
+                <Textarea
                   value={checkinNotes}
                   onChange={(e) => setCheckinNotes(e.target.value)}
                   placeholder="Return notes (optional) — e.g. condition, damage, missing parts"
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400 transition-all resize-none"
+                  className="w-full text-sm focus:ring-blue-400/40 focus:border-blue-400 resize-none"
                 />
                 <div className="flex gap-2">
                   <button

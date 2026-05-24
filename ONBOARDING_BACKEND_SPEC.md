@@ -2,6 +2,8 @@
 
 Backend API endpoints required for the onboarding flow. All endpoints should follow the existing pattern in `src/lib/api-response.ts` using `ok()` and `fail()` helpers.
 
+> Current hierarchy note: onboarding now captures organization, primary school, and primary campus separately. Use `/api/onboarding/school-info` for the structure step; older references to `/api/organizations/current` and `/api/organizations/update` are historical.
+
 ## 1. POST /api/organizations/signup
 
 Create a new organization with admin user.
@@ -39,13 +41,13 @@ Create a new organization with admin user.
 
 ---
 
-## 2. GET /api/organizations/current
+## 2. GET /api/onboarding/school-info
 
-Fetch current organization details (requires auth).
+Fetch current organization, primary school, and primary campus details (requires auth).
 
 **Request:**
 ```
-GET /api/organizations/current
+GET /api/onboarding/school-info
 Authorization: Bearer {jwt-token}
 ```
 
@@ -56,42 +58,48 @@ Authorization: Bearer {jwt-token}
   "data": {
     "id": "org-uuid",
     "name": "Mitchell Academy",
+    "schoolName": "Mitchell Academy Upper School",
+    "campusName": "Main Campus",
+    "campusAddress": "123 Main St, City, State",
+    "campusKind": "HEADQUARTERS",
+    "campusGradeLevel": "HIGH_SCHOOL",
     "slug": "mitchell-academy",
     "website": "https://mitchell.edu",
     "phone": "(555) 123-4567",
-    "physicalAddress": "123 Main St, City, State",
     "district": "Springfield Public Schools",
-    "gradeRange": "9-12",
     "studentCount": 500,
     "staffCount": 45,
     "principalName": "Sarah Mitchell",
     "principalEmail": "principal@mitchell.edu",
+    "principalPhone": "(555) 123-4568",
     "logoUrl": "https://cdn.example.com/logo.png",
-    "primaryColor": "#2563eb"
+    "schoolColor": "#2563eb"
   }
 }
 ```
 
 ---
 
-## 3. PATCH /api/organizations/update
+## 3. PATCH /api/onboarding/school-info
 
-Update organization information (requires auth).
+Update onboarding structure information (requires auth).
 
 **Request:**
 ```json
 {
+  "schoolName": "Mitchell Academy Upper School",
+  "campusName": "Main Campus",
+  "campusAddress": "123 Main St, City, State",
+  "campusKind": "HEADQUARTERS",
+  "campusGradeLevel": "HIGH_SCHOOL",
   "phone": "(555) 123-4567",
-  "physicalAddress": "123 Main St, City, State",
   "district": "Springfield Public Schools",
-  "gradeRange": "9-12",
   "principalName": "Sarah Mitchell",
   "principalEmail": "principal@mitchell.edu",
-  "schoolType": "HIGH_SCHOOL",
+  "principalPhone": "(555) 123-4568",
+  "institutionType": "PRIVATE",
   "studentCount": 500,
-  "staffCount": 45,
-  "logoUrl": "data:image/png;base64,...",
-  "primaryColor": "#2563eb"
+  "staffCount": 45
 }
 ```
 
@@ -102,7 +110,7 @@ Update organization information (requires auth).
   "data": {
     "id": "org-uuid",
     "name": "Mitchell Academy",
-    "updated": true
+    "slug": "mitchell-academy"
   }
 }
 ```
@@ -131,7 +139,7 @@ Lookup school information by website (optional, public endpoint).
     "phone": "(541) 890-1000",
     "address": "123 Main St, Springfield, OR 97477",
     "district": "Springfield Public Schools",
-    "gradeRange": "9-12"
+    "institutionType": "PRIVATE"
   }
 }
 ```
@@ -238,10 +246,10 @@ All endpoints except `/api/organizations/signup` and `/api/onboarding/school-loo
 
 **Already Exists:**
 - `POST /api/organizations/signup` - Uses `organizationRegistrationService`
+- `GET /api/onboarding/school-info` - Fetches org, primary school, primary campus
+- `PATCH /api/onboarding/school-info` - Saves structure, contacts, counts, campus
 
 **Need to Implement:**
-- `GET /api/organizations/current` - Fetch org by organizationId from JWT
-- `PATCH /api/organizations/update` - Update org fields (org-scoped)
 - `POST /api/onboarding/school-lookup` - Optional: web scraping or data service
 - `POST /api/onboarding/import-members` - Create users + send emails
 - `POST /api/onboarding/finalize` - Mark setup complete + analytics

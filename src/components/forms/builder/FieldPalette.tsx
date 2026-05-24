@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 import {
   FIELD_TYPE_META,
   FIELD_CATEGORY_LABELS,
@@ -43,13 +44,13 @@ export default function FieldPalette({ onAddField }: FieldPaletteProps) {
       {/* Search */}
       <div className="relative">
         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-        {/* eslint-disable-next-line no-restricted-syntax -- search within a palette, not a form field */}
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search..."
-          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors"
+          size="sm"
+          className="w-full h-8 pl-8 text-xs bg-slate-50 focus:ring-slate-900/10"
         />
       </div>
 

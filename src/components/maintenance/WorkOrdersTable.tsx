@@ -11,6 +11,7 @@ import {
   CheckSquare,
 } from 'lucide-react'
 import SLABadge from '@/components/shared/SLABadge'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -256,46 +257,47 @@ export default function WorkOrdersTable({
       {selectedIds.size > 0 && canAssign && (
         <div className="flex items-center gap-3 px-4 py-2.5 mb-2 bg-blue-50 border border-blue-200 rounded-xl">
           <span className="text-sm font-medium text-blue-900">{selectedIds.size} selected</span>
-          <select
-            onChange={(e) => {
-              if (e.target.value) handleBulkAssign(e.target.value)
-              e.target.value = ''
+          <Select
+            value=""
+            onChange={(next) => {
+              if (next) handleBulkAssign(next)
             }}
             disabled={bulkAssigning}
-            className="px-3 py-1.5 rounded-full border border-blue-200 bg-white text-sm text-slate-700 cursor-pointer"
-          >
-            <option value="">Assign to...</option>
-            {technicians.map((t) => (
-              <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
-            ))}
-          </select>
-          <select
-            onChange={(e) => {
-              if (e.target.value) handleBulkPriority(e.target.value)
-              e.target.value = ''
+            options={[
+              { value: '', label: 'Assign to...' },
+              ...technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` })),
+            ]}
+            size="sm"
+          />
+          <Select
+            value=""
+            onChange={(next) => {
+              if (next) handleBulkPriority(next)
             }}
-            className="px-3 py-1.5 rounded-full border border-blue-200 bg-white text-sm text-slate-700 cursor-pointer"
-          >
-            <option value="">Set priority...</option>
-            <option value="URGENT">Urgent</option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
-          <select
-            onChange={(e) => {
-              if (e.target.value) handleBulkStatus(e.target.value)
-              e.target.value = ''
+            options={[
+              { value: '', label: 'Set priority...' },
+              { value: 'URGENT', label: 'Urgent' },
+              { value: 'HIGH', label: 'High' },
+              { value: 'MEDIUM', label: 'Medium' },
+              { value: 'LOW', label: 'Low' },
+            ]}
+            size="sm"
+          />
+          <Select
+            value=""
+            onChange={(next) => {
+              if (next) handleBulkStatus(next)
             }}
-            className="px-3 py-1.5 rounded-full border border-blue-200 bg-white text-sm text-slate-700 cursor-pointer"
-          >
-            <option value="">Set status...</option>
-            <option value="BACKLOG">Backlog</option>
-            <option value="TODO">To Do</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="DONE">Done</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+            options={[
+              { value: '', label: 'Set status...' },
+              { value: 'BACKLOG', label: 'Backlog' },
+              { value: 'TODO', label: 'To Do' },
+              { value: 'IN_PROGRESS', label: 'In Progress' },
+              { value: 'DONE', label: 'Done' },
+              { value: 'CANCELLED', label: 'Cancelled' },
+            ]}
+            size="sm"
+          />
           <button
             onClick={() => setSelectedIds(new Set())}
             className="ml-auto text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
