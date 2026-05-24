@@ -11,6 +11,7 @@ import {
 import TurnstileWidget, { type TurnstileWidgetRef } from './TurnstileWidget'
 import type { FormSection } from '@/lib/hooks/useRegistrationForm'
 import type { FormData } from './wizard-types'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 // ─── COPPA step ───────────────────────────────────────────────────────────────
 
@@ -39,11 +40,9 @@ export function CoppaStep({ orgName, onConsent }: CoppaStepProps) {
 
       <label className="flex items-start gap-3 cursor-pointer group">
         <div className="relative mt-0.5">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={checked}
             onChange={(e) => setChecked(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
           />
         </div>
         <span className="text-sm text-slate-700 group-hover:text-slate-900 leading-relaxed">

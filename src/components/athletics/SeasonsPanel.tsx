@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Calendar, Trophy } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { IllustrationAthletics } from '@/components/illustrations'
 
@@ -153,11 +154,9 @@ export default function SeasonsPanel({ sportId, sportName }: SeasonsPanelProps) 
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={form.isCurrent}
               onChange={(e) => setForm({ ...form, isCurrent: e.target.checked })}
-              className="rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
             />
             Mark as current season
           </label>

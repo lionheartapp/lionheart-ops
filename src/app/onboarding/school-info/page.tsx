@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger'
 import { motion } from 'framer-motion'
 import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
 
 interface SchoolData {
   name: string
@@ -172,8 +174,8 @@ export default function SchoolInfoPage() {
     fetchOrgInfo()
   }, [performSchoolLookup])
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleLogoUpload = (files: File[]) => {
+    const file = files[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
@@ -392,24 +394,17 @@ export default function SchoolInfoPage() {
                   <span className="text-xs">No logo</span>
                 </div>
               )}
-              <label className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.currentTarget.parentElement?.querySelector('input')?.click()
-                  }}
-                  className="px-4 py-2 bg-slate-100 text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-200 transition flex items-center gap-2"
-                >
+              <FileInput
+                accept="image/*"
+                compact
+                onFiles={handleLogoUpload}
+                className="border-solid px-4 py-2"
+              >
+                <span className="text-slate-900 text-sm font-medium flex items-center gap-2">
                   <Upload className="w-4 h-4" />
                   Upload Logo
-                </button>
-              </label>
+                </span>
+              </FileInput>
             </div>
           </div>
         </AnimatedFormField>
@@ -421,18 +416,18 @@ export default function SchoolInfoPage() {
               Primary Color
             </label>
             <div className="flex items-center gap-3">
-              <input
+              <Input
                 id="color"
                 type="color"
                 value={data.primaryColor}
                 onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
                 className="w-12 h-12 rounded-lg cursor-pointer border border-slate-200"
               />
-              <input
+              <Input
                 type="text"
                 value={data.primaryColor}
                 onChange={(e) => setData((prev) => ({ ...prev, primaryColor: e.target.value }))}
-                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
+                className="flex-1"
                 placeholder="#2563eb"
               />
             </div>
@@ -446,13 +441,12 @@ export default function SchoolInfoPage() {
               <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Phone
               </label>
-              <input
+              <Input
                 id="phone"
                 type="tel"
                 value={data.phone}
                 onChange={(e) => setData((prev) => ({ ...prev, phone: e.target.value }))}
                 placeholder="(555) 123-4567"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
             </div>
           </AnimatedFormField>
@@ -462,7 +456,7 @@ export default function SchoolInfoPage() {
               <label htmlFor="address" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Address
               </label>
-              <input
+              <Input
                 id="address"
                 type="text"
                 value={data.address}
@@ -472,7 +466,6 @@ export default function SchoolInfoPage() {
                 }}
                 onBlur={handleAddressBlur}
                 placeholder="123 Main St, City, State"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
               {validatingAddress && (
                 <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1">
@@ -509,13 +502,12 @@ export default function SchoolInfoPage() {
               <label htmlFor="gradeRange" className="block text-sm font-medium text-slate-900 mb-1.5">
                 Grade Range
               </label>
-              <input
+              <Input
                 id="gradeRange"
                 type="text"
                 value={data.gradeRange}
                 onChange={(e) => setData((prev) => ({ ...prev, gradeRange: e.target.value }))}
                 placeholder="K-5, 6-8, 9-12"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 ui-input"
               />
             </div>
           </AnimatedFormField>

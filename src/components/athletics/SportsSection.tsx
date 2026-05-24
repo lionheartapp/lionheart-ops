@@ -1,18 +1,19 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryOptions, queryKeys } from '@/lib/queries'
-import { Plus, Search, Eye, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Eye, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { SearchInput } from '@/components/ui/SearchInput'
 import RowActionMenu from '@/components/RowActionMenu'
 import SeasonsPanel from '@/components/athletics/SeasonsPanel'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
-import { IllustrationAthletics } from '@/components/illustrations'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 type Sport = {
   id: string
@@ -47,7 +48,7 @@ const COLOR_PRESETS = [
 export default function SportsSection({ canWrite = false }: { canWrite?: boolean }) {
   const queryClient = useQueryClient()
   const { data: sportsData, isLoading: loading } = useQuery(queryOptions.athleticsSports())
-  const sports = (sportsData ?? []) as Sport[]
+  const sports = useMemo(() => (sportsData ?? []) as Sport[], [sportsData])
   const invalidateSports = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.athleticsSports.all })
   }, [queryClient])
@@ -190,16 +191,13 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
       <div className="flex items-end gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
           <label className="block text-xs font-medium text-slate-500 mb-1.5">Search</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 z-10" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search sports..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white hover:border-slate-300 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 transition-colors placeholder:text-slate-400"
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+            placeholder="Search sports..."
+            size="sm"
+          />
         </div>
         {canWrite && (
           <button
@@ -224,18 +222,13 @@ export default function SportsSection({ canWrite = false }: { canWrite?: boolean
               <p className="text-sm text-stone-500">Try a different search term</p>
             </>
           ) : (
-            <>
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <p className="text-base font-semibold text-stone-700 mb-1">No sports created yet</p>
-              <p className="text-sm text-stone-500 mb-4">Add your first sport to start building teams and schedules.</p>
-              <button
-                type="button"
-                onClick={() => openCreate()}
-                className="px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.97] cursor-pointer"
-              >
-                Create First Sport
-              </button>
-            </>
+            <EmptyState
+              icon={Plus}
+              title="No sports yet"
+              body="Add a sport to start building seasons, teams, and schedules."
+              primaryAction={{ label: 'Create sport', onClick: () => openCreate() }}
+              className="py-4"
+            />
           )}
         </div>
       ) : (

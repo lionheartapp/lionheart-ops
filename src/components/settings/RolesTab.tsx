@@ -7,6 +7,7 @@ import { handleAuthResponse } from '@/lib/client-auth'
 import { logger } from '@/lib/logger'
 import { queryOptions, queryKeys } from '@/lib/queries'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Select } from '@/components/ui/Select'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import DetailDrawer from '@/components/DetailDrawer'
 import RowActionMenu from '@/components/RowActionMenu'
@@ -722,21 +723,19 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                 <label htmlFor="reassign-role" className="mb-1.5 block text-sm font-medium text-amber-900">
                   Move users to
                 </label>
-                {/* eslint-disable-next-line no-restricted-syntax -- contextual amber-styled select inside warning dialog */}
-                <select
-                  id="reassign-role"
-                  aria-label="Reassign all users to role"
+                <Select
                   value={reassignRoleId}
-                  onChange={(event) => setReassignRoleId(event.target.value)}
-                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none"
-                >
-                  <option value="">Select a role</option>
-                  {availableReassignRoles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setReassignRoleId}
+                  size="sm"
+                  placeholder="Select a role"
+                  options={[
+                    { value: '', label: 'Select a role' },
+                    ...availableReassignRoles.map((role) => ({
+                      value: role.id,
+                      label: role.name,
+                    })),
+                  ]}
+                />
                 <div className="mt-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
                     Reassign individually
@@ -765,25 +764,23 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
                               </p>
                               <p className="text-xs text-amber-700">{user.email}</p>
                             </div>
-                            {/* eslint-disable-next-line no-restricted-syntax -- contextual amber-styled select inside warning dialog */}
-                            <select
-                              aria-label="Reassign user to role"
+                            <Select
                               value={roleUserReassignments[user.id] || ''}
-                              onChange={(event) =>
+                              onChange={(value) =>
                                 setRoleUserReassignments((previous) => ({
                                   ...previous,
-                                  [user.id]: event.target.value,
+                                  [user.id]: value,
                                 }))
                               }
-                              className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-amber-400 focus:outline-none sm:w-56"
-                            >
-                              <option value="">Use bulk role</option>
-                              {availableReassignRoles.map((role) => (
-                                <option key={role.id} value={role.id}>
-                                  {role.name}
-                                </option>
-                              ))}
-                            </select>
+                              size="sm"
+                              options={[
+                                { value: '', label: 'Use bulk role' },
+                                ...availableReassignRoles.map((role) => ({
+                                  value: role.id,
+                                  label: role.name,
+                                })),
+                              ]}
+                            />
                           </div>
                         )
                       })}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Textarea } from '@/components/ui/Textarea'
 
 export default function TicketDetailPage() {
   const params = useParams()
@@ -116,12 +117,12 @@ export default function TicketDetailPage() {
       </div>
 
       <div className="flex gap-3">
-        <textarea
+        <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your reply..."
           aria-label="Reply message"
-          className="ui-input-bordered flex-1 min-h-[80px] resize-y"
+          className="flex-1 min-h-[80px] resize-y"
           onKeyDown={(e) => { if (e.key === 'Enter' && e.metaKey) sendMessage() }}
         />
         <button

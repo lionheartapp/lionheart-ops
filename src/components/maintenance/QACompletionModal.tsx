@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Camera, Check, Loader2, Upload, CheckSquare } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { FileInput } from '@/components/ui/FileInput'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -45,7 +47,6 @@ export default function QACompletionModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [submitError, setSubmitError] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const hasPhoto = photos.length > 0
   const hasNote = completionNote.trim().length >= 10
@@ -124,11 +125,11 @@ export default function QACompletionModal({
     [photos]
   )
 
-  function handleFiles(files: FileList | null) {
+  function handleFiles(files: File[] | null) {
     if (!files) return
     const available = 5 - photos.length
     if (available <= 0) return
-    Array.from(files)
+    files
       .slice(0, available)
       .filter((f) => f.type.startsWith('image/'))
       .forEach((f) => uploadFile(f))
@@ -213,23 +214,18 @@ export default function QACompletionModal({
 
                   {/* Upload area */}
                   {photos.length < 5 && (
-                    <div
-                      onClick={() => inputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-slate-400 hover:bg-slate-50/30 transition-all"
+                    <FileInput
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      onFiles={handleFiles}
+                      compact
+                      className="p-4"
                     >
                       <Camera className="w-6 h-6 text-slate-400 mx-auto mb-1" />
                       <p className="text-sm text-slate-600 font-medium">Add Completion Photo</p>
                       <p className="text-xs text-slate-400 mt-0.5">Tap to take a photo or upload from device</p>
-                      <input
-                        ref={inputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        multiple
-                        onChange={(e) => handleFiles(e.target.files)}
-                        className="hidden"
-                      />
-                    </div>
+                    </FileInput>
                   )}
 
                   {uploadError && (
@@ -281,12 +277,12 @@ export default function QACompletionModal({
                     Completion Note <span className="text-red-500">*</span>
                     <span className="text-xs text-slate-400 font-normal ml-1">(min. 10 characters)</span>
                   </label>
-                  <textarea
+                  <Textarea
                     value={completionNote}
                     onChange={(e) => setCompletionNote(e.target.value)}
                     placeholder="Describe the work completed, materials used, and any follow-up notes..."
                     rows={4}
-                    className="ui-input resize-none"
+                    className="resize-none"
                   />
                   <div className="flex items-center justify-between mt-1">
                     {!hasNote && completionNote.trim().length > 0 ? (

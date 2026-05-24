@@ -11,6 +11,8 @@ import {
   slugifyFieldKey,
   type FormFieldType,
 } from '@/lib/forms/schemas'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -163,10 +165,10 @@ export default function FieldEditor({
               {/* Question label — large, prominent */}
               <div>
                 <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Question</label>
-                <input
+                <Input
                   ref={labelRef}
                   style={{ borderRadius: 0 }}
-                  className="mt-1 w-full text-base font-medium text-slate-900 bg-transparent border-0 border-b border-slate-200 focus:border-slate-900 outline-none pb-1 transition-colors"
+                  className="!h-auto mt-1 w-full !rounded-none !border-0 !border-b !border-slate-200 !bg-transparent !px-0 pb-1 text-base font-medium text-slate-900 !outline-none !ring-0 focus:!border-slate-900"
                   value={field.label}
                   placeholder="What do you want to ask?"
                   onChange={(e) =>
@@ -181,9 +183,9 @@ export default function FieldEditor({
               {/* Help text */}
               <div>
                 <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Help text</label>
-                <input
+                <Input
                   style={{ borderRadius: 0 }}
-                  className="mt-1 w-full text-sm text-slate-600 bg-transparent border-0 border-b border-slate-100 focus:border-slate-400 outline-none pb-1 transition-colors"
+                  className="!h-auto mt-1 w-full !rounded-none !border-0 !border-b !border-slate-100 !bg-transparent !px-0 pb-1 text-sm text-slate-600 !outline-none !ring-0 focus:!border-slate-400"
                   value={field.helpText || ''}
                   placeholder="Optional description for the submitter..."
                   onChange={(e) => update({ helpText: e.target.value || null })}
@@ -216,8 +218,9 @@ export default function FieldEditor({
               {['TEXT', 'TEXTAREA', 'NUMBER', 'EMAIL', 'PHONE', 'DROPDOWN'].includes(field.type) && (
                 <div>
                   <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Placeholder</label>
-                  <input
-                    className="mt-1 w-full text-sm text-slate-600 bg-slate-50 rounded-lg border border-slate-200 px-3 py-1.5 focus:border-slate-400 outline-none transition-colors"
+                  <Input
+                    size="sm"
+                    className="mt-1 w-full text-sm text-slate-600"
                     value={field.placeholder || ''}
                     placeholder="e.g. Enter the affected area..."
                     onChange={(e) => update({ placeholder: e.target.value || null })}
@@ -337,33 +340,32 @@ export default function FieldEditor({
                 {hasConditional && candidates.length > 0 && (
                   <div className="mt-2.5 flex items-center gap-2 flex-wrap text-sm">
                     <span className="text-purple-600 font-medium">Show when</span>
-                    <select
-                      value={field.condFieldKey || ''}
-                      onChange={(e) => update({ condFieldKey: e.target.value, condEquals: '' })}
-                      className="rounded-lg border border-purple-200 bg-white px-2 py-1 text-sm cursor-pointer focus:border-purple-400 outline-none"
-                    >
-                      {candidates.map((c) => (
-                        <option key={c.key} value={c.key}>{c.label}</option>
-                      ))}
-                    </select>
+                    <div className="w-44">
+                      <Select
+                        size="sm"
+                        value={field.condFieldKey || ''}
+                        onChange={(value) => update({ condFieldKey: value, condEquals: '' })}
+                        options={candidates.map((c) => ({ value: c.key, label: c.label }))}
+                      />
+                    </div>
                     <span className="text-purple-600 font-medium">is</span>
                     {condSourceField?.options ? (
-                      <select
-                        value={field.condEquals || ''}
-                        onChange={(e) => update({ condEquals: e.target.value })}
-                        className="rounded-lg border border-purple-200 bg-white px-2 py-1 text-sm cursor-pointer focus:border-purple-400 outline-none"
-                      >
-                        <option value="">Select...</option>
-                        {condSourceField.options.map((o) => (
-                          <option key={o} value={o}>{o}</option>
-                        ))}
-                      </select>
+                      <div className="w-40">
+                        <Select
+                          size="sm"
+                          value={field.condEquals || ''}
+                          onChange={(value) => update({ condEquals: value })}
+                          placeholder="Select..."
+                          options={condSourceField.options.map((o) => ({ value: o, label: o }))}
+                        />
+                      </div>
                     ) : (
-                      <input
+                      <Input
+                        size="sm"
                         value={field.condEquals || ''}
                         onChange={(e) => update({ condEquals: e.target.value })}
                         placeholder="value..."
-                        className="rounded-lg border border-purple-200 bg-white px-2 py-1 text-sm focus:border-purple-400 outline-none w-32"
+                        className="w-32 text-sm"
                       />
                     )}
                   </div>

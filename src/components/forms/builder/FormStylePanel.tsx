@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Image as ImageIcon,
   Upload,
@@ -13,6 +13,8 @@ import {
   Check,
 } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { FileInput } from '@/components/ui/FileInput'
+import { Textarea } from '@/components/ui/Textarea'
 import { fetchApi } from '@/lib/api-client'
 
 type FormLayout = 'MINIMAL' | 'SPLIT' | 'HERO'
@@ -109,7 +111,6 @@ export default function FormStylePanel({
   onUpdate,
 }: FormStylePanelProps) {
   const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
 
   // Detect if current background is dark based on luminance
   const isCurrentlyDark = (() => {
@@ -123,8 +124,8 @@ export default function FormStylePanel({
     ? generateDarkBackgrounds(publicCtaColor || '#0f172a')
     : generateBackgrounds(publicCtaColor || '#0f172a')
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleImageUpload = async (files: File[]) => {
+    const file = files[0]
     if (!file) return
     if (!file.type.startsWith('image/')) return
     if (file.size > 5 * 1024 * 1024) return
@@ -147,7 +148,6 @@ export default function FormStylePanel({
       setUploading(false)
     }
     img.src = url
-    e.target.value = ''
   }
 
   return (
@@ -269,29 +269,26 @@ export default function FormStylePanel({
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
+            <FileInput
+              accept="image/jpeg,image/png,image/webp"
+              onFiles={handleImageUpload}
               disabled={uploading}
-              className="w-full h-24 border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-colors cursor-pointer"
+              loading={uploading}
+              compact
+              className="h-24"
             >
-              {uploading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Upload className="w-5 h-5" />
-                  <span className="text-[10px] font-medium">Upload image</span>
-                </>
-              )}
-            </button>
+              <div className="flex flex-col items-center justify-center gap-1 text-slate-400">
+                {uploading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Upload image</span>
+                  </>
+                )}
+              </div>
+            </FileInput>
           )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handleImageUpload}
-          />
 
           {/* Image side (Split only) */}
           {publicStyle === 'SPLIT' && (
@@ -348,8 +345,7 @@ export default function FormStylePanel({
           })}
           {/* Custom color picker */}
           <div className="relative">
-            {/* eslint-disable-next-line no-restricted-syntax -- color picker input */}
-            <input
+            <Input
               type="color"
               value={publicCtaColor || '#0f172a'}
               onChange={(e) => onUpdate({ publicCtaColor: e.target.value })}
@@ -455,13 +451,12 @@ export default function FormStylePanel({
         </div>
         <div>
           <span className="text-[10px] text-slate-500 block mb-1">Confirmation message</span>
-          {/* eslint-disable-next-line no-restricted-syntax -- textarea for confirmation message */}
-          <textarea
+          <Textarea
             value={confirmMessage ?? ''}
             onChange={(e) => onUpdate({ confirmMessage: e.target.value || null })}
             placeholder="Your response has been submitted successfully."
             rows={2}
-            className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 resize-none transition-colors"
+            className="w-full text-xs resize-none"
           />
         </div>
       </div>

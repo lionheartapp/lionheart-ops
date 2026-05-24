@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Users, CreditCard, Calendar, Shield, AlertTriangle, RotateCcw, Trash2, Gift, CheckCircle } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 
 export default function SchoolDetailPage() {
   const params = useParams()
@@ -291,13 +292,13 @@ export default function SchoolDetailPage() {
                     <div>
                       <label className="block text-sm text-slate-400 mb-1.5">Discount Percentage</label>
                       <div className="flex items-center gap-2">
-                        <input
+                        <Input
                           type="number"
                           value={grantForm.discountPercent}
                           onChange={(e) => setGrantForm({ ...grantForm, discountPercent: parseInt(e.target.value) || 0 })}
                           min={1}
                           max={99}
-                          className="flex-1 px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                          className="flex-1 bg-slate-800 border-slate-700 text-sm text-slate-100 focus:border-purple-500"
                         />
                         <span className="text-slate-400 text-sm">% off</span>
                       </div>
@@ -325,12 +326,12 @@ export default function SchoolDetailPage() {
 
                   <div>
                     <label className="block text-sm text-slate-400 mb-1.5">Note (optional)</label>
-                    <input
+                    <Input
                       type="text"
                       value={grantForm.note}
                       onChange={(e) => setGrantForm({ ...grantForm, note: e.target.value })}
                       placeholder="e.g., Beta partner, conference sponsor"
-                      className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                      className="w-full bg-slate-800 border-slate-700 text-sm text-slate-100 focus:border-purple-500"
                     />
                   </div>
 
@@ -449,12 +450,12 @@ export default function SchoolDetailPage() {
                     <div>
                       <label className="block text-sm text-slate-400 mb-1.5">Discount Percentage</label>
                       <div className="flex items-center gap-2">
-                        <input
+                        <Input
                           type="number"
                           value={addonGrantForm.discountPercent}
                           onChange={(e) => setAddonGrantForm({ ...addonGrantForm, discountPercent: parseInt(e.target.value) || 0 })}
                           min={1} max={99}
-                          className="flex-1 px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                          className="flex-1 bg-slate-800 border-slate-700 text-sm text-slate-100 focus:border-purple-500"
                         />
                         <span className="text-slate-400 text-sm">% off</span>
                       </div>
@@ -482,12 +483,12 @@ export default function SchoolDetailPage() {
 
                   <div>
                     <label className="block text-sm text-slate-400 mb-1.5">Note (optional)</label>
-                    <input
+                    <Input
                       type="text"
                       value={addonGrantForm.note}
                       onChange={(e) => setAddonGrantForm({ ...addonGrantForm, note: e.target.value })}
                       placeholder="e.g., Beta partner, conference demo"
-                      className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors"
+                      className="w-full bg-slate-800 border-slate-700 text-sm text-slate-100 focus:border-purple-500"
                     />
                   </div>
 
@@ -532,12 +533,12 @@ export default function SchoolDetailPage() {
               <label className="block text-sm text-slate-400 mb-2">
                 Type <span className="font-mono text-slate-200 bg-slate-800 px-1.5 py-0.5 rounded">{org.slug}</span> to confirm
               </label>
-              <input
+              <Input
                 type="text"
                 value={deleteSlug}
                 onChange={(e) => setDeleteSlug(e.target.value)}
                 placeholder={org.slug}
-                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 transition-colors"
+                className="w-full bg-slate-800 border-slate-700 text-sm text-slate-100 focus:border-red-500 focus:ring-1 focus:ring-red-500/30"
                 autoFocus
               />
               {deleteError && <p className="text-red-400 text-sm mt-2">{deleteError}</p>}

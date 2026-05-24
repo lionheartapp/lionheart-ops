@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Search, Hash, Lock, Users, Loader2, X, Clock } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 interface BrowsableChannel {
   id: string
@@ -135,12 +136,13 @@ export default function BrowseChannelsPanel({ onJoined, onClose }: BrowseChannel
       {/* Search */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 flex-shrink-0">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        <input
+        <Input
           ref={inputRef}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search channels..."
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+          size="sm"
+          className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
         />
         {loading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin flex-shrink-0" />}
       </div>
@@ -229,7 +231,7 @@ export default function BrowseChannelsPanel({ onJoined, onClose }: BrowseChannel
               {search ? 'No matching channels' : 'No channels to join'}
             </p>
             <p className="text-xs text-slate-300 mt-1">
-              You're already in all available channels
+              You&apos;re already in all available channels
             </p>
           </div>
         )}

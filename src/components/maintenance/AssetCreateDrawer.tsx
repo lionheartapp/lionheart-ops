@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, Package } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useCampusLocations } from '@/lib/hooks/useCampusLocations'
-import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import type { MaintenanceAsset } from './AssetRegisterTable'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -75,8 +77,6 @@ function getInitialForm() {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const labelClass = 'block text-xs font-medium text-slate-600 mb-1'
-const inputClass =
-  'ui-input'
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-3 mt-6 first:mt-0">
@@ -101,7 +101,7 @@ export default function AssetCreateDrawer({
   const [error, setError] = useState('')
 
   // Populate form when editAsset changes
-  useState(() => {
+  useEffect(() => {
     if (editAsset && isOpen) {
       setForm({
         name: editAsset.name || '',
@@ -119,7 +119,7 @@ export default function AssetCreateDrawer({
         locationKey: '',
       })
     }
-  })
+  }, [editAsset, isOpen])
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -286,44 +286,43 @@ export default function AssetCreateDrawer({
                     <label className={labelClass}>
                       Name <span className="text-red-500">*</span>
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={form.name}
                       onChange={(e) => updateField('name', e.target.value)}
                       placeholder="e.g. Boiler Room HVAC Unit"
-                      className={inputClass}
                       maxLength={200}
                       required
                     />
                   </div>
 
-                  <FloatingDropdown
-                    label="Category"
-                    value={form.category}
-                    onChange={(v) => updateField('category', v)}
-                    options={CATEGORY_OPTIONS}
-                  />
+                  <div>
+                    <label className={labelClass}>Category</label>
+                    <Select
+                      value={form.category}
+                      onChange={(value) => updateField('category', value)}
+                      options={CATEGORY_OPTIONS}
+                    />
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>Make</label>
-                      <input
+                      <Input
                         type="text"
                         value={form.make}
                         onChange={(e) => updateField('make', e.target.value)}
                         placeholder="e.g. Carrier"
-                        className={inputClass}
                         maxLength={100}
                       />
                     </div>
                     <div>
                       <label className={labelClass}>Model</label>
-                      <input
+                      <Input
                         type="text"
                         value={form.model}
                         onChange={(e) => updateField('model', e.target.value)}
                         placeholder="e.g. 50XC036-A"
-                        className={inputClass}
                         maxLength={100}
                       />
                     </div>
@@ -331,12 +330,11 @@ export default function AssetCreateDrawer({
 
                   <div>
                     <label className={labelClass}>Serial Number</label>
-                    <input
+                    <Input
                       type="text"
                       value={form.serialNumber}
                       onChange={(e) => updateField('serialNumber', e.target.value)}
                       placeholder="e.g. SN-2024-XXXXX"
-                      className={inputClass}
                       maxLength={100}
                     />
                   </div>
@@ -345,12 +343,14 @@ export default function AssetCreateDrawer({
                 {/* ── Location ──────────────────────────────────── */}
                 <SectionHeader title="Location" />
 
-                <FloatingDropdown
-                  label="Building / Area / Room"
-                  value={form.locationKey}
-                  onChange={(v) => updateField('locationKey', v)}
-                  options={[{ value: '', label: 'No specific location' }, ...locationSelectOptions]}
-                />
+                <div>
+                  <label className={labelClass}>Building / Area / Room</label>
+                  <Select
+                    value={form.locationKey}
+                    onChange={(value) => updateField('locationKey', value)}
+                    options={[{ value: '', label: 'No specific location' }, ...locationSelectOptions]}
+                  />
+                </div>
 
                 {/* ── Financials ────────────────────────────────── */}
                 <SectionHeader title="Financials" />
@@ -359,23 +359,21 @@ export default function AssetCreateDrawer({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>Purchase Date</label>
-                      <input
+                      <Input
                         type="date"
                         value={form.purchaseDate}
                         onChange={(e) => updateField('purchaseDate', e.target.value)}
-                        className={inputClass}
                       />
                     </div>
                     <div>
                       <label className={labelClass}>Replacement Cost ($)</label>
-                      <input
+                      <Input
                         type="number"
                         value={form.replacementCost}
                         onChange={(e) => updateField('replacementCost', e.target.value)}
                         placeholder="0"
                         min="0"
                         step="0.01"
-                        className={inputClass}
                       />
                     </div>
                   </div>
@@ -383,23 +381,21 @@ export default function AssetCreateDrawer({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelClass}>Warranty Expiry</label>
-                      <input
+                      <Input
                         type="date"
                         value={form.warrantyExpiry}
                         onChange={(e) => updateField('warrantyExpiry', e.target.value)}
-                        className={inputClass}
                       />
                     </div>
                     <div>
                       <label className={labelClass}>Expected Lifespan (years)</label>
-                      <input
+                      <Input
                         type="number"
                         value={form.expectedLifespanYears}
                         onChange={(e) => updateField('expectedLifespanYears', e.target.value)}
                         placeholder="10"
                         min="1"
                         max="100"
-                        className={inputClass}
                       />
                     </div>
                   </div>
@@ -408,40 +404,40 @@ export default function AssetCreateDrawer({
                     <label className={labelClass}>
                       Repair Threshold (%) <span className="text-slate-400">— flag if repair exceeds this % of replacement cost</span>
                     </label>
-                    <input
+                    <Input
                       type="number"
                       value={form.repairThresholdPct}
                       onChange={(e) => updateField('repairThresholdPct', e.target.value)}
                       placeholder="50"
                       min="0"
                       max="100"
-                      className={inputClass}
                     />
                   </div>
 
-                  <FloatingDropdown
-                    label="Initial Status"
-                    value={form.status}
-                    onChange={(v) => updateField('status', v)}
-                    options={[
-                      { value: 'ACTIVE', label: 'Active' },
-                      { value: 'INACTIVE', label: 'Inactive' },
-                      { value: 'DECOMMISSIONED', label: 'Decommissioned' },
-                      { value: 'PENDING_DISPOSAL', label: 'Pending Disposal' },
-                    ]}
-                  />
+                  <div>
+                    <label className={labelClass}>Initial Status</label>
+                    <Select
+                      value={form.status}
+                      onChange={(value) => updateField('status', value)}
+                      options={[
+                        { value: 'ACTIVE', label: 'Active' },
+                        { value: 'INACTIVE', label: 'Inactive' },
+                        { value: 'DECOMMISSIONED', label: 'Decommissioned' },
+                        { value: 'PENDING_DISPOSAL', label: 'Pending Disposal' },
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 {/* ── Notes ─────────────────────────────────────── */}
                 <SectionHeader title="Notes" />
 
                 <div>
-                  <textarea
+                  <Textarea
                     value={form.notes}
                     onChange={(e) => updateField('notes', e.target.value)}
                     placeholder="Additional notes about this asset..."
                     rows={3}
-                    className={`${inputClass} resize-none`}
                     maxLength={2000}
                   />
                 </div>

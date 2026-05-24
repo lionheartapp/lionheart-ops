@@ -7,12 +7,14 @@
  * Contains all profile-related state and handlers.
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import NotificationPreferences from '@/components/NotificationPreferences'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
 import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check, Fingerprint, KeyRound, Trash2, Pencil } from 'lucide-react'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 import { getAuthHeaders } from '@/lib/api-client'
@@ -35,7 +37,6 @@ interface ProfileTabProps {
 
 export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileTabProps) {
   const [subTab, setSubTab] = useState<ProfileSubTab>('profile')
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Avatar state
   const [avatarUpdating, setAvatarUpdating] = useState(false)
@@ -265,20 +266,6 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : 'Failed to remove avatar')
       setAvatarUpdating(false)
-    }
-  }
-
-  const handleChangeImageClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleAvatarUpload(file)
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
     }
   }
 
@@ -545,36 +532,26 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
                 (firstName || userName || 'U').charAt(0).toUpperCase()
               )}
             </div>
-            <button
-              type="button"
-              onClick={handleChangeImageClick}
-              disabled={avatarUpdating}
-              className="absolute inset-0 w-20 h-20 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
-              aria-label="Change profile photo"
-            >
+            <div className="absolute inset-0 w-20 h-20 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all duration-200 pointer-events-none">
               <Camera className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200" />
-            </button>
+            </div>
           </div>
           <div>
             <p className="text-sm font-medium text-slate-700 mb-1">Profile Photo</p>
-            <p className="text-xs text-slate-400 mb-3">JPG, PNG, GIF, WebP, or AVIF. Max 15 MB — we'll resize it automatically.</p>
+            <p className="text-xs text-slate-400 mb-3">JPG, PNG, GIF, WebP, or AVIF. Max 15 MB — we&apos;ll resize it automatically.</p>
             <div className="flex flex-wrap gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
+              <FileInput
                 accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
-                onChange={handleFileChange}
-                className="hidden"
                 disabled={avatarUpdating}
-              />
-              <button
-                type="button"
-                onClick={handleChangeImageClick}
-                disabled={avatarUpdating}
-                className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                onFiles={([file]) => {
+                  if (file) handleAvatarUpload(file)
+                }}
+                className="!border-0 !p-0 !bg-transparent"
               >
-                {avatarUpdating ? 'Uploading...' : 'Change Image'}
-              </button>
+                <span className="ui-btn px-4 py-2 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition">
+                  {avatarUpdating ? 'Uploading...' : 'Change Image'}
+                </span>
+              </FileInput>
               <button
                 type="button"
                 onClick={() => setConfirmRemoveAvatarOpen(true)}
@@ -822,14 +799,14 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
                   <label htmlFor="mfa-verify-code" className="block text-sm font-medium text-slate-700 mb-1">
                     Enter the 6-digit code
                   </label>
-                  <input
+                  <Input
                     id="mfa-verify-code"
                     type="text"
                     inputMode="numeric"
                     value={mfaCode}
                     onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none transition-colors"
+                    className="w-full text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300"
                     maxLength={6}
                     autoFocus
                   />
@@ -887,12 +864,12 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
           /* MFA disable confirmation */
           <div className="space-y-4">
             <p className="text-sm text-slate-600">Enter your password to disable two-factor authentication.</p>
-            <input
+            <Input
               type="password"
               value={mfaDisablePassword}
               onChange={(e) => setMfaDisablePassword(e.target.value)}
               placeholder="Your password"
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none transition-colors"
+              className="w-full text-sm text-slate-900 placeholder-slate-400"
               autoComplete="current-password"
               autoFocus
             />
@@ -996,12 +973,12 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
                 <p className="text-sm text-slate-600">
                   Enter your password to regenerate backup codes. This will invalidate all existing backup codes.
                 </p>
-                <input
+                <Input
                   type="password"
                   value={regenPassword}
                   onChange={(e) => setRegenPassword(e.target.value)}
                   placeholder="Your password"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none transition-colors"
+                  className="w-full text-sm text-slate-900 placeholder-slate-400"
                   autoComplete="current-password"
                   autoFocus
                 />
@@ -1104,12 +1081,13 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
                   <div className="min-w-0">
                     {renamingId === pk.id ? (
                       <div className="flex items-center gap-2">
-                        <input
+                        <Input
+                          size="sm"
                           type="text"
                           value={renameValue}
                           onChange={(e) => setRenameValue(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') handleRenamePasskey(pk.id); if (e.key === 'Escape') setRenamingId(null) }}
-                          className="text-sm border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                          className="text-sm"
                           autoFocus
                           maxLength={100}
                         />

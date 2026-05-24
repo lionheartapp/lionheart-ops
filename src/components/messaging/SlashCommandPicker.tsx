@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Wrench, Monitor, CalendarDays, ArrowLeft, Search } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -198,13 +199,13 @@ export default function SlashCommandPicker({ onSelect, onClose }: SlashCommandPi
       {/* Search input */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        {/* eslint-disable-next-line no-restricted-syntax -- Inline search within picker */}
-        <input
+        <Input
           ref={searchRef}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={`Search ${activeCat?.label?.toLowerCase()}...`}
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+          size="sm"
+          className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
         />
       </div>
 

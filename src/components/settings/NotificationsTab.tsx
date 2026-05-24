@@ -7,6 +7,7 @@ import { fetchApi } from '@/lib/api-client'
 import { useCalendars, type CalendarData } from '@/lib/hooks/useCalendar'
 import { usePushSubscription } from '@/lib/hooks/usePushSubscription'
 import NotificationPreferences from '@/components/NotificationPreferences'
+import { Select } from '@/components/ui/Select'
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -214,22 +215,18 @@ function CalendarRow({
         {/* Reminder dropdown */}
         <div className="flex items-center gap-1.5">
           <Clock className="w-3.5 h-3.5 text-slate-400" />
-          {/* eslint-disable-next-line no-restricted-syntax -- inline compact picker, not a form field */}
-          <select
-            value={reminderMinutes ?? ''}
+          <Select
+            value={String(reminderMinutes ?? '')}
             onChange={(e) => {
-              const val = e.target.value
+              const val = e
               onChangeReminder(val === '' ? null : parseInt(val, 10))
             }}
-            aria-label="Reminder time"
-            className="text-xs text-slate-600 bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer pr-4"
-          >
-            {REMINDER_OPTIONS.map((opt) => (
-              <option key={String(opt.value)} value={opt.value ?? ''}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            size="sm"
+            options={REMINDER_OPTIONS.map((opt) => ({
+              value: String(opt.value ?? ''),
+              label: opt.label,
+            }))}
+          />
         </div>
       </div>
     </div>

@@ -9,6 +9,9 @@ import {
   AlertTriangle, FileText, Send, X, CheckCircle, Lock, Activity,
 } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { IllustrationSecurity } from '@/components/illustrations'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import ITErrorState from './ITErrorState'
@@ -364,23 +367,23 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Title</label>
-                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Brief incident title" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm" />
+                <Input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Brief incident title" className="w-full text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
-                <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={4} placeholder="What happened? When was it discovered?" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm resize-none" />
+                <Textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={4} placeholder="What happened? When was it discovered?" className="w-full text-sm resize-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Affected Systems (comma-separated)</label>
-                <input type="text" value={formSystems} onChange={(e) => setFormSystems(e.target.value)} placeholder="e.g. Email, Student Portal, WiFi" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm" />
+                <Input type="text" value={formSystems} onChange={(e) => setFormSystems(e.target.value)} placeholder="e.g. Email, Student Portal, WiFi" className="w-full text-sm" />
               </div>
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="checkbox" checked={formPii} onChange={(e) => setFormPii(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500" />
-                <div>
-                  <span className="text-sm font-medium text-slate-900">PII Involved</span>
-                  <p className="text-xs text-slate-500">Personally identifiable information may have been compromised</p>
-                </div>
-              </label>
+              <Checkbox
+                checked={formPii}
+                onChange={(e) => setFormPii(e.target.checked)}
+                label={<span className="text-sm font-medium text-slate-900">PII Involved</span>}
+                description="Personally identifiable information may have been compromised"
+                className="items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
+              />
               <button
                 onClick={handleCreate}
                 disabled={!formTitle || !formDesc || createMut.isPending}
@@ -518,11 +521,11 @@ export default function ITSecurityIncidentsTab({ canCreate, canManage }: Props) 
                   <h3 className="text-sm font-semibold text-slate-900">Close Incident</h3>
                   <div>
                     <label className="block text-sm text-slate-600 mb-1">Resolution Summary *</label>
-                    <textarea value={closeResolution} onChange={(e) => setCloseResolution(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none" placeholder="How was this incident resolved?" />
+                    <Textarea value={closeResolution} onChange={(e) => setCloseResolution(e.target.value)} rows={3} className="w-full text-sm resize-none" placeholder="How was this incident resolved?" />
                   </div>
                   <div>
                     <label className="block text-sm text-slate-600 mb-1">Lessons Learned</label>
-                    <textarea value={closeLessons} onChange={(e) => setCloseLessons(e.target.value)} rows={2} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none" placeholder="What can be improved?" />
+                    <Textarea value={closeLessons} onChange={(e) => setCloseLessons(e.target.value)} rows={2} className="w-full text-sm resize-none" placeholder="What can be improved?" />
                   </div>
                   <div className="flex gap-2">
                     <button

@@ -24,6 +24,8 @@ import {
   HelpCircle,
   type LucideIcon,
 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 const CATEGORIES: Array<{ value: string; label: string; icon: LucideIcon; color: string; selectedColor: string }> = [
   { value: 'ELECTRICAL', label: 'Electrical', icon: Zap, color: 'text-amber-500 bg-amber-50', selectedColor: 'text-amber-700 bg-amber-100 border-amber-400 ring-2 ring-amber-200' },
@@ -188,12 +190,12 @@ export default function StepDetails({
           <span className="text-sm font-medium text-indigo-900">Quick Describe</span>
           <span className="text-xs text-indigo-500">AI-powered</span>
         </div>
-        <textarea
+        <Textarea
           value={quickDescribe}
           onChange={(e) => setQuickDescribe(e.target.value)}
           placeholder="Describe the issue in your own words... e.g. 'The projector in Room 203 won't turn on, I have a class in 20 minutes'"
           rows={2}
-          className="w-full px-3 py-2 rounded-lg border border-indigo-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent transition-shadow resize-none"
+          className="w-full text-sm resize-none"
         />
         <div className="flex items-center gap-3 mt-2">
           <button
@@ -245,12 +247,12 @@ export default function StepDetails({
             {titleRemaining} left
           </span>
         </div>
-        <input
+        <Input
           type="text"
           value={title}
           onChange={(e) => onTitleChange(e.target.value.slice(0, 200))}
           placeholder="e.g. Leaking faucet in Room 201"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+          className="w-full text-sm"
         />
       </div>
 
@@ -362,12 +364,12 @@ export default function StepDetails({
             {descRemaining} left
           </span>
         </div>
-        <textarea
+        <Textarea
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value.slice(0, 2000))}
           placeholder="Provide additional details about the issue..."
           rows={3}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow resize-none"
+          className="w-full text-sm resize-none"
         />
       </div>
 
@@ -376,12 +378,12 @@ export default function StepDetails({
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
           Access Note <span className="text-slate-400 font-normal">(optional)</span>
         </label>
-        <input
+        <Input
           type="text"
           value={availabilityNote}
           onChange={(e) => onAvailabilityNoteChange(e.target.value)}
           placeholder="e.g. Room available after 3pm, contact front office for key"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow"
+          className="w-full text-sm"
         />
       </div>
 
@@ -428,12 +430,12 @@ export default function StepDetails({
               <div className="mt-3 pt-3 border-t border-slate-100">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <input
+                  <Input
                     type="date"
                     value={scheduledDate}
                     min={minDateStr}
                     onChange={(e) => onScheduledDateChange(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus:border-transparent transition-shadow cursor-pointer"
+                    className="flex-1 text-sm cursor-pointer"
                   />
                 </div>
                 {scheduledDate && (

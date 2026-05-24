@@ -9,6 +9,8 @@ import {
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import QRCode from 'qrcode'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -238,15 +240,11 @@ function CreateQrDrawer({
               <Tag className="w-3.5 h-3.5 inline mr-1" />
               Category
             </label>
-            <select
+            <Select
               value={categoryKey}
-              onChange={(e) => setCategoryKey(e.target.value)}
-              className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2.5 text-sm cursor-pointer"
-            >
-              {CATEGORY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              onChange={setCategoryKey}
+              options={CATEGORY_OPTIONS}
+            />
             <p className="text-[11px] text-[#a8a49d] mt-1">
               Leave as &ldquo;Any&rdquo; if the scanner should pick the category.
             </p>
@@ -258,16 +256,11 @@ function CreateQrDrawer({
               <Building2 className="w-3.5 h-3.5 inline mr-1" />
               Building
             </label>
-            <select
+            <Select
               value={buildingId}
-              onChange={(e) => { setBuildingId(e.target.value); setAreaId(''); setRoomId('') }}
-              className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2.5 text-sm cursor-pointer"
-            >
-              <option value="">Optional</option>
-              {buildings.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
+              onChange={(value) => { setBuildingId(value); setAreaId(''); setRoomId('') }}
+              options={[{ value: '', label: 'Optional' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
+            />
           </div>
 
           {/* Area */}
@@ -276,16 +269,11 @@ function CreateQrDrawer({
               <label className="text-xs font-medium text-[#6a6864] mb-1.5 block">
                 Area / Wing
               </label>
-              <select
+              <Select
                 value={areaId}
-                onChange={(e) => { setAreaId(e.target.value); setRoomId('') }}
-                className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2.5 text-sm cursor-pointer"
-              >
-                <option value="">Optional</option>
-                {areas.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
+                onChange={(value) => { setAreaId(value); setRoomId('') }}
+                options={[{ value: '', label: 'Optional' }, ...areas.map((a) => ({ value: a.id, label: a.name }))]}
+              />
             </div>
           )}
 
@@ -296,18 +284,14 @@ function CreateQrDrawer({
                 <MapPin className="w-3.5 h-3.5 inline mr-1" />
                 Room
               </label>
-              <select
+              <Select
                 value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2.5 text-sm cursor-pointer"
-              >
-                <option value="">Optional</option>
-                {rooms.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.displayName ?? r.roomNumber}
-                  </option>
-                ))}
-              </select>
+                onChange={setRoomId}
+                options={[
+                  { value: '', label: 'Optional' },
+                  ...rooms.map((r) => ({ value: r.id, label: r.displayName ?? r.roomNumber })),
+                ]}
+              />
             </div>
           )}
 
@@ -316,12 +300,12 @@ function CreateQrDrawer({
             <label className="text-xs font-medium text-[#6a6864] mb-1.5 block">
               Label
             </label>
-            <input
+            <Input
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder={autoLabel() || 'e.g., Room 204 — IT'}
-              className="w-full rounded-xl border border-[rgba(17,15,10,0.1)] px-3 py-2.5 text-sm"
+              className="w-full text-sm"
             />
             <p className="text-[11px] text-[#a8a49d] mt-1">
               Auto-generated from your selections if left blank.

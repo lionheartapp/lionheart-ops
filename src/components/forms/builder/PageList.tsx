@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, FileText } from 'lucide-react'
 import SortableList from '@/components/forms/SortableList'
+import { Input } from '@/components/ui/Input'
 import type { FormPageData } from './FormBuilder'
 
 interface PageListProps {
@@ -55,8 +56,7 @@ export default function PageList({
             </span>
             <div className="flex-1 min-w-0">
               {editingId === page.id ? (
-                // eslint-disable-next-line no-restricted-syntax -- inline rename input for page title
-                <input
+                <Input
                   type="text"
                   value={page.title}
                   onChange={(e) => onRenamePage(page.id, e.target.value)}
@@ -64,7 +64,7 @@ export default function PageList({
                   onKeyDown={(e) => { if (e.key === 'Enter') setEditingId(null); e.stopPropagation() }}
                   onClick={(e) => e.stopPropagation()}
                   autoFocus
-                  className={`text-xs font-medium w-full bg-transparent border-0 border-b px-0 py-0 focus:outline-none focus:ring-0 ${
+                  className={`h-auto min-h-0 text-xs font-medium w-full bg-transparent border-0 border-b p-0 shadow-none focus:ring-0 ${
                     activePageId === page.id
                       ? 'text-white border-white/30 placeholder:text-white/40'
                       : 'text-slate-700 border-slate-300 placeholder:text-slate-400'

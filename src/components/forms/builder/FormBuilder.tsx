@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
+import { Input } from '@/components/ui/Input'
 import type { FormFieldType, FieldProtection, FieldSensitivity } from '@prisma/client'
 import { slugifyFieldKey } from '@/lib/forms/schemas'
 import FieldPalette from './FieldPalette'
@@ -407,14 +408,13 @@ export default function FormBuilder({ formId }: { formId: string }) {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          {/* eslint-disable-next-line no-restricted-syntax -- inline editable title, not a form field */}
-          <input
+          <Input
             type="text"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             onBlur={() => updateFormName(formName)}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-            className="text-sm font-semibold text-slate-900 truncate max-w-[300px] bg-transparent border-none outline-none ring-0 px-0 py-0.5"
+            className="h-auto min-h-0 text-sm font-semibold text-slate-900 truncate max-w-[300px] bg-transparent border-0 p-0 shadow-none focus:ring-0"
             style={{ borderRadius: 0, boxShadow: 'none' }}
             placeholder="Untitled Form"
           />

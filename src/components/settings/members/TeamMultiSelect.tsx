@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { ChevronDown, X, Search } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 import type { TeamOption } from './types'
 
 interface TeamMultiSelectProps {
@@ -110,13 +111,14 @@ export default function TeamMultiSelect({
           <div className="p-2 border-b border-slate-100">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
+              <Input
                 ref={searchRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search teams…"
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded-md focus:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                size="sm"
+                className="w-full pl-8 text-sm focus:border-transparent focus-visible:ring-primary-500"
                 style={{ minHeight: 'auto' }}
               />
             </div>

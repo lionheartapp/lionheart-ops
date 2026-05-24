@@ -32,6 +32,7 @@ import LaborTimerButton from './LaborTimerButton'
 import PmChecklistSection from './PmChecklistSection'
 import TicketDetailSidebar from './TicketDetailSidebar'
 import PanelErrorBoundary from '@/components/PanelErrorBoundary'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -502,12 +503,12 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
                   <label className="block text-xs font-medium text-red-800 mb-1">
                     Cancellation Reason <span className="text-red-500">*</span>
                   </label>
-                  <textarea
+                  <Textarea
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
                     placeholder="Explain why this ticket is being cancelled..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 placeholder:text-slate-400"
+                    className="border-red-200 text-sm focus:border-red-400 focus:ring-red-100"
                   />
                 </div>
                 {cancelError && <p className="text-xs text-red-600">{cancelError}</p>}

@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Loader2, DollarSign, Upload, X, Check } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +30,6 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
   const [error, setError] = useState('')
   const [showVendorDropdown, setShowVendorDropdown] = useState(false)
   const vendorInputRef = useRef<HTMLInputElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch vendor list for autocomplete
   const { data: vendorData } = useQuery<string[]>({
@@ -54,8 +55,8 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  async function handleReceiptFiles(files: File[]) {
+    const file = files[0]
     if (!file) return
 
     setIsUploading(true)
@@ -91,7 +92,6 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
       setUploadError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setIsUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -141,7 +141,7 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
         <label className="block text-xs font-medium text-slate-700 mb-1">
           Vendor <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           ref={vendorInputRef}
           type="text"
           value={vendor}
@@ -151,7 +151,8 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           }}
           onFocus={() => setShowVendorDropdown(true)}
           placeholder="e.g. Home Depot, Grainger..."
-          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-slate-400"
+          size="sm"
+          className="w-full text-xs"
           autoComplete="off"
         />
         {showVendorDropdown && filteredVendors.length > 0 && (
@@ -178,12 +179,13 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
         <label className="block text-xs font-medium text-slate-700 mb-1">
           Description <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. PVC fittings, replacement belt..."
-          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-slate-400"
+          size="sm"
+          className="w-full text-xs"
         />
       </div>
 
@@ -194,14 +196,15 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
         </label>
         <div className="relative">
           <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
-          <input
+          <Input
             type="number"
             min="0.01"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full pl-7 pr-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-slate-400"
+            size="sm"
+            className="w-full pl-7 text-xs"
           />
         </div>
       </div>
@@ -229,26 +232,23 @@ export default function CostEntryForm({ ticketId, onCreated, onCancel }: CostEnt
           </div>
         ) : (
           <div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
+            <FileInput
+              accept="image/*"
+              onFiles={handleReceiptFiles}
               disabled={isUploading}
-              className="flex items-center gap-1.5 px-3 py-2 border border-dashed border-slate-300 rounded-lg text-xs text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-colors cursor-pointer disabled:opacity-50 w-full justify-center"
+              loading={isUploading}
+              compact
+              className="py-2"
             >
+              <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
               {isUploading ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
               ) : (
                 <Upload className="w-3 h-3" />
               )}
               {isUploading ? 'Uploading...' : 'Upload receipt photo'}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+              </div>
+            </FileInput>
             {uploadError && <p className="text-xs text-red-600 mt-1">{uploadError}</p>}
           </div>
         )}

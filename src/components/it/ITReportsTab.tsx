@@ -20,6 +20,7 @@ import {
   Calendar,
   PieChart,
 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -320,20 +321,22 @@ export default function ITReportsTab({}: ITReportsTabProps) {
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <label className="text-xs text-slate-500 font-medium">From</label>
-                  <input
+                  <Input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
+                    size="sm"
+                    className="text-sm"
                   />
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-slate-500 font-medium">To</label>
-                  <input
+                  <Input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg"
+                    size="sm"
+                    className="text-sm"
                   />
                 </div>
               </div>

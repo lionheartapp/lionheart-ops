@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { Loader2, Clock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useQueryClient } from '@tanstack/react-query'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -151,43 +154,43 @@ export default function LaborEntryForm({
         <div className="grid grid-cols-3 gap-2">
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Date <span className="text-red-500">*</span></label>
-            <input
+            <Input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              size="sm"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Start Time <span className="text-red-500">*</span></label>
-            <input
+            <Input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              size="sm"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">End Time <span className="text-red-500">*</span></label>
-            <input
+            <Input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              size="sm"
             />
           </div>
         </div>
       ) : (
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">Duration (hours) <span className="text-red-500">*</span></label>
-          <input
+          <Input
             type="number"
             min="0.1"
             step="0.25"
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
             placeholder="e.g. 1.5 for 1h 30m"
-            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            size="sm"
           />
         </div>
       )}
@@ -204,17 +207,15 @@ export default function LaborEntryForm({
       {technicians && technicians.length > 0 && (
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">Technician</label>
-          <select
+          <Select
             value={technicianId}
-            onChange={(e) => setTechnicianId(e.target.value)}
-            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 cursor-pointer"
-          >
-            {technicians.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.firstName} {t.lastName}{t.id === currentUserId ? ' (You)' : ''}
-              </option>
-            ))}
-          </select>
+            onChange={setTechnicianId}
+            options={technicians.map((t) => ({
+              value: t.id,
+              label: `${t.firstName} ${t.lastName}${t.id === currentUserId ? ' (You)' : ''}`,
+            }))}
+            size="sm"
+          />
         </div>
       )}
 
@@ -223,28 +224,29 @@ export default function LaborEntryForm({
         <label className="block text-xs font-medium text-slate-700 mb-1">Hourly Rate (USD)</label>
         <div className="relative">
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">$</span>
-          <input
+          <Input
             type="number"
             min="0"
             step="0.50"
             value={hourlyRate}
             onChange={(e) => setHourlyRate(e.target.value)}
             placeholder="0.00"
-            className="w-full pl-6 pr-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            className="pl-6"
+            size="sm"
           />
         </div>
-        <p className="text-[10px] text-slate-400 mt-0.5">Leave blank to use the technician's default rate</p>
+        <p className="text-[10px] text-slate-400 mt-0.5">Leave blank to use the technician&apos;s default rate</p>
       </div>
 
       {/* Notes */}
       <div>
         <label className="block text-xs font-medium text-slate-700 mb-1">Notes</label>
-        <textarea
+        <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Optional: describe work performed..."
           rows={2}
-          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 placeholder:text-slate-400"
+          className="text-xs"
         />
       </div>
 

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ShieldCheck, Fingerprint, KeyRound, Mail } from 'lucide-react'
 import { startAuthentication } from '@simplewebauthn/browser'
+import { Input } from '@/components/ui/Input'
 
 interface LoginFormProps {
   organizationId: string
@@ -376,7 +377,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
               <label htmlFor="mfa-code" className="block text-sm font-medium text-slate-700 mb-1">
                 {emailOtpMode ? 'Email verification code' : 'Verification code'}
               </label>
-              <input
+              <Input
                 ref={mfaInputRef}
                 id="mfa-code"
                 type="text"
@@ -385,7 +386,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9A-Za-z-]/g, ''))}
                 placeholder="000000"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-[0.3em] text-slate-900 placeholder-slate-300 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+                className="text-center text-lg font-mono tracking-[0.3em] placeholder:text-slate-300"
                 required
                 autoFocus={!hasPasskeys || emailOtpMode}
                 maxLength={12}
@@ -478,14 +479,14 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
           <label htmlFor="forgot-email" className="block text-sm font-medium text-slate-700">
             Email address
           </label>
-          <input
+          <Input
             id="forgot-email"
             name="email"
             type="email"
             value={forgotEmail}
             onChange={(e) => setForgotEmail(e.target.value)}
             placeholder="you@example.com"
-            className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none focus-visible:ring-1 focus-visible:ring-slate-900/10 transition-colors"
+            className="mt-1"
             required
             autoComplete="email"
             autoFocus
@@ -540,7 +541,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
             Email address
           </label>
           {/* F-046: name attribute lets password managers identify and autofill. */}
-          <input
+          <Input
             id="email"
             name="email"
             type="email"
@@ -548,7 +549,8 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className={`mt-1 block w-full rounded-lg border px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-1 transition-colors ${error ? 'border-red-300 focus:border-red-500 focus-visible:ring-red-500/10' : 'border-slate-300 focus:border-slate-900 focus-visible:ring-slate-900/10'}`}
+            className="mt-1"
+            hasError={!!error}
             required
             autoComplete="email"
             autoFocus
@@ -574,14 +576,15 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
             </button>
           </div>
           <div className="relative mt-1">
-            <input
+            <Input
               id="password"
               name="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className={`block w-full rounded-lg border px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-1 transition-colors ${error ? 'border-red-300 focus:border-red-500 focus-visible:ring-red-500/10' : 'border-slate-300 focus:border-slate-900 focus-visible:ring-slate-900/10'}`}
+              className="pr-12"
+              hasError={!!error}
               required
               autoComplete="current-password"
               aria-invalid={!!error}

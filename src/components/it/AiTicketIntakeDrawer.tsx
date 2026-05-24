@@ -5,6 +5,7 @@ import { X, Send, Loader2, CheckCircle2, AlertTriangle, Pencil } from 'lucide-re
 import { motion, AnimatePresence } from 'framer-motion'
 import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -546,7 +547,7 @@ export default function AiTicketIntakeDrawer({
         {!submitted && !selfResolved && (
           <div className="border-t border-[rgba(17,15,10,0.06)] px-5 py-3">
             <div className="flex items-end gap-2">
-              <textarea
+              <Textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

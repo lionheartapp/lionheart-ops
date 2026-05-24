@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Search, AlertCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle } from 'lucide-react'
+import { SearchInput } from '@/components/ui/SearchInput'
 
 export default function SchoolLookup() {
   const [slug, setSlug] = useState('')
@@ -44,23 +45,25 @@ export default function SchoolLookup() {
   return (
     <div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" aria-hidden="true" />
+        <div>
           {/* F-014: visually-hidden label so screen readers announce purpose. */}
           <label htmlFor="school-url-input" className="sr-only">
             School URL
           </label>
-          <input
+          <SearchInput
             id="school-url-input"
             name="schoolSlug"
-            type="text"
             value={slug}
             onChange={(e) => { setSlug(e.target.value); setError('') }}
+            onClear={() => {
+              setSlug('')
+              setError('')
+            }}
             placeholder="your-school"
             aria-label="School URL"
             autoComplete="organization"
             autoFocus
-            className="w-full pl-10 pr-4 py-3.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus-visible:ring-1 focus-visible:ring-slate-500/30 transition-colors"
+            className="bg-slate-800/80 border-slate-700 focus-within:border-slate-500 focus-within:ring-slate-500/30 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_svg]:text-slate-500"
           />
         </div>
 

@@ -19,6 +19,8 @@ import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
 import { useToast } from '@/components/Toast'
 import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/AttendeePicker'
 import RsvpDialog from '@/components/calendar/RsvpDialog'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -301,7 +303,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
               </div>
               {editingTitle ? (
                 <div className="flex items-center gap-2">
-                  <input
+                  <Input
                     autoFocus
                     value={titleDraft}
                     onChange={(e) => setTitleDraft(e.target.value)}
@@ -315,7 +317,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                       }
                       if (e.key === 'Escape') setEditingTitle(false)
                     }}
-                    className="flex-1 text-xl font-semibold text-slate-900 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="flex-1 text-xl font-semibold text-slate-900"
                   />
                   <button
                     onClick={async () => {
@@ -503,20 +505,22 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                     <div className="space-y-2 flex-1">
                       <div className="space-y-1">
                         <label className="text-xs text-slate-500">Start</label>
-                        <input
+                        <Input
+                          size="sm"
                           type="datetime-local"
                           value={startDraft}
                           onChange={(e) => setStartDraft(e.target.value)}
-                          className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full text-sm"
                         />
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs text-slate-500">End</label>
-                        <input
+                        <Input
+                          size="sm"
                           type="datetime-local"
                           value={endDraft}
                           onChange={(e) => setEndDraft(e.target.value)}
-                          className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full text-sm"
                         />
                       </div>
                       <div className="flex items-center gap-2">
@@ -588,7 +592,8 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                   <MapPin className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   {editingLocation ? (
                     <div className="space-y-2 flex-1">
-                      <input
+                      <Input
+                        size="sm"
                         autoFocus
                         value={locationDraft}
                         onChange={(e) => setLocationDraft(e.target.value)}
@@ -603,7 +608,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                           if (e.key === 'Escape') setEditingLocation(false)
                         }}
                         placeholder="Enter location..."
-                        className="w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full text-sm"
                       />
                       <div className="flex items-center gap-2">
                         <button
@@ -715,11 +720,11 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
               <div className="mt-4 pt-4 border-t border-slate-100">
                 {editingDescription ? (
                   <div className="space-y-2">
-                    <textarea
+                    <Textarea
                       autoFocus
                       value={descriptionDraft}
                       onChange={(e) => setDescriptionDraft(e.target.value)}
-                      className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                      className="w-full text-sm text-slate-700 resize-none"
                       rows={4}
                       placeholder="Add a description..."
                     />

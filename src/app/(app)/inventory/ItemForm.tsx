@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import { INVENTORY_CATEGORIES } from '@/lib/constants/inventory'
 import type { InventoryItem } from './inventory-types'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 interface ItemFormProps {
   item?: InventoryItem | null
@@ -87,14 +89,13 @@ export default function ItemForm({ item, onSuccess, onCancel, hideActions, formI
         <label htmlFor="item-name" className="block text-sm font-medium text-slate-700 mb-1">
           Name <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           id="item-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors ${
-            fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white'
-          }`}
+          hasError={!!fieldErrors.name}
+          className="w-full text-sm"
           placeholder="e.g. Whiteboard Markers"
           aria-describedby={fieldErrors.name ? 'name-error' : undefined}
         />
@@ -107,29 +108,23 @@ export default function ItemForm({ item, onSuccess, onCancel, hideActions, formI
         <label htmlFor="item-category" className="block text-sm font-medium text-slate-700 mb-1">
           Category
         </label>
-        <select
-          id="item-category"
+        <Select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors cursor-pointer"
-        >
-          <option value="">— Select category —</option>
-          {INVENTORY_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+          onChange={setCategory}
+          options={[{ value: '', label: 'Select category' }, ...INVENTORY_CATEGORIES.map((cat) => ({ value: cat, label: cat }))]}
+        />
       </div>
 
       <div>
         <label htmlFor="item-sku" className="block text-sm font-medium text-slate-700 mb-1">
           SKU <span className="text-slate-400 font-normal">(optional)</span>
         </label>
-        <input
+        <Input
           id="item-sku"
           type="text"
           value={sku}
           onChange={(e) => setSku(e.target.value)}
-          className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+          className="w-full text-sm"
           placeholder="e.g. WBM-100"
         />
       </div>
@@ -139,26 +134,26 @@ export default function ItemForm({ item, onSuccess, onCancel, hideActions, formI
           <label htmlFor="item-qty" className="block text-sm font-medium text-slate-700 mb-1">
             Qty on Hand
           </label>
-          <input
+          <Input
             id="item-qty"
             type="number"
             min={0}
             value={qty}
             onChange={(e) => setQty(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+            className="w-full text-sm"
           />
         </div>
         <div>
           <label htmlFor="item-threshold" className="block text-sm font-medium text-slate-700 mb-1">
             Reorder Point
           </label>
-          <input
+          <Input
             id="item-threshold"
             type="number"
             min={0}
             value={threshold}
             onChange={(e) => setThreshold(e.target.value)}
-            className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+            className="w-full text-sm"
           />
         </div>
       </div>

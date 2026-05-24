@@ -15,6 +15,7 @@ import {
   type FormFieldType,
 } from '@/lib/forms/schemas'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import type { FormFieldData } from './FormBuilder'
 
@@ -389,38 +390,36 @@ export default function FieldProperties({
           {condCandidates.length > 0 && (
             <div className="space-y-2">
               <label className="text-[10px] font-medium text-slate-500 block">Show when...</label>
-              <select
+              <Select
                 value={field.condFieldKey ?? ''}
-                onChange={(e) =>
+                onChange={(next) =>
                   onUpdate({
-                    condFieldKey: e.target.value || null,
-                    condOperator: e.target.value ? 'equals' : null,
+                    condFieldKey: next || null,
+                    condOperator: next ? 'equals' : null,
                     condEquals: null,
                   })
                 }
-                className="w-full h-8 text-xs border border-slate-200 rounded-lg px-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400"
-              >
-                <option value="">Always visible</option>
-                {condCandidates.map((c) => (
-                  <option key={c.id} value={c.key}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: 'Always visible' },
+                  ...condCandidates.map((c) => ({ value: c.key, label: c.label })),
+                ]}
+                size="sm"
+              />
 
               {field.condFieldKey && (
                 <>
-                  <select
+                  <Select
                     value={field.condOperator ?? 'equals'}
-                    onChange={(e) => onUpdate({ condOperator: e.target.value })}
-                    className="w-full h-8 text-xs border border-slate-200 rounded-lg px-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400"
-                  >
-                    <option value="equals">equals</option>
-                    <option value="not_equals">does not equal</option>
-                    <option value="contains">contains</option>
-                    <option value="is_empty">is empty</option>
-                    <option value="is_filled">is filled</option>
-                  </select>
+                    onChange={(next) => onUpdate({ condOperator: next })}
+                    options={[
+                      { value: 'equals', label: 'equals' },
+                      { value: 'not_equals', label: 'does not equal' },
+                      { value: 'contains', label: 'contains' },
+                      { value: 'is_empty', label: 'is empty' },
+                      { value: 'is_filled', label: 'is filled' },
+                    ]}
+                    size="sm"
+                  />
 
                   {field.condOperator !== 'is_empty' && field.condOperator !== 'is_filled' && (
                     <Input

@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { Search, X, SlidersHorizontal } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 export interface FilterField {
   label: string
@@ -60,12 +62,12 @@ export default function ITSearchFilterBar({
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
             <Search className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
           </div>
-          <input
+          <Input
             type="search"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full h-[52px] pl-14 pr-12 text-base text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-400/40 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all duration-200"
+            className="w-full h-[52px] pl-14 pr-12 text-base rounded-full"
           />
           {search && (
             <button
@@ -111,15 +113,12 @@ export default function ITSearchFilterBar({
                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
                       {f.label}
                     </label>
-                    <select
+                    <Select
                       value={f.value}
-                      onChange={(e) => f.onChange(e.target.value)}
-                      className="w-full h-10 px-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-                    >
-                      {f.options.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
+                      onChange={f.onChange}
+                      options={f.options}
+                      size="sm"
+                    />
                   </div>
                 ))}
 
@@ -147,12 +146,13 @@ export default function ITSearchFilterBar({
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <Search className="w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" aria-hidden="true" />
           </div>
-          <input
+          <Input
             type="search"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full h-10 pl-10 pr-10 text-sm text-slate-800 placeholder:text-slate-400 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-all duration-200"
+            size="sm"
+            className="w-full h-10 pl-10 pr-10 text-sm rounded-full"
           />
           {search && (
             <button

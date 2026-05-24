@@ -8,7 +8,7 @@
  * follow-up needed, and an optional photo attachment.
  */
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   HeartPulse,
   ShieldAlert,
@@ -25,6 +25,7 @@ import type { EventIncidentType, EventIncidentSeverity } from '@/lib/types/event
 import { SearchInput } from '@/components/ui/SearchInput'
 import { Textarea } from '@/components/ui/Textarea'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { FileInput } from '@/components/ui/FileInput'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,6 @@ export default function IncidentForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'offline' } | null>(null)
 
-  const photoInputRef = useRef<HTMLInputElement | null>(null)
 
   // ─── Participant selection ───────────────────────────────────────────
 
@@ -155,8 +155,8 @@ export default function IncidentForm({
 
   // ─── Photo ───────────────────────────────────────────────────────────
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handlePhotoChange = (files: File[]) => {
+    const file = files[0]
     if (!file) return
     const reader = new FileReader()
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
@@ -387,14 +387,18 @@ export default function IncidentForm({
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Photo</label>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => photoInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+          <FileInput
+            accept="image/*"
+            capture="environment"
+            onFiles={handlePhotoChange}
+            compact
+            className="inline-flex w-auto border-0 bg-transparent p-0"
           >
-            <Camera className="w-4 h-4" />
-            {photoPreview ? 'Change photo' : 'Add photo'}
-          </button>
+            <span className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+              <Camera className="w-4 h-4" />
+              {photoPreview ? 'Change photo' : 'Add photo'}
+            </span>
+          </FileInput>
 
           {photoPreview && (
             <>
@@ -414,16 +418,6 @@ export default function IncidentForm({
             </>
           )}
         </div>
-
-        {/* eslint-disable-next-line no-restricted-syntax -- hidden native picker triggered by the styled button above; preserves capture="environment" for mobile camera UX */}
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handlePhotoChange}
-          className="hidden"
-        />
       </div>
 
       {/* Submit */}

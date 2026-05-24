@@ -18,6 +18,7 @@ import { BoardMetricsGrid } from './BoardMetricsGrid'
 import { ComplianceStatusPanel } from './ComplianceStatusPanel'
 import { AssetForecastPanel } from './AssetForecastPanel'
 import { GenerateReportDialog } from './GenerateReportDialog'
+import { Select } from '@/components/ui/Select'
 import type { BoardReportMetrics } from '@/lib/services/boardReportService'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -190,28 +191,18 @@ export function BoardReportPage(_props: BoardReportPageProps) {
           <div className="flex items-center gap-2 flex-wrap">
             {/* Period picker */}
             <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="text-sm text-slate-700 bg-transparent focus:outline-none cursor-pointer"
-              >
-                {months.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="text-sm text-slate-700 bg-transparent focus:outline-none cursor-pointer"
-              >
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={String(selectedMonth)}
+                onChange={(next) => setSelectedMonth(Number(next))}
+                options={months.map((m) => ({ value: String(m.value), label: m.label }))}
+                size="sm"
+              />
+              <Select
+                value={String(selectedYear)}
+                onChange={(next) => setSelectedYear(Number(next))}
+                options={years.map((y) => ({ value: String(y), label: String(y) }))}
+                size="sm"
+              />
             </div>
 
             {/* Refresh */}

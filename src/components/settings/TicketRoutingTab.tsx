@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { queryKeys, queryOptions } from '@/lib/queries'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import RoutingDashboard from './RoutingDashboard'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -424,21 +426,22 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">
                   Triage Manager
                 </label>
-                <select
+                <Select
                   value={currentManagerId ?? ''}
                   onChange={(e) => {
-                    const managerId = e.target.value || null
+                    const managerId = e || null
                     updateStrategy('MANAGER_TRIAGE', managerId)
                   }}
-                  className="w-full max-w-xs px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                >
-                  <option value="">Select a manager...</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.firstName} {m.lastName} ({m.email})
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select a manager...' },
+                    ...members.map((m) => ({
+                      value: m.id,
+                      label: `${m.firstName} ${m.lastName}`,
+                      subtitle: m.email,
+                    })),
+                  ]}
+                  placeholder="Select a manager..."
+                />
               </div>
             )}
 
@@ -664,7 +667,7 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                             </span>
                           </td>
                           <td className="py-3 px-3 text-center">
-                            <input
+                            <Input
                               type="number"
                               min={1}
                               max={100}
@@ -675,7 +678,8 @@ export default function TicketRoutingTab({ defaultModule = 'MAINTENANCE' }: Tick
                                   updateStaffAvailability(staff.userId, { maxActiveTickets: val })
                                 }
                               }}
-                              className="w-16 px-2 py-1 rounded-lg border border-slate-200 text-sm text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                              size="sm"
+                              className="w-16 text-sm text-center"
                             />
                           </td>
                           <td className="py-3 px-3">
@@ -724,18 +728,20 @@ function UserPicker({
   placeholder: string
 }) {
   return (
-    <select
+    <Select
       value={value ?? ''}
-      onChange={(e) => onChange(e.target.value || null)}
-      className="w-full max-w-[220px] px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
-    >
-      <option value="">{placeholder}</option>
-      {members.map((m) => (
-        <option key={m.id} value={m.id}>
-          {m.firstName} {m.lastName}
-        </option>
-      ))}
-    </select>
+      onChange={(next) => onChange(next || null)}
+      options={[
+        { value: '', label: placeholder },
+        ...members.map((m) => ({
+          value: m.id,
+          label: `${m.firstName} ${m.lastName}`,
+          subtitle: m.email,
+        })),
+      ]}
+      placeholder={placeholder}
+      size="sm"
+    />
   )
 }
 
@@ -765,18 +771,15 @@ function SLAInput({
   onUpdate: (mins: number | null) => void
 }) {
   return (
-    <select
+    <Select
       value={value?.toString() ?? ''}
-      onChange={(e) => {
-        const v = e.target.value ? parseInt(e.target.value, 10) : null
+      onChange={(next) => {
+        const v = next ? parseInt(next, 10) : null
         onUpdate(v)
       }}
-      className="w-full max-w-[120px] px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 cursor-pointer"
-    >
-      {SLA_PRESETS.map((p) => (
-        <option key={p.value} value={p.value}>{p.label}</option>
-      ))}
-    </select>
+      options={SLA_PRESETS}
+      size="sm"
+    />
   )
 }
 

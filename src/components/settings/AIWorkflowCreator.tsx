@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Sparkles, X, Loader2, Check, ArrowRight, RotateCcw } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
+import { Textarea } from '@/components/ui/Textarea'
 
 // Web Speech API types (not in default TS lib)
 interface SpeechRecognitionInstance {
@@ -515,7 +516,7 @@ export default function AIWorkflowCreator({
                 className="space-y-4"
               >
                 <div className="relative" ref={mentionContainerRef}>
-                  <textarea
+                  <Textarea
                     ref={textareaRef}
                     value={text}
                     onChange={handleTextChange}
@@ -523,7 +524,7 @@ export default function AIWorkflowCreator({
                     placeholder={isMaintenance
                       ? 'Describe how maintenance approvals should work... Use @ to mention people or teams.\n\nExample: "HVAC tickets need approval from @David Garcia. Any ticket over $500 needs admin sign-off. Urgent tickets should notify the facilities director."'
                       : 'Describe how approvals should work... Use @ to mention people or teams.\n\nExample: "Any event that needs AV should be approved by @Kevin Patel. Large events need facilities and security sign-off too. Everything else just needs admin approval."'}
-                    className="w-full h-40 px-4 py-3 text-sm bg-slate-50 rounded-xl border border-slate-200 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none resize-none placeholder:text-slate-400 transition-colors"
+                    className="h-40 text-sm bg-slate-50"
                   />
                   {isListening && (
                     <div className="absolute bottom-3 left-4 flex items-center gap-2">

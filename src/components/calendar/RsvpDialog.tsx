@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
+import { Textarea } from '@/components/ui/Textarea'
 
 interface RsvpDialogProps {
   isOpen: boolean
@@ -57,7 +58,7 @@ export default function RsvpDialog({ isOpen, status, onSubmit, onCancel }: RsvpD
               <h3 id="rsvp-dialog-title" className="text-sm font-semibold text-slate-900 mb-2">
                 {label} this event?
               </h3>
-              <textarea
+              <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Add a note (optional)"

@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 interface GifPickerProps {
   onSelect: (gifUrl: string, width: number, height: number) => void
@@ -87,13 +88,13 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
       {/* Search bar */}
       <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        {/* eslint-disable-next-line no-restricted-syntax -- Inline search for GIF picker */}
-        <input
+        <Input
           ref={searchRef}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search GIFs..."
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+          size="sm"
+          className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
         />
         {search && (
           <button

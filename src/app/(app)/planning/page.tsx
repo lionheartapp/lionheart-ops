@@ -11,6 +11,7 @@ import MySubmissions from '@/components/planning/MySubmissions'
 import PlanningSeasonAdmin from '@/components/planning/PlanningSeasonAdmin'
 import CommentThread from '@/components/planning/CommentThread'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Select } from '@/components/ui/Select'
 import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
 import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
 import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
@@ -131,17 +132,15 @@ export default function PlanningPage() {
             {/* Season Selector (when multiple seasons exist) */}
             {seasons.length > 1 && (
               <div className="relative">
-                <select
+                <Select
                   value={effectiveSeasonId || ''}
-                  onChange={(e) => setSelectedSeasonId(e.target.value)}
-                  className="appearance-none pl-3 pr-8 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                >
-                  {seasons.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} {s.phase === 'CLOSED' ? '(Closed)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedSeasonId}
+                  options={seasons.map((s) => ({
+                    value: s.id,
+                    label: `${s.name} ${s.phase === 'CLOSED' ? '(Closed)' : ''}`,
+                  }))}
+                  size="sm"
+                />
                 <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             )}

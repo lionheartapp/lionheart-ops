@@ -16,6 +16,7 @@ import Mention from '@tiptap/extension-mention'
 import Placeholder from '@tiptap/extension-placeholder'
 import { createMentionSuggestion } from './MentionSuggestion'
 import { splitListItem } from '@tiptap/pm/schema-list'
+import { Input } from '@/components/ui/Input'
 import {
   Bold,
   Italic,
@@ -310,8 +311,7 @@ export default function RichTextEditor({
       {showLinkInput && (
         <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 bg-slate-50/50">
           <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          {/* eslint-disable-next-line no-restricted-syntax -- Inline link input with custom keyboard handling */}
-          <input
+          <Input
             ref={linkInputRef}
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
@@ -320,7 +320,8 @@ export default function RichTextEditor({
               if (e.key === 'Escape') { setShowLinkInput(false); setLinkUrl(''); editor?.chain().focus().run() }
             }}
             placeholder="Paste or type a URL..."
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+            size="sm"
+            className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
           />
           <button
             type="button"

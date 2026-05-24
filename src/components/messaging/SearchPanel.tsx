@@ -10,6 +10,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Search, X, Hash, Loader2 } from 'lucide-react'
 import { useMessageSearch } from '@/lib/hooks/useMessageSearch'
+import { Input } from '@/components/ui/Input'
 import type { SearchResult } from '@/lib/hooks/useMessageSearch'
 
 // ---------------------------------------------------------------------------
@@ -195,14 +196,14 @@ export default function SearchPanel({ onClose, onNavigate }: SearchPanelProps) {
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
           <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          {/* eslint-disable-next-line no-restricted-syntax -- raw input inside search panel overlay, not a form field */}
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search messages..."
-            className="flex-1 text-sm text-slate-900 placeholder:text-slate-400 bg-transparent outline-none"
+            size="sm"
+            className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-900 shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
           />
           {query && (
             <button

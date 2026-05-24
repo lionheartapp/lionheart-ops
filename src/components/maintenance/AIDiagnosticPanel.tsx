@@ -22,6 +22,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getAuthHeaders, fetchApi } from '@/lib/api-client'
 import { expandCollapse, fadeInUp, staggerContainer } from '@/lib/animations'
 import { KBArticleTypeBadge } from '@/components/maintenance/KnowledgeBaseList'
+import { Textarea } from '@/components/ui/Textarea'
 import type { AiDiagnosis, AiConversationTurn, AiAnalysisCache } from '@/lib/types/maintenance-ai'
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -480,7 +481,7 @@ export default function AIDiagnosticPanel({
 
                   {/* Input */}
                   <form onSubmit={handleAskSubmit} className="flex items-end gap-2">
-                    <textarea
+                    <Textarea
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
                       placeholder="Ask a follow-up question..."

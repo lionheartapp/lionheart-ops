@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger'
 import { useQuery } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS } from '@/lib/types/compliance'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import type { ComplianceDomain } from '@prisma/client'
 
 interface School {
@@ -158,20 +160,20 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">From Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                    className="w-full text-sm"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">To Date</label>
-                  <input
+                  <Input
                     type="date"
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
+                    className="w-full text-sm"
                   />
                 </div>
               </div>
@@ -180,32 +182,33 @@ export function AuditExportDialog({ isOpen, onClose }: AuditExportDialogProps) {
               {isMultiSchool && (
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1.5">Campus / School</label>
-                  <select
+                  <Select
                     value={schoolId}
-                    onChange={(e) => setSchoolId(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
-                  >
-                    <option value="">All Schools</option>
-                    {schools.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                    onChange={setSchoolId}
+                    options={[
+                      { value: '', label: 'All Schools' },
+                      ...schools.map((s) => ({ value: s.id, label: s.name })),
+                    ]}
+                    size="sm"
+                  />
                 </div>
               )}
 
               {/* Domain filter */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Domain</label>
-                <select
+                <Select
                   value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer"
-                >
-                  <option value="">All Domains</option>
-                  {COMPLIANCE_DOMAINS.map((d) => (
-                    <option key={d} value={d}>{COMPLIANCE_DOMAIN_DEFAULTS[d as ComplianceDomain].label}</option>
-                  ))}
-                </select>
+                  onChange={setDomain}
+                  options={[
+                    { value: '', label: 'All Domains' },
+                    ...COMPLIANCE_DOMAINS.map((d) => ({
+                      value: d,
+                      label: COMPLIANCE_DOMAIN_DEFAULTS[d as ComplianceDomain].label,
+                    })),
+                  ]}
+                  size="sm"
+                />
               </div>
 
               {/* Error */}

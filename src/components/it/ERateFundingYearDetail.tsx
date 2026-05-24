@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
@@ -21,6 +21,10 @@ import {
   Upload,
 } from 'lucide-react'
 import ITErrorState from './ITErrorState'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -205,8 +209,6 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [dragOver, setDragOver] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const resetForm = useCallback(() => {
     setTitle('')
@@ -215,7 +217,6 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
     setNotes('')
     setFile(null)
     setError(null)
-    setDragOver(false)
   }, [])
 
   const handleClose = useCallback(() => {
@@ -229,16 +230,6 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
       setTitle(selectedFile.name.replace(/\.[^.]+$/, ''))
     }
   }, [title])
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setDragOver(false)
-      const dropped = e.dataTransfer.files[0]
-      if (dropped) handleFileSelect(dropped)
-    },
-    [handleFileSelect],
-  )
 
   const handleUpload = useCallback(async () => {
     if (!file || !category || !title.trim()) {
@@ -328,19 +319,12 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
           )}
 
           {/* Drop zone */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`
-              border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors duration-200
-              ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}
-            `}
-            role="button"
-            aria-label="Select or drop a file"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
+          <FileInput
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg"
+            onFiles={([selectedFile]) => {
+              if (selectedFile) handleFileSelect(selectedFile)
+            }}
+            className="border-gray-300 bg-gray-50"
           >
             <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
             {file ? (
@@ -351,27 +335,20 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
                 <p className="text-xs text-gray-500 mt-1">PDF, DOC, XLSX, or image files</p>
               </>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={(e) => { if (e.target.files?.[0]) handleFileSelect(e.target.files[0]) }}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg"
-            />
-          </div>
+          </FileInput>
 
           {/* Title */}
           <div>
             <label htmlFor="doc-title" className="block text-sm font-medium text-gray-700 mb-1">
               Title <span className="text-red-500">*</span>
             </label>
-            <input
+            <Input
               id="doc-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Document title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors duration-200"
+              className="w-full text-sm"
             />
           </div>
 
@@ -380,17 +357,12 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
             <label htmlFor="doc-category" className="block text-sm font-medium text-gray-700 mb-1">
               Category <span className="text-red-500">*</span>
             </label>
-            <select
-              id="doc-category"
+            <Select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white cursor-pointer transition-colors duration-200"
-            >
-              <option value="">Select a category</option>
-              {ERATE_DOC_CATEGORIES.map((cat) => (
-                <option key={cat.key} value={cat.key}>{cat.label}</option>
-              ))}
-            </select>
+              onChange={setCategory}
+              placeholder="Select a category"
+              options={ERATE_DOC_CATEGORIES.map((cat) => ({ value: cat.key, label: cat.label }))}
+            />
           </div>
 
           {/* FRN (optional) */}
@@ -398,19 +370,17 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
             <label htmlFor="doc-frn" className="block text-sm font-medium text-gray-700 mb-1">
               FRN <span className="text-gray-400">(optional)</span>
             </label>
-            <select
-              id="doc-frn"
+            <Select
               value={frnNumber}
-              onChange={(e) => setFrnNumber(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white cursor-pointer transition-colors duration-200"
-            >
-              <option value="">No specific FRN</option>
-              {frns.map((frn) => (
-                <option key={frn.frnNumber} value={frn.frnNumber}>
-                  {frn.frnNumber} — {frn.serviceType}
-                </option>
-              ))}
-            </select>
+              onChange={setFrnNumber}
+              options={[
+                { value: '', label: 'No specific FRN' },
+                ...frns.map((frn) => ({
+                  value: frn.frnNumber,
+                  label: `${frn.frnNumber} - ${frn.serviceType}`,
+                })),
+              ]}
+            />
           </div>
 
           {/* Notes */}
@@ -418,13 +388,13 @@ function UploadDocumentModal({ open, onClose, fundingYear, ben, frns, onUploaded
             <label htmlFor="doc-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Notes <span className="text-gray-400">(optional)</span>
             </label>
-            <textarea
+            <Textarea
               id="doc-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Any additional context..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none transition-colors duration-200"
+              className="w-full text-sm resize-none"
             />
           </div>
         </div>

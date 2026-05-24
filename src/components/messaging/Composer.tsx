@@ -5,6 +5,7 @@ import { Paperclip, SendHorizonal, Smile, ImagePlay } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useSendMessage } from '@/lib/hooks/useSendMessage'
 import { useFileUpload } from '@/lib/hooks/useFileUpload'
+import { FileInput } from '@/components/ui/FileInput'
 import dynamic from 'next/dynamic'
 import { htmlToPlainText } from './rich-text-utils'
 
@@ -27,7 +28,6 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
   const [showSlashCommand, setShowSlashCommand] = useState(false)
   const [showGif, setShowGif] = useState(false)
   const editorRef = useRef<{ insertContent: (text: string) => void } | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { sendMessage, isPending } = useSendMessage(channelId)
   const { upload, isUploading, progress, error: uploadError, reset: resetUpload } = useFileUpload(channelId)
 
@@ -38,10 +38,9 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
     storageUrl: string
   } | null>(null)
 
-  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = useCallback(async (files: File[]) => {
+    const file = files[0]
     if (!file) return
-    if (fileInputRef.current) fileInputRef.current.value = ''
     const result = await upload(file)
     if (result) setPendingAttachment(result)
   }, [upload])
@@ -155,22 +154,19 @@ export default function Composer({ channelId, onSendTyping, parentId }: Composer
       {/* Bottom toolbar: attach, emoji, send */}
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-            aria-label="Attach file"
-          >
-            <Paperclip className="w-5 h-5" />
-          </button>
-          {/* eslint-disable-next-line no-restricted-syntax -- Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileSelect}
+          <FileInput
+            onFiles={handleFileSelect}
             accept="image/*,.pdf,.doc,.docx,.txt"
-            className="hidden"
-          />
+            compact
+            className="border-0 p-0 bg-transparent hover:bg-transparent"
+          >
+            <span
+              className="inline-flex p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Attach file"
+            >
+              <Paperclip className="w-5 h-5" />
+            </span>
+          </FileInput>
 
           <div className="relative">
             <button

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
 import type { PlanningComment } from '@/lib/hooks/usePlanningSeason'
 
 interface CommentThreadProps {
@@ -53,17 +55,18 @@ export default function CommentThread({ comments, onAddComment, isSubmitting, is
       )}
 
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
+        <Input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Add a comment..."
-          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm"
+          size="sm"
+          className="flex-1 text-sm"
           disabled={isSubmitting}
         />
         {isAdmin && (
           <label className="flex items-center gap-1 text-xs text-slate-500">
-            <input type="checkbox" checked={isAdminOnly} onChange={(e) => setIsAdminOnly(e.target.checked)} className="rounded" />
+            <Checkbox checked={isAdminOnly} onChange={(e) => setIsAdminOnly(e.target.checked)} />
             Admin
           </label>
         )}

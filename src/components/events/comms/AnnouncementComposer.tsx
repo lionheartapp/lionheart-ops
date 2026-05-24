@@ -209,33 +209,31 @@ export function AnnouncementComposer({ eventProjectId }: AnnouncementComposerPro
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
             Send to
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="radiogroup" aria-label="Announcement audience">
             {AUDIENCE_OPTIONS.map((opt) => (
-              <label
+              <button
+                type="button"
                 key={opt.value}
+                role="radio"
+                aria-checked={audience === opt.value}
+                onClick={() => {
+                  setAudience(opt.value)
+                  if (opt.value !== 'GROUP') setTargetGroupId('')
+                }}
                 className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                   audience === opt.value
                     ? 'border-blue-400 bg-blue-50/50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                {/* eslint-disable-next-line no-restricted-syntax -- radio-card pattern (label-wrapped clickable card with custom styling); standard <Radio> doesn't support this layout */}
-                <input
-                  type="radio"
-                  name="audience"
-                  value={opt.value}
-                  checked={audience === opt.value}
-                  onChange={() => {
-                    setAudience(opt.value)
-                    if (opt.value !== 'GROUP') setTargetGroupId('')
-                  }}
-                  className="mt-0.5 accent-blue-500 flex-shrink-0"
-                />
+                <span className={`mt-0.5 h-4 w-4 rounded-full border flex-shrink-0 ${
+                  audience === opt.value ? 'border-blue-500 bg-blue-500 shadow-[inset_0_0_0_3px_white]' : 'border-slate-300 bg-white'
+                }`} />
                 <div>
                   <p className="text-sm font-medium text-slate-900">{opt.label}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{opt.description}</p>
                 </div>
-              </label>
+              </button>
             ))}
           </div>
         </div>

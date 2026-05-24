@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, UserPlus, ArrowRight, AlertCircle, CheckCircle2, Loader2, X, Users, ChevronRight, ArrowLeft, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Papa from 'papaparse'
+import { FileInput } from '@/components/ui/FileInput'
+import { Input } from '@/components/ui/Input'
 
 interface Member {
   name: string
@@ -70,7 +72,6 @@ const particleDots = Array.from({ length: 8 }, (_, i) => ({
 
 export default function MembersPage() {
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedOption, setSelectedOption] = useState<'csv' | 'manual' | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [csvError, setCsvError] = useState('')
@@ -80,8 +81,8 @@ export default function MembersPage() {
   const [importSuccess, setImportSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleCSVUpload = (files: File[]) => {
+    const file = files[0]
     if (!file) return
 
     Papa.parse(file, {
@@ -374,18 +375,11 @@ export default function MembersPage() {
               <label htmlFor="csv-upload" className="block text-sm font-medium text-slate-900 mb-2">
                 Upload CSV File
               </label>
-              <div
-                className="border-2 border-dashed border-primary-300 bg-primary-50/50 rounded-xl p-8 text-center hover:border-primary-400 hover:bg-primary-50 transition-all cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
+              <FileInput
+                accept=".csv"
+                onFiles={handleCSVUpload}
+                className="border-primary-300 bg-primary-50/50 p-8 hover:border-primary-400 hover:bg-primary-50"
               >
-                <input
-                  ref={fileInputRef}
-                  id="csv-upload"
-                  type="file"
-                  accept=".csv"
-                  onChange={handleCSVUpload}
-                  className="hidden"
-                />
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-100 to-blue-100 flex items-center justify-center">
                     <Upload className="w-6 h-6 text-primary-600" />
@@ -398,7 +392,7 @@ export default function MembersPage() {
                     CSV
                   </span>
                 </div>
-              </div>
+              </FileInput>
               <p className="text-xs text-slate-400 mt-2">
                 CSV must have &quot;name&quot; and &quot;email&quot; columns
               </p>
@@ -449,15 +443,17 @@ export default function MembersPage() {
 
             {members.length > 0 && (
               <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => {
+                <FileInput
+                  accept=".csv"
+                  onFiles={(files) => {
                     setMembers([])
-                    fileInputRef.current?.click()
+                    handleCSVUpload(files)
                   }}
-                  className="px-4 py-2.5 text-slate-700 font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                  compact
+                  className="px-4 py-2.5 border-slate-200"
                 >
-                  Change file
-                </button>
+                  <span className="text-slate-700 font-medium">Change file</span>
+                </FileInput>
                 <button
                   onClick={handleImportMembers}
                   disabled={importing}
@@ -498,7 +494,7 @@ export default function MembersPage() {
                   <label htmlFor="manual-name" className="block text-xs font-medium text-slate-500 mb-1.5">
                     Name
                   </label>
-                  <input
+                  <Input
                     id="manual-name"
                     type="text"
                     value={manualName}
@@ -510,14 +506,15 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="John Smith"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
+                    size="sm"
+                    className="w-full text-sm text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
                   />
                 </div>
                 <div className="flex-1">
                   <label htmlFor="manual-email" className="block text-xs font-medium text-slate-500 mb-1.5">
                     Email
                   </label>
-                  <input
+                  <Input
                     id="manual-email"
                     type="email"
                     value={manualEmail}
@@ -529,7 +526,8 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="john@school.edu"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 ui-input focus:border-primary-300 focus-visible:ring-2 focus-visible:ring-primary-100 transition-all"
+                    size="sm"
+                    className="w-full text-sm text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
                   />
                 </div>
                 <div className="flex items-end">

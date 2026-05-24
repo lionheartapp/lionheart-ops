@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MoreHorizontal, Loader2, UserCheck, UserX, RefreshCw } from 'lucide-react'
 import { dropdownVariants } from '@/lib/animations'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 import { STATUS_LABELS, ALLOWED_TRANSITIONS } from '@/lib/constants/maintenance'
 import type { WorkOrderTicket } from './WorkOrdersTable'
 
@@ -192,12 +193,12 @@ export default function RowActionMenu({
                   }))}
                 />
                 {selectedStatus === 'DONE' && (
-                  <input
+                  <Input
                     type="text"
                     placeholder="Completion note (optional)"
                     value={completionNote}
                     onChange={(e) => setCompletionNote(e.target.value)}
-                    className="ui-input"
+                    size="sm"
                   />
                 )}
                 {selectedStatus === 'ON_HOLD' && (
@@ -217,12 +218,12 @@ export default function RowActionMenu({
                   />
                 )}
                 {selectedStatus === 'CANCELLED' && (
-                  <input
+                  <Input
                     type="text"
                     placeholder="Reason for cancellation (required)"
                     value={cancellationReason}
                     onChange={(e) => setCancellationReason(e.target.value)}
-                    className="ui-input"
+                    size="sm"
                   />
                 )}
                 <div className="flex gap-2">

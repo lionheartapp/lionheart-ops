@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { Link2, Copy, Check, Loader2, Clock, School, QrCode, Download, Mail, Send } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import ITErrorState from './ITErrorState'
 
 interface School {
@@ -104,17 +106,17 @@ export default function ITMagicLinksTab() {
               <Clock className="w-3.5 h-3.5 inline mr-1" />
               Link expires in
             </label>
-            <select
+            <Select
               value={expiresInHours}
-              onChange={(e) => setExpiresInHours(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="4">4 hours</option>
-              <option value="8">8 hours (1 school day)</option>
-              <option value="24">24 hours</option>
-              <option value="48">48 hours</option>
-              <option value="120">5 days</option>
-            </select>
+              onChange={setExpiresInHours}
+              options={[
+                { value: '4', label: '4 hours' },
+                { value: '8', label: '8 hours (1 school day)' },
+                { value: '24', label: '24 hours' },
+                { value: '48', label: '48 hours' },
+                { value: '120', label: '5 days' },
+              ]}
+            />
           </div>
 
           {/* School */}
@@ -124,16 +126,14 @@ export default function ITMagicLinksTab() {
                 <School className="w-3.5 h-3.5 inline mr-1" />
                 Campus (optional)
               </label>
-              <select
+              <Select
                 value={schoolId}
-                onChange={(e) => setSchoolId(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-              >
-                <option value="">All campuses</option>
-                {schools.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+                onChange={setSchoolId}
+                options={[
+                  { value: '', label: 'All campuses' },
+                  ...schools.map((s) => ({ value: s.id, label: s.name })),
+                ]}
+              />
             </div>
           )}
 
@@ -170,11 +170,11 @@ export default function ITMagicLinksTab() {
           </p>
 
           <div className="flex gap-2">
-            <input
+            <Input
               type="text"
               readOnly
               value={generatedLink.url}
-              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 font-mono truncate"
+              className="flex-1 text-sm text-slate-700 font-mono truncate"
             />
             <button
               onClick={handleCopy}
@@ -202,12 +202,12 @@ export default function ITMagicLinksTab() {
           <div className="flex gap-2 mt-3">
             <div className="relative flex-1">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
+              <Input
                 type="email"
                 value={emailTo}
                 onChange={(e) => { setEmailTo(e.target.value); setEmailSent(false) }}
                 placeholder="Email link to substitute..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                className="w-full pl-9 text-sm text-slate-700"
               />
             </div>
             <button

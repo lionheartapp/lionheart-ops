@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
 import {
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import DetailDrawer from '@/components/DetailDrawer'
+import { FileInput } from '@/components/ui/FileInput'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -151,7 +152,6 @@ function parseCSV(text: string): { rows: ParsedRow[]; errors: string[] } {
 
 export default function AthleticsMegaImport({ isOpen, onClose }: AthleticsMegaImportProps) {
   const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [parsed, setParsed] = useState<ParsedRow[]>([])
   const [fileName, setFileName] = useState('')
@@ -216,8 +216,8 @@ export default function AthleticsMegaImport({ isOpen, onClose }: AthleticsMegaIm
     URL.revokeObjectURL(url)
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = (files: File[]) => {
+    const file = files[0]
     if (!file) return
 
     reset()
@@ -245,7 +245,6 @@ export default function AthleticsMegaImport({ isOpen, onClose }: AthleticsMegaIm
       }
     }
     reader.readAsText(file)
-    e.target.value = ''
   }
 
   const handleImport = async () => {
@@ -357,21 +356,13 @@ export default function AthleticsMegaImport({ isOpen, onClose }: AthleticsMegaIm
           </div>
         </button>
 
-        {/* File upload zone */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
         {!result && (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full flex flex-col items-center gap-3 px-4 py-8 border-2 border-dashed border-stone-200 rounded-xl hover:border-stone-400 hover:bg-stone-50/30 transition-colors cursor-pointer"
+          <FileInput
+            accept=".csv"
+            onFiles={handleFileSelect}
+            className="px-4 py-8 border-stone-200 hover:border-stone-400 hover:bg-stone-50/30"
           >
+            <div className="flex flex-col items-center gap-3">
             <div className="p-3 rounded-full bg-stone-100">
               <FileSpreadsheet className="w-6 h-6 text-stone-400" />
             </div>
@@ -383,7 +374,8 @@ export default function AthleticsMegaImport({ isOpen, onClose }: AthleticsMegaIm
                 One row per player — sport, season, and team are auto-created
               </p>
             </div>
-          </button>
+            </div>
+          </FileInput>
         )}
 
         {/* Parse errors */}

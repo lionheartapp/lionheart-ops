@@ -5,11 +5,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, X, Trash2, ChevronRight, Shield, GripVertical,
-  Layers, ArrowDown, Users, Sparkles, Search, RotateCcw,
+  Layers, ArrowDown, Users, Sparkles, RotateCcw,
 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import { Input } from '@/components/ui/Input'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Select } from '@/components/ui/Select'
 import AIWorkflowCreator from './AIWorkflowCreator'
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
@@ -201,45 +204,52 @@ function SortableStepRow({
       </div>
 
       {/* Trigger toggle */}
-      <select
-        value={step.trigger}
-        onChange={(e) => updateStep(ruleId, step.id, { trigger: e.target.value })}
-        className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none flex-shrink-0"
-      >
-        <option value="ALWAYS">Always</option>
-        <option value="WHEN_RESOURCE_REQUESTED">If needed</option>
-      </select>
+      <div className="w-24 flex-shrink-0">
+        <Select
+          size="sm"
+          value={step.trigger}
+          onChange={(value) => updateStep(ruleId, step.id, { trigger: value })}
+          options={[
+            { value: 'ALWAYS', label: 'Always' },
+            { value: 'WHEN_RESOURCE_REQUESTED', label: 'If needed' },
+          ]}
+        />
+      </div>
 
       {/* Escalation: timer + action */}
       {step.mode === 'REQUIRED' && (
         <div className="flex items-center gap-1 flex-shrink-0">
-          <select
-            value={step.escalationHours}
-            onChange={(e) => updateStep(ruleId, step.id, { escalationHours: Number(e.target.value) })}
-            title="Time before escalation"
-            className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none"
-          >
-            <option value={24}>24h</option>
-            <option value={48}>48h</option>
-            <option value={72}>72h</option>
-            <option value={96}>4 days</option>
-            <option value={168}>1 week</option>
-          </select>
+          <div className="w-24" title="Time before escalation">
+            <Select
+              size="sm"
+              value={String(step.escalationHours)}
+              onChange={(value) => updateStep(ruleId, step.id, { escalationHours: Number(value) })}
+              options={[
+                { value: '24', label: '24h' },
+                { value: '48', label: '48h' },
+                { value: '72', label: '72h' },
+                { value: '96', label: '4 days' },
+                { value: '168', label: '1 week' },
+              ]}
+            />
+          </div>
           <span className="text-[10px] text-slate-300">→</span>
-          <select
-            value={step.escalationAction || 'REMIND'}
-            onChange={(e) => {
-              const updates: Record<string, unknown> = { escalationAction: e.target.value }
-              if (e.target.value !== 'ESCALATE') updates.escalateToUserId = null
-              updateStep(ruleId, step.id, updates)
-            }}
-            title="What happens after the timer"
-            className="text-[10px] bg-white border border-slate-200 rounded-md px-1.5 py-1 focus:border-slate-900 outline-none"
-          >
-            <option value="REMIND">Remind</option>
-            <option value="AUTO_APPROVE">Auto-approve</option>
-            <option value="ESCALATE">Escalate</option>
-          </select>
+          <div className="w-32" title="What happens after the timer">
+            <Select
+              size="sm"
+              value={step.escalationAction || 'REMIND'}
+              onChange={(value) => {
+                const updates: Record<string, unknown> = { escalationAction: value }
+                if (value !== 'ESCALATE') updates.escalateToUserId = null
+                updateStep(ruleId, step.id, updates)
+              }}
+              options={[
+                { value: 'REMIND', label: 'Remind' },
+                { value: 'AUTO_APPROVE', label: 'Auto-approve' },
+                { value: 'ESCALATE', label: 'Escalate' },
+              ]}
+            />
+          </div>
         </div>
       )}
 
@@ -514,7 +524,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-amber-800">AI-generated rules — please review</p>
                 <p className="text-xs text-amber-600 mt-0.5">
-                  These rules were created by AI and may not be 100% accurate. Please review each rule's conditions, steps, and execution mode before relying on them.
+                  These rules were created by AI and may not be 100% accurate. Please review each rule&apos;s conditions, steps, and execution mode before relying on them.
                 </p>
               </div>
               <button
@@ -552,26 +562,15 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                 <span className="ml-1.5 text-[10px] font-medium text-slate-400">{rules.length}</span>
               </p>
             </div>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-              <input
-                // F-044: type="search" gives us the browser clear-X button
-                // and the right keyboard layout on mobile.
-                type="search"
+            <div>
+              <SearchInput
+                size="sm"
                 value={ruleSearch}
                 onChange={(e) => setRuleSearch(e.target.value)}
                 placeholder="Search rules..."
                 aria-label="Search approval rules"
-                className="w-full pl-8 pr-7 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-400 transition-colors placeholder:text-slate-400"
+                onClear={() => setRuleSearch('')}
               />
-              {ruleSearch && (
-                <button
-                  onClick={() => setRuleSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
-                >
-                  <X className="w-3 h-3 text-slate-400" />
-                </button>
-              )}
             </div>
           </div>
 
@@ -656,11 +655,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                 {/* Detail header */}
                 <div className="px-6 py-4 border-b border-slate-100">
                   <div className="flex items-center justify-between">
-                    <input
+                    <Input
                       type="text"
                       value={selectedRule.name}
                       onChange={(e) => updateRule(selectedRule.id, { name: e.target.value })}
-                      className="text-lg font-semibold text-slate-900 bg-transparent border-none outline-none hover:bg-slate-50 focus:bg-slate-50 rounded-lg px-2 py-1 -mx-2 w-[calc(100%+1rem)] transition-colors"
+                      className="!h-auto !w-[calc(100%+1rem)] !border-0 !bg-transparent !px-2 !py-1 -mx-2 text-lg font-semibold text-slate-900 hover:!bg-slate-50 focus:!bg-slate-50 !outline-none !ring-0 transition-colors"
                       placeholder="Rule name..."
                     />
                   </div>
@@ -672,52 +671,51 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium text-amber-600 w-12 flex-shrink-0">When</span>
                         <span className="text-xs text-slate-400 flex-shrink-0">school is</span>
-                        <select
-                          value={selectedRule.schoolId || ''}
-                          onChange={(e) => {
-                            const schoolName = schools.find(s => s.id === e.target.value)?.name
-                            const updates: Record<string, unknown> = { schoolId: e.target.value || null }
+                        <div className="flex-1 min-w-0">
+                          <Select
+                            size="sm"
+                            value={selectedRule.schoolId || ''}
+                            onChange={(value) => {
+                              const schoolName = schools.find(s => s.id === value)?.name
+                              const updates: Record<string, unknown> = { schoolId: value || null }
                             // Auto-update name based on conditions
-                            if (e.target.value && !selectedRule.campusId && !selectedRule.eventCategory) {
+                              if (value && !selectedRule.campusId && !selectedRule.eventCategory) {
                               updates.name = (schoolName || '') + ' Events'
                             }
                             // Clear campus if it doesn't belong to selected school
-                            if (e.target.value && selectedRule.campusId) {
+                              if (value && selectedRule.campusId) {
                               const campus = campuses.find(c => c.id === selectedRule.campusId)
-                              if (campus && campus.schoolId !== e.target.value) {
+                                if (campus && campus.schoolId !== value) {
                                 updates.campusId = null
                               }
                             }
                             updateRule(selectedRule.id, updates)
                           }}
-                          className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
-                        >
-                          <option value="">Any school</option>
-                          {schools.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
-                        </select>
+                            options={[{ value: '', label: 'Any school' }, ...schools.map(s => ({ value: s.id, label: s.name }))]}
+                          />
+                        </div>
                       </div>
 
                       {/* Campus condition */}
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                         <span className="text-xs text-slate-400 flex-shrink-0">campus is</span>
-                        <select
-                          value={selectedRule.campusId || ''}
-                          onChange={(e) => {
-                            const updates: Record<string, unknown> = { campusId: e.target.value || null }
+                        <div className="flex-1 min-w-0">
+                          <Select
+                            size="sm"
+                            value={selectedRule.campusId || ''}
+                            onChange={(value) => {
+                              const updates: Record<string, unknown> = { campusId: value || null }
                             updateRule(selectedRule.id, updates)
                           }}
-                          className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0"
-                        >
-                          <option value="">Any campus</option>
-                          {campuses
-                            .filter(c => !selectedRule.schoolId || c.schoolId === selectedRule.schoolId)
-                            .map(c => (
-                              <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                            options={[
+                              { value: '', label: 'Any campus' },
+                              ...campuses
+                                .filter(c => !selectedRule.schoolId || c.schoolId === selectedRule.schoolId)
+                                .map(c => ({ value: c.id, label: c.name })),
+                            ]}
+                          />
+                        </div>
                       </div>
 
                       {/* Module-specific conditions */}
@@ -727,17 +725,21 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                             <span className="text-xs text-slate-400 flex-shrink-0">category is</span>
-                            <select value={selectedRule.eventCategory || ''} onChange={(e) => updateRule(selectedRule.id, { eventCategory: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                              <option value="">Any category</option>
-                              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
+                            <div className="flex-1 min-w-0">
+                              <Select
+                                size="sm"
+                                value={selectedRule.eventCategory || ''}
+                                onChange={(value) => updateRule(selectedRule.id, { eventCategory: value || null })}
+                                options={[{ value: '', label: 'Any category' }, ...categories.map(c => ({ value: c.id, label: c.name }))]}
+                              />
+                            </div>
                           </div>
                           {/* Event extra conditions */}
                           {selectedRule.minAttendance != null && (
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">attendance ≥</span>
-                              <input type="number" min="1" value={selectedRule.minAttendance ?? ''} onChange={(e) => updateRule(selectedRule.id, { minAttendance: e.target.value ? Number(e.target.value) : null })} placeholder="Any size" className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0" />
+                              <Input type="number" size="sm" min="1" value={selectedRule.minAttendance ?? ''} onChange={(e) => updateRule(selectedRule.id, { minAttendance: e.target.value ? Number(e.target.value) : null })} placeholder="Any size" className="w-24 flex-shrink-0 text-xs" />
                               <button onClick={() => updateRule(selectedRule.id, { minAttendance: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -745,9 +747,19 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">needs</span>
-                              <select value={selectedRule.requiresResource || ''} onChange={(e) => updateRule(selectedRule.id, { requiresResource: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                                <option value="av">A/V Equipment</option><option value="facilities">Facilities Setup</option><option value="custodial">Custodial</option><option value="security">Security</option>
-                              </select>
+                              <div className="flex-1 min-w-0">
+                                <Select
+                                  size="sm"
+                                  value={selectedRule.requiresResource || ''}
+                                  onChange={(value) => updateRule(selectedRule.id, { requiresResource: value || null })}
+                                  options={[
+                                    { value: 'av', label: 'A/V Equipment' },
+                                    { value: 'facilities', label: 'Facilities Setup' },
+                                    { value: 'custodial', label: 'Custodial' },
+                                    { value: 'security', label: 'Security' },
+                                  ]}
+                                />
+                              </div>
                               <button onClick={() => updateRule(selectedRule.id, { requiresResource: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -755,9 +767,17 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">location is</span>
-                              <select value={selectedRule.isOffCampus ? 'true' : 'false'} onChange={(e) => updateRule(selectedRule.id, { isOffCampus: e.target.value === 'true' })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                                <option value="false">On campus</option><option value="true">Off campus</option>
-                              </select>
+                              <div className="flex-1 min-w-0">
+                                <Select
+                                  size="sm"
+                                  value={selectedRule.isOffCampus ? 'true' : 'false'}
+                                  onChange={(value) => updateRule(selectedRule.id, { isOffCampus: value === 'true' })}
+                                  options={[
+                                    { value: 'false', label: 'On campus' },
+                                    { value: 'true', label: 'Off campus' },
+                                  ]}
+                                />
+                              </div>
                               <button onClick={() => updateRule(selectedRule.id, { isOffCampus: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -776,19 +796,28 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                             <span className="text-xs text-slate-400 flex-shrink-0">category is</span>
-                            <select value={selectedRule.maintenanceCategory || ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceCategory: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                              <option value="">Any category</option>
-                              {MAINTENANCE_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                            </select>
+                            <div className="flex-1 min-w-0">
+                              <Select
+                                size="sm"
+                                value={selectedRule.maintenanceCategory || ''}
+                                onChange={(value) => updateRule(selectedRule.id, { maintenanceCategory: value || null })}
+                                options={[{ value: '', label: 'Any category' }, ...MAINTENANCE_CATEGORIES]}
+                              />
+                            </div>
                           </div>
                           {/* Maintenance: Priority */}
                           {selectedRule.maintenancePriority != null && (
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">priority is</span>
-                              <select value={selectedRule.maintenancePriority || ''} onChange={(e) => updateRule(selectedRule.id, { maintenancePriority: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                                {MAINTENANCE_PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                              </select>
+                              <div className="flex-1 min-w-0">
+                                <Select
+                                  size="sm"
+                                  value={selectedRule.maintenancePriority || ''}
+                                  onChange={(value) => updateRule(selectedRule.id, { maintenancePriority: value || null })}
+                                  options={MAINTENANCE_PRIORITIES}
+                                />
+                              </div>
                               <button onClick={() => updateRule(selectedRule.id, { maintenancePriority: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -797,9 +826,14 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">building is</span>
-                              <select value={selectedRule.maintenanceBuildingId || ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceBuildingId: e.target.value || null })} className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none flex-1 min-w-0">
-                                {buildings.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                              </select>
+                              <div className="flex-1 min-w-0">
+                                <Select
+                                  size="sm"
+                                  value={selectedRule.maintenanceBuildingId || ''}
+                                  onChange={(value) => updateRule(selectedRule.id, { maintenanceBuildingId: value || null })}
+                                  options={buildings.map(b => ({ value: b.id, label: b.name }))}
+                                />
+                              </div>
                               <button onClick={() => updateRule(selectedRule.id, { maintenanceBuildingId: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -808,7 +842,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-medium text-slate-400 w-12 flex-shrink-0">and</span>
                               <span className="text-xs text-slate-400 flex-shrink-0">cost ≥ $</span>
-                              <input type="number" min="1" value={selectedRule.maintenanceMinCost ?? ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceMinCost: e.target.value ? Number(e.target.value) : null })} placeholder="Any" className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none w-24 flex-shrink-0" />
+                              <Input type="number" size="sm" min="1" value={selectedRule.maintenanceMinCost ?? ''} onChange={(e) => updateRule(selectedRule.id, { maintenanceMinCost: e.target.value ? Number(e.target.value) : null })} placeholder="Any" className="w-24 flex-shrink-0 text-xs" />
                               <button onClick={() => updateRule(selectedRule.id, { maintenanceMinCost: null })} className="text-slate-300 hover:text-red-400 cursor-pointer"><X className="w-3 h-3" /></button>
                             </div>
                           )}
@@ -979,35 +1013,29 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
 
                       <div className="flex items-center gap-2">
                         {addStepType === 'team' ? (
-                          <select
-                            value={addStepTeamId}
-                            onChange={(e) => setAddStepTeamId(e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none appearance-none"
-                            autoFocus
-                          >
-                            <option value="">Select team...</option>
-                            {teams
-                              .filter(t => !selectedRule.steps.some(s => s.teamId === t.id && !s.assignedUser))
-                              .map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                              ))}
-                          </select>
+                          <div className="flex-1">
+                            <Select
+                              size="sm"
+                              value={addStepTeamId}
+                              onChange={setAddStepTeamId}
+                              placeholder="Select team..."
+                              options={teams
+                                .filter(t => !selectedRule.steps.some(s => s.teamId === t.id && !s.assignedUser))
+                                .map(t => ({ value: t.id, label: t.name }))}
+                            />
+                          </div>
                         ) : (
-                          <select
-                            value={addStepPersonId}
-                            onChange={(e) => setAddStepPersonId(e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:border-slate-900 focus:ring-1 focus:ring-slate-900/10 outline-none appearance-none"
-                            autoFocus
-                          >
-                            <option value="">Select person...</option>
-                            {allMembers
-                              .filter(m => !selectedRule.steps.some(s => s.assignedUser?.id === m.id))
-                              .map(m => (
-                                <option key={m.id} value={m.id}>
-                                  {m.name || m.email} ({m.teamName})
-                                </option>
-                              ))}
-                          </select>
+                          <div className="flex-1">
+                            <Select
+                              size="sm"
+                              value={addStepPersonId}
+                              onChange={setAddStepPersonId}
+                              placeholder="Select person..."
+                              options={allMembers
+                                .filter(m => !selectedRule.steps.some(s => s.assignedUser?.id === m.id))
+                                .map(m => ({ value: m.id, label: `${m.name || m.email} (${m.teamName})` }))}
+                            />
+                          </div>
                         )}
                         <button
                           onClick={() => addStep(selectedRule.id)}

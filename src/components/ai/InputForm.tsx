@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Send, Mic, ImagePlus, X } from 'lucide-react'
 import { useSpeechRecognition } from '@/lib/hooks/useSpeechRecognition'
 import { ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
+import { FileInput } from '@/components/ui/FileInput'
+import { Textarea } from '@/components/ui/Textarea'
 import type { ImageAttachment } from '@/lib/types/assistant'
 import MentionDropdown from './MentionDropdown'
 import VoiceOrb from './VoiceOrb'
@@ -62,7 +64,6 @@ export default function InputForm({
     'Show me our maintenance stats',
     'Create an IT ticket for a broken projector',
   ], [])
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const {
     isSupported: voiceSupported,
     isListening,
@@ -333,17 +334,6 @@ export default function InputForm({
     }
   }
 
-  const handleImageButtonClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    if (files.length > 0) addFiles(files)
-    // Reset so the same file can be re-selected
-    e.target.value = ''
-  }
-
   // Paste support
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items
@@ -433,30 +423,26 @@ export default function InputForm({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
+        {/* Image upload button */}
+        <FileInput
           accept={acceptTypes}
           multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        {/* Image upload button */}
-        <button
-          type="button"
-          onClick={handleImageButtonClick}
+          onFiles={addFiles}
           disabled={isLoading || images.length >= MAX_IMAGES}
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-slate-100/80 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600 disabled:opacity-40 cursor-pointer"
-          aria-label="Attach image"
-          title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
+          compact
+          className="border-0 p-0 bg-transparent hover:bg-transparent"
         >
-          <ImagePlus className="h-4 w-4" />
-        </button>
+          <span
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-slate-100/80 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600 disabled:opacity-40 cursor-pointer"
+            aria-label="Attach image"
+            title={images.length >= MAX_IMAGES ? `Max ${MAX_IMAGES} images` : 'Attach image'}
+          >
+            <ImagePlus className="h-4 w-4" />
+          </span>
+        </FileInput>
 
         <div className="relative flex-1" ref={formWrapperRef}>
-          <textarea
+          <Textarea
             ref={textareaRef}
             value={input}
             onChange={handleInput}
@@ -468,7 +454,7 @@ export default function InputForm({
             placeholder={isDragging ? 'Drop image here...' : isListening ? 'Listening...' : isFocused ? 'Ask anything...' : undefined}
             disabled={isLoading}
             rows={1}
-            className={`w-full resize-none rounded-2xl border bg-slate-50/80 px-4 py-2.5 text-sm leading-relaxed overflow-hidden placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 disabled:opacity-50 transition-colors ${
+            className={`w-full resize-none rounded-2xl bg-slate-50/80 px-4 py-2.5 text-sm leading-relaxed overflow-hidden placeholder:text-slate-400 focus:bg-white focus:ring-1 disabled:opacity-50 transition-colors ${
               isListening
                 ? 'border-indigo-300 focus:border-indigo-400 focus:ring-indigo-400'
                 : 'border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400'

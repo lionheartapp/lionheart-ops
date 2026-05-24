@@ -14,6 +14,7 @@ import {
   renderStatusBadge,
   renderSkeleton,
 } from './types'
+import { Input } from '@/components/ui/Input'
 
 type Props = {
   buildings: Building[]
@@ -552,7 +553,7 @@ function BuildingsList({
                         )}
                         {isEditingName ? (
                           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                            <input
+                            <Input
                               ref={buildingInputRef}
                               value={editingBuildingName}
                               onChange={(e) => setEditingBuildingName(e.target.value)}
@@ -562,7 +563,8 @@ function BuildingsList({
                               }}
                               onBlur={() => saveEditBuilding(b.id, b.name)}
                               disabled={savingBuildingId === b.id}
-                              className="font-medium text-slate-900 bg-white border border-primary-300 rounded px-1.5 py-0.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-40"
+                              size="sm"
+                              className="h-auto min-h-0 w-40 rounded px-1.5 py-0.5 text-sm font-medium text-slate-900 focus:ring-primary-100"
                               autoFocus
                             />
                           </div>
@@ -648,7 +650,7 @@ function BuildingsList({
                                   <span className="font-medium text-slate-700">{r.roomNumber}</span>
                                   {isEditingRoom ? (
                                     <div className="flex items-center gap-1">
-                                      <input
+                                      <Input
                                         ref={roomInputRef}
                                         value={editingRoomName}
                                         onChange={(e) => setEditingRoomName(e.target.value)}
@@ -659,7 +661,8 @@ function BuildingsList({
                                         onBlur={() => saveEditRoom(r.id, r.displayName)}
                                         disabled={savingRoomId === r.id}
                                         placeholder="Display name"
-                                        className="text-xs text-slate-700 bg-white border border-primary-300 rounded px-1.5 py-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-28"
+                                        size="sm"
+                                        className="h-auto min-h-0 w-28 rounded px-1.5 py-0.5 text-xs text-slate-700 focus:ring-primary-100"
                                         autoFocus
                                       />
                                     </div>

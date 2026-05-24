@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DoorOpen, Plus, Save, XCircle, Edit2, Camera, Trash2, UserPlus, X, Search } from 'lucide-react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 import RowActionMenu from '@/components/RowActionMenu'
 import ImageUpload from '@/components/settings/ImageUpload'
 import { getAuthHeaders } from '@/lib/api-client'
@@ -127,13 +128,14 @@ function PersonSearchPicker({
       <div className="p-2 border-b border-slate-100">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search members..."
-            className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            size="sm"
+            className="w-full pl-8 text-sm"
             onKeyDown={(e) => { if (e.key === 'Escape') onCancel() }}
           />
         </div>
@@ -358,15 +360,15 @@ export default function RoomsDrawer({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">Room # / ID</label>
-                      <input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} autoFocus />
+                      <Input aria-label="Room number" value={editData.roomNumber} onChange={(e) => setEditData((p) => ({ ...p, roomNumber: e.target.value }))} className="w-full text-sm" disabled={editSaving} autoFocus />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">Name</label>
-                      <input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} />
+                      <Input aria-label="Room display name" value={editData.displayName} onChange={(e) => setEditData((p) => ({ ...p, displayName: e.target.value }))} placeholder="optional" className="w-full text-sm" disabled={editSaving} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">Floor</label>
-                      <input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus:border-transparent" disabled={editSaving} />
+                      <Input aria-label="Room floor" value={editData.floor} onChange={(e) => setEditData((p) => ({ ...p, floor: e.target.value }))} placeholder="optional" className="w-full text-sm" disabled={editSaving} />
                     </div>
                   </div>
                   <div className="flex items-center justify-end gap-2">

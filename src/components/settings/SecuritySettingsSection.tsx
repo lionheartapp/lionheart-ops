@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ShieldCheck, FileCheck, Check, AlertCircle } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import { FloatingInput } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
@@ -295,11 +296,11 @@ export default function SecuritySettingsSection() {
                 />
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">Review due date</label>
-                  <input
+                  <Input
                     type="date"
                     value={dpaReviewDueAt}
                     onChange={(e) => setDpaReviewDueAt(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    className="text-sm text-slate-700 focus:ring-blue-100"
                   />
                 </div>
               </div>

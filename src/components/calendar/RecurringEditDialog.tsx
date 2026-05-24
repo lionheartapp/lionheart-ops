@@ -76,9 +76,13 @@ export default function RecurringEditDialog({
 
               <div className="space-y-2">
                 {OPTIONS.map((opt) => (
-                  <label
+                  <button
+                    type="button"
                     key={opt.value}
-                    className="flex items-center gap-3 py-1.5 cursor-pointer group"
+                    role="radio"
+                    aria-checked={selected === opt.value}
+                    onClick={() => setSelected(opt.value)}
+                    className="flex items-center gap-3 py-1.5 cursor-pointer group text-left"
                   >
                     <span className="relative flex items-center justify-center w-5 h-5">
                       <span className={`w-5 h-5 rounded-full border-2 transition-colors ${
@@ -90,16 +94,8 @@ export default function RecurringEditDialog({
                         <span className="absolute w-2.5 h-2.5 rounded-full bg-primary-600" />
                       )}
                     </span>
-                    <input
-                      type="radio"
-                      name="recurring-edit-mode"
-                      value={opt.value}
-                      checked={selected === opt.value}
-                      onChange={() => setSelected(opt.value)}
-                      className="sr-only"
-                    />
                     <span className="text-sm text-slate-700">{opt.label}</span>
-                  </label>
+                  </button>
                 ))}
               </div>
             </div>

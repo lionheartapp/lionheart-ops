@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Loader2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 import type { ComplianceDomainCardData } from './ComplianceDomainCard'
 import type { ComplianceDomain } from '@prisma/client'
 
@@ -170,28 +173,27 @@ export function ComplianceSetupWizard({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">Month</label>
-                      <select
+                      <Select
                         value={customMonth}
-                        onChange={(e) => setCustomMonth(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                      >
-                        {MONTH_NAMES.slice(1).map((name, i) => (
-                          <option key={i + 1} value={i + 1}>
-                            {name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setCustomMonth}
+                        options={MONTH_NAMES.slice(1).map((name, i) => ({
+                          value: String(i + 1),
+                          label: name,
+                        }))}
+                        size="sm"
+                      />
                     </div>
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">Day</label>
-                      <input
+                      <Input
                         type="number"
                         min={1}
                         max={31}
                         value={customDay}
                         onChange={(e) => setCustomDay(e.target.value)}
                         placeholder={meta.defaultDay.toString()}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                        size="sm"
+                        className="w-full text-sm"
                       />
                     </div>
                   </div>
@@ -203,12 +205,12 @@ export function ComplianceSetupWizard({
                 <label className="text-sm font-medium text-slate-700 block mb-2">
                   Notes (optional)
                 </label>
-                <textarea
+                <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspector contact info, local requirements, etc."
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
+                  className="w-full text-sm resize-none"
                 />
               </div>
 

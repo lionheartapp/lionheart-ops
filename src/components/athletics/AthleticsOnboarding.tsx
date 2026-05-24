@@ -9,6 +9,7 @@ import {
   Check, Loader2, ArrowRight, MapPin,
 } from 'lucide-react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Select } from '@/components/ui/Select'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { useModules } from '@/lib/hooks/useModuleEnabled'
 
@@ -297,15 +298,12 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
           <div className="inline-flex items-center gap-2.5 bg-white border border-stone-200 rounded-full px-4 py-2 shadow-sm">
             <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <span className="text-sm text-stone-500">Setting up for</span>
-            <select
+            <Select
               value={selectedCampusId ?? ''}
-              onChange={(e) => setSelectedCampusId(e.target.value)}
-              className="text-sm font-semibold text-slate-900 bg-transparent focus:outline-none cursor-pointer appearance-none pr-5 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0_center]"
-            >
-              {campuses.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              onChange={setSelectedCampusId}
+              options={campuses.map((c) => ({ value: c.id, label: c.name }))}
+              size="sm"
+            />
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import { getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
 import ITSummerBatchDetail from './ITSummerBatchDetail'
 import ITVendorRepairDialog from './ITVendorRepairDialog'
+import { Input } from '@/components/ui/Input'
 import {
   Sun,
   Plus,
@@ -337,11 +338,12 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
               <label className="block text-xs font-medium text-slate-600 mb-1">Start Date</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
+                <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                  size="sm"
+                  className="w-full pl-9 text-sm focus:ring-blue-400/40 focus:border-blue-300"
                 />
               </div>
             </div>
@@ -349,11 +351,12 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
               <label className="block text-xs font-medium text-slate-600 mb-1">End Date</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
+                <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300"
+                  size="sm"
+                  className="w-full pl-9 text-sm focus:ring-blue-400/40 focus:border-blue-300"
                 />
               </div>
             </div>

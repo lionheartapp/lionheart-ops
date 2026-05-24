@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { FloatingInput, FloatingDropdown, FloatingTextarea, type DropdownOption } from '@/components/ui/FloatingInput'
 import RRuleBuilder from '@/components/athletics/RRuleBuilder'
 import LocationPicker, { defaultLocationData, type LocationData } from '@/components/events/LocationPicker'
@@ -255,11 +256,9 @@ export default function PracticeDrawer({
         />
 
         <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={form.recurring}
             onChange={(e) => setForm({ ...form, recurring: e.target.checked, rrule: e.target.checked ? form.rrule : '' })}
-            className="w-4 h-4 rounded border-stone-300 text-primary-500 focus-visible:ring-primary-500"
           />
           <span className="text-sm text-stone-700">Make recurring</span>
         </label>

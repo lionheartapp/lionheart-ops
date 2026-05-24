@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Send, X, MessageCircle } from 'lucide-react'
 import { useEventChat, type ChatMessage } from '@/lib/hooks/useEventChat'
 import { formatDistanceToNowStrict } from 'date-fns'
+import { Input } from '@/components/ui/Input'
 import {
   SURFACE,
   BORDER,
@@ -300,8 +301,7 @@ export function EventChatDrawer({
               className="flex items-center gap-2 px-6 py-4 flex-shrink-0"
               style={{ borderTop: `1px solid ${HAIRLINE}` }}
             >
-              {/* eslint-disable-next-line no-restricted-syntax -- chat-style composer (rounded-full pill, warm color theme); intentionally distinct from form Input */}
-              <input
+              <Input
                 ref={inputRef}
                 type="text"
                 value={input}
@@ -309,7 +309,7 @@ export function EventChatDrawer({
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
                 maxLength={2000}
-                className="flex-1 text-[13px] px-4 py-2.5 rounded-full outline-none transition-colors"
+                className="flex-1 text-[13px] rounded-full"
                 style={{
                   backgroundColor: WARM_CHIP,
                   color: TEXT_PRIMARY,

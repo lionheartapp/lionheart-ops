@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, User, Calendar, Ticket, MapPin, X } from 'lucide-react'
 import { useGlobalSearch, type SearchResults } from '@/lib/hooks/useGlobalSearch'
 import { scaleIn, listItem, staggerContainer } from '@/lib/animations'
+import { Input } from '@/components/ui/Input'
 
 interface SearchCommandProps {
   isOpen: boolean
@@ -215,12 +216,13 @@ export default function SearchCommand({ isOpen, onClose }: SearchCommandProps) {
           {/* Search input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
             <Search className="w-5 h-5 text-slate-400 flex-shrink-0" />
-            <input
+            <Input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search people, events, tickets, locations..."
-              className="flex-1 text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
+              size="sm"
+              className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-900 shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
               autoComplete="off"
               spellCheck={false}
             />

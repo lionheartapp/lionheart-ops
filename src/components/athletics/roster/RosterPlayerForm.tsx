@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Upload, X, Loader2, ImagePlus, Trophy, Plus } from 'lucide-react'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
+import { FileInput } from '@/components/ui/FileInput'
+import { Textarea } from '@/components/ui/Textarea'
 import type { RosterEntry } from './roster-types'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -184,13 +186,13 @@ export default function RosterPlayerForm({
       {/* ── Public Profile ─────────────────────────────────────────── */}
       <section>
         <SectionLabel>Public Profile</SectionLabel>
-        <textarea
+        <Textarea
           id="bio"
           value={bio}
           onChange={(e) => onBioChange(e.target.value)}
           placeholder="Short bio for the public profile..."
           rows={3}
-          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow resize-none"
+          className="w-full text-sm text-stone-800 placeholder:text-stone-400 focus:ring-primary-500 resize-none"
         />
       </section>
 
@@ -239,9 +241,7 @@ function PlayerPhotoArea({
   onPhotoChange: (url: string) => void
 }) {
   const [uploading, setUploading] = useState(false)
-  const [dragOver, setDragOver] = useState(false)
   const [uploadError, setUploadError] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
   const canUpload = !!playerId
@@ -311,31 +311,18 @@ function PlayerPhotoArea({
 
   return (
     <div className="w-[160px] flex-shrink-0">
-      <div
-        onDrop={(e) => {
-          e.preventDefault()
-          setDragOver(false)
-          if (!uploading && canUpload) {
-            const file = e.dataTransfer.files[0]
-            if (file) handleFile(file)
-          }
+      <FileInput
+        accept={ALLOWED_TYPES.join(',')}
+        onFiles={(files) => {
+          const file = files[0]
+          if (file) handleFile(file)
         }}
-        onDragOver={(e) => { e.preventDefault(); if (canUpload) setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onClick={() => canUpload && !uploading && inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && canUpload && !uploading) {
-            e.preventDefault()
-            inputRef.current?.click()
-          }
-        }}
-        role={canUpload ? 'button' : undefined}
-        tabIndex={canUpload ? 0 : undefined}
-        aria-label={canUpload ? 'Upload player photo' : undefined}
+        disabled={!canUpload || uploading}
+        loading={uploading}
+        compact
         className={`
-          group relative w-[160px] h-[190px] rounded-2xl overflow-hidden transition-all
+          group relative w-[160px] h-[190px] rounded-2xl overflow-hidden transition-all p-0
           ${canUpload ? 'cursor-pointer' : ''}
-          ${dragOver ? 'ring-2 ring-primary-400 ring-offset-2' : ''}
           ${uploading ? 'pointer-events-none opacity-60' : ''}
           ${photoUrl ? 'shadow-lg' : 'border-2 border-dashed border-stone-200 hover:border-stone-300 bg-stone-50/50'}
         `}
@@ -377,20 +364,8 @@ function PlayerPhotoArea({
             </span>
           </div>
         )}
-      </div>
+      </FileInput>
       {uploadError && <p className="mt-1.5 text-[10px] text-red-500 text-center">{uploadError}</p>}
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ALLOWED_TYPES.join(',')}
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) handleFile(file)
-          if (inputRef.current) inputRef.current.value = ''
-        }}
-        className="hidden"
-      />
     </div>
   )
 }

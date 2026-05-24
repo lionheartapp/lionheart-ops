@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { Loader2, AlertCircle } from 'lucide-react'
 import { motion, MotionConfig } from 'framer-motion'
 import Link from 'next/link'
+import { Input } from '@/components/ui/Input'
 
 const showcaseCardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -100,17 +101,16 @@ export default function SigninPage() {
                 School Subdomain
               </label>
               <div className="relative">
-                <input
+                <Input
                   id="subdomain"
                   type="text"
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="e.g., mitchell-academy"
-                  className="w-full px-4 py-2.5 pr-44 border rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition"
-                  style={{ borderColor: 'rgba(17,15,10,0.12)', color: '#1a1915' }}
+                  className="sm:pr-44"
                   required
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none" style={{ color: '#a8a49d' }}>
+                <span className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none" style={{ color: '#a8a49d' }}>
                   .lionheartapp.com
                 </span>
               </div>

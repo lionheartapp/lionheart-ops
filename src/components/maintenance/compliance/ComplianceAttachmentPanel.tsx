@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Paperclip, X, FileText, Image, Loader2, UploadCloud } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
+import { FileInput } from '@/components/ui/FileInput'
 
 interface ComplianceRecord {
   id: string
@@ -36,13 +37,12 @@ function getFileName(url: string): string {
 }
 
 export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: ComplianceAttachmentPanelProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [attachments, setAttachments] = useState<string[]>(record.attachments ?? [])
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = async (files: File[]) => {
+    const file = files[0]
     if (!file) return
 
     if (attachments.length >= MAX_ATTACHMENTS) {
@@ -100,8 +100,6 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
       setUploadError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
-      // Reset file input so same file can be re-selected
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -171,13 +169,18 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
 
       {/* Upload button */}
       {canAddMore && (
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-primary-300 text-primary-600 text-xs font-medium hover:bg-primary-50/50 transition-colors cursor-pointer"
+        <FileInput
+          accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+          onFiles={handleFileSelect}
+          disabled={uploading}
+          compact
+          className="w-full border-0 bg-transparent p-0"
         >
-          <UploadCloud className="w-3.5 h-3.5" />
-          Attach Document
-        </button>
+          <span className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-primary-300 text-primary-600 text-xs font-medium hover:bg-primary-50/50 transition-colors cursor-pointer">
+            <UploadCloud className="w-3.5 h-3.5" />
+            Attach Document
+          </span>
+        </FileInput>
       )}
 
       {uploading && (
@@ -195,14 +198,6 @@ export function ComplianceAttachmentPanel({ record, onAttachmentsUpdated }: Comp
         <p className="text-xs text-slate-400 mt-2">Maximum {MAX_ATTACHMENTS} attachments reached.</p>
       )}
 
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
-        className="hidden"
-        onChange={handleFileSelect}
-      />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { queryKeys } from '@/lib/queries'
 import { getAuthHeaders } from '@/lib/api-client'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { Select } from '@/components/ui/Select'
 import { useToast } from '@/components/Toast'
 import { Loader2, Truck, Package } from 'lucide-react'
 
@@ -198,16 +199,14 @@ export default function ITDeploymentCreateDrawer({ isOpen, onClose }: Props) {
         {schools.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Campus</label>
-            <select
+            <Select
               value={schoolId}
-              onChange={(e) => setSchoolId(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400/40 cursor-pointer"
-            >
-              <option value="">All campuses</option>
-              {schools.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+              onChange={setSchoolId}
+              options={[
+                { value: '', label: 'All campuses' },
+                ...schools.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+            />
           </div>
         )}
 

@@ -8,6 +8,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { COMPLIANCE_DOMAIN_DEFAULTS } from '@/lib/types/compliance'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { ComplianceAttachmentPanel } from './ComplianceAttachmentPanel'
 import type { ComplianceDomain, ComplianceOutcome, ComplianceStatus } from '@prisma/client'
 
@@ -249,12 +251,13 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">
                   Inspection Date
                 </label>
-                <input
+                <Input
                   type="date"
                   value={inspectionDate}
                   onChange={(e) => setInspectionDate(e.target.value)}
                   disabled={isPending}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:bg-slate-50 disabled:text-slate-400 cursor-pointer"
+                  size="sm"
+                  className="w-full text-sm"
                 />
               </div>
 
@@ -263,24 +266,25 @@ export function ComplianceRecordDrawer({ record, onClose, onUpdated }: Complianc
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">
                   Inspector Name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={inspector}
                   onChange={(e) => setInspector(e.target.value)}
                   placeholder="Inspector name or company"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  size="sm"
+                  className="w-full text-sm"
                 />
               </div>
 
               {/* Notes */}
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
-                <textarea
+                <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Inspection notes, findings, follow-up actions..."
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 resize-none"
+                  className="w-full text-sm resize-none"
                 />
               </div>
             </section>

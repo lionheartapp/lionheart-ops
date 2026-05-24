@@ -21,6 +21,7 @@ import {
 import DetailDrawer from '@/components/DetailDrawer'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
+import { Input } from '@/components/ui/Input'
 import AVEquipmentWizard from '@/components/inventory/AVEquipmentWizard'
 import { fetchApi } from '@/lib/api-client'
 import { fadeInUp, staggerContainer, listItem, cardEntrance } from '@/lib/animations'
@@ -354,13 +355,14 @@ export default function InventoryPage() {
               without selecting-all + delete. */}
           <div className="flex-1 min-w-[180px] relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" aria-hidden="true" />
-            <input
+            <Input
               type="text"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
               placeholder="Search items…"
               aria-label="Search items"
-              className="w-full pl-9 pr-9 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 focus:border-slate-400 transition-colors"
+              size="sm"
+              className="w-full pl-9 pr-9 text-sm focus-visible:ring-slate-200 focus:border-slate-400"
             />
             {isSearchDebouncing ? (
               <span

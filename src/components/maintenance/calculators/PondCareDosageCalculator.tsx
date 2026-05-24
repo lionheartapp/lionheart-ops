@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FlaskConical, AlertTriangle } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 /**
  * Pond Care Dosage Calculator
@@ -77,14 +78,15 @@ export default function PondCareDosageCalculator() {
           <label className="block text-xs font-medium text-slate-600 mb-1">
             Pond Volume (gallons)
           </label>
-          <input
+          <Input
             type="number"
             min="0"
             step="any"
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
             placeholder="e.g. 10000"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            size="sm"
+            className="w-full text-sm focus-visible:ring-amber-400"
           />
         </div>
 
@@ -92,7 +94,7 @@ export default function PondCareDosageCalculator() {
           <label className="block text-xs font-medium text-slate-600 mb-1">
             Product Concentration (%)
           </label>
-          <input
+          <Input
             type="number"
             min="0"
             max="100"
@@ -100,7 +102,8 @@ export default function PondCareDosageCalculator() {
             value={concentration}
             onChange={(e) => setConcentration(e.target.value)}
             placeholder="e.g. 47.5"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            size="sm"
+            className="w-full text-sm focus-visible:ring-amber-400"
           />
         </div>
 
@@ -108,14 +111,15 @@ export default function PondCareDosageCalculator() {
           <label className="block text-xs font-medium text-slate-600 mb-1">
             Target Dose (ppm)
           </label>
-          <input
+          <Input
             type="number"
             min="0"
             step="any"
             value={targetPpm}
             onChange={(e) => setTargetPpm(e.target.value)}
             placeholder="e.g. 1.0"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 transition-colors"
+            size="sm"
+            className="w-full text-sm focus-visible:ring-amber-400"
           />
         </div>
       </div>

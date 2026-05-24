@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Loader2, X } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 interface UserResult {
   id: string
@@ -93,12 +94,13 @@ export default function PersonSearchPanel({
       {/* Search input row */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        <input
+        <Input
           ref={inputRef}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search people..."
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400"
+          size="sm"
+          className="h-auto min-h-0 flex-1 border-0 bg-transparent p-0 text-sm shadow-none outline-none placeholder:text-slate-400 focus:ring-0"
         />
         {searching && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin flex-shrink-0" />}
         <button type="button" onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer rounded-lg hover:bg-slate-200 transition-colors">

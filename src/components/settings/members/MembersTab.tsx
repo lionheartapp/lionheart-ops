@@ -14,6 +14,7 @@ import MemberListTable from './MemberListTable'
 import EditMemberDrawer from './EditMemberDrawer'
 import InviteMemberDrawer from './InviteMemberDrawer'
 import MemberPermissionsDrawer from './MemberPermissionsDrawer'
+import { Input } from '@/components/ui/Input'
 import type { ApiUser, TeamOption, RoleOption, CampusOption, SchoolOption } from './types'
 
 type MembersTabProps = { onDirtyChange?: (isDirty: boolean) => void }
@@ -254,8 +255,8 @@ const MembersTab = (_props: MembersTabProps) => {
       {/* Table */}
       <div className="ui-glass-table overflow-hidden">
         <div className="flex items-center gap-2 p-4 border-b border-slate-100">
-          <input type="search"
-            className="flex-1 ui-input"
+          <Input type="search"
+            className="flex-1"
             placeholder="Search by name, email or role…"
             aria-label="Search members"
             value={search}

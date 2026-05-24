@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, X, Loader2, Search } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
+import { Input } from '@/components/ui/Input'
 
 interface WatcherUser {
   id: string
@@ -143,12 +144,13 @@ export default function TicketWatchers({
               <div className="px-2 py-1.5">
                 <div className="flex items-center gap-1.5 px-2 py-1.5 border border-slate-200 rounded-lg bg-white">
                   <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                  <input
+                  <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search users..."
                     autoFocus
-                    className="text-sm text-slate-700 bg-transparent outline-none w-full placeholder:text-slate-400"
+                    size="sm"
+                    className="h-auto min-h-0 border-0 bg-transparent p-0 text-sm text-slate-700 shadow-none focus:ring-0"
                   />
                 </div>
               </div>

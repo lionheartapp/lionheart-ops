@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
-import { X, Search } from 'lucide-react'
+import { X } from 'lucide-react'
 import type {
   WorkOrdersFilterState,
   MaintenanceStatus,
@@ -11,6 +11,8 @@ import type {
 } from './WorkOrdersFilters'
 import { DEFAULT_FILTERS } from './WorkOrdersFilters'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { SearchInput } from '@/components/ui/SearchInput'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 interface Technician {
   id: string
@@ -188,29 +190,23 @@ export default function FilterBottomSheet({
                 <label className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5 block">
                   Search
                 </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    defaultValue={filters.search}
-                    onChange={(e) => update({ search: e.target.value })}
-                    placeholder="Search tickets..."
-                    className="ui-input w-full !py-2.5 pl-9"
-                  />
-                </div>
+                <SearchInput
+                  ref={searchRef}
+                  value={filters.search}
+                  onChange={(e) => update({ search: e.target.value })}
+                  onClear={() => update({ search: '' })}
+                  placeholder="Search tickets..."
+                  size="sm"
+                />
               </div>
 
               {/* Unassigned toggle */}
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none py-1">
-                <input
-                  type="checkbox"
-                  checked={filters.unassigned}
-                  onChange={(e) => update({ unassigned: e.target.checked })}
-                  className="w-4 h-4 rounded border-slate-300 text-slate-900 focus-visible:ring-slate-400 cursor-pointer"
-                />
-                Unassigned only
-              </label>
+              <Checkbox
+                checked={filters.unassigned}
+                onChange={(e) => update({ unassigned: e.target.checked })}
+                label="Unassigned only"
+                className="py-1"
+              />
             </div>
 
             {/* Footer actions */}

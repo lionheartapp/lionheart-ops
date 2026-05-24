@@ -12,6 +12,7 @@ import {
 import { Loader2, Tag, CheckCircle2 } from 'lucide-react'
 import TicketSelector, { type TicketTypePublic } from './TicketSelector'
 import OrderSummary from './OrderSummary'
+import { Input } from '@/components/ui/Input'
 
 // ─── Stripe singleton ──────────────────────────────────────────────────────
 
@@ -227,13 +228,13 @@ export default function TicketCheckoutFlow({
         {hasDiscountCodes && (
           <div>
             <div className="flex gap-2">
-              {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-              <input
+              <Input
                 type="text"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
                 placeholder="Promo code"
-                className="flex-1 h-10 px-3 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
+                size="sm"
+                className="flex-1 text-sm"
               />
               <button
                 type="button"
@@ -291,8 +292,7 @@ export default function TicketCheckoutFlow({
           <label className="text-sm font-medium text-slate-700 block mb-1.5">
             Name <span className="text-red-400">*</span>
           </label>
-          {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-          <input
+          <Input
             type="text"
             value={buyerName}
             onChange={(e) => setBuyerName(e.target.value)}
@@ -306,8 +306,7 @@ export default function TicketCheckoutFlow({
           <label className="text-sm font-medium text-slate-700 block mb-1.5">
             Email <span className="text-red-400">*</span>
           </label>
-          {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-          <input
+          <Input
             type="email"
             value={buyerEmail}
             onChange={(e) => setBuyerEmail(e.target.value)}
@@ -321,8 +320,7 @@ export default function TicketCheckoutFlow({
           <label className="text-sm font-medium text-slate-700 block mb-1.5">
             Phone <span className="text-slate-400 text-xs font-normal">(optional)</span>
           </label>
-          {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-          <input
+          <Input
             type="tel"
             value={buyerPhone}
             onChange={(e) => setBuyerPhone(e.target.value)}
@@ -341,8 +339,7 @@ export default function TicketCheckoutFlow({
                 {field.required && <span className="text-red-400 ml-0.5">*</span>}
               </label>
               {field.helpText && <p className="text-xs text-slate-400 mb-1.5">{field.helpText}</p>}
-              {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-              <input
+              <Input
                 type={field.type === 'EMAIL' ? 'email' : field.type === 'NUMBER' ? 'number' : 'text'}
                 value={formValues[field.key] ?? ''}
                 onChange={(e) => setFormValues((prev) => ({ ...prev, [field.key]: e.target.value }))}

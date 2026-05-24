@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Tag, Plus, Copy } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
 
 export default function DiscountCodesPage() {
   const [codes, setCodes] = useState<any[]>([])
@@ -57,7 +58,7 @@ export default function DiscountCodesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Code</label>
-              <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" className="ui-input-bordered" required />
+              <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SUMMER25" className="ui-input-bordered" required />
             </div>
             <div>
               <FloatingDropdown
@@ -72,19 +73,19 @@ export default function DiscountCodesPage() {
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Value</label>
-              <input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder={form.type === 'PERCENTAGE' ? '20' : '1000'} className="ui-input-bordered" required />
+              <Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder={form.type === 'PERCENTAGE' ? '20' : '1000'} className="ui-input-bordered" required />
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Max Redemptions</label>
-              <input type="number" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} placeholder="Unlimited" className="ui-input-bordered" />
+              <Input type="number" value={form.maxRedemptions} onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })} placeholder="Unlimited" className="ui-input-bordered" />
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Valid Until</label>
-              <input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} className="ui-input-bordered" />
+              <Input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} className="ui-input-bordered" />
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1.5">Description</label>
-              <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Summer promo" className="ui-input-bordered" />
+              <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Summer promo" className="ui-input-bordered" />
             </div>
           </div>
           <div className="flex gap-2 justify-end">

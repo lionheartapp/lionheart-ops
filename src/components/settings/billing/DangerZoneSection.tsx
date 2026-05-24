@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 interface DangerZoneSectionProps {
   orgName: string
@@ -82,12 +83,12 @@ export function DangerZoneSection({
               </div>
             </div>
 
-            <input
+            <Input
               type="text"
               value={deleteConfirmationText}
               onChange={(e) => onConfirmationTextChange(e.target.value)}
               placeholder="Type organization name to confirm"
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none text-sm mb-3"
+              className="w-full focus:border-red-500 focus:ring-red-200 text-sm mb-3"
               disabled={deleteLoading}
             />
 

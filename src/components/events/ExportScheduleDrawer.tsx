@@ -12,6 +12,7 @@ import type { DayScheduleData, ExportOptions } from '@/lib/utils/scheduleExportH
 import type { BlockTypeConfig } from '@/lib/types/event-project'
 import type { EventScheduleBlock } from '@/lib/hooks/useEventProject'
 import type { EventScheduleSection } from '@/lib/hooks/useEventSchedule'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -295,12 +296,9 @@ export function ExportScheduleDrawer({
                           key={type.value}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
                         >
-                          {/* eslint-disable-next-line no-restricted-syntax -- inline checkbox with custom decorator (colored dot + label); standard <Checkbox> doesn't support this layout */}
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={isIncluded}
                             onChange={() => handleToggleType(type.value)}
-                            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                           <span
                             className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${type.dotColor}`}

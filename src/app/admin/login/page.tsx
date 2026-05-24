@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Lock, Mail, AlertCircle } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
 
 export default function PlatformLoginPage() {
   const router = useRouter()
@@ -67,12 +68,12 @@ export default function PlatformLoginPage() {
             {isSetup && (
               <div>
                 <label className="block text-sm text-slate-400 mb-1.5">Name</label>
-                <input
+                <Input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full px-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-slate-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 transition-colors text-sm"
+                  className="w-full bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 text-sm"
                 />
               </div>
             )}
@@ -81,12 +82,12 @@ export default function PlatformLoginPage() {
               <label className="block text-sm text-slate-400 mb-1.5">Email</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-slate-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 transition-colors text-sm"
+                  className="w-full pl-10 bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 text-sm"
                   required
                 />
               </div>
@@ -96,12 +97,12 @@ export default function PlatformLoginPage() {
               <label className="block text-sm text-slate-400 mb-1.5">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
+                <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={isSetup ? 'Min 8 characters' : 'Enter your password'}
-                  className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-slate-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 transition-colors text-sm"
+                  className="w-full pl-10 bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500 focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/20 text-sm"
                   required
                   minLength={isSetup ? 8 : undefined}
                 />

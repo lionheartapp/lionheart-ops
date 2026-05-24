@@ -4,6 +4,8 @@ import { useState, useCallback, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import DetailDrawer from '@/components/DetailDrawer'
 import { FloatingInput, FloatingTextarea } from '@/components/ui/FloatingInput'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import {
   Calendar, Video, Building2, CheckCircle,
   Loader2, ArrowLeft, ChevronRight, Zap, Check,
@@ -274,11 +276,11 @@ export default function PlanEventDrawer({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="stepper-starts" className="block text-xs font-medium text-slate-600 mb-1">Start Time <span className="text-red-500">*</span></label>
-                  <input id="stepper-starts" type="datetime-local" value={form.startsAt} onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-slate-900" />
+                  <Input id="stepper-starts" type="datetime-local" value={form.startsAt} onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))} className="w-full text-sm" />
                 </div>
                 <div>
                   <label htmlFor="stepper-ends" className="block text-xs font-medium text-slate-600 mb-1">End Time <span className="text-red-500">*</span></label>
-                  <input id="stepper-ends" type="datetime-local" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent text-slate-900" />
+                  <Input id="stepper-ends" type="datetime-local" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} className="w-full text-sm" />
                 </div>
               </div>
               <FloatingTextarea id="stepper-description" label="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />
@@ -295,21 +297,26 @@ export default function PlanEventDrawer({
                 <Video className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-purple-800">Does this event need audio/visual support from the A/V Production team?</p>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.requiresAV}
+                onClick={() => setForm(f => ({ ...f, requiresAV: !f.requiresAV, avRequirements: !f.requiresAV ? f.avRequirements : '' }))}
+                className="flex w-full items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition text-left"
+              >
                 <div className="relative flex-shrink-0">
-                  <input type="checkbox" checked={form.requiresAV} onChange={e => setForm(f => ({ ...f, requiresAV: e.target.checked, avRequirements: e.target.checked ? f.avRequirements : '' }))} className="sr-only peer" id="stepper-requires-av" />
-                  <div className="w-10 h-6 bg-slate-200 rounded-full peer-checked:bg-purple-600 transition-colors" />
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
+                  <div className={`w-10 h-6 rounded-full transition-colors ${form.requiresAV ? 'bg-purple-600' : 'bg-slate-200'}`} />
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form.requiresAV ? 'translate-x-4' : ''}`} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">This event requires A/V support</p>
                   <p className="text-xs text-slate-500">Projectors, microphones, livestream, recording, etc.</p>
                 </div>
-              </label>
+              </button>
               {form.requiresAV && (
                 <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
                   <label htmlFor="stepper-av-req" className="block text-sm font-medium text-slate-700">Describe your A/V needs</label>
-                  <textarea id="stepper-av-req" value={form.avRequirements} onChange={e => setForm(f => ({ ...f, avRequirements: e.target.value }))} placeholder="e.g. 1 projector, 2 wireless mics, livestream to YouTube, recording equipment…" rows={4} className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-900" />
+                  <Textarea id="stepper-av-req" value={form.avRequirements} onChange={e => setForm(f => ({ ...f, avRequirements: e.target.value }))} placeholder="e.g. 1 projector, 2 wireless mics, livestream to YouTube, recording equipment..." rows={4} className="w-full text-sm resize-none" />
                   <p className="text-xs text-slate-400 flex items-center gap-1.5">
                     <Zap className="w-3 h-3 text-purple-400" />
                     AI will automatically parse your description into a structured equipment list.
@@ -329,29 +336,39 @@ export default function PlanEventDrawer({
                 <Building2 className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800">Does this event require any physical setup or facility support from the Maintenance team?</p>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.requiresFacilitySetup}
+                onClick={() => setForm(f => ({ ...f, requiresFacilitySetup: !f.requiresFacilitySetup, setupNeeds: !f.requiresFacilitySetup ? f.setupNeeds : [], facilityNotes: !f.requiresFacilitySetup ? f.facilityNotes : '' }))}
+                className="flex w-full items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition text-left"
+              >
                 <div className="relative flex-shrink-0">
-                  <input type="checkbox" checked={form.requiresFacilitySetup} onChange={e => setForm(f => ({ ...f, requiresFacilitySetup: e.target.checked, setupNeeds: e.target.checked ? f.setupNeeds : [], facilityNotes: e.target.checked ? f.facilityNotes : '' }))} className="sr-only peer" id="stepper-requires-facility" />
-                  <div className="w-10 h-6 bg-slate-200 rounded-full peer-checked:bg-amber-500 transition-colors" />
-                  <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4" />
+                  <div className={`w-10 h-6 rounded-full transition-colors ${form.requiresFacilitySetup ? 'bg-amber-500' : 'bg-slate-200'}`} />
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form.requiresFacilitySetup ? 'translate-x-4' : ''}`} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">This event needs facility setup</p>
                   <p className="text-xs text-slate-500">Seating, staging, cleaning, room arrangement, etc.</p>
                 </div>
-              </label>
+              </button>
               {form.requiresFacilitySetup && (
                 <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                   <p className="text-sm font-medium text-slate-700">What setup is needed? <span className="text-slate-400 font-normal">(select all that apply)</span></p>
                   <div className="grid grid-cols-2 gap-2">
                     {SETUP_OPTIONS.map(opt => (
-                      <label key={opt} className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition text-sm font-medium select-none ${form.setupNeeds.includes(opt) ? 'border-amber-400 bg-amber-50 text-amber-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
-                        <input type="checkbox" checked={form.setupNeeds.includes(opt)} onChange={() => toggleSetupNeed(opt)} className="sr-only" />
+                      <button
+                        key={opt}
+                        type="button"
+                        aria-pressed={form.setupNeeds.includes(opt)}
+                        onClick={() => toggleSetupNeed(opt)}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition text-sm font-medium select-none text-left ${form.setupNeeds.includes(opt) ? 'border-amber-400 bg-amber-50 text-amber-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                      >
                         <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition ${form.setupNeeds.includes(opt) ? 'bg-amber-500' : 'border border-slate-300 bg-white'}`}>
                           {form.setupNeeds.includes(opt) && <Check className="w-2.5 h-2.5 text-white" />}
                         </div>
                         {opt}
-                      </label>
+                      </button>
                     ))}
                   </div>
                   <FloatingTextarea id="stepper-facility-notes" label="Additional facility notes" value={form.facilityNotes} onChange={e => setForm(f => ({ ...f, facilityNotes: e.target.value }))} rows={2} />

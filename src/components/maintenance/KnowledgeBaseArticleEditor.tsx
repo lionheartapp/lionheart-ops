@@ -7,6 +7,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { X, Loader2, BookOpen, Tag } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import MarkdownEditor from './MarkdownEditor'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,10 +58,6 @@ const CALCULATOR_OPTIONS = [
 ]
 
 const labelClass = 'block text-xs font-medium text-slate-600 mb-1'
-const inputClass =
-  'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent transition-colors'
-const selectClass =
-  'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus:border-transparent cursor-pointer transition-colors'
 
 // ─── Initial form ─────────────────────────────────────────────────────────────
 
@@ -218,10 +216,10 @@ export default function KnowledgeBaseArticleEditor({
               {/* Title */}
               <div>
                 <label className={labelClass} htmlFor="kb-title">Title *</label>
-                <input
+                <Input
                   id="kb-title"
                   type="text"
-                  className={inputClass}
+                  className="w-full text-sm"
                   value={form.title}
                   onChange={(e) => updateField('title', e.target.value)}
                   placeholder="e.g. Boiler Blowdown Procedure"
@@ -233,37 +231,24 @@ export default function KnowledgeBaseArticleEditor({
               {/* Article Type */}
               <div>
                 <label className={labelClass} htmlFor="kb-type">Article Type *</label>
-                <select
-                  id="kb-type"
-                  className={selectClass}
+                <Select
                   value={form.type}
-                  onChange={(e) => updateField('type', e.target.value)}
-                  required
-                >
-                  {TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value} disabled={!opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => updateField('type', value)}
+                  options={TYPE_OPTIONS}
+                  placeholder="Select type..."
+                />
               </div>
 
               {/* Calculator type (only when CALCULATION_TOOL) */}
               {form.type === 'CALCULATION_TOOL' && (
                 <div>
                   <label className={labelClass} htmlFor="kb-calc-type">Calculator Type</label>
-                  <select
-                    id="kb-calc-type"
-                    className={selectClass}
+                  <Select
                     value={form.calculatorType}
-                    onChange={(e) => updateField('calculatorType', e.target.value)}
-                  >
-                    {CALCULATOR_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => updateField('calculatorType', value)}
+                    options={CALCULATOR_OPTIONS}
+                    placeholder="Select calculator..."
+                  />
                 </div>
               )}
 
@@ -290,10 +275,10 @@ export default function KnowledgeBaseArticleEditor({
                     Tags <span className="text-slate-400 font-normal">(comma-separated)</span>
                   </span>
                 </label>
-                <input
+                <Input
                   id="kb-tags"
                   type="text"
-                  className={inputClass}
+                  className="w-full text-sm"
                   value={form.tagsInput}
                   onChange={(e) => updateField('tagsInput', e.target.value)}
                   placeholder="e.g. boiler, hvac, safety"
@@ -318,10 +303,10 @@ export default function KnowledgeBaseArticleEditor({
                 <label className={labelClass} htmlFor="kb-asset">
                   Asset ID <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
-                <input
+                <Input
                   id="kb-asset"
                   type="text"
-                  className={inputClass}
+                  className="w-full text-sm"
                   value={form.assetId}
                   onChange={(e) => updateField('assetId', e.target.value)}
                   placeholder="Paste asset ID to link this article"

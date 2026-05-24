@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
+import { FileInput } from '@/components/ui/FileInput'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
@@ -32,10 +33,8 @@ export default function ImageDropZone({
   disabled = false,
   compact = false,
 }: ImageDropZoneProps) {
-  const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -110,73 +109,26 @@ export default function ImageDropZone({
     }
   }, [imageUrl, onImageChange])
 
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setDragOver(false)
-      if (disabled || uploading) return
-      const file = e.dataTransfer.files[0]
-      if (file) handleFile(file)
-    },
-    [disabled, uploading, handleFile]
-  )
-
-  const onDragOver = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      if (!disabled && !uploading) setDragOver(true)
-    },
-    [disabled, uploading]
-  )
-
-  const onDragLeave = useCallback(() => setDragOver(false), [])
-
-  const onInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) handleFile(file)
-      // Reset so the same file can be re-selected
-      if (inputRef.current) inputRef.current.value = ''
-    },
-    [handleFile]
-  )
-
   const hasImage = !!imageUrl
+  const zoneClasses = `
+    relative overflow-hidden rounded-lg border-2 border-dashed transition-colors
+    ${compact ? 'aspect-[3/2]' : aspectRatio}
+    ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+    ${hasImage ? 'border-slate-200' : ''}
+    ${!hasImage ? 'border-slate-300 hover:border-slate-400 cursor-pointer' : ''}
+    ${uploading ? 'pointer-events-none' : ''}
+  `
 
   return (
     <div>
       <label className="block text-xs text-slate-500 font-medium mb-1.5">{label}</label>
-      <div
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onClick={() => !hasImage && !uploading && !disabled && inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && !hasImage && !uploading && !disabled) {
-            e.preventDefault()
-            inputRef.current?.click()
-          }
-        }}
-        role={!hasImage && !disabled ? 'button' : undefined}
-        tabIndex={!hasImage && !disabled ? 0 : undefined}
-        aria-label={!hasImage ? `Upload ${label}` : undefined}
-        className={`
-          relative overflow-hidden rounded-lg border-2 border-dashed transition-colors
-          ${compact ? 'aspect-[3/2]' : aspectRatio}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          ${hasImage ? 'border-slate-200' : ''}
-          ${!hasImage && !dragOver ? 'border-slate-300 hover:border-slate-400 cursor-pointer' : ''}
-          ${dragOver ? 'border-blue-500 bg-blue-50' : ''}
-          ${uploading ? 'pointer-events-none' : ''}
-        `}
-      >
-        {uploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-            <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
-          </div>
-        )}
-
-        {hasImage ? (
+      {hasImage ? (
+        <div className={zoneClasses}>
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+              <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
+            </div>
+          )}
           <div className="group relative w-full h-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -187,10 +139,7 @@ export default function ImageDropZone({
             {!disabled && (
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleRemove()
-                }}
+                onClick={handleRemove}
                 className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity hover:bg-black/80"
                 title="Remove image"
               >
@@ -198,28 +147,37 @@ export default function ImageDropZone({
               </button>
             )}
           </div>
-        ) : (
+        </div>
+      ) : (
+        <FileInput
+          accept={ALLOWED_TYPES.join(',')}
+          onFiles={(files) => {
+            const file = files[0]
+            if (file) handleFile(file)
+          }}
+          disabled={disabled || uploading}
+          compact
+          className={zoneClasses}
+        >
+        {uploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+            <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
+          </div>
+        )}
+
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-400">
             <Upload className={compact ? 'w-6 h-6' : 'w-8 h-8'} />
             <span className={compact ? 'text-xs' : 'text-sm'}>
-              {dragOver ? 'Drop image here' : 'Drag & drop or click to upload'}
+              Drag & drop or click to upload
             </span>
             {!compact && (
               <span className="text-xs text-slate-400">JPEG, PNG, WebP, GIF up to 5MB</span>
             )}
           </div>
-        )}
-      </div>
+        </FileInput>
+      )}
 
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ALLOWED_TYPES.join(',')}
-        onChange={onInputChange}
-        className="hidden"
-      />
     </div>
   )
 }

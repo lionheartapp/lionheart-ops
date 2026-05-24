@@ -5,6 +5,10 @@ import { CheckCircle2, Loader2, AlertTriangle, ArrowLeft, ArrowRight } from 'luc
 import TicketSelector from '@/components/forms/checkout/TicketSelector'
 import OrderSummary from '@/components/forms/checkout/OrderSummary'
 import { Tag } from 'lucide-react'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Textarea } from '@/components/ui/Textarea'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -82,8 +86,6 @@ function PublicField({
     return null // rendered separately by FormContent
   }
 
-  const inputCls = "w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
-
   return (
     <div>
       <label className="text-sm font-medium text-slate-700 block mb-1.5">
@@ -95,37 +97,30 @@ function PublicField({
       )}
 
       {(field.type === 'TEXT' || field.type === 'EMAIL' || field.type === 'PHONE' || field.type === 'URL' || field.type === 'NUMBER') && (
-        // eslint-disable-next-line no-restricted-syntax -- public form
-        <input
+        <Input
           type={field.type === 'EMAIL' ? 'email' : field.type === 'NUMBER' ? 'number' : field.type === 'PHONE' ? 'tel' : field.type === 'URL' ? 'url' : 'text'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || ''}
-          className={inputCls}
         />
       )}
       {field.type === 'TEXTAREA' && (
-        // eslint-disable-next-line no-restricted-syntax -- public form
-        <textarea
+        <Textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || ''}
           rows={3}
-          className="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors resize-none"
         />
       )}
       {(field.type === 'DROPDOWN' || field.type === 'RADIO') && (
-        // eslint-disable-next-line no-restricted-syntax -- public form
-        <select
+        <Select
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={inputCls}
-        >
-          <option value="">Select...</option>
-          {field.options.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+          onChange={onChange}
+          options={[
+            { value: '', label: 'Select...' },
+            ...field.options.map((opt) => ({ value: opt, label: opt })),
+          ]}
+        />
       )}
       {field.type === 'MULTI_SELECT' && (
         <div className="grid grid-cols-2 gap-2">
@@ -133,42 +128,31 @@ function PublicField({
             const selected = (value || '').split(',').filter(Boolean)
             const isChecked = selected.includes(opt)
             return (
-              <label key={opt} className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
-                {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => {
-                    const next = isChecked ? selected.filter((s) => s !== opt) : [...selected, opt]
-                    onChange(next.join(','))
-                  }}
-                  className="w-4 h-4 rounded border-slate-300"
-                />
-                {opt}
-              </label>
+              <Checkbox
+                key={opt}
+                checked={isChecked}
+                onChange={() => {
+                  const next = isChecked ? selected.filter((s) => s !== opt) : [...selected, opt]
+                  onChange(next.join(','))
+                }}
+                label={opt}
+              />
             )
           })}
         </div>
       )}
       {field.type === 'CHECKBOX' && (
-        <label className="flex items-center gap-2.5 cursor-pointer">
-          {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-          <input
-            type="checkbox"
-            checked={value === 'true'}
-            onChange={(e) => onChange(e.target.checked ? 'true' : '')}
-            className="w-4 h-4 rounded border-slate-300"
-          />
-          <span className="text-sm text-slate-600">Yes</span>
-        </label>
+        <Checkbox
+          checked={value === 'true'}
+          onChange={(e) => onChange(e.target.checked ? 'true' : '')}
+          label="Yes"
+        />
       )}
       {(field.type === 'DATE' || field.type === 'TIME') && (
-        // eslint-disable-next-line no-restricted-syntax -- public form
-        <input
+        <Input
           type={field.type === 'DATE' ? 'date' : 'time'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={inputCls}
         />
       )}
       {field.type === 'RATING' && (
@@ -381,13 +365,12 @@ function FormContent({
               {hasDiscountCodes && setPromoCode && onApplyPromo && (
                 <div>
                   <div className="flex gap-2">
-                    {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-                    <input
+                    <Input
                       type="text"
                       value={promoCode ?? ''}
                       onChange={(e) => setPromoCode(e.target.value)}
                       placeholder="Promo code"
-                      className="flex-1 h-10 px-3 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
+                      className="h-10 flex-1"
                     />
                     <button
                       type="button"
@@ -433,13 +416,11 @@ function FormContent({
           <label className="text-sm font-medium text-slate-700 block mb-1.5">
             Your Email <span className="text-red-400">*</span>
           </label>
-          {/* eslint-disable-next-line no-restricted-syntax -- public form */}
-          <input
+          <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full h-11 px-3.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
           />
           {validationErrors['__email'] && (
             <p className="text-xs text-red-500 mt-1">{validationErrors['__email']}</p>
