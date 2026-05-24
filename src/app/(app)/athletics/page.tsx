@@ -25,6 +25,7 @@ import AthleticsMegaImport from '@/components/athletics/AthleticsMegaImport'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
+import LeaguesSection from '@/components/conferences/LeaguesSection'
 import PagePadding from '@/components/PagePadding'
 import type { AthleticsTab } from '@/components/Sidebar'
 
@@ -68,12 +69,12 @@ export default function AthleticsPage() {
   const { data: rawCampuses, isLoading: campusesLoading } = useQuery(sharedQueryOptions.campuses())
   const campuses = (rawCampuses as Campus[] | undefined) ?? []
   const { data: rawCalendars } = useQuery(sharedQueryOptions.calendars())
-  const calendars = (rawCalendars as CalendarBrief[] | undefined) ?? []
 
   const dataLoading = modulesLoading || campusesLoading
 
   // Build campus → color map from master calendars (first calendar per campus wins)
   const campusColorMap = useMemo(() => {
+    const calendars = (rawCalendars as CalendarBrief[] | undefined) ?? []
     const map = new Map<string, string>()
     for (const cal of calendars) {
       if (cal.campus?.id && !map.has(cal.campus.id)) {
@@ -81,7 +82,7 @@ export default function AthleticsPage() {
       }
     }
     return map
-  }, [calendars])
+  }, [rawCalendars])
 
   const enabledCampusIds = modules
     .filter((m) => m.moduleId === 'athletics' && m.campusId)
@@ -103,14 +104,67 @@ export default function AthleticsPage() {
   const [activeTab, setActiveTab] = useState<AthleticsTab>('overview')
   const [manageSection, setManageSection] = useState<ManageSection>('sports')
   const [scheduleSection, setScheduleSection] = useState<ScheduleSection>('games')
+  const [urlStateLoaded, setUrlStateLoaded] = useState(false)
   const [onboardingDismissed, setOnboardingDismissed] = useState(false)
   const [megaImportOpen, setMegaImportOpen] = useState(false)
 
-  // Listen for sidebar tab navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab') as AthleticsTab | null
+    const manage = params.get('manage') as ManageSection | null
+    const schedule = params.get('section') as ScheduleSection | null
+    const validTabs: AthleticsTab[] = ['overview', 'manage', 'schedule', 'stats', 'leagues']
+    const validManage: ManageSection[] = ['sports', 'teams', 'roster']
+    const validSchedule: ScheduleSection[] = ['games', 'tournaments']
+
+    if (tab && validTabs.includes(tab)) setActiveTab(tab)
+    if (manage && validManage.includes(manage)) setManageSection(manage)
+    if (schedule && validSchedule.includes(schedule)) setScheduleSection(schedule)
+    setUrlStateLoaded(true)
+  }, [])
+
+  useEffect(() => {
+    if (!urlStateLoaded || typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+
+    if (activeTab === 'overview') {
+      url.searchParams.delete('tab')
+      url.searchParams.delete('manage')
+      url.searchParams.delete('section')
+    } else {
+      url.searchParams.set('tab', activeTab)
+      if (activeTab === 'manage') {
+        url.searchParams.set('manage', manageSection)
+        url.searchParams.delete('section')
+      } else if (activeTab === 'schedule') {
+        url.searchParams.set('section', scheduleSection)
+        url.searchParams.delete('manage')
+      } else {
+        url.searchParams.delete('manage')
+        url.searchParams.delete('section')
+      }
+    }
+
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [activeTab, manageSection, scheduleSection, urlStateLoaded])
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('athletics-tab-change', {
+        detail: { tab: activeTab },
+      })
+    )
+  }, [activeTab])
+
+  // Listen for sidebar tab navigation.
+  // The current tab is mirrored into the URL so refresh returns to the same work surface.
   useEffect(() => {
     const handleTabChange = (e: Event) => {
       const tab = (e as CustomEvent).detail?.tab
-      if (tab) setActiveTab(tab as AthleticsTab)
+      if (tab) {
+        setActiveTab(tab as AthleticsTab)
+      }
     }
     window.addEventListener('athletics-tab-change', handleTabChange)
     return () => window.removeEventListener('athletics-tab-change', handleTabChange)
@@ -140,18 +194,20 @@ export default function AthleticsPage() {
   // Helper to navigate from other components (e.g. dashboard "View all" → schedule tab)
   const handleTabChange = useCallback((tab: string) => {
     // Map old tab names to new structure
+    let resolvedTab: AthleticsTab = 'overview'
     if (tab === 'sports' || tab === 'teams' || tab === 'roster') {
-      setActiveTab('manage')
+      resolvedTab = 'manage'
       setManageSection(tab as ManageSection)
     } else if (tab === 'tournaments') {
-      setActiveTab('schedule')
+      resolvedTab = 'schedule'
       setScheduleSection('tournaments')
     } else if (tab === 'schedule') {
-      setActiveTab('schedule')
+      resolvedTab = 'schedule'
       setScheduleSection('games')
     } else {
-      setActiveTab(tab as AthleticsTab)
+      resolvedTab = tab as AthleticsTab
     }
+    setActiveTab(resolvedTab)
   }, [])
 
   // Track whether we've dispatched sidebar data so we re-dispatch when data changes
@@ -222,20 +278,27 @@ export default function AthleticsPage() {
   }
 
   return (
-    <PagePadding>
+    <PagePadding className="px-6 sm:px-10">
     <>
       <ModuleGate moduleId="athletics">
         <MotionConfig reducedMotion="user">
         <div className="flex-1 min-h-0 overflow-y-auto space-y-5">
-          {/* Section header */}
-          <div className="flex items-center justify-between">
+          {/* Section header — shows active tab name */}
+          <div className="hidden lg:flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900">Athletics</h1>
+              <h1 className="text-2xl font-semibold text-slate-900">
+                {{ overview: 'Today', manage: 'Teams & Rosters', schedule: 'Schedule', stats: 'Results', leagues: 'Leagues' }[activeTab] ?? 'Athletics'}
+              </h1>
               <p className="text-sm text-stone-500">
-                {enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'Manage sports teams, schedules, and rosters'}
+                {{ overview: enabledCampuses.find((c) => c.id === activeCampusId)?.name || 'What needs attention across games, practices, and teams',
+                   manage: 'Sports, teams, rosters, and season setup',
+                   schedule: 'Games, practices, tournaments, and game-day timing',
+                   stats: 'Standings, leaders, scores, and reports',
+                   leagues: 'Athletic conferences and cross-school schedules',
+                }[activeTab] ?? 'Manage sports teams, schedules, and rosters'}
               </p>
             </div>
-            {!showOnboarding && canWrite && (
+            {!showOnboarding && canWrite && activeTab !== 'leagues' && (
               <AthleticsAddMenu onTabChange={handleTabChange} onImportAll={() => setMegaImportOpen(true)} />
             )}
           </div>
@@ -261,7 +324,7 @@ export default function AthleticsPage() {
 
                   {/* Manage — Sports / Teams / Roster */}
                   <div role="tabpanel" id="tabpanel-manage" aria-labelledby="tab-manage" className={activeTab === 'manage' ? '' : 'hidden'} aria-hidden={activeTab !== 'manage'}>
-                    <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
+                    <div className="hidden lg:inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
                       {([
                         { key: 'sports' as ManageSection, label: 'Sports' },
                         { key: 'teams' as ManageSection, label: 'Teams' },
@@ -300,10 +363,10 @@ export default function AthleticsPage() {
 
                   {/* Schedule — Games & Practices / Tournaments */}
                   <div role="tabpanel" id="tabpanel-schedule" aria-labelledby="tab-schedule" className={activeTab === 'schedule' && canShowSchedule ? '' : 'hidden'} aria-hidden={activeTab !== 'schedule'}>
-                    <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
+                    <div className="hidden lg:inline-flex gap-1 rounded-full bg-slate-100 p-1 mb-5">
                       {([
-                        { key: 'games' as ScheduleSection, label: 'Games & Practices' },
-                        { key: 'tournaments' as ScheduleSection, label: 'Tournaments' },
+                        { key: 'games' as ScheduleSection, label: 'Games', desktopLabel: 'Games & Practices' },
+                        { key: 'tournaments' as ScheduleSection, label: 'Tournaments', desktopLabel: 'Tournaments' },
                       ]).map((s) => (
                         <button
                           key={s.key}
@@ -321,7 +384,8 @@ export default function AthleticsPage() {
                               transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
                             />
                           )}
-                          <span className="relative z-10">{s.label}</span>
+                          <span className="relative z-10 sm:hidden">{s.label}</span>
+                          <span className="relative z-10 hidden sm:inline">{s.desktopLabel}</span>
                         </button>
                       ))}
                     </div>
@@ -336,6 +400,11 @@ export default function AthleticsPage() {
                   {/* Stats */}
                   <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' && canShowStats ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
                     <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                  </div>
+
+                  {/* Leagues */}
+                  <div role="tabpanel" id="tabpanel-leagues" aria-labelledby="tab-leagues" className={activeTab === 'leagues' ? '' : 'hidden'} aria-hidden={activeTab !== 'leagues'}>
+                    <LeaguesSection />
                   </div>
                 </>
               )}

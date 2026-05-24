@@ -4,12 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { queryOptions } from '@/lib/queries'
-import { BarChart3, Medal, Plus, Trash2, Settings, ArrowRight, CalendarDays, Printer, Download } from 'lucide-react'
+import { BarChart3, Medal, Plus, Trash2, Settings, Printer, Download } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
 import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/components/ui/FloatingInput'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
-import { IllustrationAthletics } from '@/components/illustrations'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Sport {
   id: string
@@ -66,10 +66,10 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
   // ─── Cached Data ──────────────────────────────────────────────────
 
   const { data: sportsData, isLoading: sportsLoading } = useQuery(queryOptions.athleticsSports())
-  const sports = (sportsData ?? []) as Sport[]
+  const sports = useMemo(() => (sportsData ?? []) as Sport[], [sportsData])
 
   const { data: seasonsData, isLoading: seasonsLoading } = useQuery(queryOptions.athleticsSeasons())
-  const seasons = (seasonsData ?? []) as Season[]
+  const seasons = useMemo(() => (seasonsData ?? []) as Season[], [seasonsData])
 
   const loading = sportsLoading || seasonsLoading
 
@@ -213,6 +213,11 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
     { value: '', label: 'Select sport...' },
     ...sports.map((s) => ({ value: s.id, label: s.name, color: s.color })),
   ], [sports])
+  const selectedConfigSport = useMemo(
+    () => sports.find((sport) => sport.id === configSportId),
+    [sports, configSportId],
+  )
+  const statExamples = getStatExamples(selectedConfigSport?.name)
 
   // ─── Config handlers ──────────────────────────────────────────────
 
@@ -470,15 +475,12 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           {loadingStandings ? (
             <AthleticsTableSkeleton columns={6} rows={4} showToolbar={false} />
           ) : standings.length === 0 ? (
-            <div className="ui-glass p-8 text-center">
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-stone-700 mb-1">No standings data</h2>
-              <p className="text-sm text-stone-500 mb-3">
-                Standings update when games are marked as final with scores recorded.
-              </p>
-              <p className="text-xs text-stone-400">
-                Go to the <span className="font-medium text-stone-600">Schedule</span> tab to score games and mark them final.
-              </p>
+            <div className="ui-glass">
+              <EmptyState
+                icon={Medal}
+                title="No standings yet"
+                body="Standings update when games are marked final with scores recorded."
+              />
             </div>
           ) : (
             <div className="ui-glass-table">
@@ -539,48 +541,42 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           </div>
 
           {!selectedSportId ? (
-            <div className="ui-glass p-8 text-center">
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-stone-700 mb-1">Select a sport</h2>
-              <p className="text-sm text-stone-500">Choose a sport to see available stat categories</p>
+            <div className="ui-glass">
+              <EmptyState
+                icon={BarChart3}
+                title="Select a sport"
+                body="Choose a sport to see its stat categories and leaders."
+              />
             </div>
           ) : !selectedStatKey ? (
-            <div className="ui-glass p-8 text-center">
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
+            <div className="ui-glass">
               {statConfigs.length === 0 ? (
-                <>
-                  <h2 className="text-lg font-medium text-stone-700 mb-1">No stat categories configured</h2>
-                  <p className="text-sm text-stone-500 mb-4">
-                    Set up stat categories for this sport first, then you can track player stats per game.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => { setView('config'); setConfigSportId(selectedSportId) }}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-stone-700"
-                  >
-                    Go to Stat Config
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </>
+                <EmptyState
+                  icon={Settings}
+                  title="No stat categories"
+                  body="Set up categories for this sport, then track player stats after each game."
+                  primaryAction={{
+                    label: 'Configure stats',
+                    onClick: () => { setView('config'); setConfigSportId(selectedSportId) },
+                  }}
+                />
               ) : (
-                <>
-                  <h2 className="text-lg font-medium text-stone-700 mb-1">Select a stat category</h2>
-                  <p className="text-sm text-stone-500">Choose a category above to see the leaderboard</p>
-                </>
+                <EmptyState
+                  icon={BarChart3}
+                  title="Select a stat category"
+                  body="Choose a category above to see the leaderboard."
+                />
               )}
             </div>
           ) : loadingLeaders ? (
             <AthleticsTableSkeleton columns={4} rows={4} showToolbar={false} />
           ) : leaders.length === 0 ? (
-            <div className="ui-glass p-8 text-center">
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-stone-700 mb-1">No stats recorded yet</h2>
-              <p className="text-sm text-stone-500 mb-3">
-                Enter player stats after games to see leaders here.
-              </p>
-              <p className="text-xs text-stone-400">
-                Go to <span className="font-medium text-stone-600">Schedule</span> tab, open a game, and select <span className="font-medium text-stone-600">Player Stats</span> to enter data.
-              </p>
+            <div className="ui-glass">
+              <EmptyState
+                icon={BarChart3}
+                title="No stats recorded"
+                body="Enter player stats from a game to build this leaderboard."
+              />
             </div>
           ) : (
             <div className="ui-glass-table">
@@ -632,10 +628,12 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
           </div>
 
           {!configSportId ? (
-            <div className="ui-glass p-8 text-center">
-              <IllustrationAthletics className="w-48 h-40 mx-auto mb-2" />
-              <h2 className="text-lg font-medium text-stone-700 mb-1">Select a sport</h2>
-              <p className="text-sm text-stone-500">Choose a sport to configure its stat categories</p>
+            <div className="ui-glass">
+              <EmptyState
+                icon={Settings}
+                title="Select a sport"
+                body="Choose a sport to configure the stat categories coaches will track."
+              />
             </div>
           ) : loadingConfigs ? (
             <AthleticsTableSkeleton columns={3} rows={3} showToolbar={false} />
@@ -668,10 +666,10 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
                 <h4 className="text-sm font-semibold text-slate-900 mb-3">Add Stat Category</h4>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
-                    <FloatingInput id="stat-key" label="Key (e.g. points)" value={newStatKey} onChange={(e) => setNewStatKey(e.target.value)} />
+                    <FloatingInput id="stat-key" label={`Key (e.g. ${statExamples.key})`} value={newStatKey} onChange={(e) => setNewStatKey(e.target.value)} />
                   </div>
                   <div className="flex-1">
-                    <FloatingInput id="stat-label" label="Display Label (e.g. Points)" value={newStatLabel} onChange={(e) => setNewStatLabel(e.target.value)} />
+                    <FloatingInput id="stat-label" label={`Display Label (e.g. ${statExamples.label})`} value={newStatLabel} onChange={(e) => setNewStatLabel(e.target.value)} />
                   </div>
                   <button
                     type="button"
@@ -686,12 +684,13 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
               </div>
 
               {configs.length === 0 && (
-                <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center">
-                  <IllustrationAthletics className="w-36 h-28 mx-auto mb-1" />
-                  <p className="text-sm text-stone-500 mb-1">No stat categories yet</p>
-                  <p className="text-xs text-stone-400">
-                    Add categories above (e.g. Points, Assists, Rebounds for basketball) to start tracking player stats per game.
-                  </p>
+                <div className="rounded-xl border border-dashed border-stone-200">
+                  <EmptyState
+                    icon={BarChart3}
+                    title="No stat categories yet"
+                    body={`Add categories like ${statExamples.label}, then enter player stats after each game.`}
+                    className="py-8"
+                  />
                 </div>
               )}
             </div>
@@ -700,4 +699,26 @@ export default function StatsSection({ activeCampusId, canWrite = false }: Stats
       )}
     </div>
   )
+}
+
+function getStatExamples(sportName?: string) {
+  const sport = sportName?.toLowerCase() ?? ''
+
+  if (sport.includes('baseball') || sport.includes('softball')) {
+    return { key: 'rbi', label: 'RBI' }
+  }
+
+  if (sport.includes('soccer')) {
+    return { key: 'goals', label: 'Goals' }
+  }
+
+  if (sport.includes('volleyball')) {
+    return { key: 'kills', label: 'Kills' }
+  }
+
+  if (sport.includes('track') || sport.includes('cross country')) {
+    return { key: 'time', label: 'Time' }
+  }
+
+  return { key: 'points', label: 'Points' }
 }

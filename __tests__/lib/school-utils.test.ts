@@ -155,8 +155,9 @@ describe('isValidPhoneValue', () => {
 // ── Constants ───────────────────────────────────────────────────────────────
 
 describe('constants', () => {
-  it('GRADE_LEVEL_DEFAULTS has 3 entries', () => {
-    expect(Object.keys(GRADE_LEVEL_DEFAULTS)).toHaveLength(3)
+  it('GRADE_LEVEL_DEFAULTS has 4 entries', () => {
+    expect(Object.keys(GRADE_LEVEL_DEFAULTS)).toHaveLength(4)
+    expect(GRADE_LEVEL_DEFAULTS).toHaveProperty('ALL_GRADES')
     expect(GRADE_LEVEL_DEFAULTS).toHaveProperty('ELEMENTARY')
     expect(GRADE_LEVEL_DEFAULTS).toHaveProperty('MIDDLE_SCHOOL')
     expect(GRADE_LEVEL_DEFAULTS).toHaveProperty('HIGH_SCHOOL')
@@ -176,7 +177,7 @@ describe('constants', () => {
 
   it('EMPTY_FORM has correct defaults', () => {
     expect(EMPTY_FORM.name).toBe('')
-    expect(EMPTY_FORM.gradeLevel).toBe('ELEMENTARY')
-    expect(EMPTY_FORM.color).toBe('#a855f7')
+    expect(EMPTY_FORM.gradeLevel).toBe('ALL_GRADES')
+    expect(EMPTY_FORM.color).toBe('#3b82f6')
   })
 })

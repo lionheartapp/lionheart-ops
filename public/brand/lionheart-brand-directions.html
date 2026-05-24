@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lionheart Brand Directions</title>
+    <style>
+      :root {
+        --ink: #101827;
+        --blue: #1c4ed8;
+        --gold: #d8a744;
+        --red: #b42318;
+        --paper: #f7f4ee;
+        --line: rgba(16, 24, 39, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 44px 0;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .intro {
+        max-width: 760px;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(40px, 7vw, 82px);
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+      }
+
+      .intro p {
+        margin-top: 16px;
+        color: #465266;
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .direction {
+        min-height: 330px;
+        padding: clamp(24px, 4vw, 44px);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fffdf8;
+        display: grid;
+        align-content: space-between;
+        gap: 28px;
+        overflow: hidden;
+      }
+
+      .direction.dark {
+        background: var(--ink);
+        color: white;
+      }
+
+      .label {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .dark .label {
+        color: #cbd5e1;
+      }
+
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      .brand-name {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(34px, 5vw, 58px);
+        font-weight: 700;
+        letter-spacing: -0.055em;
+        line-height: 0.95;
+      }
+
+      .brand-sub {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .dark .brand-sub {
+        color: #cbd5e1;
+      }
+
+      .mark {
+        width: clamp(76px, 12vw, 112px);
+        aspect-ratio: 1;
+        flex: 0 0 auto;
+      }
+
+      .crest {
+        filter: drop-shadow(0 16px 24px rgba(16, 24, 39, 0.18));
+      }
+
+      .nav-sample {
+        min-height: 62px;
+        padding: 0 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .dark .nav-sample {
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .nav-word {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 25px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .nav-dot {
+        width: 102px;
+        height: 34px;
+        border-radius: 999px;
+        background: var(--ink);
+      }
+
+      .dark .nav-dot {
+        background: white;
+      }
+
+      .tiny-row {
+        display: flex;
+        align-items: end;
+        gap: 20px;
+      }
+
+      .tiny {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+        color: #64748b;
+        font-size: 12px;
+      }
+
+      .story {
+        color: #465266;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .dark .story {
+        color: #dbe4f0;
+      }
+
+      .original {
+        width: min(100%, 560px);
+        height: auto;
+      }
+
+      @media (max-width: 820px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .direction {
+          min-height: 300px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Brand appeal, not app badge.</h1>
+        <p>These directions keep Lionheart feeling bold, institutional, and a little mythic. The goal is to keep the current energy, then build responsive marks around it.</p>
+      </section>
+
+      <section class="grid">
+        <article class="direction">
+          <div class="label">Direction 1: Heritage Lion</div>
+          <img class="original" src="/logo.svg" alt="Current Lionheart logo" />
+          <p class="story">Keep the existing lion crest as the hero, then make responsive companion crops instead of replacing the identity.</p>
+        </article>
+
+        <article class="direction dark">
+          <div class="label">Direction 2: Premium Crest</div>
+          <div class="lockup">
+            <svg class="mark crest" viewBox="0 0 128 128" aria-hidden="true">
+              <path d="M64 7 107 22v35c0 31-16 53-43 64-27-11-43-33-43-64V22L64 7Z" fill="#fff" />
+              <path d="M64 18 95 29v29c0 22-11 39-31 49-20-10-31-27-31-49V29l31-11Z" fill="#1c4ed8" />
+              <path d="M48 37c12-10 27-12 42-3-12 2-19 8-22 18 8-4 17-3 25 3-18 0-29 9-33 27 7-5 14-6 22-3-8 12-19 19-33 20 5-12 4-23-3-34-6-10-5-20 2-28Z" fill="#fff" />
+              <path d="M67 41c4-1 8 0 12 2-5 1-8 3-10 6l-7-2c1-3 3-5 5-6Z" fill="#101827" />
+            </svg>
+            <div>
+              <div class="brand-name">Lionheart</div>
+              <div class="brand-sub">School operations</div>
+            </div>
+          </div>
+          <p class="story">More editorial and memorable: a crest with a simplified lion silhouette, serif wordmark, and enough contrast to feel premium.</p>
+        </article>
+
+        <article class="direction">
+          <div class="label">Direction 3: Compact Product Lockup</div>
+          <div class="nav-sample">
+            <div class="nav-word">
+              <svg width="36" height="36" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 7 107 22v35c0 31-16 53-43 64-27-11-43-33-43-64V22L64 7Z" fill="#101827" />
+                <path d="M64 18 95 29v29c0 22-11 39-31 49-20-10-31-27-31-49V29l31-11Z" fill="#1c4ed8" />
+                <path d="M48 37c12-10 27-12 42-3-12 2-19 8-22 18 8-4 17-3 25 3-18 0-29 9-33 27 7-5 14-6 22-3-8 12-19 19-33 20 5-12 4-23-3-34-6-10-5-20 2-28Z" fill="#fff" />
+              </svg>
+              Lionheart
+            </div>
+            <span class="nav-dot"></span>
+          </div>
+          <p class="story">A responsive version for nav bars and mobile headers: same attitude, simpler geometry, no tiny subtitle at small sizes.</p>
+        </article>
+
+        <article class="direction">
+          <div class="label">Direction 4: Size System</div>
+          <div class="tiny-row">
+            <span class="tiny">
+              <svg width="72" height="72" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 7 107 22v35c0 31-16 53-43 64-27-11-43-33-43-64V22L64 7Z" fill="#101827" />
+                <path d="M64 18 95 29v29c0 22-11 39-31 49-20-10-31-27-31-49V29l31-11Z" fill="#1c4ed8" />
+                <path d="M48 37c12-10 27-12 42-3-12 2-19 8-22 18 8-4 17-3 25 3-18 0-29 9-33 27 7-5 14-6 22-3-8 12-19 19-33 20 5-12 4-23-3-34-6-10-5-20 2-28Z" fill="#fff" />
+              </svg>
+              72
+            </span>
+            <span class="tiny">
+              <svg width="48" height="48" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 7 107 22v35c0 31-16 53-43 64-27-11-43-33-43-64V22L64 7Z" fill="#101827" />
+                <path d="M64 18 95 29v29c0 22-11 39-31 49-20-10-31-27-31-49V29l31-11Z" fill="#1c4ed8" />
+                <path d="M49 37c12-9 26-11 40-3-11 2-18 8-21 17 8-3 16-2 23 3-17 1-27 10-31 28 7-5 14-6 21-3-8 12-18 18-32 20 5-12 4-23-3-34-6-10-5-19 3-28Z" fill="#fff" />
+              </svg>
+              48
+            </span>
+            <span class="tiny">
+              <svg width="32" height="32" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 7 107 22v35c0 31-16 53-43 64-27-11-43-33-43-64V22L64 7Z" fill="#101827" />
+                <path d="M64 18 95 29v29c0 22-11 39-31 49-20-10-31-27-31-49V29l31-11Z" fill="#1c4ed8" />
+                <path d="M48 38c13-10 27-11 41-3-11 2-18 8-21 17 8-3 16-2 23 3-17 1-27 10-31 28 7-5 14-6 21-3-8 11-18 18-32 19 5-12 4-22-3-33-6-10-5-20 2-28Z" fill="#fff" />
+              </svg>
+              32
+            </span>
+            <span class="tiny">
+              <svg width="24" height="24" viewBox="0 0 128 128" aria-hidden="true">
+                <path d="M64 8 105 23v34c0 30-15 51-41 62-26-11-41-32-41-62V23L64 8Z" fill="#101827" />
+                <path d="M64 20 94 30v28c0 21-10 38-30 48-20-10-30-27-30-48V30l30-10Z" fill="#1c4ed8" />
+                <path d="M48 39c13-9 27-10 41-3-11 3-18 9-21 18 8-3 16-2 23 3-17 1-27 9-31 26 7-4 14-5 21-2-8 10-18 16-32 18 5-12 4-22-3-33-6-10-5-19 2-27Z" fill="#fff" />
+              </svg>
+              24
+            </span>
+          </div>
+          <p class="story">A real system: detailed crest when there is room, progressively simplified marks for dense UI and favicons.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server'
 import { mockDeep, mockReset } from 'vitest-mock-extended'
 import type { DeepMockProxy } from 'vitest-mock-extended'
 import type { PrismaClient } from '@prisma/client'
+import { resetCacheForTests } from '@/lib/cache/route-cache'
 
 // ── Mock setup ──────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ function makeTeam(id: string, name: string) {
 describe('GET /api/settings/teams', () => {
   beforeEach(() => {
     if (mocks.prisma) mockReset(mocks.prisma)
+    resetCacheForTests()
   })
 
   it('returns list of teams with member counts', async () => {

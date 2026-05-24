@@ -105,8 +105,8 @@ describe('DEFAULT_ROLES', () => {
 // ── DEFAULT_TEAMS ───────────────────────────────────────────────────────────
 
 describe('DEFAULT_TEAMS', () => {
-  it('has 5 teams', () => {
-    expect(Object.keys(DEFAULT_TEAMS)).toHaveLength(5)
+  it('has 8 teams', () => {
+    expect(Object.keys(DEFAULT_TEAMS)).toHaveLength(8)
   })
 
   it('each team has slug, name, and description', () => {

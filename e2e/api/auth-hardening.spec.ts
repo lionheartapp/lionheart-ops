@@ -19,7 +19,10 @@ const BASE = env.baseUrl
 async function rawCtx() {
   return pwRequest.newContext({
     baseURL: BASE,
-    extraHTTPHeaders: { 'content-type': 'application/json' },
+    extraHTTPHeaders: {
+      'content-type': 'application/json',
+      'x-e2e-run': process.env.GITHUB_RUN_ID || 'local',
+    },
   })
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, type FormEvent } from 'react'
+import { useState, useCallback, useEffect, type FormEvent } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { FloatingInput, FloatingDropdown } from '@/components/ui/FloatingInput'
 import DetailDrawer from '@/components/DetailDrawer'
@@ -45,6 +45,13 @@ export default function InviteMemberDrawer({
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Auto-default school when there's only one
+  useEffect(() => {
+    if (availableSchools.length === 1 && !form.schoolId) {
+      setForm((p) => ({ ...p, schoolId: availableSchools[0].id }))
+    }
+  }, [availableSchools, form.schoolId])
 
   const resetForm = useCallback(() => {
     setForm(EMPTY_FORM)

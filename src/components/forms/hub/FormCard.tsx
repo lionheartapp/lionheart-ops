@@ -79,15 +79,18 @@ export default function FormCard({
 
         {/* Last edited */}
         {updatedAt && (
-          <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             {updatedBy?.avatar ? (
-              <img src={updatedBy.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+              <img src={updatedBy.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
             ) : editorName ? (
-              <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-medium text-slate-500">
+              <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-500">
                 {editorName.charAt(0)}
               </div>
             ) : null}
-            <span className="text-[10px] text-slate-400">{timeAgo(updatedAt)}</span>
+            <div className="flex flex-col items-end">
+              {editorName && <span className="text-[10px] text-slate-500 font-medium leading-tight">{editorName}</span>}
+              <span className="text-[10px] text-slate-400 leading-tight">{timeAgo(updatedAt)}</span>
+            </div>
           </div>
         )}
 

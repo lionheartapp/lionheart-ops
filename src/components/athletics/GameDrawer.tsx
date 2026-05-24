@@ -8,6 +8,8 @@ import ConflictCard from '@/components/athletics/ConflictCard'
 import OverrideReasonModal from '@/components/athletics/OverrideReasonModal'
 import { useFacilityAvailability } from '@/lib/hooks/useFacilityAvailability'
 import { handleAuthResponse } from '@/lib/client-auth'
+import { useToast } from '@/components/Toast'
+import { getAuthHeaders } from '@/lib/api-client'
 
 interface Team {
   id: string
@@ -67,6 +69,15 @@ function toLocalDatetime(isoStr: string): string {
   return local.toISOString().slice(0, 16)
 }
 
+function addMinutesToLocalDatetime(value: string, minutes: number): string {
+  if (!value) return ''
+  const d = new Date(value)
+  d.setMinutes(d.getMinutes() + minutes)
+  const offset = d.getTimezoneOffset()
+  const local = new Date(d.getTime() - offset * 60000)
+  return local.toISOString().slice(0, 16)
+}
+
 export default function GameDrawer({
   isOpen,
   onClose,
@@ -77,6 +88,7 @@ export default function GameDrawer({
   preselectedTeamId,
   onMessageBooker,
 }: GameDrawerProps) {
+  const { toast } = useToast()
   const [locationData, setLocationData] = useState<LocationData>(defaultLocationData())
   const [showOverrideModal, setShowOverrideModal] = useState(false)
   const [form, setForm] = useState<FormState>({
@@ -180,6 +192,17 @@ export default function GameDrawer({
     }))
   }
 
+  const handleStartTimeChange = (value: string): void => {
+    setForm((prev) => {
+      const shouldMoveEnd = !prev.endTime || new Date(prev.endTime) <= new Date(value)
+      return {
+        ...prev,
+        startTime: value,
+        endTime: value && shouldMoveEnd ? addMinutesToLocalDatetime(value, 90) : prev.endTime,
+      }
+    })
+  }
+
   const handleSave = async () => {
     if (!form.athleticTeamId) { setError('Team is required'); return }
     if (form.opponentType === 'in_org') {
@@ -189,6 +212,10 @@ export default function GameDrawer({
     }
     if (!form.startTime) { setError('Start time is required'); return }
     if (!form.endTime) { setError('End time is required'); return }
+    if (new Date(form.endTime) <= new Date(form.startTime)) {
+      setError('End time must be after start time')
+      return
+    }
 
     setSaving(true)
     setError('')
@@ -227,7 +254,8 @@ export default function GameDrawer({
       if (editingGame) {
         res = await fetch(`/api/athletics/games/${editingGame.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          credentials: 'include',
+          headers: { ...getAuthHeaders(), Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         })
       } else {
@@ -235,7 +263,8 @@ export default function GameDrawer({
         if (form.calendarId) payload.calendarId = form.calendarId
         res = await fetch('/api/athletics/games', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          credentials: 'include',
+          headers: { ...getAuthHeaders(), Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         })
       }
@@ -244,6 +273,7 @@ export default function GameDrawer({
       const data = await res.json()
       if (!data.ok) { setError(data.error?.message || 'Failed to save game'); return }
 
+      toast(editingGame ? 'Game updated' : 'Game scheduled', 'success')
       onSaved()
       onClose()
     } catch {
@@ -254,6 +284,13 @@ export default function GameDrawer({
   }
 
   const hasInOrgCandidates = opponentTeamOptions.length > 0
+  const selectedTeam = teams.find((team) => team.id === form.athleticTeamId)
+  const selectedOpponentTeam = teams.find((team) => team.id === form.opponentAthleticTeamId)
+  const gameSummary = [
+    selectedTeam?.name,
+    form.opponentType === 'in_org' ? selectedOpponentTeam?.name : form.opponentName.trim(),
+    form.startTime ? new Date(form.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+  ].filter(Boolean).join(' vs ')
 
   return (
     <DetailDrawer
@@ -273,6 +310,15 @@ export default function GameDrawer({
       }
     >
       <div className="space-y-5">
+        <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+            {editingGame ? 'Game details' : 'Schedule game'}
+          </p>
+          <p className="mt-1 text-sm font-medium text-slate-900">
+            {gameSummary || 'Pick a team, opponent, time, and location.'}
+          </p>
+        </div>
+
         <FloatingDropdown
           id="game-team"
           label="Team"
@@ -347,18 +393,34 @@ export default function GameDrawer({
           label="Start Date/Time"
           type="datetime-local"
           value={form.startTime}
-          onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+          onChange={(e) => handleStartTimeChange(e.target.value)}
           required
         />
 
-        <FloatingInput
-          id="game-end"
-          label="End Date/Time"
-          type="datetime-local"
-          value={form.endTime}
-          onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-          required
-        />
+        <div className="space-y-2">
+          <FloatingInput
+            id="game-end"
+            label="End Date/Time"
+            type="datetime-local"
+            value={form.endTime}
+            onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+            required
+          />
+          {form.startTime && (
+            <div className="flex flex-wrap gap-2">
+              {[60, 90, 120].map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, endTime: addMinutesToLocalDatetime(prev.startTime, minutes) }))}
+                  className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-600 transition-colors duration-200 hover:border-stone-300 hover:text-slate-900 cursor-pointer"
+                >
+                  {minutes / 60} hr{minutes === 60 ? '' : 's'}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Facility picker — on-campus (spaces/buildings) or off-campus (Google Places) */}
         <LocationPicker

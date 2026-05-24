@@ -14,9 +14,9 @@ interface SetupStep {
 }
 
 const INITIAL_STEPS: SetupStep[] = [
-  { id: 'profile', label: 'Setting up your school profile...', status: 'pending' },
+  { id: 'profile', label: 'Saving your school structure...', status: 'pending' },
   { id: 'branding', label: 'Applying your brand colors...', status: 'pending' },
-  { id: 'workspace', label: 'Creating your workspace...', status: 'pending' },
+  { id: 'workspace', label: 'Preparing your campus workspace...', status: 'pending' },
   { id: 'trial', label: 'Starting your free trial...', status: 'pending' },
   { id: 'invitations', label: 'Sending team invitations...', status: 'pending' },
 ]
@@ -432,7 +432,7 @@ export default function SetupPage() {
       {/* Features Preview */}
       <div className="space-y-3 max-w-xl mx-auto">
         {[
-          'School profile configured',
+          'School and campus structure configured',
           'Team members invited',
           'Dashboard ready to use',
           'Free trial activated',

@@ -16,12 +16,18 @@ export async function POST(req: NextRequest) {
   try {
     // ─── Rate limit check (per IP, before any body parsing) ──────────
     const ip = getIp(req) ?? 'unknown'
-    const limitResult = await loginRateLimiter.hit(ip)
-    if (!limitResult.allowed) {
-      return NextResponse.json(
-        fail('RATE_LIMITED', 'Too many login attempts. Please try again later.'),
-        { status: 429, headers: getRateLimitHeaders(limitResult) }
-      )
+    const isE2ERun = req.headers.get('x-e2e-run') === 'local'
+    const shouldBypassRateLimit =
+      isE2ERun && (process.env.NODE_ENV !== 'production' || process.env.E2E_ALLOW_RATE_LIMIT_BYPASS === '1')
+
+    if (!shouldBypassRateLimit) {
+      const limitResult = await loginRateLimiter.hit(ip)
+      if (!limitResult.allowed) {
+        return NextResponse.json(
+          fail('RATE_LIMITED', 'Too many login attempts. Please try again later.'),
+          { status: 429, headers: getRateLimitHeaders(limitResult) }
+        )
+      }
     }
 
     const body = (await req.json()) as { email?: string; password?: string; organizationId?: string }
@@ -84,7 +90,9 @@ export async function POST(req: NextRequest) {
       }
 
       // Successful credential check — reset the rate limit counter for this IP
-      await loginRateLimiter.reset(ip)
+      if (!shouldBypassRateLimit) {
+        await loginRateLimiter.reset(ip)
+      }
 
       // ─── MFA check ──────────────────────────────────────────────────
       if (user.mfaEnabled) {

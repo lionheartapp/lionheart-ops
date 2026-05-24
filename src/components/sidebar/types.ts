@@ -21,7 +21,7 @@ export interface CalendarSidebarData {
 }
 
 export type SettingsTab = 'profile' | 'notifications' | 'school-info' | 'roles' | 'teams' | 'users' | 'campus' | 'academic-calendar' | 'approval-config' | 'add-ons' | 'integrations' | 'sso' | 'ticket-routing' | 'activity-log' | 'billing'
-export type AthleticsTab = 'overview' | 'manage' | 'schedule' | 'stats'
+export type AthleticsTab = 'overview' | 'manage' | 'schedule' | 'stats' | 'leagues'
 /** Sub-sections within the Manage tab */
 export type AthleticsManageSection = 'sports' | 'teams' | 'roster'
 /** Sub-sections within the Schedule tab */

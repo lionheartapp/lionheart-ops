@@ -73,6 +73,8 @@ export default function MobileShell({
         canManageIT={perms.canManageIT}
         canSubmitIT={perms.canSubmitIT}
         canManageWorkspace={perms.canManageWorkspace}
+        athleticsEnabled={perms.athleticsEnabled}
+        canWriteAthletics={perms.canWriteAthletics}
         userName={userName || 'User'}
         userEmail={userEmail || ''}
         userAvatar={userAvatar || undefined}

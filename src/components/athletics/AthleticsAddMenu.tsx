@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Plus, ChevronDown, Dribbble, CalendarDays, Users, CalendarPlus,
+  Plus, ChevronDown, Dribbble, CalendarDays, CalendarPlus,
   ClipboardList, Trophy, Dumbbell, Upload,
 } from 'lucide-react'
 import type { AthleticsTab } from '@/components/Sidebar'
@@ -27,13 +27,11 @@ interface AddMenuItem {
 }
 
 const MENU_ITEMS: AddMenuItem[] = [
-  { label: 'Sport', description: 'Add a new sport to your program', icon: Dribbble, tab: 'sports', event: AppEventName.ATHLETICS_ADD_SPORT },
-  { label: 'Season', description: 'Create a season for a sport', icon: CalendarDays, tab: 'sports', event: AppEventName.ATHLETICS_ADD_SEASON },
-  { label: 'Team', description: 'Set up a team within a season', icon: Users, tab: 'teams', event: AppEventName.ATHLETICS_ADD_TEAM },
-  { label: 'Game', description: 'Schedule a game or match', icon: CalendarPlus, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_GAME },
-  { label: 'Practice', description: 'Schedule a team practice', icon: Dumbbell, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_PRACTICE },
-  { label: 'Player', description: 'Add a player to a roster', icon: ClipboardList, tab: 'roster', event: AppEventName.ATHLETICS_ADD_PLAYER },
-  { label: 'Tournament', description: 'Create a tournament bracket', icon: Trophy, tab: 'tournaments', event: AppEventName.ATHLETICS_ADD_TOURNAMENT },
+  { label: 'Schedule game', description: 'Add opponent, time, venue, and calendar link', icon: CalendarPlus, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_GAME },
+  { label: 'Schedule practice', description: 'Put a team practice on the athletics calendar', icon: Dumbbell, tab: 'schedule', event: AppEventName.ATHLETICS_ADD_PRACTICE },
+  { label: 'Add athlete', description: 'Add a player to a roster', icon: ClipboardList, tab: 'roster', event: AppEventName.ATHLETICS_ADD_PLAYER },
+  { label: 'Create tournament', description: 'Build a tournament bracket', icon: Trophy, tab: 'tournaments', event: AppEventName.ATHLETICS_ADD_TOURNAMENT },
+  { label: 'Start season setup', description: 'Create sports, seasons, and teams before play starts', icon: CalendarDays, tab: 'sports', event: AppEventName.ATHLETICS_ADD_SEASON },
 ]
 
 interface AthleticsAddMenuProps {
@@ -112,8 +110,8 @@ export default function AthleticsAddMenu({ onTabChange, onImportAll }: Athletics
                         <Upload className="w-4 h-4 text-indigo-500 group-hover:text-indigo-700 transition-colors" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900">Import from CSV</p>
-                        <p className="text-xs text-stone-500 mt-0.5">Bulk import sports, teams, and players from a file</p>
+                        <p className="text-sm font-medium text-slate-900">Import season data</p>
+                        <p className="text-xs text-stone-500 mt-0.5">Bring in sports, teams, and rosters from CSV</p>
                       </div>
                     </button>
                   </>

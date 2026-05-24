@@ -12,6 +12,7 @@ import {
   ClipboardCheck,
   TicketCheck,
   Menu,
+  Trophy,
 } from 'lucide-react'
 import { haptic } from '@/lib/haptics'
 import { useMessagingUnread } from '@/lib/hooks/useMessagingUnread'
@@ -33,6 +34,8 @@ interface MobileTabBarProps {
   canManageIT: boolean
   canSubmitIT: boolean
   canManageWorkspace: boolean
+  athleticsEnabled: boolean
+  canWriteAthletics: boolean
   // User info
   userName: string
   userEmail: string
@@ -64,6 +67,8 @@ export default function MobileTabBar({
   canManageIT,
   canSubmitIT,
   canManageWorkspace,
+  athleticsEnabled,
+  canWriteAthletics,
   userName,
   userEmail,
   userAvatar,
@@ -129,6 +134,14 @@ export default function MobileTabBar({
         href: '/maintenance',
         activeRoutes: ['/maintenance'],
       })
+    } else if (athleticsEnabled && canWriteAthletics) {
+      list.push({
+        id: 'athletics',
+        icon: Trophy,
+        label: 'Athletics',
+        href: '/athletics',
+        activeRoutes: ['/athletics'],
+      })
     } else {
       // Everyone else (teachers, staff) gets Tickets (submit + my tickets)
       list.push({
@@ -155,6 +168,8 @@ export default function MobileTabBar({
     isSuperAdmin,
     isOnITTeam,
     isOnMaintenanceTeam,
+    athleticsEnabled,
+    canWriteAthletics,
   ])
 
   const isActive = useCallback(
@@ -187,7 +202,7 @@ export default function MobileTabBar({
         aria-label="Main navigation"
       >
         <div
-          className="relative mx-auto flex h-16 max-w-[440px] items-center justify-around rounded-t-[28px] border border-black/[0.06] bg-white/95 backdrop-blur-xl"
+          className="relative mx-auto flex h-16 max-w-[440px] items-center justify-around rounded-t-[28px] border border-black/[0.06] bg-white/95 pl-1 backdrop-blur-xl"
           style={{
             WebkitBackdropFilter: 'blur(20px)',
           }}
@@ -316,6 +331,7 @@ function MoreSheet({
               style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}
             >
               {userAvatar ? (
+                // eslint-disable-next-line @next/next/no-img-element -- User avatars may come from tenant storage or external identity providers.
                 <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white text-sm font-semibold">

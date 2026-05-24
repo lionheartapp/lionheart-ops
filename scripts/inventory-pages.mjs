@@ -72,7 +72,7 @@ async function findPageFiles(dir) {
 function fileToUrlPath(filePath) {
   const rel = path
     .relative(APP_DIR, filePath)
-    .replace(/\/page\.tsx$/, '')
+    .replace(/(^|\/)page\.tsx$/, '')
     .replace(/\\/g, '/')
   // Drop route groups: (auth), (admin) etc.
   const segments = rel

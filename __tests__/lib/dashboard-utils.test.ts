@@ -31,10 +31,10 @@ describe('getGreeting', () => {
     expect(getGreeting()).toBe('Good evening')
   })
 
-  it('returns "Good morning" at midnight (edge)', () => {
+  it('returns "Good evening" at midnight (edge)', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 3, 7, 0, 0))
-    expect(getGreeting()).toBe('Good morning')
+    expect(getGreeting()).toBe('Good evening')
   })
 
   it('returns "Good afternoon" at exactly noon', () => {

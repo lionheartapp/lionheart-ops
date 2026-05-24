@@ -4,6 +4,8 @@
 
 Complete onboarding user interface for the Lionheart educational SaaS platform. All files are production-ready, with comprehensive documentation.
 
+**Current structure note:** The first onboarding step now confirms organization, primary school, and primary campus details separately. Campus name, address, type, and grade band are captured through `GET/PATCH /api/onboarding/school-info`; legacy references to a single school-info blob are historical.
+
 **Status:** ✅ Complete
 **Files Created:** 5 React components + 4 documentation files
 **Total Size:** 80 KB code + docs
@@ -22,10 +24,10 @@ Complete onboarding user interface for the Lionheart educational SaaS platform. 
    - Card-based content area
 
 2. **`src/app/onboarding/school-info/page.tsx`** (16 KB)
-   - School details setup page
+   - Organization, primary school, and primary campus setup page
    - Logo upload, color picker
    - Branded preview card
-   - Form for school info
+   - Form for structure, contacts, counts, and campus location
 
 3. **`src/app/onboarding/members/page.tsx`** (15 KB)
    - Team member invitation page
@@ -85,7 +87,7 @@ Landing Page (src/app/page.tsx)
 SignupModal (src/app/SignupModal.tsx)
     ↓ Create account → POST /api/organizations/signup
 /onboarding/school-info
-    ↓ Setup school details → PATCH /api/organizations/update
+    ↓ Confirm structure → PATCH /api/onboarding/school-info
 /onboarding/members
     ↓ Invite team members → POST /api/onboarding/import-members
 /onboarding/setup
@@ -128,13 +130,13 @@ Documentation/
 - Stores auth tokens locally
 - Redirects to onboarding
 
-### 🎨 School Info Page
+### 🎨 Structure Page
 - Auto-fetch org details
 - Optional school lookup
 - Branded preview card (logo + colors)
 - Logo upload with base64 encoding
 - Color picker (visual + text input)
-- 10+ editable school fields
+- Organization, primary school, and campus fields
 - Skip option for quick setup
 
 ### 👥 Members Page
@@ -197,11 +199,15 @@ All dependencies already installed in `package.json`:
 ### Already Implemented ✓
 - `POST /api/organizations/signup`
 
-### Need to Implement ☐
+### Structure Endpoint
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/organizations/current` | GET | Fetch org details |
-| `/api/organizations/update` | PATCH | Update org info |
+| `/api/onboarding/school-info` | GET | Fetch org, primary school, primary campus |
+| `/api/onboarding/school-info` | PATCH | Save structure, contacts, counts, campus |
+
+### Other Endpoints
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
 | `/api/onboarding/school-lookup` | POST | Lookup school (optional) |
 | `/api/onboarding/import-members` | POST | Bulk invite members |
 | `/api/onboarding/finalize` | POST | Complete setup |
@@ -235,12 +241,12 @@ Muted:       gray-400
 - [ ] localStorage storage
 - [ ] Redirect to /onboarding/school-info
 
-### School Info Page
+### Structure Page
 - [ ] Org data fetches on mount
 - [ ] School lookup works (optional)
 - [ ] Logo upload/preview
 - [ ] Color picker updates preview
-- [ ] Form fields pre-fill
+- [ ] Organization, school, and campus fields pre-fill
 - [ ] Save calls API correctly
 - [ ] Skip navigates without save
 - [ ] Mobile responsive

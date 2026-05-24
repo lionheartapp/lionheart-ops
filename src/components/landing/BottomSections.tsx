@@ -201,38 +201,36 @@ export function LeoSection() {
 export function Pricing() {
   const plans = [
     {
-      name: 'Essentials',
-      slug: 'essentials',
-      annual: 7800,
-      monthly: 650,
-      description: 'Core operations for a single campus.',
+      name: 'Heart',
+      slug: 'heart',
+      annual: 9600,
+      monthly: 800,
+      description: 'Every great school starts with heart. The real foundation, for any school doing the work.',
       features: [
-        '1 campus',
-        '50 AI actions / month',
-        'Events & calendar',
-        'Maintenance tickets',
-        'IT tickets',
-        'A/V requests',
-        'System roles',
+        'Up to 3 schools, unlimited campuses',
+        'All core modules included',
+        'Mobile app + push notifications',
+        'Leo AI (200 actions/mo)',
+        'Forms (basic builder, unlimited submissions)',
+        'Roster + calendar sync',
+        'MFA + Passkeys',
         'Email support',
       ],
       cta: 'Start free trial',
       featured: false,
     },
     {
-      name: 'Pro',
-      slug: 'pro',
-      annual: 12800,
-      monthly: 1067,
-      description: 'Full suite + integrations, unlimited AI.',
+      name: 'Lion',
+      slug: 'lion',
+      annual: 16500,
+      monthly: 1375,
+      description: 'For schools running at full strength. Operational sophistication for growing systems.',
       features: [
-        'Everything in Essentials',
-        'Unlimited AI actions',
-        'Full maintenance suite',
-        'Full IT suite',
-        'Full A/V suite',
-        'Google Calendar sync',
-        'Outlook Calendar sync',
+        'Up to 10 schools, unlimited campuses',
+        'Everything in Heart, plus:',
+        'Unlimited AI + AI Diagnostics',
+        'Custom approval workflows',
+        'Full form builder (templates, QR, conditional logic)',
         'Custom roles & permissions',
         'Advanced reporting',
         'Priority support',
@@ -241,23 +239,20 @@ export function Pricing() {
       featured: true,
     },
     {
-      name: 'Enterprise',
-      slug: 'enterprise',
-      annual: 16800,
-      monthly: 1400,
-      description: 'Multi-campus, SSO, SLA, dedicated CSM.',
+      name: 'Pride',
+      slug: 'pride',
+      annual: 24000,
+      monthly: 2000,
+      description: 'More than one Lionheart, under one banner. Built for your whole Pride.',
       features: [
-        '2 campuses included',
-        'Everything in Pro',
-        'SSO / SAML',
-        'Audit logs',
-        'API access',
-        'Custom permission scopes',
-        'White label',
-        'Dedicated CSM',
-        '99.9% uptime SLA',
-        'Quarterly business reviews',
-        'Phone support',
+        'Unlimited schools, unlimited campuses',
+        'Everything in Lion, plus:',
+        'See every school in one dashboard',
+        'Compare schools side-by-side',
+        'Compliance Center',
+        'Messaging included (org-wide unlimited)',
+        'Security & Compliance included (SSO, audit, eRate)',
+        'Premium Support included (CSM, SLA, phone)',
       ],
       cta: 'Contact sales',
       featured: false,
@@ -290,9 +285,9 @@ export function Pricing() {
               color: TEXT_PRIMARY,
             }}
           >
-            One price per school.
+            Flat-rate pricing.
             <br />
-            No per-seat math.
+            Unlimited users.
           </h2>
           <p
             className="mt-5 max-w-[620px] mx-auto text-[17px]"
@@ -391,7 +386,7 @@ export function Pricing() {
                 ))}
               </ul>
 
-              {plan.slug === 'enterprise' ? (
+              {plan.slug === 'pride' ? (
                 <Link
                   href="/contact?topic=sales"
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
@@ -440,11 +435,27 @@ export function FAQ() {
   const faqs = [
     {
       q: 'Do you really not require a credit card for the trial?',
-      a: 'Correct. Sign up, get 30 days of full access with no card. When the trial ends your workspace switches to read-only mode until you pick a plan — you never lose data.',
+      a: 'Correct. Sign up, get 30 days of full access — every tier, every add-on — with no card. When the trial ends, your workspace switches to read-only mode until you pick a plan. You never lose data.',
     },
     {
-      q: 'How long does setup take?',
-      a: 'Most schools are running in under an hour. School profile, campus + rooms, team invites, and role assignments are the four required steps. You can add modules (athletics, A/V, etc.) as you need them.',
+      q: 'What’s the difference between "schools" and "campuses"?',
+      a: 'A school is a logical school (your K-8, your high school, your charter). Each school can have unlimited physical campuses underneath it. So a school with three buildings is still one school. A K-12 system with separate K-8 and HS is two schools. Heart covers up to 3 schools; Lion up to 10; Pride is unlimited.',
+    },
+    {
+      q: 'Do you have a mobile app?',
+      a: 'Yes — a mobile app with role-based bottom tabs (Admins see Approvals, IT sees the ticket queue, Maintenance sees Work Orders, Teachers see their submissions). Push notifications, pull-to-refresh, offline-aware. Works on iOS and Android without an app store install.',
+    },
+    {
+      q: 'Can parents register and pay through Lionheart?',
+      a: 'Yes, with the Registration + Payments add-on. Stripe-powered registration for events, camps, programs, and after-school clubs. Magic-link parent signups (no account required), discount codes, refunds, and auto-reconciliation. Available on any tier.',
+    },
+    {
+      q: 'Can I build my own forms?',
+      a: 'Yes. Forms are built in on every tier with unlimited submissions — no monthly caps. Heart includes the basic builder for permission slips, surveys, sign-ups, and incident reports. Lion and Pride unlock the full builder: templates, QR codes, conditional logic, and approval workflows.',
+    },
+    {
+      q: 'Does Lionheart replace our staff messaging tool?',
+      a: 'Yes, with the Messaging add-on. DMs, channels, threads, reactions, attachments, presence, and push to mobile. Built to replace Slack and Teams for staff comms.',
     },
     {
       q: 'Can Lionheart import data from my current tools?',
@@ -457,10 +468,6 @@ export function FAQ() {
     {
       q: 'Is Leo AI trained on my data?',
       a: 'No. Leo uses retrieval-augmented generation grounded in your live data at query time — nothing is used to train the underlying model. Your data stays your data.',
-    },
-    {
-      q: 'Do you offer multi-campus or district pricing?',
-      a: 'Yes. Enterprise includes 2 campuses out of the box, with additional campuses available. For districts with more than 5 schools we build custom packages — contact sales.',
     },
   ]
 
@@ -605,7 +612,6 @@ export function Footer() {
         { label: 'Features', href: '#modules' },
         { label: 'Pricing', href: '#pricing' },
         { label: 'Leo AI', href: '#leo' },
-        { label: 'Changelog', href: '/changelog' },
       ],
     },
     {
@@ -622,7 +628,6 @@ export function Footer() {
         { label: 'Help Center', href: '/help' },
         { label: 'Documentation', href: '/help' },
         { label: 'Status', href: '/status' },
-        { label: 'Changelog', href: '/changelog' },
       ],
     },
     {
@@ -630,7 +635,6 @@ export function Footer() {
       links: [
         { label: 'Privacy', href: '/privacy' },
         { label: 'Terms', href: '/terms' },
-        { label: 'Security', href: '/security' },
       ],
     },
   ]

@@ -20,12 +20,27 @@ const CreateTeamSchema = z.object({
   calendarId: z.string().optional(),
 })
 
-export const GET = withAuth(async ({ searchParams }) => {
+type Team = Awaited<ReturnType<typeof getTeams>>[number]
+
+export const GET = withAuth(async ({ searchParams, ctx, permissions }) => {
+  const canViewAll = await permissions.can(PERMISSIONS.ATHLETICS_TEAMS_MANAGE)
+  const scope = searchParams.get('scope')
   const teams = await getTeams({
     sportId: searchParams.get('sportId') || undefined,
     seasonId: searchParams.get('seasonId') || undefined,
   })
-  return NextResponse.json(ok(teams))
+
+  if (canViewAll) {
+    return NextResponse.json(ok(teams))
+  }
+
+  const assignedTeams = teams.filter((team: Team) => team.coachUserId === ctx.userId)
+  if (scope === 'sport') {
+    const sportIds = new Set(assignedTeams.map((team: Team) => team.sport.id))
+    return NextResponse.json(ok(teams.filter((team: Team) => sportIds.has(team.sport.id))))
+  }
+
+  return NextResponse.json(ok(assignedTeams))
 }, { permission: PERMISSIONS.ATHLETICS_READ })
 
 export const POST = withAuth(async ({ body }) => {

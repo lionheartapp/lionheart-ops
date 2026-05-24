@@ -43,7 +43,10 @@ export async function apiLogin(
 
   const res = await context.request.post(`${env.baseUrl}/api/auth/login`, {
     data: { email, password, organizationId },
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      'x-e2e-run': process.env.GITHUB_RUN_ID || 'local',
+    },
   })
   expect(res.status(), `apiLogin failed: ${await res.text()}`).toBe(200)
   // Cookie is set on the context automatically — subsequent page.goto inherits it.

@@ -32,8 +32,8 @@ describe('isBoardTransitionAllowed', () => {
     expect(isBoardTransitionAllowed('TODO', 'IN_PROGRESS')).toBe(true)
   })
 
-  it('allows IN_PROGRESS → DONE', () => {
-    expect(isBoardTransitionAllowed('IN_PROGRESS', 'DONE')).toBe(true)
+  it('blocks IN_PROGRESS → DONE until QA approves it', () => {
+    expect(isBoardTransitionAllowed('IN_PROGRESS', 'DONE')).toBe(false)
   })
 
   it('allows IN_PROGRESS → QA', () => {
@@ -52,8 +52,8 @@ describe('isBoardTransitionAllowed', () => {
     expect(isBoardTransitionAllowed('ON_HOLD', 'TODO')).toBe(true)
   })
 
-  it('allows SCHEDULED → IN_PROGRESS', () => {
-    expect(isBoardTransitionAllowed('SCHEDULED', 'IN_PROGRESS')).toBe(true)
+  it('blocks SCHEDULED → IN_PROGRESS on the board', () => {
+    expect(isBoardTransitionAllowed('SCHEDULED', 'IN_PROGRESS')).toBe(false)
   })
 
   // Invalid transitions
