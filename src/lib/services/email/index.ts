@@ -16,3 +16,4 @@ export { sendMaintenanceSubmittedEmail, sendMaintenanceAssignedEmail, sendMainte
 export { sendITTicketSubmittedEmail, sendITTicketAssignedEmail, sendITTicketInProgressEmail, sendITTicketOnHoldEmail, sendITTicketDoneEmail, sendITTicketUrgentEmail } from './it-emails'
 export { sendBoardReportEmail, sendContactFormEmail, sendComplianceReminderEmail } from './report-emails'
 export { sendMessagingDigest } from './messaging-emails'
+export { sendConferenceInviteEmail, sendConferenceInviteExistingEmail } from './conference-emails'
