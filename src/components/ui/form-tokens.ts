@@ -31,11 +31,11 @@ export const FIELD_PADDING_TEXTAREA = 'px-3 py-2.5'
 /** Corner rounding. Driven by tailwind.config.ts → borderRadius.field. */
 export const FIELD_RADIUS = 'rounded-field'
 
-/** Resting border color. Maps to rgba(17,15,10,0.08) via globals.css override. */
-export const FIELD_BORDER = 'border border-slate-200'
+/** Resting border color. Matches the global input border treatment. */
+export const FIELD_BORDER = 'border border-[rgba(17,15,10,0.12)]'
 
-/** Hover border color. Maps to rgba(17,15,10,0.12). */
-export const FIELD_BORDER_HOVER = 'hover:border-slate-300'
+/** Hover border color. */
+export const FIELD_BORDER_HOVER = 'hover:border-[rgba(17,15,10,0.18)]'
 
 /** Error border color. */
 export const FIELD_BORDER_ERROR = 'border-red-300'

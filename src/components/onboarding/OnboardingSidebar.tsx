@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 const STEPS = [
-  { number: 1, label: 'Structure', subtitle: 'School and campus setup' },
+  { number: 1, label: 'Structure', subtitle: 'School and location setup' },
   { number: 2, label: 'Add Members', subtitle: 'Invite your team' },
   { number: 3, label: 'Setup Complete', subtitle: 'Finalize your workspace' },
 ]

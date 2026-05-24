@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload, AlertCircle, Loader2, Sparkles, Building2, GraduationCap, MapPin, Palette } from 'lucide-react'
+import { Upload, AlertCircle, Loader2, Sparkles, Building2, GraduationCap, MapPin, Palette, ArrowRight } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { motion } from 'framer-motion'
 import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
@@ -24,8 +25,6 @@ interface SchoolData {
   principalName?: string
   principalEmail?: string
   principalPhone?: string
-  studentCount?: string
-  staffCount?: string
   institutionType?: string
 }
 
@@ -35,11 +34,28 @@ const AI_STATUS_MESSAGES = [
   'Checking location data...',
 ]
 
-const STRUCTURE_NOTES = [
-  'Organization is the billing and account container.',
-  'School is the academic institution or division.',
-  'Campus is the physical place where work happens.',
+const STRUCTURE_STEPS = [
+  'Account',
+  'School',
+  'Location',
 ]
+
+function FieldLabel({
+  htmlFor,
+  children,
+  required = false,
+}: {
+  htmlFor: string
+  children: ReactNode
+  required?: boolean
+}) {
+  return (
+    <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-slate-900">
+      <span>{children}</span>
+      {required && <span className="ml-1 text-red-500" aria-label="required">*</span>}
+    </label>
+  )
+}
 
 const containerVariants = {
   hidden: {},
@@ -57,7 +73,7 @@ export default function SchoolInfoPage() {
   const [data, setData] = useState<SchoolData>({
     name: '',
     schoolName: '',
-    campusName: 'Main Campus',
+    campusName: 'Main location',
     campusAddress: '',
     campusKind: 'HEADQUARTERS',
     campusGradeLevel: '',
@@ -68,8 +84,6 @@ export default function SchoolInfoPage() {
     principalName: '',
     principalEmail: '',
     principalPhone: '',
-    studentCount: '',
-    staffCount: '',
     institutionType: 'PUBLIC',
   })
   const [error, setError] = useState('')
@@ -175,7 +189,7 @@ export default function SchoolInfoPage() {
             ...prev,
             name: org.name || '',
             schoolName: org.schoolName || org.name || '',
-            campusName: org.campusName || 'Main Campus',
+            campusName: org.campusName || 'Main location',
             campusAddress: org.campusAddress || org.physicalAddress || '',
             campusKind: org.campusKind || 'HEADQUARTERS',
             campusGradeLevel: org.campusGradeLevel || '',
@@ -186,8 +200,6 @@ export default function SchoolInfoPage() {
             principalName: org.principalName || '',
             principalEmail: org.principalEmail || '',
             principalPhone: org.principalPhone || '',
-            studentCount: org.studentCount ? String(org.studentCount) : '',
-            staffCount: org.staffCount ? String(org.staffCount) : '',
             institutionType: org.institutionType || 'PUBLIC',
           }))
 
@@ -275,6 +287,21 @@ export default function SchoolInfoPage() {
         })
       )
 
+      if (!data.schoolName.trim()) {
+        setError('School name is required')
+        return
+      }
+
+      if (!data.campusName.trim()) {
+        setError('Location name is required')
+        return
+      }
+
+      if (!data.campusAddress.trim()) {
+        setError('Address is required')
+        return
+      }
+
       const response = await fetch('/api/onboarding/school-info', {
         method: 'PATCH',
         headers: {
@@ -293,8 +320,6 @@ export default function SchoolInfoPage() {
           principalEmail: data.principalEmail || null,
           principalPhone: data.principalPhone || null,
           institutionType: data.institutionType || null,
-          studentCount: data.studentCount ? Number(data.studentCount) : null,
-          staffCount: data.staffCount ? Number(data.staffCount) : null,
         }),
       })
 
@@ -363,17 +388,16 @@ export default function SchoolInfoPage() {
 
       {/* Title */}
       <AnimatedFormField>
-        <div className="space-y-3">
-          <h2 className="text-3xl font-bold text-slate-900">Confirm your structure</h2>
-          <p className="text-slate-600 mt-2">
-            We pre-filled what we could. Confirm the account, school, and campus details so the dashboard can route work to the right place.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {STRUCTURE_NOTES.map((note) => (
-              <div key={note} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
-                {note}
-              </div>
-            ))}
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
+            <Sparkles className="h-3.5 w-3.5" />
+            Your workspace is almost ready
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900">Make it feel like home</h2>
+            <p className="text-slate-600 mt-2">
+              Confirm the essentials now. You can refine the rest once you are inside.
+            </p>
           </div>
         </div>
       </AnimatedFormField>
@@ -385,53 +409,84 @@ export default function SchoolInfoPage() {
         </div>
       )}
 
-      {/* Branded Preview Card */}
-      {data.name && (
-        <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="rounded-lg p-6 text-white border border-opacity-20"
+      {/* Workspace Preview */}
+      <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
+        <motion.div
+          initial={{ scale: 0.96, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-medium"
+        >
+          <div
+            className="p-5 sm:p-6 text-white"
             style={{
               backgroundColor: data.primaryColor || '#2563eb',
-              borderColor: 'rgba(255,255,255,0.1)',
             }}
           >
-            <div className="flex items-center gap-4">
-              {data.logo ? (
-                <img
-                  src={data.logo}
-                  alt={data.name}
-                  className="w-16 h-16 bg-white rounded-lg p-2 object-contain"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }}
-                />
-              ) : null}
-              <div className={`w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400 text-lg font-bold ${data.logo ? 'hidden' : ''}`}>
-                {data.name?.charAt(0) || '?'}
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4 min-w-0">
+                {data.logo ? (
+                  <img
+                    src={data.logo}
+                    alt={data.name || 'School logo'}
+                    className="w-16 h-16 bg-white rounded-lg p-2 object-contain flex-shrink-0"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden') }}
+                  />
+                ) : null}
+                <div className={`w-16 h-16 bg-white rounded-lg flex items-center justify-center text-slate-400 text-lg font-bold flex-shrink-0 ${data.logo ? 'hidden' : ''}`}>
+                  {(data.name || data.schoolName || '?').charAt(0)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Launching</p>
+                  <h3 className="text-2xl font-bold truncate">{data.name || 'Your organization'}</h3>
+                  <p className="text-sm text-white/80 truncate">
+                    {data.schoolName || 'Your school'} · {data.campusName || 'Main location'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">{data.name}</h3>
-                <p className="text-white text-opacity-80">
-                  {data.schoolName || data.name} · {data.campusName || 'Main Campus'}
-                </p>
+              <div className="flex items-center gap-2 text-sm font-semibold text-white/90">
+                {STRUCTURE_STEPS.map((step, index) => (
+                  <div key={step} className="flex items-center gap-2">
+                    <span className="rounded-full bg-white/15 px-2.5 py-1">{step}</span>
+                    {index < STRUCTURE_STEPS.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-white/50" />}
+                  </div>
+                ))}
               </div>
             </div>
-          </motion.div>
-        </AnimatedFormField>
-      )}
+          </div>
+          <div className="grid grid-cols-1 divide-y divide-slate-100 text-sm sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">School</p>
+              <p className="font-semibold text-slate-900 truncate">{data.schoolName || 'Ready to name'}</p>
+            </div>
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">Location</p>
+              <p className="font-semibold text-slate-900 truncate">{data.campusName || 'Main location'}</p>
+            </div>
+            <div className="px-5 py-3">
+              <p className="text-xs font-medium text-slate-500">Brand</p>
+              <p className="font-semibold text-slate-900 truncate">{data.logo ? 'Logo added' : 'Color ready'}</p>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatedFormField>
 
       {/* Form Fields */}
       <div className="space-y-5">
         <AnimatedFormField>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-subtle">
-            <div className="flex items-center gap-2 mb-4">
-              <Building2 className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-900">Organization</h3>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 1</p>
+                <h3 className="text-base font-semibold text-slate-900">Account basics</h3>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-slate-900 mb-1.5">Main Phone</label>
+                <FieldLabel htmlFor="phone">Main Phone</FieldLabel>
                 <Input
                   id="phone"
                   type="tel"
@@ -441,7 +496,7 @@ export default function SchoolInfoPage() {
                 />
               </div>
               <div>
-                <label htmlFor="district" className="block text-sm font-medium text-slate-900 mb-1.5">District or Network</label>
+                <FieldLabel htmlFor="district">District</FieldLabel>
                 <Input
                   id="district"
                   value={data.district}
@@ -449,46 +504,30 @@ export default function SchoolInfoPage() {
                   placeholder="Optional"
                 />
               </div>
-              <div>
-                <label htmlFor="studentCount" className="block text-sm font-medium text-slate-900 mb-1.5">Students</label>
-                <Input
-                  id="studentCount"
-                  type="number"
-                  min={0}
-                  value={data.studentCount}
-                  onChange={(e) => setData((prev) => ({ ...prev, studentCount: e.target.value }))}
-                  placeholder="Enrollment"
-                />
-              </div>
-              <div>
-                <label htmlFor="staffCount" className="block text-sm font-medium text-slate-900 mb-1.5">Staff</label>
-                <Input
-                  id="staffCount"
-                  type="number"
-                  min={0}
-                  value={data.staffCount}
-                  onChange={(e) => setData((prev) => ({ ...prev, staffCount: e.target.value }))}
-                  placeholder="Staff count"
-                />
-              </div>
             </div>
           </section>
         </AnimatedFormField>
 
         <AnimatedFormField highlight={highlightedFields.has('type') || highlightedFields.has('principal')}>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-subtle">
-            <div className="flex items-center gap-2 mb-4">
-              <GraduationCap className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-900">Primary School</h3>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 2</p>
+                <h3 className="text-base font-semibold text-slate-900">Your school</h3>
+                <p className="mt-0.5 text-sm text-slate-500">This is how your school will appear across Lionheart.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label htmlFor="schoolName" className="block text-sm font-medium text-slate-900 mb-1.5">School Name</label>
+                <FieldLabel htmlFor="schoolName" required>School Name</FieldLabel>
                 <Input
                   id="schoolName"
                   value={data.schoolName}
                   onChange={(e) => setData((prev) => ({ ...prev, schoolName: e.target.value }))}
-                  placeholder="School or division name"
+                  placeholder="School name"
                 />
               </div>
               <FloatingDropdown
@@ -496,6 +535,7 @@ export default function SchoolInfoPage() {
                 label="Institution Type"
                 value={data.institutionType || ''}
                 onChange={(value) => setData((prev) => ({ ...prev, institutionType: value }))}
+                required
                 options={[
                   { value: 'PUBLIC', label: 'Public' },
                   { value: 'PRIVATE', label: 'Private' },
@@ -504,7 +544,7 @@ export default function SchoolInfoPage() {
                 ]}
               />
               <div>
-                <label htmlFor="principalName" className="block text-sm font-medium text-slate-900 mb-1.5">Principal or Lead</label>
+                <FieldLabel htmlFor="principalName">Principal or Main Contact</FieldLabel>
                 <Input
                   id="principalName"
                   value={data.principalName}
@@ -513,7 +553,7 @@ export default function SchoolInfoPage() {
                 />
               </div>
               <div>
-                <label htmlFor="principalEmail" className="block text-sm font-medium text-slate-900 mb-1.5">Lead Email</label>
+                <FieldLabel htmlFor="principalEmail">Contact Email</FieldLabel>
                 <Input
                   id="principalEmail"
                   type="email"
@@ -523,7 +563,7 @@ export default function SchoolInfoPage() {
                 />
               </div>
               <div>
-                <label htmlFor="principalPhone" className="block text-sm font-medium text-slate-900 mb-1.5">Lead Phone</label>
+                <FieldLabel htmlFor="principalPhone">Contact Phone</FieldLabel>
                 <Input
                   id="principalPhone"
                   type="tel"
@@ -537,34 +577,29 @@ export default function SchoolInfoPage() {
         </AnimatedFormField>
 
         <AnimatedFormField highlight={highlightedFields.has('address')}>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-subtle">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-900">Primary Campus</h3>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 3</p>
+                <h3 className="text-base font-semibold text-slate-900">Location</h3>
+                <p className="mt-0.5 text-sm text-slate-500">Where requests, rooms, buildings, and day-to-day work will be organized.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="campusName" className="block text-sm font-medium text-slate-900 mb-1.5">Campus Name</label>
+              <div className="sm:col-span-2">
+                <FieldLabel htmlFor="campusName" required>Location Name</FieldLabel>
                 <Input
                   id="campusName"
                   value={data.campusName}
                   onChange={(e) => setData((prev) => ({ ...prev, campusName: e.target.value }))}
-                  placeholder="Main Campus"
+                  placeholder="Main location"
                 />
               </div>
-              <FloatingDropdown
-                id="campusKind"
-                label="Campus Type"
-                value={data.campusKind || 'HEADQUARTERS'}
-                onChange={(value) => setData((prev) => ({ ...prev, campusKind: value }))}
-                options={[
-                  { value: 'HEADQUARTERS', label: 'Headquarters' },
-                  { value: 'CAMPUS', label: 'Campus' },
-                  { value: 'SATELLITE', label: 'Satellite' },
-                ]}
-              />
               <div className="sm:col-span-2">
-                <label htmlFor="campusAddress" className="block text-sm font-medium text-slate-900 mb-1.5">Campus Address</label>
+                <FieldLabel htmlFor="campusAddress" required>Address</FieldLabel>
                 <Input
                   id="campusAddress"
                   type="text"
@@ -604,7 +639,7 @@ export default function SchoolInfoPage() {
               </div>
               <FloatingDropdown
                 id="campusGradeLevel"
-                label="Campus Grade Band"
+                label="Grades at this location (optional)"
                 value={data.campusGradeLevel || ''}
                 onChange={(value) => setData((prev) => ({ ...prev, campusGradeLevel: value }))}
                 placeholder="Select when relevant"
@@ -620,10 +655,15 @@ export default function SchoolInfoPage() {
         </AnimatedFormField>
 
         <AnimatedFormField highlight={highlightedFields.has('logo') || highlightedFields.has('color')}>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-subtle">
-            <div className="flex items-center gap-2 mb-4">
-              <Palette className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-900">Branding</h3>
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-subtle">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                <Palette className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Finish</p>
+                <h3 className="text-base font-semibold text-slate-900">Brand touch</h3>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-end">
               <div>

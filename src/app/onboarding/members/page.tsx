@@ -245,9 +245,9 @@ export default function MembersPage() {
             <Users className="w-8 h-8 text-primary-600" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-slate-900">Add your team</h2>
-        <p className="text-slate-500 mt-2">
-          Bring your team along for the ride
+        <h2 className="text-3xl font-bold text-slate-900">Invite a few teammates</h2>
+        <p className="text-slate-500 mt-2 max-w-md mx-auto">
+          Add the people who should help you get started. You can invite everyone else later.
         </p>
       </motion.div>
 
@@ -269,9 +269,41 @@ export default function MembersPage() {
             exit={{ opacity: 0, scale: 0.98 }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* CSV Upload Card */}
+              {/* Manual Add Card */}
               <motion.button
                 custom={0}
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedOption('manual')}
+                className="group relative p-6 bg-white border border-primary-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-300 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+                      <UserPlus className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-slate-900">Add manually</h3>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-100">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500 mt-1">
+                        Invite one or two people now
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
+                </div>
+              </motion.button>
+
+              {/* CSV Upload Card */}
+              <motion.button
+                custom={1}
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
@@ -281,7 +313,7 @@ export default function MembersPage() {
                   setSelectedOption('csv')
                   setCsvError('')
                 }}
-                className="group relative p-7 bg-white border border-slate-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="group relative p-6 bg-white border border-slate-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-3">
@@ -289,41 +321,9 @@ export default function MembersPage() {
                       <Upload className="w-6 h-6 text-primary-600" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">Upload CSV</h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-100">
-                          Recommended
-                        </span>
-                      </div>
+                      <h3 className="font-semibold text-slate-900">Upload CSV</h3>
                       <p className="text-sm text-slate-500 mt-1">
-                        Import a list of staff from a spreadsheet
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary-400 transition-all duration-200 group-hover:translate-x-0.5 mt-1 flex-shrink-0" />
-                </div>
-              </motion.button>
-
-              {/* Manual Add Card */}
-              <motion.button
-                custom={1}
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setSelectedOption('manual')}
-                className="group relative p-7 bg-white border border-slate-200 rounded-xl shadow-subtle hover:shadow-medium hover:border-primary-200 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                      <UserPlus className="w-6 h-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Add Manually</h3>
-                      <p className="text-sm text-slate-500 mt-1">
-                        Add team members one at a time
+                        Import a larger staff list
                       </p>
                     </div>
                   </div>
@@ -344,7 +344,7 @@ export default function MembersPage() {
                 onClick={handleSkip}
                 className="text-sm text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1"
               >
-                I&apos;ll do this later
+                Skip for now
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </motion.div>
@@ -491,8 +491,9 @@ export default function MembersPage() {
             <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-subtle">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
-                  <label htmlFor="manual-name" className="block text-xs font-medium text-slate-500 mb-1.5">
+                  <label htmlFor="manual-name" className="block text-sm font-medium text-slate-900 mb-1.5">
                     Name
+                    <span className="ml-1 text-red-500" aria-label="required">*</span>
                   </label>
                   <Input
                     id="manual-name"
@@ -506,13 +507,13 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="John Smith"
-                    size="sm"
-                    className="w-full text-sm text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
+                    className="w-full text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="manual-email" className="block text-xs font-medium text-slate-500 mb-1.5">
+                  <label htmlFor="manual-email" className="block text-sm font-medium text-slate-900 mb-1.5">
                     Email
+                    <span className="ml-1 text-red-500" aria-label="required">*</span>
                   </label>
                   <Input
                     id="manual-email"
@@ -526,14 +527,13 @@ export default function MembersPage() {
                       }
                     }}
                     placeholder="john@school.edu"
-                    size="sm"
-                    className="w-full text-sm text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
+                    className="w-full text-slate-900 focus:border-primary-300 focus-visible:ring-primary-100"
                   />
                 </div>
                 <div className="flex items-end">
                   <button
                     onClick={addManualMember}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center hover:from-primary-600 hover:to-primary-700 transition-all shadow-subtle hover:shadow-medium flex-shrink-0"
+                    className="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center hover:from-primary-600 hover:to-primary-700 transition-all shadow-subtle hover:shadow-medium flex-shrink-0"
                     aria-label="Add member"
                   >
                     <Plus className="w-5 h-5" />
