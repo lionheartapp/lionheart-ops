@@ -206,7 +206,7 @@ export default function MainNavContent({
               </li>
             )
           })}
-          {/* Events */}
+          {/* Calendar / Events */}
           <li>
             <button
               onClick={() => {
@@ -221,7 +221,7 @@ export default function MainNavContent({
               aria-current={eventsOpen ? 'page' : undefined}
             >
               <CalendarClock className={`w-5 h-5 flex-shrink-0 ${eventsOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
-              <span className="text-sm">Events</span>
+              <span className="text-sm">Calendar</span>
             </button>
           </li>
           {/* Messaging */}
