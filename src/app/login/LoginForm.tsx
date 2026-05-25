@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, ShieldCheck, Fingerprint, KeyRound, Mail } from 'lucide-react'
-import { startAuthentication } from '@simplewebauthn/browser'
+import { WebAuthnAbortService, startAuthentication } from '@simplewebauthn/browser'
 import { Input } from '@/components/ui/Input'
 
 interface LoginFormProps {
   organizationId: string
   organizationName: string
 }
+
+const PASSKEY_AUTH_TIMEOUT_MS = 30000
 
 export default function LoginForm({ organizationId, organizationName }: LoginFormProps) {
   const router = useRouter()
@@ -204,6 +206,7 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   async function handlePasskeyAuth() {
     setMfaError('')
     setPasskeyLoading(true)
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
 
     try {
       // Step 1: Get authentication options from server
@@ -227,7 +230,19 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
       }
 
       // Step 2: Trigger browser passkey prompt
-      const assertion = await startAuthentication({ optionsJSON: optionsData.data.options })
+      const passkeyOptions = {
+        ...optionsData.data.options,
+        timeout: PASSKEY_AUTH_TIMEOUT_MS,
+      }
+      const assertionPromise = startAuthentication({ optionsJSON: passkeyOptions })
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          WebAuthnAbortService.cancelCeremony()
+          reject(new Error('Passkey verification timed out. Try again or use an email code.'))
+        }, PASSKEY_AUTH_TIMEOUT_MS + 1000)
+      })
+
+      const assertion = await Promise.race([assertionPromise, timeoutPromise])
 
       // Step 3: Verify assertion with server
       const verifyRes = await fetch('/api/auth/passkey/authenticate/verify', {
@@ -251,11 +266,12 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
     } catch (err) {
       // User cancelled the browser prompt or error occurred
       if (err instanceof Error && err.name === 'NotAllowedError') {
-        setMfaError('Passkey prompt was cancelled. Try again or use a code.')
+        setMfaError('Passkey was not completed. Try again or use an email code.')
       } else {
         setMfaError(err instanceof Error ? err.message : 'Passkey verification failed')
       }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId)
       setPasskeyLoading(false)
     }
   }
@@ -281,6 +297,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
 
   // ── Request email OTP ──
   async function handleRequestEmailCode() {
+    if (passkeyLoading) {
+      WebAuthnAbortService.cancelCeremony()
+      setPasskeyLoading(false)
+    }
     setEmailOtpSending(true)
     setMfaError('')
     try {
@@ -314,6 +334,10 @@ export default function LoginForm({ organizationId, organizationName }: LoginFor
   }
 
   function handleBackToSignIn() {
+    if (passkeyLoading) {
+      WebAuthnAbortService.cancelCeremony()
+      setPasskeyLoading(false)
+    }
     setForgotMode(false)
     setForgotEmail('')
     setForgotSent(false)

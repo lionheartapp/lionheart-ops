@@ -234,24 +234,6 @@ export default function SigninPage() {
             </div>
           </motion.div>
 
-          {/* Social proof */}
-          <motion.div
-            className="mt-10 flex items-center justify-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            <div className="flex -space-x-2">
-              {['bg-primary-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
-                <div key={i} className={`w-8 h-8 ${color} rounded-full border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
-                  {['S', 'M', 'J', 'R'][i]}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              Trusted by school administrators
-            </p>
-          </motion.div>
         </div>
       </div>
     </div>
