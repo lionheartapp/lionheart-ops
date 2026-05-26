@@ -73,7 +73,7 @@ const plans: Plan[] = [
     monthlyPrice: 800,
     annualTotal: 9600,
     recommended: false,
-    cta: 'Start Free Trial',
+    cta: 'Start 30-day trial',
     ctaHref: '/signup',
     ctaVariant: 'outline',
     features: [
@@ -94,7 +94,7 @@ const plans: Plan[] = [
     monthlyPrice: 1375,
     annualTotal: 16500,
     recommended: true,
-    cta: 'Start Free Trial',
+    cta: 'Start 30-day trial',
     ctaHref: '/signup',
     ctaVariant: 'accent',
     features: [
@@ -343,19 +343,19 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
 // ─── Main component ──────────────────────────────────────────────────────
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f7f8f7]">
       <PublicNav />
 
       <main>
         {/* ── Hero ── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/60 to-white py-16 sm:py-24">
+        <section className="relative overflow-hidden px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-28 lg:px-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.p
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.45, ease: EASE_OUT_CUBIC }}
-              className="text-sm font-semibold text-slate-500 tracking-wide uppercase mb-3"
+              className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500"
             >
               Pricing
             </motion.p>
@@ -365,9 +365,10 @@ export default function PricingPage() {
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.5, delay: 0.05, ease: EASE_OUT_CUBIC }}
-              className="text-3xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4"
+              className="mx-auto mb-5 max-w-[820px] text-4xl font-semibold leading-[1.06] text-slate-950 sm:text-6xl"
+              style={{ letterSpacing: 0 }}
             >
-              Simple, transparent pricing
+              One flat platform price. Unlimited staff.
             </motion.h1>
 
             <motion.p
@@ -375,23 +376,20 @@ export default function PricingPage() {
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT_CUBIC }}
-              className="text-lg text-slate-600 max-w-xl mx-auto mb-10"
+              className="mx-auto mb-10 max-w-2xl text-[17px] leading-[1.65] text-slate-600 sm:text-[19px]"
             >
-              Flat-rate pricing. Unlimited users. No per-seat math, no hidden fees, cancel anytime.
+              Start with the core school operations workspace. Add athletics, messaging, registration, fleet, or premium support only when you need them.
             </motion.p>
           </div>
-
-          {/* Ambient blobs */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-slate-100/30 rounded-full blur-3xl pointer-events-none" aria-hidden="true" />
         </section>
 
         {/* ── Pricing Cards ── */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <section className="mx-auto max-w-7xl px-4 pb-28 sm:px-6 lg:px-8">
           <motion.div
             variants={staggerContainer(0.1, 0)}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 -mt-6"
+            className="grid grid-cols-1 gap-5 md:grid-cols-3"
           >
             {plans.map((plan) => {
               const isRecommended = plan.recommended
@@ -400,26 +398,24 @@ export default function PricingPage() {
                 <motion.article
                   key={plan.id}
                   variants={cardEntrance}
-                  className={`relative rounded-2xl p-8 flex flex-col ${
+                  className={`relative flex flex-col rounded-[1.75rem] p-8 ${
                     isRecommended
-                      ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-slate-700 shadow-2xl shadow-slate-300 scale-[1.02] z-10'
-                      : 'bg-white border border-slate-200 shadow-sm'
+                      ? 'z-10 scale-[1.02] border border-slate-800 bg-slate-950 shadow-[0_26px_70px_-28px_rgba(15,15,15,0.5)]'
+                      : 'border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,15,15,0.06)]'
                   }`}
                   aria-label={`${plan.name} plan`}
                 >
-                  {/* Most Popular badge */}
-                  {isRecommended && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="bg-white text-slate-900 text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
-
                   <div className="mb-6">
-                    <h2 className={`text-xl font-bold mb-1 ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
-                      {plan.name}
-                    </h2>
+                    <div className="mb-2 flex min-h-7 items-start justify-between gap-3">
+                      <h2 className={`text-xl font-semibold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
+                        {plan.name}
+                      </h2>
+                      {isRecommended && (
+                        <span className="rounded-full bg-white/12 px-2.5 py-1 text-right text-[11px] font-semibold leading-tight text-white">
+                          Growing schools
+                        </span>
+                      )}
+                    </div>
                     <p className={`text-sm ${isRecommended ? 'text-slate-400' : 'text-slate-500'}`}>
                       {plan.tagline}
                     </p>
@@ -428,7 +424,7 @@ export default function PricingPage() {
                   {/* Price */}
                   <div className="mb-6">
                     <div className="flex items-end gap-1">
-                      <span className={`text-5xl font-bold ${isRecommended ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-5xl font-semibold ${isRecommended ? 'text-white' : 'text-slate-900'}`} style={{ letterSpacing: 0 }}>
                         ${plan.annualTotal.toLocaleString('en-US')}
                       </span>
                       <span className={`text-sm mb-2 ${isRecommended ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -446,7 +442,7 @@ export default function PricingPage() {
                   {/* CTA */}
                   <Link
                     href={plan.ctaHref}
-                    className={`block w-full text-center py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] mb-8 cursor-pointer ${
+                    className={`mb-8 block w-full cursor-pointer rounded-full px-6 py-3 text-center text-sm font-semibold transition-all duration-200 hover:-translate-y-px active:scale-[0.98] ${
                       isRecommended
                         ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-sm'
                         : plan.ctaVariant === 'accent'
@@ -465,7 +461,12 @@ export default function PricingPage() {
                   )}
 
                   {/* Feature list */}
-                  <ul className="space-y-3 flex-1" role="list">
+                  <ul
+                    className={`flex-1 space-y-3 border-t pt-6 ${
+                      isRecommended ? 'border-white/15' : 'border-slate-200'
+                    }`}
+                    role="list"
+                  >
                     {plan.features.map((feature, fIdx) => {
                       const isDivider = feature.includes(', plus:') || feature.includes('Everything in')
                       return (
@@ -511,7 +512,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Add-ons ── */}
-        <section className="bg-white border-t border-slate-100 py-20">
+        <section className="border-t border-slate-200 bg-white py-24">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 1, y: 0 }}
@@ -520,8 +521,8 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <p className="text-sm font-semibold text-slate-500 tracking-wide uppercase mb-3">Add-ons</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Add-ons</p>
+              <h2 className="mb-3 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl" style={{ letterSpacing: 0 }}>
                 Bolt on what moves the needle.
               </h2>
               <p className="text-slate-500 max-w-xl mx-auto">
@@ -542,7 +543,7 @@ export default function PricingPage() {
                   <motion.div
                     key={addon.name}
                     variants={cardEntrance}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow duration-200"
+                    className="rounded-[1.5rem] border border-slate-200 bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -573,7 +574,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Feature Comparison Table ── */}
-        <section className="bg-slate-50 border-t border-slate-200 py-20">
+        <section className="border-t border-slate-200 bg-[#eef3f0] py-24">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 1, y: 0 }}
@@ -582,13 +583,13 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Compare all features</h2>
+              <h2 className="mb-3 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl" style={{ letterSpacing: 0 }}>Compare all features</h2>
               <p className="text-slate-500">See exactly what&apos;s included in each plan.</p>
             </motion.div>
 
             {/* Desktop comparison table */}
             <div className="hidden md:block">
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm">
                 {/* Table header */}
                 <div className="grid grid-cols-4 border-b border-slate-200">
                   <div className="p-5" />
@@ -604,7 +605,7 @@ export default function PricingPage() {
                       </p>
                       {plan.recommended && (
                         <span className="inline-block mt-1 text-xs font-semibold bg-slate-900 text-white px-2 py-0.5 rounded-full">
-                          Most Popular
+                          Growing schools
                         </span>
                       )}
                     </div>
@@ -689,7 +690,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Value Props Strip ── */}
-        <section className="py-16 bg-white border-b border-slate-100">
+        <section className="border-b border-slate-100 bg-white py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               variants={staggerContainer(0.1, 0)}
@@ -719,7 +720,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── FAQ ── */}
-        <section className="py-20 bg-white">
+        <section className="bg-white py-24">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 1, y: 0 }}
@@ -728,7 +729,7 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center mb-12"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">Frequently asked questions</h2>
+              <h2 className="mb-3 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl" style={{ letterSpacing: 0 }}>Frequently asked questions</h2>
               <p className="text-slate-500">
                 Still have questions?{' '}
                 <Link href="/contact" className="text-slate-900 hover:text-slate-700 underline">
@@ -743,19 +744,17 @@ export default function PricingPage() {
         </section>
 
         {/* ── Bottom CTA ── */}
-        <section className="relative bg-slate-900 py-16 sm:py-20 overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none" aria-hidden="true" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4 pointer-events-none" aria-hidden="true" />
-
+        <section className="relative overflow-hidden bg-slate-950 py-20 sm:py-24">
           <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.h2
               initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4"
+              className="mb-4 text-3xl font-semibold leading-tight text-white sm:text-4xl"
+              style={{ letterSpacing: 0 }}
             >
-              Ready to simplify your school&apos;s operations?
+              Ready to bring the work into one place?
             </motion.h2>
             <motion.p
               initial={{ opacity: 1, y: 0 }}
@@ -777,7 +776,7 @@ export default function PricingPage() {
                 href="/signup"
                 className="px-8 py-4 min-h-[48px] bg-white text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition inline-flex items-center justify-center gap-2 active:scale-[0.97]"
               >
-                Start Free Trial
+                Start 30-day trial
               </Link>
               <Link
                 href="/contact?topic=sales"

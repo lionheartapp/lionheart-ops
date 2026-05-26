@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" fill="none" stroke="#d6ded8" stroke-width="1" opacity="0.55"/>
+    </pattern>
+    <style>
+      .label{font:700 14px ui-sans-serif,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;fill:#66736b}
+      .title{font:700 24px ui-sans-serif,system-ui,sans-serif;fill:#07111f}
+      .body{font:500 16px ui-sans-serif,system-ui,sans-serif;fill:#5f6b63}
+      .small{font:700 12px ui-sans-serif,system-ui,sans-serif;fill:#6a756f}
+      .card{fill:#fff;stroke:#dfe5e1;stroke-width:1.4;filter:url(#shadow)}
+      .dark{fill:#07111f}
+      .green{fill:#10b981}
+      .blue{fill:#2563eb}
+      .amber{fill:#f59e0b}
+      .red{fill:#ef4444}
+    </style>
+  </defs>
+    <rect width="1200" height="900" rx="56" fill="#f3f6f4"/>
+    <rect width="1200" height="900" fill="url(#grid)" opacity="0.55"/>
+    <rect x="72" y="70" width="1056" height="760" rx="44" fill="#fbfcfb" stroke="#dbe3de"/>
+    
+    <text x="120" y="134" class="label">Security</text><text x="120" y="174" class="title">Access controls for school operations</text>
+    <rect x="166" y="252" width="360" height="420" rx="36" class="card"/>
+    <circle cx="346" cy="388" r="86" fill="#eef3f0"/><path d="M346 322l70 28v52c0 58-42 92-70 104-28-12-70-46-70-104v-52z" fill="#07111f"/><path d="M314 394l22 22 46-58" fill="none" stroke="#10b981" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="650" y="280" width="360" height="360" rx="34" fill="#07111f" filter="url(#shadow)"/>
+    <rect x="704" y="350" width="238" height="46" rx="16" fill="#1f2937"/><circle cx="730" cy="373" r="8" class="green"/><text x="754" y="379" font-family="ui-sans-serif,system-ui" font-size="15" font-weight="700" fill="#fff">MFA + passkeys</text><rect x="704" y="426" width="238" height="46" rx="16" fill="#1f2937"/><circle cx="730" cy="449" r="8" class="green"/><text x="754" y="455" font-family="ui-sans-serif,system-ui" font-size="15" font-weight="700" fill="#fff">Roles by team</text><rect x="704" y="502" width="238" height="46" rx="16" fill="#1f2937"/><circle cx="730" cy="525" r="8" class="green"/><text x="754" y="531" font-family="ui-sans-serif,system-ui" font-size="15" font-weight="700" fill="#fff">Org-aware data</text>
+  </svg>

@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Check, ChevronDown, Mail, Sparkles } from 'lucide-react'
-import { TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER, BORDER_SOFT, SURFACE_ALT, DARK_SURFACE, CARD_SHADOW, AI_GRADIENT, REVEAL_VIEWPORT, REVEAL_VARIANTS } from './tokens'
+import { TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER, BORDER_SOFT, SURFACE_ALT, DARK_SURFACE, CARD_SHADOW, REVEAL_VIEWPORT, REVEAL_VARIANTS } from './tokens'
 
 // ─── Leo AI section (the one dark section) ─────────────────────────────────
 
@@ -12,24 +12,16 @@ export function LeoSection() {
   return (
     <motion.section
       id="leo"
-      className="relative px-6 py-28 overflow-hidden"
+      className="relative overflow-hidden px-6 py-28"
       style={{ backgroundColor: DARK_SURFACE, color: '#ffffff' }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
       variants={REVEAL_VARIANTS}
     >
-      {/* Ambient gradient orbs */}
       <div
-        className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full pointer-events-none opacity-30"
-        style={{ background: AI_GRADIENT, filter: 'blur(140px)' }}
-      />
-      <div
-        className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full pointer-events-none opacity-20"
-        style={{
-          background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-          filter: 'blur(140px)',
-        }}
+        className="absolute inset-x-0 top-0 h-px pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)' }}
       />
 
       <div className="relative max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -46,22 +38,15 @@ export function LeoSection() {
           </div>
 
           <h2
-            className="font-semibold mb-6"
+            className="mb-6 text-4xl font-semibold leading-[1.05] sm:text-5xl"
             style={{
-              fontSize: 'clamp(34px, 4.8vw, 56px)',
-              lineHeight: '1.0',
-              letterSpacing: '-0.04em',
+              letterSpacing: 0,
             }}
           >
             Your school&rsquo;s
             <br />
             <span
-              style={{
-                background: AI_GRADIENT,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
+              style={{ color: 'rgba(255,255,255,0.92)' }}
             >
               institutional memory,
             </span>
@@ -92,7 +77,7 @@ export function LeoSection() {
               >
                 <div
                   className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
-                  style={{ background: AI_GRADIENT }}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
                 >
                   <Check className="w-2.5 h-2.5 text-white" strokeWidth={4} />
                 </div>
@@ -104,7 +89,7 @@ export function LeoSection() {
 
         {/* Chat mockup */}
         <div
-          className="rounded-3xl p-6 relative"
+          className="relative rounded-[1.75rem] p-5 sm:p-6"
           style={{
             backgroundColor: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -115,7 +100,7 @@ export function LeoSection() {
             <div className="flex items-center gap-2.5">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: AI_GRADIENT }}
+                style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
               >
                 <Sparkles className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
@@ -148,8 +133,8 @@ export function LeoSection() {
             <div
               className="rounded-2xl rounded-tl-sm p-3.5 mr-8 text-[13px]"
               style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2))',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.12)',
                 color: 'rgba(255,255,255,0.95)',
                 lineHeight: 1.55,
               }}
@@ -216,7 +201,7 @@ export function Pricing() {
         'MFA + Passkeys',
         'Email support',
       ],
-      cta: 'Start free trial',
+      cta: 'Start 30-day trial',
       featured: false,
     },
     {
@@ -235,7 +220,7 @@ export function Pricing() {
         'Advanced reporting',
         'Priority support',
       ],
-      cta: 'Start free trial',
+      cta: 'Start 30-day trial',
       featured: true,
     },
     {
@@ -262,7 +247,8 @@ export function Pricing() {
   return (
     <motion.section
       id="pricing"
-      className="px-6 py-24"
+      className="px-6 py-28"
+      style={{ backgroundColor: '#f7f8f7' }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -274,61 +260,56 @@ export function Pricing() {
             className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-4"
             style={{ color: TEXT_MUTED }}
           >
-            Simple, school-friendly pricing
+            Pricing that makes sense before a sales call
           </p>
           <h2
-            className="font-semibold mx-auto max-w-[820px]"
+            className="mx-auto max-w-[820px] text-4xl font-semibold leading-[1.07] sm:text-5xl"
             style={{
-              fontSize: 'clamp(32px, 4.5vw, 52px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >
-            Flat-rate pricing.
-            <br />
-            Unlimited users.
+            One flat platform price. Unlimited staff.
           </h2>
           <p
             className="mt-5 max-w-[620px] mx-auto text-[17px]"
             style={{ color: TEXT_SECONDARY, lineHeight: 1.6 }}
           >
-            Every plan starts with a 30-day free trial. No credit card required.
-            Cancel anytime from settings.
+            Start with the core school operations workspace, then add athletics,
+            messaging, registration, fleet, or premium support only when you need them.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5 max-w-[1100px] mx-auto">
+        <div className="mx-auto grid max-w-[1120px] gap-5 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.slug}
-              className="relative rounded-3xl p-7 flex flex-col"
+              className="relative flex flex-col rounded-[1.75rem] p-7"
               style={{
                 backgroundColor: plan.featured ? TEXT_PRIMARY : '#ffffff',
                 color: plan.featured ? '#ffffff' : TEXT_PRIMARY,
                 border: plan.featured ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${BORDER}`,
                 boxShadow: plan.featured
-                  ? '0 20px 60px -20px rgba(15,15,15,0.35), 0 0 0 1px rgba(255,255,255,0.08)'
+                  ? '0 26px 70px -28px rgba(15,15,15,0.42), 0 0 0 1px rgba(255,255,255,0.08)'
                   : CARD_SHADOW,
               }}
             >
-              {plan.featured && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-semibold text-white"
-                    style={{ background: AI_GRADIENT }}
-                  >
-                    <Sparkles className="w-2.5 h-2.5" />
-                    Most Popular
-                  </span>
+              <div className="mb-3 flex min-h-7 items-start justify-between gap-3">
+                <div
+                  className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                  style={{ color: plan.featured ? 'rgba(255,255,255,0.5)' : TEXT_MUTED }}
+                >
+                  {plan.name}
                 </div>
-              )}
-
-              <div
-                className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-2"
-                style={{ color: plan.featured ? 'rgba(255,255,255,0.5)' : TEXT_MUTED }}
-              >
-                {plan.name}
+                {plan.featured && (
+                  <span
+                    className="inline-flex max-w-[160px] items-center gap-1 rounded-full px-2.5 py-1 text-right text-[10px] font-semibold leading-tight text-white"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}
+                  >
+                    <Sparkles className="h-2.5 w-2.5 shrink-0" />
+                    Growing schools
+                  </span>
+                )}
               </div>
 
               <div className="flex items-baseline gap-1.5 mb-2">
@@ -336,7 +317,7 @@ export function Pricing() {
                   className="font-semibold"
                   style={{
                     fontSize: '40px',
-                    letterSpacing: '-0.03em',
+                    letterSpacing: 0,
                   }}
                 >
                   ${plan.annual.toLocaleString('en-US')}
@@ -367,7 +348,10 @@ export function Pricing() {
                 {plan.description}
               </p>
 
-              <ul className="space-y-2.5 mb-8 flex-1">
+              <ul
+                className="mb-8 flex-1 space-y-2.5 border-t pt-6"
+                style={{ borderColor: plan.featured ? 'rgba(255,255,255,0.14)' : BORDER_SOFT }}
+              >
                 {plan.features.map((f) => (
                   <li
                     key={f}
@@ -389,7 +373,7 @@ export function Pricing() {
               {plan.slug === 'pride' ? (
                 <Link
                   href="/contact?topic=sales"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px active:scale-[0.98]"
                   style={{
                     backgroundColor: '#ffffff',
                     color: TEXT_PRIMARY,
@@ -402,7 +386,7 @@ export function Pricing() {
               ) : (
                 <Link
                   href="/signup"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px active:scale-[0.98]"
                   style={{
                     backgroundColor: plan.featured ? '#ffffff' : TEXT_PRIMARY,
                     color: plan.featured ? TEXT_PRIMARY : '#ffffff',
@@ -474,7 +458,7 @@ export function FAQ() {
   return (
     <motion.section
       id="faq"
-      className="px-6 py-24"
+      className="px-6 py-28"
       style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
       initial="hidden"
       whileInView="visible"
@@ -490,11 +474,9 @@ export function FAQ() {
             Common questions
           </p>
           <h2
-            className="font-semibold"
+            className="text-3xl font-semibold leading-[1.08] sm:text-4xl"
             style={{
-              fontSize: 'clamp(30px, 4vw, 44px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >
@@ -520,7 +502,7 @@ export function FAQ() {
               >
                 <span
                   className="text-[15px] font-semibold"
-                  style={{ letterSpacing: '-0.01em' }}
+                  style={{ letterSpacing: 0 }}
                 >
                   {faq.q}
                 </span>
@@ -549,6 +531,7 @@ export function ClosingCTA() {
   return (
     <motion.section
       className="px-6 py-28"
+      style={{ backgroundColor: '#f7f8f7' }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -556,11 +539,9 @@ export function ClosingCTA() {
     >
       <div className="max-w-[900px] mx-auto text-center">
         <h2
-          className="font-semibold mb-6"
+          className="mb-6 text-4xl font-semibold leading-[1.03] sm:text-6xl"
           style={{
-            fontSize: 'clamp(36px, 5.5vw, 64px)',
-            lineHeight: '1.0',
-            letterSpacing: '-0.04em',
+            letterSpacing: 0,
             color: TEXT_PRIMARY,
           }}
         >
@@ -578,19 +559,21 @@ export function ClosingCTA() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 px-7 py-4 rounded-full text-[15px] font-semibold transition-all duration-200 hover:-translate-y-px"
+            className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px] font-semibold transition-all duration-200 hover:-translate-y-px active:scale-[0.98]"
             style={{
               backgroundColor: TEXT_PRIMARY,
               color: '#ffffff',
               boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.12)',
             }}
           >
-            Start your 30-day free trial
-            <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+            Start 30-day trial
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/12">
+              <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </span>
           </Link>
           <Link
             href="/contact?topic=sales"
-            className="inline-flex items-center gap-2 px-7 py-4 rounded-full text-[15px] font-semibold transition-colors duration-200"
+            className="inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px] font-semibold transition-colors duration-200 hover:bg-black/[0.04] active:scale-[0.98]"
             style={{ color: TEXT_PRIMARY }}
           >
             Talk to sales

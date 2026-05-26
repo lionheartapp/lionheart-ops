@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" fill="none" stroke="#d6ded8" stroke-width="1" opacity="0.55"/>
+    </pattern>
+    <style>
+      .label{font:700 14px ui-sans-serif,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;fill:#66736b}
+      .title{font:700 24px ui-sans-serif,system-ui,sans-serif;fill:#07111f}
+      .body{font:500 16px ui-sans-serif,system-ui,sans-serif;fill:#5f6b63}
+      .small{font:700 12px ui-sans-serif,system-ui,sans-serif;fill:#6a756f}
+      .card{fill:#fff;stroke:#dfe5e1;stroke-width:1.4;filter:url(#shadow)}
+      .dark{fill:#07111f}
+      .green{fill:#10b981}
+      .blue{fill:#2563eb}
+      .amber{fill:#f59e0b}
+      .red{fill:#ef4444}
+    </style>
+  </defs>
+    <rect width="1200" height="900" rx="56" fill="#f3f6f4"/>
+    <rect width="1200" height="900" fill="url(#grid)" opacity="0.55"/>
+    <rect x="72" y="70" width="1056" height="760" rx="44" fill="#fbfcfb" stroke="#dbe3de"/>
+    
+    <text x="120" y="134" class="label">IT support</text><text x="120" y="174" class="title">Tickets with device context</text>
+    <rect x="132" y="258" width="430" height="420" rx="34" class="card"/>
+    <text x="176" y="322" class="title" font-size="22">Projector not connecting</text><text x="176" y="354" class="body">Room 204 · Ms. Carter</text>
+    <rect x="176" y="410" width="300" height="58" rx="18" fill="#eef3f0"/><text x="202" y="446" class="body">MacBook Air · serial linked</text>
+    <rect x="176" y="500" width="300" height="58" rx="18" fill="#ecfdf5"/><text x="202" y="536" class="body">Owner: IT support</text>
+    <rect x="688" y="250" width="318" height="450" rx="38" fill="#07111f" filter="url(#shadow)"/>
+    <rect x="728" y="306" width="238" height="162" rx="22" fill="#e5edf7"/><rect x="760" y="492" width="174" height="18" rx="9" fill="#334155"/><rect x="790" y="536" width="114" height="64" rx="14" fill="#334155"/>
+    <circle cx="688" cy="468" r="42" fill="#2563eb"/><text x="672" y="478" font-family="ui-sans-serif,system-ui" font-size="26" font-weight="900" fill="#fff">IT</text>
+  </svg>

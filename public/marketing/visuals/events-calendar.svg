@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M36 0H0V36" fill="none" stroke="#d6ded8" stroke-width="1" opacity="0.55"/>
+    </pattern>
+    <style>
+      .label{font:700 14px ui-sans-serif,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;fill:#66736b}
+      .title{font:700 24px ui-sans-serif,system-ui,sans-serif;fill:#07111f}
+      .body{font:500 16px ui-sans-serif,system-ui,sans-serif;fill:#5f6b63}
+      .small{font:700 12px ui-sans-serif,system-ui,sans-serif;fill:#6a756f}
+      .card{fill:#fff;stroke:#dfe5e1;stroke-width:1.4;filter:url(#shadow)}
+      .dark{fill:#07111f}
+      .green{fill:#10b981}
+      .blue{fill:#2563eb}
+      .amber{fill:#f59e0b}
+      .red{fill:#ef4444}
+    </style>
+  </defs>
+    <rect width="1200" height="900" rx="56" fill="#f3f6f4"/>
+    <rect width="1200" height="900" fill="url(#grid)" opacity="0.55"/>
+    <rect x="72" y="70" width="1056" height="760" rx="44" fill="#fbfcfb" stroke="#dbe3de"/>
+    
+    <text x="120" y="134" class="label">Events</text><text x="120" y="174" class="title">From request to day-of plan</text>
+    <rect x="130" y="250" width="410" height="470" rx="32" class="card"/>
+    <rect x="166" y="296" width="338" height="62" rx="18" fill="#eef3f0"/><text x="190" y="334" class="title" font-size="20">Spring concert</text>
+    <circle cx="192" cy="414" r="12" class="green"/><text x="224" y="421" class="body">Room approved</text><circle cx="192" cy="478" r="12" class="green"/><text x="224" y="485" class="body">A/V routed</text><circle cx="192" cy="542" r="12" class="green"/><text x="224" y="549" class="body">Family note ready</text><circle cx="192" cy="606" r="12" class="green"/><text x="224" y="613" class="body">Setup assigned</text>
+    <rect x="650" y="250" width="390" height="470" rx="32" fill="#07111f" filter="url(#shadow)"/>
+    <text x="700" y="312" font-family="ui-sans-serif,system-ui" font-size="20" font-weight="800" fill="#fff">Calendar view</text>
+    <rect x="700" y="360" width="42" height="34" rx="10" fill="#1f2937"/><rect x="758" y="360" width="42" height="34" rx="10" fill="#1f2937"/><rect x="816" y="360" width="42" height="34" rx="10" fill="#1f2937"/><rect x="874" y="360" width="42" height="34" rx="10" fill="#1f2937"/><rect x="932" y="360" width="42" height="34" rx="10" fill="#1f2937"/><rect x="700" y="410" width="42" height="34" rx="10" fill="#1f2937"/><rect x="758" y="410" width="42" height="34" rx="10" fill="#1f2937"/><rect x="816" y="410" width="42" height="34" rx="10" fill="#10b981"/><rect x="874" y="410" width="42" height="34" rx="10" fill="#1f2937"/><rect x="932" y="410" width="42" height="34" rx="10" fill="#1f2937"/><rect x="700" y="460" width="42" height="34" rx="10" fill="#1f2937"/><rect x="758" y="460" width="42" height="34" rx="10" fill="#f59e0b"/><rect x="816" y="460" width="42" height="34" rx="10" fill="#1f2937"/><rect x="874" y="460" width="42" height="34" rx="10" fill="#1f2937"/><rect x="932" y="460" width="42" height="34" rx="10" fill="#1f2937"/><rect x="700" y="510" width="42" height="34" rx="10" fill="#1f2937"/><rect x="758" y="510" width="42" height="34" rx="10" fill="#1f2937"/><rect x="816" y="510" width="42" height="34" rx="10" fill="#1f2937"/><rect x="874" y="510" width="42" height="34" rx="10" fill="#1f2937"/><rect x="932" y="510" width="42" height="34" rx="10" fill="#1f2937"/><rect x="700" y="560" width="42" height="34" rx="10" fill="#1f2937"/><rect x="758" y="560" width="42" height="34" rx="10" fill="#1f2937"/><rect x="816" y="560" width="42" height="34" rx="10" fill="#1f2937"/><rect x="874" y="560" width="42" height="34" rx="10" fill="#1f2937"/><rect x="932" y="560" width="42" height="34" rx="10" fill="#1f2937"/>
+    <path d="M540 486C585 486 608 486 650 486" stroke="#10b981" stroke-width="7" stroke-linecap="round"/>
+  </svg>
