@@ -20,3 +20,14 @@ test-results/
 playwright/.cache/
 blob-report/
 .playwright-mcp/
+
+# Local agent/tool metadata
+.agents/
+.briefing/
+.codex/
+
+# Root-level design and browser screenshots
+/dashboard-polish-check.png
+/leo-ai-visual-check.png
+/security-visual-check.png
+/lionheart-*.png
