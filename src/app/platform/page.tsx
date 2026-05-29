@@ -17,7 +17,7 @@ export default function PlatformPage() {
         src: '/marketing/generated/platform-overview.jpg',
         alt: 'Lionheart Academy platform overview hero image with dashboard cards for events, tickets, forms, and connected school work.',
         presentation: 'campaign',
-        framing: 'left-detail',
+        framing: 'right-detail',
       }}
       stats={[
         { value: '12', label: 'areas of school work connected in one workspace' },

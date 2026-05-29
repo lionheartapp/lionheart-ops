@@ -48,8 +48,8 @@ export default function SeoLandingPage({
   description,
   primaryCta = 'Start 30-day trial',
   primaryHref = '/signup',
-  secondaryCta = 'See pricing',
-  secondaryHref = '/pricing',
+  secondaryCta = 'See how it works',
+  secondaryHref = '#inside-lionheart',
   stats = [],
   visual,
   sections,
@@ -58,7 +58,9 @@ export default function SeoLandingPage({
   related,
   productShowcase,
 }: SeoLandingPageProps) {
-  const showCampaignHero = visual?.src && visual.presentation === 'campaign'
+  // Generated campaign images sometimes include decorative CTA-looking art.
+  // Keep real page actions in the DOM and use generated images only as side visuals.
+  const showCampaignHero = false
 
   return (
     <div className="min-h-screen bg-[#f7f8f7] text-slate-950">
@@ -210,7 +212,7 @@ function GenericProductShowcase({
   checklist: string[]
 }) {
   return (
-    <section className="px-6 py-20">
+    <section id="inside-lionheart" className="scroll-mt-24 px-6 py-20">
       <div className="mx-auto grid max-w-[1120px] gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
         <div>
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -337,7 +339,7 @@ function MessagingShowcase() {
   ]
 
   return (
-    <section className="px-6 py-20">
+    <section id="inside-lionheart" className="scroll-mt-24 px-6 py-20">
       <div className="mx-auto grid max-w-[1120px] gap-8 lg:grid-cols-[0.74fr_1.26fr] lg:items-center">
         <div>
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -527,7 +529,7 @@ function CampaignHero({
           <a href={secondaryHref}>{secondaryCta}</a>
         </div>
 
-        <div className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,15,15,0.16)] sm:rounded-[2rem]">
+        <div className="relative overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,15,15,0.16)] sm:rounded-[2rem]">
           {/* eslint-disable-next-line @next/next/no-img-element -- Generated marketing artwork contains the campaign layout and product UI. */}
           <img
             src={visual.src}
@@ -536,6 +538,20 @@ function CampaignHero({
             loading="eager"
             decoding="async"
           />
+          <Link
+            href={primaryHref}
+            aria-label={primaryCta}
+            className="absolute left-[2.65%] top-[71.1%] hidden h-[6.9%] w-[14.8%] rounded-full outline-none transition-shadow duration-200 hover:shadow-[0_0_0_3px_rgba(15,23,42,0.18)] focus-visible:block focus-visible:ring-4 focus-visible:ring-blue-500/70 sm:block"
+          >
+            <span className="sr-only">{primaryCta}</span>
+          </Link>
+          <Link
+            href={secondaryHref}
+            aria-label={secondaryCta}
+            className="absolute left-[19.25%] top-[71.15%] hidden h-[6.8%] w-[12.25%] rounded-full outline-none transition-shadow duration-200 hover:shadow-[0_0_0_3px_rgba(37,99,235,0.16)] focus-visible:block focus-visible:ring-4 focus-visible:ring-blue-500/70 sm:block"
+          >
+            <span className="sr-only">{secondaryCta}</span>
+          </Link>
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:hidden">

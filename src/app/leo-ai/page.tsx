@@ -13,7 +13,6 @@ export default function LeoAiPage() {
       eyebrow="Leo AI"
       title="Leo helps staff answer what changed today."
       description="Leo helps staff ask questions, draft updates, summarize activity, and find context across events, tickets, maintenance, assets, forms, and messages."
-      primaryCta="Start trial"
       visual={{
         src: '/marketing/generated/leo-ai-operations.jpg',
         alt: 'Lionheart Academy Leo AI hero image with product cards showing operational sources and a drafted answer.',
