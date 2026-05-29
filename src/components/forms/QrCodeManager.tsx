@@ -41,6 +41,10 @@ interface BuildingOption {
   rooms: Array<{ id: string; roomNumber: string; displayName: string | null }>
 }
 
+interface CampusLookupResponse {
+  buildings: BuildingOption[]
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_OPTIONS = [
@@ -172,8 +176,9 @@ function CreateQrDrawer({
   const [roomId, setRoomId] = useState('')
   const [label, setLabel] = useState('')
   const [creating, setCreating] = useState(false)
+  const safeBuildings = Array.isArray(buildings) ? buildings : []
 
-  const selectedBuilding = buildings.find((b) => b.id === buildingId)
+  const selectedBuilding = safeBuildings.find((b) => b.id === buildingId)
   const areas = selectedBuilding?.areas ?? []
   const selectedArea = areas.find((a) => a.id === areaId)
   const rooms = selectedArea?.rooms ?? selectedBuilding?.rooms ?? []
@@ -259,7 +264,7 @@ function CreateQrDrawer({
             <Select
               value={buildingId}
               onChange={(value) => { setBuildingId(value); setAreaId(''); setRoomId('') }}
-              options={[{ value: '', label: 'Optional' }, ...buildings.map((b) => ({ value: b.id, label: b.name }))]}
+              options={[{ value: '', label: 'Optional' }, ...safeBuildings.map((b) => ({ value: b.id, label: b.name }))]}
             />
           </div>
 
@@ -355,7 +360,10 @@ export default function QrCodeManager() {
   // Fetch buildings for the create drawer
   const { data: buildings = [] } = useQuery({
     queryKey: ['campus-buildings-for-qr'],
-    queryFn: () => fetchApi<BuildingOption[]>('/api/campus/lookup'),
+    queryFn: async () => {
+      const data = await fetchApi<CampusLookupResponse>('/api/campus/lookup')
+      return data.buildings
+    },
   })
 
   const toggleMutation = useMutation({
