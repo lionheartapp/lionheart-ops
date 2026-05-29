@@ -1,6 +1,7 @@
 import { hash } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public set-password verifies one-time invite token first, then updates the token owner by organizationId/email.
 import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { passwordSchema } from '@/lib/validation/password'

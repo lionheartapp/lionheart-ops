@@ -22,6 +22,7 @@ import {
 } from '@/lib/hooks/useEventDocuments'
 import { useToast } from '@/components/Toast'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ─────────────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ function ParticipantRow({
       <td className="px-4 py-2.5 sticky left-0 bg-white z-10 min-w-[160px]">
         <div className="flex items-center gap-2.5">
           {participant.photoUrl ? (
-            <img
+            <OptimizedImage
               src={participant.photoUrl}
               alt={fullName}
               className="w-8 h-8 rounded-full object-cover flex-shrink-0"
@@ -208,8 +209,8 @@ export function DocumentMatrix({ eventProjectId, canReadMedical = false }: Docum
   const [search, setSearch] = useState('')
   const [pendingCells, setPendingCells] = useState<Set<string>>(new Set())
 
-  const requirements = data?.requirements ?? []
-  const allParticipants = data?.participants ?? []
+  const requirements = useMemo(() => data?.requirements ?? [], [data?.requirements])
+  const allParticipants = useMemo(() => data?.participants ?? [], [data?.participants])
 
   const filteredParticipants = useMemo(() => {
     let list = allParticipants

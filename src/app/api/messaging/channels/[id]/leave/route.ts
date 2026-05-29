@@ -7,7 +7,8 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok, fail } from '@/lib/api-response'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params }) => {
   const blocked = await assertMessagingEnabled(orgId)
@@ -15,8 +16,8 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
 
   const channelId = params.id
 
-  const channel = await rawPrisma.channel.findUnique({
-    where: { id: channelId, organizationId: orgId, deletedAt: null },
+  const channel = await prisma.channel.findFirst({
+    where: { id: channelId },
     select: { type: true },
   })
 
@@ -28,8 +29,8 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
     return NextResponse.json(fail('BAD_REQUEST', 'Cannot leave direct messages'), { status: 400 })
   }
 
-  const membership = await rawPrisma.channelMember.findUnique({
-    where: { channelId_userId: { channelId, userId: ctx.userId } },
+  const membership = await prisma.channelMember.findFirst({
+    where: { channelId, userId: ctx.userId },
   })
 
   if (!membership) {
@@ -38,7 +39,7 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
 
   // Don't allow the sole owner to leave
   if (membership.role === 'owner') {
-    const ownerCount = await rawPrisma.channelMember.count({
+    const ownerCount = await prisma.channelMember.count({
       where: { channelId, role: 'owner' },
     })
     if (ownerCount <= 1) {
@@ -49,9 +50,9 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
     }
   }
 
-  await rawPrisma.channelMember.delete({
-    where: { channelId_userId: { channelId, userId: ctx.userId } },
+  await prisma.channelMember.deleteMany({
+    where: { channelId, userId: ctx.userId },
   })
 
   return NextResponse.json(ok({ left: true }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- School settings mostly use scoped prisma; rawPrisma is used for explicit org-scoped uniqueness/lookup operations.
 import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'

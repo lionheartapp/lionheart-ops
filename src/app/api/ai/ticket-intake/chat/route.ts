@@ -17,8 +17,11 @@ import { z } from 'zod'
 import { GoogleGenAI } from '@google/genai'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+import { canAny } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import { checkAiAvailability, incrementAiUsage } from '@/lib/services/ai/ai-availability'
 import { buildIntakeSystemPrompt, type IntakeChatContext } from '@/lib/services/ai/ticket-intake-chat.service'
+// eslint-disable-next-line no-restricted-imports -- Ticket intake supports unauthenticated QR/magic-link flows; org lookup is manually scoped by orgId from the validated request.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
@@ -79,6 +82,16 @@ export async function POST(req: NextRequest) {
       orgId = getOrgIdFromRequest(req)
       const ctx = await getUserContext(req)
       userId = ctx.userId
+      const canSubmitTicket = await canAny(userId, [
+        PERMISSIONS.IT_TICKET_SUBMIT,
+        PERMISSIONS.MAINTENANCE_SUBMIT,
+      ])
+      if (!canSubmitTicket) {
+        return new Response(
+          JSON.stringify({ ok: false, error: { code: 'FORBIDDEN', message: 'Insufficient permissions' } }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
     } catch {
       // Unauthenticated (QR/magic link) — orgId must be in body
       if (!body.orgId) {
@@ -138,9 +151,31 @@ export async function POST(req: NextRequest) {
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       async start(controller) {
+        let closed = false
+        const send = (event: StreamEvent): boolean => {
+          if (closed) return false
+          try {
+            controller.enqueue(encoder.encode(sseEvent(event)))
+            return true
+          } catch {
+            closed = true
+            return false
+          }
+        }
+        const close = () => {
+          if (closed) return
+          try {
+            controller.close()
+          } catch {
+            // The browser may have already closed the stream.
+          } finally {
+            closed = true
+          }
+        }
+
         try {
           const response = await client.models.generateContentStream({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             contents,
             config: {
               systemInstruction: systemPrompt,
@@ -155,9 +190,11 @@ export async function POST(req: NextRequest) {
             const text = chunk.text ?? ''
             if (text) {
               fullText += text
-              controller.enqueue(encoder.encode(sseEvent({ type: 'delta', content: text })))
+              if (!send({ type: 'delta', content: text })) return
             }
           }
+
+          if (closed) return
 
           // Increment AI usage
           await incrementAiUsage(orgId)
@@ -165,29 +202,31 @@ export async function POST(req: NextRequest) {
           // Check for structured blocks in the complete response
           const ticketData = extractJsonBlock(fullText, 'ticket')
           if (ticketData) {
-            controller.enqueue(encoder.encode(sseEvent({
+            if (!send({
               type: 'ticket_ready',
               ticket: ticketData,
-            })))
+            })) return
           }
 
           const resolvedData = extractJsonBlock(fullText, 'resolved')
           if (resolvedData) {
-            controller.enqueue(encoder.encode(sseEvent({
+            if (!send({
               type: 'self_resolved',
               resolution: resolvedData,
-            })))
+            })) return
           }
 
-          controller.enqueue(encoder.encode(sseEvent({ type: 'done' })))
-          controller.close()
+          send({ type: 'done' })
+          close()
         } catch (err) {
-          log.error({ err: String(err) }, 'Ticket intake chat stream failed')
-          controller.enqueue(encoder.encode(sseEvent({
+          if (!closed) {
+            log.error({ err: String(err) }, 'Ticket intake chat stream failed')
+          }
+          send({
             type: 'error',
             content: 'Something went wrong. You can still submit your issue using the manual form.',
-          })))
-          controller.close()
+          })
+          close()
         }
       },
     })

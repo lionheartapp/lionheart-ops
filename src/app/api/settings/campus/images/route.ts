@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
-import { rawPrisma, type PrismaDelegate } from '@/lib/db'
+import { prisma, type OrgPrismaClient } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { uploadCampusImage, deleteCampusImage } from '@/lib/services/storageService'
 import { validateFileUpload, ALLOWED_IMAGE_TYPES } from '@/lib/validation/file-upload'
 import { logger } from '@/lib/logger'
 
 const MAX_IMAGES = 4
+const db = prisma as unknown as OrgPrismaClient
 
 // Accept both "space" (preferred) and legacy "area" for backward compat
 const UploadSchema = z.object({
@@ -32,7 +33,7 @@ function resolveEntityModel(entityType: string): 'building' | 'space' | 'room' {
 
 async function getEntity(entityType: string, entityId: string, orgId: string) {
   const model = resolveEntityModel(entityType)
-  return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).findFirst({
+  return db[model].findFirst({
     where: { id: entityId, organizationId: orgId, deletedAt: null },
     select: { id: true, images: true },
   })
@@ -40,7 +41,7 @@ async function getEntity(entityType: string, entityId: string, orgId: string) {
 
 async function updateEntityImages(entityType: string, entityId: string, images: string[]) {
   const model = resolveEntityModel(entityType)
-  return (rawPrisma[model as keyof typeof rawPrisma] as unknown as PrismaDelegate).update({
+  return db[model].update({
     where: { id: entityId },
     data: { images },
   })

@@ -279,6 +279,10 @@ export default function InteractiveCampusMap({
       setTimeout(reveal, 1500)
     })
 
+    const markers = markersRef.current
+    const polygons = polygonsRef.current
+    const labels = labelsRef.current
+
     return () => {
       cancelled = true
       if (mapInstanceRef.current) {
@@ -287,9 +291,9 @@ export default function InteractiveCampusMap({
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
-      markersRef.current.clear()
-      polygonsRef.current.clear()
-      labelsRef.current.clear()
+      markers.clear()
+      polygons.clear()
+      labels.clear()
       orgMarkerRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -22,6 +22,7 @@ import { verifyTurnstile } from '@/lib/turnstile'
 import { RateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
 import { validateFileUpload } from '@/lib/validation/file-upload'
 import { createSignedPhotoUploadUrl } from '@/lib/services/storageService'
+// eslint-disable-next-line no-restricted-imports -- Public registration upload resolves organization from event slug/form and validates registration membership.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 

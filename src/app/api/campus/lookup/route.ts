@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+// eslint-disable-next-line no-restricted-imports -- Campus lookup uses dynamic Prisma delegates but every query is manually scoped to orgId inside runWithOrgContext.
 import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { cacheOrgWide } from '@/lib/cache/route-cache'
 
+/**
+ * @authOnly Any signed-in org user may read active campus locations for forms and ticket entry.
+ */
 export async function GET(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)

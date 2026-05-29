@@ -10,6 +10,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
+// eslint-disable-next-line no-restricted-imports -- Form reset must hard-delete/reclone nested form records after scoped ownership is verified.
 import { rawPrisma } from '@/lib/db'
 import { cloneFormForEvent } from '@/lib/services/formService'
 

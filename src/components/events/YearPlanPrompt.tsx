@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CalendarRange, Calendar, X } from 'lucide-react'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
@@ -38,10 +38,13 @@ export default function YearPlanPrompt({
   // already requested the same data on the dashboard.
   const { data: dashboardData, isLoading: loading } = usePlanningDashboard(activeSchoolId ?? null)
   const rawSeason = dashboardData?.season
-  const season: ActiveSeason | null =
-    rawSeason && rawSeason.isSubmissionsOpen
-      ? { id: rawSeason.id, name: rawSeason.name, isSubmissionsOpen: rawSeason.isSubmissionsOpen }
-      : null
+  const season: ActiveSeason | null = useMemo(
+    () =>
+      rawSeason && rawSeason.isSubmissionsOpen
+        ? { id: rawSeason.id, name: rawSeason.name, isSubmissionsOpen: rawSeason.isSubmissionsOpen }
+        : null,
+    [rawSeason]
+  )
 
   // If no active collecting season, skip straight to regular event
   useEffect(() => {

@@ -5,6 +5,7 @@
  *   - HTTP method (GET/POST/PUT/PATCH/DELETE)
  *   - Permission required (from `withAuth(handler, { permission: PERMISSIONS.X })`
  *     or inline `assertCan(... PERMISSIONS.X)`)
+ *   - Platform admin permissions from `assertPlatformAdminCan(... PLATFORM_PERMISSIONS.X)`
  *
  * Output: e2e/fixtures/route-inventory.json
  *
@@ -83,6 +84,7 @@ function findExportPositions(source) {
 function parseRouteSource(source) {
   const positions = findExportPositions(source)
   if (positions.length === 0) return []
+  const authOnlyMatch = source.match(/@authOnly\s+([^\n]+)/)
 
   const methods = []
   for (let i = 0; i < positions.length; i++) {
@@ -93,6 +95,8 @@ function parseRouteSource(source) {
     const single = block.match(/permission:\s*PERMISSIONS\.([A-Z0-9_]+)/)
     const anyList = block.match(/permissionAny:\s*\[([^\]]+)\]/)
     const inlineAssert = block.match(/assertCan\([^,]+,\s*PERMISSIONS\.([A-Z0-9_]+)/)
+    const platformInlineAssert = block.match(/assertPlatformAdminCan\([^,]+,\s*PLATFORM_PERMISSIONS\.([A-Z0-9_]+)/)
+    const inlineAnyList = block.match(/canAny\([^,]+,\s*\[([^\]]+)\]/)
 
     methods.push({
       method: positions[i].method,
@@ -102,8 +106,18 @@ function parseRouteSource(source) {
             .split(',')
             .map((s) => s.trim().match(/PERMISSIONS\.([A-Z0-9_]+)/)?.[1])
             .filter(Boolean)
+        : inlineAnyList
+          ? inlineAnyList[1]
+              .split(',')
+              .map((s) => s.trim().match(/PERMISSIONS\.([A-Z0-9_]+)/)?.[1])
+              .filter(Boolean)
         : null,
-      inlinePermission: inlineAssert ? inlineAssert[1] : null,
+      inlinePermission: inlineAssert
+        ? inlineAssert[1]
+        : platformInlineAssert
+          ? `PLATFORM_${platformInlineAssert[1]}`
+          : null,
+      authOnlyReason: authOnlyMatch ? authOnlyMatch[1].trim() : null,
       wrapper: positions[i].kind === 'const' ? 'withAuth' : 'inline',
     })
   }
@@ -125,19 +139,39 @@ async function main() {
         permission: m.permission,
         permissionAny: m.permissionAny,
         inlinePermission: m.inlinePermission,
+        authOnlyReason: m.authOnlyReason,
         wrapper: m.wrapper,
         sourceFile: path.relative(ROOT, file),
-        // Helpful tag — public routes are anything under /api/public, /api/branding,
-        // /api/auth, /api/organizations/signup. The matrix test treats these as 200-OK
-        // for unauthenticated probes.
+        // Helpful tag — public routes are anything intentionally reachable without
+        // a user JWT. Keep this in sync with src/middleware.ts:isPublicPath().
+        // The matrix test treats these as allowed for unauthenticated probes.
         isPublic:
           urlPath.startsWith('/api/public/') ||
+          urlPath.startsWith('/api/f/') ||
+          urlPath.startsWith('/api/events/register/') ||
+          urlPath.startsWith('/api/events/check-in/') ||
+          (m.method === 'POST' && /^\/api\/events\/projects\/\{[^/]+\}\/surveys\/\{[^/]+\}\/responses$/.test(urlPath)) ||
+          urlPath.startsWith('/api/event-tickets/') ||
+          urlPath.startsWith('/api/registration/') ||
+          urlPath.startsWith('/api/calendar/ical/') ||
+          /^\/api\/calendars\/\{[^/]+\}\/feed$/.test(urlPath) ||
           urlPath === '/api/branding' ||
+          urlPath === '/api/status' ||
           urlPath.startsWith('/api/auth/') ||
           urlPath === '/api/organizations/signup' ||
           urlPath === '/api/organizations/slug-check' ||
           urlPath === '/api/health' ||
+          urlPath === '/api/platform/auth/login' ||
+          urlPath === '/api/platform/auth/setup' ||
+          urlPath === '/api/it/tickets/sub' ||
+          urlPath === '/api/it/devices/lookup' ||
+          /^\/api\/it\/tickets\/\{[^/]+\}\/status-public$/.test(urlPath) ||
+          (urlPath.startsWith('/api/it/magic-links/') && urlPath.endsWith('/validate')) ||
+          urlPath.startsWith('/api/it/student-password/') ||
+          urlPath.startsWith('/api/it/content-filters/webhook/') ||
           urlPath.startsWith('/api/cron/') ||
+          urlPath === '/api/stripe/webhook' ||
+          urlPath === '/api/platform/webhooks/stripe' ||
           urlPath.startsWith('/api/webhooks/') ||
           (urlPath.startsWith('/api/integrations/') && urlPath.endsWith('/callback')),
       })
@@ -156,10 +190,10 @@ async function main() {
   const totals = {
     routes: new Set(inventory.map((r) => r.path)).size,
     handlers: inventory.length,
-    guarded: inventory.filter((r) => r.permission || r.permissionAny || r.inlinePermission).length,
+    guarded: inventory.filter((r) => r.permission || r.permissionAny || r.inlinePermission || r.authOnlyReason).length,
     unguarded: inventory.filter(
       (r) =>
-        !r.permission && !r.permissionAny && !r.inlinePermission && !r.isPublic
+        !r.permission && !r.permissionAny && !r.inlinePermission && !r.authOnlyReason && !r.isPublic
     ).length,
     public: inventory.filter((r) => r.isPublic).length,
   }

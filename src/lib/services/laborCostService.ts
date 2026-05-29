@@ -11,6 +11,9 @@
 import { z } from 'zod'
 import { rawPrisma } from '@/lib/db'
 
+const VENDOR_LIST_CACHE_TTL_MS = 1000
+const vendorListCache = new Map<string, { expiresAt: number; promise: Promise<string[]> }>()
+
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
 export const CreateLaborEntrySchema = z.object({
@@ -317,23 +320,34 @@ export async function getCostSummary(ticketId: string) {
  * Optional prefix filter via ?q= (case-insensitive).
  */
 export async function getVendorList(orgId: string, q?: string): Promise<string[]> {
-  const where: Record<string, unknown> = {
-    organizationId: orgId,
-    vendor: { not: null },
-  }
+  const cacheKey = JSON.stringify([orgId, q?.trim() ?? ''])
+  const now = Date.now()
+  const cached = vendorListCache.get(cacheKey)
+  if (cached && cached.expiresAt > now) return cached.promise
 
-  if (q && q.trim()) {
-    where.vendor = { contains: q.trim(), mode: 'insensitive' }
-  }
+  const promise = (async () => {
+    const where: Record<string, unknown> = {
+      organizationId: orgId,
+      vendor: { not: null },
+    }
 
-  const results = await rawPrisma.maintenanceCostEntry.findMany({
-    where,
-    select: { vendor: true },
-    distinct: ['vendor'],
-    orderBy: { vendor: 'asc' },
-  })
+    if (q && q.trim()) {
+      where.vendor = { contains: q.trim(), mode: 'insensitive' }
+    }
 
-  return results
-    .map((r) => r.vendor)
-    .filter((v): v is string => v !== null && v !== '')
+    const results = await rawPrisma.maintenanceCostEntry.findMany({
+      where,
+      select: { vendor: true },
+      distinct: ['vendor'],
+      orderBy: { vendor: 'asc' },
+    })
+
+    return results
+      .map((r) => r.vendor)
+      .filter((v): v is string => v !== null && v !== '')
+  })()
+
+  vendorListCache.set(cacheKey, { expiresAt: now + VENDOR_LIST_CACHE_TTL_MS, promise })
+  promise.catch(() => vendorListCache.delete(cacheKey))
+  return promise
 }

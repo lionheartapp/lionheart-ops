@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { handleCleverWebhook } from '@/lib/services/rosterSyncService'
+// eslint-disable-next-line no-restricted-imports -- Public Clever webhook verifies HMAC signature before resolving org and entering org context.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { verifyHmacSha256 } from '@/lib/webhook-verify'

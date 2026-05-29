@@ -149,9 +149,9 @@ export default function WorkOrdersFilters({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [filterPopoverOpen])
 
-  function update(patch: Partial<WorkOrdersFilterState>) {
+  const update = useCallback((patch: Partial<WorkOrdersFilterState>) => {
     onChange({ ...filters, ...patch })
-  }
+  }, [filters, onChange])
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
@@ -167,7 +167,7 @@ export default function WorkOrdersFilters({
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     setLocalSearch('')
     update({ search: '' })
-  }, [filters])
+  }, [update])
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Escape') {

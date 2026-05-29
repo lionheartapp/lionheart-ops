@@ -18,6 +18,7 @@ import { ok, fail, isAuthError } from '@/lib/api-response'
 import { PERMISSIONS } from '@/lib/permissions'
 import { createBalanceIntent } from '@/lib/services/registrationPaymentService'
 import { sendBalanceRequestEmail } from '@/lib/services/registrationEmailService'
+// eslint-disable-next-line no-restricted-imports -- Staff balance payment route verifies user permission and runs payment work in the registration's org context.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 

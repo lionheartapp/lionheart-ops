@@ -9,6 +9,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const AUTHOR_SELECT = {
   id: true,
@@ -67,4 +68,4 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
 
   const shaped = messages.map((m: unknown) => shapeMessage(m as Record<string, unknown>))
   return NextResponse.json(ok(shaped))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

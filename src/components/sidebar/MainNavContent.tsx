@@ -16,6 +16,12 @@ import { queryOptions } from '@/lib/queries'
 import SupportSection from './SupportSection'
 import UserMenu from './UserMenu'
 import SchoolSelector from './SchoolSelector'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
+
+const ACTIVE_NAV_CLASSES = 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+const INACTIVE_NAV_CLASSES = 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+const NAV_ITEM_CLASSES = 'group relative flex items-center gap-3 px-4 py-2.5 min-h-[44px] border border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl cursor-pointer'
+const NAV_ICON_CLASSES = 'w-5 h-5 flex-shrink-0'
 
 interface MainNavContentProps {
   pathname: string
@@ -75,6 +81,7 @@ interface MainNavContentProps {
   setAvOpen: (fn: (prev: boolean) => boolean) => void
   isOnAVTeam: boolean
   canManageWorkspace: boolean
+  canManageForms: boolean
   avGateCount: { count: number } | undefined
 }
 
@@ -130,6 +137,7 @@ export default function MainNavContent({
   setAvOpen,
   isOnAVTeam,
   canManageWorkspace,
+  canManageForms,
   avGateCount,
 }: MainNavContentProps) {
   const queryClient = useQueryClient()
@@ -145,10 +153,10 @@ export default function MainNavContent({
   return (
     <div className="flex flex-col h-full">
       {/* Organization Logo */}
-      <div className="px-4 pt-8 pb-8 flex items-center justify-between">
+      <div className="px-4 pt-7 pb-5 flex items-center justify-between">
         <div className="flex-1 min-w-0 flex items-center justify-center">
           {organizationLogoUrl ? (
-            <img
+            <OptimizedImage
               src={organizationLogoUrl}
               alt={`${organizationName || 'Organization'} logo`}
               className="h-10 max-w-[140px] object-contain"
@@ -165,7 +173,7 @@ export default function MainNavContent({
       <SchoolSelector />
 
       {/* Spacer below school selector */}
-      <div className="pb-4" />
+      <div className="pb-2" />
 
       {/* SVG gradient for active nav icons */}
       <svg width="0" height="0" className="absolute">
@@ -178,8 +186,8 @@ export default function MainNavContent({
       </svg>
 
       {/* Navigation Menu */}
-      <nav className="p-4 pt-2 flex-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
-        <ul className="space-y-2" role="list">
+      <nav className="p-4 pt-1 flex-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
+        <ul className="space-y-1.5" role="list">
           {navItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
@@ -193,14 +201,14 @@ export default function MainNavContent({
                     setEventsOpen(false)
                     setIsOpen(false)
                   }}
-                  className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                  className={`${NAV_ITEM_CLASSES} ${
                     active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen
-                      ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                      ? ACTIVE_NAV_CLASSES
+                      : INACTIVE_NAV_CLASSES
                   }`}
                   aria-current={active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'page' : undefined}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+                  <Icon className={`${NAV_ICON_CLASSES} ${active && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">{item.label}</span>
                 </PrefetchLink>
               </li>
@@ -213,14 +221,14 @@ export default function MainNavContent({
                 onEventsClick()
                 setIsOpen(false)
               }}
-              className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+              className={`w-full ${NAV_ITEM_CLASSES} ${
                 eventsOpen
-                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                  ? ACTIVE_NAV_CLASSES
+                  : INACTIVE_NAV_CLASSES
               }`}
               aria-current={eventsOpen ? 'page' : undefined}
             >
-              <CalendarClock className={`w-5 h-5 flex-shrink-0 ${eventsOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+              <CalendarClock className={`${NAV_ICON_CLASSES} ${eventsOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
               <span className="text-sm">Calendar</span>
             </button>
           </li>
@@ -236,14 +244,14 @@ export default function MainNavContent({
             <li>
               <button
                 onClick={onMessagingClick}
-                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl cursor-pointer ${
+                className={`w-full ${NAV_ITEM_CLASSES} ${
                   messagingOpen
-                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                    ? ACTIVE_NAV_CLASSES
+                    : INACTIVE_NAV_CLASSES
                 }`}
                 aria-current={messagingOpen ? 'page' : undefined}
               >
-                <MessageSquare className={`w-5 h-5 flex-shrink-0 ${messagingOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+                <MessageSquare className={`${NAV_ICON_CLASSES} ${messagingOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Messaging</span>
                 {messagingUnread > 0 && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] px-1" style={{ backgroundColor: '#E8654A' }}>
@@ -275,39 +283,41 @@ export default function MainNavContent({
                   queryClient.prefetchQuery(queryOptions.modules()).catch(() => {})
                   queryClient.prefetchQuery(queryOptions.calendars()).catch(() => {})
                 }}
-                className={`relative w-full flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
+                className={`w-full ${NAV_ITEM_CLASSES} ${
                   athleticsOpen
-                    ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                    : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                    ? ACTIVE_NAV_CLASSES
+                    : INACTIVE_NAV_CLASSES
                 }`}
                 aria-current={athleticsOpen ? 'page' : undefined}
               >
-                <Trophy className={`w-5 h-5 flex-shrink-0 ${athleticsOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+                <Trophy className={`${NAV_ICON_CLASSES} ${athleticsOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Athletics</span>
               </button>
             </li>
           ) : null}
           {/* Forms */}
-          <li>
-            <PrefetchLink
-              href="/forms"
-              onClick={() => {
-                setSettingsOpen(false)
-                setAthleticsOpen(false)
-                setEventsOpen(false)
-                setIsOpen(false)
-              }}
-              className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 rounded-xl ${
-                isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen
-                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
-              }`}
-              aria-current={isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'page' : undefined}
-            >
-              <FileText className={`w-5 h-5 flex-shrink-0 ${isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
-              <span className="text-sm">Forms</span>
-            </PrefetchLink>
-          </li>
+          {canManageForms && (
+            <li>
+              <PrefetchLink
+                href="/forms"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  setAthleticsOpen(false)
+                  setEventsOpen(false)
+                  setIsOpen(false)
+                }}
+                className={`${NAV_ITEM_CLASSES} ${
+                  isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen
+                    ? ACTIVE_NAV_CLASSES
+                    : INACTIVE_NAV_CLASSES
+                }`}
+                aria-current={isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'page' : undefined}
+              >
+                <FileText className={`${NAV_ICON_CLASSES} ${isActive('/forms') && !settingsOpen && !athleticsOpen && !eventsOpen && !messagingOpen && !facilitiesOpen && !itOpen && !avOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
+                <span className="text-sm">Forms</span>
+              </PrefetchLink>
+            </li>
+          )}
         </ul>
 
         {/* Support section */}
@@ -347,9 +357,9 @@ export default function MainNavContent({
       <div className="px-4 pb-1">
         <button
           onClick={() => window.dispatchEvent(new Event('open-leo-drawer'))}
-          className="w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 cursor-pointer"
+          className={`w-full ${NAV_ITEM_CLASSES} ${INACTIVE_NAV_CLASSES}`}
         >
-          <Sparkles className="w-5 h-5 flex-shrink-0 text-indigo-400" strokeWidth={1.5} aria-hidden="true" />
+          <Sparkles className={`${NAV_ICON_CLASSES} text-indigo-400`} strokeWidth={1.5} aria-hidden="true" />
           <span className="text-sm">Leo</span>
         </button>
       </div>

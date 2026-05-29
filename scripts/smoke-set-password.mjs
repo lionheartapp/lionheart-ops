@@ -3,8 +3,18 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { createHash, randomBytes } from 'crypto'
+import dotenv from 'dotenv'
 
-const prisma = new PrismaClient()
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    },
+  },
+})
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
 const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
 
@@ -54,10 +64,9 @@ async function main() {
         lastName: 'Password',
         name: 'Smoke Password',
         passwordHash: initialPasswordHash,
+        emailVerified: true,
         status: 'ACTIVE',
-        role: 'VIEWER',
         campusScope: null,
-        teamIds: [],
       },
       select: { id: true },
     })
@@ -75,7 +84,7 @@ async function main() {
       },
     })
 
-    const newPassword = 'SmokeNewPass123!'
+    const newPassword = `SmokeNewPass${seed}!`
     const setPasswordRes = await req('/api/auth/set-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -124,7 +133,7 @@ async function main() {
     const secondUseRes = await req('/api/auth/set-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: rawToken, password: 'AnotherPass123!' }),
+      body: JSON.stringify({ token: rawToken, password: `SecondSmokePass${seed}!` }),
     })
 
     if (secondUseRes.res.status !== 400 || secondUseRes.json?.error?.code !== 'TOKEN_USED') {

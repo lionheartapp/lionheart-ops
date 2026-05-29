@@ -4,7 +4,9 @@ import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
+  getChannel,
   getChannelMembers,
   addMember,
   removeMember,
@@ -17,12 +19,13 @@ const MuteSchema = z.object({
 })
 
 // GET /api/messaging/channels/[id]/members — list members
-export const GET = withAuth<unknown, { id: string }>(async ({ orgId, params }) => {
+export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params }) => {
   const blocked = await assertMessagingEnabled(orgId)
   if (blocked) return blocked
+  await getChannel(params.id, ctx.userId, orgId)
   const members = await getChannelMembers(params.id)
   return NextResponse.json(ok(members))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })
 
 // POST /api/messaging/channels/[id]/members — add member
 export const POST = withAuth<z.infer<typeof AddMemberSchema>, { id: string }>(
@@ -32,7 +35,7 @@ export const POST = withAuth<z.infer<typeof AddMemberSchema>, { id: string }>(
     const member = await addMember(params.id, body, ctx.userId)
     return NextResponse.json(ok(member), { status: 201 })
   },
-  { schema: AddMemberSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: AddMemberSchema },
 )
 
 // PATCH /api/messaging/channels/[id]/members — toggle mute for current user
@@ -47,7 +50,7 @@ export const PATCH = withAuth<z.infer<typeof MuteSchema>, { id: string }>(
     })
     return NextResponse.json(ok({ muted: !!updated.mutedAt }))
   },
-  { schema: MuteSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: MuteSchema },
 )
 
 // DELETE /api/messaging/channels/[id]/members — remove member
@@ -58,5 +61,5 @@ export const DELETE = withAuth<z.infer<typeof RemoveMemberSchema>, { id: string 
     await removeMember(params.id, body.userId, ctx.userId)
     return NextResponse.json(ok({ removed: true }))
   },
-  { schema: RemoveMemberSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: RemoveMemberSchema },
 )

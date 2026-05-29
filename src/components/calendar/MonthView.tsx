@@ -47,6 +47,23 @@ function formatDayLabel(date: Date): string {
   return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
+const ACCESSIBLE_EVENT_COLORS: Record<string, string> = {
+  '#3b82f6': '#1d4ed8',
+  '#6366f1': '#3730a3',
+  '#8b5cf6': '#5b21b6',
+  '#a855f7': '#6b21a8',
+  '#eab308': '#713f12',
+  '#f97316': '#9a3412',
+  '#06b6d4': '#155e75',
+  '#10b981': '#047857',
+  '#14b8a6': '#0f766e',
+  '#ec4899': '#9d174d',
+}
+
+function getAccessibleEventColor(event: CalendarEventData): string {
+  return ACCESSIBLE_EVENT_COLORS[getEventColor(event).toLowerCase()] ?? getEventColor(event)
+}
+
 export default function MonthView({ currentDate, events, onEventClick, onDateClick, campusShapeMap, meetWithPeople = [], meetWithEvents = new Map(), isLoading }: MonthViewProps) {
   // Compute month range for special days query
   const monthRange = useMemo(() => {
@@ -329,8 +346,9 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                       ))
                     ) : (
                     <>
-                    {sortedEvents.slice(0, maxVisible).map((event) =>
-                      event.isAllDay ? (
+                    {sortedEvents.slice(0, maxVisible).map((event) => {
+                      const eventColor = getAccessibleEventColor(event)
+                      return event.isAllDay ? (
                         <button
                           key={event.id}
                           onClick={(e) => {
@@ -339,7 +357,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           }}
                           aria-label={getEventAriaLabel(event)}
                           className={`w-full text-left flex items-center gap-1 px-1.5 py-[3px] rounded-md text-[11px] font-medium truncate hover:brightness-90 transition-[filter] ${isPendingEvent(event) ? 'opacity-60 border border-dashed border-white/40 text-white' : 'text-white'}`}
-                          style={{ backgroundColor: getEventColor(event) }}
+                          style={{ backgroundColor: eventColor }}
                         >
                           <CampusShapeIndicator
                             shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
@@ -360,11 +378,11 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           }}
                           aria-label={getEventAriaLabel(event)}
                           className={`w-full text-left flex items-center gap-1.5 px-1.5 py-[3px] rounded-md text-[11px] truncate hover:brightness-95 transition-[filter] ${isPendingEvent(event) ? 'opacity-60 border border-dashed' : ''}`}
-                          style={{ backgroundColor: `${getEventColor(event)}12`, color: getEventColor(event), ...(isPendingEvent(event) ? { borderColor: getEventColor(event) + '40' } : {}) }}
+                          style={{ backgroundColor: `${eventColor}12`, color: eventColor, ...(isPendingEvent(event) ? { borderColor: eventColor + '40' } : {}) }}
                         >
                           <CampusShapeIndicator
                             shapeIndex={getShapeIndex(campusShapeMap, event.calendar.campus?.id)}
-                            color={getEventColor(event)}
+                            color={eventColor}
                             size={8}
                           />
                           {isPendingEvent(event) && <span title="Pending approval"><Clock3 className="w-3 h-3 flex-shrink-0 opacity-70" /></span>}
@@ -376,7 +394,7 @@ export default function MonthView({ currentDate, events, onEventClick, onDateCli
                           </span>
                         </button>
                       )
-                    )}
+                    })}
                     {/* Meet-with people's events (inline merge) */}
                     {meetWithDayEvents.slice(0, meetWithSlots).map(({ event: mwEvent, person }) => (
                       <button

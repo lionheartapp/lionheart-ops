@@ -6,19 +6,26 @@
  */
 
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
 
-const prisma = new PrismaClient()
-const BASE_URL = 'http://localhost:3004'
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
 
-// Test user credentials (from seed data)
-const TEST_ADMIN = {
-  email: 'admin@demo.com',
-  password: 'test123',
-}
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    },
+  },
+})
+const BASE_URL = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
+const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
 
 let authToken = null
 let orgId = null
 let csrfToken = null
+let smokeUser = null
 
 /** Extract csrf-token from set-cookie header */
 function extractCsrfCookie(res) {
@@ -33,28 +40,98 @@ async function resolveOrgId() {
     return process.env.TEST_ORG_ID
   }
 
-  const org = await prisma.organization.findFirst({
-    where: { slug: 'demo' },
+  const preferred = await prisma.organization.findFirst({
+    where: { slug: preferredOrgSlug },
     select: { id: true },
   })
 
-  if (!org) {
-    throw new Error('Demo organization not found')
+  if (preferred) return preferred.id
+
+  const fallback = await prisma.organization.findFirst({ select: { id: true } })
+  if (!fallback) {
+    throw new Error('No organization found in database for smoke test')
   }
 
-  return org.id
+  return fallback.id
+}
+
+async function ensureSuperAdminRole(organizationId) {
+  const existing = await prisma.role.findFirst({
+    where: { organizationId, slug: 'super-admin' },
+    select: { id: true },
+  })
+
+  if (existing) return existing.id
+
+  const wildcard = await prisma.permission.upsert({
+    where: {
+      resource_action_scope: {
+        resource: '*',
+        action: '*',
+        scope: 'global',
+      },
+    },
+    update: {},
+    create: {
+      resource: '*',
+      action: '*',
+      scope: 'global',
+      description: 'Wildcard permission for smoke tests',
+    },
+  })
+
+  const role = await prisma.role.create({
+    data: {
+      organizationId,
+      name: `Smoke Super Admin ${Date.now()}`,
+      slug: `smoke-super-admin-${Date.now()}`,
+      description: 'Temporary super-admin role for smoke tests',
+      isSystem: false,
+      permissions: {
+        create: [{ permissionId: wildcard.id }],
+      },
+    },
+    select: { id: true },
+  })
+
+  return role.id
+}
+
+async function createSmokeAdmin(organizationId) {
+  const seed = Date.now()
+  const password = 'SmokeAdmin123!'
+  const passwordHash = await bcrypt.hash(password, 10)
+  const roleId = await ensureSuperAdminRole(organizationId)
+  const user = await prisma.user.create({
+    data: {
+      organizationId,
+      email: `smoke+roles-teams-${seed}@example.com`,
+      firstName: 'Smoke',
+      lastName: 'Admin',
+      name: 'Smoke Admin',
+      passwordHash,
+      emailVerified: true,
+      status: 'ACTIVE',
+      roleId,
+    },
+    select: { id: true, email: true },
+  })
+
+  return { ...user, password }
 }
 
 async function login() {
   console.log('🔐 Resolving organization...')
   orgId = await resolveOrgId()
+  smokeUser = await createSmokeAdmin(orgId)
   
   console.log('🔐 Logging in as admin...')
   const response = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      ...TEST_ADMIN,
+      email: smokeUser.email,
+      password: smokeUser.password,
       organizationId: orgId,
     }),
   })
@@ -80,6 +157,11 @@ function getHeaders() {
     'Content-Type': 'application/json',
     ...(csrfToken ? { 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } : {}),
   }
+}
+
+async function cleanupSmokeUser() {
+  if (!smokeUser?.id) return
+  await prisma.user.delete({ where: { id: smokeUser.id } }).catch(() => {})
 }
 
 /** Wrapper that handles CSRF double-submit on first state-changing request */
@@ -322,7 +404,8 @@ async function runTests() {
     console.log(`\n✓ Roles: Create, duplicate detection, system protection, delete`)
     console.log(`✓ Teams: Create, duplicate detection, delete`)
     console.log(`\n📊 Final state: ${finalRoles.length} roles, ${finalTeams.length} teams`)
-    
+
+    await cleanupSmokeUser()
     await prisma.$disconnect()
     process.exit(0)
   } catch (error) {
@@ -331,6 +414,7 @@ async function runTests() {
     console.error('='.repeat(50))
     console.error(error.message)
     console.error(error.stack)
+    await cleanupSmokeUser()
     await prisma.$disconnect()
     process.exit(1)
   }

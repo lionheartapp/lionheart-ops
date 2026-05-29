@@ -582,7 +582,7 @@ All notification types (messaging, tickets, events, approvals, maintenance) disp
 When building public-facing pages (landing pages, pricing, onboarding flows), automatically apply relevant CRO and copywriting skills alongside the UI skills.
 
 ### Continuous Learning
-After completing any significant work, update the memory files at `~/.claude/projects/-Users-mkerley-Desktop-Linfield-Test/memory/` with:
+After completing any significant work, update the memory files at `~/.claude/projects/-Users-mkerley-Desktop-Lionheart/memory/` with:
 - New patterns established (component structure, data flow, styling decisions)
 - UX lessons learned (what worked, what was a bad pattern)
 - Reusable code patterns for future reference

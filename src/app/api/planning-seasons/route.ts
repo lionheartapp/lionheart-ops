@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getSeasons, createSeason } from '@/lib/services/planningSeasonService'
 import { z } from 'zod'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 const CreateSeasonSchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -17,11 +18,15 @@ const CreateSeasonSchema = z.object({
   schoolId: z.string().optional(),
 })
 
-export const GET = withAuth(async ({ searchParams }) => {
-  const seasons = await getSeasons({
-    campusId: searchParams.get('campusId') || undefined,
-    schoolId: searchParams.get('schoolId') || undefined,
-  })
+export const GET = withAuth(async ({ orgId, searchParams }) => {
+  const campusId = searchParams.get('campusId') || undefined
+  const schoolId = searchParams.get('schoolId') || undefined
+  const seasons = await cacheOrgWide(
+    orgId,
+    `planning-seasons:list:${campusId ?? ''}:${schoolId ?? ''}`,
+    () => getSeasons({ campusId, schoolId }),
+    { ttlMs: 5000 }
+  )
   return NextResponse.json(ok(seasons))
 }, { permission: PERMISSIONS.PLANNING_VIEW })
 

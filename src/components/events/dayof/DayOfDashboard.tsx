@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   QrCode,
@@ -24,11 +25,20 @@ import { useCheckIn } from '@/lib/hooks/useCheckIn'
 import { useIncidents } from '@/lib/hooks/useIncidents'
 import { cacheRoster } from '@/lib/offline/event-sync'
 import { eventDb } from '@/lib/offline/event-db'
-import CheckInScanner from './CheckInScanner'
-import CheckInList from './CheckInList'
-import IncidentForm from './IncidentForm'
-import IncidentList from './IncidentList'
 import { SearchInput } from '@/components/ui/SearchInput'
+
+const CheckInScanner = dynamic(() => import('./CheckInScanner'), {
+  loading: () => <DayOfPanelLoading dark />,
+})
+const CheckInList = dynamic(() => import('./CheckInList'), {
+  loading: () => <DayOfPanelLoading />,
+})
+const IncidentForm = dynamic(() => import('./IncidentForm'), {
+  loading: () => <DayOfPanelLoading />,
+})
+const IncidentList = dynamic(() => import('./IncidentList'), {
+  loading: () => <DayOfPanelLoading />,
+})
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +49,21 @@ interface DayOfDashboardProps {
   eventName: string
   eventDate?: string
   hasMedicalPermission?: boolean
+}
+
+function DayOfPanelLoading({ dark = false }: { dark?: boolean }) {
+  return (
+    <div className={`h-full p-4 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+      <div className="space-y-3">
+        {[0, 1, 2].map((item) => (
+          <div
+            key={item}
+            className={`h-16 animate-pulse rounded-xl ${dark ? 'bg-slate-800' : 'bg-white border border-slate-200'}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 // ─── Group type labels ────────────────────────────────────────────────────────

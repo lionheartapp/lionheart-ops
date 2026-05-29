@@ -61,4 +61,4 @@ export const DELETE = withAuth(async ({ req, ctx, params, permissions }) => {
   })
 
   return NextResponse.json(ok({ removed: true }))
-})
+}, { permission: PERMISSIONS.MAINTENANCE_READ_OWN })

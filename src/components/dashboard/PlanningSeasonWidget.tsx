@@ -117,13 +117,13 @@ export default function PlanningSeasonWidget() {
       className="mb-4"
     >
       {/* Banner */}
-      <div className="ui-glass-hover rounded-2xl overflow-hidden">
-        {/* Header with gradient accent */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        {/* Header */}
         <div className="relative px-5 pt-5 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                <CalendarRange className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                <CalendarRange className="w-5 h-5 text-blue-600" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-slate-900 truncate">
@@ -138,7 +138,8 @@ export default function PlanningSeasonWidget() {
                       </span>
                       {daysLeft > 0 && (
                         <span className="text-slate-400 ml-1">
-                          — {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
+                          {' '}
+                          {daysLeft} day{daysLeft !== 1 ? 's' : ''} left
                         </span>
                       )}
                     </>
@@ -168,7 +169,7 @@ export default function PlanningSeasonWidget() {
               {isAdmin && (
                 <button
                   onClick={() => router.push('/planning')}
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-full transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-100 hover:shadow-sm cursor-pointer"
                 >
                   Manage
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -186,7 +187,7 @@ export default function PlanningSeasonWidget() {
               </div>
               <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
+                  className="h-full rounded-full bg-blue-600 transition-all duration-500"
                   style={{
                     width: `${Math.min(100, Math.max(5, 100 - (daysLeft / Math.max(1, getDaysRemaining(season.submissionOpen) + daysLeft)) * 100))}%`,
                   }}
@@ -251,7 +252,7 @@ export default function PlanningSeasonWidget() {
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         onClick={() => router.push(`/planning?submission=${sub.id}`)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer text-left group"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent transition-[background-color,border-color] duration-200 hover:border-slate-200 hover:bg-slate-100 cursor-pointer text-left group"
                       >
                         <StatusIcon className={`w-4 h-4 flex-shrink-0 ${config.color}`} />
                         <div className="flex-1 min-w-0">
@@ -291,7 +292,7 @@ export default function PlanningSeasonWidget() {
               {submissions.length > 5 && (
                 <button
                   onClick={() => router.push('/planning')}
-                  className="w-full mt-1 py-2 text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+                  className="w-full mt-1 rounded-lg py-2 text-xs text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 cursor-pointer"
                 >
                   View all {submissions.length} events
                 </button>
@@ -313,7 +314,7 @@ export default function PlanningSeasonWidget() {
         <div className="border-t border-slate-100">
           <button
             onClick={() => router.push('/planning')}
-            className="w-full flex items-center justify-center gap-1.5 px-5 py-2.5 text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50/50 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 px-5 py-2.5 text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors duration-200 cursor-pointer"
           >
             View Year Plan
             <ChevronRight className="w-3.5 h-3.5" />

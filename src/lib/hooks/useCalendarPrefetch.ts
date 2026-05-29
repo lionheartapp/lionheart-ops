@@ -7,7 +7,7 @@ import { queryOptions } from '@/lib/queries'
 
 /**
  * Prefetches adjacent time ranges so navigating forward/backward feels instant.
- * Uses a 300ms delay to avoid firing during rapid navigation.
+ * Uses a delay so this nice-to-have work does not compete with first load.
  *
  * When athleticsCampusIds are provided, also prefetches athletics calendar events
  * for adjacent ranges so the athletics panel doesn't block on navigation.
@@ -62,7 +62,7 @@ export function useCalendarPrefetch(
           )
         }
       }
-    }, 300)
+    }, 10_000)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)

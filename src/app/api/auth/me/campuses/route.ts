@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
+// eslint-disable-next-line no-restricted-imports -- Auth campus hydration uses getUserContext first, then manually scopes reads by ctx.organizationId.
 import { rawPrisma } from '@/lib/db'
 import { cachePerUser } from '@/lib/cache/route-cache'
 
@@ -25,8 +26,12 @@ export async function GET(req: NextRequest) {
       ctx.userId,
       'auth:campuses',
       async () => {
-        const user = await rawPrisma.user.findUnique({
-          where: { id: ctx.userId },
+        const user = await rawPrisma.user.findFirst({
+          where: {
+            id: ctx.userId,
+            organizationId: ctx.organizationId,
+            deletedAt: null,
+          },
           select: { campusId: true },
         })
 

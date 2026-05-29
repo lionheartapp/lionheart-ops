@@ -11,7 +11,7 @@ import { assignITTicket } from '@/lib/services/itTicketService'
 import { notifyITTicketAssigned } from '@/lib/services/itNotificationService'
 
 const AssignSchema = z.object({
-  assignedToId: z.string().uuid('assignedToId must be a valid UUID').nullable(),
+  assignedToId: z.string().min(1, 'assignedToId is required').nullable(),
 })
 
 export const PATCH = withAuth(async ({ body, ctx, orgId, params }) => {

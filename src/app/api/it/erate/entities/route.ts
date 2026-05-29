@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- E-Rate entity routes use dynamic delegates and manually scope every read/write to orgId.
 import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 
 const CreateEntitySchema = z.object({

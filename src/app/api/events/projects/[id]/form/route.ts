@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 import { cloneFormForEvent, seedSystemForms, getFormById } from '@/lib/services/formService'
 
 const FULL_FORM_INCLUDE = {
@@ -81,5 +82,6 @@ export const GET = withAuth<unknown, { id: string }>(
     const cloned = await cloneFormForEvent(template.id, eventId, orgId)
 
     return NextResponse.json(ok(cloned), { status: 201 })
-  }
+  },
+  { permission: PERMISSIONS.EVENT_PROJECT_READ }
 )

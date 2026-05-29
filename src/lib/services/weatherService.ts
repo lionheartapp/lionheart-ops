@@ -21,6 +21,7 @@ export interface WeatherData {
 // In-memory cache: key = "lat,lng" → { data, fetchedAt }
 const cache = new Map<string, { data: WeatherData; fetchedAt: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CURRENT_WEATHER_TIMEOUT_MS = 1500
 
 /**
  * Map WMO weather codes to human-readable conditions + Lucide icon names.
@@ -85,7 +86,7 @@ export async function fetchWeatherForecast(
     url.searchParams.set('timezone', 'America/Los_Angeles')
 
     const res = await fetch(url.toString(), {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(CURRENT_WEATHER_TIMEOUT_MS),
     })
 
     if (!res.ok) {
@@ -170,7 +171,12 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherDat
     cache.set(cacheKey, { data: weatherData, fetchedAt: Date.now() })
     return weatherData
   } catch (error) {
-    log.error({ err: String(error) }, 'Weather fetch error')
+    const err = String(error)
+    if (err.includes('TimeoutError') || err.includes('aborted')) {
+      log.warn({ err }, 'Weather fetch timed out')
+      return null
+    }
+    log.error({ err }, 'Weather fetch error')
     return null
   }
 }

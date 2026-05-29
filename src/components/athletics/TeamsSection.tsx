@@ -13,6 +13,7 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { GlassSportTile } from '@/components/athletics/SportIcon'
 import { IllustrationTeam } from '@/components/illustrations'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type Sport = {
   id: string
@@ -133,19 +134,19 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
   const { data: teamsData, isLoading: loading } = useQuery(
     queryOptions.athleticsTeams(filterSportId || undefined, filterSeasonId || undefined)
   )
-  const teams = (teamsData ?? []) as Team[]
+  const teams = useMemo(() => (teamsData ?? []) as Team[], [teamsData])
 
   const { data: sportsData } = useQuery(queryOptions.athleticsSports())
-  const sports = (sportsData ?? []) as Sport[]
+  const sports = useMemo(() => (sportsData ?? []) as Sport[], [sportsData])
 
   const { data: seasonsData } = useQuery(queryOptions.athleticsSeasons())
-  const seasons = (seasonsData ?? []) as Season[]
+  const seasons = useMemo(() => (seasonsData ?? []) as Season[], [seasonsData])
 
   const { data: usersData } = useQuery(queryOptions.members())
-  const users = (usersData ?? []) as User[]
+  const users = useMemo(() => (usersData ?? []) as User[], [usersData])
 
   const { data: gamesData } = useQuery(queryOptions.athleticsGames())
-  const allGames = (gamesData ?? []) as Game[]
+  const allGames = useMemo(() => (gamesData ?? []) as Game[], [gamesData])
 
   const invalidateTeams = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.athleticsTeams.all })
@@ -498,7 +499,7 @@ export default function TeamsSection({ activeCampusId, canWrite = false }: Teams
                         {coach ? (
                           <div className="flex items-center gap-2">
                             {coach.avatar ? (
-                              <img src={coach.avatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                              <OptimizedImage src={coach.avatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[10px] font-semibold text-stone-500">

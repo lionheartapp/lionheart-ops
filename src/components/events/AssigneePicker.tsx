@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, UserCircle2, Check } from 'lucide-react'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   FIELD_TRIGGER_CLASSES,
   FIELD_TRIGGER_DISABLED,
@@ -65,7 +66,7 @@ function colorForName(name: string): string {
 function Avatar({ name, src, size = 'md' }: { name: string; src?: string | null; size?: 'sm' | 'md' }) {
   const dim = size === 'md' ? 'w-8 h-8 text-xs' : 'w-6 h-6 text-[10px]'
   if (src) {
-    return <img src={src} alt={name} className={`${dim} rounded-full object-cover flex-shrink-0`} />
+    return <OptimizedImage src={src} alt={name} className={`${dim} rounded-full object-cover flex-shrink-0`} />
   }
   return (
     <div className={`${dim} rounded-full flex items-center justify-center font-bold flex-shrink-0 ${colorForName(name)}`}>

@@ -1,5 +1,6 @@
 import { compare } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Platform login authenticates platform admins before any tenant org context exists.
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { signPlatformAuthToken } from '@/lib/auth/platform-auth'

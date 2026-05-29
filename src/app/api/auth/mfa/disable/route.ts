@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
 import { disableMfa, isOrgMfaRequired } from '@/lib/services/mfaService'
+// eslint-disable-next-line no-restricted-imports -- MFA disable reads passwordHash after getUserContext and manually scopes the user lookup to ctx.organizationId.
 import { rawPrisma } from '@/lib/db'
 import { compare } from 'bcryptjs'
 import { z } from 'zod'
@@ -43,8 +44,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify password before allowing disable
-    const user = await rawPrisma.user.findUnique({
-      where: { id: ctx.userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: ctx.userId,
+        organizationId: ctx.organizationId,
+        deletedAt: null,
+      },
       select: { passwordHash: true },
     })
 

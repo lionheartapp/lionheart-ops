@@ -14,19 +14,10 @@ export default function FormsRegistrationSolutionPage() {
       title="School forms and registration connected to the work behind them."
       description="Lionheart helps schools collect forms, submissions, registrations, approvals, and payments while keeping the resulting work connected to events, staff, rooms, and follow-up."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1000&q=82',
-        alt: 'Forms and registration paperwork with school operations context.',
-        accent: '#8b5cf6',
-        metric: '92%',
-        metricLabel: 'forms complete before the deadline',
-        productTitle: 'Field trip registration',
-        productSubtitle: 'Forms workflow',
-        chips: ['QR collection', 'Approval route', 'Payment linked'],
-        rows: [
-          { label: 'Signature', value: 'Received', tone: 'green' },
-          { label: 'Payment', value: 'Linked', tone: 'blue' },
-          { label: 'Roster', value: 'Updated', tone: 'dark' },
-        ],
+        src: '/marketing/generated/solution-forms-registration.jpg',
+        alt: 'Lionheart Academy forms and registration hero image with product cards for field trip registration, signatures, payments, and roster updates.',
+        presentation: 'campaign',
+        framing: 'left-detail',
       }}
       sections={[
         {
@@ -45,7 +36,7 @@ export default function FormsRegistrationSolutionPage() {
           body: 'Connect payments and registration data to the operational details teams need after someone signs up.',
         },
       ]}
-      checklistTitle="Forms should start the workflow, not create another inbox."
+      checklistTitle="Forms should start the next step, not create another inbox."
       checklist={[
         'Route submissions to the right staff member or approval path.',
         'Keep form responses connected to events, rooms, registrations, and follow-up tasks.',

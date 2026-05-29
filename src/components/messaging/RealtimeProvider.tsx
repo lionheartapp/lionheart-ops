@@ -92,6 +92,14 @@ export function RealtimeProvider({ children }: Props) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const realtimeEnabled = process.env.NEXT_PUBLIC_SUPABASE_REALTIME_ENABLED === 'true'
+
+    if (!realtimeEnabled) {
+      setIsConnected(false)
+      setConnectionError(null)
+      setClientReady(false)
+      return
+    }
 
     if (!supabaseUrl || !supabaseAnonKey) {
       setConnectionError(
@@ -164,12 +172,12 @@ export function RealtimeProvider({ children }: Props) {
         const { createClient } = await import('@supabase/supabase-js')
 
         const client = createClient(supabaseUrl!, supabaseAnonKey!, {
+          accessToken: async () => {
+            // Return the latest token — refreshed in the background.
+            return tokenRef.current ?? ''
+          },
           realtime: {
             params: { eventsPerSecond: 10 },
-            accessToken: async () => {
-              // Return the latest token — refreshed in the background
-              return tokenRef.current ?? ''
-            },
           },
         })
 

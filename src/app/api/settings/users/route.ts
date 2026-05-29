@@ -12,6 +12,7 @@ import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { audit, getIp } from '@/lib/services/auditService'
 import { logger } from '@/lib/logger'
 import { safeName } from '@/lib/sanitize'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 // CR-010 + LIVE-001: Zod schema with HTML-stripping on free-text user fields.
 // Adds an actual email-format check (the previous code only required truthy
@@ -120,20 +121,29 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     },
   }
 
-  const [total, users] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      select: userSelect,
-      skip,
-      take: limit,
-      orderBy: [
-        { status: 'asc' }, // ACTIVE first
-        { lastName: 'asc' },
-        { firstName: 'asc' },
-      ],
-    }),
-  ])
+  const cacheKey = `settings-users:list:${search}:${roleId}:${teamSlug}:${status}:${campusScope}:${page}:${limit}`
+  const { total, users } = await cacheOrgWide(
+    orgId,
+    cacheKey,
+    async () => {
+      const [total, users] = await Promise.all([
+        prisma.user.count({ where }),
+        prisma.user.findMany({
+          where,
+          select: userSelect,
+          skip,
+          take: limit,
+          orderBy: [
+            { status: 'asc' }, // ACTIVE first
+            { lastName: 'asc' },
+            { firstName: 'asc' },
+          ],
+        }),
+      ])
+      return { total, users }
+    },
+    { ttlMs: 5000 }
+  )
 
   // F-011: removed users.read audit row.
   //

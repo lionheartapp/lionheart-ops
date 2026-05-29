@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { FileText, Download, ExternalLink, Copy, Check, MoreVertical, X } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface AttachmentPreviewProps {
   attachment: {
@@ -215,7 +216,7 @@ function ImageLightbox({
         className={`relative z-10 flex-1 min-h-0 overflow-auto ${isZoomedIn ? '' : 'flex items-center justify-center'}`}
         onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       >
-        <img
+        <OptimizedImage
           src={src}
           alt={fileName}
           draggable={false}
@@ -307,7 +308,7 @@ export default function AttachmentPreview({ attachment }: AttachmentPreviewProps
             onClick={() => setLightboxOpen(true)}
             className="block cursor-pointer"
           >
-            <img
+            <OptimizedImage
               src={proxyUrl}
               alt={fileName}
               loading="lazy"

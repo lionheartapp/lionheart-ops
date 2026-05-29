@@ -25,14 +25,6 @@ interface LaborHoursChartProps {
 }
 
 export default function LaborHoursChart({ data }: LaborHoursChartProps) {
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-        No labor data for this period
-      </div>
-    )
-  }
-
   // Extract all unique building names across all months
   const buildings = useMemo(() => {
     const seen = new Set<string>()
@@ -53,6 +45,14 @@ export default function LaborHoursChart({ data }: LaborHoursChartProps) {
       return row
     })
   }, [data, buildings])
+
+  if (data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+        No labor data for this period
+      </div>
+    )
+  }
 
   return (
     <ResponsiveContainer width="100%" height={280}>

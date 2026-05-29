@@ -90,13 +90,28 @@ export async function toggleReaction(
  */
 export async function getReactionsForMessages(
   messageIds: string[],
+  userId: string,
 ): Promise<Record<string, ReactionGroup[]>> {
   if (messageIds.length === 0) return {}
 
   const db = prisma as unknown as OrgPrismaClient
 
+  const visibleMessages = await db.message.findMany({
+    where: {
+      id: { in: messageIds },
+      deletedAt: null,
+      channel: {
+        members: { some: { userId } },
+      },
+    },
+    select: { id: true },
+  }) as unknown as Array<{ id: string }>
+
+  const visibleMessageIds = visibleMessages.map((message) => message.id)
+  if (visibleMessageIds.length === 0) return {}
+
   const reactions = await db.messageReaction.findMany({
-    where: { messageId: { in: messageIds } },
+    where: { messageId: { in: visibleMessageIds } },
     select: { messageId: true, userId: true, emoji: true },
   }) as unknown as Array<{ messageId: string; userId: string; emoji: string }>
 

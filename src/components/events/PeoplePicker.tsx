@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { X, UserPlus, Info } from 'lucide-react'
 import { queryOptions } from '@/lib/queries'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ function initials(u: OrgUser) {
 
 export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: PeoplePickerProps) {
   const { data: usersRaw } = useQuery(queryOptions.members())
-  const users = (usersRaw ?? []) as OrgUser[]
+  const users = useMemo(() => (usersRaw ?? []) as OrgUser[], [usersRaw])
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -103,7 +104,7 @@ export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: 
               className="inline-flex items-center gap-1.5 pl-0.5 pr-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-[13px] font-medium text-stone-800"
             >
               {u.avatar ? (
-                <img src={u.avatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                <OptimizedImage src={u.avatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
               ) : (
                 <span className="w-6 h-6 rounded-full bg-stone-300 text-[9px] font-bold flex items-center justify-center text-stone-700 flex-shrink-0">
                   {initials(u)}
@@ -152,7 +153,7 @@ export function PeoplePicker({ selectedUserIds, onChange, hideHeader = false }: 
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer text-left"
                 >
                   {u.avatar ? (
-                    <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                    <OptimizedImage src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
                   ) : (
                     <span className="w-7 h-7 rounded-full bg-slate-100 text-[10px] font-bold flex items-center justify-center text-slate-600 flex-shrink-0">
                       {initials(u)}

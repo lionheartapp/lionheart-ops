@@ -17,6 +17,8 @@ export type { PmRecurrenceType, PmCalendarEvent } from '@/lib/types/pm-schedule'
 
 
 const log = logger.child({ service: 'pmScheduleService' })
+const PM_LIST_CACHE_TTL_MS = 1000
+const pmScheduleListCache = new Map<string, { expiresAt: number; promise: Promise<unknown> }>()
 
 // ─── School Year Avoidance Helpers ────────────────────────────────────────────
 
@@ -256,6 +258,20 @@ export interface PmScheduleFilters {
 // ─── Get PM Schedules ─────────────────────────────────────────────────────────
 
 export async function getPmSchedules(orgId: string, filters: PmScheduleFilters = {}) {
+  const cacheKey = JSON.stringify(['list', orgId, filters])
+  const nowMs = Date.now()
+  const cached = pmScheduleListCache.get(cacheKey)
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.promise as ReturnType<typeof getPmSchedulesUncached>
+  }
+
+  const promise = getPmSchedulesUncached(orgId, filters)
+  pmScheduleListCache.set(cacheKey, { expiresAt: nowMs + PM_LIST_CACHE_TTL_MS, promise })
+  promise.catch(() => pmScheduleListCache.delete(cacheKey))
+  return promise
+}
+
+async function getPmSchedulesUncached(orgId: string, filters: PmScheduleFilters = {}) {
   const { assetId, buildingId, schoolId, status, keyword } = filters
 
   const where: Record<string, unknown> = {}
@@ -290,6 +306,24 @@ export async function getPmSchedules(orgId: string, filters: PmScheduleFilters =
 // ─── Get PM Calendar Events ───────────────────────────────────────────────────
 
 export async function getPmCalendarEvents(
+  orgId: string,
+  start: string,
+  end: string
+): Promise<PmCalendarEvent[]> {
+  const cacheKey = JSON.stringify(['calendar', orgId, start, end])
+  const nowMs = Date.now()
+  const cached = pmScheduleListCache.get(cacheKey)
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.promise as Promise<PmCalendarEvent[]>
+  }
+
+  const promise = getPmCalendarEventsUncached(orgId, start, end)
+  pmScheduleListCache.set(cacheKey, { expiresAt: nowMs + PM_LIST_CACHE_TTL_MS, promise })
+  promise.catch(() => pmScheduleListCache.delete(cacheKey))
+  return promise
+}
+
+async function getPmCalendarEventsUncached(
   orgId: string,
   start: string,
   end: string

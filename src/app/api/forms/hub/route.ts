@@ -20,7 +20,7 @@ export const GET = withAuth(async ({ orgId, ctx }) => {
   }
   const forms = await listForms(ctx.userId)
   return NextResponse.json(ok(forms))
-})
+}, { permission: PERMISSIONS.FORMS_MANAGE })
 
 const CreateFormSchema = z.object({
   name: z.string().min(1).max(200),

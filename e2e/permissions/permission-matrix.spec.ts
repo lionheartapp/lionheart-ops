@@ -35,6 +35,7 @@ interface Handler {
   permission: string | null
   permissionAny: string[] | null
   inlinePermission: string | null
+  authOnlyReason?: string | null
   wrapper: 'withAuth' | 'inline'
   sourceFile: string
   isPublic: boolean
@@ -263,7 +264,8 @@ test.describe('Permission matrix · audit', () => {
         !h.isPublic &&
         !h.permission &&
         !h.permissionAny &&
-        !h.inlinePermission,
+        !h.inlinePermission &&
+        !h.authOnlyReason,
     )
 
     // eslint-disable-next-line no-console

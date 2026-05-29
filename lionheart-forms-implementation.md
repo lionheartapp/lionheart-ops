@@ -3,7 +3,7 @@
 **Purpose:** Implement the contextual forms system described in `lionheart-forms-spec.md`, incorporating the prototype refinements proven out in `lionheart-forms-demo.html`.
 
 **Baseline spec:** `uploads/lionheart-forms-spec.md`
-**Working prototype:** `/Users/mkerley/Desktop/Linfield Test/lionheart-forms-demo.html` (single-file React + Tailwind)
+**Working prototype:** `/Users/mkerley/Desktop/Lionheart/lionheart-forms-demo.html` (single-file React + Tailwind)
 
 Read both before starting. The HTML demo is the source of truth for UX behavior; anywhere it conflicts with the spec, the demo wins (it was iterated on after the spec was written).
 
@@ -339,4 +339,4 @@ Match the phased plan in the spec, with these additions:
 
 ---
 
-**Deliverable checklist before closing any phase:** Prisma migration created and applied (`db:push` locally, proper migration file before remote), Zod schemas exported, permissions seeded, route handler pattern followed, components placed under `src/components/forms/`, smoke test pass (`npm run smoke:all`), memory file at `~/.claude/projects/-Users-mkerley-Desktop-Linfield-Test/memory/` updated with new patterns established.
+**Deliverable checklist before closing any phase:** Prisma migration created and applied (`db:push` locally, proper migration file before remote), Zod schemas exported, permissions seeded, route handler pattern followed, components placed under `src/components/forms/`, smoke test pass (`npm run smoke:all`), memory file at `~/.claude/projects/-Users-mkerley-Desktop-Lionheart/memory/` updated with new patterns established.

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -249,7 +249,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     setTeamToDelete(team)
   }
 
-  const loadTeamUsers = async (slug: string) => {
+  const loadTeamUsers = useCallback(async (slug: string) => {
     setTeamUsersLoading(true)
     try {
       const response = await fetch(`/api/settings/users?teamSlug=${slug}`, {
@@ -270,7 +270,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
     } finally {
       setTeamUsersLoading(false)
     }
-  }
+  }, [])
 
   const availableReassignTeams = useMemo(() => {
     if (!teamToDelete) return []
@@ -293,7 +293,7 @@ export default function TeamsTab({ onDirtyChange }: TeamsTabProps = {}) {
       setTeamUsers([])
       setTeamUserReassignments({})
     }
-  }, [teamToDelete, availableReassignTeams])
+  }, [teamToDelete, availableReassignTeams, loadTeamUsers])
 
   const confirmDeleteTeam = async () => {
     if (!teamToDelete) return

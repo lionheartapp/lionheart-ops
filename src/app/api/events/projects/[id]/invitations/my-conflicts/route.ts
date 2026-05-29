@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+// eslint-disable-next-line no-restricted-imports -- External calendar conflict reads are per-user integration records filtered by ctx.userId.
 import { rawPrisma } from '@/lib/db'
 
 interface ConflictItem {
@@ -22,6 +23,7 @@ interface ConflictItem {
  * time window. Checks both internal calendar events and external calendar
  * events (Google, Microsoft).
  */
+// @authOnly Returns only the signed-in user's own conflicts for the requested event window.
 export const GET = withAuth(async ({ ctx, params }) => {
   // Fetch the event to get its time window
   const event = await prisma.eventProject.findUnique({

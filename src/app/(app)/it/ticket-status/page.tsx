@@ -77,6 +77,22 @@ function TicketStatusContent() {
     )
   }
 
+  if ((!id || !token) && !data) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="ui-glass p-8 rounded-2xl max-w-md w-full mx-4 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-7 h-7 text-blue-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">IT Ticket Status</h2>
+          <p className="text-sm text-slate-500">
+            Open this page from the secure status link sent with your support request.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (error || !data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">

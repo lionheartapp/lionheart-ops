@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Loader2, X } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface UserResult {
   id: string
@@ -127,7 +128,7 @@ export default function PersonSearchPanel({
               >
                 <div className="relative w-8 h-8 flex-shrink-0">
                   {u.avatar ? (
-                    <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <OptimizedImage src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
                       <span className="text-[11px] font-medium text-white">{initials}</span>

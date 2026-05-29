@@ -1273,7 +1273,7 @@ function TrustBar() {
     value?: string
   }
   const stats: Stat[] = [
-    { count: 12, label: 'integrated modules' },
+    { count: 12, label: 'areas of school work' },
     { count: 30, suffix: ' days', label: 'free trial, no card' },
     { value: 'K–12', label: 'public, private, charter' },
     { value: 'Multi-school', label: 'from one school to many' },
@@ -1364,8 +1364,8 @@ function WhatItReplaces() {
             className="mt-5 max-w-[620px] mx-auto text-[17px]"
             style={{ color: TEXT_SECONDARY, lineHeight: 1.6 }}
           >
-            Every school we talk to runs the same Frankenstein stack. We replaced it
-            with one place where every request, event, asset, and roster lives together.
+            Most schools are piecing together calendars, inboxes, forms, tickets, and
+            spreadsheets. Lionheart brings that daily work into one place.
           </p>
         </div>
 
@@ -1620,7 +1620,7 @@ function SolutionsHub() {
               className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em]"
               style={{ color: TEXT_MUTED }}
             >
-              Explore by workflow
+              Explore by area
             </p>
             <h2
               className="text-4xl font-semibold leading-[1.07] sm:text-5xl"
@@ -1633,8 +1633,8 @@ function SolutionsHub() {
             className="max-w-[620px] text-[17px] leading-[1.65] lg:ml-auto"
             style={{ color: TEXT_SECONDARY }}
           >
-            Each solution page goes deeper on a specific school workflow, so the
-            homepage can stay focused on the platform story.
+            Each solution page goes deeper on a specific part of the school day, so
+            the homepage can stay focused on the big picture.
           </p>
         </div>
 
@@ -1675,7 +1675,7 @@ function SolutionsHub() {
               See how the system fits together.
             </h3>
             <p className="mt-3 text-sm leading-6 text-white/70">
-              Start with the full operations platform, then move into the workflows
+              Start with the full operations platform, then move into the areas
               that matter most.
             </p>
             <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white">

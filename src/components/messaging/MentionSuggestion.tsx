@@ -18,6 +18,7 @@ import {
 } from 'react'
 import type { SuggestionOptions, SuggestionProps } from '@tiptap/suggestion'
 import { ReactRenderer } from '@tiptap/react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,7 +111,7 @@ const SuggestionList = forwardRef<SuggestionListRef, SuggestionListProps>(
             >
               <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden bg-slate-200 flex items-center justify-center">
                 {item.avatar ? (
-                  <img src={item.avatar} alt={name} className="w-7 h-7 rounded-full object-cover" />
+                  <OptimizedImage src={item.avatar} alt={name} className="w-7 h-7 rounded-full object-cover" />
                 ) : (
                   <span className="text-[10px] font-medium text-slate-500">{initials}</span>
                 )}

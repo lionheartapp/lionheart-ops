@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
-import { ok } from '@/lib/api-response'
+import { fail, ok } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
 import { withAuth } from '@/lib/api/with-auth'
 import { CreatePersonalTaskSchema } from '@/lib/types/personal-task'
 
 /**
+ * @authOnly Reads and writes only the signed-in user's own personal tasks.
+ *
  * GET /api/me/tasks/personal
  *
  * List the current user's top-level personal tasks (not subtasks).
@@ -21,6 +23,7 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
     },
     include: {
       subtasks: {
+        where: { userId: ctx.userId },
         orderBy: { createdAt: 'asc' },
       },
     },
@@ -35,6 +38,17 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
  * Create a personal task (or subtask if parentId is provided).
  */
 export const POST = withAuth(async ({ ctx, orgId, body }) => {
+  if (body.parentId) {
+    const parent = await prisma.task.findFirst({
+      where: { id: body.parentId, userId: ctx.userId },
+      select: { id: true },
+    })
+
+    if (!parent) {
+      return NextResponse.json(fail('NOT_FOUND', 'Parent task not found'), { status: 404 })
+    }
+  }
+
   const task = await prisma.task.create({
     data: {
       organizationId: orgId,
@@ -47,6 +61,7 @@ export const POST = withAuth(async ({ ctx, orgId, body }) => {
     },
     include: {
       subtasks: {
+        where: { userId: ctx.userId },
         orderBy: { createdAt: 'asc' },
       },
     },

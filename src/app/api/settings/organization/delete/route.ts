@@ -13,6 +13,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
+// eslint-disable-next-line no-restricted-imports -- Organization deletion schedules tenant-wide lifecycle changes by orgId after super-admin permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'

@@ -20,6 +20,7 @@ import type { ReactionGroup } from '@/lib/hooks/useReactions'
 import ReactionBar from './ReactionBar'
 import AttachmentPreview from './AttachmentPreview'
 import BookingReferenceCard from './BookingReferenceCard'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -478,7 +479,7 @@ export default function MessageBubble({
       {/* Avatar */}
       <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden bg-slate-200 flex items-center justify-center">
         {message.authorAvatar ? (
-          <img
+          <OptimizedImage
             src={message.authorAvatar}
             alt={message.authorName}
             className="w-8 h-8 rounded-full object-cover"

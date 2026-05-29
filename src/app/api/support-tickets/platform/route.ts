@@ -6,9 +6,14 @@ import { createSupportTicket, listOrgSupportTickets } from '@/lib/services/platf
 import { sendViaResend, sendViaSmtp, getResendConfig, getSmtpConfig, getAppUrl } from '@/lib/services/email/transport'
 import { PlatformTicketStatus } from '@prisma/client'
 import { logger } from '@/lib/logger'
+import { can } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const SUPPORT_NOTIFY_EMAIL = 'mkerley@lionheartapp.com'
 
+/**
+ * @authOnly Users can create support tickets and read their own; workspace managers can read all org support tickets.
+ */
 export async function GET(req: NextRequest) {
   try {
     const orgId = getOrgIdFromRequest(req)
@@ -18,9 +23,11 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'))
     const perPage = Math.min(50, parseInt(url.searchParams.get('perPage') || '20'))
     const status = url.searchParams.get('status') as PlatformTicketStatus | null
+    const canManageWorkspace = await can(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     const result = await listOrgSupportTickets(orgId, {
       status: status || undefined,
+      submittedByUserId: canManageWorkspace ? undefined : ctx.userId,
       page,
       perPage,
     })

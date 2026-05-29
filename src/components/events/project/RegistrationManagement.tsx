@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { fadeInUp, staggerContainer, listItem } from '@/lib/animations'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -340,7 +341,7 @@ function RegistrationRow({
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
           {reg.photoUrl ? (
-            <img
+            <OptimizedImage
               src={reg.photoUrl}
               alt={displayName}
               className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-slate-200"

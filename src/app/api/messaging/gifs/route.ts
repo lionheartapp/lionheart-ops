@@ -5,13 +5,19 @@
  * Returns trending GIFs when no query, search results when q is provided.
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { withAuth } from '@/lib/api/with-auth'
+import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok, fail } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const GIPHY_API_KEY = process.env.NEXT_PUBLIC_GIPHY_API_KEY || process.env.GIPHY_API_KEY || ''
 const GIPHY_BASE = 'https://api.giphy.com/v1/gifs'
 
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async ({ req, orgId }) => {
+  const blocked = await assertMessagingEnabled(orgId)
+  if (blocked) return blocked
+
   if (!GIPHY_API_KEY) {
     return NextResponse.json(fail('CONFIG_ERROR', 'GIPHY API key not configured'), { status: 500 })
   }
@@ -51,4 +57,4 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json(fail('GIPHY_ERROR', 'Failed to fetch GIFs'), { status: 502 })
   }
-}
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

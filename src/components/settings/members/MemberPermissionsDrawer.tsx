@@ -5,6 +5,7 @@ import DetailDrawer from '@/components/DetailDrawer'
 import PermissionToggleList, { type PermissionItem } from '@/components/settings/PermissionToggleList'
 import { handleAuthResponse } from '@/lib/client-auth'
 import { getInitials, getDisplayName, getAvatarColor, type ApiUser } from './types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MemberPermissionsDrawerProps {
   user: ApiUser | null
@@ -160,7 +161,7 @@ export default function MemberPermissionsDrawer({
         {user && (
           <div className="flex items-center gap-4">
             {user.avatar ? (
-              <img
+              <OptimizedImage
                 src={user.avatar}
                 alt={getDisplayName(user) ?? user.email}
                 className="h-12 w-12 rounded-full object-cover flex-shrink-0"

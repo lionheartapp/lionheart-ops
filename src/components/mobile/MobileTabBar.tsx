@@ -107,8 +107,8 @@ export default function MobileTabBar({
     ]
 
     // Role-based tab: pick the most relevant one based on team membership
-    if (isSuperAdmin) {
-      // Super-admins get Approvals
+    if (isSuperAdmin || canManageWorkspace) {
+      // Admins and super-admins get Approvals
       list.push({
         id: 'approvals',
         icon: ClipboardCheck,
@@ -166,6 +166,7 @@ export default function MobileTabBar({
   }, [
     unreadMessages,
     isSuperAdmin,
+    canManageWorkspace,
     isOnITTeam,
     isOnMaintenanceTeam,
     athleticsEnabled,

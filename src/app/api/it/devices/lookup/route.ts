@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public QR asset lookup intentionally searches by asset tag and returns a minimal device summary.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 

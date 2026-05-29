@@ -14,19 +14,10 @@ export default function EventsSolutionPage() {
       title="School event management software that connects the whole day."
       description="Lionheart helps schools plan events, route approvals, reserve rooms, coordinate resources, publish calendars, and keep staff aligned from request to day-of execution."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1000&q=82',
-        alt: 'School staff planning around a shared table.',
-        accent: '#2563eb',
-        metric: '6:00',
-        metricLabel: 'conflict caught before the event',
-        productTitle: 'Awards night plan',
-        productSubtitle: 'Events calendar',
-        chips: ['Room approved', 'A/V routed', 'Family note ready'],
-        rows: [
-          { label: 'Gym', value: 'Approved', tone: 'green' },
-          { label: 'A/V', value: 'Routed', tone: 'blue' },
-          { label: 'Setup', value: 'Pending', tone: 'amber' },
-        ],
+        src: '/marketing/generated/solution-events-calendar.jpg',
+        alt: 'Lionheart Academy events hero image with product cards for awards night planning, room approval, A/V routing, and family notes.',
+        presentation: 'campaign',
+        framing: 'left-detail',
       }}
       sections={[
         {

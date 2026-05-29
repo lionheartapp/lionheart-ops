@@ -188,4 +188,4 @@ Your backend should implement these endpoints:
 
 ---
 
-**Questions?** Refer to `/sessions/optimistic-dreamy-bardeen/mnt/Linfield Test/ONBOARDING_IMPLEMENTATION.md` for detailed documentation.
+**Questions?** Refer to `/sessions/optimistic-dreamy-bardeen/mnt/Lionheart/ONBOARDING_IMPLEMENTATION.md` for detailed documentation.

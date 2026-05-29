@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- IT report export reads organization metadata by orgId after withAuth before generating the report.
 import { rawPrisma } from '@/lib/db'
 import { toOrgDateString } from '@/lib/utils/timezone'
 import {

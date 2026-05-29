@@ -2,6 +2,7 @@ import { hash } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public reset-password verifies one-time token first, then updates the token owner by organizationId/email.
 import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'

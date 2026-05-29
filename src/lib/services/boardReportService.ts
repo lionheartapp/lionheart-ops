@@ -568,7 +568,7 @@ Write a 3-4 paragraph executive narrative.`
     const { GoogleGenAI } = await import('@google/genai')
     const client = new GoogleGenAI({ apiKey })
     const result = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
     return result.text || buildFallbackNarrative(orgName, metrics)

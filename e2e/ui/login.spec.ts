@@ -1,11 +1,25 @@
 import { test, expect } from '@playwright/test'
 import { env } from '../helpers/env'
 
+async function openOrgLoginForm(page: import('@playwright/test').Page) {
+  await page.goto('/login')
+  const schoolUrl = page.getByLabel(/school url/i)
+  if (await schoolUrl.isVisible().catch(() => false)) {
+    await schoolUrl.fill(env.orgA.slug)
+    await page.getByRole('button', { name: /continue/i }).click()
+  }
+  await expect(page.getByLabel(/email/i)).toBeVisible({ timeout: 15_000 })
+}
+
+function passwordField(page: import('@playwright/test').Page) {
+  return page.getByRole('textbox', { name: /^password$/i })
+}
+
 test.describe('Login page', () => {
   test('renders login form and validates empty submit', async ({ page }) => {
-    await page.goto(`/login?org=${env.orgA.slug}`)
+    await openOrgLoginForm(page)
     await expect(page.getByLabel(/email/i)).toBeVisible()
-    await expect(page.getByLabel(/password/i)).toBeVisible()
+    await expect(passwordField(page)).toBeVisible()
 
     const submit = page.getByRole('button', { name: /sign in|log in/i })
     await expect(submit).toBeVisible()
@@ -16,9 +30,9 @@ test.describe('Login page', () => {
   })
 
   test('rejects invalid credentials with an error message', async ({ page }) => {
-    await page.goto(`/login?org=${env.orgA.slug}`)
+    await openOrgLoginForm(page)
     await page.getByLabel(/email/i).fill('does-not-exist@lionheart-test.com')
-    await page.getByLabel(/password/i).fill('definitely-wrong-password-123')
+    await passwordField(page).fill('definitely-wrong-password-123')
     await page.getByRole('button', { name: /sign in|log in/i }).click()
 
     // Any one of these error indicators is acceptable — UI copy shouldn't gate tests.
@@ -28,9 +42,9 @@ test.describe('Login page', () => {
   })
 
   test('admin can sign in and lands on an authenticated page', async ({ page }) => {
-    await page.goto(`/login?org=${env.orgA.slug}`)
+    await openOrgLoginForm(page)
     await page.getByLabel(/email/i).fill(env.orgA.adminEmail)
-    await page.getByLabel(/password/i).fill(env.orgA.adminPassword)
+    await passwordField(page).fill(env.orgA.adminPassword)
     await page.getByRole('button', { name: /sign in|log in/i }).click()
 
     // Any post-login route — dashboard, tenant root, app shell, or settings.

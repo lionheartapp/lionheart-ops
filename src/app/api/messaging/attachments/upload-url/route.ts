@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
   createSignedUploadUrl,
   UploadUrlSchema,
@@ -32,5 +33,5 @@ export const POST = withAuth<z.infer<typeof UploadUrlSchema>>(
 
     return NextResponse.json(ok({ signedUrl, storagePath }))
   },
-  { schema: UploadUrlSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: UploadUrlSchema },
 )

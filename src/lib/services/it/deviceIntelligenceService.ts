@@ -30,7 +30,7 @@ const CONFIG_DEFAULTS = {
 // ============= Shared Includes =============
 
 const deviceWithDetailsInclude = {
-  school: { select: { id: true, name: true } },
+  campus: { select: { id: true, name: true } },
   building: { select: { id: true, name: true } },
   repairs: {
     orderBy: { repairDate: 'desc' as const },
@@ -146,13 +146,13 @@ export async function detectLemons(orgId: string): Promise<number> {
 
 /**
  * List all devices flagged as lemons.
- * Includes school, current assignment (student name), and repair count.
+ * Includes campus, current assignment (student name), and repair count.
  */
 export async function getLemonDevices() {
   const devices = await (prisma.iTDevice.findMany as Function)({
     where: { isLemon: true },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       assignments: {
         where: { returnedAt: null },
@@ -173,7 +173,7 @@ export async function getLemonDevices() {
     orderBy: { lemonFlaggedAt: 'desc' },
   })
 
-  return devices
+  return devices.map(withDeviceSchoolAlias)
 }
 
 // ------------- Repair vs Replace Analysis -------------
@@ -370,7 +370,7 @@ Return ONLY valid JSON:
 
   try {
     const result = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
 
@@ -483,7 +483,7 @@ export async function getRecommendations() {
       ],
     },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       repairs: {
         select: { repairCost: true, repairDate: true, repairType: true },
@@ -507,7 +507,7 @@ export async function getRecommendations() {
       repairs: { some: {} }, // has at least one repair
     },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       repairs: {
         select: { repairCost: true, repairDate: true, repairType: true },
@@ -556,7 +556,7 @@ export async function getRecommendations() {
         : null
 
     return {
-      ...d,
+      ...withDeviceSchoolAlias(d),
       repairSummary: {
         totalRepairCost,
         repairCount: d.repairs.length,
@@ -574,4 +574,12 @@ export async function getRecommendations() {
   })
 
   return results
+}
+
+function withDeviceSchoolAlias(device: any) {
+  return {
+    ...device,
+    schoolId: device.campusId ?? null,
+    school: device.campus ?? null,
+  }
 }

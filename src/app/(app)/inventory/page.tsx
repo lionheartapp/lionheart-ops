@@ -35,6 +35,7 @@ import ItemDetailContent from './ItemDetailContent'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import PagePadding from '@/components/PagePadding'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // Types, constants, utils, and sub-components are imported from co-located files:
 // - inventory-types.ts    (InventoryItem, StockFilter, inventoryKeys, STOCK_FILTER_OPTIONS)
@@ -162,7 +163,7 @@ export default function InventoryPage() {
     staleTime: 30_000,
   })
 
-  const items = inventoryResponse?.items ?? []
+  const items = useMemo(() => inventoryResponse?.items ?? [], [inventoryResponse?.items])
   const paginationMeta = inventoryResponse?.meta
   const totalPages = paginationMeta?.totalPages ?? 1
   const totalItems = paginationMeta?.total ?? items.length
@@ -545,7 +546,7 @@ export default function InventoryPage() {
                   {/* Image area */}
                   <div className="relative aspect-square bg-white overflow-hidden">
                     {item.imageUrl ? (
-                      <img
+                      <OptimizedImage
                         src={item.imageUrl}
                         alt={item.name}
                         className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
@@ -623,7 +624,7 @@ export default function InventoryPage() {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
                           {item.imageUrl ? (
-                            <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-1" />
+                            <OptimizedImage src={item.imageUrl} alt="" className="w-full h-full object-contain p-1" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-slate-300" aria-hidden="true" />
                           )}

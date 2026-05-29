@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface GifPickerProps {
   onSelect: (gifUrl: string, width: number, height: number) => void
@@ -134,7 +135,7 @@ export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
                 onClick={() => onSelect(gif.original, gif.width, gif.height)}
                 className="relative rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-400 transition-all group"
               >
-                <img
+                <OptimizedImage
                   src={gif.preview}
                   alt={gif.title}
                   loading="lazy"

@@ -21,10 +21,10 @@ export const AUTH_EMAIL = __ENV.AUTH_EMAIL || '';
 export const AUTH_PASSWORD = __ENV.AUTH_PASSWORD || '';
 
 /**
- * Authenticate and return an auth token.
- * Call this in setup() so all VUs share the same token.
+ * Authenticate and return an auth token plus CSRF token.
+ * Call this in setup() so all VUs share the same session data.
  */
-export function authenticate(http) {
+export function authenticateSession(http) {
   const loginPayload = JSON.stringify({
     email: AUTH_EMAIL,
     password: AUTH_PASSWORD,
@@ -46,15 +46,36 @@ export function authenticate(http) {
     return null;
   }
 
-  return body.data.token;
+  const csrfToken =
+    res.cookies?.['csrf-token']?.[0]?.value ||
+    /csrf-token=([^;]+)/.exec(res.headers?.['Set-Cookie'] || '')?.[1] ||
+    '';
+
+  return { token: body.data.token, csrfToken };
+}
+
+/**
+ * Backward-compatible helper for older perf scripts.
+ */
+export function authenticate(http) {
+  return authenticateSession(http)?.token || null;
 }
 
 /**
  * Build standard auth headers for API requests.
  */
-export function authHeaders(token) {
-  return {
+export function authHeaders(sessionOrToken) {
+  const token = typeof sessionOrToken === 'string' ? sessionOrToken : sessionOrToken?.token;
+  const csrfToken = typeof sessionOrToken === 'string' ? '' : sessionOrToken?.csrfToken;
+  const headers = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
+
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
+    headers.Cookie = `csrf-token=${csrfToken}; auth-token=${token}`;
+  }
+
+  return headers;
 }

@@ -337,7 +337,7 @@ Respond with ONLY a valid JSON array matching exactly this shape, one entry per 
 Include ALL ${items.length} items. Do not add any text outside the JSON array.`
 
     const result = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
 

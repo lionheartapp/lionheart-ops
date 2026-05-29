@@ -202,9 +202,12 @@ export default function ITContentFiltersTab({
   const eventsQuery = useQuery(queryOptions.itFilterEvents(eventsFilters))
 
   // ── Derived data ───────────────────────────────────────────────────
-  const configs = (configsQuery.data as FilterConfig[] | undefined) ?? []
+  const configs = useMemo(
+    () => (configsQuery.data as FilterConfig[] | undefined) ?? [],
+    [configsQuery.data]
+  )
   const eventsData = eventsQuery.data as FilterEventsResponse | undefined
-  const events = eventsData?.events ?? []
+  const events = useMemo(() => eventsData?.events ?? [], [eventsData?.events])
   const totalEvents = eventsData?.total ?? 0
 
   const stats = useMemo(() => {

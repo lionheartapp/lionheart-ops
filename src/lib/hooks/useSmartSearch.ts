@@ -70,7 +70,7 @@ export function useSmartSearch(
     cat: context.categories.map((c) => c.id),
     sp: context.sports.map((s) => s.id),
   })
-  useEffect(() => { contextRef.current = context }, [contextKey])
+  useEffect(() => { contextRef.current = context }, [context, contextKey])
 
   useEffect(() => {
     // Clear previous timer

@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/lib/hooks/useFocusTrap'
@@ -44,6 +44,16 @@ export default function DetailDrawer({
   const [isAnimating, setIsAnimating] = useState(false)
   const [shouldShow, setShouldShow] = useState(false)
 
+  const handleClose = useCallback(() => {
+    setShouldShow(false)
+    setTimeout(() => {
+      setIsAnimating(false)
+      onClose()
+      // Return focus to the element that triggered the drawer
+      triggerRef?.current?.focus()
+    }, 300)
+  }, [onClose, triggerRef])
+
   // Swipe right to close on mobile
   const swipeHandlers = useSwipeGesture({
     onSwipeRight: () => handleClose(),
@@ -85,17 +95,7 @@ export default function DetailDrawer({
       document.removeEventListener('keydown', handleEscape)
       document.body.style.overflowY = 'unset'
     }
-  }, [isOpen, isAnimating])
-
-  const handleClose = () => {
-    setShouldShow(false)
-    setTimeout(() => {
-      setIsAnimating(false)
-      onClose()
-      // Return focus to the element that triggered the drawer
-      triggerRef?.current?.focus()
-    }, 300)
-  }
+  }, [isOpen, isAnimating, handleClose])
 
   if (!isOpen && !isAnimating) return null
 

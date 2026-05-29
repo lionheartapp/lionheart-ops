@@ -9,8 +9,10 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+// eslint-disable-next-line no-restricted-imports -- Form prefill reads current-user profile relations after withAuth and manually scopes user lookup to ctx.organizationId.
 import { rawPrisma } from '@/lib/db'
 
+// @authOnly Any signed-in org user may read their own prefill values for an internal form.
 export const GET = withAuth<unknown, { formId: string }>(
   async ({ ctx, params }) => {
     // Get all fields with a prefillSource set
@@ -23,9 +25,12 @@ export const GET = withAuth<unknown, { formId: string }>(
       return NextResponse.json(ok({}))
     }
 
-    // Fetch user profile data (rawPrisma for relation includes)
-    const user = await rawPrisma.user.findUnique({
-      where: { id: ctx.userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: ctx.userId,
+        organizationId: ctx.organizationId,
+        deletedAt: null,
+      },
       select: {
         firstName: true,
         lastName: true,

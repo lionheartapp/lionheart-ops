@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight, Plus, Building2, School as SchoolIcon, MapPin, Users, Landmark, TreePine, Edit2, Trash2 } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
@@ -205,7 +205,7 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
   }, [])
 
   // ── Load district + buildings ────────────────────────────────────────────
-  const loadDistrict = async () => {
+  const loadDistrict = useCallback(async () => {
     setDistrictLoading(true)
     setDistrictError(null)
     try {
@@ -231,7 +231,7 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     } finally {
       setDistrictLoading(false)
     }
-  }
+  }, [])
 
   /** Auto-creates a district from the org name when none exists. */
   const autoCreateDistrict = async () => {
@@ -264,7 +264,7 @@ export default function FacilitiesLanding({ onSelectSchool, onSelectDistrictBuil
     }
   }
 
-  useEffect(() => { loadDistrict() }, [])
+  useEffect(() => { void loadDistrict() }, [loadDistrict])
 
   // ── Add building handler ─────────────────────────────────────────────────
   const handleAddBuilding = async (e: React.FormEvent) => {

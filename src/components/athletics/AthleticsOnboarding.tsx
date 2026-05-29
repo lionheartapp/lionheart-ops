@@ -102,7 +102,10 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
     },
     staleTime: 5 * 60_000,
   })
-  const allCampuses = ((campusesRaw ?? []) as Campus[]).filter((c) => c.isActive)
+  const allCampuses = useMemo(
+    () => ((campusesRaw ?? []) as Campus[]).filter((c) => c.isActive),
+    [campusesRaw]
+  )
   const { data: enabledModules } = useModules()
   const athleticsCampusIds = useMemo(() => {
     if (!enabledModules) return new Set<string>()
@@ -112,7 +115,10 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
         .map((m) => m.campusId as string)
     )
   }, [enabledModules])
-  const campuses = allCampuses.filter((c) => athleticsCampusIds.has(c.id))
+  const campuses = useMemo(
+    () => allCampuses.filter((c) => athleticsCampusIds.has(c.id)),
+    [allCampuses, athleticsCampusIds]
+  )
 
   const [selectedCampusId, setSelectedCampusId] = useState<string | null>(activeCampusId)
 
@@ -125,13 +131,13 @@ export default function AthleticsOnboarding({ activeCampusId, canWrite, onComple
 
   // ── Fetched data to track progress ────────────────────────────────
   const { data: sportsData } = useQuery(queryOptions.athleticsSports())
-  const sports = (sportsData ?? []) as Sport[]
+  const sports = useMemo(() => (sportsData ?? []) as Sport[], [sportsData])
 
   const { data: seasonsData } = useQuery(queryOptions.athleticsSeasons())
-  const allSeasons = (seasonsData ?? []) as Season[]
+  const allSeasons = useMemo(() => (seasonsData ?? []) as Season[], [seasonsData])
 
   const { data: teamsData } = useQuery(queryOptions.athleticsTeams())
-  const teams = (teamsData ?? []) as Team[]
+  const teams = useMemo(() => (teamsData ?? []) as Team[], [teamsData])
 
   // ── Progress detection ────────────────────────────────────────────
   const hasSport = sports.length > 0

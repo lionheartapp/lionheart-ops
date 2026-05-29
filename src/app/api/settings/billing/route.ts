@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Billing settings reads org trial/subscription state by orgId after withAuth/permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'

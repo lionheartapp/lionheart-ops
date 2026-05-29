@@ -10,6 +10,7 @@ import type { ImageAttachment } from '@/lib/types/assistant'
 import MentionDropdown from './MentionDropdown'
 import VoiceOrb from './VoiceOrb'
 import { useGlobalSearch } from '@/lib/hooks/useGlobalSearch'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const MAX_IMAGES = 3
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // 4MB
@@ -394,7 +395,7 @@ export default function InputForm({
         <div className="flex gap-2 mb-2 px-0.5">
           {images.map((img, idx) => (
             <div key={idx} className="relative group">
-              <img
+              <OptimizedImage
                 src={`data:${img.mimeType};base64,${img.data}`}
                 alt={img.name}
                 className="w-12 h-12 rounded-lg object-cover border border-slate-200"

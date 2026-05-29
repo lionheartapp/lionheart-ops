@@ -9,6 +9,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params }) => {
   const blocked = await assertMessagingEnabled(orgId)
@@ -31,4 +32,4 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
   })
 
   return NextResponse.json(ok({ muted: !isMuted }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

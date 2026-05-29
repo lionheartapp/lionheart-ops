@@ -5,6 +5,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and processes IT device tasks across enabled organizations.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { detectLemons } from '@/lib/services/itDeviceIntelligenceService'

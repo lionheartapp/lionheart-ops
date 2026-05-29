@@ -159,7 +159,7 @@ function CampusConfigModal({
                 Add a campus first
               </p>
               <p className="text-sm text-slate-500">
-                {mod.name} is configured per campus. You'll need at least one
+                {mod.name} is configured per campus. You&apos;ll need at least one
                 active campus before you can enable it.
               </p>
               <a

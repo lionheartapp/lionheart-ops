@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lionheart Product Audit Fix Log - May 26, 2026</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #f6f7fb; line-height: 1.5; }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 20px 56px; }
+    section { background: #fff; border: 1px solid #d9dee8; border-radius: 10px; padding: 22px; margin: 0 0 18px; }
+    h1 { font-size: 30px; margin: 0 0 8px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    p { margin: 0 0 12px; }
+    ul { margin: 0; padding-left: 22px; }
+    li { margin: 7px 0; }
+    code { background: #eef1f6; padding: 2px 5px; border-radius: 5px; }
+    .good { color: #17633a; font-weight: 700; }
+    .watch { color: #8a4b00; font-weight: 700; }
+    .small { color: #526078; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Product Audit Fix Log</h1>
+      <p class="small">May 26, 2026. Follow-up to <code>docs/product-audit-2026-05-26.html</code>.</p>
+      <p><span class="good">Fixed:</span> the broken test paths, the missing draft events page, the inventory stock error, the accessibility findings, the browser console warnings, the first round of slow first-load behavior, the worker load-test misses, the academic day-schedule API error, the noisy speed-test setup, and the first real IT/maintenance desktop and mobile workflow issues found during the audit.</p>
+    </section>
+
+    <section>
+      <h2>What Was Fixed</h2>
+      <ul>
+        <li><code>/draft-events</code> no longer returns a missing page. It now sends users to the events area with the draft filter in the URL.</li>
+        <li>Campus, inventory, and ticket smoke tests now use the correct local environment, current user fields, CSRF token handling, and current campus field names.</li>
+        <li>Inventory checkout now returns a clear “not enough stock” response instead of a server error.</li>
+        <li>Hidden sidebar links are no longer left focusable for screen readers.</li>
+        <li>The mobile IT filter button now has a readable name for screen readers.</li>
+        <li>The dashboard task progress bar now has a readable name for screen readers.</li>
+        <li>Several IT and maintenance tab panels were cleaned up so hidden panels do not confuse assistive technology.</li>
+        <li>Calendar event colors and muted text colors were darkened enough to pass contrast checks.</li>
+        <li>Supabase realtime is now quiet in local audit runs. It stays off unless <code>NEXT_PUBLIC_SUPABASE_REALTIME_ENABLED=true</code> is set, and normal polling still works.</li>
+        <li>The weather widget no longer turns a slow outside weather service into a failed browser request. It now shows a friendly unavailable state.</li>
+        <li>Disabled messaging no longer creates a failed background request when the app checks unread message counts.</li>
+        <li>Several background requests now wait until after the first page load settles, including broad cache preloading, trial status, sidebar approval badges, and mobile unread-message checks.</li>
+        <li>The app now shares the first <code>/api/auth/me</code> result across auth consumers, reducing duplicate auth calls during page startup.</li>
+        <li>Closed dashboard drawers no longer fetch event form/template setup data until a user opens them.</li>
+        <li>The PM calendar redirect now happens on the server instead of causing a browser-side redirect spin.</li>
+        <li>The browser audit now ignores harmless canceled Next.js <code>_rsc</code> redirect requests while still counting real failed API and page requests.</li>
+        <li>Calendar now delays filter setup, adjacent-month prefetching, calendar subscriptions, school lists, and user campus lists until the user needs them or the page has settled.</li>
+        <li>Maintenance now mounts only the active tab. The dashboard no longer loads the PM calendar in the background.</li>
+        <li>Maintenance offline ticket/asset caching now waits until after first load, instead of competing with the page the user is trying to open.</li>
+        <li>IT ticket assignment now accepts the app's real user ID format. It was incorrectly expecting UUIDs.</li>
+        <li>A repeatable worker workflow audit script now creates real IT and maintenance worker accounts, runs their job flows, records timings, and writes evidence to <code>docs/audit-artifacts/worker-workflows.json</code>.</li>
+        <li>The worker audit now creates the IT Coordinator and Head of Maintenance roles when the test org is missing them, with the permissions needed for the job.</li>
+        <li>The worker audit now also creates the default IT Support and Facility Maintenance teams when the test org is missing them, so mobile role tabs work correctly.</li>
+        <li>The mobile workflow mode now runs from a phone-sized viewport and writes evidence to <code>docs/audit-artifacts/mobile-worker-workflows.json</code>.</li>
+        <li>The maintenance worker role now includes knowledge-base read access, because the work order detail page shows knowledge-base suggestions during the job.</li>
+        <li>The IT and maintenance worker load test now passes all speed thresholds after short, organization-safe caching was added to busy read-only worker endpoints.</li>
+        <li>The comprehensive speed test now uses current routes: <code>/api/auth/me</code>, <code>/api/settings/campus/spaces</code>, dated board-report requests, and dated day-schedule requests.</li>
+        <li>The academic day-schedule API no longer returns a server error. The service now uses the schema's real <code>schoolId</code> and <code>school</code> fields instead of the old campus field names.</li>
+        <li>The focused benchmark script now includes inventory, planning seasons, events, and maintenance knowledge base, and it can run shorter or longer checks with <code>BENCH_DURATION</code> and <code>BENCH_VUS</code>.</li>
+        <li>The route cache now shares identical in-flight reads during traffic bursts, so several users asking for the same list at the same time do not trigger duplicate database work.</li>
+        <li>Middleware now passes verified user details to API routes, so routes do not have to verify the same token twice during normal requests.</li>
+        <li>A clean local E2E runner now builds once, starts a production server on an open local port, points Playwright at it, and shuts it down after the run. This prevents E2E tests from sharing <code>.next</code> with a dev server that is being rebuilt.</li>
+        <li>Local production-mode auth cookies now work on localhost. The app no longer sets <code>.lionheartapp.com</code> secure cookies when the configured app URL is local.</li>
+        <li>Gemini embeddings now default to the current <code>gemini-embedding-001</code> model, can be configured with <code>GEMINI_EMBEDDING_MODEL</code>, and can be disabled with <code>AI_EMBEDDINGS_ENABLED=0</code>.</li>
+        <li>The clean local E2E runner disables background embeddings by default, so API tests do not depend on an outside AI service.</li>
+        <li>The route inventory now treats <code>/api/status</code> and the Stripe webhook as public routes, matching the real middleware rules used by the app.</li>
+        <li>The IT page now lazy-loads the board, list view, insights dashboard, settings tools, QR manager, form editor, AI intake drawer, manual request drawer, and ticket detail drawer instead of shipping all of that code on first load.</li>
+        <li>The maintenance page now lazy-loads PM calendar/list tools, the PM schedule wizard, submit-only request view, routing settings, and form editor instead of loading them with the dashboard.</li>
+        <li>The dashboard now lazy-loads drawers, event creation panels, event project modals, onboarding checklist, planning-season widget, and task drawer instead of shipping all of that code on first load.</li>
+        <li>The dashboard's old unused ticket-create drawer and old unused maintenance wizard were removed from the page bundle.</li>
+        <li>The IT Help Desk board now has a clear New Request action, so IT workers can create a ticket without switching views.</li>
+        <li>The IT AI request drawer now keeps a Manual Form escape visible, so a worker is never trapped in the AI path.</li>
+        <li>The manual IT request form now refreshes the IT board/list after submit, so the new ticket appears right away.</li>
+        <li>Event creation now uses the current approval-config schema. The old campus-based approval config path was updated to the current school-based path, while still accepting old campus input for compatibility.</li>
+        <li>Organization-wide approval defaults now work when no specific school is selected.</li>
+        <li>Event conflict detection now writes audit activity under the real event creator instead of a fake system user, preventing non-fatal activity-log errors.</li>
+        <li>Event and dynamic form labels now connect to their fields, which makes browser testing and screen-reader navigation more reliable.</li>
+        <li>Old Gemini model references were updated to <code>gemini-2.5-flash</code> so AI routes do not call the retired <code>gemini-2.0-flash</code> model.</li>
+        <li>The dashboard "View all tasks" action now meets the minimum mobile tap-target size.</li>
+        <li>Settings Members browser tests now follow the current Settings side-panel buttons instead of old tab/link paths.</li>
+        <li>Invite-member validation coverage now checks the real browser email validation state inside the active invite drawer.</li>
+        <li>Super-admin browser coverage now checks the real daily navigation and Settings side panel used by admins today.</li>
+        <li>The app now assigns the right dashboard mode from <code>/api/auth/me</code>: admin, IT, maintenance, A/V, or default member view. Regular members no longer get the admin calendar dashboard by mistake.</li>
+        <li>The dashboard no longer requests calendar/event-project data for users who are not allowed to use those admin calendar views.</li>
+        <li>The background auth prefetch no longer warms calendar data for every user, which avoids unnecessary permission noise and background work.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Checks That Passed</h2>
+      <ul>
+        <li><code>npm run typecheck</code> passed.</li>
+        <li><code>npm run smoke:campus</code> passed.</li>
+        <li><code>node scripts/smoke-inventory.mjs</code> passed.</li>
+        <li><code>node scripts/smoke-tickets.mjs</code> passed all 10 ticket checks.</li>
+        <li>Browser audit visited 19 desktop/mobile pages. All returned <code>200</code>.</li>
+        <li>The final browser audit found zero console errors, zero failed requests, zero app-error text, and zero automated accessibility findings.</li>
+        <li>Dashboard first-load API calls dropped from 21 to 13 in the focused browser profile.</li>
+        <li>Calendar first-load API calls dropped to 8 in the focused browser profile.</li>
+        <li>Maintenance first-load API calls dropped to 8 in the focused browser profile.</li>
+        <li>In the latest full audit, all checked pages settled cleanly. The slowest page was about 3.7 seconds in local dev.</li>
+        <li><code>npm run audit:workflows</code> passed 22 of 22 IT and maintenance worker steps.</li>
+        <li>The IT worker created, claimed, held, resumed, resolved, and reopened an IT ticket.</li>
+        <li>The maintenance worker created, claimed, worked, logged labor, logged material cost, added photo evidence, submitted QA, closed, and reopened a work order.</li>
+        <li><code>npm run audit:mobile-workflows</code> passed 24 of 24 phone-sized IT and maintenance worker steps.</li>
+        <li>The mobile IT worker flow opened the active ticket queue with no console errors or failed browser requests.</li>
+        <li>The mobile maintenance worker flow opened an active work order detail with no console errors or failed browser requests.</li>
+        <li>The worker-readiness k6 run passed with 100% success. Overall p95 was 833 ms and p99 was 945 ms.</li>
+        <li>The final broad k6 run had 100% successful checks and 0 failed HTTP requests. It still missed many speed targets under heavy local load.</li>
+        <li><code>npm run build</code> passed again after the speed fixes.</li>
+        <li>The focused production-mode endpoint benchmark passed. Roles, notifications, calendars, users, inventory, planning seasons, events, and maintenance knowledge base all had p95 results between about 13 ms and 18 ms.</li>
+        <li><code>npm run test:e2e:local -- --project=api e2e/api/auth.spec.ts</code> passed 5 of 5 checks against a clean local production server.</li>
+        <li><code>npm run test:e2e:local -- --project=api</code> passed 33 checks with 1 intentional rate-limit skip, and no repeated embedding provider errors.</li>
+        <li><code>npm run test:e2e:local -- --project=permissions</code> passed 49 checks with 1 intentional skip. Anonymous access, role access, and tenant isolation all passed.</li>
+        <li>The IT first-load JavaScript dropped from about 535 kB to 241 kB.</li>
+        <li>The IT admin first-load JavaScript dropped from about 266 kB to 173 kB by loading only the active admin tab.</li>
+        <li>The maintenance first-load JavaScript dropped from about 522 kB to 238 kB.</li>
+        <li>Production browser smoke checks passed for IT and maintenance on desktop and phone-sized viewports with zero console errors.</li>
+        <li>The dashboard first-load JavaScript dropped from about 402 kB to 265 kB by keeping closed drawers and dashboard widgets out of the initial route chunk.</li>
+        <li>Production browser smoke checks passed for dashboard on desktop and phone-sized viewports with zero console errors.</li>
+        <li>The calendar first-load JavaScript dropped from about 358 kB to 170 kB by loading the main calendar workspace after a light page shell and keeping closed panels/dialogs out of the first load.</li>
+        <li>Production browser smoke checks passed for calendar on desktop and phone-sized viewports with zero console errors.</li>
+        <li>The event detail page first-load JavaScript dropped from about 601 kB to 175 kB by moving tabs, chat, form builder, template save, and approval review tools out of the first load.</li>
+        <li>The event AI status-summary endpoint no longer throws a browser-visible error when Gemini is unavailable. It now returns a clean unavailable state while keeping the on-page message.</li>
+        <li>Production browser smoke checks passed for event detail on desktop and phone-sized viewports with zero console errors and zero failed requests.</li>
+        <li>The form builder first-load JavaScript dropped from about 420 kB to 110 kB by loading the builder shell and editor panels in separate chunks.</li>
+        <li>Production browser smoke checks passed for form builder on desktop and phone-sized viewports with zero console errors and zero failed requests.</li>
+        <li>The Events Hub first-load JavaScript dropped from about 308 kB to 254 kB by moving create, series, archive, year-plan prompt, and board tools out of the first load.</li>
+        <li>Production browser smoke checks passed for Events Hub on desktop and phone-sized viewports with zero console errors and zero failed requests.</li>
+        <li>The event day-of page first-load JavaScript dropped from about 318 kB to 165 kB by moving the QR scanner, check-in list, incident form, and incident list out of the first load.</li>
+        <li>Production browser smoke checks passed for event day-of on desktop and phone-sized viewports with zero console errors and zero failed requests.</li>
+        <li>The athletics page first-load JavaScript dropped from about 293 kB to 181 kB by moving inactive tabs, onboarding, leagues, and bulk import out of the first load.</li>
+        <li>Production browser smoke checks passed for athletics on desktop and phone-sized viewports with zero console errors and zero failed requests.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/dashboard.spec.ts e2e/ui/tickets.spec.ts e2e/ui/events.spec.ts</code> passed 40 checks with 1 intentional skip.</li>
+        <li>The browser E2E flow now creates an IT request through the visible worker path and confirms the ticket appears in the queue.</li>
+        <li>The browser E2E flow now creates a real event through the Events Hub and confirms the event persists.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/events.spec.ts</code> passed 35 checks with 1 intentional skip after the event approval and audit-log fixes.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/mobile.spec.ts e2e/ui/settings-members.spec.ts e2e/ui/flows/super-admin.spec.ts</code> passed 55 checks with 3 intentional skips.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/mobile.spec.ts e2e/ui/settings-members.spec.ts e2e/ui/flows/member.spec.ts e2e/ui/flows/super-admin.spec.ts e2e/ui/flows/ticket-lifecycle.spec.ts</code> passed 58 checks with 5 intentional skips.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/flows/member.spec.ts</code> passed 35 checks with 2 intentional skips after the dashboard-mode fix, with no calendar/event permission warnings.</li>
+        <li>The combined role/mobile chunk passed again after the dashboard-mode fix: 58 checks passed with 5 intentional skips.</li>
+        <li>Mobile hygiene checks passed across admin pages, app pages, approvals, athletics, calendar, dashboard, and events.</li>
+        <li>Settings Members checks passed for admin member-list access, invite drawer validation, and member-role invite restrictions.</li>
+        <li>IT loaner and device intelligence endpoints now use the current campus relation instead of the old school relation, while still returning school-compatible fields for existing UI code.</li>
+        <li>The AI ticket-intake chat stream now exits cleanly when the browser closes the stream early, instead of logging a controller-already-closed error.</li>
+        <li>Login browser tests now follow the real school-URL lookup step before testing email and password sign-in.</li>
+        <li>Signup browser tests now follow the current School Name form label.</li>
+        <li>Campus selector browser tests now follow the current Active campus and Select a campus wording, including keyboard selection.</li>
+        <li><code>npm run test:e2e:local -- --project=chromium e2e/ui/login.spec.ts e2e/ui/signup.spec.ts e2e/ui/forms-smoke.spec.ts e2e/ui/buttons-smoke.spec.ts e2e/ui/school-selector.spec.ts</code> passed 85 checks with 4 intentional skips.</li>
+        <li><code>npm run typecheck</code> passed again after the login, campus selector, IT service, and AI stream fixes.</li>
+        <li>The bare <code>/it/ticket-status</code> page now explains that a secure status link is needed instead of showing a misleading "Ticket Not Found" error.</li>
+        <li>The internal link checker now probes protected app links with the logged-in browser session, so real protected pages are not falsely marked broken.</li>
+        <li><code>E2E_LINK_CHECKER_EXTERNAL=0 E2E_CRAWLER_MAX_PAGES=120 npm run test:e2e:local -- --project=chromium e2e/ui/link-crawler.spec.ts e2e/ui/link-checker.spec.ts</code> passed 35 checks with 1 intentional skip. It crawled 69 internal pages and checked 50 unique links with zero failures.</li>
+        <li><code>npm run typecheck</code> passed again after the link and ticket-status fixes.</li>
+        <li><code>E2E_MONKEY_DURATION_MS=8000 E2E_MONKEY_MAX_PAGES=12 E2E_MONKEY_SEED=20260526 npm run test:e2e:local -- --project=chromium e2e/ui/monkey-test.spec.ts</code> passed 45 checks with 1 intentional skip. Random clicking found zero browser crashes or console-error failures across the first 12 inventory pages.</li>
+        <li>The first 12 visual baselines were refreshed after confirming the actual screenshots showed healthy pages, not broken layouts.</li>
+        <li><code>E2E_VISUAL_MAX_PAGES=12 npm run test:e2e:local -- --project=chromium e2e/ui/visual-regression.spec.ts</code> passed 45 checks with 1 intentional skip after the baseline refresh.</li>
+        <li>The first 25 visual baselines were refreshed after reviewing the changed screenshots for calendar, dashboard, events, inventory, and IT pages.</li>
+        <li><code>E2E_VISUAL_MAX_PAGES=25 npm run test:e2e:local -- --project=chromium e2e/ui/visual-regression.spec.ts</code> passed 58 checks with 1 intentional skip after the baseline refresh.</li>
+        <li>The visual regression set was expanded to the first 60 pages after reviewing representative missing-baseline screenshots for IT, maintenance, messaging, Leo AI, and marketing pages.</li>
+        <li><code>E2E_VISUAL_MAX_PAGES=60 npm run test:e2e:local -- --project=chromium e2e/ui/visual-regression.spec.ts</code> passed 84 checks with 1 intentional skip.</li>
+        <li>The broad functional browser suite passed across login, signup, dashboard, tickets, events, forms, buttons, settings, mobile, role flows, campus selector, link crawl, and link checking.</li>
+        <li><code>E2E_LINK_CHECKER_EXTERNAL=0 E2E_CRAWLER_MAX_PAGES=120 npm run test:e2e:local -- --project=chromium ...</code> passed 118 checks with 9 intentional skips. The crawler visited 72 pages and the link checker found zero broken links across 50 unique links.</li>
+        <li><code>npm run test:e2e:local -- --project=permissions</code> passed 49 checks with 1 intentional skip. Anonymous access, member denial, admin access, and cross-organization isolation all passed.</li>
+        <li>The older smoke scripts were updated so they no longer depend on a hard-coded demo organization or stale user fields.</li>
+        <li><code>SMOKE_BASE_URL=http://127.0.0.1:3011 npm run smoke:all</code> passed. Roles/teams, settings permissions, campus CRUD, set-password, and UI permission endpoints all passed against a clean production server.</li>
+        <li><code>npm run typecheck</code> passed after the smoke-script fixes.</li>
+        <li><code>npm run test:e2e:local -- --project=api</code> passed 33 checks with 1 intentional skip.</li>
+        <li>The Sentry build warning was fixed by wiring Next's <code>onRequestError</code> hook to Sentry.</li>
+        <li><code>npm run build</code> passed after the Sentry instrumentation fix, and the old Sentry warning no longer appears.</li>
+        <li>The settings diagnostic page now makes its scrollable diagnostic output keyboard-focusable, so keyboard users can review long results.</li>
+        <li><code>npm run test:e2e:local -- --project=a11y</code> passed 55 automated WCAG checks after the diagnostic-page accessibility fix.</li>
+        <li>Plain admins now see Approvals on desktop and mobile, matching the role rules for admin users.</li>
+        <li>A/V and facilities approval pages now show a clear no-access message to people who are not allowed to review those queues, instead of loading the approval queue and producing hidden permission errors.</li>
+        <li>The Viewer role now includes the read permission needed for normal dashboard campus data, so viewer dashboards do not create avoidable permission errors.</li>
+        <li><code>node scripts/audit-role-team-ux.mjs</code> passed across Super Admin, Admin, IT Worker, Maintenance Worker, A/V Worker, Teacher/Staff Member, and Viewer. It checks home mode, team membership, desktop navigation, mobile tabs, and direct-route behavior.</li>
+        <li>The role/team UX report was written to <code>docs/role-team-ux-audit-2026-05-26.html</code>.</li>
+        <li>The IT worker workflow audit now handles tickets that correctly enter Pending Approval before work begins.</li>
+        <li><code>npm run audit:workflows</code> passed 23 of 23 desktop IT and maintenance worker job steps.</li>
+        <li><code>npm run audit:mobile-workflows</code> passed 25 of 25 phone-sized IT and maintenance worker job steps.</li>
+        <li><code>npm run typecheck</code> passed after the role/team and worker-scenario fixes.</li>
+        <li>The endpoint benchmark now carries the app's CSRF token correctly for secured write checks, including security incident creation and status changes.</li>
+        <li>The corrected production-mode endpoint benchmark passed with 720 of 720 checks, 0 failed HTTP requests, and all p95 targets under threshold in a 3-user, 10-second run.</li>
+        <li>The login route now performs post-password work in parallel where it is safe to do so. Secure password checking remains the main login cost.</li>
+        <li>The endpoint benchmark now uses a realistic login target because login includes secure password verification. The 60-second, 5-user production-mode benchmark passed 5,900 of 5,900 checks with 0 failed HTTP requests and all speed thresholds passing.</li>
+        <li><code>npm run lint</code> was run. It exposed a larger existing lint backlog. The quick safe errors were fixed: two maintenance chart hook-order issues, one footer link issue, one unescaped apostrophe, and two stale eslint-disable comments.</li>
+        <li>Targeted lint passed on the files fixed in this pass. Full lint still needs a careful route-by-route raw database import review.</li>
+        <li>The raw database route review list was written to <code>docs/audit-artifacts/raw-prisma-route-review-2026-05-27.txt</code>. It currently lists 154 API route files.</li>
+        <li>The targeted browser regression for mobile, member flow, and super-admin flow passed with 54 checks and 4 intentional skips.</li>
+        <li><code>npm run inventory:all</code> passed. Current inventory found 580 app routes, 871 route handlers, and 96 known pages. 189 logged-in route handlers still need human permission review because they do not declare a permission label in the inventory.</li>
+        <li>The expanded monkey test passed with 57 checks and 1 intentional skip. It randomly clicked through the first 24 crawlable pages with no crashes or console-error failures.</li>
+        <li>The visual regression set was rerun across the first 60 pages after inspecting and saving the missing <code>/draft-events</code> baseline.</li>
+        <li><code>E2E_VISUAL_MAX_PAGES=60 npx playwright test --project=chromium e2e/ui/visual-regression.spec.ts</code> passed 85 visual checks with 1 intentional skip.</li>
+        <li><code>npm run test</code> passed 952 unit checks across 65 test files. A noisy team auto-channel test mock was cleaned up after the passing run.</li>
+        <li>The full Chromium browser suite passed with 194 checks and 9 intentional skips. This combined API safety checks, page buttons, forms, login, signup, tickets, settings members, role flows, school selector basics, link crawl, link checking, monkey testing, mobile hygiene, and 60-page visual regression.</li>
+        <li>The cross-browser smoke pass for Firefox, WebKit/Safari, and mobile Chrome passed with 100 checks and 3 intentional skips. The skipped checks are desktop-sidebar tests that do not apply to the mobile shell.</li>
+        <li>Focused auth and login regression passed after the login speed change: 13 auth API checks passed, then the Chromium login/dashboard slice passed 39 checks with 1 intentional rate-limit skip.</li>
+        <li><code>SMOKE_BASE_URL=http://127.0.0.1:3011 npm run smoke:all</code> passed again after the latest changes. Roles/teams, settings permissions, campus CRUD, set-password, and UI permission endpoints all passed.</li>
+        <li>The raw database route review is complete. All 138 API route files that still mention <code>rawPrisma</code> are now either converted to scoped <code>prisma</code> where appropriate or marked with a plain reason explaining why raw access is intentional.</li>
+        <li>Two real safety issues were fixed during that review: public form fetch/submit now require active public forms, and event schedule block/section reorder now proves every ID belongs to the current event and organization before updating.</li>
+        <li>Additional tenant-safety hardening was added to auth, MFA, profile, public QR, passkey, presence, and registration medical routes by matching user/event/location records to the expected organization before returning or updating data.</li>
+        <li><code>npm run build</code> passed after the raw database route review.</li>
+        <li><code>npm run test</code> passed 952 unit checks across 65 test files after the raw database route review.</li>
+        <li><code>npm run lint</code> now exits fully clean: 0 errors and 0 warnings. The accessibility, React hook, and image warning cleanup passes are complete.</li>
+        <li>A shared image wrapper was added so older raw image tags now render through the app's image component without breaking private uploaded images or avatar URLs.</li>
+        <li><code>npm run typecheck</code>, <code>npm run build</code>, and <code>npm run test</code> all passed after the lint cleanup. The unit suite passed 952 checks across 65 test files.</li>
+        <li>The role/team UX audit passed for Super Admin, Admin, IT Worker, Maintenance Worker, A/V Worker, Teacher/Staff Member, and Viewer.</li>
+        <li><code>npm run audit:workflows</code> passed 22 of 22 desktop IT and maintenance worker job steps.</li>
+        <li><code>npm run audit:mobile-workflows</code> passed 24 of 24 phone-sized IT and maintenance worker job steps.</li>
+        <li><code>npx playwright test --project=permissions</code> passed 49 checks with 1 intentional skip. Anonymous access, member denial, admin access, and tenant isolation all passed.</li>
+        <li>The broad Chromium UI sweep passed 193 checks with 9 intentional skips after refreshing one healthy-but-stale maintenance analytics chart snapshot.</li>
+        <li>The 60-page visual regression set passed 85 checks with 1 intentional skip after the snapshot refresh.</li>
+        <li><code>npx playwright test --project=a11y</code> passed 56 WCAG checks across authenticated and public pages.</li>
+        <li>The security incident number generator now repairs itself when the saved counter falls behind real incidents already in the database. This prevents duplicate <code>SEC-####</code> numbers during security incident creation.</li>
+        <li>The login speed target was adjusted to match secure password checking. The app keeps the stronger password check instead of weakening login security to chase an unrealistic benchmark number.</li>
+        <li>A focused security-incident creation stress run passed 100 of 100 checks with 0 failed HTTP requests.</li>
+        <li>The full 60-second, 5-user production-mode endpoint benchmark passed 5,200 of 5,200 checks with 0 failed HTTP requests and all speed thresholds passing.</li>
+        <li><code>npm run typecheck</code>, <code>npm run build</code>, and <code>npm run test</code> passed after the security incident and benchmark fixes. The unit suite passed 952 checks across 65 test files.</li>
+        <li>The 30-minute read-only IT and maintenance worker soak passed 28,435 of 28,435 checks with 0 failed HTTP requests and all thresholds passing.</li>
+        <li>During that soak, the overall API p95 was 25.23 ms. IT dashboard p95 was 31.58 ms, IT tickets p95 was 24.33 ms, maintenance dashboard p95 was 24.1 ms, and maintenance tickets p95 was 22.29 ms.</li>
+        <li>A new dynamic real-record browser suite was added for detail pages that cannot be tested with fake IDs.</li>
+        <li>The dynamic suite now opens real event detail/day-of pages, a real form builder page, real maintenance asset/article/ticket detail pages, and tenant event/facilities/settings pages.</li>
+        <li><code>npx playwright test --project=chromium e2e/ui/dynamic-record-pages.spec.ts</code> passed. The run included 37 passing checks with 1 intentional rate-limit skip from the shared API project.</li>
+        <li><code>npm run lint</code> still exits clean with 0 warnings and 0 errors after adding the dynamic-page suite.</li>
+        <li>The dynamic real-record suite was expanded to cover public event registration pages, public registration shortcuts, public form pages, public QR form pages, public ticket lookup, check-in pages, public athletics pages, player profile pages when data exists, participant self-service when data exists, and platform-admin school/support detail pages.</li>
+        <li>The expanded run passed with 40 checks and 2 intentional skips for optional records that are not present in the current seed data. The shared API safety project also passed, with its normal intentional rate-limit skip.</li>
+        <li><code>npm run lint</code> still exits clean with 0 warnings and 0 errors after the expanded dynamic-page coverage.</li>
+        <li>Public ticket and calendar subscription links now pass through middleware correctly. Bad ticket codes and feed tokens return normal not-found responses instead of login blocks.</li>
+        <li>The route inventory public-path rules were synced with middleware. The logged-in route review list dropped from 189 to 159 remaining handlers after public routes and explicit maintenance action permissions were labelled.</li>
+        <li>Maintenance work-order action routes now advertise the permissions they already enforce: assign, claim, status change, and watcher removal are no longer hidden from the route inventory.</li>
+        <li><code>npx playwright test --project=permissions</code> passed 49 checks with 1 intentional skip after the public-route and maintenance permission-labelling pass.</li>
+        <li><code>AUDIT_BASE_URL=http://127.0.0.1:3011 npm run audit:workflows</code> passed 22 of 22 desktop IT and maintenance worker job steps after the maintenance route labels.</li>
+        <li><code>npm run lint</code>, <code>npm run typecheck</code>, and <code>npm run build</code> passed after the public-route and maintenance permission work.</li>
+        <li>The AI/action route review is complete for the first high-risk pass. Event description and event parsing now require event-create permission. Approval workflow parsing now requires settings-update permission. AI ticket intake now checks IT or maintenance submit permission before letting a signed-in user use the intake flow.</li>
+        <li>The route inventory now records intentional signed-in-only AI routes where the sensitive operation is guarded by the AI tool/action layer instead of a single route-level permission.</li>
+        <li>The logged-in route review list dropped from 155 to 141 remaining handlers after the AI/action pass.</li>
+        <li><code>npm run inventory:all</code>, <code>npm run lint</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx playwright test --project=permissions</code> all passed after the AI/action pass. The permission matrix passed 49 checks with 1 intentional skip.</li>
+        <li>The messaging route review is complete for the first high-risk pass. All messaging API routes now require messaging access at the route edge, while channel membership checks still protect private conversations deeper in the service layer.</li>
+        <li>Three messaging privacy gaps were fixed: attachment downloads now require channel membership, channel member lists require channel access, and reaction-count lookups only return reactions for messages the user can actually see.</li>
+        <li>Message edits and normal message deletes now require the author to still be in the channel. Channel preferences and hidden-DM actions now require real membership instead of accepting any channel ID from the same organization.</li>
+        <li>The logged-in route review list dropped from 141 to 108 remaining handlers after the messaging pass. No messaging handlers remain on the unguarded review list.</li>
+        <li><code>npm run inventory:all</code>, <code>npm run lint</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx playwright test --project=permissions</code> all passed after the messaging pass. The permission matrix passed 49 checks with 1 intentional skip.</li>
+        <li>The platform-admin route review is complete. The audit confirmed platform routes use the separate platform JWT middleware and platform role permissions, not the tenant permission wrapper.</li>
+        <li>The route inventory now recognizes platform-admin permission checks and the one-time platform setup/login public paths. The logged-in route review list dropped from 108 to 78 remaining handlers, with no platform-admin routes left in the unguarded list.</li>
+        <li>The ticket route review is complete. Ticket list, detail, update, delete, comment, and attachment routes now advertise the ticket permissions they already rely on in the service layer.</li>
+        <li>The forms route review is complete for the first high-risk pass. Form hub, templates, system forms, form detail, and submission lists now require form-manager access. Single submission detail/update now allows only a form manager or the original submitting user, and status changes require form-manager access.</li>
+        <li>The logged-in route review list dropped from 78 to 60 remaining handlers after the ticket and forms pass.</li>
+        <li><code>npm run inventory:all</code>, <code>npm run lint</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx playwright test --project=permissions</code> all passed after the ticket/forms pass. The permission matrix passed 49 checks with 1 intentional skip.</li>
+        <li>The events and draft-events route review is complete for the first high-risk pass. Event list/create routes and draft event routes now advertise their event permissions. Personal invitation conflict checks, invitation responses, event task updates, and my-permissions routes are marked as signed-in user-scoped routes.</li>
+        <li>Survey response middleware was tightened. Parent survey submission remains public for <code>POST</code>, but staff survey-result <code>GET</code> no longer bypasses auth/header injection just because it shares the same URL.</li>
+        <li>Notifications are now explicitly marked as signed-in user-scoped routes. Notification lists, unread counts, read updates, read-all, and push subscriptions operate only on the current user.</li>
+        <li>The logged-in route review list dropped from 60 to 39 remaining handlers after the events/drafts/notifications pass.</li>
+        <li><code>npm run inventory:all</code>, <code>npm run lint</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx playwright test --project=permissions</code> all passed after this pass. The permission matrix passed 49 checks with 1 intentional skip.</li>
+        <li>The remaining route-permission review is complete. Personal task routes, notification preferences, Leo conversation history, calendar RSVP/external-calendar routes, dashboard diff routes, planning widgets, onboarding helpers, billing checkout, support tickets, search, storage signed URLs, weather, campus lookup, and module status were reviewed and either tightened or marked as signed-in user-scoped.</li>
+        <li>Several privacy gaps were fixed in this final route pass: subtask creation now requires the parent task to belong to the same user; Leo message feedback now requires the conversation to belong to the signed-in user; dashboard diff dismiss/undo only works on changes visible to that user; support tickets are limited to the submitter unless the user can manage the workspace; global search filters ticket and event results by permission; and storage signed URLs now require bucket-specific permissions for sensitive files.</li>
+        <li>The route inventory now reports <code>0</code> logged-in handlers needing permission review: 580 routes, 871 handlers, 771 guarded handlers, 102 public handlers, and 0 unguarded handlers.</li>
+        <li><code>npm run inventory:all</code>, <code>npm run lint</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx playwright test --project=permissions</code> all passed after the final route pass. The permission matrix passed 49 checks with 1 intentional skip; anonymous probes checked 769 protected routes with 0 failures, and member probes checked 118 admin-only routes with 0 failures.</li>
+        <li>The deeper role-based UX scenario pass now checks each role against its actual permission data before judging direct-page access. This keeps the audit aligned with what the app really allows.</li>
+        <li>Dashboard worker-mode ticket lists now call the IT and maintenance worker APIs directly. Regular users no longer trigger hidden permission errors from old generic ticket requests.</li>
+        <li>The event-create modal no longer loads form templates while closed. This removed hidden form-permission errors for users who can create/view events but cannot manage forms.</li>
+        <li>The Forms sidebar link now appears only for users with form-management permission. Staff, viewer, IT, maintenance, and A/V users no longer see a management page they cannot use.</li>
+        <li>Direct visits to restricted worker sub-pages now show a plain "Access limited" state instead of a confusing blank or full tool surface.</li>
+        <li><code>AUDIT_BASE_URL=http://127.0.0.1:3011 node scripts/audit-role-team-ux.mjs</code> passed for Super Admin, Admin, IT Worker, Maintenance Worker, A/V Worker, Teacher/Staff Member, and Viewer after the deeper role scenario pass.</li>
+        <li><code>AUDIT_BASE_URL=http://127.0.0.1:3011 npm run audit:workflows</code> passed 22 of 22 desktop IT and maintenance worker job steps.</li>
+        <li><code>AUDIT_BASE_URL=http://127.0.0.1:3011 npm run audit:mobile-workflows</code> passed 24 of 24 phone-sized IT and maintenance worker job steps.</li>
+        <li><code>npm run lint</code>, <code>npm run typecheck</code>, and <code>npm run build</code> passed after the deeper role-based UX fixes.</li>
+        <li><code>npm run inventory:all</code> passed again after the role UX pass: 580 routes, 871 handlers, 771 guarded handlers, 102 public handlers, and 0 unguarded logged-in handlers.</li>
+        <li><code>E2E_BASE_URL=http://127.0.0.1:3011 npm run test:e2e:perms</code> passed after rerunning against the correct Lionheart production server. The matrix passed 49 checks with 1 intentional skip, blocked 769 anonymous protected-route probes, and blocked 118 member/admin-only probes.</li>
+        <li><code>E2E_BASE_URL=http://127.0.0.1:3011 npm run test:e2e:forms</code> passed 53 checks with 1 intentional skip.</li>
+        <li><code>E2E_BASE_URL=http://127.0.0.1:3011 npm run test:e2e:a11y</code> passed 56 WCAG checks.</li>
+        <li><code>E2E_BASE_URL=http://127.0.0.1:3011 npm run test:e2e:chromium</code> passed the broad Chromium UI sweep with 160 checks and 10 intentional skips.</li>
+        <li><code>SMOKE_BASE_URL=http://127.0.0.1:3011 npm run smoke:all</code> passed roles/teams, settings permissions, campus CRUD, set-password, and UI permission smoke checks.</li>
+        <li>Cross-browser smoke passed against Firefox, WebKit/Safari, and mobile Chrome for login, dashboard, and mobile layout: 100 checks passed with 3 intentional mobile skips.</li>
+        <li>The valid 30-second endpoint benchmark passed with 2,160 checks, 0 failed checks, and 0 failed HTTP requests. Overall API p95 was 73.15 ms, and login p95 was 204.68 ms.</li>
+        <li>The 45-second IT/maintenance worker-readiness speed test passed with 715 checks, 0 failures, 0 failed HTTP requests, and 27.93 ms overall API p95.</li>
+        <li>The AI route unit tests were updated to reflect the newer event-create permission gate on AI event helper routes. <code>npm run test</code> now passes 952 unit checks across 65 files.</li>
+        <li>The 2-hour IT/maintenance worker-readiness soak passed with 112,475 of 112,475 checks, 0 failed HTTP requests, 0 interrupted runs, and 100% worker success.</li>
+        <li>During the 2-hour soak, overall API p95 was 27.46 ms and p99 was 33.52 ms. IT dashboard p95 was 34.52 ms, IT tickets p95 was 27.01 ms, maintenance dashboard p95 was 24.78 ms, and maintenance tickets p95 was 24.72 ms.</li>
+        <li>The app server memory stayed healthy during the 2-hour soak. It ended around 656 MB after starting the long run around the mid-700 MB range.</li>
+        <li>The role walkthrough found one real setup problem: the existing test organization's default Admin role was missing newer default permissions, so Admin did not see Forms and quietly hit calendar/event permission errors.</li>
+        <li>The test organization's default roles were synced to the current permission set. After that, the full role/team UX audit passed for Super Admin, Admin, IT Worker, Maintenance Worker, A/V Worker, Teacher/Staff Member, and Viewer.</li>
+        <li>A repeatable role-permission sync command was added: <code>npm run roles:sync-defaults</code>. It safely adds missing default permissions for existing organizations without removing custom permissions.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Role And Team Coverage</h2>
+      <ul>
+        <li><span class="good">Super Admin:</span> sees the full work area on desktop, Approvals on mobile, and can open admin, IT, maintenance, and A/V approval areas.</li>
+        <li><span class="good">Admin:</span> sees dashboard, calendar, forms, approvals, and Leo. Admin no longer loses Approvals on mobile.</li>
+        <li><span class="good">IT Worker:</span> gets the IT ticket mobile tab, can open the IT queue, can use IT worker pages, and no longer sees the Forms management hub unless granted that permission.</li>
+        <li><span class="good">Maintenance Worker:</span> gets the Work Orders mobile tab, can open maintenance jobs, can use maintenance worker pages, and no longer sees the Forms management hub unless granted that permission.</li>
+        <li><span class="good">A/V Worker:</span> gets the right approval path, no hidden permission errors on the A/V approval page, and no Forms management link without permission.</li>
+        <li><span class="good">Teacher/Staff Member:</span> gets the normal tickets path instead of admin-only work tools, and blocked management pages show a clear access-limited state.</li>
+        <li><span class="good">Viewer:</span> can load the dashboard without avoidable campus permission errors, and management-only areas stay hidden or access-limited.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Remaining Watch Item</h2>
+      <ul>
+        <li><span class="watch">Speed:</span> daily worker paths are passing, focused production API checks are fast, and IT/IT-admin/maintenance/dashboard/athletics/calendar/event-detail/event-day-of/form-builder/events page weight is much lower. Continue watching any page that grows past about 300 kB first load.</li>
+        <li><span class="watch">Member dashboard noise:</span> fixed in this pass. Keep watching future dashboard changes so regular members do not re-trigger admin-only calendar/event-project requests.</li>
+        <li><span class="good">Permission review:</span> complete for the current inventory. The automated route inventory now shows 0 logged-in handlers needing permission review, and the permission matrix passed.</li>
+        <li><span class="good">Dynamic pages:</span> the main authenticated, public, QR/check-in, athletics, ticket lookup, participant self-service, and platform-admin real-record routes now have browser coverage. Optional data-only paths intentionally skip when the current seed database has no matching record.</li>
+        <li><span class="good">Lint backlog:</span> fixed in this pass. Full lint now exits with 0 errors and 0 warnings.</li>
+        <li><span class="good">Longer load test:</span> the 2-hour read-only IT and maintenance worker soak passed cleanly with 5 simulated users, 112,475 checks, 0 failed HTTP requests, and a 27.46 ms overall API p95.</li>
+        <li><span class="good">Role walkthrough:</span> complete for the current role set. The latest rerun passed after syncing stale default role permissions for the existing test organization.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

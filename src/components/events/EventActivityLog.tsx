@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { staggerContainer, listItem } from '@/lib/animations'
 import { useEventActivity, type EventActivityLog as ActivityEntry } from '@/lib/hooks/useEventProject'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Activity type display config ───────────────────────────────────────
 
@@ -83,7 +84,7 @@ function ActorAvatar({ actor }: { actor: ActivityEntry['actor'] }) {
     <div className="flex items-center gap-2 flex-shrink-0">
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
         {actor?.avatar ? (
-          <img src={actor.avatar} alt={displayName} className="w-full h-full rounded-full object-cover" />
+          <OptimizedImage src={actor.avatar} alt={displayName} className="w-full h-full rounded-full object-cover" />
         ) : (
           <span className="text-xs font-semibold text-indigo-700">{initials}</span>
         )}

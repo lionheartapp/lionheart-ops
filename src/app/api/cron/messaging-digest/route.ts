@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and sends messaging digests across organizations.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { sendMessagingDigest } from '@/lib/services/email/messaging-emails'

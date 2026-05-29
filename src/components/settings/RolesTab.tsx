@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Shield, Plus, Edit2, Trash2 } from 'lucide-react'
 import { handleAuthResponse } from '@/lib/client-auth'
@@ -288,7 +288,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
     setRoleToDelete(role)
   }
 
-  const loadRoleUsers = async (roleId: string) => {
+  const loadRoleUsers = useCallback(async (roleId: string) => {
     setRoleUsersLoading(true)
     try {
       const response = await fetch(`/api/settings/users?roleId=${roleId}`, {
@@ -309,7 +309,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
     } finally {
       setRoleUsersLoading(false)
     }
-  }
+  }, [])
 
   const availableReassignRoles = useMemo(() => {
     if (!roleToDelete) return []
@@ -332,7 +332,7 @@ export default function RolesTab({ onDirtyChange }: RolesTabProps = {}) {
       setRoleUsers([])
       setRoleUserReassignments({})
     }
-  }, [roleToDelete, availableReassignRoles])
+  }, [roleToDelete, availableReassignRoles, loadRoleUsers])
 
   const confirmDeleteRole = async () => {
     if (!roleToDelete) return

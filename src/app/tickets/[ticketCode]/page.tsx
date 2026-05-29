@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from 'react'
 import { Loader2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface TicketData {
   ticketCode: string
@@ -79,7 +80,7 @@ export default function TicketDisplayPage({ params }: { params: Promise<{ ticket
           {/* QR Code */}
           <div className="px-6 py-8 flex flex-col items-center">
             {isValid && (
-              <img
+              <OptimizedImage
                 src={ticket.qrDataUrl}
                 alt={`QR code for ticket ${ticket.ticketCode}`}
                 className="w-48 h-48 mb-4"

@@ -15,22 +15,26 @@ import { rawPrisma } from '@/lib/db'
  *   if (blocked) return blocked
  */
 export async function assertMessagingEnabled(orgId: string): Promise<NextResponse | null> {
+  if (await isMessagingEnabled(orgId)) return null
+
+  return NextResponse.json(
+    fail('FEATURE_DISABLED', 'Messaging is not enabled for this organization'),
+    { status: 403 }
+  )
+}
+
+export async function isMessagingEnabled(orgId: string): Promise<boolean> {
   // Check org-level boolean first (fast path)
   const org = await rawPrisma.organization.findUnique({
     where: { id: orgId },
     select: { messagingEnabled: true },
   })
-  if (org?.messagingEnabled) return null
+  if (org?.messagingEnabled) return true
 
   // Fallback: check TenantModule (Add-ons toggle)
   const tenantModule = await rawPrisma.tenantModule.findFirst({
     where: { organizationId: orgId, moduleId: 'messaging' },
     select: { id: true },
   })
-  if (tenantModule) return null
-
-  return NextResponse.json(
-    fail('FEATURE_DISABLED', 'Messaging is not enabled for this organization'),
-    { status: 403 }
-  )
+  return Boolean(tenantModule)
 }

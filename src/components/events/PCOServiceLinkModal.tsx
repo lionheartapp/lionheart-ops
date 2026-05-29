@@ -187,7 +187,7 @@ export function PCOServiceLinkModal({
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Push failed', 'error')
     }
-  }, [sectionId, pushToPCO])
+  }, [sectionId, pushToPCO, toast])
 
   const handleUnlink = useCallback(async () => {
     try {
@@ -197,7 +197,7 @@ export function PCOServiceLinkModal({
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Unlink failed', 'error')
     }
-  }, [sectionId, unlinkPCO, onClose])
+  }, [sectionId, unlinkPCO, onClose, toast])
 
   const handleResync = useCallback(async () => {
     if (!existingLink) return
@@ -212,7 +212,7 @@ export function PCOServiceLinkModal({
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Re-sync failed', 'error')
     }
-  }, [existingLink, sectionId, importPlan])
+  }, [existingLink, sectionId, importPlan, toast])
 
   const toggleNewItem = useCallback((itemId: string) => {
     setSelectedNewItemIds((prev) => {

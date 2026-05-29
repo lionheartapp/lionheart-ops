@@ -31,7 +31,6 @@ export function getOutdoorColor(space: OutdoorSpace): string {
 
 /* ── Custom marker icon builders ────────────────────────────────────── */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LeafletL = any
 
 /** Circular icon for buildings -- matches school center style but in building color */

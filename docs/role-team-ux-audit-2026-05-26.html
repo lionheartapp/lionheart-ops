@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lionheart Role and Team UX Audit</title>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f8fafc; color: #0f172a; line-height: 1.5; }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 20px 56px; }
+    h1 { font-size: 32px; margin: 0 0 8px; }
+    h2 { font-size: 20px; margin: 28px 0 10px; }
+    p { margin: 0 0 16px; color: #475569; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; font-size: 14px; }
+    th { background: #f1f5f9; color: #334155; }
+    section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; margin-top: 18px; }
+    ul { margin: 0; padding-left: 22px; }
+    .pass { color: #166534; }
+    .fail { color: #b91c1c; font-weight: 700; }
+    .summary { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Lionheart Role and Team UX Audit</h1>
+    <p>Run at 2026-05-29T03:00:09.949Z against http://127.0.0.1:3011.</p>
+    <p><span class="summary">All checked roles passed.</span></p>
+    <table>
+      <thead><tr><th>User type</th><th>Status</th><th>Home mode</th><th>Team</th><th>Issues</th></tr></thead>
+      <tbody><tr><td>Super Admin</td><td class="pass">Pass</td><td>admin</td><td>none</td><td>None</td></tr>
+<tr><td>Admin</td><td class="pass">Pass</td><td>admin</td><td>none</td><td>None</td></tr>
+<tr><td>IT Worker</td><td class="pass">Pass</td><td>it</td><td>it-support</td><td>None</td></tr>
+<tr><td>Maintenance Worker</td><td class="pass">Pass</td><td>maintenance</td><td>maintenance</td><td>None</td></tr>
+<tr><td>A/V Worker</td><td class="pass">Pass</td><td>av</td><td>av-production</td><td>None</td></tr>
+<tr><td>Teacher / Staff Member</td><td class="pass">Pass</td><td>default</td><td>none</td><td>None</td></tr>
+<tr><td>Viewer</td><td class="pass">Pass</td><td>default</td><td>none</td><td>None</td></tr></tbody>
+    </table>
+    <section><h2>Super Admin</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is admin — actual=admin</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Forms</li>
+<li class="pass">PASS: Desktop shows Approvals</li>
+<li class="pass">PASS: Desktop shows Maintenance</li>
+<li class="pass">PASS: Desktop shows IT Help Desk</li>
+<li class="pass">PASS: Desktop shows A/V Production</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Approvals</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Mobile hides Tickets</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /settings?tab=users — status=200, expectedUi=true, denied=false, appError=false, matches=/Members/i, /Invite|Add member|Users/i</li>
+<li class="pass">PASS: Can use /settings?tab=roles — status=200, expectedUi=true, denied=false, appError=false, matches=/Roles/i, /Create role|New role|Permissions/i</li>
+<li class="pass">PASS: Can use /approvals — status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i</li>
+<li class="pass">PASS: Can use /it — status=200, expectedUi=true, denied=false, appError=false, matches=/Help Desk|IT Help Desk|New Ticket|Create Ticket/i</li>
+<li class="pass">PASS: Can use /maintenance — status=200, expectedUi=true, denied=false, appError=false, matches=/Maintenance|Work Orders|New Work Order|Submit Request/i</li>
+<li class="pass">PASS: Can use /av/event-approvals — status=200, expectedUi=true, denied=false, appError=false, matches=/All clear!|Approve|Reject|Event Approvals/i</li></ul></section>
+<section><h2>Admin</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is admin — actual=admin</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Forms</li>
+<li class="pass">PASS: Desktop shows Approvals</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides IT Help Desk</li>
+<li class="pass">PASS: Desktop hides Maintenance</li>
+<li class="pass">PASS: Desktop hides A/V Production</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Approvals</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Mobile hides Tickets</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /settings?tab=users — status=200, expectedUi=true, denied=false, appError=false, matches=/Members/i, /Invite|Add member|Users/i</li>
+<li class="pass">PASS: Can use /settings?tab=roles — status=200, expectedUi=true, denied=false, appError=false, matches=/Roles/i, /Create role|New role|Permissions/i</li>
+<li class="pass">PASS: Can use /approvals — status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i</li>
+<li class="pass">PASS: Can use /it/devices — status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i</li>
+<li class="pass">PASS: Can use /maintenance/assets — status=200, expectedUi=true, denied=false, appError=false, matches=/Assets|Equipment|Location/i</li></ul></section>
+<section><h2>IT Worker</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is it — actual=it</li>
+<li class="pass">PASS: Team includes it-support — auth=it-support, permissions=it-support</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows IT Help Desk</li>
+<li class="pass">PASS: Desktop shows Help Desk</li>
+<li class="pass">PASS: Desktop shows Devices</li>
+<li class="pass">PASS: Desktop shows Lifecycle</li>
+<li class="pass">PASS: Desktop shows Security</li>
+<li class="pass">PASS: Desktop shows Inventory</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides Forms</li>
+<li class="pass">PASS: Desktop hides Maintenance</li>
+<li class="pass">PASS: Desktop hides A/V Production</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows IT Tickets</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides Approvals</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /it — status=200, expectedUi=true, denied=false, appError=false, matches=/Help Desk|IT Help Desk|New Ticket|Create Ticket/i</li>
+<li class="pass">PASS: Can use /it/devices — status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i</li>
+<li class="pass">PASS: Can use /it/lifecycle — status=200, expectedUi=true, denied=false, appError=false, matches=/Lifecycle|Provision|Deployment/i</li>
+<li class="pass">PASS: Can use /it/security — status=200, expectedUi=true, denied=false, appError=false, matches=/Security|Incident|CIPA|Filter/i</li>
+<li class="pass">PASS: Does not expose /settings?tab=roles — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /maintenance/assets — status=200, expectedUi=false, denied=true, appError=false, matches=none</li></ul></section>
+<section><h2>Maintenance Worker</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is maintenance — actual=maintenance</li>
+<li class="pass">PASS: Team includes maintenance — auth=maintenance, permissions=maintenance</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Maintenance</li>
+<li class="pass">PASS: Desktop shows Maintenance Hub</li>
+<li class="pass">PASS: Desktop shows Work Orders</li>
+<li class="pass">PASS: Desktop shows Assets</li>
+<li class="pass">PASS: Desktop shows Knowledge Base</li>
+<li class="pass">PASS: Desktop shows Inventory</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides Forms</li>
+<li class="pass">PASS: Desktop hides IT Help Desk</li>
+<li class="pass">PASS: Desktop hides A/V Production</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Work Orders</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides Approvals</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /maintenance — status=200, expectedUi=true, denied=false, appError=false, matches=/Maintenance|Work Orders|New Work Order|Submit Request/i</li>
+<li class="pass">PASS: Can use /maintenance/assets — status=200, expectedUi=true, denied=false, appError=false, matches=/Assets|Equipment|Location/i</li>
+<li class="pass">PASS: Can use /maintenance/knowledge-base — status=200, expectedUi=true, denied=false, appError=false, matches=/Knowledge Base|Articles|Search/i</li>
+<li class="pass">PASS: Can use /maintenance/pm-calendar — status=200, expectedUi=true, denied=false, appError=false, matches=/Preventive|PM|Calendar|Schedule/i</li>
+<li class="pass">PASS: Does not expose /settings?tab=roles — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /it/devices — status=200, expectedUi=false, denied=false, appError=false, matches=none</li></ul></section>
+<section><h2>A/V Worker</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is av — actual=av</li>
+<li class="pass">PASS: Team includes av-production — auth=av-production, permissions=av-production</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Approvals</li>
+<li class="pass">PASS: Desktop shows A/V Production</li>
+<li class="pass">PASS: Desktop shows Event Approvals</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides Forms</li>
+<li class="pass">PASS: Desktop hides IT Help Desk</li>
+<li class="pass">PASS: Desktop hides Maintenance</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Tickets</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /av/event-approvals — status=200, expectedUi=true, denied=false, appError=false, matches=/All clear!|Approve|Reject|Event Approvals/i</li>
+<li class="pass">PASS: Can use /approvals — status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i</li>
+<li class="pass">PASS: Can use /events — status=200, expectedUi=true, denied=false, appError=false, matches=/Events|Create Event|Calendar/i</li>
+<li class="pass">PASS: Does not expose /it/devices — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /maintenance/assets — status=200, expectedUi=false, denied=true, appError=false, matches=none</li></ul></section>
+<section><h2>Teacher / Staff Member</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is default — actual=default</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides Forms</li>
+<li class="pass">PASS: Desktop hides Approvals</li>
+<li class="pass">PASS: Desktop hides IT Help Desk</li>
+<li class="pass">PASS: Desktop hides Maintenance</li>
+<li class="pass">PASS: Desktop hides A/V Production</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Tickets</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides Approvals</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /tickets — status=200, expectedUi=true, denied=false, appError=false, matches=/Tickets|Submit|Request/i</li>
+<li class="pass">PASS: Can use /calendar — status=200, expectedUi=true, denied=false, appError=false, matches=/Calendar|Today|Month/i</li>
+<li class="pass">PASS: Does not expose /forms — status=200, expectedUi=true, denied=true, appError=false, matches=/Forms|Create Form|Template|Builder/i</li>
+<li class="pass">PASS: Does not expose /settings?tab=roles — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /approvals — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /it/devices — status=200, expectedUi=false, denied=true, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /maintenance/assets — status=200, expectedUi=false, denied=true, appError=false, matches=none</li></ul></section>
+<section><h2>Viewer</h2><ul><li class="pass">PASS: Login and current-user API works — me=200, permissions=200</li>
+<li class="pass">PASS: Home mode is default — actual=default</li>
+<li class="pass">PASS: Desktop shows Dashboard</li>
+<li class="pass">PASS: Desktop shows Calendar</li>
+<li class="pass">PASS: Desktop shows Leo</li>
+<li class="pass">PASS: Desktop hides Forms</li>
+<li class="pass">PASS: Desktop hides Approvals</li>
+<li class="pass">PASS: Desktop hides IT Help Desk</li>
+<li class="pass">PASS: Desktop hides Maintenance</li>
+<li class="pass">PASS: Desktop hides A/V Production</li>
+<li class="pass">PASS: Mobile shows Dashboard</li>
+<li class="pass">PASS: Mobile shows Calendar</li>
+<li class="pass">PASS: Mobile shows Messages</li>
+<li class="pass">PASS: Mobile shows Tickets</li>
+<li class="pass">PASS: Mobile shows More</li>
+<li class="pass">PASS: Mobile hides Approvals</li>
+<li class="pass">PASS: Mobile hides IT Tickets</li>
+<li class="pass">PASS: Mobile hides Work Orders</li>
+<li class="pass">PASS: Desktop has no browser app error</li>
+<li class="pass">PASS: Mobile has no browser app error</li>
+<li class="pass">PASS: Can use /dashboard — status=200, expectedUi=true, denied=false, appError=false, matches=/Dashboard|Today|Upcoming/i</li>
+<li class="pass">PASS: Can use /calendar — status=200, expectedUi=true, denied=false, appError=false, matches=/Calendar|Today|Month/i</li>
+<li class="pass">PASS: Does not expose /forms — status=200, expectedUi=true, denied=true, appError=false, matches=/Forms|Create Form|Template|Builder/i</li>
+<li class="pass">PASS: Does not expose /settings?tab=roles — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Does not expose /approvals — status=200, expectedUi=false, denied=false, appError=false, matches=none</li>
+<li class="pass">PASS: Can use /it/devices — status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i</li>
+<li class="pass">PASS: Does not expose /maintenance/assets — status=200, expectedUi=false, denied=true, appError=false, matches=none</li></ul></section>
+  </main>
+</body>
+</html>

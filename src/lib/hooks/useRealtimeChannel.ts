@@ -283,6 +283,8 @@ export function useRealtimeChannel(
     // ------------------------------------------------------------------
     // Cleanup
     // ------------------------------------------------------------------
+    const typingTimeouts = typingTimeoutsRef.current
+
     return () => {
       cleanedUpRef.current = true
 
@@ -293,10 +295,10 @@ export function useRealtimeChannel(
       }
 
       // Clear typing timeouts
-      for (const timer of typingTimeoutsRef.current.values()) {
+      for (const timer of typingTimeouts.values()) {
         clearTimeout(timer)
       }
-      typingTimeoutsRef.current.clear()
+      typingTimeouts.clear()
 
       // Clear heartbeat
       if (heartbeatRef.current) {

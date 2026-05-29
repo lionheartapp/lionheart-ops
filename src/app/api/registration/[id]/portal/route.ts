@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Registration portal verifies a portal JWT before returning non-medical participant data.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { verifyPortalToken } from '@/lib/services/registrationMagicLinkService'

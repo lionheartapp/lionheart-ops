@@ -1,4 +1,4 @@
-import { test, expect, request as pwRequest } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { test as authedTest } from '../fixtures'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -85,7 +85,8 @@ authedTest.describe('Link checker · collect + validate every href', () => {
     }
 
     const failures: Failure[] = []
-    const probeCtx = await pwRequest.newContext({ timeout: 10_000 })
+    const currentOrigin = new URL(adminPage.url()).origin
+    const probeCtx = adminPage.context().request
 
     // ---- 3. Probe each unique href --------------------------------------
     for (const [href, meta] of byHref) {
@@ -121,14 +122,15 @@ authedTest.describe('Link checker · collect + validate every href', () => {
         continue
       }
 
-      // External http(s)
-      const isExternal = /^https?:\/\//i.test(href)
+      const targetUrl = new URL(href, currentOrigin)
+      const isExternal = targetUrl.origin !== currentOrigin
       if (isExternal && !PROBE_EXTERNAL) continue
 
       try {
         // Use GET (some servers don't allow HEAD). Allow redirects.
-        const res = await probeCtx.get(href, {
+        const res = await probeCtx.get(targetUrl.toString(), {
           maxRedirects: 5,
+          timeout: 10_000,
           failOnStatusCode: false,
           headers: { 'user-agent': 'lionheart-e2e-link-checker' },
         })
@@ -149,8 +151,6 @@ authedTest.describe('Link checker · collect + validate every href', () => {
         })
       }
     }
-
-    await probeCtx.dispose()
 
     // ---- 4. Report -------------------------------------------------------
     // eslint-disable-next-line no-console

@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+// eslint-disable-next-line no-restricted-imports -- Billing reactivation reads/writes subscription records by orgId after withAuth/permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'

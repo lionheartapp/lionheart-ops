@@ -24,7 +24,28 @@ export interface CookieOptions {
   domain?: string
 }
 
-const COOKIE_DOMAIN = process.env.NODE_ENV === 'production' ? '.lionheartapp.com' : undefined
+function configuredCookieHost(): string | null {
+  const rawUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_PLATFORM_URL || process.env.E2E_BASE_URL
+  if (!rawUrl) return null
+
+  try {
+    return new URL(rawUrl).hostname
+  } catch {
+    return null
+  }
+}
+
+function isLocalHost(hostname: string | null): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1'
+}
+
+const COOKIE_HOST = configuredCookieHost()
+const IS_LOCAL_COOKIE_HOST = isLocalHost(COOKIE_HOST)
+const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production' && !IS_LOCAL_COOKIE_HOST
+const COOKIE_DOMAIN =
+  process.env.NODE_ENV === 'production' && COOKIE_HOST?.endsWith('lionheartapp.com')
+    ? '.lionheartapp.com'
+    : undefined
 
 /**
  * Options for the primary auth-token cookie (httpOnly).
@@ -32,7 +53,7 @@ const COOKIE_DOMAIN = process.env.NODE_ENV === 'production' ? '.lionheartapp.com
 export function authCookieOptions(options?: { maxAge?: number }): CookieOptions {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: USE_SECURE_COOKIES,
     sameSite: 'lax',
     path: '/',
     maxAge: options?.maxAge ?? 7 * 24 * 60 * 60, // 7 days — middleware auto-refreshes
@@ -47,7 +68,7 @@ export function authCookieOptions(options?: { maxAge?: number }): CookieOptions 
 export function csrfCookieOptions(options?: { maxAge?: number }): CookieOptions {
   return {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
+    secure: USE_SECURE_COOKIES,
     sameSite: 'lax',
     path: '/',
     maxAge: options?.maxAge ?? 7 * 24 * 60 * 60,
@@ -62,7 +83,7 @@ export function csrfCookieOptions(options?: { maxAge?: number }): CookieOptions 
 export function clearCookieOptions(): CookieOptions {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: USE_SECURE_COOKIES,
     sameSite: 'lax',
     path: '/',
     maxAge: 0,

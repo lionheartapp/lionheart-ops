@@ -326,13 +326,24 @@ export default function AiTicketIntakeDrawer({
             <h3 className="text-base font-semibold text-[#1a1915]">IT Help</h3>
             <p className="text-xs text-[#a8a49d]">AI-assisted issue reporting</p>
           </div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="p-1.5 rounded-lg text-[#a8a49d] hover:text-[#1a1915] hover:bg-[#f5f4f0] cursor-pointer transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onSwitchToManual && !submitted && !selfResolved && (
+              <button
+                type="button"
+                onClick={() => { onClose(); onSwitchToManual() }}
+                className="px-3 py-1.5 rounded-full text-xs font-medium text-[#1a1915] bg-[#f5f4f0] hover:bg-[#ebe8df] cursor-pointer transition-colors"
+              >
+                Manual form
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleClose}
+              className="p-1.5 rounded-lg text-[#a8a49d] hover:text-[#1a1915] hover:bg-[#f5f4f0] cursor-pointer transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}

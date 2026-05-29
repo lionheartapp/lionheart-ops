@@ -18,6 +18,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Registration staff routes manually verify event org ownership before list/count/action queries.
 import { rawPrisma } from '@/lib/db'
 import { RegistrationStatus } from '@prisma/client'
 import { cancelRegistration } from '@/lib/services/registrationService'

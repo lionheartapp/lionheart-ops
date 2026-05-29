@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Clock, Mail, RefreshCw, ArrowLeft } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type PageState =
   | 'check-email'      // No token, no error — user just signed up
@@ -281,7 +282,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="text-center px-12">
           <h1 className="text-5xl font-bold text-white mb-4">Lionheart</h1>
           <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
-          <img
+          <OptimizedImage
             src="/logo-white.svg"
             alt="Lionheart"
             className="h-10 w-auto mx-auto opacity-60"
@@ -293,7 +294,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden text-center mb-8">
-            <img src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
+            <OptimizedImage src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
           </div>
           {children}
         </div>

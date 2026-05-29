@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
@@ -35,9 +35,7 @@ export async function PATCH(request: NextRequest) {
     const input = ProfileUpdateSchema.parse(body)
 
     return await runWithOrgContext(organizationId, async () => {
-      // rawPrisma for the id-only lookup — org-scoped findUnique by id alone
-      // produces an AND clause that Prisma rejects (needs a unique key).
-      const existing = await rawPrisma.user.findUnique({
+      const existing = await prisma.user.findFirst({
         where: { id: userId },
         select: { email: true, firstName: true, lastName: true },
       })

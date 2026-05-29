@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Camera, X, Loader2, Plus } from 'lucide-react'
 import { FileInput } from '@/components/ui/FileInput'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface ImageUploadProps {
   entityType: 'building' | 'area' | 'room'
@@ -139,7 +140,7 @@ export default function ImageUpload({
       <div className="grid grid-cols-2 gap-2">
         {images.map((url, idx) => (
           <div key={url} className="relative group aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-            <img
+            <OptimizedImage
               src={url}
               alt="Uploaded image preview"
               className={`w-full h-full object-cover${onImageClick ? ' cursor-pointer' : ''}`}

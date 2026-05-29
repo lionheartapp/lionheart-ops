@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -481,10 +482,10 @@ function SplitLayout({ form, children, imageUrl, imageSide }: { form: PublicForm
       {/* Mobile: stacked hero image on top */}
       <div className="lg:hidden">
         <div className="w-full h-[200px] relative overflow-hidden">
-          <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <OptimizedImage src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         </div>
         <div className="px-5 py-8">
-          {form.logoUrl && <img src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
+          {form.logoUrl && <OptimizedImage src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
           <h1 className="text-2xl font-bold text-slate-900 mb-6">{form.description || 'Form'}</h1>
           {children}
           <p className="text-center text-[10px] text-slate-300 mt-8">Powered by Lionheart</p>
@@ -495,12 +496,12 @@ function SplitLayout({ form, children, imageUrl, imageSide }: { form: PublicForm
       <div className="hidden lg:flex min-h-screen bg-white">
         {isLeft && (
           <div className="w-1/2 sticky top-0 h-screen p-5" style={{ backgroundColor: bgColor }}>
-            <img src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
+            <OptimizedImage src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
           </div>
         )}
         <div className="flex-1 flex items-start justify-center py-10 px-16 bg-white">
           <div className="w-full max-w-md">
-            {form.logoUrl && <img src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
+            {form.logoUrl && <OptimizedImage src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
             <h1 className="text-2xl font-bold text-slate-900 mb-8">{form.description || 'Form'}</h1>
             {children}
             <p className="text-center text-[10px] text-slate-300 mt-8">Powered by Lionheart</p>
@@ -508,7 +509,7 @@ function SplitLayout({ form, children, imageUrl, imageSide }: { form: PublicForm
         </div>
         {!isLeft && (
           <div className="w-1/2 sticky top-0 h-screen p-5" style={{ backgroundColor: bgColor }}>
-            <img src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
+            <OptimizedImage src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
           </div>
         )}
       </div>
@@ -523,12 +524,12 @@ function HeroLayout({ form, children, imageUrl }: { form: PublicFormData; childr
     <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
       {/* Hero image */}
       <div className="w-full h-[35vh] relative overflow-hidden">
-        <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <OptimizedImage src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
       </div>
       {/* Form card overlapping the image */}
       <div className="relative -mt-12 z-10 px-4 pb-10">
         <div className="max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-lg p-8">
-          {form.logoUrl && <img src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
+          {form.logoUrl && <OptimizedImage src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
           <h1 className="text-2xl font-bold text-slate-900 mb-6">{form.description || 'Form'}</h1>
           {children}
         </div>
@@ -548,7 +549,7 @@ function MinimalLayout({ form, children }: { form: PublicFormData; children: Rea
           <div className="h-2 rounded-t-2xl" style={{ backgroundColor: form.coverColor }} />
         )}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-          {form.logoUrl && <img src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
+          {form.logoUrl && <OptimizedImage src={form.logoUrl} alt="" className="h-12 max-w-[180px] object-contain mb-8 mx-auto" />}
           <h1 className="text-2xl font-bold text-slate-900 mb-6">{form.description || 'Form'}</h1>
           {children}
         </div>

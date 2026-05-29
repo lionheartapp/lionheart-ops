@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, Users } from 'lucide-react'
 import { usePeopleSearch, MEET_WITH_COLORS, type MeetWithPerson, type PeopleSearchResult } from '@/lib/hooks/useMeetWith'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MeetWithSectionProps {
   people: MeetWithPerson[]
@@ -127,7 +128,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                   >
                     <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
                       {result.avatar ? (
-                        <img src={result.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                        <OptimizedImage src={result.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                       ) : (
                         <span className="text-xs font-medium text-slate-500">
                           {(result.firstName?.[0] || result.email[0] || '?').toUpperCase()}
@@ -163,7 +164,7 @@ export default function MeetWithSection({ people, onAdd, onRemove }: MeetWithSec
                     style={{ backgroundColor: person.color }}
                   >
                     {person.avatar ? (
-                      <img src={person.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                      <OptimizedImage src={person.avatar} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       (person.firstName?.[0] || person.email[0] || '?').toUpperCase()
                     )}

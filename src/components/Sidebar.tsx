@@ -334,6 +334,7 @@ export default function Sidebar({
       setAvOpen={setAvOpen}
       isOnAVTeam={perms.isOnAVTeam}
       canManageWorkspace={perms.canManageWorkspace}
+      canManageForms={perms.canManageForms}
       avGateCount={perms.avGateCount}
     />
   )

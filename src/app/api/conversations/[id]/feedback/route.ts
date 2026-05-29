@@ -1,4 +1,6 @@
 /**
+ * @authOnly Accepts feedback only for messages in a conversation owned by the signed-in user.
+ *
  * POST /api/conversations/[id]/feedback — Submit feedback on a conversation message
  *
  * Accepts a messageId and score (1-5). Verifies the message belongs to a
@@ -12,20 +14,23 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { setMessageFeedback } from '@/lib/services/ai/conversationService'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 const FeedbackSchema = z.object({
   messageId: z.string().min(1),
   score: z.number().int().min(1).max(5),
 })
 
-export const POST = withAuth(async ({ orgId, params, body }) => {
-  // Verify the message belongs to a conversation in this user's org
-  const message = await rawPrisma.conversationMessage.findFirst({
+export const POST = withAuth(async ({ ctx, params, body }) => {
+  // Verify the message belongs to one of this user's own conversations.
+  const message = await prisma.conversationMessage.findFirst({
     where: {
       id: body.messageId,
       conversationId: params.id,
-      organizationId: orgId,
+      conversation: {
+        userId: ctx.userId,
+        deletedAt: null,
+      },
     },
     select: { id: true },
   })

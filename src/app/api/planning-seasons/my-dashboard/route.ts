@@ -6,6 +6,8 @@ import { can } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
 /**
+ * @authOnly Returns the signed-in user's planning submissions; admin stats require planning-manage permission.
+ *
  * GET /api/planning-seasons/my-dashboard
  *
  * Returns the active planning season (if any) plus the current user's

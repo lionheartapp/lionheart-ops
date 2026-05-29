@@ -1,7 +1,7 @@
 /**
  * Embedding Service
  *
- * Generates text embeddings using Gemini text-embedding-004 (768 dimensions)
+ * Generates text embeddings using Gemini embeddings (768 dimensions)
  * and stores/queries them via pgvector in PostgreSQL.
  */
 
@@ -26,8 +26,18 @@ function assertValidTableName(tableName: string): void {
 }
 
 const log = logger.child({ service: 'embeddingService' })
+const DEFAULT_EMBEDDING_MODEL = 'gemini-embedding-001'
 // Lazy initialization flag — avoid re-running extension/index creation
 let pgvectorInitialized = false
+let embeddingProviderUnavailable = false
+
+function embeddingsEnabled(): boolean {
+  return process.env.AI_EMBEDDINGS_ENABLED !== '0' && process.env.AI_EMBEDDINGS_ENABLED !== 'false'
+}
+
+function embeddingModel(): string {
+  return process.env.GEMINI_EMBEDDING_MODEL || DEFAULT_EMBEDDING_MODEL
+}
 
 /**
  * Ensure pgvector extension and HNSW indexes exist.
@@ -66,9 +76,11 @@ export async function ensurePgvector(): Promise<void> {
 
 /**
  * Generate a 768-dimension embedding vector from text using Gemini.
- * Returns empty array if GEMINI_API_KEY is not configured.
+ * Returns empty array if embeddings are disabled or GEMINI_API_KEY is not configured.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
+  if (!embeddingsEnabled() || embeddingProviderUnavailable) return []
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
   if (!apiKey) {
     return []
@@ -80,14 +92,20 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const client = new GoogleGenAI({ apiKey })
     const result = await client.models.embedContent({
-      model: 'text-embedding-004',
+      model: embeddingModel(),
       contents: truncated,
       config: { outputDimensionality: 768 },
     })
 
     return result.embeddings?.[0]?.values ?? []
   } catch (err) {
-    log.error({ err: String(err) }, 'generateEmbedding error')
+    const message = String(err)
+    if (/not found|not supported|404/i.test(message)) {
+      embeddingProviderUnavailable = true
+      log.warn({ err: message, model: embeddingModel() }, 'Embedding provider unavailable; embeddings disabled until restart')
+    } else {
+      log.warn({ err: message, model: embeddingModel() }, 'generateEmbedding warning')
+    }
     return []
   }
 }
@@ -186,6 +204,8 @@ export async function generateAndStoreEmbedding(
   text: string
 ): Promise<void> {
   if (!text.trim()) return
+
+  if (!embeddingsEnabled() || embeddingProviderUnavailable) return
 
   const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
   if (!apiKey) return

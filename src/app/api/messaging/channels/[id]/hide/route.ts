@@ -10,7 +10,8 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok, fail } from '@/lib/api-response'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params }) => {
   const blocked = await assertMessagingEnabled(orgId)
@@ -18,8 +19,11 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
 
   const channelId = params.id
 
-  const channel = await rawPrisma.channel.findUnique({
-    where: { id: channelId, organizationId: orgId },
+  const channel = await prisma.channel.findFirst({
+    where: {
+      id: channelId,
+      members: { some: { userId: ctx.userId } },
+    },
     select: { type: true },
   })
 
@@ -32,10 +36,10 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
   }
 
   // Set hiddenAt — keeps membership intact, just hides from sidebar
-  await rawPrisma.channelMember.updateMany({
+  await prisma.channelMember.updateMany({
     where: { channelId, userId: ctx.userId },
     data: { hiddenAt: new Date() },
   })
 
   return NextResponse.json(ok({ hidden: true }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

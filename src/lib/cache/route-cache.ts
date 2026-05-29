@@ -49,6 +49,7 @@ const TTL_DEFAULT_MS = 60_000
 const MAX_ENTRIES = 5000
 
 const cache = new Map<string, Entry>()
+const inFlight = new Map<string, Promise<unknown>>()
 
 // Lightweight stats — useful for smoke tests and perf verification.
 const stats = {
@@ -111,7 +112,22 @@ export async function cached<T>(
   }
 
   stats.misses += 1
-  const value = await fetchFn()
+  const active = inFlight.get(key)
+  if (active) {
+    // Share the same pending work during a traffic burst instead of issuing
+    // duplicate database reads for identical cache misses.
+    return active as Promise<T>
+  }
+
+  const promise = fetchFn()
+  inFlight.set(key, promise)
+
+  let value: T
+  try {
+    value = await promise
+  } finally {
+    inFlight.delete(key)
+  }
 
   evictIfNeeded()
   cache.set(key, {
@@ -248,6 +264,7 @@ export function invalidateUserCache(userId: string, bucket?: string): void {
 export function invalidateAllCache(): void {
   stats.invalidations += cache.size
   cache.clear()
+  inFlight.clear()
 }
 
 // ---------------------------------------------------------------------------
@@ -275,6 +292,7 @@ export function getCacheStats(): {
  */
 export function resetCacheForTests(): void {
   cache.clear()
+  inFlight.clear()
   stats.hits = 0
   stats.misses = 0
   stats.sets = 0

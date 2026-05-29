@@ -1,0 +1,504 @@
+{
+  "createdAt": "2026-05-29T02:56:23.347Z",
+  "mode": "mobile",
+  "baseUrl": "http://127.0.0.1:3011",
+  "organization": {
+    "id": "cmnxogi8s0006mm9mrutfjs1v",
+    "name": "Linfield Christian School"
+  },
+  "users": {
+    "it": {
+      "id": "cmpmxtgag0011sxrrqv9duooc",
+      "email": "e2e-it-worker@lionheart-test.com"
+    },
+    "maintenance": {
+      "id": "cmpmxtgay0013sxrrgtm14tpm",
+      "email": "e2e-maint-worker@lionheart-test.com"
+    }
+  },
+  "finalTickets": {
+    "it": {
+      "id": "cmpqbykpg000dxsm66a2j6q94",
+      "ticketNumber": "IT-0021",
+      "title": "Mobile Audit IT Workflow 1780023377987",
+      "status": "DONE",
+      "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+    },
+    "maintenance": {
+      "id": "cmpqbyn2m0049xsm6xjtp5evy",
+      "ticketNumber": "MT-0010",
+      "title": "Mobile Audit Maintenance Workflow 1780023381061",
+      "status": "DONE",
+      "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+    }
+  },
+  "totals": {
+    "steps": 24,
+    "passed": 24,
+    "failed": 0,
+    "slowest": [
+      {
+        "label": "Mobile IT worker sees active ticket queue",
+        "method": "BROWSER",
+        "path": "/it",
+        "status": 200,
+        "durationMs": 1355,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/mobile-worker-it-active-queue.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "Mobile maintenance worker opens active work order detail",
+        "method": "BROWSER",
+        "path": "/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy",
+        "status": 200,
+        "durationMs": 1014,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/mobile-worker-maintenance-active-detail.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "Mobile IT worker page opens cleanly",
+        "method": "BROWSER",
+        "path": "/it",
+        "status": 200,
+        "durationMs": 956,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/mobile-worker-it-page.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "Mobile maintenance worker page opens cleanly",
+        "method": "BROWSER",
+        "path": "/maintenance",
+        "status": 200,
+        "durationMs": 936,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/mobile-worker-maintenance-page.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "Mobile IT worker resumes work",
+        "method": "PATCH",
+        "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+        "status": 200,
+        "durationMs": 166,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpg000dxsm66a2j6q94",
+          "ticketNumber": "IT-0021",
+          "title": "Mobile Audit IT Workflow 1780023377987",
+          "status": "IN_PROGRESS",
+          "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+        },
+        "error": null
+      },
+      {
+        "label": "Mobile IT worker creates a ticket",
+        "method": "POST",
+        "path": "/api/it/tickets",
+        "status": 201,
+        "durationMs": 151,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpg000dxsm66a2j6q94",
+          "ticketNumber": "IT-0021",
+          "title": "Mobile Audit IT Workflow 1780023377987",
+          "status": "BACKLOG",
+          "assignedToId": null
+        },
+        "error": null
+      },
+      {
+        "label": "Mobile IT worker starts work",
+        "method": "PATCH",
+        "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+        "status": 200,
+        "durationMs": 73,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpg000dxsm66a2j6q94",
+          "ticketNumber": "IT-0021",
+          "title": "Mobile Audit IT Workflow 1780023377987",
+          "status": "IN_PROGRESS",
+          "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+        },
+        "error": null
+      },
+      {
+        "label": "Mobile IT worker opens the ticket",
+        "method": "GET",
+        "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94",
+        "status": 200,
+        "durationMs": 47,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpg000dxsm66a2j6q94",
+          "ticketNumber": "IT-0021",
+          "title": "Mobile Audit IT Workflow 1780023377987",
+          "status": "BACKLOG",
+          "assignedToId": null
+        },
+        "error": null
+      }
+    ]
+  },
+  "results": [
+    {
+      "label": "Mobile IT worker creates a ticket",
+      "method": "POST",
+      "path": "/api/it/tickets",
+      "status": 201,
+      "durationMs": 151,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker opens the ticket",
+      "method": "GET",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94",
+      "status": 200,
+      "durationMs": 47,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker claims the ticket",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/assign",
+      "status": 200,
+      "durationMs": 20,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "TODO",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker starts work",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+      "status": 200,
+      "durationMs": 73,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker sees active ticket queue",
+      "method": "BROWSER",
+      "path": "/it",
+      "status": 200,
+      "durationMs": 1355,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/mobile-worker-it-active-queue.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker puts ticket on hold",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+      "status": 200,
+      "durationMs": 39,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "ON_HOLD",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker resumes work",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+      "status": 200,
+      "durationMs": 166,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker resolves the ticket",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94/status",
+      "status": 200,
+      "durationMs": 28,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker reopens resolved ticket",
+      "method": "GET",
+      "path": "/api/it/tickets/cmpqbykpg000dxsm66a2j6q94",
+      "status": 200,
+      "durationMs": 21,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpg000dxsm66a2j6q94",
+        "ticketNumber": "IT-0021",
+        "title": "Mobile Audit IT Workflow 1780023377987",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile IT worker page opens cleanly",
+      "method": "BROWSER",
+      "path": "/it",
+      "status": 200,
+      "durationMs": 956,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/mobile-worker-it-page.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker creates a work order",
+      "method": "POST",
+      "path": "/api/maintenance/tickets",
+      "status": 201,
+      "durationMs": 42,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker opens the work order",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy",
+      "status": 200,
+      "durationMs": 12,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker claims the work order",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/claim",
+      "status": 200,
+      "durationMs": 19,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "TODO",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker starts work",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/status",
+      "status": 200,
+      "durationMs": 27,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile maintenance worker opens active work order detail",
+      "method": "BROWSER",
+      "path": "/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy",
+      "status": 200,
+      "durationMs": 1014,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/mobile-worker-maintenance-active-detail.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker logs labor",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/labor",
+      "status": 201,
+      "durationMs": 13,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbynyt004wxsm6zupuzch5"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker logs material cost",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/costs",
+      "status": 201,
+      "durationMs": 12,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbynz60050xsm6dpoxkbbe"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker adds cost estimate and photo",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy",
+      "status": 200,
+      "durationMs": 14,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker submits work for QA",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/status",
+      "status": 200,
+      "durationMs": 14,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "QA",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker closes the work order",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/status",
+      "status": 200,
+      "durationMs": 19,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker reopens closed work order",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy",
+      "status": 200,
+      "durationMs": 22,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbyn2m0049xsm6xjtp5evy",
+        "ticketNumber": "MT-0010",
+        "title": "Mobile Audit Maintenance Workflow 1780023381061",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker sees labor log",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/labor",
+      "status": 200,
+      "durationMs": 9,
+      "passed": true,
+      "summary": {},
+      "error": null
+    },
+    {
+      "label": "Mobile Maintenance worker sees cost summary",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbyn2m0049xsm6xjtp5evy/costs?summary=true",
+      "status": 200,
+      "durationMs": 5,
+      "passed": true,
+      "summary": {},
+      "error": null
+    },
+    {
+      "label": "Mobile maintenance worker page opens cleanly",
+      "method": "BROWSER",
+      "path": "/maintenance",
+      "status": 200,
+      "durationMs": 936,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/mobile-worker-maintenance-page.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    }
+  ]
+}

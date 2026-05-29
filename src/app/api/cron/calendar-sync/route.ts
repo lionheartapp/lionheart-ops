@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and syncs integration credentials across organizations.
 import { rawPrisma } from '@/lib/db'
 import { importEventsFromGoogleCalendar } from '@/lib/services/integrations/googleCalendarService'
 import { importEventsFromMicrosoftCalendar } from '@/lib/services/integrations/microsoftCalendarService'

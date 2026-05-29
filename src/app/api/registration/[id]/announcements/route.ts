@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public registration portal route treats registration id as the credential and returns non-medical announcement data only.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { getAnnouncementsForRegistration } from '@/lib/services/eventAnnouncementService'

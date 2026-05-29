@@ -10,12 +10,12 @@ function invalidateApprovalConfigCache(): void {
   invalidateOrgCache(getOrgContextId(), 'approval-config')
 }
 
-export async function getApprovalConfigs(campusId?: string) {
+export async function getApprovalConfigs(schoolId?: string) {
   const orgId = getOrgContextId()
-  const bucket = `approval-config:list:campus=${campusId ?? 'all'}`
+  const bucket = `approval-config:list:school=${schoolId ?? 'all'}`
   return cacheOrgWide(orgId, bucket, () =>
     db.approvalChannelConfig.findMany({
-      where: { ...(campusId ? { campusId } : {}) },
+      where: { ...(schoolId ? { schoolId } : {}) },
       orderBy: { channelType: 'asc' },
     })
   )
@@ -27,31 +27,59 @@ export async function upsertApprovalConfig(data: {
   assignedTeamId?: string | null
   escalationHours?: number
   autoApproveIfNoResource?: boolean
-  campusId?: string | null
+  schoolId?: string | null
   organizationId: string
 }) {
+  const schoolId = data.schoolId || null
+  const configData = {
+    mode: data.mode,
+    assignedTeamId: data.assignedTeamId || null,
+    escalationHours: data.escalationHours ?? 72,
+    autoApproveIfNoResource: data.autoApproveIfNoResource ?? true,
+  }
+
+  if (!schoolId) {
+    const existing = await db.approvalChannelConfig.findFirst({
+      where: {
+        organizationId: data.organizationId,
+        schoolId: null,
+        channelType: data.channelType,
+      },
+    })
+
+    const result = existing
+      ? await db.approvalChannelConfig.update({
+          where: { id: existing.id },
+          data: configData,
+        })
+      : await db.approvalChannelConfig.create({
+          data: {
+            channelType: data.channelType,
+            organizationId: data.organizationId,
+            schoolId: null,
+            ...configData,
+          },
+        })
+
+    invalidateApprovalConfigCache()
+    return result
+  }
+
   const result = await db.approvalChannelConfig.upsert({
     where: {
-      organizationId_campusId_channelType: {
+      organizationId_schoolId_channelType: {
         organizationId: data.organizationId,
-        campusId: data.campusId || null,
+        schoolId,
         channelType: data.channelType,
       },
     },
     create: {
       channelType: data.channelType,
-      mode: data.mode,
-      assignedTeamId: data.assignedTeamId || null,
-      escalationHours: data.escalationHours ?? 72,
-      autoApproveIfNoResource: data.autoApproveIfNoResource ?? true,
-      campusId: data.campusId || null,
+      schoolId,
+      organizationId: data.organizationId,
+      ...configData,
     },
-    update: {
-      mode: data.mode,
-      assignedTeamId: data.assignedTeamId || null,
-      escalationHours: data.escalationHours ?? 72,
-      autoApproveIfNoResource: data.autoApproveIfNoResource ?? true,
-    },
+    update: configData,
   })
   invalidateApprovalConfigCache()
   return result
@@ -65,12 +93,17 @@ export async function bulkUpsertApprovalConfigs(
     assignedTeamId?: string | null
     escalationHours?: number
     autoApproveIfNoResource?: boolean
+    schoolId?: string | null
     campusId?: string | null
   }>
 ) {
   const results = []
   for (const config of configs) {
-    const result = await upsertApprovalConfig({ ...config, organizationId })
+    const result = await upsertApprovalConfig({
+      ...config,
+      schoolId: config.schoolId ?? config.campusId ?? null,
+      organizationId,
+    })
     results.push(result)
   }
   return results

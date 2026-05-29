@@ -6,6 +6,7 @@ import { listItems, createItem, createAVEquipment, CreateItemSchema, CreateAVEqu
 import { embedInventoryItem } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
 import { prisma } from '@/lib/db'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
 export const GET = withAuth(async ({ req, orgId, searchParams }) => {
   // TODO: replace with proper paginated list UI. For now, allow up to 500 items
@@ -23,10 +24,19 @@ export const GET = withAuth(async ({ req, orgId, searchParams }) => {
   if (categories && categories.length > 0) where.category = { in: categories }
   else if (category) where.category = category
 
-  const [total, items] = await Promise.all([
-    prisma.inventoryItem.count({ where }),
-    listItems(orgId, { search, category, categories, skip, take: limit }),
-  ])
+  const cacheKey = `inventory:list:${search ?? ''}:${category ?? ''}:${categories?.join('|') ?? ''}:${page}:${limit}`
+  const { total, items } = await cacheOrgWide(
+    orgId,
+    cacheKey,
+    async () => {
+      const [total, items] = await Promise.all([
+        prisma.inventoryItem.count({ where }),
+        listItems(orgId, { search, category, categories, skip, take: limit }),
+      ])
+      return { total, items }
+    },
+    { ttlMs: 5000 }
+  )
 
   return NextResponse.json(ok(items, paginationMeta(total, { page, limit, skip })))
 }, { permission: PERMISSIONS.INVENTORY_READ })

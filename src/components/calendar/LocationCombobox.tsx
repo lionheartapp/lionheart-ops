@@ -66,9 +66,10 @@ export function LocationCombobox({
   }
 
   const showDropdown = open && query.length > 0
+  const listboxId = 'event-location-options'
 
   return (
-    <div ref={containerRef} className="relative" role="combobox" aria-expanded={open} aria-haspopup="listbox">
+    <div ref={containerRef} className="relative" role="combobox" aria-expanded={open} aria-controls={listboxId} aria-haspopup="listbox">
       <Input
         ref={inputRef}
         type="text"
@@ -85,7 +86,7 @@ export function LocationCombobox({
       </label>
 
       {open && (locations.length > 0 || query.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-slate-200 z-50 py-1" role="listbox">
+        <div id={listboxId} className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-lg border border-slate-200 z-50 py-1" role="listbox">
           {/* Campus locations section */}
           {filtered.length > 0 && (
             <>

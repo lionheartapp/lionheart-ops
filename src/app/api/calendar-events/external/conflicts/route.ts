@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- External conflict checks are per-user integration records; route filters by orgId and ctx.userId.
 import { rawPrisma } from '@/lib/db'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
@@ -6,6 +7,8 @@ import { ok, fail } from '@/lib/api-response'
 import { cachePerUser } from '@/lib/cache/route-cache'
 
 /**
+ * @authOnly Checks conflicts only against external calendar events connected to the signed-in user.
+ *
  * GET /api/calendar-events/external/conflicts?startsAt=&endsAt=
  *
  * Returns external calendar events belonging to the current user that overlap

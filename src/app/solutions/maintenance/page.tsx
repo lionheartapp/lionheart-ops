@@ -14,19 +14,9 @@ export default function MaintenanceSolutionPage() {
       title="School maintenance management software with a real memory."
       description="Lionheart helps facilities teams intake work orders, assign owners, track asset history, schedule preventive maintenance, and keep offices updated without long email chains."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=1000&q=82',
-        alt: 'Maintenance and facilities work context.',
-        accent: '#0f9f6e',
-        metric: '4',
-        metricLabel: 'campus work orders visible today',
-        productTitle: 'Gym AC unit',
-        productSubtitle: 'Facilities queue',
-        chips: ['Priority visible', 'Asset history', 'Room impact'],
-        rows: [
-          { label: 'Priority', value: 'Urgent', tone: 'red' },
-          { label: 'Owner', value: 'Facilities', tone: 'dark' },
-          { label: 'Status', value: 'In progress', tone: 'amber' },
-        ],
+        src: '/marketing/generated/solution-maintenance.jpg',
+        alt: 'Lionheart Academy maintenance hero image with product cards for a gym AC work order, priority, owner, status, and daily work orders.',
+        presentation: 'campaign',
       }}
       sections={[
         {

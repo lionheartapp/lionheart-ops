@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { motion, MotionConfig } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -13,21 +14,42 @@ import { usePermissions } from '@/lib/hooks/usePermissions'
 import { queryOptions as sharedQueryOptions } from '@/lib/queries'
 import { Dribbble, Users, CalendarDays, ClipboardList, Trophy } from 'lucide-react'
 import AthleticsTableSkeleton from '@/components/athletics/AthleticsTableSkeleton'
-import SportsSection from '@/components/athletics/SportsSection'
-import TeamsSection from '@/components/athletics/TeamsSection'
-import ScheduleSection from '@/components/athletics/ScheduleSection'
-import TournamentsSection from '@/components/athletics/TournamentsSection'
-import RosterSection from '@/components/athletics/RosterSection'
-import StatsSection from '@/components/athletics/StatsSection'
-import AthleticsOnboarding from '@/components/athletics/AthleticsOnboarding'
 import AthleticsAddMenu from '@/components/athletics/AthleticsAddMenu'
-import AthleticsMegaImport from '@/components/athletics/AthleticsMegaImport'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
-import AthleticsDashboard from '@/components/athletics/AthleticsDashboard'
-import LeaguesSection from '@/components/conferences/LeaguesSection'
 import PagePadding from '@/components/PagePadding'
 import type { AthleticsTab } from '@/components/Sidebar'
+
+const AthleticsDashboard = dynamic(() => import('@/components/athletics/AthleticsDashboard'), {
+  loading: () => <AthleticsTableSkeleton columns={4} rows={4} />,
+})
+const SportsSection = dynamic(() => import('@/components/athletics/SportsSection'), {
+  loading: () => <AthleticsTableSkeleton columns={4} rows={5} />,
+})
+const TeamsSection = dynamic(() => import('@/components/athletics/TeamsSection'), {
+  loading: () => <AthleticsTableSkeleton columns={5} rows={5} />,
+})
+const ScheduleSection = dynamic(() => import('@/components/athletics/ScheduleSection'), {
+  loading: () => <AthleticsTableSkeleton columns={5} rows={5} />,
+})
+const TournamentsSection = dynamic(() => import('@/components/athletics/TournamentsSection'), {
+  loading: () => <AthleticsTableSkeleton columns={5} rows={5} />,
+})
+const RosterSection = dynamic(() => import('@/components/athletics/RosterSection'), {
+  loading: () => <AthleticsTableSkeleton columns={5} rows={5} />,
+})
+const StatsSection = dynamic(() => import('@/components/athletics/StatsSection'), {
+  loading: () => <AthleticsTableSkeleton columns={5} rows={5} />,
+})
+const AthleticsOnboarding = dynamic(() => import('@/components/athletics/AthleticsOnboarding'), {
+  loading: () => <AthleticsTableSkeleton columns={4} rows={4} />,
+})
+const AthleticsMegaImport = dynamic(() => import('@/components/athletics/AthleticsMegaImport'), {
+  loading: () => null,
+})
+const LeaguesSection = dynamic(() => import('@/components/conferences/LeaguesSection'), {
+  loading: () => <AthleticsTableSkeleton columns={4} rows={5} />,
+})
 
 type ManageSection = 'sports' | 'teams' | 'roster'
 type ScheduleSection = 'games' | 'tournaments'
@@ -319,7 +341,9 @@ export default function AthleticsPage() {
                 <>
                   {/* Overview */}
                   <div role="tabpanel" id="tabpanel-overview" aria-labelledby="tab-overview" className={activeTab === 'overview' ? '' : 'hidden'} aria-hidden={activeTab !== 'overview'}>
-                    <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={handleTabChange} />
+                    {activeTab === 'overview' && (
+                      <AthleticsDashboard activeCampusId={activeCampusId} canWrite={canWrite} onTabChange={handleTabChange} />
+                    )}
                   </div>
 
                   {/* Manage — Sports / Teams / Roster */}
@@ -350,15 +374,15 @@ export default function AthleticsPage() {
                         </button>
                       ))}
                     </div>
-                    <div className={manageSection === 'sports' ? '' : 'hidden'}>
+                    {activeTab === 'manage' && manageSection === 'sports' && (
                       <SportsSection canWrite={canWrite} />
-                    </div>
-                    <div className={manageSection === 'teams' ? '' : 'hidden'}>
+                    )}
+                    {activeTab === 'manage' && manageSection === 'teams' && (
                       <TeamsSection activeCampusId={activeCampusId} canWrite={canWrite} />
-                    </div>
-                    <div className={manageSection === 'roster' ? '' : 'hidden'}>
+                    )}
+                    {activeTab === 'manage' && manageSection === 'roster' && (
                       <RosterSection activeCampusId={activeCampusId} canWrite={canWrite} canManageUsers={canManageUsers} />
-                    </div>
+                    )}
                   </div>
 
                   {/* Schedule — Games & Practices / Tournaments */}
@@ -389,22 +413,24 @@ export default function AthleticsPage() {
                         </button>
                       ))}
                     </div>
-                    <div className={scheduleSection === 'games' ? '' : 'hidden'}>
+                    {activeTab === 'schedule' && scheduleSection === 'games' && (
                       <ScheduleSection activeCampusId={activeCampusId} canWrite={canWrite} />
-                    </div>
-                    <div className={scheduleSection === 'tournaments' ? '' : 'hidden'}>
+                    )}
+                    {activeTab === 'schedule' && scheduleSection === 'tournaments' && (
                       <TournamentsSection activeCampusId={activeCampusId} canWrite={canWrite} />
-                    </div>
+                    )}
                   </div>
 
                   {/* Stats */}
                   <div role="tabpanel" id="tabpanel-stats" aria-labelledby="tab-stats" className={activeTab === 'stats' && canShowStats ? '' : 'hidden'} aria-hidden={activeTab !== 'stats'}>
-                    <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                    {activeTab === 'stats' && canShowStats && (
+                      <StatsSection activeCampusId={activeCampusId} canWrite={canWrite} />
+                    )}
                   </div>
 
                   {/* Leagues */}
                   <div role="tabpanel" id="tabpanel-leagues" aria-labelledby="tab-leagues" className={activeTab === 'leagues' ? '' : 'hidden'} aria-hidden={activeTab !== 'leagues'}>
-                    <LeaguesSection />
+                    {activeTab === 'leagues' && <LeaguesSection />}
                   </div>
                 </>
               )}
@@ -415,7 +441,9 @@ export default function AthleticsPage() {
       </ModuleGate>
 
       {/* Mega import drawer */}
-      <AthleticsMegaImport isOpen={megaImportOpen} onClose={() => setMegaImportOpen(false)} />
+      {megaImportOpen && (
+        <AthleticsMegaImport isOpen={megaImportOpen} onClose={() => setMegaImportOpen(false)} />
+      )}
     </>
     </PagePadding>
   )

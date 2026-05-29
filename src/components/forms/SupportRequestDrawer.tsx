@@ -18,6 +18,7 @@ interface SupportRequestDrawerProps {
   onClose: () => void
   /** Which ticket module to submit to */
   module: TicketModule
+  onSubmitted?: (result: { id: string; ticketNumber?: string }) => void
 }
 
 const MODULE_CONFIG: Record<TicketModule, {
@@ -67,6 +68,7 @@ export default function SupportRequestDrawer({
   isOpen,
   onClose,
   module,
+  onSubmitted,
 }: SupportRequestDrawerProps) {
   const config = MODULE_CONFIG[module]
   const { toast } = useToast()
@@ -174,13 +176,14 @@ export default function SupportRequestDrawer({
       })
 
       setSubmitted({ ticketNumber: result.ticketNumber })
+      onSubmitted?.(result)
       toast(config.successMessage, 'success')
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to submit request', 'error')
     } finally {
       setIsSubmitting(false)
     }
-  }, [config, systemForm, toast])
+  }, [config, onSubmitted, systemForm, toast])
 
   // Success state
   if (submitted) {

@@ -9,6 +9,7 @@
  */
 
 import { NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public status endpoint only runs dependency health checks, including a database ping.
 import { rawPrisma } from '@/lib/db'
 import { ok } from '@/lib/api-response'
 

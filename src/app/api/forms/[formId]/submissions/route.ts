@@ -18,6 +18,7 @@ import { processFormActions } from '@/lib/services/formActionProcessor'
 import { prisma } from '@/lib/db'
 import type { SubmissionStatus, FieldSensitivity } from '@prisma/client'
 
+// @authOnly Signed-in org users may submit internal forms; submission review requires forms-manage.
 export const GET = withAuth<unknown, { formId: string }>(
   async ({ ctx, params, searchParams }) => {
     const { formId } = params
@@ -48,7 +49,8 @@ export const GET = withAuth<unknown, { formId: string }>(
     }
 
     return NextResponse.json(ok({ submissions, counts }))
-  }
+  },
+  { permission: PERMISSIONS.FORMS_MANAGE }
 )
 
 /** Cache of FERPA field keys per form to avoid repeated queries */

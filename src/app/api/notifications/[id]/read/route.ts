@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import * as notificationService from '@/lib/services/notificationService'
 
+// @authOnly Marks only a notification owned by the signed-in user.
 export const PUT = withAuth(async ({ ctx, params }) => {
   const updated = await notificationService.markAsRead(params.id, ctx.userId)
   if (!updated) {

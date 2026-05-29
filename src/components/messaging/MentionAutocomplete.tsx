@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useFilteredMembers, type OrgMember } from '@/lib/hooks/useOrgMembers'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MentionAutocompleteProps {
   query: string
@@ -147,7 +148,7 @@ export default function MentionAutocomplete({
             }}
           >
             {member.avatar ? (
-              <img
+              <OptimizedImage
                 src={member.avatar}
                 alt=""
                 className="w-6 h-6 rounded-full object-cover"

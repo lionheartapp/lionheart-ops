@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { createClient } from '@supabase/supabase-js'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const ALLOWED_BUCKETS = new Set([
   'maintenance-photos',
@@ -36,7 +37,10 @@ function getSupabaseClient() {
   return createClient(url, key)
 }
 
-export const POST = withAuth(async ({ orgId, body }) => {
+/**
+ * @authOnly Generates signed URLs only for org-prefixed paths; sensitive buckets require matching permissions.
+ */
+export const POST = withAuth(async ({ orgId, body, permissions }) => {
   const { bucket, path } = body
 
   // Validate bucket is on the allowlist
@@ -47,6 +51,21 @@ export const POST = withAuth(async ({ orgId, body }) => {
   // Verify the path belongs to this org (paths are prefixed with orgId)
   if (!path.startsWith(`${orgId}/`)) {
     return NextResponse.json(fail('FORBIDDEN', 'Access denied'), { status: 403 })
+  }
+
+  const allowed =
+    bucket === 'logos' ||
+    (bucket === 'messaging-attachments' && (await permissions.can(PERMISSIONS.MESSAGING_ACCESS))) ||
+    (bucket === 'compliance-docs' && (await permissions.can(PERMISSIONS.SETTINGS_UPDATE))) ||
+    (bucket === 'event-receipts' && (await permissions.can(PERMISSIONS.EVENTS_READ))) ||
+    (bucket.startsWith('maintenance-') && (await permissions.canAny([
+      PERMISSIONS.MAINTENANCE_READ_ALL,
+      PERMISSIONS.MAINTENANCE_CLAIM,
+      PERMISSIONS.MAINTENANCE_ASSIGN,
+    ])))
+
+  if (!allowed) {
+    return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to access this file'), { status: 403 })
   }
 
   const supabase = getSupabaseClient()

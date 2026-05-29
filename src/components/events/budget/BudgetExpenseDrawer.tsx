@@ -20,6 +20,7 @@ import { useToast } from '@/components/Toast'
 import { useGetReceiptUploadUrl } from '@/lib/hooks/useBudget'
 import type { BudgetCategoryRow, BudgetLineItemRow, BudgetLineItemInput } from '@/lib/types/budget'
 import { logger } from '@/lib/logger'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -386,7 +387,7 @@ export function BudgetExpenseDrawer({
           {receiptPreview ? (
             <div className="relative inline-block">
               {receiptPreview.startsWith('data:image') || receiptPreview.startsWith('http') ? (
-                <img
+                <OptimizedImage
                   src={receiptPreview}
                   alt="Receipt preview"
                   className="w-24 h-24 object-cover rounded-xl border border-slate-200"

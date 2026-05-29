@@ -40,7 +40,14 @@ export async function getUserContext(req: NextRequest): Promise<RequestContext> 
   if (!token) {
     throw new Error('Missing or invalid authorization header')
   }
-  const claims = await verifyAuthToken(token)
+  const headerUserId = req.headers.get('x-auth-user-id')
+  const headerOrgId = req.headers.get('x-org-id')
+  const headerEmail = req.headers.get('x-auth-email')
+  // Middleware verifies the JWT once and overwrites these internal headers.
+  // If a route is ever called without those headers, fall back to verifying.
+  const claims = headerUserId && headerOrgId && headerEmail
+    ? { userId: headerUserId, organizationId: headerOrgId, email: headerEmail }
+    : await verifyAuthToken(token)
 
   if (!claims) {
     throw new Error('Invalid or expired token')

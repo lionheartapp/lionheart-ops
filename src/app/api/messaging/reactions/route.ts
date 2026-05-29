@@ -9,9 +9,10 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 import { getReactionsForMessages } from '@/lib/services/reactionService'
 
-export const GET = withAuth(async ({ orgId, searchParams }) => {
+export const GET = withAuth(async ({ ctx, orgId, searchParams }) => {
   const blocked = await assertMessagingEnabled(orgId)
   if (blocked) return blocked
 
@@ -22,6 +23,6 @@ export const GET = withAuth(async ({ orgId, searchParams }) => {
 
   // Cap at 100 to prevent abuse
   const capped = messageIds.slice(0, 100)
-  const reactions = await getReactionsForMessages(capped)
+  const reactions = await getReactionsForMessages(capped, ctx.userId)
   return NextResponse.json(ok(reactions))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

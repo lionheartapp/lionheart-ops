@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- OAuth callback is unauthenticated; signed state identifies the org before building the tenant redirect URL.
 import { rawPrisma } from '@/lib/db'
 import * as planningCenterService from '@/lib/services/integrations/planningCenterService'
 

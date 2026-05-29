@@ -185,4 +185,4 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
     { id: 'maintenance', label: 'Maintenance Tickets', description: 'Reference a maintenance ticket' },
     { id: 'event', label: 'Events', description: 'Reference an event' },
   ]))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

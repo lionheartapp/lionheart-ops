@@ -3,6 +3,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 /**
  * PATCH /api/messaging/channels/[id]/read
@@ -32,4 +33,4 @@ export const PATCH = withAuth<unknown, { id: string }>(async ({ ctx, orgId, para
   })
 
   return NextResponse.json(ok({ success: true }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public magic-link validation verifies the hashed token before returning scoped link metadata.
 import { rawPrisma } from '@/lib/db'
 import crypto from 'crypto'
 import { logger } from '@/lib/logger'

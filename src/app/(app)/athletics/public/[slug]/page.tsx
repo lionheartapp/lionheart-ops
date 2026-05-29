@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Trophy, CalendarDays, MapPin, Clock, Link2 } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface Sport {
   id: string
@@ -165,7 +166,7 @@ export default function PublicAthleticsPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
           <div className="flex items-center gap-4">
             {data.organization.logoUrl && (
-              <img
+              <OptimizedImage
                 src={data.organization.logoUrl}
                 alt={data.organization.name}
                 className="w-12 h-12 rounded-xl object-cover"

@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => {
     logError: vi.fn(),
     logChild: vi.fn(),
     captureException: vi.fn(),
+    assertCan: vi.fn(),
     generateEventDescription: vi.fn(),
     parseEventFromText: vi.fn(),
   }
@@ -51,6 +52,10 @@ vi.mock('@/lib/request-context', () => ({
 vi.mock('@/lib/org-context', () => ({
   getOrgIdFromRequest: vi.fn().mockReturnValue('org-test-1'),
   runWithOrgContext: vi.fn().mockImplementation((_orgId: string, fn: () => unknown) => fn()),
+}))
+
+vi.mock('@/lib/auth/permissions', () => ({
+  assertCan: mocks.assertCan,
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -86,6 +91,7 @@ describe('GET /api/ai/generate-description observability', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     if (mocks.prisma) mockReset(mocks.prisma)
+    mocks.assertCan.mockResolvedValue(undefined)
   })
 
   it('Test 1: When geminiService.generateEventDescription throws, returns 500 AND Sentry + log.error called', async () => {
@@ -138,6 +144,7 @@ describe('POST /api/ai/parse-event observability', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     if (mocks.prisma) mockReset(mocks.prisma)
+    mocks.assertCan.mockResolvedValue(undefined)
   })
 
   it('Test 2: When geminiService.parseEventFromText throws, returns 500 AND Sentry + log.error called', async () => {

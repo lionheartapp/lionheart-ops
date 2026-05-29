@@ -11,11 +11,6 @@ import { queryKeys } from '@/lib/queries'
 import { Input } from '@/components/ui/Input'
 import type { FormFieldType, FieldProtection, FieldSensitivity } from '@prisma/client'
 import { slugifyFieldKey } from '@/lib/forms/schemas'
-import FieldPalette from './FieldPalette'
-import PageList from './PageList'
-import FormCanvas from './FormCanvas'
-import FieldProperties from './FieldProperties'
-import FormStylePanel from './FormStylePanel'
 
 const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), {
   ssr: false,
@@ -26,6 +21,42 @@ const TicketsBuilder = dynamic(() => import('./TicketsBuilder'), {
 const ResponsesTab = dynamic(() => import('./ResponsesTab'), {
   ssr: false,
 })
+const FieldPalette = dynamic(() => import('./FieldPalette'), {
+  loading: () => <PanelLoading />,
+})
+const PageList = dynamic(() => import('./PageList'), {
+  loading: () => <PanelLoading />,
+})
+const FormCanvas = dynamic(() => import('./FormCanvas'), {
+  loading: () => <CanvasLoading />,
+})
+const FieldProperties = dynamic(() => import('./FieldProperties'), {
+  loading: () => <PanelLoading />,
+})
+const FormStylePanel = dynamic(() => import('./FormStylePanel'), {
+  loading: () => <PanelLoading />,
+})
+
+function PanelLoading() {
+  return (
+    <div className="space-y-3 p-4">
+      {[0, 1, 2, 3].map((item) => (
+        <div key={item} className="h-9 animate-pulse rounded-lg bg-slate-100" />
+      ))}
+    </div>
+  )
+}
+
+function CanvasLoading() {
+  return (
+    <div className="mx-auto max-w-3xl space-y-4 p-6">
+      <div className="h-8 w-48 animate-pulse rounded bg-slate-200" />
+      {[0, 1, 2].map((item) => (
+        <div key={item} className="h-24 animate-pulse rounded-xl border border-slate-200 bg-white" />
+      ))}
+    </div>
+  )
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -316,7 +347,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
     } catch {
       // TODO: toast error
     }
-  }, [activePageId, activePage, formId])
+  }, [activePageId, activePage, formId, pages])
 
   const removeField = useCallback(async (fieldId: string) => {
     const field = activePage?.fields.find((f) => f.id === fieldId)

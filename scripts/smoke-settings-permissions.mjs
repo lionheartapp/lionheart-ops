@@ -1,7 +1,17 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
 
-const prisma = new PrismaClient()
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    },
+  },
+})
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
 const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
 
@@ -102,11 +112,10 @@ async function createSmokeUser(organizationId, kind, createdPermissionIds) {
       lastName: kind,
       name: `Smoke ${kind}`,
       passwordHash,
+      emailVerified: true,
       status: 'ACTIVE',
       roleId: role.id,
-      role: kind === 'manager' ? 'ADMIN' : 'VIEWER',
       campusScope: null,
-      teamIds: [],
     },
   })
 

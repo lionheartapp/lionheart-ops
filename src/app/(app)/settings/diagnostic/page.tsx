@@ -87,7 +87,11 @@ export default function DiagnosticPage() {
         <div className="bg-white rounded-lg shadow-subtle p-6 mb-6 border border-slate-200">
           <h2 className="text-xl font-semibold mb-4 text-slate-900">LocalStorage Values</h2>
           {diagnostics ? (
-            <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+            <pre
+              tabIndex={0}
+              aria-label="Local storage diagnostic values"
+              className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+            >
               {JSON.stringify(diagnostics, null, 2)}
             </pre>
           ) : (
@@ -101,7 +105,11 @@ export default function DiagnosticPage() {
             <div className="space-y-4">
               <div>
                 <h3 className="font-medium mb-2 text-slate-900">Permissions API</h3>
-                <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                <pre
+                  tabIndex={0}
+                  aria-label="Permissions API diagnostic result"
+                  className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+                >
                   {JSON.stringify(testResults.permissions, null, 2)}
                 </pre>
               </div>
@@ -109,7 +117,11 @@ export default function DiagnosticPage() {
               {testResults.roles && (
                 <div>
                   <h3 className="font-medium mb-2 text-slate-900">Roles API</h3>
-                  <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                  <pre
+                    tabIndex={0}
+                    aria-label="Roles API diagnostic result"
+                    className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+                  >
                     {JSON.stringify(testResults.roles, null, 2)}
                   </pre>
                 </div>
@@ -118,7 +130,11 @@ export default function DiagnosticPage() {
               {testResults.teams && (
                 <div>
                   <h3 className="font-medium mb-2 text-slate-900">Teams API</h3>
-                  <pre className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono">
+                  <pre
+                    tabIndex={0}
+                    aria-label="Teams API diagnostic result"
+                    className="bg-slate-900 text-green-400 p-4 rounded overflow-x-auto text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+                  >
                     {JSON.stringify(testResults.teams, null, 2)}
                   </pre>
                 </div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Platform stats intentionally aggregate across tenant organizations after platform permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'

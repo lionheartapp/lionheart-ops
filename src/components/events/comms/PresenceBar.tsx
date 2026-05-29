@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, Eye, EyeOff, ChevronDown } from 'lucide-react'
 import { usePresence } from '@/lib/hooks/usePresence'
 import type { ActiveUser } from '@/lib/hooks/usePresence'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   SURFACE,
   BORDER,
@@ -66,7 +67,7 @@ function Avatar({ user, isCurrent, size = 32, onClick, isFollowed = false }: Ava
         }}
       >
         {user.avatarUrl ? (
-          <img
+          <OptimizedImage
             src={user.avatarUrl}
             alt={user.name}
             className="w-full h-full object-cover"

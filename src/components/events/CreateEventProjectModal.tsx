@@ -325,7 +325,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
 
   // Fetch the system form definition for the current event type
   const systemKey = mode === 'multiday' ? 'multiday_event' : 'single_event'
-  const { data: systemForm } = useSystemForm(systemKey)
+  const { data: systemForm } = useSystemForm(isOpen ? systemKey : null)
 
   // Dynamic fields from the form template (DEFAULT + CUSTOM, excludes LOCKED)
   const step3DynamicFields = useMemo(
@@ -608,10 +608,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
           <div className="space-y-5 animate-in fade-in duration-200">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="event-project-title" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Title <span className="text-red-500">*</span>
               </label>
               <Input
+                id="event-project-title"
                 value={form.title}
                 onChange={(e) => update('title', e.target.value)}
                 placeholder={config.placeholder}
@@ -623,10 +624,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="event-project-description" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Description
               </label>
               <Textarea
+                id="event-project-description"
                 value={form.description}
                 onChange={(e) => update('description', e.target.value)}
                 rows={3}

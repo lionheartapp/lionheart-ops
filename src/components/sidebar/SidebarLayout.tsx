@@ -69,7 +69,7 @@ export default function SidebarLayout({
           aria-hidden={!secondaryOpen}
         >
           <div className="w-60 h-full">
-            {secondaryContent}
+            {secondaryOpen ? secondaryContent : null}
           </div>
         </aside>
       </div>

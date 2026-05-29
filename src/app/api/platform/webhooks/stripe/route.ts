@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Platform Stripe webhook is public but signature-verified and updates billing records across organizations.
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { recordPayment } from '@/lib/services/paymentService'

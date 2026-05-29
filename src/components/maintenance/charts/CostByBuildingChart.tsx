@@ -27,14 +27,6 @@ function formatCurrency(value: number): string {
 }
 
 export default function CostByBuildingChart({ data }: CostByBuildingChartProps) {
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-        No cost data for this period
-      </div>
-    )
-  }
-
   // Get top 5 buildings by total cost across all months
   const topBuildings = useMemo(() => {
     const totals: Map<string, number> = new Map()
@@ -102,6 +94,14 @@ export default function CostByBuildingChart({ data }: CostByBuildingChartProps) 
             </div>
           )
         })}
+      </div>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+        No cost data for this period
       </div>
     )
   }

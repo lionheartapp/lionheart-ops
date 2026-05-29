@@ -18,7 +18,7 @@ export const HAIRLINE = 'rgba(17, 15, 10, 0.05)'
 
 export const TEXT_PRIMARY = '#1a1915'
 export const TEXT_SECONDARY = '#6a6864'
-export const TEXT_MUTED = '#a8a49d'
+export const TEXT_MUTED = '#6a6864'
 
 // ─── Warm chip / hover states ────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ export const BUTTON_SHADOW =
 // ─── Status accent colors (warm, desaturated) ───────────────────────────────
 
 export const STATUS_ACCENT: Record<string, string> = {
-  DRAFT: '#a8a49d',
+  DRAFT: '#6a6864',
   PENDING_APPROVAL: '#c28840',
   CONFIRMED: '#3b7fbf',
   IN_PROGRESS: '#4d8a5c',

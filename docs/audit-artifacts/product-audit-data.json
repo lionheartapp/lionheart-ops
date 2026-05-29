@@ -1,0 +1,331 @@
+{
+  "createdAt": "2026-05-26T18:01:12.872Z",
+  "baseUrl": "http://127.0.0.1:3006",
+  "desktopResults": [
+    {
+      "label": "Dashboard",
+      "path": "/dashboard",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 3651,
+      "title": "Dashboard | Lionheart",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-dashboard.png",
+      "error": null
+    },
+    {
+      "label": "Calendar",
+      "path": "/calendar",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1814,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-calendar.png",
+      "error": null
+    },
+    {
+      "label": "Messaging",
+      "path": "/messaging",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1702,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-messaging.png",
+      "error": null
+    },
+    {
+      "label": "Tickets",
+      "path": "/tickets",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1633,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-tickets.png",
+      "error": null
+    },
+    {
+      "label": "IT",
+      "path": "/it",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2248,
+      "title": "IT Help Desk | Lionheart",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-it.png",
+      "error": null
+    },
+    {
+      "label": "Maintenance",
+      "path": "/maintenance",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2232,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-maintenance.png",
+      "error": null
+    },
+    {
+      "label": "Maintenance assets",
+      "path": "/maintenance/assets",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1759,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-maintenance-assets.png",
+      "error": null
+    },
+    {
+      "label": "Maintenance preventive maintenance",
+      "path": "/maintenance/pm-calendar",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2172,
+      "title": "Maintenance | Lionheart",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-maintenance-preventive-maintenance.png",
+      "error": null
+    },
+    {
+      "label": "Settings",
+      "path": "/settings",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2593,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-settings.png",
+      "error": null
+    },
+    {
+      "label": "Inventory",
+      "path": "/inventory",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1634,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-inventory.png",
+      "error": null
+    },
+    {
+      "label": "Events",
+      "path": "/events",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2041,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-events.png",
+      "error": null
+    },
+    {
+      "label": "Draft events",
+      "path": "/draft-events",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 2681,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-draft-events.png",
+      "error": null
+    },
+    {
+      "label": "Approvals",
+      "path": "/approvals",
+      "viewport": "desktop",
+      "status": 200,
+      "loadMs": 1818,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/desktop-approvals.png",
+      "error": null
+    }
+  ],
+  "mobileResults": [
+    {
+      "label": "Mobile dashboard",
+      "path": "/dashboard",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 3632,
+      "title": "Dashboard | Lionheart",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-dashboard.png",
+      "error": null
+    },
+    {
+      "label": "Mobile calendar",
+      "path": "/calendar",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 2501,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-calendar.png",
+      "error": null
+    },
+    {
+      "label": "Mobile messaging",
+      "path": "/messaging",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 2112,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-messaging.png",
+      "error": null
+    },
+    {
+      "label": "Mobile tickets",
+      "path": "/tickets",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 1852,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-tickets.png",
+      "error": null
+    },
+    {
+      "label": "Mobile IT",
+      "path": "/it",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 2799,
+      "title": "IT Help Desk | Lionheart",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-it.png",
+      "error": null
+    },
+    {
+      "label": "Mobile maintenance",
+      "path": "/maintenance",
+      "viewport": "mobile",
+      "status": 200,
+      "loadMs": 2829,
+      "title": "Lionheart Operations Platform",
+      "hasBadText": false,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "accessibility": {
+        "count": 0,
+        "violations": []
+      },
+      "screenshot": "audit-artifacts/screenshots/mobile-mobile-maintenance.png",
+      "error": null
+    }
+  ]
+}

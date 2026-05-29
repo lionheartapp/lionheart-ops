@@ -20,11 +20,16 @@ import {
 } from '@/lib/services/formSubmissionService'
 import type { SubmissionStatus, FieldSensitivity } from '@prisma/client'
 
+// @authOnly Submission detail allows forms managers or the submitting user; status changes require forms-manage.
 export const GET = withAuth<unknown, { formId: string; subId: string }>(
   async ({ ctx, params }) => {
     const submission = await getSubmission(params.subId)
     if (!submission) {
       return NextResponse.json(fail('NOT_FOUND', 'Submission not found'), { status: 404 })
+    }
+    const canManageForms = await can(ctx.userId, PERMISSIONS.FORMS_MANAGE)
+    if (!canManageForms && submission.submittedBy !== ctx.userId) {
+      return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to view this submission'), { status: 403 })
     }
 
     // FERPA enforcement
@@ -55,12 +60,24 @@ export const PATCH = withAuth<z.infer<typeof PatchSchema>, { formId: string; sub
   async ({ ctx, params, body }) => {
     // Update draft data
     if (body.data) {
+      const submission = await getSubmission(params.subId)
+      if (!submission) {
+        return NextResponse.json(fail('NOT_FOUND', 'Submission not found'), { status: 404 })
+      }
+      const canManageForms = await can(ctx.userId, PERMISSIONS.FORMS_MANAGE)
+      if (!canManageForms && submission.submittedBy !== ctx.userId) {
+        return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to edit this draft'), { status: 403 })
+      }
       const updated = await updateDraft(params.subId, body.data)
       return NextResponse.json(ok(updated))
     }
 
     // Transition status
     if (body.status) {
+      const canManageForms = await can(ctx.userId, PERMISSIONS.FORMS_MANAGE)
+      if (!canManageForms) {
+        return NextResponse.json(fail('FORBIDDEN', 'You do not have permission to update submission status'), { status: 403 })
+      }
       const updated = await transitionStatus(
         params.subId,
         body.status as SubmissionStatus,

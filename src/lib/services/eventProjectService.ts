@@ -268,7 +268,7 @@ export async function createEventProject(
   }
 
   // Auto-detect conflicts (fire-and-forget — results stored in metadata)
-  runConflictDetection(project.id, data.startsAt, data.endsAt, data.roomId, data.buildingId).catch(() => {})
+  runConflictDetection(project.id, data.startsAt, data.endsAt, data.roomId, data.buildingId, createdById).catch(() => {})
 
   // For events that don't need gates, auto-confirm by creating the CalendarEvent bridge
   if (!hasActiveGates) {
@@ -1050,6 +1050,7 @@ export async function resubmitForApproval(
       freshProject.endsAt,
       freshProject.roomId,
       freshProject.buildingId,
+      userId,
     ).catch(() => {})
   }
 
@@ -1168,9 +1169,13 @@ async function runConflictDetection(
   endsAt: Date | string,
   roomId?: string | null,
   buildingId?: string | null,
+  actorId?: string,
 ) {
   try {
-    const project = await db.eventProject.findUnique({ where: { id: eventProjectId }, select: { organizationId: true } })
+    const project = await db.eventProject.findUnique({
+      where: { id: eventProjectId },
+      select: { organizationId: true, createdById: true },
+    })
     if (!project) return
 
     const { detectConflicts } = await import('@/lib/services/ai/eventAIService')
@@ -1195,7 +1200,7 @@ async function runConflictDetection(
     })
 
     if (report.conflicts.length > 0) {
-      await appendActivityLog(eventProjectId, 'system', 'CONFLICTS_DETECTED', {
+      await appendActivityLog(eventProjectId, actorId ?? project.createdById, 'CONFLICTS_DETECTED', {
         count: report.conflicts.length,
         types: report.conflicts.map((c: any) => c.type),
       })

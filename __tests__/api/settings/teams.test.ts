@@ -52,6 +52,14 @@ vi.mock('@/lib/services/auditService', () => ({
   getIp: vi.fn().mockReturnValue('127.0.0.1'),
 }))
 
+vi.mock('@/lib/services/systemBotService', () => ({
+  getOrCreateBotUser: vi.fn().mockResolvedValue('bot-user-test-1'),
+}))
+
+vi.mock('@/lib/services/autoChannelService', () => ({
+  createTeamChannel: vi.fn().mockResolvedValue(undefined),
+}))
+
 // ── Import routes after mocks ───────────────────────────────────────────────
 
 import { GET, POST } from '@/app/api/settings/teams/route'

@@ -6,6 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import PasswordInput from '@/components/PasswordInput'
 import { Input } from '@/components/ui/Input'
 import { validatePassword } from '@/lib/validation/password'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams()
@@ -200,7 +201,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         {/* Lionheart logo */}
         <div className="text-center mb-8">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto mb-6" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white">Reset your password</h1>
           <p className="mt-2 text-sm text-slate-400">
             Enter a new password for your account

@@ -6,6 +6,7 @@ import { getEventColor, getEventMetadata, type CalendarEventData } from '@/lib/h
 import { getEventAriaLabel } from './a11y-helpers'
 import CampusShapeIndicator, { getShapeIndex } from './CampusShapeIndicator'
 import { AgendaViewSkeletons } from './EventSkeletons'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface AgendaViewProps {
   currentDate: Date
@@ -153,7 +154,7 @@ export default function AgendaView({ currentDate, events, onEventClick, campusSh
                               title={a.user.name || a.user.firstName || ''}
                             >
                               {a.user.avatar ? (
-                                <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
+                                <OptimizedImage src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                               ) : (
                                 <span className="text-xs font-medium text-stone-600">
                                   {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}

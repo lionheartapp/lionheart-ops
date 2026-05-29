@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { prisma, rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
 const ChecklistToggleSchema = z.object({
@@ -20,16 +20,7 @@ const ChecklistToggleSchema = z.object({
   done: z.boolean(),
 })
 
-export const PATCH = withAuth(async ({ req, params, permissions }) => {
-  // Permission: technician (claim) or head (assign)
-  const hasPermission = await permissions.canAny([
-    PERMISSIONS.MAINTENANCE_CLAIM,
-    PERMISSIONS.MAINTENANCE_ASSIGN,
-  ])
-  if (!hasPermission) {
-    return NextResponse.json(fail('FORBIDDEN', 'Insufficient permissions'), { status: 403 })
-  }
-
+export const PATCH = withAuth(async ({ req, params }) => {
   const body = await req.json()
   const parsed = ChecklistToggleSchema.safeParse(body)
   if (!parsed.success) {
@@ -72,8 +63,7 @@ export const PATCH = withAuth(async ({ req, params, permissions }) => {
   }
   updatedDone[index] = done
 
-  // Use rawPrisma for the update to bypass org-scoped extension (ticket already confirmed in org)
-  const updated = await rawPrisma.maintenanceTicket.update({
+  const updated = await prisma.maintenanceTicket.update({
     where: { id: params.id },
     data: { pmChecklistDone: updatedDone },
     select: {
@@ -89,4 +79,6 @@ export const PATCH = withAuth(async ({ req, params, permissions }) => {
       pmChecklistDone: updated.pmChecklistDone,
     })
   )
+}, {
+  permissionAny: [PERMISSIONS.MAINTENANCE_CLAIM, PERMISSIONS.MAINTENANCE_ASSIGN],
 })

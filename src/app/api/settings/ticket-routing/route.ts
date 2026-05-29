@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+// eslint-disable-next-line no-restricted-imports -- Ticket-routing settings use rawPrisma for explicit org-scoped helper lookups alongside scoped prisma writes.
 import { rawPrisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 

@@ -10,13 +10,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
 import { regenerateBackupCodes } from '@/lib/services/mfaService'
+// eslint-disable-next-line no-restricted-imports -- Backup-code regeneration reads passwordHash after getUserContext and manually scopes the user lookup to ctx.organizationId.
 import { rawPrisma } from '@/lib/db'
 import { compare } from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
   try {
     const ctx = await getUserContext(req)
-    if (!ctx?.userId) {
+    if (!ctx?.userId || !ctx?.organizationId) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
 
@@ -31,8 +32,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify password
-    const user = await rawPrisma.user.findUnique({
-      where: { id: ctx.userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: ctx.userId,
+        organizationId: ctx.organizationId,
+        deletedAt: null,
+      },
       select: { passwordHash: true, mfaEnabled: true },
     })
 

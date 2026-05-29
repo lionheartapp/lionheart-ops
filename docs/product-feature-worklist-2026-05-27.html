@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lionheart Feature Worklist - May 27, 2026</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #f6f7fb; line-height: 1.5; }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 20px 56px; }
+    section { background: #fff; border: 1px solid #d9dee8; border-radius: 10px; padding: 22px; margin: 0 0 18px; }
+    h1 { font-size: 30px; margin: 0 0 8px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    h3 { font-size: 16px; margin: 18px 0 8px; }
+    p { margin: 0 0 12px; }
+    ul { margin: 0; padding-left: 22px; }
+    li { margin: 7px 0; }
+    code { background: #eef1f6; padding: 2px 5px; border-radius: 5px; }
+    .good { color: #17633a; font-weight: 700; }
+    .watch { color: #8a4b00; font-weight: 700; }
+    .bad { color: #9b1c1c; font-weight: 700; }
+    .small { color: #526078; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Lionheart Feature Worklist</h1>
+      <p class="small">May 27, 2026. Plain-English follow-up to the product audit and role/team checks.</p>
+      <p><span class="good">Current state:</span> the main tested paths are in much better shape. The biggest remaining work is not one broken screen. It is finishing coverage on unlabelled route permissions, real-record pages, and longer speed testing.</p>
+    </section>
+
+    <section>
+      <h2>What Looks Good Right Now</h2>
+      <ul>
+        <li>Login, signup, dashboard, tickets, events, forms, settings, mobile navigation, role flows, campus selector, link crawling, and link checking passed the broad browser run.</li>
+        <li>IT and maintenance workers can complete realistic job flows on desktop and phone-sized screens.</li>
+        <li>Super Admin, Admin, IT Worker, Maintenance Worker, A/V Worker, Teacher/Staff Member, and Viewer were checked for the right navigation and route access.</li>
+        <li>Automated accessibility checks passed across authenticated and public pages.</li>
+        <li>Visual checks passed across the first 60 pages after reviewing and saving healthy baselines.</li>
+        <li>Random-click testing passed across the first 24 crawlable pages.</li>
+        <li>The corrected production-mode speed benchmark passed all 720 checks with no failed requests.</li>
+        <li>The longer 60-second speed benchmark passed 5,900 checks with no failed requests. Most endpoint medians were under 20 ms. Login was about 317 ms median because secure password checking is intentionally expensive.</li>
+        <li>The unit test suite passed 952 checks.</li>
+        <li>The full Chromium browser suite passed 194 checks with 9 intentional skips.</li>
+        <li>Firefox, WebKit/Safari, and mobile Chrome passed the login, dashboard, and mobile layout smoke pass with 100 checks and 3 intentional skips.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Features That Still Need Work Or Review</h2>
+
+      <h3>Permission Review</h3>
+      <ul>
+        <li><span class="watch">189 logged-in route handlers need a human pass.</span> The automated permission tests passed, but these routes do not declare a clear permission label in the inventory.</li>
+        <li>Each one should be marked as one of these: admin-only, team-only, user-owned, shared for all logged-in users, or intentionally public.</li>
+        <li>Any route that changes data should get the strictest review first.</li>
+      </ul>
+
+      <h3>Lint Cleanup</h3>
+      <ul>
+        <li><span class="watch">Full lint is not clean yet.</span> A few safe errors were fixed during this pass, but the larger backlog remains.</li>
+        <li>The biggest lint item is raw database access inside 154 API route files. The exact list is in <code>docs/audit-artifacts/raw-prisma-route-review-2026-05-27.txt</code>.</li>
+        <li>Some of these are correct for auth, cron, public-token, or platform work, but each route needs an explicit reason or a safer scoped database client.</li>
+        <li>There are also many image and React dependency warnings. They are lower risk than permission and route review, but should be cleaned up steadily.</li>
+      </ul>
+
+      <h3>Real-Record Pages</h3>
+      <ul>
+        <li><span class="watch">22 dynamic pages need deeper scenarios.</span> These pages require a real event, ticket, form, device, user, or other record ID.</li>
+        <li>The next pass should create real records, open each detail page, edit the record, save it, reload it, and confirm the right role can still see it.</li>
+      </ul>
+
+      <h3>IT Work</h3>
+      <ul>
+        <li>Keep testing the IT queue with more ticket types: device issue, password reset, network issue, loaner device, and security incident.</li>
+        <li>Confirm IT workers can find, filter, assign, pause, complete, and reopen work without needing admin-only screens.</li>
+        <li>Confirm IT managers can use admin/reporting tools without exposing those tools to normal IT workers.</li>
+      </ul>
+
+      <h3>Maintenance Work</h3>
+      <ul>
+        <li>Keep testing work orders with photos, labor time, material cost, repeat repairs, preventive maintenance, and QA closeout.</li>
+        <li>Confirm maintenance workers can finish a job from mobile without needing the desktop-only settings area.</li>
+        <li>Confirm maintenance leads can assign, approve, and report without giving every worker manager access.</li>
+      </ul>
+
+      <h3>Events And Approvals</h3>
+      <ul>
+        <li>Approval routing is working better, but needs more real-school coverage.</li>
+        <li>Test events that need A/V, facilities, admin approval, no approval, conflict handling, and last-minute changes.</li>
+        <li>Confirm people who are not on an approval team see a clear no-access message, not a broken queue.</li>
+      </ul>
+
+      <h3>Speed</h3>
+      <ul>
+        <li>The corrected short benchmark and 60-second benchmark passed. Before launch confidence, run a longer 30-60 minute soak with normal traffic.</li>
+        <li>Keep watching any page that grows past about 300 kB of first-load JavaScript.</li>
+        <li>Keep IT, maintenance, dashboard, calendar, and event pages on the speed watchlist because they are daily-use paths.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Role Scenarios Already Run</h2>
+      <ul>
+        <li><span class="good">Super Admin:</span> full desktop work area, Approvals mobile tab, admin settings, IT, maintenance, and A/V approvals.</li>
+        <li><span class="good">Admin:</span> dashboard, calendar, forms, approvals, Leo, and Approvals mobile tab.</li>
+        <li><span class="good">IT Worker:</span> IT dashboard mode, IT desktop navigation, IT Tickets mobile tab, and job workflow.</li>
+        <li><span class="good">Maintenance Worker:</span> maintenance dashboard mode, maintenance desktop navigation, Work Orders mobile tab, and job workflow.</li>
+        <li><span class="good">A/V Worker:</span> A/V approval access and no hidden approval queue errors.</li>
+        <li><span class="good">Teacher/Staff Member:</span> normal dashboard and ticket path without admin work tools.</li>
+        <li><span class="good">Viewer:</span> dashboard load without avoidable campus permission errors.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Next Test Scenarios To Run</h2>
+      <ul>
+        <li>Create a full event that needs A/V and maintenance approval, then walk it from request to approval to day-of completion.</li>
+        <li>Create a maintenance work order from a staff member, assign it as a lead, complete it as a worker, and close it as QA.</li>
+        <li>Create an IT ticket from a staff member, triage it as IT, attach a device, resolve it, and confirm the requester can see the status.</li>
+        <li>Open every dynamic detail page with real data and confirm wrong roles are blocked cleanly.</li>
+        <li>Run the longer speed soak after the current fixes stay green.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

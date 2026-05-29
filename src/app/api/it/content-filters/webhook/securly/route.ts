@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public content-filter webhook resolves org from URL, then verifies provider signature before processing.
 import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import {
   validateWebhookSignature,

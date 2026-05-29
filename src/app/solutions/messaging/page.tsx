@@ -14,19 +14,9 @@ export default function MessagingSolutionPage() {
       title="School staff messaging tied to the work people are talking about."
       description="Lionheart keeps staff messages, channels, threads, notifications, and operational context together so schools can reduce scattered updates across email, chat, and text."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1000&q=82',
-        alt: 'School staff communication context with a small team conversation.',
-        accent: '#14b8a6',
-        metric: '3',
-        metricLabel: 'teams notified from one thread',
-        productTitle: 'Awards night thread',
-        productSubtitle: 'Staff messaging',
-        chips: ['Event linked', 'Read status', 'Mobile push'],
-        rows: [
-          { label: 'Office', value: 'Sent', tone: 'green' },
-          { label: 'Coaches', value: 'Replied', tone: 'blue' },
-          { label: 'Facilities', value: 'Notified', tone: 'dark' },
-        ],
+        src: '/marketing/generated/solution-messaging.jpg',
+        alt: 'Lionheart Academy messaging hero image with product cards for an awards night thread and notified school teams.',
+        presentation: 'campaign',
       }}
       sections={[
         {
@@ -37,7 +27,7 @@ export default function MessagingSolutionPage() {
         {
           icon: MessageSquare,
           title: 'Context-aware updates',
-          body: 'Keep conversations close to events, tickets, forms, rooms, and tasks instead of separated from the workflow.',
+          body: 'Keep conversations close to events, tickets, forms, rooms, and tasks instead of scattered across separate threads.',
         },
         {
           icon: Bell,
@@ -45,7 +35,8 @@ export default function MessagingSolutionPage() {
           body: 'Send updates through the channels staff already use in the school day, including mobile notifications.',
         },
       ]}
-      checklistTitle="Staff communication works better when it is attached to the operational record."
+      checklistTitle="Staff communication works better when it stays connected to the work."
+      productShowcase="messaging"
       checklist={[
         'Reduce one-off email threads about events, work orders, and requests.',
         'Help the right teams see updates without looping everyone into everything.',

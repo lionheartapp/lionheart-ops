@@ -1,30 +1,15 @@
 'use client'
 
 import { use, useState, useEffect, Component, type ReactNode, type ErrorInfo } from 'react'
+import dynamic from 'next/dynamic'
 import { logger } from '@/lib/logger'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, QrCode, BookmarkPlus, FileText } from 'lucide-react'
 
-import EventSidebar, { type TabId } from '@/components/events/EventSidebar'
+import type { TabId } from '@/components/events/EventSidebar'
 import { staggerContainer, listItem, tabContent } from '@/lib/animations'
 import { useEventProject, useApproveEventProject } from '@/lib/hooks/useEventProject'
-import { useMyEventPermissions } from '@/lib/hooks/useEventPermissions'
-import { EventOverviewTab } from '@/components/events/EventOverviewTab'
-import { EventScheduleTab } from '@/components/events/EventScheduleTab'
-import { EventTasksTab } from '@/components/events/EventTasksTab'
-import { EventPeopleTab } from '@/components/events/EventPeopleTab'
-import { EventDocumentsTab } from '@/components/events/EventDocumentsTab'
-import { EventLogisticsTab } from '@/components/events/EventLogisticsTab'
-import { EventBudgetTab } from '@/components/events/EventBudgetTab'
-import { EventCommsTab } from '@/components/events/EventCommsTab'
-import { EventFormLinkTab } from '@/components/events/project/EventFormLinkTab'
-import { EventResponsesTab } from '@/components/events/EventResponsesTab'
-import { PresenceBar } from '@/components/events/comms/PresenceBar'
-import { EventChatDrawer } from '@/components/events/comms/EventChatPanel'
-import { SaveAsTemplateDialog } from '@/components/events/templates/SaveAsTemplateDialog'
-import { ApprovalReviewDrawer } from '@/components/events/ApprovalReviewDrawer'
-import FormBuilderDrawer from '@/components/forms/builder/FormBuilderDrawer'
 import { useToast } from '@/components/Toast'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -34,10 +19,67 @@ import {
   BORDER,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
-  TEXT_MUTED,
   WARM_CHIP,
   CARD_SHADOW,
 } from '@/lib/design/warm-tokens'
+
+const EventOverviewTab = dynamic(
+  () => import('@/components/events/EventOverviewTab').then((mod) => mod.EventOverviewTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventScheduleTab = dynamic(
+  () => import('@/components/events/EventScheduleTab').then((mod) => mod.EventScheduleTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventTasksTab = dynamic(
+  () => import('@/components/events/EventTasksTab').then((mod) => mod.EventTasksTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventPeopleTab = dynamic(
+  () => import('@/components/events/EventPeopleTab').then((mod) => mod.EventPeopleTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventDocumentsTab = dynamic(
+  () => import('@/components/events/EventDocumentsTab').then((mod) => mod.EventDocumentsTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventLogisticsTab = dynamic(
+  () => import('@/components/events/EventLogisticsTab').then((mod) => mod.EventLogisticsTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventBudgetTab = dynamic(
+  () => import('@/components/events/EventBudgetTab').then((mod) => mod.EventBudgetTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventCommsTab = dynamic(
+  () => import('@/components/events/EventCommsTab').then((mod) => mod.EventCommsTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventFormLinkTab = dynamic(
+  () => import('@/components/events/project/EventFormLinkTab').then((mod) => mod.EventFormLinkTab),
+  { loading: () => <EventTabLoading /> },
+)
+const EventResponsesTab = dynamic(
+  () => import('@/components/events/EventResponsesTab').then((mod) => mod.EventResponsesTab),
+  { loading: () => <EventTabLoading /> },
+)
+const PresenceBar = dynamic(
+  () => import('@/components/events/comms/PresenceBar').then((mod) => mod.PresenceBar),
+  { loading: () => null },
+)
+const EventChatDrawer = dynamic(
+  () => import('@/components/events/comms/EventChatPanel').then((mod) => mod.EventChatDrawer),
+  { loading: () => null },
+)
+const SaveAsTemplateDialog = dynamic(
+  () => import('@/components/events/templates/SaveAsTemplateDialog').then((mod) => mod.SaveAsTemplateDialog),
+  { loading: () => null },
+)
+const ApprovalReviewDrawer = dynamic(
+  () => import('@/components/events/ApprovalReviewDrawer').then((mod) => mod.ApprovalReviewDrawer),
+  { loading: () => null },
+)
+const FormBuilderDrawer = dynamic(() => import('@/components/forms/builder/FormBuilderDrawer'), { loading: () => null })
 
 // ─── Tab Error Boundary ──────────────────────────────────────────────────────
 
@@ -134,44 +176,20 @@ function EventProjectSkeleton() {
   )
 }
 
-// ─── Sidebar skeleton (matches EventSidebar shape) ─────────────────────────────
-
-function SidebarSkeleton() {
+function EventTabLoading() {
   return (
-    <aside
-      className="w-[220px] flex-shrink-0 flex flex-col h-full animate-pulse"
-      style={{
-        backgroundColor: SURFACE,
-        borderRight: `1px solid ${BORDER}`,
-      }}
-    >
-      <div
-        className="px-5 pt-[18px] pb-[14px]"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg" style={{ backgroundColor: '#ede9e0' }} />
-          <div className="w-20 h-4 rounded" style={{ backgroundColor: '#ede9e0' }} />
-        </div>
-      </div>
-      <div
-        className="px-5 py-3.5 space-y-2"
-        style={{ borderBottom: `1px solid ${BORDER}` }}
-      >
-        <div className="w-16 h-5 rounded-full" style={{ backgroundColor: WARM_CHIP }} />
-        <div className="w-full h-4 rounded" style={{ backgroundColor: '#ede9e0' }} />
-        <div className="w-24 h-3 rounded" style={{ backgroundColor: WARM_CHIP }} />
-      </div>
-      <div className="flex-1 px-3 py-3 space-y-2">
-        {[...Array(9)].map((_, i) => (
-          <div
-            key={i}
-            className="w-full h-7 rounded-md"
-            style={{ backgroundColor: WARM_CHIP }}
-          />
+    <div className="animate-pulse space-y-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {[0, 1, 2].map((item) => (
+          <div key={item} className="h-24 rounded-2xl" style={{ backgroundColor: WARM_CHIP }} />
         ))}
       </div>
-    </aside>
+      <div className="rounded-2xl p-5" style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}` }}>
+        {[0, 1, 2, 3].map((item) => (
+          <div key={item} className="mb-3 h-4 rounded last:mb-0" style={{ backgroundColor: '#ede9e0' }} />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -286,7 +304,6 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   const { toast } = useToast()
 
   const { data: project, isLoading, error } = useEventProject(id)
-  const { data: myPermissions } = useMyEventPermissions(id)
   const approveProject = useApproveEventProject(id)
 
   // Tab state — synced with ?tab= URL param
@@ -299,10 +316,8 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
   }, [tabFromUrl])
 
   // Auth state — provides user ID, org branding, and readiness
-  const { user: authUser, org: authOrg } = useAuth({ redirectTo: '' })
+  const { user: authUser } = useAuth({ redirectTo: '' })
   const currentUserId = authUser.id ?? null
-  const orgLogoUrl = authOrg.logoUrl || undefined
-  const orgName = authOrg.name || undefined
 
   // Save as template dialog
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
@@ -355,17 +370,6 @@ export default function EventProjectPage({ params }: EventProjectPageProps) {
       </>
     )
   }
-
-  const sidebar = (
-    <EventSidebar
-      project={project}
-      activeTab={activeTab}
-      onTabChange={handleTabChange}
-      organizationLogoUrl={orgLogoUrl}
-      organizationName={orgName}
-      permissions={myPermissions}
-    />
-  )
 
   return (
     <PagePadding>

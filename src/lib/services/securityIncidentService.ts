@@ -41,6 +41,13 @@ export interface IncidentFilters {
   limit?: number
 }
 
+const INCIDENT_LIST_CACHE_TTL_MS = 1000
+type IncidentListResult = {
+  incidents: Awaited<ReturnType<typeof prisma.securityIncident.findMany>>
+  total: number
+}
+const incidentListCache = new Map<string, { expiresAt: number; promise: Promise<IncidentListResult> }>()
+
 // ─── Allowed Status Transitions ──────────────────────────────────────────────
 
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
@@ -53,13 +60,39 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 
 // ─── Number Generation ───────────────────────────────────────────────────────
 
+async function getMaxIncidentNumber(): Promise<number> {
+  const rows = await rawPrisma.$queryRaw<Array<{ maxNumber: number | bigint }>>(Prisma.sql`
+    SELECT COALESCE(MAX((substring("incidentNumber" from '^SEC-([0-9]+)$'))::int), 0) AS "maxNumber"
+    FROM "SecurityIncident"
+  `)
+  const maxNumber = rows[0]?.maxNumber ?? 0
+  return typeof maxNumber === 'bigint' ? Number(maxNumber) : maxNumber
+}
+
 export async function generateIncidentNumber(orgId: string): Promise<string> {
-  const counter = await rawPrisma.securityIncidentCounter.upsert({
-    where: { organizationId: orgId },
-    create: { organizationId: orgId, lastIncidentNumber: 1 },
-    update: { lastIncidentNumber: { increment: 1 } },
-  })
-  return `SEC-${String(counter.lastIncidentNumber).padStart(4, '0')}`
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const counter = await rawPrisma.securityIncidentCounter.upsert({
+      where: { organizationId: orgId },
+      create: { organizationId: orgId, lastIncidentNumber: 1 },
+      update: { lastIncidentNumber: { increment: 1 } },
+    })
+    const incidentNumber = `SEC-${String(counter.lastIncidentNumber).padStart(4, '0')}`
+    const existing = await rawPrisma.securityIncident.findUnique({
+      where: { incidentNumber },
+      select: { id: true },
+    })
+    if (!existing) return incidentNumber
+
+    const maxNumber = await getMaxIncidentNumber()
+    if (maxNumber >= counter.lastIncidentNumber) {
+      await rawPrisma.securityIncidentCounter.update({
+        where: { organizationId: orgId },
+        data: { lastIncidentNumber: maxNumber },
+      })
+    }
+  }
+
+  throw new Error('Unable to generate a unique security incident number')
 }
 
 // ─── Create ──────────────────────────────────────────────────────────────────
@@ -113,6 +146,18 @@ export async function createIncident(
 // ─── Read ────────────────────────────────────────────────────────────────────
 
 export async function getIncidents(orgId: string, filters: IncidentFilters) {
+  const cacheKey = JSON.stringify([orgId, filters])
+  const now = Date.now()
+  const cached = incidentListCache.get(cacheKey)
+  if (cached && cached.expiresAt > now) return cached.promise
+
+  const promise = getIncidentsUncached(orgId, filters)
+  incidentListCache.set(cacheKey, { expiresAt: now + INCIDENT_LIST_CACHE_TTL_MS, promise })
+  promise.catch(() => incidentListCache.delete(cacheKey))
+  return promise
+}
+
+async function getIncidentsUncached(orgId: string, filters: IncidentFilters): Promise<IncidentListResult> {
   const page = filters.page ?? 1
   const limit = filters.limit ?? 25
   const skip = (page - 1) * limit

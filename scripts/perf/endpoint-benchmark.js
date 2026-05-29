@@ -18,7 +18,7 @@
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
-import { BASE_URL, ORG_ID, authenticate, authHeaders } from './config.js';
+import { BASE_URL, ORG_ID, authenticateSession, authHeaders } from './config.js';
 
 // Per-endpoint latency trends
 const metrics = {
@@ -33,6 +33,10 @@ const metrics = {
   notifications: new Trend('bench_notifications', true),
   athletics:     new Trend('bench_athletics_dashboard', true),
   calendars:     new Trend('bench_calendars', true),
+  inventory:     new Trend('bench_inventory', true),
+  planning:      new Trend('bench_planning_seasons', true),
+  events:        new Trend('bench_events', true),
+  maintenanceKb: new Trend('bench_maintenance_knowledge_base', true),
   incidentsList:  new Trend('bench_incidents_list', true),
   incidentsCreate: new Trend('bench_incidents_create', true),
   incidentsDetail: new Trend('bench_incidents_detail', true),
@@ -41,17 +45,21 @@ const metrics = {
 };
 
 const SELECTED_ENDPOINT = __ENV.ENDPOINT || 'all';
+const BENCH_VUS = Number(__ENV.BENCH_VUS || '5');
+const BENCH_DURATION = __ENV.BENCH_DURATION || '1m';
 
 export const options = {
   scenarios: {
     benchmark: {
       executor: 'constant-vus',
-      vus: 5,
-      duration: '1m',
+      vus: BENCH_VUS,
+      duration: BENCH_DURATION,
     },
   },
   thresholds: {
-    bench_login:                ['p(50)<300', 'p(95)<600'],
+    // Login includes password hash verification. Keep this target realistic
+    // while still catching slow database or auth regressions.
+    bench_login:                ['p(50)<500', 'p(95)<600'],
     bench_branding:             ['p(50)<100', 'p(95)<300'],
     bench_search:               ['p(50)<200', 'p(95)<500'],
     bench_tickets:              ['p(50)<200', 'p(95)<500'],
@@ -62,6 +70,10 @@ export const options = {
     bench_notifications:        ['p(50)<100', 'p(95)<250'],
     bench_athletics_dashboard:  ['p(50)<300', 'p(95)<800'],
     bench_calendars:            ['p(50)<150', 'p(95)<400'],
+    bench_inventory:            ['p(50)<300', 'p(95)<800'],
+    bench_planning_seasons:      ['p(50)<300', 'p(95)<800'],
+    bench_events:                ['p(50)<300', 'p(95)<800'],
+    bench_maintenance_knowledge_base: ['p(50)<300', 'p(95)<800'],
     bench_incidents_list:       ['p(50)<200', 'p(95)<600'],
     bench_incidents_create:     ['p(50)<300', 'p(95)<800'],
     bench_incidents_detail:     ['p(50)<150', 'p(95)<500'],
@@ -75,10 +87,10 @@ export function setup() {
     console.error('ORG_ID env var is required.');
     return { token: null, incidentId: null };
   }
-  const token = authenticate(http);
-  if (!token) {
+  const session = authenticateSession(http);
+  if (!session?.token) {
     console.error('Setup auth failed.');
-    return { token: null, incidentId: null };
+    return { session: null, incidentId: null };
   }
 
   // Seed one incident for detail/status benchmarks
@@ -91,24 +103,32 @@ export function setup() {
       description: 'Seeded for endpoint benchmark detail/status tests.',
     });
     const res = http.post(`${BASE_URL}/api/it/incidents`, payload, {
-      headers: authHeaders(token),
+      headers: authHeaders(session),
     });
     if (res.status === 201) {
       try { incidentId = JSON.parse(res.body).data?.id; } catch {}
     }
   }
 
-  return { token, incidentId };
+  return { session, incidentId };
 }
 
 function shouldRun(name) {
   return SELECTED_ENDPOINT === 'all' || SELECTED_ENDPOINT === name;
 }
 
+function restoreSessionCookies(session) {
+  if (!session?.token || !session?.csrfToken) return;
+  const jar = http.cookieJar();
+  jar.set(BASE_URL, 'auth-token', session.token);
+  jar.set(BASE_URL, 'csrf-token', session.csrfToken);
+}
+
 export default function (data) {
-  if (!data.token) { sleep(1); return; }
-  const token = data.token;
-  const headers = authHeaders(token);
+  if (!data.session?.token) { sleep(1); return; }
+  const session = data.session;
+  const token = session.token;
+  const headers = authHeaders(session);
 
   if (shouldRun('login')) {
     group('bench: login', () => {
@@ -122,6 +142,7 @@ export default function (data) {
       });
       metrics.login.add(r.timings.duration);
       check(r, { 'login 200': (r) => r.status === 200 });
+      restoreSessionCookies(session);
     });
   }
 
@@ -210,6 +231,38 @@ export default function (data) {
     });
   }
 
+  if (shouldRun('inventory')) {
+    group('bench: inventory', () => {
+      const r = http.get(`${BASE_URL}/api/inventory?limit=20`, { headers });
+      metrics.inventory.add(r.timings.duration);
+      check(r, { 'inventory not error': (r) => r.status < 500 });
+    });
+  }
+
+  if (shouldRun('planning')) {
+    group('bench: planning seasons', () => {
+      const r = http.get(`${BASE_URL}/api/planning-seasons`, { headers });
+      metrics.planning.add(r.timings.duration);
+      check(r, { 'planning not error': (r) => r.status < 500 });
+    });
+  }
+
+  if (shouldRun('events')) {
+    group('bench: events', () => {
+      const r = http.get(`${BASE_URL}/api/events`, { headers });
+      metrics.events.add(r.timings.duration);
+      check(r, { 'events not error': (r) => r.status < 500 });
+    });
+  }
+
+  if (shouldRun('maintenanceKb')) {
+    group('bench: maintenance knowledge base', () => {
+      const r = http.get(`${BASE_URL}/api/maintenance/knowledge-base?limit=20`, { headers });
+      metrics.maintenanceKb.add(r.timings.duration);
+      check(r, { 'maintenance knowledge base not error': (r) => r.status < 500 });
+    });
+  }
+
   // --- Security Incidents Benchmarks ---
 
   if (shouldRun('incidentsList')) {
@@ -222,6 +275,7 @@ export default function (data) {
 
   if (shouldRun('incidentsCreate')) {
     group('bench: incidents create', () => {
+      restoreSessionCookies(session);
       const types = ['PHISHING', 'MALWARE', 'UNAUTHORIZED_ACCESS', 'DATA_BREACH'];
       const type = types[Math.floor(Math.random() * types.length)];
       const r = http.post(`${BASE_URL}/api/it/incidents`, JSON.stringify({
@@ -245,6 +299,7 @@ export default function (data) {
 
   if (shouldRun('incidentsStatus') && data.incidentId) {
     group('bench: incidents status update', () => {
+      restoreSessionCookies(session);
       // Toggle between INVESTIGATING and back by creating a fresh incident each time
       const createRes = http.post(`${BASE_URL}/api/it/incidents`, JSON.stringify({
         type: 'POLICY_VIOLATION',

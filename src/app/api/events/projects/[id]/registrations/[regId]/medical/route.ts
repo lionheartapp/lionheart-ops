@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- FERPA medical endpoint manually verifies event org ownership and registration membership before reading sensitive data.
 import { rawPrisma } from '@/lib/db'
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
@@ -28,20 +29,17 @@ export const GET = withAuth(async ({ orgId, params }) => {
   }
 
   // Verify the registration belongs to the correct event project
-  const registration = await rawPrisma.eventRegistration.findUnique({
-    where: { id: registrationId },
+  const registration = await rawPrisma.eventRegistration.findFirst({
+    where: {
+      id: registrationId,
+      eventProjectId,
+      deletedAt: null,
+    },
     select: { id: true, eventProjectId: true },
   })
 
   if (!registration) {
     return NextResponse.json(fail('NOT_FOUND', 'Registration not found'), { status: 404 })
-  }
-
-  if (registration.eventProjectId !== eventProjectId) {
-    return NextResponse.json(
-      fail('NOT_FOUND', 'Registration does not belong to this event project'),
-      { status: 404 },
-    )
   }
 
   // Fetch sensitive data

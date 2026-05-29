@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Organization settings read/write the Organization row by authenticated orgId.
 import { rawPrisma } from '@/lib/db'
 import { audit, getIp } from '@/lib/services/auditService'
 

@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
+
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
 
 const prisma = new PrismaClient()
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
@@ -121,10 +125,9 @@ async function ensureSmokeUser(organizationId) {
       name: 'Smoke Tester',
       passwordHash,
       status: 'ACTIVE',
+      emailVerified: true,
       roleId: role.id,
-      role: 'ADMIN',
       campusScope: null,
-      teamIds: [],
     },
   })
 
@@ -138,10 +141,32 @@ async function ensureSmokeUser(organizationId) {
   }
 }
 
+async function resolveCampusParent(organizationId) {
+  const school = await prisma.school.findFirst({
+    where: { organizationId, deletedAt: null },
+    select: { id: true },
+  })
+  if (school) return { schoolId: school.id }
+
+  const campus = await prisma.campus.findFirst({
+    where: { organizationId, deletedAt: null },
+    select: { id: true },
+  })
+  if (campus) return { campusId: campus.id }
+
+  const district = await prisma.district.findFirst({
+    where: { organizationId, deletedAt: null },
+    select: { id: true },
+  })
+  if (district) return { districtId: district.id }
+
+  throw new Error('No school, campus, or district found for campus smoke test')
+}
+
 async function runCampusCrudSmoke(email, password, organizationId) {
   const login = await req('/api/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-e2e-run': 'local' },
     body: JSON.stringify({ email, password, organizationId }),
   })
 
@@ -160,11 +185,12 @@ async function runCampusCrudSmoke(email, password, organizationId) {
   const buildingName = `Smoke Building ${ts}`
   const areaName = `Smoke Area ${ts}`
   const roomNumber = `S-${ts}`
+  const parentRef = await resolveCampusParent(organizationId)
 
   const createBuilding = await req('/api/settings/campus/buildings', {
     method: 'POST',
     headers: authHeaders,
-    body: JSON.stringify({ name: buildingName, code: `SB${ts}`, schoolDivision: 'GLOBAL' }),
+    body: JSON.stringify({ name: buildingName, code: `SB${ts}`, ...parentRef }),
   })
   if (!createBuilding.res.ok || !createBuilding.json?.ok) {
     throw new Error(`Create building failed: ${createBuilding.res.status} ${JSON.stringify(createBuilding.json)}`)
@@ -174,7 +200,7 @@ async function runCampusCrudSmoke(email, password, organizationId) {
   const createArea = await req('/api/settings/campus/spaces', {
     method: 'POST',
     headers: authHeaders,
-    body: JSON.stringify({ name: areaName, areaType: 'COMMON', buildingId }),
+    body: JSON.stringify({ name: areaName, spaceType: 'COMMON', buildingId }),
   })
   if (!createArea.res.ok || !createArea.json?.ok) {
     throw new Error(`Create area failed: ${createArea.res.status} ${JSON.stringify(createArea.json)}`)
@@ -184,7 +210,7 @@ async function runCampusCrudSmoke(email, password, organizationId) {
   const createRoom = await req('/api/settings/campus/rooms', {
     method: 'POST',
     headers: authHeaders,
-    body: JSON.stringify({ buildingId, areaId, roomNumber, displayName: 'Smoke Room', floor: '1' }),
+    body: JSON.stringify({ buildingId, spaceId: areaId, roomNumber, displayName: 'Smoke Room', floor: '1' }),
   })
   if (!createRoom.res.ok || !createRoom.json?.ok) {
     throw new Error(`Create room failed: ${createRoom.res.status} ${JSON.stringify(createRoom.json)}`)
@@ -215,7 +241,10 @@ async function runCampusCrudSmoke(email, password, organizationId) {
     throw new Error(`List rooms failed: ${roomsWithInactive.res.status} ${JSON.stringify(roomsWithInactive.json)}`)
   }
 
-  const deletedRoom = (roomsWithInactive.json.data || []).find((room) => room.id === roomId)
+  const roomList = Array.isArray(roomsWithInactive.json.data)
+    ? roomsWithInactive.json.data
+    : roomsWithInactive.json.data?.rooms || []
+  const deletedRoom = roomList.find((room) => room.id === roomId)
   if (!deletedRoom || deletedRoom.isActive !== false) {
     throw new Error('Soft delete verification failed for room')
   }

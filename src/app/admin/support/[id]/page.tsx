@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Send } from 'lucide-react'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
@@ -13,42 +13,43 @@ export default function TicketDetailPage() {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
+  const ticketId = params.id as string
 
-  const fetchTicket = async () => {
+  const fetchTicket = useCallback(async () => {
     const token = localStorage.getItem('platform-token')
-    const res = await fetch(`/api/platform/support-tickets/${params.id}`, {
+    const res = await fetch(`/api/platform/support-tickets/${ticketId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     const data = await res.json()
     if (data.ok) setTicket(data.data)
     setLoading(false)
-  }
+  }, [ticketId])
 
-  useEffect(() => { fetchTicket() }, [params.id])
+  useEffect(() => { void fetchTicket() }, [fetchTicket])
 
   const sendMessage = async () => {
     if (!message.trim()) return
     setSending(true)
     const token = localStorage.getItem('platform-token')
-    await fetch(`/api/platform/support-tickets/${params.id}/messages`, {
+    await fetch(`/api/platform/support-tickets/${ticketId}/messages`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
     })
     setMessage('')
     setSending(false)
-    fetchTicket()
+    await fetchTicket()
   }
 
   const updateTicket = async (data: Record<string, string>) => {
     const token = localStorage.getItem('platform-token')
-    const res = await fetch(`/api/platform/support-tickets/${params.id}`, {
+    const res = await fetch(`/api/platform/support-tickets/${ticketId}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
     const result = await res.json()
-    if (result.ok) fetchTicket()
+    if (result.ok) await fetchTicket()
   }
 
   if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" /></div>

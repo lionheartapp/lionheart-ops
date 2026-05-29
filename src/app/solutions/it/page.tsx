@@ -14,19 +14,9 @@ export default function ItSolutionPage() {
       title="School IT help desk software built for campus support."
       description="Lionheart gives school IT teams a clear way to intake requests, route tickets, track devices, coordinate with staff, and keep support history connected to rooms, users, and assets."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1000&q=82',
-        alt: 'School technology support context with people working around laptops.',
-        accent: '#2f7fd5',
-        metric: '27',
-        metricLabel: 'devices linked to open support work',
-        productTitle: 'Projector not connecting',
-        productSubtitle: 'IT support queue',
-        chips: ['Device context', 'Room history', 'SLA routing'],
-        rows: [
-          { label: 'Room 204', value: 'Open', tone: 'blue' },
-          { label: 'MacBook Air', value: 'Linked', tone: 'green' },
-          { label: 'Owner', value: 'IT', tone: 'dark' },
-        ],
+        src: '/marketing/generated/solution-it-helpdesk.jpg',
+        alt: 'Lionheart Academy IT support hero image with product cards for a projector ticket, linked device, room, owner, and open device metric.',
+        presentation: 'campaign',
       }}
       sections={[
         {
@@ -42,7 +32,7 @@ export default function ItSolutionPage() {
         {
           icon: ShieldCheck,
           title: 'Role-aware access',
-          body: 'Use roles, permissions, MFA, and passkeys to keep school support workflows controlled.',
+          body: 'Use roles, permissions, MFA, and passkeys to keep school support access controlled.',
         },
       ]}
       checklistTitle="A school IT queue that understands classrooms, rooms, devices, and staff."

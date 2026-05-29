@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { OrgUser } from './people-types'
 import { getUserName, getInitials } from './people-types'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface UserSearchDropdownProps {
   excludeIds: Set<string>
@@ -119,7 +120,7 @@ export function UserSearchDropdown({ excludeIds, onSelect, placeholder }: UserSe
                     }`}
                   >
                     {user.avatar ? (
-                      <img src={user.avatar} alt={getUserName(user)} className="w-8 h-8 rounded-full object-cover" />
+                      <OptimizedImage src={user.avatar} alt={getUserName(user)} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-semibold">
                         {getInitials(user)}

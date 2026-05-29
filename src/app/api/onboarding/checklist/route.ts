@@ -1,4 +1,6 @@
 /**
+ * @authOnly Returns the signed-in user's checklist; org setup items are included only for workspace managers.
+ *
  * GET /api/onboarding/checklist
  *
  * Returns the derived first-time-user onboarding checklist for the

@@ -7,6 +7,7 @@ import { Link2, Copy, Check, Loader2, Clock, School, QrCode, Download, Mail, Sen
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import ITErrorState from './ITErrorState'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface School {
   id: string
@@ -298,7 +299,7 @@ function MagicLinkQR({ url }: { url: string }) {
     <div className="mt-4 pt-4 border-t border-blue-100">
       <div className="flex items-start gap-4">
         <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
-          <img src={qrDataUrl} alt="Magic link QR code" className="w-[160px] h-[160px]" />
+          <OptimizedImage src={qrDataUrl} alt="Magic link QR code" className="w-[160px] h-[160px]" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">

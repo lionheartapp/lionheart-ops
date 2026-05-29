@@ -45,6 +45,14 @@ cp .env.e2e.example .env.e2e
 npm run test:e2e
 ```
 
+For local runs that should not share `.next` with a running dev server, use the clean runner:
+
+```bash
+npm run test:e2e:local
+```
+
+It builds once, starts `next start` on an open local port, points Playwright at that server, and shuts the server down when the run ends.
+
 ### Required test users on staging
 
 Create these once on the staging DB (the `db:seed:remote` script can be adapted):
@@ -59,6 +67,7 @@ Create these once on the staging DB (the `db:seed:remote` script can be adapted)
 
 ```bash
 npm run test:e2e:api        # API-only (fast, no browser)
+npm run test:e2e:local -- --project=api  # API-only against a clean local production server
 npm run test:e2e:perms      # All permission tests (RBAC + tenancy + matrix)
 npm run test:e2e:matrix     # Just the auto-generated permission matrix
 npm run test:e2e:a11y       # Accessibility audits

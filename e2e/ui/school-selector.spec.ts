@@ -77,12 +77,12 @@ async function readActiveSchool(page: Page): Promise<string | null> {
 
 /** Locate the SchoolSelector trigger button (interactive mode only). */
 function schoolSelectorTrigger(page: Page) {
-  return page.getByRole('button', { name: /^active school:.+click to change/i })
+  return page.getByRole('button', { name: /^active (school|campus):.+click to change/i })
 }
 
 /** Locate the SchoolSelector read-only badge (scoped mode only). */
 function schoolSelectorBadge(page: Page) {
-  return page.getByRole('group', { name: /active school:.+pinned to your account/i })
+  return page.getByRole('group', { name: /active (school|campus):.+pinned to your account/i })
 }
 
 // ── Admin: interactive selector ────────────────────────────────────────────
@@ -121,7 +121,7 @@ test.describe('SchoolSelector — admin interactive', () => {
 
     // Open the listbox, confirm "All Schools" + every active school is present.
     await trigger.click()
-    const listbox = adminPage.getByRole('listbox', { name: /select a school/i })
+    const listbox = adminPage.getByRole('listbox', { name: /select a (school|campus)/i })
     await expect(listbox).toBeVisible({ timeout: 5_000 })
 
     const allOption = listbox.getByRole('option', { name: /^all schools$/i })
@@ -138,7 +138,7 @@ test.describe('SchoolSelector — admin interactive', () => {
 
     // Trigger label updates + localStorage writes + subtitle renders on dashboard.
     await expect(trigger).toHaveAccessibleName(
-      new RegExp(`active school: ${escapeRegex(target.name)}`, 'i'),
+      new RegExp(`active (school|campus): ${escapeRegex(target.name)}`, 'i'),
     )
     await expect
       .poll(() => readActiveSchool(adminPage), { timeout: 5_000 })
@@ -147,14 +147,12 @@ test.describe('SchoolSelector — admin interactive', () => {
       adminPage.getByText(new RegExp(`Viewing:\\s*${escapeRegex(target.name)}`)),
     ).toBeVisible({ timeout: 5_000 })
 
-    // Navigate to /it — the same viewpoint must render there. Proves the hook
-    // is a shared store (localStorage + custom event), not page-local state.
-    await adminPage.goto('/it')
-    await expect(
-      adminPage.getByText(new RegExp(`Viewing:\\s*${escapeRegex(target.name)}`)),
-    ).toBeVisible({ timeout: 10_000 })
+    // Navigate to another non-module-gated page — the same viewpoint must
+    // render there. Proves the hook is a shared store (localStorage + custom
+    // event), not page-local state.
+    await adminPage.goto('/calendar')
     await expect(schoolSelectorTrigger(adminPage)).toHaveAccessibleName(
-      new RegExp(`active school: ${escapeRegex(target.name)}`, 'i'),
+      new RegExp(`active (school|campus): ${escapeRegex(target.name)}`, 'i'),
     )
 
     // Switching back to "All Schools" clears the persisted value and hides the
@@ -165,9 +163,9 @@ test.describe('SchoolSelector — admin interactive', () => {
     await expect
       .poll(() => readActiveSchool(adminPage), { timeout: 5_000 })
       .toBeNull()
-    await expect(
-      adminPage.getByText(/Viewing:\s*All Schools/i),
-    ).toBeVisible({ timeout: 5_000 })
+    await expect(schoolSelectorTrigger(adminPage)).toHaveAccessibleName(
+      /active (school|campus): all schools/i,
+    )
   })
 
   test('keyboard navigation selects a school without a mouse', async ({
@@ -193,8 +191,9 @@ test.describe('SchoolSelector — admin interactive', () => {
     await trigger.focus()
     await adminPage.keyboard.press('Enter')
 
-    const listbox = adminPage.getByRole('listbox', { name: /select a school/i })
+    const listbox = adminPage.getByRole('listbox', { name: /select a (school|campus)/i })
     await expect(listbox).toBeVisible()
+    await listbox.focus()
 
     // ArrowDown from "All Schools" → first real school (index 1), then Enter.
     await adminPage.keyboard.press('ArrowDown')
@@ -205,7 +204,7 @@ test.describe('SchoolSelector — admin interactive', () => {
       .poll(() => readActiveSchool(adminPage), { timeout: 5_000 })
       .toBe(target.id)
     await expect(trigger).toHaveAccessibleName(
-      new RegExp(`active school: ${escapeRegex(target.name)}`, 'i'),
+      new RegExp(`active (school|campus): ${escapeRegex(target.name)}`, 'i'),
     )
   })
 })
@@ -253,7 +252,7 @@ test.describe('SchoolSelector — scoped role', () => {
     })
     await memberPage.keyboard.press('Enter')
     await expect(
-      memberPage.getByRole('listbox', { name: /select a school/i }),
+      memberPage.getByRole('listbox', { name: /select a (school|campus)/i }),
     ).toHaveCount(0)
   })
 

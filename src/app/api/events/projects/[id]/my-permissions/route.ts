@@ -10,6 +10,7 @@ import { getEventTeamPermissions } from '@/lib/services/eventTeamPermissions'
  * Returns the current user's effective event-level permissions for this event.
  * Combines org-level role (admin = full access) with team-member permissions.
  */
+// @authOnly Any signed-in user may ask what they can do on this event; response is scoped to ctx.userId.
 export const GET = withAuth(async ({ ctx, params, permissions }) => {
   // Org admins / super-admins bypass event-level permissions
   const isOrgAdmin = await permissions.can(PERMISSIONS.EVENT_PROJECT_UPDATE_ALL)

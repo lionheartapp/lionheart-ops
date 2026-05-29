@@ -6,6 +6,8 @@ import { logger } from '@/lib/logger'
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 /**
+ * @authOnly Proxies address suggestions only for signed-in users.
+ *
  * GET /api/places/autocomplete?input=...
  *
  * Proxies Google Places Autocomplete API.

@@ -9,6 +9,7 @@ import { useEventInvitations, useRespondToInvitation } from '@/lib/hooks/useEven
 import type { EventInvitation } from '@/lib/hooks/useEventInvitations'
 import { fetchApi } from '@/lib/api-client'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ function InvitationRow({ invitation }: { invitation: EventInvitation }) {
   return (
     <div className="flex items-center gap-3 py-2.5">
       {invitation.user.avatar ? (
-        <img
+        <OptimizedImage
           src={invitation.user.avatar}
           alt=""
           className="w-8 h-8 rounded-full object-cover flex-shrink-0"

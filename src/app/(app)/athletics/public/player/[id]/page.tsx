@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   User,
   Trophy,
@@ -313,7 +314,7 @@ export default function PublicPlayerProfilePage() {
                 }}
               >
                 {player.photoUrl ? (
-                  <img
+                  <OptimizedImage
                     src={player.photoUrl}
                     alt={`${player.firstName} ${player.lastName}`}
                     className="w-full h-full object-cover"
@@ -346,7 +347,7 @@ export default function PublicPlayerProfilePage() {
               {/* Team name + org */}
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-1.5">
                 {player.organization.logoUrl && (
-                  <img
+                  <OptimizedImage
                     src={player.organization.logoUrl}
                     alt={player.organization.name}
                     className="w-5 h-5 rounded object-cover"

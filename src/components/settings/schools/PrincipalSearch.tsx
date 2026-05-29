@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { FloatingInput } from '@/components/ui/FloatingInput'
 import { getAuthHeaders as getCookieAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import type { PrincipalOption, SchoolFormData } from '@/lib/school-utils'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   normalizeSearchText,
   splitSearchTokens,
@@ -37,7 +38,7 @@ export default function PrincipalSearch({
   const getAuthHeaders = () => getCookieAuthHeaders()
 
   // Search for principals by name
-  const searchPrincipals = async (query: string) => {
+  const searchPrincipals = useCallback(async (query: string) => {
     if (!query.trim()) {
       setPrincipalOptions([])
       return
@@ -63,7 +64,7 @@ export default function PrincipalSearch({
     } finally {
       setSearchingPrincipals(false)
     }
-  }
+  }, [])
 
   // Debounced search
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function PrincipalSearch({
       }
     }, 300)
     return () => clearTimeout(timer)
-  }, [principalSearch])
+  }, [principalSearch, searchPrincipals])
 
   const rankedPrincipalOptions = useMemo(() => {
     const query = normalizeSearchText(principalSearch)
@@ -226,7 +227,7 @@ export default function PrincipalSearch({
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-primary-50 transition text-left"
                 >
                   {principal.avatar ? (
-                    <img src={principal.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    <OptimizedImage src={principal.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                   ) : (
                     <span className="w-8 h-8 rounded-full bg-slate-100 text-xs font-bold flex items-center justify-center text-slate-600 flex-shrink-0">
                       {principal.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}

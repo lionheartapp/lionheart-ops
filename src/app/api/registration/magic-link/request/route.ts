@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+// eslint-disable-next-line no-restricted-imports -- Public magic-link request is rate-limited and returns generic success to prevent email enumeration.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { checkRateLimit, issueMagicLink } from '@/lib/services/registrationMagicLinkService'

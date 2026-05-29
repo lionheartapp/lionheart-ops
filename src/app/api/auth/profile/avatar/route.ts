@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { ok, fail } from '@/lib/api-response'
@@ -44,7 +44,7 @@ export async function PATCH(request: NextRequest) {
     const input = AvatarUpdateSchema.parse(body)
 
     return await runWithOrgContext(organizationId, async () => {
-      const existingUser = await rawPrisma.user.findUnique({
+      const existingUser = await prisma.user.findFirst({
         where: { id: userId },
         select: { email: true },
       })
@@ -56,7 +56,7 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      const user = await rawPrisma.user.update({
+      const user = await prisma.user.update({
         where: {
           organizationId_email: {
             organizationId,

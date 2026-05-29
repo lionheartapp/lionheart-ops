@@ -11,6 +11,7 @@ const ConfigSchema = z.object({
   assignedTeamId: z.string().nullable().optional(),
   escalationHours: z.number().int().min(1).max(720).optional(),
   autoApproveIfNoResource: z.boolean().optional(),
+  schoolId: z.string().nullable().optional(),
   campusId: z.string().nullable().optional(),
 })
 
@@ -19,8 +20,8 @@ const BulkUpdateSchema = z.object({
 })
 
 export const GET = withAuth(async ({ searchParams }) => {
-  const campusId = searchParams.get('campusId') || undefined
-  const configs = await getApprovalConfigs(campusId)
+  const schoolId = searchParams.get('schoolId') || searchParams.get('campusId') || undefined
+  const configs = await getApprovalConfigs(schoolId)
   return NextResponse.json(ok(configs))
 }, { permission: PERMISSIONS.SETTINGS_READ })
 

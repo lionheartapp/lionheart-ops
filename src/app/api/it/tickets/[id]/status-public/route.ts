@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public ticket status route verifies the hashed status token before returning non-internal ticket activity.
 import { rawPrisma } from '@/lib/db'
 import { createHash } from 'crypto'
 import { logger } from '@/lib/logger'

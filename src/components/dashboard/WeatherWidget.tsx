@@ -3,9 +3,7 @@
 /**
  * WeatherWidget — half-width dashboard widget that sits above the calendar.
  *
- * Style: clean white card matching the existing Lionheart card spec
- * (`bg-white border border-gray-200 rounded-xl`) with a thin animated accent
- * strip across the top.
+ * Style: clean white card matching the dashboard's product surface language.
  *
  * Data: pulled from the internal `/api/weather` route, which proxies
  * Open-Meteo on the server side and falls back to the org's primary school
@@ -66,11 +64,8 @@ export default function WeatherWidget({
       initial="hidden"
       animate="visible"
       variants={cardEntrance}
-      className="card-hover relative bg-white border border-gray-200 rounded-xl p-6 overflow-hidden cursor-default flex flex-col h-full"
+      className="relative flex h-full cursor-default flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-5"
     >
-      {/* Top accent strip */}
-      <div className="absolute top-0 left-0 right-0 h-[3px] accent-shine" aria-hidden />
-
       {/* Top row — location + condition pill */}
       <div className="flex items-start justify-between">
         <div>
@@ -148,8 +143,7 @@ function Stat({ label, value, subValue, icon }: StatProps) {
 
 function WeatherSkeleton() {
   return (
-    <div className="relative bg-white border border-gray-200 rounded-xl p-6 overflow-hidden animate-pulse">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-slate-100" aria-hidden />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 animate-pulse">
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <div className="h-3 w-28 bg-slate-100 rounded" />
@@ -185,8 +179,7 @@ function WeatherErrorState({ message }: { message: string }) {
     : "We'll retry on the next refresh."
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-xl p-6 overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-slate-200" aria-hidden />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5">
       <div className="flex items-center gap-2 text-slate-500">
         <Cloud className="w-4 h-4" aria-hidden />
         <p className="text-xs font-semibold uppercase tracking-wide">Weather</p>

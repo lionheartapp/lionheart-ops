@@ -48,7 +48,7 @@ function isPlatformPublicPath(pathname: string): boolean {
   return PLATFORM_PUBLIC_PATHS.some(p => pathname.startsWith(p))
 }
 
-function isPublicPath(pathname: string) {
+function isPublicPath(pathname: string, method = 'GET') {
   if (PUBLIC_PATHS.has(pathname)) return true
   if (pathname.startsWith('/_next')) return true
   if (pathname.startsWith('/favicon')) return true
@@ -86,9 +86,13 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/stripe/webhook')) return true
   if (pathname.startsWith('/api/it/content-filters/webhook/')) return true
   if (pathname.startsWith('/api/cron/')) return true
+  if (pathname.startsWith('/api/calendar/ical/')) return true
+  if (pathname.match(/^\/api\/calendars\/[^/]+\/feed$/)) return true
   // Public ticket status check
   if (pathname === '/it/ticket-status') return true
+  if (pathname.startsWith('/tickets/')) return true
   if (pathname.match(/^\/api\/it\/tickets\/[^/]+\/status-public$/)) return true
+  if (pathname.startsWith('/api/event-tickets/')) return true
   // Device lookup via QR scan
   if (pathname === '/api/it/devices/lookup') return true
   // Student password self-service (public, no auth)
@@ -101,8 +105,8 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith('/api/registration/')) return true
   // Participant self-service QR endpoint — no auth, registrationId is the access token (Phase 21 QR-03)
   if (pathname.startsWith('/api/events/check-in/')) return true
-  // Survey response submission — public POST (parent portal). GET requires auth and enforces it internally.
-  if (pathname.match(/^\/api\/events\/projects\/[^/]+\/surveys\/[^/]+\/responses$/)) return true
+  // Survey response submission — public POST (parent portal). GET requires staff auth.
+  if (method === 'POST' && pathname.match(/^\/api\/events\/projects\/[^/]+\/surveys\/[^/]+\/responses$/)) return true
   // OAuth callbacks — must be public so OAuth redirects land correctly
   if (pathname.startsWith('/api/integrations/google-calendar/callback')) return true
   if (pathname.startsWith('/api/integrations/planning-center/callback')) return true
@@ -271,7 +275,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (isPublicPath(pathname)) {
+  if (isPublicPath(pathname, req.method)) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
@@ -360,6 +364,8 @@ export async function middleware(req: NextRequest) {
   }
 
   requestHeaders.set('x-org-id', claims.organizationId)
+  requestHeaders.set('x-auth-user-id', claims.userId)
+  requestHeaders.set('x-auth-email', claims.email)
 
   // Messaging feature gate moved to the API routes themselves (D-02 / T-24-06)
   // — PrismaClient cannot run in Edge middleware.

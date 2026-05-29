@@ -7,6 +7,7 @@ import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
 import { Input } from '@/components/ui/Input'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const showcaseCardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -109,7 +110,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link href="/" className="inline-block mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded">
-            <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
+            <OptimizedImage src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
           <h1 className="text-3xl font-semibold mb-2" style={{ color: '#1a1915', letterSpacing: '-0.025em' }}>Create your account</h1>

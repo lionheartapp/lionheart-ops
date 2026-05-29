@@ -12,6 +12,11 @@ import {
 } from 'lucide-react'
 import { useNavIndicator } from '@/lib/hooks/useNavIndicator'
 
+const ACTIVE_NAV_CLASSES = 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
+const INACTIVE_NAV_CLASSES = 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+const NAV_ITEM_CLASSES = 'group relative flex items-center gap-3 px-4 py-2.5 min-h-[44px] border border-transparent rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 cursor-pointer'
+const NAV_ICON_CLASSES = 'w-5 h-5 flex-shrink-0'
+
 interface SupportSectionProps {
   pathname: string
   pageSearchParams: URLSearchParams
@@ -124,27 +129,27 @@ export default function SupportSection({
     if (facilitiesOpen && !canExpandFacilities) setFacilitiesOpen(() => false)
   }, [canExpandIT, canExpandFacilities, itOpen, facilitiesOpen, setItOpen, setFacilitiesOpen])
 
-  if (!showFacilities && !showIT && !showAV) return null
+  if (!showFacilities && !showIT && !showAV && !showApprovals) return null
 
   return (
     <>
-      <div className="px-1 mt-4 mb-1">
+      <div className="px-1 mt-3 mb-1">
         <span className="text-[11px] font-semibold tracking-wider text-slate-400 uppercase">Work</span>
       </div>
-      <ul className="space-y-2" role="list">
+      <ul className="space-y-1.5" role="list">
         {showApprovals && (
           <li>
             <PrefetchLink
               href="/approvals"
               onClick={closePanels}
-              className={`relative flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+              className={`${NAV_ITEM_CLASSES} ${
                 pathname.startsWith('/approvals')
-                  ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                  : 'text-slate-600 hover:bg-white/30 hover:text-slate-900 border border-transparent'
+                  ? ACTIVE_NAV_CLASSES
+                  : INACTIVE_NAV_CLASSES
               }`}
               aria-current={pathname.startsWith('/approvals') ? 'page' : undefined}
             >
-              <ClipboardCheck className={`w-5 h-5 flex-shrink-0 ${pathname.startsWith('/approvals') ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+              <ClipboardCheck className={`${NAV_ICON_CLASSES} ${pathname.startsWith('/approvals') ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
               <span className="text-sm">Approvals</span>
               {approvalCount > 0 && (
                 <span
@@ -170,15 +175,15 @@ export default function SupportSection({
                       return !prev
                     })
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                  className={`w-full ${NAV_ITEM_CLASSES} ${
                     facilitiesOpen
-                      ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]'
-                      : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
+                      ? ACTIVE_NAV_CLASSES
+                      : INACTIVE_NAV_CLASSES
                   }`}
                   aria-expanded={facilitiesOpen}
                   aria-label={facilitiesOpen ? 'Collapse maintenance' : 'Expand maintenance'}
                 >
-                  <Wrench className={`w-5 h-5 flex-shrink-0 ${facilitiesOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+                  <Wrench className={`${NAV_ICON_CLASSES} ${facilitiesOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">Maintenance</span>
                   {(facilitiesGateCount?.count ?? 0) > 0 && (
                     // F-041: badge previously had no label — users couldn't
@@ -321,13 +326,12 @@ export default function SupportSection({
               <PrefetchLink
                 href="/maintenance"
                 onClick={closePanels}
-                className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                  isMaintenancePath ? 'text-slate-900 font-medium' : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                className={`${NAV_ITEM_CLASSES} ${
+                  isMaintenancePath ? ACTIVE_NAV_CLASSES : INACTIVE_NAV_CLASSES
                 }`}
-                style={isMaintenancePath ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={isMaintenancePath ? 'page' : undefined}
               >
-                <Wrench className="w-5 h-5 flex-shrink-0 text-slate-400" strokeWidth={1.5} aria-hidden="true" />
+                <Wrench className={`${NAV_ICON_CLASSES} ${isMaintenancePath ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">Facilities</span>
               </PrefetchLink>
             )}
@@ -346,13 +350,13 @@ export default function SupportSection({
                       return !prev
                     })
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                    itOpen ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]' : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
+                  className={`w-full ${NAV_ITEM_CLASSES} ${
+                    itOpen ? ACTIVE_NAV_CLASSES : INACTIVE_NAV_CLASSES
                   }`}
                   aria-expanded={itOpen}
                   aria-label={itOpen ? 'Collapse IT Help Desk' : 'Expand IT Help Desk'}
                 >
-                  <Monitor className={`w-5 h-5 flex-shrink-0 ${itOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+                  <Monitor className={`${NAV_ICON_CLASSES} ${itOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                   <span className="text-sm">IT Help Desk</span>
                   <motion.span
                     className="ml-auto block"
@@ -467,13 +471,12 @@ export default function SupportSection({
               <PrefetchLink
                 href="/it"
                 onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
-                className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                  isITPath ? 'text-slate-900 font-medium' : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                className={`${NAV_ITEM_CLASSES} ${
+                  isITPath ? ACTIVE_NAV_CLASSES : INACTIVE_NAV_CLASSES
                 }`}
-                style={isITPath ? { background: 'linear-gradient(135deg, #c8d4e4, #d4dbe8, #ddd8e8)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)' } : {}}
                 aria-current={isITPath ? 'page' : undefined}
               >
-                <Monitor className="w-5 h-5 flex-shrink-0 text-slate-400" strokeWidth={1.5} aria-hidden="true" />
+                <Monitor className={`${NAV_ICON_CLASSES} ${isITPath ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
                 <span className="text-sm">IT Help Desk</span>
               </PrefetchLink>
             )}
@@ -490,13 +493,13 @@ export default function SupportSection({
                   return !prev
                 })
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-colors duration-200 border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
-                avOpen ? 'text-slate-900 font-semibold bg-[rgb(236,241,252)]' : 'text-slate-600 hover:bg-white/30 hover:text-slate-900'
+              className={`w-full ${NAV_ITEM_CLASSES} ${
+                avOpen ? ACTIVE_NAV_CLASSES : INACTIVE_NAV_CLASSES
               }`}
               aria-expanded={avOpen}
               aria-label={avOpen ? 'Collapse A/V Production' : 'Expand A/V Production'}
             >
-              <Video className={`w-5 h-5 flex-shrink-0 ${avOpen ? 'text-primary-500' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden="true" />
+              <Video className={`${NAV_ICON_CLASSES} ${avOpen ? 'text-primary-500' : 'text-slate-400 group-hover:text-slate-600'}`} strokeWidth={1.5} aria-hidden="true" />
               <span className="text-sm">A/V Production</span>
               {!avOpen && (avGateCount?.count ?? 0) > 0 && (
                 // F-041: descriptive label so the count isn't ambiguous.

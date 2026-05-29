@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+// eslint-disable-next-line no-restricted-imports -- TenantModule is not managed by the org-scoped Prisma extension; this route explicitly filters by organizationId.
 import { rawPrisma } from '@/lib/db'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -11,6 +12,9 @@ import { cacheOrgWide, invalidateOrgCache } from '@/lib/cache/route-cache'
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
+/**
+ * @authOnly Any signed-in org user may see which modules are enabled for their workspace.
+ */
 export async function GET(req: NextRequest) {
   const log = logger.child({ route: '/api/modules', method: 'GET' })
   try {

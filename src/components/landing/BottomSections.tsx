@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Check, ChevronDown, Mail, Sparkles } from 'lucide-react'
 import { TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER, BORDER_SOFT, SURFACE_ALT, DARK_SURFACE, CARD_SHADOW, REVEAL_VIEWPORT, REVEAL_VARIANTS } from './tokens'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Leo AI section (the one dark section) ─────────────────────────────────
 
@@ -629,7 +630,7 @@ export function Footer() {
       <div className="max-w-[1200px] mx-auto">
         <div className="grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-10 pb-12">
           <div>
-            <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto mb-4" />
+            <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto mb-4" />
             <p className="text-[13px] max-w-[280px]" style={{ lineHeight: 1.6 }}>
               School operations infrastructure for every K-12 school, built by
               people who&rsquo;ve been in the principal&rsquo;s office and the

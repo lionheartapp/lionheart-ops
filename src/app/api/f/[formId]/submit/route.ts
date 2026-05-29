@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public form submission has no auth; it only accepts active forms marked isPublic and writes with that form's organizationId.
 import { rawPrisma } from '@/lib/db'
 import { processFormActions } from '@/lib/services/formActionProcessor'
 
@@ -33,8 +34,12 @@ export async function POST(
     }
 
     // Verify form exists and get its org + settings
-    const form = await rawPrisma.formDefinition.findUnique({
-      where: { id: formId },
+    const form = await rawPrisma.formDefinition.findFirst({
+      where: {
+        id: formId,
+        isPublic: true,
+        status: 'ACTIVE',
+      },
       select: {
         id: true,
         organizationId: true,

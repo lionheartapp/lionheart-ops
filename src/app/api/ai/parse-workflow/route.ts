@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import { geminiService } from '@/lib/services/ai/gemini.service'
 import type { WorkflowContext, ParsedWorkflow } from '@/lib/services/ai/gemini.service'
 import { logger } from '@/lib/logger'
@@ -28,7 +30,8 @@ const ParseWorkflowSchema = z.object({
 export async function POST(req: NextRequest) {
   const log = logger.child({ route: '/api/ai/parse-workflow', method: 'POST' })
   try {
-    await getUserContext(req)
+    const ctx = await getUserContext(req)
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
     const body = await req.json()
     const { text, context } = ParseWorkflowSchema.parse(body)
 
@@ -41,6 +44,9 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid input', error.issues), { status: 400 })
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', error.message), { status: 403 })
     }
     log.error({ err: error }, 'Failed to parse workflow')
     Sentry.captureException(error)

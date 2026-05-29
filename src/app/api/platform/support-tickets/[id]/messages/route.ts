@@ -4,6 +4,7 @@ import { getPlatformContext } from '@/lib/auth/platform-context'
 import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platform-permissions'
 import { addSupportMessage, getTicketWithMessages } from '@/lib/services/platformSupportService'
 import { sendViaResend, sendViaSmtp, getResendConfig, getSmtpConfig } from '@/lib/services/email/transport'
+// eslint-disable-next-line no-restricted-imports -- Platform support messaging operates outside tenant org scoping after platform permission checks.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 

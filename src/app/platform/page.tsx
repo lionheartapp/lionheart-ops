@@ -14,22 +14,13 @@ export default function PlatformPage() {
       title="One workspace for the work that keeps school running."
       description="Lionheart connects daily school operations across events, facilities, IT, forms, messaging, approvals, and payments so staff can see what needs attention without chasing updates across separate tools."
       visual={{
-        photo: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1000&q=82',
-        alt: 'Operations team working together around a shared workspace.',
-        accent: '#0f172a',
-        metric: '12',
-        metricLabel: 'operations modules in one workspace',
-        productTitle: 'Lincoln High today',
-        productSubtitle: 'Platform overview',
-        chips: ['Events', 'Tickets', 'Forms'],
-        rows: [
-          { label: 'Open tickets', value: '12', tone: 'blue' },
-          { label: 'Events', value: '8 today', tone: 'green' },
-          { label: 'Forms', value: '34', tone: 'dark' },
-        ],
+        src: '/marketing/generated/platform-overview.jpg',
+        alt: 'Lionheart Academy platform overview hero image with dashboard cards for events, tickets, forms, and connected school work.',
+        presentation: 'campaign',
+        framing: 'left-detail',
       }}
       stats={[
-        { value: '12', label: 'operations modules connected in one workspace' },
+        { value: '12', label: 'areas of school work connected in one workspace' },
         { value: '30 days', label: 'full trial without a credit card' },
         { value: 'Unlimited', label: 'staff accounts on every paid plan' },
       ]}
@@ -50,11 +41,11 @@ export default function PlatformPage() {
           body: 'Staff messages, notifications, and Leo AI answers live beside the work they reference.',
         },
       ]}
-      checklistTitle="A platform shape for schools that have outgrown disconnected tools."
+      checklistTitle="Bring the daily work of school operations into one calm place."
       checklist={[
-        'Replace scattered spreadsheets, form tools, ticket queues, and chat threads with one operating layer.',
-        'Give office, IT, maintenance, teachers, and administrators a shared source of truth.',
-        'Keep modules connected so events can reference rooms, work orders, messages, forms, and approvals.',
+        'Replace scattered spreadsheets, form tools, ticket queues, and chat threads with one shared view.',
+        'Help office, IT, maintenance, teachers, and administrators see the same status.',
+        'Keep events connected to rooms, work orders, messages, forms, and approvals.',
         'Support single-school and multi-school operations without limiting staff accounts.',
       ]}
       related={[

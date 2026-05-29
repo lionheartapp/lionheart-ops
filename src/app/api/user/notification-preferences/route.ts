@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+// eslint-disable-next-line no-restricted-imports -- NotificationPreference uses a userId/type unique key; this route only reads or writes the authenticated user's rows.
 import { rawPrisma } from '@/lib/db'
 import { NOTIFICATION_TYPES, type NotificationType } from '@/lib/services/notificationService'
 import { cachePerUser, invalidateUserCache } from '@/lib/cache/route-cache'
@@ -22,6 +23,9 @@ const PreferenceUpdateSchema = z.object({
   pauseAll: z.boolean().optional(),
 })
 
+/**
+ * @authOnly Reads and writes only the signed-in user's own notification preferences.
+ */
 export async function GET(req: NextRequest) {
   const log = logger.child({ route: '/api/user/notification-preferences', method: 'GET' })
   try {

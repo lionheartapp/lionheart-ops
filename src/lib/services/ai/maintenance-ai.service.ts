@@ -5,7 +5,7 @@
  *   1. analyzeMaintenancePhotos — Vision-based diagnosis with tools, parts, and steps
  *   2. askMaintenanceAI — Free-form follow-up questions with conversation history
  *
- * Uses gemini-2.0-flash model.
+ * Uses gemini-2.5-flash model.
  * Gracefully returns null on any API or parse failure.
  */
 
@@ -22,7 +22,7 @@ function getApiKey(): string | null {
 
 // ─── Model ────────────────────────────────────────────────────────────────────
 
-const MODEL = 'gemini-2.0-flash'
+const MODEL = 'gemini-2.5-flash'
 
 // ─── Prompts ──────────────────────────────────────────────────────────────────
 

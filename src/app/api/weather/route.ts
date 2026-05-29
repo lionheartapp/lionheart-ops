@@ -1,4 +1,6 @@
 /**
+ * @authOnly Any signed-in org user may read weather for their org location.
+ *
  * Weather API
  *
  * GET /api/weather — Returns current weather for the org's location.
@@ -9,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail, isAuthError } from '@/lib/api-response'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+// eslint-disable-next-line no-restricted-imports -- Weather lookup verifies auth and reads the primary school coordinates scoped to orgId.
 import { rawPrisma } from '@/lib/db'
 import { fetchWeather } from '@/lib/services/weatherService'
 import { logger } from '@/lib/logger'
@@ -35,8 +38,10 @@ export async function GET(req: NextRequest) {
 
       if (!primarySchool?.latitude || !primarySchool?.longitude) {
         return NextResponse.json(
-          fail('NO_LOCATION', 'No location data available. Add a school address to see weather.'),
-          { status: 404 }
+          ok({
+            available: false,
+            message: 'No location data available. Add a school address to see weather.',
+          })
         )
       }
 
@@ -48,12 +53,14 @@ export async function GET(req: NextRequest) {
 
     if (!weather) {
       return NextResponse.json(
-        fail('WEATHER_UNAVAILABLE', 'Weather data is temporarily unavailable'),
-        { status: 503 }
+        ok({
+          available: false,
+          message: 'Weather data is temporarily unavailable',
+        })
       )
     }
 
-    return NextResponse.json(ok(weather))
+    return NextResponse.json(ok({ available: true, ...weather }))
   } catch (error) {
     if (isAuthError(error)) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })

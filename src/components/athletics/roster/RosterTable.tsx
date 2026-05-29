@@ -3,6 +3,7 @@
 import { Edit2, Trash2, ExternalLink } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
 import type { Athlete } from './roster-types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface RosterTableProps {
   players: Athlete[]
@@ -39,7 +40,7 @@ export default function RosterTable({ players, selectedTeamId, onEdit, onDelete 
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     {athlete.photoUrl && (
-                      <img src={athlete.photoUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                      <OptimizedImage src={athlete.photoUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
                     )}
                     <div>
                       <div className="text-sm font-medium text-slate-900">

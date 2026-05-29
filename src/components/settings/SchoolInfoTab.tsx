@@ -161,7 +161,7 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
     }
   }
 
-  const loadSchoolInfo = async () => {
+  const loadSchoolInfo = useCallback(async () => {
     setLoading(true)
     setError('')
 
@@ -185,11 +185,11 @@ export default function SchoolInfoTab({ onDirtyChange, onRegisterSave, onRegiste
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     loadSchoolInfo()
-  }, [])
+  }, [loadSchoolInfo])
 
   useEffect(() => {
     if (!success) return

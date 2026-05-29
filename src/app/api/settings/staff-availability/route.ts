@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+// eslint-disable-next-line no-restricted-imports -- Staff availability reads routing/team helper records with explicit orgId filters after withAuth.
 import { rawPrisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 

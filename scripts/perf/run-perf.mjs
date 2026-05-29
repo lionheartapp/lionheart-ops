@@ -18,6 +18,7 @@
  *   comprehensive   All 55+ endpoints across every module
  *   incidents-load  Security Incidents API load test
  *   incidents-stress Security Incidents API stress test
+ *   worker-readiness Read-only IT + maintenance worker workflow test
  *
  * Options:
  *   --json          Output results as JSON to scripts/perf/results/
@@ -64,6 +65,7 @@ const testFiles = {
   comprehensive:    'comprehensive-test.js',
   'incidents-load':   'incidents-load-test.js',
   'incidents-stress': 'incidents-stress-test.js',
+  'worker-readiness': 'worker-readiness-test.js',
 };
 
 if (!testFiles[testType]) {

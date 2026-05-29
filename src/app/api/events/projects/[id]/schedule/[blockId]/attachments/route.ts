@@ -12,7 +12,7 @@ import * as attachmentService from '@/lib/services/scheduleBlockAttachmentServic
 export const GET = withAuth(async ({ params }) => {
   const attachments = await attachmentService.listAttachments(params.blockId)
   return NextResponse.json(ok(attachments))
-})
+}, { permission: PERMISSIONS.EVENT_PROJECT_READ })
 
 /**
  * POST /api/events/projects/[id]/schedule/[blockId]/attachments

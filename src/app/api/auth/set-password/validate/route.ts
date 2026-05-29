@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fail, ok } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public setup-token validation must read PasswordSetupToken before normal auth exists.
 import { rawPrisma as prisma, type PrismaDelegate } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { logger } from '@/lib/logger'

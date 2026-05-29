@@ -24,6 +24,7 @@ const UnsubscribeSchema = z.object({
   endpoint: z.string().url(),
 })
 
+// @authOnly Push subscriptions are stored only against the signed-in user.
 // POST — register a push subscription
 export const POST = withAuth<z.infer<typeof SubscribeSchema>>(
   async ({ ctx, body }) => {

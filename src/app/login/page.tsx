@@ -5,6 +5,7 @@ import { organizationService } from '@/lib/services'
 import LoginForm from './LoginForm'
 import SchoolLookup from './SchoolLookup'
 import { ImagePosition } from '@prisma/client'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 export const metadata: Metadata = {
   title: 'Sign In | Lionheart',
@@ -20,7 +21,7 @@ export default async function LoginPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900 px-4">
         <div className="w-full max-w-sm text-center">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-12 w-auto mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-white mb-2">Lionheart Platform</h1>
           {/* Audit ref L1: slate-400 on slate-900 was washed-out (AA-barely);
               slate-200 reads as body copy, not disabled text. */}
@@ -60,14 +61,14 @@ export default async function LoginPage() {
       >
         {branding.heroImageUrl ? (
           <div className="relative w-full h-full">
-            <img
+            <OptimizedImage
               src={branding.heroImageUrl}
               alt={`${branding.name} campus`}
               className="absolute inset-0 w-full h-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent" />
             <div className="absolute bottom-12 left-12">
-              <img
+              <OptimizedImage
                 src="/logo-white.svg"
                 alt="Lionheart"
                 className="h-10 w-auto drop-shadow-2xl opacity-80"
@@ -78,7 +79,7 @@ export default async function LoginPage() {
           <div className="text-center px-12">
             <h1 className="text-5xl font-bold text-white mb-4">{branding.name}</h1>
             <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
-            <img
+            <OptimizedImage
               src="/logo-white.svg"
               alt="Lionheart"
               className="h-10 w-auto mx-auto opacity-60"
@@ -97,7 +98,7 @@ export default async function LoginPage() {
           {/* School Logo */}
           <div className="text-center mb-8">
             {branding.logoUrl ? (
-              <img
+              <OptimizedImage
                 src={branding.logoUrl}
                 alt={`${branding.name} logo`}
                 className="h-16 w-auto mx-auto"

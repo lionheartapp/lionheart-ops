@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const STEPS = [
   { number: 1, label: 'Structure', subtitle: 'School and location setup' },
@@ -30,7 +31,7 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
 
         <div className="relative z-10">
           {/* Logo */}
-          <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mb-12" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mb-12" />
 
           {/* Step List */}
           <div className="space-y-0">
@@ -138,7 +139,7 @@ export default function OnboardingSidebar({ activeStep, completedSteps }: Onboar
       {/* Mobile Top Bar */}
       <div className="lg:hidden px-4 py-4" style={{ backgroundColor: '#0b0b0e' }}>
         <div className="flex items-center justify-between">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-7 w-auto" />
 
           {/* Dot indicators + label */}
           <div className="flex items-center gap-3">

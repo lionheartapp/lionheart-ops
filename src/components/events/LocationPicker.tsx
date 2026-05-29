@@ -731,8 +731,9 @@ export default function LocationPicker({ value, onChange, error, spaceTypeFilter
           {/* Venue name — auto-filled from Google or manual entry */}
           {(value.venuePlaceId || addressQuery.length >= 3) && (
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">Venue / Location Name</label>
+              <label htmlFor="event-venue-name" className="text-xs font-medium text-slate-600 mb-1 block">Venue / Location Name</label>
               <Input
+                id="event-venue-name"
                 value={value.venueName}
                 onChange={(e) => onChange({ ...value, venueName: e.target.value })}
                 placeholder="e.g. City Convention Center"

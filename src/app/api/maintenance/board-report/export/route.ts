@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Maintenance board export reads organization metadata by orgId after withAuth before generating the report.
 import { rawPrisma } from '@/lib/db'
 import {
   getBoardReportMetrics,

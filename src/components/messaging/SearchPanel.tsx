@@ -12,6 +12,7 @@ import { Search, X, Hash, Loader2 } from 'lucide-react'
 import { useMessageSearch } from '@/lib/hooks/useMessageSearch'
 import { Input } from '@/components/ui/Input'
 import type { SearchResult } from '@/lib/hooks/useMessageSearch'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -57,7 +58,7 @@ function relativeDate(iso: string): string {
 function Avatar({ name, url }: { name: string; url: string | null }) {
   if (url) {
     return (
-      <img
+      <OptimizedImage
         src={url}
         alt={name}
         className="w-7 h-7 rounded-full object-cover flex-shrink-0"

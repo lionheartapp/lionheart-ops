@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     if (!ctx?.userId || !orgId) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     return await runWithOrgContext(orgId, async () => {
       const org = await cacheOrgWide(orgId, 'compliance:dpa', () =>
@@ -47,7 +48,10 @@ export async function GET(req: NextRequest) {
         dpaReviewDueAt: org?.dpaReviewDueAt,
       }))
     })
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', 'Only administrators can view compliance settings'), { status: 403 })
+    }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to load compliance settings'), { status: 500 })
   }
 }

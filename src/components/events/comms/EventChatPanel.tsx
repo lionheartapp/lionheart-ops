@@ -13,6 +13,7 @@ import { Send, X, MessageCircle } from 'lucide-react'
 import { useEventChat, type ChatMessage } from '@/lib/hooks/useEventChat'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   SURFACE,
   BORDER,
@@ -61,7 +62,7 @@ function MessageBubble({ message, isOwn, showAuthor }: MessageBubbleProps) {
           }}
         >
           {message.userAvatar ? (
-            <img
+            <OptimizedImage
               src={message.userAvatar}
               alt=""
               className="w-full h-full rounded-full object-cover"
@@ -154,7 +155,7 @@ export function EventChatDrawer({
       const unread = newMessages.filter(m => m.userId !== currentUserId).length
       onUnreadChange?.(unread)
     }
-  }, [isOpen, messages.length, onUnreadChange, currentUserId])
+  }, [isOpen, messages, onUnreadChange, currentUserId])
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
