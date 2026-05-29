@@ -10,13 +10,14 @@
  * access.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { usePendingGateCount } from '@/lib/hooks/useEventProject'
 
 export interface SidebarPermissionFlags {
   isSuperAdmin: boolean
   canManageWorkspace: boolean
+  canManageForms: boolean
   canManageMaintenance: boolean
   canClaimMaintenance: boolean
   canSubmitMaintenance: boolean
@@ -51,6 +52,12 @@ function readOptimisticTeamSlugs(): string[] {
 
 export function useSidebarPermissionFlags(): SidebarPermissionFlags {
   const { data: perms } = usePermissions()
+  const [loadBadgeCounts, setLoadBadgeCounts] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setLoadBadgeCounts(true), 10_000)
+    return () => window.clearTimeout(timeout)
+  }, [])
 
   const optimisticRole = readOptimisticRole()
   const optimisticIsAdmin =
@@ -68,6 +75,7 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
 
   const isSuperAdmin = perms?.isSuperAdmin ?? (optimisticRole === 'super-admin')
   const canManageWorkspace = perms?.canManageWorkspace ?? optimisticIsAdmin
+  const canManageForms = perms?.canManageForms ?? optimisticIsAdmin
   const canManageMaintenance = perms?.canManageMaintenance ?? optimisticIsAdmin
   const canClaimMaintenance = perms?.canClaimMaintenance ?? optimisticIsAdmin
   const canSubmitMaintenance = perms?.canSubmitMaintenance ?? true
@@ -113,12 +121,13 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
 
   const canApproveFacilitiesGate = isOnMaintenanceTeam || canManageMaintenance
   const canApproveAVGate = isOnAVTeam || canManageWorkspace
-  const { data: facilitiesGateCount } = usePendingGateCount('facilities', canApproveFacilitiesGate)
-  const { data: avGateCount } = usePendingGateCount('av', canApproveAVGate)
+  const { data: facilitiesGateCount } = usePendingGateCount('facilities', loadBadgeCounts && canApproveFacilitiesGate)
+  const { data: avGateCount } = usePendingGateCount('av', loadBadgeCounts && canApproveAVGate)
 
   return {
     isSuperAdmin,
     canManageWorkspace,
+    canManageForms,
     canManageMaintenance,
     canClaimMaintenance,
     canSubmitMaintenance,

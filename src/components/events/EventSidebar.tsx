@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import type { MyEventPermissions } from '@/lib/hooks/useEventPermissions'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   SURFACE,
   BORDER,
@@ -119,7 +120,7 @@ export default function EventSidebar({ project, activeTab, onTabChange, organiza
       {/* Org logo — matches main nav sizing */}
       <div className="px-4 pt-8 pb-8 flex items-center justify-center">
         {organizationLogoUrl ? (
-          <img
+          <OptimizedImage
             src={organizationLogoUrl}
             alt={organizationName || 'Organization'}
             className="h-10 max-w-[140px] object-contain"

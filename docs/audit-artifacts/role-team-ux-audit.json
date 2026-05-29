@@ -1,0 +1,1776 @@
+{
+  "generatedAt": "2026-05-29T03:00:09.949Z",
+  "baseUrl": "http://127.0.0.1:3011",
+  "organization": {
+    "id": "cmnxogi8s0006mm9mrutfjs1v",
+    "name": "Linfield Christian School",
+    "slug": "linfield-christian-school"
+  },
+  "roles": [
+    {
+      "key": "superAdmin",
+      "label": "Super Admin",
+      "pass": true,
+      "api": {
+        "dashboardMode": "admin",
+        "teamSlugs": [],
+        "permissionsTeams": []
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Forms": true,
+          "Approvals": true,
+          "Maintenance": true,
+          "IT Help Desk": true,
+          "A/V Production": true,
+          "Leo": true
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Approvals": true,
+          "More": true,
+          "IT Tickets": false,
+          "Work Orders": false,
+          "Tickets": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/settings?tab=users",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Members/i",
+            "/Invite|Add member|Users/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Roles/i",
+            "/Create role|New role|Permissions/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/approvals",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Approvals|Pending|Approved/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Help Desk|IT Help Desk|New Ticket|Create Ticket/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Maintenance|Work Orders|New Work Order|Submit Request/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/av/event-approvals",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/All clear!|Approve|Reject|Event Approvals/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is admin",
+          "pass": true,
+          "details": "actual=admin"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /settings?tab=users",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Members/i, /Invite|Add member|Users/i"
+        },
+        {
+          "name": "Can use /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Roles/i, /Create role|New role|Permissions/i"
+        },
+        {
+          "name": "Can use /approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i"
+        },
+        {
+          "name": "Can use /it",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Help Desk|IT Help Desk|New Ticket|Create Ticket/i"
+        },
+        {
+          "name": "Can use /maintenance",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Maintenance|Work Orders|New Work Order|Submit Request/i"
+        },
+        {
+          "name": "Can use /av/event-approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/All clear!|Approve|Reject|Event Approvals/i"
+        }
+      ]
+    },
+    {
+      "key": "admin",
+      "label": "Admin",
+      "pass": true,
+      "api": {
+        "dashboardMode": "admin",
+        "teamSlugs": [],
+        "permissionsTeams": []
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Forms": true,
+          "Approvals": true,
+          "Leo": true,
+          "IT Help Desk": false,
+          "Maintenance": false,
+          "A/V Production": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Approvals": true,
+          "More": true,
+          "IT Tickets": false,
+          "Work Orders": false,
+          "Tickets": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/settings?tab=users",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Members/i",
+            "/Invite|Add member|Users/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Roles/i",
+            "/Create role|New role|Permissions/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/approvals",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Approvals|Pending|Approved/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Devices|Asset Tag|Inventory/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Assets|Equipment|Location/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is admin",
+          "pass": true,
+          "details": "actual=admin"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /settings?tab=users",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Members/i, /Invite|Add member|Users/i"
+        },
+        {
+          "name": "Can use /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Roles/i, /Create role|New role|Permissions/i"
+        },
+        {
+          "name": "Can use /approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i"
+        },
+        {
+          "name": "Can use /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i"
+        },
+        {
+          "name": "Can use /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Assets|Equipment|Location/i"
+        }
+      ]
+    },
+    {
+      "key": "itWorker",
+      "label": "IT Worker",
+      "pass": true,
+      "api": {
+        "dashboardMode": "it",
+        "teamSlugs": [
+          "it-support"
+        ],
+        "permissionsTeams": [
+          "it-support"
+        ]
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "IT Help Desk": true,
+          "Help Desk": true,
+          "Devices": true,
+          "Lifecycle": true,
+          "Security": true,
+          "Inventory": true,
+          "Leo": true,
+          "Forms": false,
+          "Maintenance": false,
+          "A/V Production": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "IT Tickets": true,
+          "More": true,
+          "Approvals": false,
+          "Work Orders": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/it",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Help Desk|IT Help Desk|New Ticket|Create Ticket/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Devices|Asset Tag|Inventory/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/lifecycle",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Lifecycle|Provision|Deployment/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/security",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Security|Incident|CIPA|Filter/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is it",
+          "pass": true,
+          "details": "actual=it"
+        },
+        {
+          "name": "Team includes it-support",
+          "pass": true,
+          "details": "auth=it-support, permissions=it-support"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Devices",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Lifecycle",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Security",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Inventory",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /it",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Help Desk|IT Help Desk|New Ticket|Create Ticket/i"
+        },
+        {
+          "name": "Can use /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i"
+        },
+        {
+          "name": "Can use /it/lifecycle",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Lifecycle|Provision|Deployment/i"
+        },
+        {
+          "name": "Can use /it/security",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Security|Incident|CIPA|Filter/i"
+        },
+        {
+          "name": "Does not expose /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=true, appError=false, matches=none"
+        }
+      ]
+    },
+    {
+      "key": "maintenanceWorker",
+      "label": "Maintenance Worker",
+      "pass": true,
+      "api": {
+        "dashboardMode": "maintenance",
+        "teamSlugs": [
+          "maintenance"
+        ],
+        "permissionsTeams": [
+          "maintenance"
+        ]
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Maintenance": true,
+          "Maintenance Hub": true,
+          "Work Orders": true,
+          "Assets": true,
+          "Knowledge Base": true,
+          "Inventory": true,
+          "Leo": true,
+          "Forms": false,
+          "IT Help Desk": false,
+          "A/V Production": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Work Orders": true,
+          "More": true,
+          "Approvals": false,
+          "IT Tickets": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/maintenance",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Maintenance|Work Orders|New Work Order|Submit Request/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Assets|Equipment|Location/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/knowledge-base",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Knowledge Base|Articles|Search/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/pm-calendar",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Preventive|PM|Calendar|Schedule/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is maintenance",
+          "pass": true,
+          "details": "actual=maintenance"
+        },
+        {
+          "name": "Team includes maintenance",
+          "pass": true,
+          "details": "auth=maintenance, permissions=maintenance"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Maintenance Hub",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Assets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Knowledge Base",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Inventory",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /maintenance",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Maintenance|Work Orders|New Work Order|Submit Request/i"
+        },
+        {
+          "name": "Can use /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Assets|Equipment|Location/i"
+        },
+        {
+          "name": "Can use /maintenance/knowledge-base",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Knowledge Base|Articles|Search/i"
+        },
+        {
+          "name": "Can use /maintenance/pm-calendar",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Preventive|PM|Calendar|Schedule/i"
+        },
+        {
+          "name": "Does not expose /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        }
+      ]
+    },
+    {
+      "key": "avWorker",
+      "label": "A/V Worker",
+      "pass": true,
+      "api": {
+        "dashboardMode": "av",
+        "teamSlugs": [
+          "av-production"
+        ],
+        "permissionsTeams": [
+          "av-production"
+        ]
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Approvals": true,
+          "A/V Production": true,
+          "Event Approvals": true,
+          "Leo": true,
+          "Forms": false,
+          "IT Help Desk": false,
+          "Maintenance": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Tickets": true,
+          "More": true,
+          "IT Tickets": false,
+          "Work Orders": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/av/event-approvals",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/All clear!|Approve|Reject|Event Approvals/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/approvals",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Approvals|Pending|Approved/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/events",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Events|Create Event|Calendar/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is av",
+          "pass": true,
+          "details": "actual=av"
+        },
+        {
+          "name": "Team includes av-production",
+          "pass": true,
+          "details": "auth=av-production, permissions=av-production"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Event Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /av/event-approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/All clear!|Approve|Reject|Event Approvals/i"
+        },
+        {
+          "name": "Can use /approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Approvals|Pending|Approved/i"
+        },
+        {
+          "name": "Can use /events",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Events|Create Event|Calendar/i"
+        },
+        {
+          "name": "Does not expose /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=true, appError=false, matches=none"
+        }
+      ]
+    },
+    {
+      "key": "member",
+      "label": "Teacher / Staff Member",
+      "pass": true,
+      "api": {
+        "dashboardMode": "default",
+        "teamSlugs": [],
+        "permissionsTeams": []
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Leo": true,
+          "Forms": false,
+          "Approvals": false,
+          "IT Help Desk": false,
+          "Maintenance": false,
+          "A/V Production": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Tickets": true,
+          "More": true,
+          "Approvals": false,
+          "IT Tickets": false,
+          "Work Orders": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/tickets",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Tickets|Submit|Request/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/calendar",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Calendar|Today|Month/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/forms",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Forms|Create Form|Template|Builder/i"
+          ],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/approvals",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is default",
+          "pass": true,
+          "details": "actual=default"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /tickets",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Tickets|Submit|Request/i"
+        },
+        {
+          "name": "Can use /calendar",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Calendar|Today|Month/i"
+        },
+        {
+          "name": "Does not expose /forms",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=true, appError=false, matches=/Forms|Create Form|Template|Builder/i"
+        },
+        {
+          "name": "Does not expose /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=true, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=true, appError=false, matches=none"
+        }
+      ]
+    },
+    {
+      "key": "viewer",
+      "label": "Viewer",
+      "pass": true,
+      "api": {
+        "dashboardMode": "default",
+        "teamSlugs": [],
+        "permissionsTeams": []
+      },
+      "desktop": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Leo": true,
+          "Forms": false,
+          "Approvals": false,
+          "IT Help Desk": false,
+          "Maintenance": false,
+          "A/V Production": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "mobile": {
+        "visible": {
+          "Dashboard": true,
+          "Calendar": true,
+          "Messages": true,
+          "Tickets": true,
+          "More": true,
+          "Approvals": false,
+          "IT Tickets": false,
+          "Work Orders": false
+        },
+        "consoleErrors": [],
+        "failedRequests": [],
+        "appError": false
+      },
+      "routes": [
+        {
+          "path": "/dashboard",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Dashboard|Today|Upcoming/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/calendar",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Calendar|Today|Month/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/forms",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Forms|Create Form|Template|Builder/i"
+          ],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/settings?tab=roles",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/approvals",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/it/devices",
+          "status": 200,
+          "shouldShow": true,
+          "hasExpectedUi": true,
+          "visibleMatches": [
+            "/Devices|Asset Tag|Inventory/i"
+          ],
+          "hasDenied": false,
+          "hasAppError": false,
+          "pass": true
+        },
+        {
+          "path": "/maintenance/assets",
+          "status": 200,
+          "shouldShow": false,
+          "hasExpectedUi": false,
+          "visibleMatches": [],
+          "hasDenied": true,
+          "hasAppError": false,
+          "pass": true
+        }
+      ],
+      "checks": [
+        {
+          "name": "Login and current-user API works",
+          "pass": true,
+          "details": "me=200, permissions=200"
+        },
+        {
+          "name": "Home mode is default",
+          "pass": true,
+          "details": "actual=default"
+        },
+        {
+          "name": "Desktop shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop shows Leo",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Forms",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides IT Help Desk",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides Maintenance",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop hides A/V Production",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Dashboard",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Calendar",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Messages",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile shows More",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Approvals",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides IT Tickets",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile hides Work Orders",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Desktop has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Mobile has no browser app error",
+          "pass": true,
+          "details": ""
+        },
+        {
+          "name": "Can use /dashboard",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Dashboard|Today|Upcoming/i"
+        },
+        {
+          "name": "Can use /calendar",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Calendar|Today|Month/i"
+        },
+        {
+          "name": "Does not expose /forms",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=true, appError=false, matches=/Forms|Create Form|Template|Builder/i"
+        },
+        {
+          "name": "Does not expose /settings?tab=roles",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Does not expose /approvals",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=false, appError=false, matches=none"
+        },
+        {
+          "name": "Can use /it/devices",
+          "pass": true,
+          "details": "status=200, expectedUi=true, denied=false, appError=false, matches=/Devices|Asset Tag|Inventory/i"
+        },
+        {
+          "name": "Does not expose /maintenance/assets",
+          "pass": true,
+          "details": "status=200, expectedUi=false, denied=true, appError=false, matches=none"
+        }
+      ]
+    }
+  ],
+  "failCount": 0,
+  "pass": true
+}

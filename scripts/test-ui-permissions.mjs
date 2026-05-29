@@ -1,21 +1,105 @@
 #!/usr/bin/env node
 
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
 
-const prisma = new PrismaClient()
-const BASE_URL = 'http://localhost:3004'
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    },
+  },
+})
+const BASE_URL = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
+const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
+
+async function resolveOrganizationId() {
+  const preferred = await prisma.organization.findFirst({
+    where: { slug: preferredOrgSlug },
+    select: { id: true },
+  })
+
+  if (preferred) return preferred.id
+
+  const fallback = await prisma.organization.findFirst({ select: { id: true } })
+  if (!fallback) throw new Error('No organization found in database for smoke test')
+
+  return fallback.id
+}
+
+async function ensureSuperAdminRole(organizationId) {
+  const existing = await prisma.role.findFirst({
+    where: { organizationId, slug: 'super-admin' },
+    select: { id: true },
+  })
+
+  if (existing) return existing.id
+
+  const wildcard = await prisma.permission.upsert({
+    where: {
+      resource_action_scope: {
+        resource: '*',
+        action: '*',
+        scope: 'global',
+      },
+    },
+    update: {},
+    create: {
+      resource: '*',
+      action: '*',
+      scope: 'global',
+      description: 'Wildcard permission for smoke tests',
+    },
+  })
+
+  const role = await prisma.role.create({
+    data: {
+      organizationId,
+      name: `Smoke UI Permission Admin ${Date.now()}`,
+      slug: `smoke-ui-permission-admin-${Date.now()}`,
+      description: 'Temporary super-admin role for UI permission smoke tests',
+      isSystem: false,
+      permissions: {
+        create: [{ permissionId: wildcard.id }],
+      },
+    },
+    select: { id: true },
+  })
+
+  return role.id
+}
+
+async function createSmokeAdmin(organizationId) {
+  const password = 'SmokeAdmin123!'
+  const passwordHash = await bcrypt.hash(password, 10)
+  const roleId = await ensureSuperAdminRole(organizationId)
+  const user = await prisma.user.create({
+    data: {
+      organizationId,
+      email: `smoke+ui-permissions-${Date.now()}@example.com`,
+      firstName: 'Smoke',
+      lastName: 'Admin',
+      name: 'Smoke Admin',
+      passwordHash,
+      emailVerified: true,
+      status: 'ACTIVE',
+      roleId,
+    },
+    select: { id: true, email: true },
+  })
+
+  return { ...user, password }
+}
 
 async function testPermissions() {
+  let smokeUser = null
   try {
-    // Get org ID
-    const org = await prisma.organization.findFirst({
-      where: { slug: 'demo' },
-      select: { id: true },
-    })
-    
-    if (!org) {
-      throw new Error('Demo organization not found')
-    }
+    const organizationId = await resolveOrganizationId()
+    smokeUser = await createSmokeAdmin(organizationId)
 
     // Login
     console.log('🔐 Logging in as admin...')
@@ -23,9 +107,9 @@ async function testPermissions() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: 'admin@demo.com',
-        password: 'test123',
-        organizationId: org.id,
+        email: smokeUser.email,
+        password: smokeUser.password,
+        organizationId,
       }),
     })
 
@@ -65,7 +149,7 @@ async function testPermissions() {
     const rolesRes = await fetch(`${BASE_URL}/api/settings/roles`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'X-Organization-ID': org.id,
+        'X-Organization-ID': organizationId,
       },
     })
 
@@ -82,7 +166,7 @@ async function testPermissions() {
     const teamsRes = await fetch(`${BASE_URL}/api/settings/teams`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'X-Organization-ID': org.id,
+        'X-Organization-ID': organizationId,
       },
     })
 
@@ -94,9 +178,15 @@ async function testPermissions() {
       console.log(`✅ Teams endpoint works (${teamsData.data.length} teams)`)
     }
 
+    if (smokeUser?.id) {
+      await prisma.user.delete({ where: { id: smokeUser.id } }).catch(() => {})
+    }
     await prisma.$disconnect()
   } catch (error) {
     console.error('\n❌ Error:', error.message)
+    if (smokeUser?.id) {
+      await prisma.user.delete({ where: { id: smokeUser.id } }).catch(() => {})
+    }
     await prisma.$disconnect()
     process.exit(1)
   }

@@ -18,6 +18,7 @@ import PersonSearchPanel from './PersonSearchPanel'
 import type { PersonSearchUser } from './PersonSearchPanel'
 import dynamic from 'next/dynamic'
 import { htmlToPlainText } from './rich-text-utils'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const RichTextEditor = dynamic(() => import('./RichTextEditor'), { ssr: false })
 
@@ -139,7 +140,7 @@ export default function NewMessageView({ onChannelSelected, onClose }: NewMessag
               className="inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 bg-primary-50 border border-primary-200 rounded-lg text-sm"
             >
               {r.avatar ? (
-                <img src={r.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <OptimizedImage src={r.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
               ) : (
                 <span className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[9px] font-medium text-white">
                   {initials}

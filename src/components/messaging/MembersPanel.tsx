@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { X, LogOut, Loader2, Crown, Shield, UserMinus } from 'lucide-react'
 import { useChannel } from '@/lib/hooks/useChannels'
 import { useAuth } from '@/lib/hooks/useAuth'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MembersPanelProps {
   channelId: string
@@ -127,7 +128,7 @@ export default function MembersPanel({ channelId, onClose, onLeave }: MembersPan
               className="group/member flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors"
             >
               {m.user.avatar ? (
-                <img src={m.user.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                <OptimizedImage src={m.user.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-[11px] font-medium text-white">{initials}</span>

@@ -119,26 +119,26 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      const token = await signAuthToken({
-        userId: user.id,
-        organizationId,
-        email: user.email,
-      })
-
-      const organization = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: {
-          name: true,
-          logoUrl: true,
-          onboardingStatus: true,
-        },
-      })
-
-      // Fetch teams via junction table
-      const memberships = await prisma.userTeam.findMany({
-        where: { userId: user.id },
-        select: { team: { select: { name: true, slug: true } } },
-      })
+      const [token, organization, memberships] = await Promise.all([
+        signAuthToken({
+          userId: user.id,
+          organizationId,
+          email: user.email,
+        }),
+        prisma.organization.findUnique({
+          where: { id: organizationId },
+          select: {
+            name: true,
+            logoUrl: true,
+            onboardingStatus: true,
+          },
+        }),
+        // Fetch teams via junction table
+        prisma.userTeam.findMany({
+          where: { userId: user.id },
+          select: { team: { select: { name: true, slug: true } } },
+        }),
+      ])
       const teamName = memberships[0]?.team?.name ?? null
       const teamSlugs = memberships.map((m) => m.team.slug)
 

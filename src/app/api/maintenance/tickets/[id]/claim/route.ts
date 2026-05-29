@@ -10,6 +10,7 @@
 import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+import { PERMISSIONS } from '@/lib/permissions'
 import { claimTicket } from '@/lib/services/maintenanceTicketService'
 
 export const POST = withAuth(async ({ orgId, ctx, params }) => {
@@ -33,4 +34,4 @@ export const POST = withAuth(async ({ orgId, ctx, params }) => {
     }
     throw error
   }
-})
+}, { permission: PERMISSIONS.MAINTENANCE_CLAIM })

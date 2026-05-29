@@ -3,10 +3,15 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getItem, updateItem, updateAVEquipment, deleteItem, UpdateItemSchema, UpdateAVEquipmentSchema } from '@/lib/services/inventoryService'
+import { inventoryErrorResponse } from '../error-response'
 
 export const GET = withAuth(async ({ orgId, params }) => {
-  const item = await getItem(orgId, params.id)
-  return NextResponse.json(ok(item))
+  try {
+    const item = await getItem(orgId, params.id)
+    return NextResponse.json(ok(item))
+  } catch (error) {
+    return inventoryErrorResponse(error)
+  }
 }, { permission: PERMISSIONS.INVENTORY_READ })
 
 export const PUT = withAuth(async ({ req, orgId, params }) => {
@@ -21,8 +26,12 @@ export const PUT = withAuth(async ({ req, orgId, params }) => {
         { status: 400 }
       )
     }
-    const item = await updateAVEquipment(orgId, params.id, parsed.data)
-    return NextResponse.json(ok(item))
+    try {
+      const item = await updateAVEquipment(orgId, params.id, parsed.data)
+      return NextResponse.json(ok(item))
+    } catch (error) {
+      return inventoryErrorResponse(error)
+    }
   }
 
   // Legacy update
@@ -34,11 +43,19 @@ export const PUT = withAuth(async ({ req, orgId, params }) => {
     )
   }
 
-  const item = await updateItem(orgId, params.id, parsed.data)
-  return NextResponse.json(ok(item))
+  try {
+    const item = await updateItem(orgId, params.id, parsed.data)
+    return NextResponse.json(ok(item))
+  } catch (error) {
+    return inventoryErrorResponse(error)
+  }
 }, { permission: PERMISSIONS.INVENTORY_UPDATE })
 
 export const DELETE = withAuth(async ({ orgId, params }) => {
-  await deleteItem(orgId, params.id)
-  return NextResponse.json(ok({ deleted: true }))
+  try {
+    await deleteItem(orgId, params.id)
+    return NextResponse.json(ok({ deleted: true }))
+  } catch (error) {
+    return inventoryErrorResponse(error)
+  }
 }, { permission: PERMISSIONS.INVENTORY_DELETE })

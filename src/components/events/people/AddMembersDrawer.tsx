@@ -10,6 +10,7 @@ import type { OrgUser, StagedMember } from './people-types'
 import { getUserName, getInitials } from './people-types'
 import { RolePicker } from './RolePicker'
 import { UserSearchDropdown } from './UserSearchDropdown'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface AddMembersDrawerProps {
   isOpen: boolean
@@ -143,7 +144,7 @@ export function AddMembersDrawer({
                     onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
                   >
                     {s.user.avatar ? (
-                      <img src={s.user.avatar} alt={getUserName(s.user)} className="w-8 h-8 rounded-full object-cover" />
+                      <OptimizedImage src={s.user.avatar} alt={getUserName(s.user)} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
                         {getInitials(s.user)}

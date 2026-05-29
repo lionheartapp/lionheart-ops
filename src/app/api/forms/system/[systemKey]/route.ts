@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 import { seedSystemForms } from '@/lib/services/formService'
 
 const FULL_FORM_INCLUDE = {
@@ -47,5 +48,6 @@ export const GET = withAuth<unknown, { systemKey: string }>(
     }
 
     return NextResponse.json(ok(form))
-  }
+  },
+  { permission: PERMISSIONS.FORMS_MANAGE }
 )

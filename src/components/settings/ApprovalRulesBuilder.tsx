@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -147,7 +148,7 @@ function SortableStepRow({
 
       {/* Step avatar / number */}
       {step.assignedUser?.avatar ? (
-        <img src={step.assignedUser.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+        <OptimizedImage src={step.assignedUser.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
       ) : (
         <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-600 flex-shrink-0">
           {executionMode === 'PARALLEL' ? '∥' : idx + 1}
@@ -314,9 +315,9 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
     },
   })
 
-  const allRules = data?.rules ?? []
+  const allRules = useMemo(() => data?.rules ?? [], [data?.rules])
   const schools = data?.schools ?? []
-  const campuses = data?.campuses ?? []
+  const campuses = useMemo(() => data?.campuses ?? [], [data?.campuses])
   const categories = data?.categories ?? []
   const buildings = data?.buildings ?? []
   const teams = data?.teams ?? []
@@ -430,11 +431,11 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
 
   const updateStep = useCallback((ruleId: string, stepId: string, data: Record<string, unknown>) => {
     mutate.mutate({ method: 'PUT', url: `${apiBase}/${ruleId}/steps`, body: { stepId, ...data } })
-  }, [mutate])
+  }, [apiBase, mutate])
 
   const removeStep = useCallback((ruleId: string, stepId: string) => {
     mutate.mutate({ method: 'DELETE', url: `${apiBase}/${ruleId}/steps`, body: { stepId } })
-  }, [mutate])
+  }, [apiBase, mutate])
 
   // Step reorder handler — optimistic update + single background save
   const handleStepDragEnd = useCallback((event: DragEndEvent) => {
@@ -477,7 +478,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
     }).catch(() => {
       queryClient.invalidateQueries({ queryKey: ['approval-rules', module] })
     })
-  }, [selectedRule, queryClient])
+  }, [selectedRule, queryClient, apiBase, module])
 
   const isEmbedded = !!formDefinitionId
 

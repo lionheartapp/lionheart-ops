@@ -10,6 +10,7 @@ import AnimatedFormField from '@/components/onboarding/AnimatedFormField'
 import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import { FileInput } from '@/components/ui/FileInput'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface SchoolData {
   name: string
@@ -426,7 +427,7 @@ export default function SchoolInfoPage() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4 min-w-0">
                 {data.logo ? (
-                  <img
+                  <OptimizedImage
                     src={data.logo}
                     alt={data.name || 'School logo'}
                     className="w-16 h-16 bg-white rounded-lg p-2 object-contain flex-shrink-0"
@@ -670,7 +671,7 @@ export default function SchoolInfoPage() {
                 <label className="block text-sm font-medium text-slate-900 mb-1.5">Logo</label>
                 <div className="flex items-center gap-4">
                   {data.logo ? (
-                    <img
+                    <OptimizedImage
                       src={data.logo}
                       alt="logo"
                       className="w-20 h-20 bg-slate-100 rounded-lg p-1 object-contain border border-slate-200"

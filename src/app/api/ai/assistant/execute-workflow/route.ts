@@ -10,6 +10,8 @@
  *   data: {"type":"workflow_step_failed","stepNumber":1,"error":"..."}
  *   data: {"type":"workflow_complete","summary":"..."}
  *   data: {"type":"error","message":"..."}
+ *
+ * @authOnly The route is signed-in only; executeTool and executeAction enforce each step's permission.
  */
 
 import { NextRequest, NextResponse } from 'next/server'

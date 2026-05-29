@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public student reset request resolves org by slug, verifies student/email, and rate-limits before token generation.
 import { rawPrisma } from '@/lib/db'
 import {
   lookupStudent,

@@ -170,13 +170,15 @@ export async function listSupportTickets(params: {
  */
 export async function listOrgSupportTickets(organizationId: string, params: {
   status?: PlatformTicketStatus
+  submittedByUserId?: string
   page?: number
   perPage?: number
 }) {
-  const { status, page = 1, perPage = 20 } = params
+  const { status, submittedByUserId, page = 1, perPage = 20 } = params
 
   const where: Record<string, unknown> = { organizationId }
   if (status) where.status = status
+  if (submittedByUserId) where.submittedByUserId = submittedByUserId
 
   const [tickets, total] = await Promise.all([
     rawPrisma.platformSupportTicket.findMany({

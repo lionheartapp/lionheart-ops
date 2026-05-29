@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
+
+dotenv.config({ path: '.env.local', override: true, quiet: true })
+dotenv.config({ quiet: true })
 
 // Use DIRECT_URL to bypass PgBouncer prepared statement restrictions
 const prisma = new PrismaClient({
@@ -12,8 +16,35 @@ const prisma = new PrismaClient({
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3004'
 const preferredOrgSlug = process.env.SMOKE_ORG_SLUG || 'demo'
 
+let csrfToken = null
+
+function extractCsrfCookie(res) {
+  const setCookie = res.headers.get('set-cookie') || ''
+  const match = setCookie.match(/csrf-token=([^;]+)/)
+  return match ? match[1] : null
+}
+
 async function req(path, options = {}) {
+  if (csrfToken && options.headers) {
+    options = { ...options, headers: { ...options.headers, 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } }
+  }
+
   const res = await fetch(`${baseUrl}${path}`, options)
+
+  if (res.status === 403 && !csrfToken) {
+    const token = extractCsrfCookie(res)
+    if (token) {
+      csrfToken = token
+      if (options.headers) {
+        options = { ...options, headers: { ...options.headers, 'X-CSRF-Token': csrfToken, Cookie: `csrf-token=${csrfToken}` } }
+      }
+      const retry = await fetch(`${baseUrl}${path}`, options)
+      let json = null
+      try { json = await retry.json() } catch {}
+      return { res: retry, json }
+    }
+  }
+
   let json = null
   try {
     json = await res.json()
@@ -126,7 +157,7 @@ async function runTicketsSmoke(email, password, organizationId) {
   // Login to get auth token
   const login = await req('/api/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-e2e-run': 'local' },
     body: JSON.stringify({ email, password, organizationId }),
   })
 
@@ -139,16 +170,16 @@ async function runTicketsSmoke(email, password, organizationId) {
   const setCookie = login.res.headers.get('set-cookie')
 
   let authHeaders
-  if (setCookie) {
-    const cookieValue = setCookie.split(';')[0]
+  if (token) {
     authHeaders = {
-      Cookie: cookieValue,
+      Authorization: `Bearer ${token}`,
       'X-Organization-ID': organizationId,
       'Content-Type': 'application/json',
     }
-  } else if (token) {
+  } else if (setCookie) {
+    const cookieValue = setCookie.split(';')[0]
     authHeaders = {
-      Authorization: `Bearer ${token}`,
+      Cookie: cookieValue,
       'X-Organization-ID': organizationId,
       'Content-Type': 'application/json',
     }

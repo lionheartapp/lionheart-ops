@@ -8,7 +8,6 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 import { getTicketDetail, assignTicket } from '@/lib/services/maintenanceTicketService'
 
@@ -29,7 +28,7 @@ export const GET = withAuth(async ({ orgId, ctx, params, permissions }) => {
   }
 
   // Fetch latest routing assignment log for this ticket
-  const assignmentLog = await rawPrisma.ticketAssignmentLog.findFirst({
+  const assignmentLog = await prisma.ticketAssignmentLog.findFirst({
     where: { ticketId: params.id, module: 'MAINTENANCE' },
     orderBy: { createdAt: 'desc' },
     select: { reason: true, strategy: true, source: true, createdAt: true },
@@ -68,7 +67,7 @@ export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {
     updateData.photos = [...current.photos, ...photos]
 
     // Log PHOTO_ADDED activity
-    await rawPrisma.maintenanceTicketActivity.create({
+    await prisma.maintenanceTicketActivity.create({
       data: {
         organizationId: orgId,
         ticketId: params.id,

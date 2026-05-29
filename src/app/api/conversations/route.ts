@@ -1,4 +1,6 @@
 /**
+ * @authOnly Lists only Leo conversations owned by the signed-in user.
+ *
  * GET /api/conversations — List Leo conversations for the current user
  *
  * Returns a paginated list of conversations ordered by most recently updated.
@@ -7,7 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok, fail } from '@/lib/api-response'
+import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { getConversations } from '@/lib/services/ai/conversationService'
 

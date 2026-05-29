@@ -8,6 +8,7 @@ import ChoiceButtons from './ChoiceButtons'
 import SuggestionChips from './SuggestionChips'
 import AnimatedOrb, { type OrbState } from './AnimatedOrb'
 import StructuredList, { parseStructuredLists, type OnItemClick } from './StructuredList'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MessageListProps {
   conversation: ConversationTurn[]
@@ -312,7 +313,7 @@ export default function MessageList({
                       className="block rounded-md overflow-hidden border border-white/20 hover:opacity-80 transition-opacity cursor-pointer"
                       title={img.name}
                     >
-                      <img
+                      <OptimizedImage
                         src={`data:${img.mimeType};base64,${img.data}`}
                         alt={img.name}
                         className="w-16 h-16 object-cover"

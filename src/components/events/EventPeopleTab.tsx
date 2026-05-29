@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { TeamSkeleton } from './people/TeamSkeleton'
 import { AddMembersDrawer } from './people/AddMembersDrawer'
 import { EditRoleDrawer } from './people/EditRoleDrawer'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface EventPeopleTabProps {
   eventProjectId: string
@@ -147,7 +148,7 @@ export function EventPeopleTab({ eventProjectId, createdById }: EventPeopleTabPr
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {member.user.avatar ? (
-                        <img
+                        <OptimizedImage
                           src={member.user.avatar}
                           alt={getUserName(member.user)}
                           className="w-9 h-9 rounded-full object-cover flex-shrink-0"

@@ -20,7 +20,7 @@ export const GET = withAuth(async ({ orgId }) => {
 
   const templates = await listTemplates()
   return NextResponse.json(ok(templates))
-})
+}, { permission: PERMISSIONS.FORMS_MANAGE })
 
 const SaveTemplateSchema = z.object({
   formId: z.string().min(1),

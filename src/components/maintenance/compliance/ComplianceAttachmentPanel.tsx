@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Paperclip, X, FileText, Image, Loader2, UploadCloud } from 'lucide-react'
+import { Paperclip, X, FileText, Image as ImageIcon, Loader2, UploadCloud } from 'lucide-react'
 import { getAuthHeaders } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { FileInput } from '@/components/ui/FileInput'
@@ -21,7 +21,7 @@ const MAX_ATTACHMENTS = 10
 function getFileIcon(url: string) {
   const lower = url.toLowerCase()
   if (lower.includes('.pdf')) return <FileText className="w-4 h-4 text-red-500" />
-  if (lower.match(/\.(png|jpg|jpeg|gif|webp)/)) return <Image className="w-4 h-4 text-blue-500" />
+  if (lower.match(/\.(png|jpg|jpeg|gif|webp)/)) return <ImageIcon className="w-4 h-4 text-blue-500" />
   return <FileText className="w-4 h-4 text-slate-400" />
 }
 

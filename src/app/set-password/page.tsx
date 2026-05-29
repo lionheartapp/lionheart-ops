@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
 import { validatePassword } from '@/lib/validation/password'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 function SetPasswordContent() {
   const searchParams = useSearchParams()
@@ -97,7 +98,7 @@ function SetPasswordContent() {
           <div className="text-center px-12">
             <h1 className="text-5xl font-bold text-white mb-4">Lionheart</h1>
             <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
-            <img
+            <OptimizedImage
               src="/logo-white.svg"
               alt="Lionheart"
               className="h-10 w-auto mx-auto opacity-60"
@@ -109,7 +110,7 @@ function SetPasswordContent() {
         <div className="flex-1 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8 order-2">
           <div className="w-full max-w-md text-center">
             <div className="lg:hidden mb-8">
-              <img src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
+              <OptimizedImage src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
             </div>
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
               <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -140,7 +141,7 @@ function SetPasswordContent() {
         <div className="text-center px-12">
           <h1 className="text-5xl font-bold text-white mb-4">Lionheart</h1>
           <p className="text-xl text-slate-300 mb-12">Operations Platform</p>
-          <img
+          <OptimizedImage
             src="/logo-white.svg"
             alt="Lionheart"
             className="h-10 w-auto mx-auto opacity-60"
@@ -152,7 +153,7 @@ function SetPasswordContent() {
       <div className="flex-1 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8 order-2">
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-8">
-            <img src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
+            <OptimizedImage src="/logo.svg" alt="Lionheart" className="h-12 w-auto mx-auto" />
           </div>
 
           <div className="space-y-6">

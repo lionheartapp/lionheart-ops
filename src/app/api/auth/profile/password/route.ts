@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Password change needs passwordHash and verifies ctx.organizationId before updating by organizationId/email.
 import { rawPrisma } from '@/lib/db'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
@@ -37,8 +38,12 @@ export async function PATCH(request: NextRequest) {
     const input = PasswordChangeSchema.parse(body)
 
     // Use rawPrisma for auth-related lookups (bypasses org-scope)
-    const user = await rawPrisma.user.findUnique({
-      where: { id: userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: userId,
+        organizationId,
+        deletedAt: null,
+      },
       select: { email: true, passwordHash: true, organizationId: true },
     })
 

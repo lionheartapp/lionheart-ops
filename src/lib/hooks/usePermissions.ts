@@ -11,6 +11,7 @@ interface UserTeam {
 
 interface Permissions {
   canManageWorkspace: boolean
+  canManageForms: boolean
   canWriteAthletics: boolean
   canManageUsers: boolean
   canManageMaintenance: boolean

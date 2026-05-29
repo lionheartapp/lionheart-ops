@@ -13,6 +13,8 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 
 export interface WeatherSnapshot {
+  /** Whether the server could fetch live weather. */
+  available: true
   /** Current temperature in Fahrenheit. */
   temp: number
   /** Human-readable condition, e.g. "Partly cloudy". */
@@ -26,6 +28,13 @@ export interface WeatherSnapshot {
   /** Apparent temperature in Fahrenheit. */
   feelsLike: number
 }
+
+interface WeatherUnavailable {
+  available: false
+  message: string
+}
+
+type WeatherApiResponse = WeatherSnapshot | WeatherUnavailable
 
 interface UseWeatherOptions {
   /** Override coordinates. Otherwise the server uses the org's primary school. */
@@ -44,14 +53,14 @@ interface UseWeatherResult {
 export function useWeather(options: UseWeatherOptions = {}): UseWeatherResult {
   const { latitude, longitude, enabled = true } = options
 
-  const query = useQuery<WeatherSnapshot>({
+  const query = useQuery<WeatherApiResponse>({
     queryKey: ['weather', latitude ?? null, longitude ?? null],
     queryFn: () => {
       const params = new URLSearchParams()
       if (latitude !== undefined) params.set('lat', String(latitude))
       if (longitude !== undefined) params.set('lng', String(longitude))
       const qs = params.toString()
-      return fetchApi<WeatherSnapshot>(qs ? `/api/weather?${qs}` : '/api/weather')
+      return fetchApi<WeatherApiResponse>(qs ? `/api/weather?${qs}` : '/api/weather')
     },
     enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes — matches server-side cache TTL
@@ -59,9 +68,12 @@ export function useWeather(options: UseWeatherOptions = {}): UseWeatherResult {
     retry: 1,
   })
 
+  const data = query.data?.available ? query.data : null
+  const unavailableMessage = query.data && !query.data.available ? query.data.message : null
+
   return {
-    data: query.data ?? null,
+    data,
     loading: query.isLoading,
-    error: query.error instanceof Error ? query.error.message : null,
+    error: unavailableMessage ?? (query.error instanceof Error ? query.error.message : null),
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+// eslint-disable-next-line no-restricted-imports -- rawPrisma is only used for the explicit permanent delete path to bypass the soft-delete extension after org ownership is verified.
 import { prisma, rawPrisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
 import { PERMISSIONS } from '@/lib/permissions'

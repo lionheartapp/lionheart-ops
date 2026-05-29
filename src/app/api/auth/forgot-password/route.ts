@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public password reset starts before a user is authenticated; every lookup is scoped by submitted organizationId and returns generic responses.
 import { rawPrisma } from '@/lib/db'
 import {
   generateSetupToken,

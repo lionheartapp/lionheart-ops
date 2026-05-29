@@ -19,6 +19,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getComplianceRecordsForExport } from '@/lib/services/complianceService'
 import { COMPLIANCE_DOMAIN_DEFAULTS, COMPLIANCE_DOMAINS } from '@/lib/types/compliance'
+// eslint-disable-next-line no-restricted-imports -- Compliance export reads organization metadata by orgId after withAuth before generating the report.
 import { rawPrisma } from '@/lib/db'
 import type { ComplianceDomain } from '@prisma/client'
 

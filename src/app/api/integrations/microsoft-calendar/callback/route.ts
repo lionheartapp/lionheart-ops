@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- OAuth callback is unauthenticated; signed state identifies the user before credentials are saved for that user's org.
 import { rawPrisma } from '@/lib/db'
 import * as microsoftCalendarService from '@/lib/services/integrations/microsoftCalendarService'
 import { isAllowedOrigin } from '@/lib/services/integrations/oauth-state'

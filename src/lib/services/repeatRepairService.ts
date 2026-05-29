@@ -138,7 +138,7 @@ Respond with ONLY valid JSON (no markdown): { "recommendation": "...", "decision
     const { GoogleGenAI } = await import('@google/genai')
     const ai = new GoogleGenAI({ apiKey })
     const result = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
 

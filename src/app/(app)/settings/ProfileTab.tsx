@@ -19,6 +19,7 @@ import { Camera, User, Shield, ShieldCheck, Lock, Mail, Bell, Copy, Check, Finge
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
 import { getAuthHeaders } from '@/lib/api-client'
 import { startRegistration } from '@simplewebauthn/browser'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type ProfileSubTab = 'profile' | 'security' | 'notifications'
 
@@ -527,7 +528,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
           <div className="relative group">
             <div className="w-20 h-20 rounded-full bg-primary-600 text-white flex items-center justify-center font-semibold text-2xl overflow-hidden flex-shrink-0 ring-4 ring-white shadow-md">
               {displayAvatar ? (
-                <img src={displayAvatar} alt={userName || 'User'} className="w-20 h-20 rounded-full object-cover" />
+                <OptimizedImage src={displayAvatar} alt={userName || 'User'} className="w-20 h-20 rounded-full object-cover" />
               ) : (
                 (firstName || userName || 'U').charAt(0).toUpperCase()
               )}
@@ -793,7 +794,7 @@ export default function ProfileTab({ userName, userEmail, userAvatar }: ProfileT
               <>
                 <p className="text-sm text-slate-600">Scan this QR code with your authenticator app (Google Authenticator, Microsoft Authenticator, etc.), then enter the 6-digit code it shows.</p>
                 <div className="flex justify-center">
-                  <img src={mfaQrCode} alt="Scan this QR code with your authenticator app" className="w-48 h-48" />
+                  <OptimizedImage src={mfaQrCode} alt="Scan this QR code with your authenticator app" className="w-48 h-48" />
                 </div>
                 <div>
                   <label htmlFor="mfa-verify-code" className="block text-sm font-medium text-slate-700 mb-1">

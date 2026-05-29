@@ -4,6 +4,7 @@ import { getUserContext } from '@/lib/request-context'
 import { assertCan } from '@/lib/auth/permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Integration status reads mixed org-level and user-level integration records with explicit orgId/userId filters.
 import { rawPrisma } from '@/lib/db'
 import * as planningCenterService from '@/lib/services/integrations/planningCenterService'
 import * as googleCalendarService from '@/lib/services/integrations/googleCalendarService'

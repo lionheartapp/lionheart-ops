@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import { getAuthHeaders as getCookieAuthHeaders, fetchApi } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
@@ -172,7 +172,7 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
 
   const getAuthHeaders = () => getCookieAuthHeaders()
 
-  const loadSchools = async () => {
+  const loadSchools = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -193,11 +193,11 @@ const SchoolsManagement = forwardRef<SchoolsManagementHandle, SchoolsManagementP
     } finally {
       setLoading(false)
     }
-  }
+  }, [campusId])
 
   useEffect(() => {
     loadSchools()
-  }, [campusId])
+  }, [loadSchools])
 
   const handleSaveSchool = async (event: React.FormEvent) => {
     event.preventDefault()

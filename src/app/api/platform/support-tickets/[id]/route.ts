@@ -5,6 +5,7 @@ import { assertPlatformAdminCan, PLATFORM_PERMISSIONS } from '@/lib/auth/platfor
 import { getTicketWithMessages, updateSupportTicket } from '@/lib/services/platformSupportService'
 import { platformAudit, getPlatformIp } from '@/lib/services/platformAuditService'
 import { sendViaResend, sendViaSmtp, getResendConfig, getSmtpConfig, getAppUrl } from '@/lib/services/email/transport'
+// eslint-disable-next-line no-restricted-imports -- Platform support ticket admin operates outside tenant org scoping after platform permission checks.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 

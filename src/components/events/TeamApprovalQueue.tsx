@@ -316,10 +316,11 @@ export interface TeamApprovalQueueProps {
   /** V1 channel type ('av' | 'facilities') or V2 team UUID */
   gateType: string
   teamLabel: string
+  enabled?: boolean
 }
 
-export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQueueProps) {
-  const { data: projects, isLoading, isError } = usePendingGateApprovals(gateType)
+export default function TeamApprovalQueue({ gateType, teamLabel, enabled = true }: TeamApprovalQueueProps) {
+  const { data: projects, isLoading, isError } = usePendingGateApprovals(gateType, enabled)
   const { toast } = useToast()
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
 
@@ -391,6 +392,8 @@ export default function TeamApprovalQueue({ gateType, teamLabel }: TeamApprovalQ
       })
     }
   }
+
+  if (!enabled) return null
 
   if (isLoading) return <QueueSkeleton />
 

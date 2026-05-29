@@ -17,14 +17,32 @@ test.describe('Super-admin flow · org setup essentials', () => {
     await adminPage.goto('/dashboard')
     await expect(adminPage.getByRole('heading').first()).toBeVisible({ timeout: 10_000 })
 
-    // Super-admin sidebar should expose the privileged areas.
-    const sidebar = adminPage.locator('nav, [role="navigation"]').first()
-    for (const label of ['Settings', 'Members', 'Billing']) {
-      const item = sidebar.getByRole('link', { name: new RegExp(label, 'i') }).first()
-      // Either the link is visible directly or under a collapsible Settings group
+    // Super-admin sidebar should expose the privileged daily work areas.
+    const sidebar = adminPage.getByRole('navigation', { name: /main navigation/i }).first()
+    const dailyWorkItems = [
+      { label: 'Dashboard', role: 'link', name: /^Dashboard$/i },
+      { label: 'Forms', role: 'link', name: /^Forms$/i },
+      { label: 'Approvals', role: 'link', name: /^Approvals$/i },
+      { label: 'Maintenance', role: 'button', name: /^Expand maintenance$/i },
+      { label: 'IT Help Desk', role: 'button', name: /^Expand IT Help Desk$/i },
+    ] as const
+
+    for (const { label, role, name } of dailyWorkItems) {
+      const item = sidebar.getByRole(role, { name }).first()
       await expect(
-        item.or(adminPage.getByText(new RegExp(label, 'i')).first()),
+        item,
         `super-admin sidebar should expose ${label}`,
+      ).toBeVisible({ timeout: 10_000 })
+    }
+
+    await adminPage.getByRole('button', { name: /user menu/i }).click()
+    await adminPage.getByRole('button', { name: /^settings$/i }).click()
+    await adminPage.waitForURL(/\/settings/, { timeout: 10_000 })
+
+    for (const label of ['Members', 'Billing']) {
+      await expect(
+        adminPage.getByRole('button', { name: new RegExp(`^${label}$`, 'i') }).first(),
+        `super-admin settings should expose ${label}`,
       ).toBeVisible({ timeout: 10_000 })
     }
   })

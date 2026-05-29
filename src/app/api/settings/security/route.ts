@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     if (!ctx?.userId || !orgId) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Not authenticated'), { status: 401 })
     }
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     return await runWithOrgContext(orgId, async () => {
       const org = await cacheOrgWide(orgId, 'security:mfa', () =>
@@ -33,7 +34,10 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(ok({ mfaRequired: org?.mfaRequired ?? false }))
     })
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', 'Only administrators can view security settings'), { status: 403 })
+    }
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to load security settings'), { status: 500 })
   }
 }

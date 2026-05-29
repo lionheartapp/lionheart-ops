@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+import { PERMISSIONS } from '@/lib/permissions'
 import { transitionTicketStatus } from '@/lib/services/maintenanceTicketService'
 import type { MaintenanceTicketStatus, HoldReason } from '@prisma/client'
 
@@ -53,4 +54,11 @@ export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {
     }
     throw error
   }
+}, {
+  permissionAny: [
+    PERMISSIONS.MAINTENANCE_CLAIM,
+    PERMISSIONS.MAINTENANCE_ASSIGN,
+    PERMISSIONS.MAINTENANCE_APPROVE_QA,
+    PERMISSIONS.MAINTENANCE_CANCEL,
+  ],
 })

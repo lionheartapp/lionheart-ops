@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public iCal feed token identifies the organization before the route enters runWithOrgContext.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { prisma } from '@/lib/db'

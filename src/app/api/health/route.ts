@@ -8,6 +8,7 @@
  */
 
 import { NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public health check only runs SELECT 1 to verify database connectivity.
 import { rawPrisma } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'

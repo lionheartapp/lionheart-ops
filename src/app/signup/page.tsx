@@ -7,6 +7,7 @@ import Link from 'next/link'
 import PasswordInput from '@/components/PasswordInput'
 import { Input } from '@/components/ui/Input'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const showcaseCardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -109,7 +110,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md mx-auto">
           {/* Logo */}
           <Link href="/" className="inline-block mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded">
-            <img src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
+            <OptimizedImage src="/logo.svg" alt="Lionheart" className="h-10 w-auto" />
           </Link>
 
           <h1 className="text-3xl font-semibold mb-2" style={{ color: '#1a1915', letterSpacing: '-0.025em' }}>Create your account</h1>
@@ -323,24 +324,6 @@ export default function SignupPage() {
             </motion.div>
           </div>
 
-          {/* Social proof */}
-          <motion.div
-            className="mt-10 flex items-center justify-center gap-2"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            <div className="flex -space-x-2">
-              {['bg-primary-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400'].map((color, i) => (
-                <div key={i} className={`w-8 h-8 ${color} rounded-full border-2 border-white/20 flex items-center justify-center text-white text-xs font-bold`}>
-                  {['S', 'M', 'J', 'R'][i]}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm ml-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              Trusted by school administrators
-            </p>
-          </motion.div>
         </div>
       </div>
     </div>

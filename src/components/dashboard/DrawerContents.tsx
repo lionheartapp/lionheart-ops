@@ -1,4 +1,5 @@
 import { Calendar, MapPin, Package } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Leo Item Drawer Content ──────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ export function EventDrawerContent({ item, detail }: { item: Record<string, unkn
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {u.avatar ? (
-                      <img src={String(u.avatar)} alt={name} className="w-7 h-7 rounded-full object-cover" />
+                      <OptimizedImage src={String(u.avatar)} alt={name} className="w-7 h-7 rounded-full object-cover" />
                     ) : (
                       <span className="text-[10px] font-bold text-slate-600">
                         {name.charAt(0).toUpperCase()}

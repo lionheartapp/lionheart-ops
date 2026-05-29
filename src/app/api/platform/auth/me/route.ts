@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Platform auth/me reads platform admin records outside tenant org scoping after platform token verification.
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'
 import { logger } from '@/lib/logger'
 
+// @authOnly Platform admin profile route is available to any valid platform admin token.
 export async function GET(req: NextRequest) {
   try {
     const ctx = await getPlatformContext(req)

@@ -256,10 +256,26 @@ export async function editMessage(
   // T-24-10: Only the author can edit their own message
   const existing = await db.message.findUnique({
     where: { id: messageId },
+    include: {
+      channel: {
+        select: {
+          members: {
+            where: { userId },
+            select: { userId: true },
+            take: 1,
+          },
+        },
+      },
+    },
   })
   if (!existing) throw new Error('Message not found')
   if ((existing as Record<string, unknown>).authorId !== userId) {
     throw new Error('You can only edit your own messages')
+  }
+  const editMembership = (existing as unknown as { channel: { members: Array<{ userId: string }> } })
+    .channel.members
+  if (editMembership.length === 0) {
+    throw new Error('Not a member of this channel')
   }
 
   const row = await db.message.update({
@@ -286,6 +302,17 @@ export async function deleteMessage(
 
   const existing = await db.message.findUnique({
     where: { id: messageId },
+    include: {
+      channel: {
+        select: {
+          members: {
+            where: { userId },
+            select: { userId: true },
+            take: 1,
+          },
+        },
+      },
+    },
   })
   if (!existing) throw new Error('Message not found')
 
@@ -294,6 +321,11 @@ export async function deleteMessage(
   // T-24-11: Author can always delete own messages. Others require canDeleteAny.
   if (authorId !== userId && !canDeleteAny) {
     throw new Error('You can only delete your own messages')
+  }
+  const deleteMembership = (existing as unknown as { channel: { members: Array<{ userId: string }> } })
+    .channel.members
+  if (!canDeleteAny && deleteMembership.length === 0) {
+    throw new Error('Not a member of this channel')
   }
 
   // Soft-delete via update (the Prisma extension handles deletedAt on .delete(),

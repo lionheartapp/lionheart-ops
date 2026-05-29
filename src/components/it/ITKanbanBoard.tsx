@@ -21,13 +21,14 @@ import ITKanbanColumn from './ITKanbanColumn'
 import ITKanbanCard, { type KanbanTicket } from './ITKanbanCard'
 import { BoardSkeleton } from './ITSkeleton'
 import HoldReasonDialog from './HoldReasonDialog'
-import { AlertTriangle, ChevronDown, ChevronRight, CheckCircle2, XCircle } from 'lucide-react'
+import { AlertTriangle, ChevronDown, ChevronRight, CheckCircle2, Plus, XCircle } from 'lucide-react'
 import ITErrorState from './ITErrorState'
 import ITSearchFilterBar from './ITSearchFilterBar'
 import { Checkbox } from '@/components/ui/Checkbox'
 
 interface ITKanbanBoardProps {
   onTicketClick: (id: string) => void
+  onCreateTicket?: () => void
   /** 'mine' = my tickets + unassigned, 'all' = everything */
   scope?: 'mine' | 'all'
   /** Current user's ID — used for "mine" scope filtering */
@@ -57,7 +58,7 @@ const PRIORITY_OPTIONS = [
   { value: 'URGENT', label: 'Urgent' },
 ]
 
-export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUserId, activeSchoolId }: ITKanbanBoardProps) {
+export default function ITKanbanBoard({ onTicketClick, onCreateTicket, scope = 'mine', currentUserId, activeSchoolId }: ITKanbanBoardProps) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [activeTicket, setActiveTicket] = useState<KanbanTicket | null>(null)
@@ -236,7 +237,7 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
     } else {
       statusMutation.mutate({ ticketId, status: targetColumn })
     }
-  }, [boardData])
+  }, [boardData, statusMutation])
 
   const handleHoldConfirm = useCallback((holdReason: string) => {
     if (!holdPending) return
@@ -283,6 +284,16 @@ export default function ITKanbanBoard({ onTicketClick, scope = 'mine', currentUs
             { label: 'Issue Type', value: filterIssueType, onChange: setFilterIssueType, options: ISSUE_TYPE_OPTIONS },
             { label: 'Priority', value: filterPriority, onChange: setFilterPriority, options: PRIORITY_OPTIONS },
           ]}
+          trailing={onCreateTicket ? (
+            <button
+              type="button"
+              onClick={onCreateTicket}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 active:scale-[0.97] transition-all whitespace-nowrap cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Request
+            </button>
+          ) : undefined}
         />
         <div className="flex items-center gap-3 mt-2 px-1">
           <Checkbox

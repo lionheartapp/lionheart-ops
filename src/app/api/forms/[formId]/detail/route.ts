@@ -17,7 +17,7 @@ export const GET = withAuth(async ({ params }) => {
     return NextResponse.json(fail('NOT_FOUND', 'Form not found'), { status: 404 })
   }
   return NextResponse.json(ok(form))
-})
+}, { permission: PERMISSIONS.FORMS_MANAGE })
 
 const UpdateFormSchema = z.object({
   description: z.string().max(2000).nullable().optional(),

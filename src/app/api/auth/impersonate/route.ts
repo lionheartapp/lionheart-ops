@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken, signAuthToken } from '@/lib/auth'
 import { authCookieOptions, clearCookieOptions } from '@/lib/auth/cookie-options'
+// eslint-disable-next-line no-restricted-imports -- Impersonation verifies signed admin tokens first and manually scopes admin/target lookups to the token organization.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { audit, getIp } from '@/lib/services/auditService'
@@ -27,8 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify the caller is super-admin
-    const admin = await rawPrisma.user.findUnique({
-      where: { id: claims.userId },
+    const admin = await rawPrisma.user.findFirst({
+      where: {
+        id: claims.userId,
+        organizationId: claims.organizationId,
+        deletedAt: null,
+      },
       select: {
         id: true,
         name: true,
@@ -61,8 +66,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify target user exists in same org
-    const target = await rawPrisma.user.findUnique({
-      where: { id: targetUserId },
+    const target = await rawPrisma.user.findFirst({
+      where: {
+        id: targetUserId,
+        organizationId: admin.organizationId,
+        deletedAt: null,
+      },
       select: {
         id: true,
         email: true,
@@ -150,8 +159,12 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Fetch admin profile for response
-    const admin = await rawPrisma.user.findUnique({
-      where: { id: adminClaims.userId },
+    const admin = await rawPrisma.user.findFirst({
+      where: {
+        id: adminClaims.userId,
+        organizationId: adminClaims.organizationId,
+        deletedAt: null,
+      },
       select: {
         id: true,
         email: true,

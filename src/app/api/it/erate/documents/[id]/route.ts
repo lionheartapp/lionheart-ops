@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- E-Rate document delete uses dynamic delegates and verifies org ownership before deletion.
 import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 
 export const DELETE = withAuth(async ({ orgId, params }) => {

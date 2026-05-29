@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lionheart Product Audit - May 26, 2026</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5f6368;
+      --line: #dedede;
+      --soft: #f7f7f5;
+      --red: #b42318;
+      --amber: #a15c07;
+      --green: #137333;
+      --blue: #174ea6;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #fff;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+    h1, h2, h3 {
+      line-height: 1.15;
+      margin: 0 0 12px;
+    }
+    h1 { font-size: 34px; }
+    h2 { font-size: 24px; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 24px; }
+    h3 { font-size: 18px; margin-top: 22px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--blue); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 24px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); }
+    .hero {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0 24px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+    }
+    .metric {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .muted { color: var(--muted); }
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .critical { color: var(--red); }
+    .high { color: var(--amber); }
+    .pass { color: var(--green); }
+    .callout {
+      border-left: 4px solid var(--blue);
+      background: #f4f7ff;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+    .fixed-note {
+      border-left-color: var(--green);
+      background: #f0f8f3;
+    }
+    .issue {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+    .issue strong { display: block; margin-bottom: 4px; }
+    ul { padding-left: 22px; }
+    li { margin: 6px 0; }
+    code {
+      background: #f1f1ef;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      h1 { font-size: 28px; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <h1>Lionheart Product Audit</h1>
+    <p class="muted">Created May 26, 2026. Written in plain English.</p>
+    <p>This audit checks whether Lionheart is working as a real school operations product. It focuses on product coverage, IT work, maintenance work, speed, mobile, accessibility, security checks, and the health of the test system.</p>
+    <p>This is not the end of testing. It is the first deep evidence file from the automated and code-based checks I could run from the workspace.</p>
+  </section>
+
+  <div class="callout fixed-note">
+    <p><strong>Fix pass completed later on May 26, 2026:</strong> the main broken items from this audit were repaired. The follow-up browser audit visited 19 desktop and mobile pages with zero failed pages, zero failed browser requests, zero console errors, and zero automated accessibility findings.</p>
+    <p>A speed pass also reduced first-load background work. Dashboard startup API calls dropped from 21 to 13. Calendar and maintenance each dropped to 8 startup API calls in focused browser profiles. In the latest full audit, the slowest checked page settled at about 3.7 seconds in local dev.</p>
+    <p>A worker workflow pass also completed. Real IT and maintenance worker accounts created, claimed, worked, paused, logged, and closed jobs successfully. The run passed 22 of 22 steps.</p>
+    <p>A phone-sized worker workflow pass completed too. The mobile run passed 24 of 24 steps with no console errors or failed browser requests on the checked worker pages.</p>
+    <p>A production-style worker load test now passes too. The IT and maintenance worker API paths hit 100% success, with overall p95 at 833 ms and p99 at 945 ms on the local dev server.</p>
+    <p>The broad all-module load test also now has no failed HTTP requests after repairing stale test paths and the academic day-schedule endpoint. Its speed numbers were noisy in local dev mode, so a cleaner production-mode benchmark was added.</p>
+    <p>The production-mode benchmark passed the focused endpoint checks. Roles, notifications, calendars, users, inventory, planning seasons, events, and maintenance knowledge base all landed around 8-11 ms median and 13-18 ms p95.</p>
+    <p>The first page-weight passes also landed. The IT page dropped from about 535 kB to 241 kB first-load JavaScript. IT admin dropped from about 266 kB to 173 kB. The maintenance page dropped from about 522 kB to 238 kB. The dashboard dropped from about 402 kB to 265 kB. The athletics page dropped from about 293 kB to 181 kB. The calendar dropped from about 358 kB to 170 kB. Event detail dropped from about 601 kB to 175 kB. Event day-of dropped from about 318 kB to 165 kB. Form builder dropped from about 420 kB to 110 kB. Events Hub dropped from about 308 kB to 254 kB.</p>
+    <p>See <code>docs/product-audit-fix-log-2026-05-26.html</code> for the repair list.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="metric">580</div><div class="muted">API routes found</div></div>
+    <div class="card"><div class="metric">95</div><div class="muted">App pages found</div></div>
+    <div class="card"><div class="metric">952</div><div class="muted">Unit tests passed</div></div>
+    <div class="card"><div class="metric">399</div><div class="muted">Static pages built</div></div>
+  </div>
+
+  <h2>Bottom Line</h2>
+  <p>Lionheart has a lot of real product built. IT and maintenance are not empty shells. They include ticket queues, assignment, status changes, devices, assets, QR codes, preventive maintenance, knowledge base, analytics, and reporting.</p>
+  <p>The biggest problem is not lack of features. The biggest problem is proving reliability. The automated smoke and end-to-end tests are partly broken, performance is below target in many areas, and accessibility issues are showing up on important pages.</p>
+
+  <div class="callout">
+    <p><strong>Plain-English judgment:</strong> the product is broad and useful, but it needs a hard stabilization pass before you can confidently say every section works together under real school-day use.</p>
+  </div>
+
+  <h2>What I Tested</h2>
+  <table>
+    <tr><th>Area</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>Code build</td><td class="pass">Passed</td><td><code>npm run build</code> completed. Next generated 399 static pages.</td></tr>
+    <tr><td>Type checking</td><td class="pass">Passed</td><td><code>npm run typecheck</code> completed with no errors.</td></tr>
+    <tr><td>Unit tests</td><td class="pass">Passed</td><td>65 test files passed. 952 tests passed.</td></tr>
+    <tr><td>Architecture check</td><td class="pass">Passed</td><td><code>npm run check:architecture</code> passed import-boundary checks.</td></tr>
+    <tr><td>Route inventory</td><td>Completed</td><td>580 routes, 871 handlers, 615 guarded handlers, 191 logged-in handlers with no permission decorator, 65 public handlers.</td></tr>
+    <tr><td>Page inventory</td><td>Completed</td><td>95 pages found. 51 crawlable pages, 22 dynamic pages, 30 skipped public/auth/onboarding pages.</td></tr>
+    <tr><td>IT and maintenance speed</td><td class="pass">Passed worker target</td><td>Read-only worker load test passed all requests and all speed thresholds after the caching fixes.</td></tr>
+    <tr><td>Daily page weight</td><td class="pass">Improved</td><td><code>/it</code> dropped to 241 kB. <code>/it/admin</code> dropped to 173 kB. <code>/maintenance</code> dropped to 238 kB. <code>/dashboard</code> dropped to 265 kB. <code>/athletics</code> dropped to 181 kB. <code>/calendar</code> dropped to 170 kB. <code>/events/[id]</code> dropped to 175 kB. <code>/events/[id]/dayof</code> dropped to 165 kB. <code>/forms/[id]/builder</code> dropped to 110 kB. <code>/events</code> dropped to 254 kB.</td></tr>
+    <tr><td>IT and maintenance worker workflows</td><td class="pass">Passed</td><td><code>npm run audit:workflows</code> passed 22 of 22 real worker steps. Evidence is in <code>docs/audit-artifacts/worker-workflows.json</code>.</td></tr>
+    <tr><td>Mobile worker workflows</td><td class="pass">Passed</td><td><code>npm run audit:mobile-workflows</code> passed 24 of 24 phone-sized worker steps. Evidence is in <code>docs/audit-artifacts/mobile-worker-workflows.json</code>.</td></tr>
+    <tr><td>Focused production API speed</td><td class="pass">Passed</td><td>Eight focused API endpoints passed in production mode. p95 stayed between about 13 ms and 18 ms.</td></tr>
+    <tr><td>Full API speed sweep</td><td class="high">No failures, noisy dev timing</td><td>The latest broad sweep had 100% successful checks and 0% failed HTTP requests. Many p95 targets missed under heavy local dev load, but focused production checks were fast.</td></tr>
+    <tr><td>Browser page audit</td><td class="high">Passed page loading, found issues</td><td>Main desktop and mobile pages loaded, but several showed console errors and accessibility problems.</td></tr>
+    <tr><td>Smoke tests</td><td class="critical">Failed before useful testing</td><td>Campus and inventory smoke tests use old user fields and fail on schema mismatch. Ticket smoke test could not log in.</td></tr>
+    <tr><td>Playwright API tests</td><td class="critical">Failed</td><td>3 passed, 15 failed, 15 did not run, 1 skipped. Several failures were login 500s after the dev server/build conflict.</td></tr>
+  </table>
+
+  <h2>Critical Findings</h2>
+
+  <div class="issue">
+    <strong class="critical">1. The smoke-test safety net is broken.</strong>
+    <p>The campus and inventory smoke tests still try to create users with old fields like <code>role</code> and <code>teamIds</code>. The current schema uses <code>roleId</code> and team membership rows. These tests fail before they test the product.</p>
+    <p><strong>Why it matters:</strong> you cannot trust “smoke tests passed” until these scripts are updated. This is especially risky for database and permission changes.</p>
+    <p><strong>Fix:</strong> repair smoke user creation, make all smoke scripts use <code>SMOKE_BASE_URL</code>, and add IT and maintenance smoke tests as first-class scripts.</p>
+  </div>
+
+  <div class="issue">
+    <strong class="critical">2. End-to-end API tests are not reliable right now.</strong>
+    <p>The Playwright API suite failed. Some failures came from login returning 500 after a production build ran while the dev server was active. That exposed a workflow problem: building and testing against the same <code>.next</code> folder can break the running dev server.</p>
+    <p><strong>Why it matters:</strong> the API tests should be the strongest proof that auth, security, validation, and ticket CRUD are safe. Right now they are not giving a clean signal.</p>
+    <p><strong>Fix:</strong> run E2E tests against a clean started server, not a dev server that is also being rebuilt. Add a dedicated <code>test:e2e:local</code> script that controls the server lifecycle.</p>
+  </div>
+
+  <div class="issue">
+    <strong class="high">3. Dev-mode performance numbers were misleading.</strong>
+    <p>The wide API speed test hit more than 55 endpoint groups. The stale/broken endpoint failures were fixed, but many p95 targets still missed under heavy local dev load.</p>
+    <p>A cleaner production-mode benchmark told a different story. Focused checks for settings users, inventory, planning seasons, maintenance knowledge base, events, roles, calendars, and notifications were all fast.</p>
+    <p><strong>Fix:</strong> keep using production-mode benchmarks for speed decisions. Use the broad dev sweep only as a warning map, not as final proof.</p>
+  </div>
+
+  <div class="issue">
+    <strong class="high">4. Some page bundles are still large, but daily pages improved.</strong>
+    <p>The first page-weight passes split heavy drawer/config/detail code away from the first screen. IT, maintenance, dashboard, athletics, calendar, event detail, event day-of, form builder, and Events Hub are lighter now:</p>
+    <ul>
+      <li><code>/it</code>: about 535 kB before, 241 kB after</li>
+      <li><code>/it/admin</code>: about 266 kB before, 173 kB after</li>
+      <li><code>/maintenance</code>: about 522 kB before, 238 kB after</li>
+      <li><code>/dashboard</code>: about 402 kB before, 265 kB after</li>
+      <li><code>/athletics</code>: about 293 kB before, 181 kB after</li>
+      <li><code>/calendar</code>: about 358 kB before, 170 kB after</li>
+      <li><code>/events/[id]</code>: about 601 kB before, 175 kB after</li>
+      <li><code>/events/[id]/dayof</code>: about 318 kB before, 165 kB after</li>
+      <li><code>/forms/[id]/builder</code>: about 420 kB before, 110 kB after</li>
+      <li><code>/events</code>: about 308 kB before, 254 kB after</li>
+    </ul>
+    <p>The event detail pass also fixed an AI status-summary request that returned a browser-visible 500/503 when Gemini was unavailable. It now returns a clean unavailable state.</p>
+    <p><strong>Why it matters:</strong> IT and maintenance workers often use mobile devices in the field. Large bundles hurt load time and battery life.</p>
+    <p><strong>Fix:</strong> keep applying this pattern to any remaining page that crosses about 300 kB first load.</p>
+  </div>
+
+  <div class="issue">
+    <strong class="critical">5. Accessibility issues are present on important pages.</strong>
+    <p>The automated browser audit found serious issues such as low color contrast, focusable elements hidden from assistive tools, unnamed progress bars, and an unnamed button on mobile IT.</p>
+    <p><strong>Why it matters:</strong> staff may rely on keyboard navigation, screen readers, or high contrast. These issues also hurt general usability.</p>
+    <p><strong>Fix:</strong> fix all axe issues on dashboard, IT, maintenance, messaging, tickets, inventory, and mobile screens before adding more UI.</p>
+  </div>
+
+  <h2>IT Section</h2>
+  <p>The IT section is a real operating area, not just a ticket list.</p>
+  <table>
+    <tr><th>Worker need</th><th>What exists</th><th>Audit judgment</th></tr>
+    <tr><td>See today’s work</td><td>IT dashboard, board, tickets list, kanban board</td><td class="pass">Present</td></tr>
+    <tr><td>Open and complete tickets</td><td>Ticket detail, status updates, assignment, comments, upload URL routes</td><td class="pass">Proven in worker workflow test</td></tr>
+    <tr><td>Know device context</td><td>Devices, device detail, assignment, history, repairs, QR, student detail</td><td class="pass">Strong coverage</td></tr>
+    <tr><td>Handle loaners</td><td>Loaner checkout, check-in, overdue routes, loaner tab</td><td class="pass">Present</td></tr>
+    <tr><td>Handle password help</td><td>Student password lookup, request, reset, admin generate</td><td class="pass">Present</td></tr>
+    <tr><td>Handle security incidents</td><td>Incidents, evidence, responders, severity, close, content filter events</td><td class="pass">Present</td></tr>
+    <tr><td>Manage lifecycle work</td><td>Deployment, summer repair queue, provisioning, sync, E-Rate</td><td class="pass">Broad coverage</td></tr>
+    <tr><td>Work on mobile</td><td>Mobile IT page loads</td><td class="pass">Loads cleanly after the accessibility fix</td></tr>
+  </table>
+
+  <h3>IT Job Fit</h3>
+  <p>For a school IT worker, the required building blocks are there: queue, assignment, priority, device history, student/device linking, password reset, loaners, security incidents, and reporting.</p>
+  <p>The workflow test proved the core job can be completed: create ticket, open ticket, claim it, start work, put it on hold, resume it, resolve it, and reopen it later.</p>
+  <p>The remaining ease concern is navigation. The IT area has many tabs and advanced modules. A technician may still benefit from a simpler “my work today” view.</p>
+
+  <h3>IT Worker Workflow Proof</h3>
+  <table>
+    <tr><th>Step</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>Create help desk ticket</td><td class="pass">Passed</td><td>Created <code>IT-0003</code>.</td></tr>
+    <tr><td>Claim ticket</td><td class="pass">Passed</td><td>Ticket moved from backlog to assigned work.</td></tr>
+    <tr><td>Start, hold, resume, resolve</td><td class="pass">Passed</td><td>Final status was <code>DONE</code>.</td></tr>
+    <tr><td>Open IT page as worker</td><td class="pass">Passed</td><td>Page returned <code>200</code> with no console errors or failed requests.</td></tr>
+  </table>
+
+  <h3>Mobile IT Worker Proof</h3>
+  <table>
+    <tr><th>Step</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>Create and claim a mobile IT ticket</td><td class="pass">Passed</td><td>Created <code>IT-0005</code> and assigned it to the IT worker.</td></tr>
+    <tr><td>See active queue on a phone-sized screen</td><td class="pass">Passed</td><td>Mobile <code>/it</code> opened with no console errors or failed requests.</td></tr>
+    <tr><td>Hold, resume, and resolve from the worker flow</td><td class="pass">Passed</td><td>Final status was <code>DONE</code>.</td></tr>
+  </table>
+
+  <h3>IT Speed Evidence</h3>
+  <table>
+    <tr><th>Endpoint</th><th>p95 result</th><th>Target</th><th>Result</th></tr>
+    <tr><td>IT dashboard</td><td>835 ms</td><td>1,200 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>IT board</td><td>764 ms</td><td>1,200 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>IT tickets</td><td>678 ms</td><td>1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>IT devices</td><td>672 ms</td><td>1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>IT incidents</td><td>923 ms</td><td>1,000 ms</td><td class="pass">Pass</td></tr>
+  </table>
+
+  <h2>Maintenance Section</h2>
+  <p>The maintenance section is also a real operating area. It includes work orders, asset tracking, QR labels, preventive maintenance, compliance, knowledge base, costs, labor, analytics, and board reporting.</p>
+  <table>
+    <tr><th>Worker need</th><th>What exists</th><th>Audit judgment</th></tr>
+    <tr><td>See assigned and open work</td><td>Dashboard, work orders, kanban board, filters, my requests</td><td class="pass">Present</td></tr>
+    <tr><td>Create a request</td><td>Submit request wizard with location, asset, photos, details, review</td><td class="pass">Strong coverage</td></tr>
+    <tr><td>Find the place</td><td>Location step, campus/building/room links, asset location</td><td class="pass">Present</td></tr>
+    <tr><td>Use photos</td><td>Photo upload step and ticket upload routes</td><td class="pass">Present</td></tr>
+    <tr><td>Track assets</td><td>Asset register, asset detail, QR code, labels, repair gauge</td><td class="pass">Strong coverage</td></tr>
+    <tr><td>Track parts, labor, and cost</td><td>Labor form, timer, cost form, labor/cost panels</td><td class="pass">Present</td></tr>
+    <tr><td>Prevent recurring problems</td><td>PM schedules, PM calendar, checklist sections</td><td class="pass">Present</td></tr>
+    <tr><td>Meet compliance needs</td><td>Compliance domains, records, calendar, exports</td><td class="pass">Present</td></tr>
+    <tr><td>Work on mobile</td><td>Mobile maintenance page loads</td><td class="pass">Loads cleanly after the accessibility fix</td></tr>
+  </table>
+
+  <h3>Maintenance Job Fit</h3>
+  <p>The maintenance feature set is close to what a real facilities team needs. The best parts are asset history, QR support, preventive maintenance, and labor/cost tracking.</p>
+  <p>The workflow test proved the core job can be completed: create work order, open it, claim it, start work, log labor, log material cost, add a photo, submit for QA, close it, and reopen the closed record.</p>
+  <p>The phone-sized audit proved the maintenance job can be completed cleanly in the mobile shell. The remaining ease concern is making the most common actions faster and more obvious for a worker standing in the field.</p>
+
+  <h3>Maintenance Worker Workflow Proof</h3>
+  <table>
+    <tr><th>Step</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>Create work order</td><td class="pass">Passed</td><td>Created <code>MT-0001</code>.</td></tr>
+    <tr><td>Claim and start work</td><td class="pass">Passed</td><td>Worker claimed the job and moved it into progress.</td></tr>
+    <tr><td>Log labor, material cost, and photo</td><td class="pass">Passed</td><td>Labor and cost APIs returned success.</td></tr>
+    <tr><td>Submit QA and close</td><td class="pass">Passed</td><td>Final status was <code>DONE</code>.</td></tr>
+    <tr><td>Open maintenance page as worker</td><td class="pass">Passed</td><td>Page returned <code>200</code> with no console errors or failed requests.</td></tr>
+  </table>
+
+  <h3>Mobile Maintenance Worker Proof</h3>
+  <table>
+    <tr><th>Step</th><th>Result</th><th>Evidence</th></tr>
+    <tr><td>Create and claim a mobile work order</td><td class="pass">Passed</td><td>Created <code>MT-0003</code> and assigned it to the maintenance worker.</td></tr>
+    <tr><td>Open active work order detail on a phone-sized screen</td><td class="pass">Passed</td><td>Mobile ticket detail opened with no console errors or failed requests.</td></tr>
+    <tr><td>Log labor, cost, photo, QA, and close</td><td class="pass">Passed</td><td>Final status was <code>DONE</code>.</td></tr>
+  </table>
+
+  <h3>Maintenance Speed Evidence</h3>
+  <table>
+    <tr><th>Endpoint</th><th>p95 result</th><th>Target</th><th>Result</th></tr>
+    <tr><td>Maintenance dashboard</td><td>616 ms</td><td>1,000-1,200 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Maintenance tickets</td><td>802 ms</td><td>800-1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Assets</td><td>728 ms</td><td>800-1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>PM schedules</td><td>956 ms</td><td>800-1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Vendors</td><td>782 ms</td><td>800-1,000 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Knowledge base</td><td>595 ms</td><td>800-1,000 ms</td><td class="pass">Pass</td></tr>
+  </table>
+
+  <h3>Broad Load Test Note</h3>
+  <p>The final broad k6 run covered all major modules with 10 virtual users. It had 100% successful checks and 0 failed HTTP requests after the day-schedule fix.</p>
+  <p>The same run missed many p95 speed targets. Because the local machine stalled during the run, treat the exact outlier times as noisy. The follow-up production-mode benchmark below is the cleaner speed signal.</p>
+
+  <h3>Focused Production Speed Evidence</h3>
+  <p>This run used <code>npm run build</code>, then <code>next start</code> on port 3010. It checked the endpoints that looked slow in local dev mode.</p>
+  <table>
+    <tr><th>Endpoint</th><th>Median</th><th>p95</th><th>Result</th></tr>
+    <tr><td>Roles</td><td>11.27 ms</td><td>17.65 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Notifications</td><td>9.14 ms</td><td>14.26 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Calendars</td><td>9.32 ms</td><td>14.97 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Users</td><td>9.67 ms</td><td>15.93 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Inventory</td><td>10.47 ms</td><td>16.90 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Planning seasons</td><td>8.32 ms</td><td>12.94 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Events</td><td>8.24 ms</td><td>15.03 ms</td><td class="pass">Pass</td></tr>
+    <tr><td>Maintenance knowledge base</td><td>9.96 ms</td><td>14.73 ms</td><td class="pass">Pass</td></tr>
+  </table>
+
+  <h2>Page Speed</h2>
+  <p>The browser audit opened the main pages on desktop and mobile. These numbers include local dev server behavior, so use them as warning signs, not final production numbers.</p>
+  <table>
+    <tr><th>Page</th><th>Desktop load</th><th>Mobile load</th><th>Notes</th></tr>
+    <tr><td>Dashboard</td><td>5.8 s</td><td>3.8 s</td><td>Console errors and accessibility issues</td></tr>
+    <tr><td>Calendar</td><td>4.2 s</td><td>4.0 s</td><td>Realtime websocket errors</td></tr>
+    <tr><td>Messaging</td><td>3.2 s</td><td>2.5 s</td><td>Color contrast issue</td></tr>
+    <tr><td>Tickets</td><td>3.0 s</td><td>2.9 s</td><td>Desktop accessibility issue</td></tr>
+    <tr><td>IT</td><td>5.5 s</td><td>3.1 s</td><td>Mobile unnamed button</td></tr>
+    <tr><td>Maintenance</td><td>4.5 s</td><td>3.7 s</td><td>Color contrast and focus issues</td></tr>
+    <tr><td>Settings</td><td>4.4 s</td><td>Not tested</td><td>Color contrast issue</td></tr>
+    <tr><td>Inventory</td><td>3.0 s</td><td>Not tested</td><td>Accessibility issue</td></tr>
+    <tr><td>Approvals</td><td>7.5 s</td><td>Not tested</td><td>Slowest page in this browser run</td></tr>
+  </table>
+
+  <h2>Mobile</h2>
+  <p>The main mobile pages loaded: dashboard, calendar, messaging, tickets, IT, and maintenance.</p>
+  <p>The automated accessibility issues found earlier were fixed in the follow-up pass.</p>
+  <p>The phone-sized worker audit passed the two important field scenarios: an IT worker resolving a ticket and a maintenance worker closing a work order with labor, cost, photo evidence, and QA.</p>
+  <p><strong>Recommendation:</strong> next, make the mobile actions more direct. Claim, start, hold, add note, add photo, and complete should feel like quick field actions, not admin tasks.</p>
+
+  <h2>Accessibility</h2>
+  <p>The audit used automated checks based on WCAG A and AA rules. Automated checks do not catch everything, but they are good at finding obvious blockers.</p>
+  <table>
+    <tr><th>Problem</th><th>Where seen</th><th>Why it matters</th></tr>
+    <tr><td>Low color contrast</td><td>Dashboard, messaging, maintenance, settings, draft events</td><td>Some staff may not be able to read text clearly.</td></tr>
+    <tr><td>Focusable content hidden from assistive tools</td><td>Dashboard, tickets, IT, maintenance, inventory, approvals</td><td>Keyboard and screen reader users can get confusing focus behavior.</td></tr>
+    <tr><td>Progress bar has no name</td><td>Dashboard, mobile dashboard</td><td>Assistive tools cannot explain what progress is being shown.</td></tr>
+    <tr><td>Unnamed button</td><td>Mobile IT</td><td>Screen reader users hear “button” with no purpose.</td></tr>
+    <tr><td>Scrollable region not keyboard focusable</td><td>Mobile dashboard</td><td>Keyboard users may not be able to reach scrollable content.</td></tr>
+  </table>
+
+  <h2>Security And Multi-Tenant Risk</h2>
+  <p>The architecture check passed, and the route inventory shows that many handlers are guarded. That is good.</p>
+  <p>However, the inventory also reported 191 logged-in handlers with no permission decorator. Some may be fine, but this needs review. The report should not assume they are safe without checking each route.</p>
+  <p>There are also many uses of <code>rawPrisma</code> in API routes. Some are expected, such as auth, public links, webhooks, cron jobs, or cross-org jobs. Others need a security review to confirm they do not bypass organization isolation by mistake.</p>
+
+  <h2>Realtime And Notifications</h2>
+  <p>Several pages showed Supabase realtime websocket authentication failures in the browser console. This appeared on dashboard, calendar, IT, events, and mobile pages.</p>
+  <p><strong>Why it matters:</strong> if realtime is broken, staff may not see ticket, message, or calendar updates without refreshing.</p>
+  <p><strong>Fix:</strong> verify the Supabase browser auth token and realtime permissions. Also make sure failures are handled quietly if realtime is optional.</p>
+
+  <h2>Feature Completeness</h2>
+  <table>
+    <tr><th>Section</th><th>Coverage</th><th>Risk</th></tr>
+    <tr><td>Authentication</td><td>Login, MFA, passkeys, reset password, SAML routes</td><td>End-to-end auth tests currently failing, so confidence is reduced.</td></tr>
+    <tr><td>Dashboard</td><td>Loads and has widgets</td><td>Large bundle and accessibility issues.</td></tr>
+    <tr><td>Calendar</td><td>Loads on desktop and mobile</td><td>Realtime errors need attention.</td></tr>
+    <tr><td>Messaging</td><td>Loads desktop and mobile</td><td>403 console error and contrast issue.</td></tr>
+    <tr><td>Tickets</td><td>General ticket API and UI exist</td><td>Smoke CRUD test could not complete.</td></tr>
+    <tr><td>IT</td><td>Very broad feature set</td><td>Daily technician workflow needs simplification and mobile accessibility fix.</td></tr>
+    <tr><td>Maintenance</td><td>Very broad feature set</td><td>Field workflow needs hands-on mobile proof.</td></tr>
+    <tr><td>Settings</td><td>Large settings surface</td><td>Settings user endpoint slow under sweep.</td></tr>
+    <tr><td>Inventory</td><td>Builds and page loads</td><td>Inventory API slow and smoke test broken.</td></tr>
+    <tr><td>Draft events</td><td>API exists</td><td><code>/draft-events</code> page returned 404 in browser audit.</td></tr>
+  </table>
+
+  <h2>Best-Practice Benchmarks Used</h2>
+  <p>I compared the product against common expectations for IT, maintenance, usability, and accessibility.</p>
+  <ul>
+    <li>IT incident handling should help teams restore normal service quickly and keep status clear. Source: <a href="https://www.axelos.com/certifications/itil-service-management/itil-practices-manager/itil-4-specialist-monitor-support-and-fulfil/itil-4-practitioner-incident-management/">ITIL Incident Management by Axelos</a>.</li>
+    <li>Maintenance work orders should capture description, asset, location, urgency, history, and backlog status. Source: <a href="https://www.maptrack.com/blog/work-order-management-best-practices">MapTrack work order management guide</a>.</li>
+    <li>Usability should keep people informed, use plain language, prevent errors, and stay consistent. Source: <a href="https://www.nngroup.com/articles/ten-usability-heuristics/">Nielsen Norman Group usability heuristics</a>.</li>
+    <li>Accessibility should support keyboard use, visible focus, readable contrast, labels, and error help. Source: <a href="https://www.w3.org/WAI/WCAG22/Understanding/">W3C WCAG 2.2 Understanding docs</a>.</li>
+  </ul>
+
+  <h2>Fix Plan</h2>
+  <h3>First: make testing trustworthy</h3>
+  <ul>
+    <li>Fix smoke tests that still use old user fields.</li>
+    <li>Make all smoke scripts accept <code>SMOKE_BASE_URL</code>.</li>
+    <li>Add <code>smoke:it</code> and <code>smoke:maintenance</code> that test claim, assign, status, comment, photo/upload, and close flows.</li>
+    <li>Fix the E2E server workflow so build and dev do not fight over <code>.next</code>.</li>
+  </ul>
+
+  <h3>Second: speed up daily work</h3>
+  <ul>
+    <li>Use production-mode benchmarks for speed decisions. Local dev mode inflated the earlier API numbers.</li>
+    <li>Keep the broad k6 run as a map for suspicious areas, not as final production proof.</li>
+    <li>Keep reducing first-load JavaScript on any page that crosses about 300 kB. The first IT, IT admin, maintenance, dashboard, athletics, calendar, event detail, event day-of, form builder, and Events Hub passes are done.</li>
+    <li>Lazy-load admin-only tabs and charts.</li>
+    <li>Add query caching for dashboard and settings data that rarely changes.</li>
+  </ul>
+
+  <h3>Third: make IT and maintenance easier in the field</h3>
+  <ul>
+    <li>Create a focused “My work today” view for IT and maintenance workers.</li>
+    <li>Make claim, start, hold, complete, add note, add photo, and contact requester one-tap actions on mobile.</li>
+    <li>Show location, asset/device, requester, priority, due time, and last update at the top of every job detail.</li>
+    <li>Make the closeout step clear: work done, photos, labor/parts, notes, requester notification.</li>
+  </ul>
+
+  <h3>Fourth: fix accessibility</h3>
+  <ul>
+    <li>Fix color contrast on all flagged pages.</li>
+    <li>Fix hidden focus issues.</li>
+    <li>Name all buttons and progress bars.</li>
+    <li>Run the accessibility suite again on desktop and mobile.</li>
+  </ul>
+
+  <h2>Files Created During This Audit</h2>
+  <ul>
+    <li><code>docs/PERFORMANCE_TEST_PLAN.md</code></li>
+    <li><code>scripts/perf/worker-readiness-test.js</code></li>
+    <li><code>scripts/audit-product.mjs</code></li>
+    <li><code>scripts/audit-worker-workflows.mjs</code></li>
+    <li><code>docs/audit-artifacts/product-audit-data.json</code></li>
+    <li><code>docs/audit-artifacts/worker-workflows.json</code></li>
+    <li><code>docs/audit-artifacts/mobile-worker-workflows.json</code></li>
+    <li><code>docs/audit-artifacts/screenshots/</code></li>
+    <li><code>scripts/perf/results/worker-readiness-2026-05-26T04-51-14.json</code></li>
+    <li><code>scripts/perf/results/worker-readiness-2026-05-26T22-26-08.json</code></li>
+    <li><code>scripts/perf/results/comprehensive-2026-05-26T04-52-18.json</code></li>
+    <li><code>scripts/perf/results/comprehensive-2026-05-26T22-37-17.json</code></li>
+  </ul>
+
+  <h2>What Still Needs Overnight Testing</h2>
+  <p>These need a cleaner run after fixing the broken test harness:</p>
+  <ul>
+    <li>Full Playwright API suite on a clean server.</li>
+    <li>Full desktop UI crawl with screenshots.</li>
+    <li>Full mobile UI crawl.</li>
+    <li>Tenant isolation tests between two organizations.</li>
+    <li>More role testing as admin, member, viewer, requester, IT worker, and maintenance worker.</li>
+    <li>Manual touch walkthrough on a real phone or device simulator.</li>
+    <li>Staging-only stress and soak tests.</li>
+  </ul>
+
+  <h2>Final Read</h2>
+  <p>Lionheart is feature-rich. IT and maintenance have the right bones for real school operations.</p>
+  <p>The next milestone should be speed and field polish. Desktop and phone-sized worker workflows now pass. The next proof should be production-style load testing and manual touch testing on a real phone.</p>
+</main>
+</body>
+</html>

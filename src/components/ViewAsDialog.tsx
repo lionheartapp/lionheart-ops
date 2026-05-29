@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type UserRow = {
   id: string
@@ -218,7 +219,7 @@ export default function ViewAsDialog({ isOpen, onClose }: ViewAsDialogProps) {
                           {/* Avatar */}
                           <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                             {user.avatar ? (
-                              <img src={user.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+                              <OptimizedImage src={user.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
                             ) : (
                               <span className="text-[11px] font-medium text-slate-600">{initials}</span>
                             )}

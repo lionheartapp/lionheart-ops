@@ -341,13 +341,13 @@ export async function getDayScheduleAssignments(filters: {
     db.dayScheduleAssignment.findMany({
       where: {
         date: { gte: filters.startDate, lte: filters.endDate },
-        ...(filters.campusId ? { campusId: filters.campusId } : {}),
+        ...(filters.campusId ? { schoolId: filters.campusId } : {}),
       },
       include: {
         bellSchedule: {
           include: { periods: { orderBy: { sortOrder: 'asc' } } },
         },
-        campus: { select: { id: true, name: true } },
+        school: { select: { id: true, name: true } },
       },
       orderBy: { date: 'asc' },
     })
@@ -360,18 +360,19 @@ export async function assignDaySchedule(data: {
   campusId?: string
   organizationId: string
 }) {
+  const schoolId = data.campusId || null
   const result = await db.dayScheduleAssignment.upsert({
     where: {
-      organizationId_campusId_date: {
+      organizationId_schoolId_date: {
         organizationId: data.organizationId,
-        campusId: data.campusId || null,
+        schoolId,
         date: data.date,
       },
     },
     create: {
       date: data.date,
       bellScheduleId: data.bellScheduleId,
-      campusId: data.campusId || null,
+      schoolId,
     },
     update: {
       bellScheduleId: data.bellScheduleId,
@@ -476,7 +477,7 @@ export async function getBellScheduleForDate(date: Date, campusId?: string) {
   const assignment = await db.dayScheduleAssignment.findFirst({
     where: {
       date,
-      ...(campusId ? { campusId } : {}),
+      ...(campusId ? { schoolId: campusId } : {}),
     },
     include: {
       bellSchedule: {

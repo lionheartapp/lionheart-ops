@@ -27,7 +27,7 @@
   --color-surface-warm: #fdfcfb;
   --color-text-primary: #1a1915;
   --color-text-secondary: #6a6864;
-  --color-text-muted: #a8a49d;
+  --color-text-muted: #6a6864;
   --color-border: rgba(17, 15, 10, 0.08);
   --color-border-light: rgba(17, 15, 10, 0.05);
 
@@ -502,8 +502,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   .text-slate-700 { color: #3d3b35; }
   .text-slate-600 { color: #5a5750; }
   .text-slate-500 { color: #6a6864; }
-  .text-slate-400 { color: #a8a49d; }
-  .text-slate-300 { color: #c5c1b8; }
+  .text-slate-400 { color: #6a6864; }
+  .text-slate-300 { color: #746f67; }
   .text-slate-200 { color: #dddad3; }
 
   .text-gray-900 { color: #1a1915; }
@@ -511,8 +511,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   .text-gray-700 { color: #3d3b35; }
   .text-gray-600 { color: #5a5750; }
   .text-gray-500 { color: #6a6864; }
-  .text-gray-400 { color: #a8a49d; }
-  .text-gray-300 { color: #c5c1b8; }
+  .text-gray-400 { color: #6a6864; }
+  .text-gray-300 { color: #746f67; }
+  .text-stone-400 { color: #6a6864; }
+  .text-red-500 { color: #dc2626; }
 
   /* ── Backgrounds: cold slate → warm surface ── */
   .bg-slate-50  { background-color: #fafaf8; }
@@ -543,9 +545,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   .ring-slate-300 { --tw-ring-color: rgba(17, 15, 10, 0.12); }
 
   /* ── Placeholder text ── */
-  .placeholder\:text-slate-400::placeholder { color: #a8a49d; }
+  .placeholder\:text-slate-400::placeholder { color: #6a6864; }
   .placeholder\:text-slate-500::placeholder { color: #6a6864; }
-  .placeholder\:text-gray-400::placeholder  { color: #a8a49d; }
+  .placeholder\:text-gray-400::placeholder  { color: #6a6864; }
 
   /* ── Opacity-modifier variants (bg-slate-50/80, border-slate-200/60, etc) ──
    * Tailwind treats these as separate utility classes, so the base remap above
@@ -567,7 +569,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   .border-slate-200\/60 { border-color: rgba(17, 15, 10, 0.07); }
   .border-slate-200\/80 { border-color: rgba(17, 15, 10, 0.08); }
 
-  .text-slate-400\/50 { color: rgba(168, 164, 157, 0.5); }
+  .text-slate-400\/50 { color: rgba(106, 104, 100, 0.65); }
   .text-slate-500\/70 { color: rgba(106, 104, 100, 0.7); }
 
   /* Hover variants — same pattern */

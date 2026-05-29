@@ -44,7 +44,7 @@ const permissionsDuration  = new Trend('settings_permissions', true);
 const campusDuration       = new Trend('settings_campus', true);
 const buildingsDuration    = new Trend('settings_buildings', true);
 const roomsDuration        = new Trend('settings_rooms', true);
-const areasDuration        = new Trend('settings_areas', true);
+const spacesDuration       = new Trend('settings_spaces', true);
 const schoolsDuration      = new Trend('settings_schools', true);
 const schoolInfoDuration   = new Trend('settings_school_info', true);
 const principalsDuration   = new Trend('settings_principals', true);
@@ -144,7 +144,7 @@ export const options = {
     settings_campus:                ['p(95)<800'],
     settings_buildings:             ['p(95)<600'],
     settings_rooms:                 ['p(95)<600'],
-    settings_areas:                 ['p(95)<600'],
+    settings_spaces:                ['p(95)<600'],
     settings_schools:               ['p(95)<600'],
     settings_school_info:           ['p(95)<600'],
     settings_principals:            ['p(95)<600'],
@@ -258,6 +258,10 @@ function apiGetPublic(path, extraHeaders, metricTrend, tag) {
   return res;
 }
 
+function dateOnly(date) {
+  return date.toISOString().slice(0, 10);
+}
+
 // ─── Endpoint Test Groups ──────────────────────────────────────────────────────
 
 function testAuth(token) {
@@ -277,7 +281,7 @@ function testAuth(token) {
   });
 
   group('01 — Auth: Profile', () => {
-    const res = apiGet(token, '/api/auth/profile', profileDuration, 'GET /api/auth/profile');
+    const res = apiGet(token, '/api/auth/me', profileDuration, 'GET /api/auth/me');
     check(res, { 'profile: status ok': (r) => r.status < 500 });
   });
 }
@@ -357,9 +361,9 @@ function testSettingsCampus(token) {
     check(res, { 'rooms: not error': (r) => r.status < 500 });
   });
 
-  group('05 — Settings: Areas', () => {
-    const res = apiGet(token, '/api/settings/campus/areas', areasDuration, 'GET /api/settings/campus/areas');
-    check(res, { 'areas: not error': (r) => r.status < 500 });
+  group('05 — Settings: Spaces', () => {
+    const res = apiGet(token, '/api/settings/campus/spaces', spacesDuration, 'GET /api/settings/campus/spaces');
+    check(res, { 'spaces: not error': (r) => r.status < 500 });
   });
 
   group('05 — Settings: Campuses', () => {
@@ -451,7 +455,11 @@ function testMaintenance(token) {
   });
 
   group('07 — Maintenance: Board Report', () => {
-    const res = apiGet(token, '/api/maintenance/board-report', boardReportDuration, 'GET /api/maintenance/board-report');
+    const to = new Date();
+    const from = new Date(to);
+    from.setDate(to.getDate() - 30);
+    const query = `from=${dateOnly(from)}&to=${dateOnly(to)}`;
+    const res = apiGet(token, `/api/maintenance/board-report?${query}`, boardReportDuration, 'GET /api/maintenance/board-report');
     check(res, { 'board-report: not error': (r) => r.status < 500 });
   });
 }
@@ -571,7 +579,15 @@ function testAcademic(token) {
   });
 
   group('13 — Academic: Day Schedules', () => {
-    const res = apiGet(token, '/api/academic/day-schedules', acadDayDuration, 'GET /api/academic/day-schedules');
+    const now = new Date();
+    const startDate = dateOnly(new Date(now.getFullYear(), now.getMonth(), 1));
+    const endDate = dateOnly(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    const res = apiGet(
+      token,
+      `/api/academic/day-schedules?startDate=${startDate}&endDate=${endDate}`,
+      acadDayDuration,
+      'GET /api/academic/day-schedules'
+    );
     check(res, { 'day schedules: not error': (r) => r.status < 500 });
   });
 

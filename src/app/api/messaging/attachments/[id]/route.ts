@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { fail } from '@/lib/api-response'
 import { prisma, type OrgPrismaClient } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 import { createClient } from '@supabase/supabase-js'
 
 const BUCKET_NAME = 'messaging-attachments'
@@ -19,11 +20,35 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
   // Look up the attachment
   const attachment = await db.messageAttachment.findUnique({
     where: { id: params.id },
-    select: { storageUrl: true, messageId: true, mimeType: true, fileName: true },
+    select: {
+      storageUrl: true,
+      messageId: true,
+      mimeType: true,
+      fileName: true,
+      message: {
+        select: {
+          deletedAt: true,
+          channel: {
+            select: {
+              deletedAt: true,
+              archivedAt: true,
+              members: {
+                where: { userId: ctx.userId },
+                select: { userId: true },
+                take: 1,
+              },
+            },
+          },
+        },
+      },
+    },
   })
 
-  if (!attachment) {
+  if (!attachment || attachment.message.deletedAt || attachment.message.channel.deletedAt) {
     return NextResponse.json(fail('NOT_FOUND', 'Attachment not found'), { status: 404 })
+  }
+  if (attachment.message.channel.archivedAt || attachment.message.channel.members.length === 0) {
+    return NextResponse.json(fail('FORBIDDEN', 'You do not have access to this attachment'), { status: 403 })
   }
 
   // Extract the storage path from the stored URL
@@ -52,4 +77,4 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
 
   // Redirect to the signed URL
   return NextResponse.redirect(data.signedUrl)
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

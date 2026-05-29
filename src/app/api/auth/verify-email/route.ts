@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public email verification verifies a one-time token first, then updates the token owner by organizationId/email.
 import { rawPrisma } from '@/lib/db'
 import { hashSetupToken } from '@/lib/auth/password-setup'
 import { signAuthToken } from '@/lib/auth'

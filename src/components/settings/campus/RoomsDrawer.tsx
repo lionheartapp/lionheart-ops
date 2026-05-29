@@ -9,6 +9,7 @@ import RowActionMenu from '@/components/RowActionMenu'
 import ImageUpload from '@/components/settings/ImageUpload'
 import { getAuthHeaders } from '@/lib/api-client'
 import { type Building, type Room, type RoomAssignmentUser, renderStatusBadge } from './types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -159,7 +160,7 @@ function PersonSearchPicker({
               className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 transition-colors text-left cursor-pointer"
             >
               {u.avatar ? (
-                <img src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                <OptimizedImage src={u.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
               ) : (
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${avatarColor(name)}`}>
                   {getInitials(name)}
@@ -192,7 +193,7 @@ function AssignedChip({
   return (
     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-sm group">
       {user.avatar ? (
-        <img src={user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+        <OptimizedImage src={user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
       ) : (
         <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${avatarColor(name)}`}>
           {getInitials(name)}

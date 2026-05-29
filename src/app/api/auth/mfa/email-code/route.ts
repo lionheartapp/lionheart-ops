@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { verifyAuthToken } from '@/lib/auth'
+// eslint-disable-next-line no-restricted-imports -- MFA email codes are temporary login records, created after verifying the signed MFA token.
 import { rawPrisma } from '@/lib/db'
 import { createHash, randomInt } from 'node:crypto'
 import { z } from 'zod'

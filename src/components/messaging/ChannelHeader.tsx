@@ -11,6 +11,7 @@ import { Hash, Lock, Pin, BellOff, Bell, Users, Search, GraduationCap, UserPlus 
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
 import { useChannel } from '@/lib/hooks/useChannels'
 import PersonSearchPanel from './PersonSearchPanel'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface ChannelHeaderProps {
   channelId: string
@@ -76,7 +77,7 @@ export default function ChannelHeader({
                         className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg text-sm"
                       >
                         {m.user.avatar ? (
-                          <img src={m.user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                          <OptimizedImage src={m.user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
                         ) : (
                           <span className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[9px] font-medium text-white">
                             {initials}

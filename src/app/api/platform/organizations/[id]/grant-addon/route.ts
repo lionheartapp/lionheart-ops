@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+// eslint-disable-next-line no-restricted-imports -- Platform addon grant route intentionally manages tenant modules across organizations after platform permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { getPlatformContext } from '@/lib/auth/platform-context'

@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import * as draftEventService from '@/lib/services/draftEventService'
 import type { ListDraftEventsInput } from '@/lib/services/draftEventService'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const GET = withAuth(async ({ ctx, searchParams }) => {
   const { page, limit, skip } = parsePagination(searchParams)
@@ -17,14 +18,14 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
   ])
 
   return NextResponse.json(ok(drafts, paginationMeta(total, { page, limit, skip })))
-})
+}, { permission: PERMISSIONS.EVENTS_CREATE })
 
 export const POST = withAuth(async ({ req, ctx }) => {
   const body = await req.json()
   const draft = await draftEventService.createDraftEvent(body, ctx.userId)
   return NextResponse.json(ok(draft), { status: 201 })
-})
+}, { permission: PERMISSIONS.EVENTS_CREATE })
 
-export async function DELETE() {
+export const DELETE = withAuth(async () => {
   return NextResponse.json(fail('METHOD_NOT_ALLOWED', 'Use /api/draft-events/[id] for item-level operations'), { status: 405 })
-}
+}, { permission: PERMISSIONS.EVENTS_CREATE })

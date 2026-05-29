@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 import { toggleReaction, ToggleReactionSchema } from '@/lib/services/reactionService'
 
 export const POST = withAuth<z.infer<typeof ToggleReactionSchema>, { id: string }>(
@@ -19,5 +20,5 @@ export const POST = withAuth<z.infer<typeof ToggleReactionSchema>, { id: string 
     const result = await toggleReaction(params.id, ctx.userId, body.emoji)
     return NextResponse.json(ok(result))
   },
-  { schema: ToggleReactionSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: ToggleReactionSchema },
 )

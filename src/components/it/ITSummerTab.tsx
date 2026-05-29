@@ -171,10 +171,10 @@ export default function ITSummerTab({ canManage }: ITSummerTabProps) {
   const { data: batchesRaw, isLoading: batchesLoading, isError: batchesError } = useQuery(
     queryOptions.itSummerBatches({ type: 'REIMAGING' })
   )
-  const batches = (Array.isArray(batchesRaw) ? batchesRaw : []) as SummerBatch[]
+  const batches = useMemo(() => (Array.isArray(batchesRaw) ? batchesRaw : []) as SummerBatch[], [batchesRaw])
 
   const { data: repairsRaw, isLoading: repairsLoading } = useQuery(queryOptions.itRepairQueue())
-  const repairs = (Array.isArray(repairsRaw) ? repairsRaw : []) as RepairItem[]
+  const repairs = useMemo(() => (Array.isArray(repairsRaw) ? repairsRaw : []) as RepairItem[], [repairsRaw])
 
   const { data: stagingRaw, isLoading: stagingLoading } = useQuery(queryOptions.itStagingCounts())
   const staging = stagingRaw as StagingCounts | undefined

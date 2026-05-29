@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import { useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { logger } from '@/lib/logger'
 import { useToast } from '@/components/Toast'
@@ -29,29 +30,13 @@ import {
 } from '@/lib/hooks/useCalendar'
 import CalendarToolbar from './CalendarToolbar'
 import MonthView from './MonthView'
-import WeekView from './WeekView'
-import DayView from './DayView'
-import AgendaView from './AgendaView'
 import MobileMonthView from './MobileMonthView'
-import EventDetailPanel from './EventDetailPanel'
-import EventCreatePanel from './EventCreatePanel'
-import PlanEventDrawer from './PlanEventDrawer'
-import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
-import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
-import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
-import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import type { AttendeeSelection } from './AttendeePicker'
-import ConfirmDialog from '@/components/ConfirmDialog'
-import RecurringEditDialog from './RecurringEditDialog'
-import CancellationNotifyDialog from './CancellationNotifyDialog'
-import NotifyAttendeesDialog from './NotifyAttendeesDialog'
-import LocationConflictDialog from './LocationConflictDialog'
 import { buildCampusShapeMap } from './CampusShapeIndicator'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
 import { useModuleEnabled } from '@/lib/hooks/useModuleEnabled'
 import { useQuery } from '@tanstack/react-query'
 import { type CalendarFilter } from './CalendarFilterPopover'
-import CalendarFilterPanel from './CalendarFilterPanel'
 import { useCalendarPrefetch } from '@/lib/hooks/useCalendarPrefetch'
 import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
 import { useSmartSearch } from '@/lib/hooks/useSmartSearch'
@@ -59,18 +44,53 @@ import { Download, Plus } from 'lucide-react'
 import { MotionConfig } from 'framer-motion'
 import { useDragReschedule } from '@/lib/hooks/useDragReschedule'
 import { useUserSchedule, type MeetWithPerson } from '@/lib/hooks/useMeetWith'
-import CreateCalendarDrawer from './CreateCalendarDrawer'
-import SlotChoiceModal from './SlotChoiceModal'
-import EmptyCalendarState from './EmptyCalendarState'
 import { useCalendarEventCrud } from '@/lib/hooks/useCalendarEventCrud'
 import { useCalendarDeleteFlow } from '@/lib/hooks/useCalendarDeleteFlow'
 import { useCalendarDragResize } from '@/lib/hooks/useCalendarDragResize'
 import { useAthleticsOverlay } from '@/lib/hooks/useAthleticsOverlay'
 
+const WeekView = dynamic(() => import('./WeekView'), { loading: () => <CalendarViewLoading /> })
+const DayView = dynamic(() => import('./DayView'), { loading: () => <CalendarViewLoading /> })
+const AgendaView = dynamic(() => import('./AgendaView'), { loading: () => <CalendarViewLoading /> })
+const CalendarFilterPanel = dynamic(() => import('./CalendarFilterPanel'), { loading: () => null })
+const EventDetailPanel = dynamic(() => import('./EventDetailPanel'), { loading: () => null })
+const EventCreatePanel = dynamic(() => import('./EventCreatePanel'), { loading: () => null })
+const PlanEventDrawer = dynamic(() => import('./PlanEventDrawer'), { loading: () => null })
+const ConfirmDialog = dynamic(() => import('@/components/ConfirmDialog'), { loading: () => null })
+const RecurringEditDialog = dynamic(() => import('./RecurringEditDialog'), { loading: () => null })
+const CancellationNotifyDialog = dynamic(() => import('./CancellationNotifyDialog'), { loading: () => null })
+const NotifyAttendeesDialog = dynamic(() => import('./NotifyAttendeesDialog'), { loading: () => null })
+const LocationConflictDialog = dynamic(() => import('./LocationConflictDialog'), { loading: () => null })
+const CreateCalendarDrawer = dynamic(() => import('./CreateCalendarDrawer'), { loading: () => null })
+const SlotChoiceModal = dynamic(() => import('./SlotChoiceModal'), { loading: () => null })
+const EmptyCalendarState = dynamic(() => import('./EmptyCalendarState'), { loading: () => <CalendarViewLoading /> })
+const CreateEventProjectModal = dynamic(
+  () => import('@/components/events/CreateEventProjectModal').then((mod) => mod.CreateEventProjectModal),
+  { loading: () => null },
+)
+const EventSeriesDrawer = dynamic(
+  () => import('@/components/events/EventSeriesDrawer').then((mod) => mod.EventSeriesDrawer),
+  { loading: () => null },
+)
+
+function CalendarViewLoading() {
+  return (
+    <div className="flex-1 bg-white p-4 sm:p-8">
+      <div className="h-full min-h-[260px] rounded-xl border border-slate-100 bg-white p-4 sm:p-6">
+        <div className="h-4 w-44 animate-pulse rounded bg-slate-200" />
+        <div className="mt-5 grid grid-cols-7 gap-2">
+          {Array.from({ length: 35 }).map((_, index) => (
+            <div key={index} className="h-16 animate-pulse rounded-lg bg-slate-100" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function CalendarView() {
   useCalendarRealtime()
   const { toast } = useToast()
-  const router = useRouter()
   const { isAdmin, user: authUser } = useAuth()
   const { activeSchoolId } = useActiveSchool()
   const {
@@ -93,8 +113,6 @@ export default function CalendarView() {
   const [singleEventOpen, setSingleEventOpen] = useState(false)
   const [multiDayEventOpen, setMultiDayEventOpen] = useState(false)
   const [recurringEventOpen, setRecurringEventOpen] = useState(false)
-  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
 
   // Open the Plan Event stepper (from toolbar or choice modal)
   const handlePlanEvent = useCallback(() => {
@@ -104,9 +122,8 @@ export default function CalendarView() {
   }, [])
 
   /**
-   * Unified dispatcher for the 5 event-project create modes. Called by the
-   * toolbar's "+ Create" dropdown so the calendar surface exposes the same
-   * options (including "With AI (Leo)") as /events and the dashboard.
+   * Unified dispatcher for event-project create modes. Called by the toolbar's
+   * "+ Create" dropdown so the calendar matches the shared create menu.
    */
   const handleCreateEventProject = useCallback((mode: EventCreateMode) => {
     if (mode === 'single') {
@@ -121,11 +138,7 @@ export default function CalendarView() {
       setRecurringEventOpen(true)
       return
     }
-    if (mode === 'template') {
-      setTemplateDrawerOpen(true)
-      return
-    }
-  }, [router])
+  }, [])
 
   // Event interaction state
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null)
@@ -175,6 +188,12 @@ export default function CalendarView() {
 
   const queryClient = useQueryClient()
   const { data: calendars = [], isLoading: calendarsLoading } = useCalendars()
+  const [loadCalendarExtras, setLoadCalendarExtras] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setLoadCalendarExtras(true), 10_000)
+    return () => window.clearTimeout(timeout)
+  }, [])
 
   // Track visible calendars — persisted in localStorage so toggling survives
   // page reloads and is instant (client-side only, never hits the DB).
@@ -247,11 +266,11 @@ export default function CalendarView() {
   }, [setVisibleCalendarIds])
 
   // Category hooks
-  const { data: categories = [] } = useCategories()
+  const { data: categories = [] } = useCategories(loadCalendarExtras)
   const createCategory = useCreateCategory()
   const updateCategory = useUpdateCategory()
   const deleteCategory = useDeleteCategory()
-  const { data: subscriptions = [] } = useCalendarSubscriptions()
+  const { data: subscriptions = [] } = useCalendarSubscriptions(loadCalendarExtras)
   const toggleCalendarNotify = useToggleCalendarNotify()
   const notifyCalendarIds = useMemo(
     () => new Set(subscriptions.filter((s) => s.notifyOnNew).map((s) => s.calendarId)),
@@ -370,6 +389,7 @@ export default function CalendarView() {
       return json.ok ? json.data : []
     },
     staleTime: 5 * 60_000,
+    enabled: loadCalendarExtras,
   })
 
   const filterStorageKey = authUser.id ? `calendar-filter:${authUser.id}` : null
@@ -480,6 +500,7 @@ export default function CalendarView() {
     } catch { return false }
   })
   const toggleFilterPanel = useCallback(() => {
+    setLoadCalendarExtras(true)
     setShowFilterPanel((prev) => {
       const next = !prev
       if (filterPanelStorageKey) {
@@ -498,6 +519,7 @@ export default function CalendarView() {
       return json.ok ? json.data : []
     },
     staleTime: 5 * 60_000,
+    enabled: loadCalendarExtras,
   })
 
   // AI-powered smart search — parses natural language queries into structured filters
@@ -647,10 +669,10 @@ export default function CalendarView() {
 
   const meetWithEvents = useMemo(() => {
     const map = new Map<string, CalendarEventData[]>()
-    const schedules = [schedule0, schedule1, schedule2, schedule3, schedule4]
+    const schedules = [schedule0.data, schedule1.data, schedule2.data, schedule3.data, schedule4.data]
     meetWithPeople.forEach((person, i) => {
-      if (schedules[i]?.data) {
-        map.set(person.id, schedules[i].data!)
+      if (schedules[i]) {
+        map.set(person.id, schedules[i]!)
       }
     })
     return map
@@ -848,7 +870,7 @@ export default function CalendarView() {
   } = useCalendarDragResize({ reschedule })
 
   // Prefetch adjacent time ranges for instant navigation
-  useCalendarPrefetch(currentDate, view, !calendarsLoading, athleticsCampusArray)
+  useCalendarPrefetch(currentDate, view, loadCalendarExtras && !calendarsLoading, athleticsCampusArray)
 
   // Keyboard navigation: T=Today, M=Month, W=Week, D=Day, A=Agenda, N=New event
   useEffect(() => {
@@ -992,50 +1014,52 @@ export default function CalendarView() {
       {/* Scrollable view area — white background fills to bottom */}
       <div className="flex-1 min-h-0 flex bg-white overflow-hidden relative z-0">
         {/* Filter side panel */}
-        <CalendarFilterPanel
-          isOpen={showFilterPanel}
-          onClose={toggleFilterPanel}
-          filter={calendarFilter}
-          onFilterChange={setCalendarFilter}
-          calendars={calendars}
-          visibleCalendarIds={visibleCalendarIds}
-          onToggleCalendar={toggleCalendar}
-          onBulkToggleCalendars={(ids, visible) => {
-            setVisibleCalendarIds((prev) => {
-              const next = new Set(prev)
-              for (const id of ids) {
-                if (visible) next.add(id)
-                else next.delete(id)
+        {showFilterPanel && (
+          <CalendarFilterPanel
+            isOpen={showFilterPanel}
+            onClose={toggleFilterPanel}
+            filter={calendarFilter}
+            onFilterChange={setCalendarFilter}
+            calendars={calendars}
+            visibleCalendarIds={visibleCalendarIds}
+            onToggleCalendar={toggleCalendar}
+            onBulkToggleCalendars={(ids, visible) => {
+              setVisibleCalendarIds((prev) => {
+                const next = new Set(prev)
+                for (const id of ids) {
+                  if (visible) next.add(id)
+                  else next.delete(id)
+                }
+                return next
+              })
+            }}
+            categories={categories}
+            onUpdateCategory={(id, data) => updateCategory.mutate({ id, ...data })}
+            onDeleteCategory={(id) => deleteCategory.mutate(id)}
+            notifyCalendarIds={notifyCalendarIds}
+            onToggleCalendarNotify={(calendarId, enabled) => toggleCalendarNotify.mutate({ calendarId, notifyOnNew: enabled })}
+            externalCalendars={externalCalendarList}
+            athleticsVisible={anyAthleticsVisible}
+            userCampuses={athleticsEnabled ? userCampuses : []}
+            visibleAthleticsCampusIds={visibleAthleticsCampusIds}
+            onToggleAthleticsCampus={(campusId: string) => {
+              setVisibleAthleticsCampusIds((prev) => {
+                const next = new Set(prev)
+                if (next.has(campusId)) next.delete(campusId)
+                else next.add(campusId)
+                return next
+              })
+            }}
+            onToggleAllAthletics={(enabled: boolean) => {
+              if (enabled) {
+                setVisibleAthleticsCampusIds(new Set(userCampuses.map((c) => c.id)))
+              } else {
+                setVisibleAthleticsCampusIds(new Set())
               }
-              return next
-            })
-          }}
-          categories={categories}
-          onUpdateCategory={(id, data) => updateCategory.mutate({ id, ...data })}
-          onDeleteCategory={(id) => deleteCategory.mutate(id)}
-          notifyCalendarIds={notifyCalendarIds}
-          onToggleCalendarNotify={(calendarId, enabled) => toggleCalendarNotify.mutate({ calendarId, notifyOnNew: enabled })}
-          externalCalendars={externalCalendarList}
-          athleticsVisible={anyAthleticsVisible}
-          userCampuses={athleticsEnabled ? userCampuses : []}
-          visibleAthleticsCampusIds={visibleAthleticsCampusIds}
-          onToggleAthleticsCampus={(campusId: string) => {
-            setVisibleAthleticsCampusIds((prev) => {
-              const next = new Set(prev)
-              if (next.has(campusId)) next.delete(campusId)
-              else next.add(campusId)
-              return next
-            })
-          }}
-          onToggleAllAthletics={(enabled: boolean) => {
-            if (enabled) {
-              setVisibleAthleticsCampusIds(new Set(userCampuses.map((c) => c.id)))
-            } else {
-              setVisibleAthleticsCampusIds(new Set())
-            }
-          }}
-          sports={athleticsSports}
-        />
+            }}
+            sports={athleticsSports}
+          />
+        )}
 
         {/* Calendar content */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -1132,166 +1156,181 @@ export default function CalendarView() {
       )}
 
       {/* Panels */}
-      <EventDetailPanel
-        event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
-        onEdit={(event) => {
-          setSelectedEvent(null)
-          setEditingEvent(event)
-          setCreateMode('event')
-          setFormError(null)
-          setIsCreateOpen(true)
-        }}
-        onDelete={handleDeleteEvent}
-        onDuplicate={(evt) => {
-          setSelectedEvent(null)
-          setEditingEvent(null)
-          setCreateMode('event')
-          setFormError(null)
-          setCreateInitialStart(new Date(evt.startTime))
-          setCreateInitialEnd(new Date(evt.endTime))
-          setIsCreateOpen(true)
-        }}
-      />
-
-      <EventCreatePanel
-        isOpen={isCreateOpen}
-        mode={editingEvent ? 'event' : createMode}
-        onClose={() => { setIsCreateOpen(false); setEditingEvent(null); setFormError(null); setCreateMode('event') }}
-        onSubmit={editingEvent ? handleUpdateEvent : handleSubmitEvent}
-        isSubmitting={editingEvent ? updateEvent.isPending : createEvent.isPending}
-        calendars={calendars}
-        categories={categories}
-        onCreateCategory={(data) => createCategory.mutateAsync(data)}
-        initialStart={createInitialStart}
-        initialEnd={createInitialEnd}
-        error={formError}
-        event={editingEvent}
-        initialAttendees={!editingEvent && meetWithPeople.length > 0 ? meetWithAttendees : undefined}
-      />
-
-      {/* Create Calendar Drawer */}
-      <CreateCalendarDrawer
-        isOpen={showCreateCalendar && calendars.length > 0}
-        onClose={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
-        calendarName={newCalendarName}
-        onCalendarNameChange={setNewCalendarName}
-        calendarType={newCalendarType}
-        onCalendarTypeChange={setNewCalendarType}
-        calendarColor={newCalendarColor}
-        onCalendarColorChange={setNewCalendarColor}
-        onCreateCalendar={handleCreateCalendar}
-        isPending={createCalendar.isPending}
-      />
-
-      {/* Recurring event delete mode dialog — shown first for recurring events */}
-      <RecurringEditDialog
-        isOpen={!!pendingDelete && isRecurring(pendingDelete) && !deleteRecurringMode}
-        onClose={cancelPendingDelete}
-        onConfirm={handleDeleteRecurringConfirm}
-        title="Delete recurring event"
-        confirmLabel="OK"
-        variant="danger"
-      />
-
-      {/* Delete event confirmation — shown after mode selection (recurring) or immediately (non-recurring) */}
-      <ConfirmDialog
-        isOpen={!!pendingDelete && (!isRecurring(pendingDelete) || !!deleteRecurringMode)}
-        onClose={cancelPendingDelete}
-        onConfirm={confirmDeleteEvent}
-        title="Delete event"
-        message={
-          deleteRecurringMode === 'this'
-            ? 'This occurrence will be removed. Other instances of this recurring event will not be affected.'
-            : deleteRecurringMode === 'thisAndFollowing'
-              ? 'This and all following occurrences will be removed. Earlier instances will remain.'
-              : 'Are you sure you want to delete this event? This action cannot be undone.'
-        }
-        confirmText="Delete"
-        variant="danger"
-        isLoading={deleteEventMutation.isPending}
-        loadingText="Deleting..."
-      >
-        {deleteError && (
-          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-            {deleteError}
-          </div>
-        )}
-      </ConfirmDialog>
-
-      {/* Cancellation notification dialog — shown after successful delete */}
-      <CancellationNotifyDialog
-        isOpen={showCancellationNotify}
-        onClose={() => setShowCancellationNotify(false)}
-      />
-
-      {/* Recurring event edit mode dialog (drag/resize) */}
-      <RecurringEditDialog
-        isOpen={!!pendingChange && isDragRecurring(pendingChange.event) && !showNotifyDialog}
-        onClose={cancelPendingChange}
-        onConfirm={handleRecurringConfirm}
-      />
-
-      {/* Notify attendees dialog — shown after drag/resize (and after recurring mode selection) */}
-      <NotifyAttendeesDialog
-        isOpen={showNotifyDialog && !!pendingChange}
-        onClose={cancelPendingChange}
-        onSend={() => executePendingChange(true)}
-        onDontSend={() => executePendingChange(false)}
-      />
-
-      {/* Location conflict warning — shown when event overlaps buffer at same location */}
-      <LocationConflictDialog
-        isOpen={!!conflictWarning}
-        conflict={conflictWarning}
-        onClose={handleCancelConflict}
-        onOverride={handleOverrideConflict}
-      />
-
-      {/* Plan Event multi-step drawer */}
-      <PlanEventDrawer
-        isOpen={planEventOpen}
-        onClose={() => setPlanEventOpen(false)}
-        initialStart={planEventInitialStart}
-        initialEnd={planEventInitialEnd}
-      />
-
-      {/* Unified event creation drawers (same as Events Hub) */}
-      <CreateEventProjectModal
-        isOpen={singleEventOpen}
-        onClose={() => setSingleEventOpen(false)}
-        initialMode="single"
-      />
-      <CreateEventProjectModal
-        isOpen={multiDayEventOpen}
-        onClose={() => setMultiDayEventOpen(false)}
-        initialMode="multiday"
-      />
-      <EventSeriesDrawer
-        isOpen={recurringEventOpen}
-        onClose={() => setRecurringEventOpen(false)}
-      />
-      <TemplateListDrawer
-        isOpen={templateDrawerOpen}
-        onClose={() => setTemplateDrawerOpen(false)}
-        onSelect={(templateId: string) => setSelectedTemplateId(templateId)}
-      />
-      {selectedTemplateId && (
-        <CreateFromTemplateWizard
-          templateId={selectedTemplateId}
-          isOpen={!!selectedTemplateId}
-          onClose={() => setSelectedTemplateId(null)}
+      {selectedEvent && (
+        <EventDetailPanel
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={(event) => {
+            setSelectedEvent(null)
+            setEditingEvent(event)
+            setCreateMode('event')
+            setFormError(null)
+            setIsCreateOpen(true)
+          }}
+          onDelete={handleDeleteEvent}
+          onDuplicate={(evt) => {
+            setSelectedEvent(null)
+            setEditingEvent(null)
+            setCreateMode('event')
+            setFormError(null)
+            setCreateInitialStart(new Date(evt.startTime))
+            setCreateInitialEnd(new Date(evt.endTime))
+            setIsCreateOpen(true)
+          }}
         />
       )}
 
+      {isCreateOpen && (
+        <EventCreatePanel
+          isOpen={isCreateOpen}
+          mode={editingEvent ? 'event' : createMode}
+          onClose={() => { setIsCreateOpen(false); setEditingEvent(null); setFormError(null); setCreateMode('event') }}
+          onSubmit={editingEvent ? handleUpdateEvent : handleSubmitEvent}
+          isSubmitting={editingEvent ? updateEvent.isPending : createEvent.isPending}
+          calendars={calendars}
+          categories={categories}
+          onCreateCategory={(data) => createCategory.mutateAsync(data)}
+          initialStart={createInitialStart}
+          initialEnd={createInitialEnd}
+          error={formError}
+          event={editingEvent}
+          initialAttendees={!editingEvent && meetWithPeople.length > 0 ? meetWithAttendees : undefined}
+        />
+      )}
+
+      {/* Create Calendar Drawer */}
+      {showCreateCalendar && calendars.length > 0 && (
+        <CreateCalendarDrawer
+          isOpen={showCreateCalendar}
+          onClose={() => { setShowCreateCalendar(false); setNewCalendarName(''); setNewCalendarColor('#3b82f6') }}
+          calendarName={newCalendarName}
+          onCalendarNameChange={setNewCalendarName}
+          calendarType={newCalendarType}
+          onCalendarTypeChange={setNewCalendarType}
+          calendarColor={newCalendarColor}
+          onCalendarColorChange={setNewCalendarColor}
+          onCreateCalendar={handleCreateCalendar}
+          isPending={createCalendar.isPending}
+        />
+      )}
+
+      {/* Recurring event delete mode dialog — shown first for recurring events */}
+      {pendingDelete && isRecurring(pendingDelete) && !deleteRecurringMode && (
+        <RecurringEditDialog
+          isOpen
+          onClose={cancelPendingDelete}
+          onConfirm={handleDeleteRecurringConfirm}
+          title="Delete recurring event"
+          confirmLabel="OK"
+          variant="danger"
+        />
+      )}
+
+      {/* Delete event confirmation — shown after mode selection (recurring) or immediately (non-recurring) */}
+      {pendingDelete && (!isRecurring(pendingDelete) || !!deleteRecurringMode) && (
+        <ConfirmDialog
+          isOpen
+          onClose={cancelPendingDelete}
+          onConfirm={confirmDeleteEvent}
+          title="Delete event"
+          message={
+            deleteRecurringMode === 'this'
+              ? 'This occurrence will be removed. Other instances of this recurring event will not be affected.'
+              : deleteRecurringMode === 'thisAndFollowing'
+                ? 'This and all following occurrences will be removed. Earlier instances will remain.'
+                : 'Are you sure you want to delete this event? This action cannot be undone.'
+          }
+          confirmText="Delete"
+          variant="danger"
+          isLoading={deleteEventMutation.isPending}
+          loadingText="Deleting..."
+        >
+          {deleteError && (
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+              {deleteError}
+            </div>
+          )}
+        </ConfirmDialog>
+      )}
+
+      {/* Cancellation notification dialog — shown after successful delete */}
+      {showCancellationNotify && (
+        <CancellationNotifyDialog
+          isOpen
+          onClose={() => setShowCancellationNotify(false)}
+        />
+      )}
+
+      {/* Recurring event edit mode dialog (drag/resize) */}
+      {pendingChange && isDragRecurring(pendingChange.event) && !showNotifyDialog && (
+        <RecurringEditDialog
+          isOpen
+          onClose={cancelPendingChange}
+          onConfirm={handleRecurringConfirm}
+        />
+      )}
+
+      {/* Notify attendees dialog — shown after drag/resize (and after recurring mode selection) */}
+      {showNotifyDialog && pendingChange && (
+        <NotifyAttendeesDialog
+          isOpen
+          onClose={cancelPendingChange}
+          onSend={() => executePendingChange(true)}
+          onDontSend={() => executePendingChange(false)}
+        />
+      )}
+
+      {/* Location conflict warning — shown when event overlaps buffer at same location */}
+      {conflictWarning && (
+        <LocationConflictDialog
+          isOpen
+          conflict={conflictWarning}
+          onClose={handleCancelConflict}
+          onOverride={handleOverrideConflict}
+        />
+      )}
+
+      {/* Plan Event multi-step drawer */}
+      {planEventOpen && (
+        <PlanEventDrawer
+          isOpen={planEventOpen}
+          onClose={() => setPlanEventOpen(false)}
+          initialStart={planEventInitialStart}
+          initialEnd={planEventInitialEnd}
+        />
+      )}
+
+      {/* Unified event creation drawers (same as Events Hub) */}
+      {singleEventOpen && (
+        <CreateEventProjectModal
+          isOpen={singleEventOpen}
+          onClose={() => setSingleEventOpen(false)}
+          initialMode="single"
+        />
+      )}
+      {multiDayEventOpen && (
+        <CreateEventProjectModal
+          isOpen={multiDayEventOpen}
+          onClose={() => setMultiDayEventOpen(false)}
+          initialMode="multiday"
+        />
+      )}
+      {recurringEventOpen && (
+        <EventSeriesDrawer
+          isOpen={recurringEventOpen}
+          onClose={() => setRecurringEventOpen(false)}
+        />
+      )}
       {/* Create choice modal — shown when user clicks an empty calendar slot */}
-      <SlotChoiceModal
-        isOpen={choiceModalOpen}
-        onClose={() => setChoiceModalOpen(false)}
-        slotStart={choiceModalStart}
-        onChooseMeeting={handleChoiceMeeting}
-        onChoosePlanEvent={handleChoicePlanEvent}
-      />
+      {choiceModalOpen && (
+        <SlotChoiceModal
+          isOpen
+          onClose={() => setChoiceModalOpen(false)}
+          slotStart={choiceModalStart}
+          onChooseMeeting={handleChoiceMeeting}
+          onChoosePlanEvent={handleChoicePlanEvent}
+        />
+      )}
     </div>
     </MotionConfig>
   )

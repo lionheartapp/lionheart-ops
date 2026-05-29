@@ -3,6 +3,7 @@
 import { Edit2, Trash2, ExternalLink } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
 import type { Athlete } from './roster-types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface RosterCardsProps {
   players: Athlete[]
@@ -21,7 +22,7 @@ export default function RosterCards({ players, selectedTeamId, onEdit, onDelete 
         return (
           <div key={athlete.id} className="flex items-center gap-3 px-4 py-3">
             {athlete.photoUrl ? (
-              <img src={athlete.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <OptimizedImage src={athlete.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <div className="w-8 text-center text-sm font-semibold text-slate-900 flex-shrink-0">
                 {rosterEntry?.jerseyNumber || '\u2014'}

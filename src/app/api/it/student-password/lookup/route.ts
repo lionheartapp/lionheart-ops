@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public student lookup resolves org by slug and rate-limits before returning masked student data.
 import { rawPrisma } from '@/lib/db'
 import { lookupStudent } from '@/lib/services/itStudentPasswordService'
 import { logger } from '@/lib/logger'

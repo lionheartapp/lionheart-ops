@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public magic-link ticket submission verifies the hashed token and creates the ticket in that token's organization.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { createSubTicket, SubTicketSchema } from '@/lib/services/itTicketService'

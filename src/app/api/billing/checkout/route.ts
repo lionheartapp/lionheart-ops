@@ -15,10 +15,12 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
+// eslint-disable-next-line no-restricted-imports -- Billing checkout uses global plans and organization billing records after withAuth provides orgId.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { logger } from '@/lib/logger'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const checkoutSchema = z.object({
   planId: z.string().min(1, 'planId is required'),
@@ -150,5 +152,5 @@ export const POST = withAuth<z.infer<typeof checkoutSchema>>(
       return NextResponse.json(fail('PAYMENT_ERROR', message), { status: 402 })
     }
   },
-  { schema: checkoutSchema }
+  { schema: checkoutSchema, permission: PERMISSIONS.SETTINGS_BILLING }
 )

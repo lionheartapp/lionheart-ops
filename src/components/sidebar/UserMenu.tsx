@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   Settings,
   LogOut,
@@ -61,7 +62,7 @@ export default function UserMenu({
         <div className="flex items-center gap-3 px-3 py-2 min-w-0">
           <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold overflow-hidden text-sm flex-shrink-0 ring-2 ring-white/50">
             {userAvatar ? (
-              <img src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
+              <OptimizedImage src={userAvatar} alt={userName} className="w-9 h-9 rounded-full object-cover" />
             ) : (
               userName.charAt(0).toUpperCase()
             )}

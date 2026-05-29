@@ -13,6 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and scans stalled approvals across organizations.
 import { rawPrisma } from '@/lib/db'
 import { Prisma } from '@prisma/client'
 import { ok, fail } from '@/lib/api-response'

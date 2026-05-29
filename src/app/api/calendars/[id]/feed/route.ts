@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public calendar feed verifies the feed token, then scopes event reads by the calendar's organizationId.
 import { rawPrisma } from '@/lib/db'
 import { fail } from '@/lib/api-response'
 import { getIp } from '@/lib/services/auditService'

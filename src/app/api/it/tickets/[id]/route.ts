@@ -10,7 +10,6 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getITTicketDetail } from '@/lib/services/itTicketService'
 import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
 
 const UpdateTicketSchema = z.object({
   title: z.string().min(1).max(500).optional(),
@@ -35,7 +34,7 @@ export const GET = withAuth(async ({ params }) => {
   }
 
   // Fetch latest routing assignment log
-  const assignmentLog = await rawPrisma.ticketAssignmentLog.findFirst({
+  const assignmentLog = await prisma.ticketAssignmentLog.findFirst({
     where: { ticketId: params.id, module: 'IT' },
     orderBy: { createdAt: 'desc' },
     select: { reason: true, strategy: true, source: true, createdAt: true },

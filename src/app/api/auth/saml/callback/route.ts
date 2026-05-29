@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signAuthToken } from '@/lib/auth'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
+// eslint-disable-next-line no-restricted-imports -- SAML callback starts unauthenticated and reads SAML connection by signed RelayState organizationId.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { prisma } from '@/lib/db'

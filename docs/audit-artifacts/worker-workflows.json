@@ -1,0 +1,488 @@
+{
+  "createdAt": "2026-05-29T02:56:21.251Z",
+  "mode": "desktop",
+  "baseUrl": "http://127.0.0.1:3011",
+  "organization": {
+    "id": "cmnxogi8s0006mm9mrutfjs1v",
+    "name": "Linfield Christian School"
+  },
+  "users": {
+    "it": {
+      "id": "cmpmxtgag0011sxrrqv9duooc",
+      "email": "e2e-it-worker@lionheart-test.com"
+    },
+    "maintenance": {
+      "id": "cmpmxtgay0013sxrrgtm14tpm",
+      "email": "e2e-maint-worker@lionheart-test.com"
+    }
+  },
+  "finalTickets": {
+    "it": {
+      "id": "cmpqbykpf0009xsm65cq1aryd",
+      "ticketNumber": "IT-0020",
+      "title": "Audit IT Workflow 1780023377964",
+      "status": "DONE",
+      "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+    },
+    "maintenance": {
+      "id": "cmpqbym5z002mxsm64ptr9748",
+      "ticketNumber": "MT-0009",
+      "title": "Audit Maintenance Workflow 1780023379843",
+      "status": "DONE",
+      "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+    }
+  },
+  "totals": {
+    "steps": 22,
+    "passed": 22,
+    "failed": 0,
+    "slowest": [
+      {
+        "label": "IT worker page opens cleanly",
+        "method": "BROWSER",
+        "path": "/it",
+        "status": 200,
+        "durationMs": 1185,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/worker-it-page.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "Maintenance worker page opens cleanly",
+        "method": "BROWSER",
+        "path": "/maintenance",
+        "status": 200,
+        "durationMs": 938,
+        "passed": true,
+        "screenshot": "audit-artifacts/screenshots/worker-maintenance-page.png",
+        "consoleErrors": [],
+        "failedRequests": [],
+        "error": null
+      },
+      {
+        "label": "IT worker creates a ticket",
+        "method": "POST",
+        "path": "/api/it/tickets",
+        "status": 201,
+        "durationMs": 171,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpf0009xsm65cq1aryd",
+          "ticketNumber": "IT-0020",
+          "title": "Audit IT Workflow 1780023377964",
+          "status": "BACKLOG",
+          "assignedToId": null
+        },
+        "error": null
+      },
+      {
+        "label": "IT worker resumes work",
+        "method": "PATCH",
+        "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+        "status": 200,
+        "durationMs": 99,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpf0009xsm65cq1aryd",
+          "ticketNumber": "IT-0020",
+          "title": "Audit IT Workflow 1780023377964",
+          "status": "IN_PROGRESS",
+          "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+        },
+        "error": null
+      },
+      {
+        "label": "Maintenance worker creates a work order",
+        "method": "POST",
+        "path": "/api/maintenance/tickets",
+        "status": 201,
+        "durationMs": 97,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbym5z002mxsm64ptr9748",
+          "ticketNumber": "MT-0009",
+          "title": "Audit Maintenance Workflow 1780023379843",
+          "status": "BACKLOG",
+          "assignedToId": null
+        },
+        "error": null
+      },
+      {
+        "label": "IT worker starts work",
+        "method": "PATCH",
+        "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+        "status": 200,
+        "durationMs": 72,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbykpf0009xsm65cq1aryd",
+          "ticketNumber": "IT-0020",
+          "title": "Audit IT Workflow 1780023377964",
+          "status": "IN_PROGRESS",
+          "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+        },
+        "error": null
+      },
+      {
+        "label": "Maintenance worker claims the work order",
+        "method": "POST",
+        "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/claim",
+        "status": 200,
+        "durationMs": 51,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbym5z002mxsm64ptr9748",
+          "ticketNumber": "MT-0009",
+          "title": "Audit Maintenance Workflow 1780023379843",
+          "status": "TODO",
+          "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+        },
+        "error": null
+      },
+      {
+        "label": "Maintenance worker adds cost estimate and photo",
+        "method": "PATCH",
+        "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748",
+        "status": 200,
+        "durationMs": 49,
+        "passed": true,
+        "summary": {
+          "id": "cmpqbym5z002mxsm64ptr9748",
+          "ticketNumber": "MT-0009",
+          "title": "Audit Maintenance Workflow 1780023379843",
+          "status": "IN_PROGRESS",
+          "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+        },
+        "error": null
+      }
+    ]
+  },
+  "results": [
+    {
+      "label": "IT worker creates a ticket",
+      "method": "POST",
+      "path": "/api/it/tickets",
+      "status": 201,
+      "durationMs": 171,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker opens the ticket",
+      "method": "GET",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd",
+      "status": 200,
+      "durationMs": 48,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker claims the ticket",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/assign",
+      "status": 200,
+      "durationMs": 21,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "TODO",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker starts work",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+      "status": 200,
+      "durationMs": 72,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker puts ticket on hold",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+      "status": 200,
+      "durationMs": 27,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "ON_HOLD",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker resumes work",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+      "status": 200,
+      "durationMs": 99,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker resolves the ticket",
+      "method": "PATCH",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd/status",
+      "status": 200,
+      "durationMs": 29,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker reopens resolved ticket",
+      "method": "GET",
+      "path": "/api/it/tickets/cmpqbykpf0009xsm65cq1aryd",
+      "status": 200,
+      "durationMs": 38,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbykpf0009xsm65cq1aryd",
+        "ticketNumber": "IT-0020",
+        "title": "Audit IT Workflow 1780023377964",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgag0011sxrrqv9duooc"
+      },
+      "error": null
+    },
+    {
+      "label": "IT worker page opens cleanly",
+      "method": "BROWSER",
+      "path": "/it",
+      "status": 200,
+      "durationMs": 1185,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/worker-it-page.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    },
+    {
+      "label": "Maintenance worker creates a work order",
+      "method": "POST",
+      "path": "/api/maintenance/tickets",
+      "status": 201,
+      "durationMs": 97,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker opens the work order",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748",
+      "status": 200,
+      "durationMs": 23,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "BACKLOG",
+        "assignedToId": null
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker claims the work order",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/claim",
+      "status": 200,
+      "durationMs": 51,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "TODO",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker starts work",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/status",
+      "status": 200,
+      "durationMs": 23,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker logs labor",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/labor",
+      "status": 201,
+      "durationMs": 24,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbymag003fxsm6ro7i1b1n"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker logs material cost",
+      "method": "POST",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/costs",
+      "status": 201,
+      "durationMs": 14,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbymay003jxsm6on0asych"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker adds cost estimate and photo",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748",
+      "status": 200,
+      "durationMs": 49,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "IN_PROGRESS",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker submits work for QA",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/status",
+      "status": 200,
+      "durationMs": 20,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "QA",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker closes the work order",
+      "method": "PATCH",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/status",
+      "status": 200,
+      "durationMs": 26,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker reopens closed work order",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748",
+      "status": 200,
+      "durationMs": 24,
+      "passed": true,
+      "summary": {
+        "id": "cmpqbym5z002mxsm64ptr9748",
+        "ticketNumber": "MT-0009",
+        "title": "Audit Maintenance Workflow 1780023379843",
+        "status": "DONE",
+        "assignedToId": "cmpmxtgay0013sxrrgtm14tpm"
+      },
+      "error": null
+    },
+    {
+      "label": "Maintenance worker sees labor log",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/labor",
+      "status": 200,
+      "durationMs": 14,
+      "passed": true,
+      "summary": {},
+      "error": null
+    },
+    {
+      "label": "Maintenance worker sees cost summary",
+      "method": "GET",
+      "path": "/api/maintenance/tickets/cmpqbym5z002mxsm64ptr9748/costs?summary=true",
+      "status": 200,
+      "durationMs": 17,
+      "passed": true,
+      "summary": {},
+      "error": null
+    },
+    {
+      "label": "Maintenance worker page opens cleanly",
+      "method": "BROWSER",
+      "path": "/maintenance",
+      "status": 200,
+      "durationMs": 938,
+      "passed": true,
+      "screenshot": "audit-artifacts/screenshots/worker-maintenance-page.png",
+      "consoleErrors": [],
+      "failedRequests": [],
+      "error": null
+    }
+  ]
+}

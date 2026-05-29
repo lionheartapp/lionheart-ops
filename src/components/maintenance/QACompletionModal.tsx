@@ -122,7 +122,7 @@ export default function QACompletionModal({
         }, 3000)
       }
     },
-    [photos]
+    []
   )
 
   function handleFiles(files: File[] | null) {

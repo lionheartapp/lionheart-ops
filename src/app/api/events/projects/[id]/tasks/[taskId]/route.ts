@@ -20,6 +20,7 @@ import { UpdateEventTaskSchema } from '@/lib/types/event-project'
  * Completing a task (status -> DONE) sets completedAt automatically inside
  * updateEventTask().
  */
+// @authOnly Full task edits require event-project update permission; assigned users may update only their own task status.
 export const PATCH = withAuth(async ({ params, ctx, body }) => {
   const hasFullAccess = await can(ctx.userId, PERMISSIONS.EVENT_PROJECT_UPDATE_ALL)
 

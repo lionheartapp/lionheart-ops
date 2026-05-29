@@ -11,6 +11,7 @@ import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok, fail } from '@/lib/api-response'
 import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const SubscribeSchema = z.object({
   endpoint: z.string().url(),
@@ -56,7 +57,7 @@ export const POST = withAuth<z.infer<typeof SubscribeSchema>>(
 
     return NextResponse.json(ok({ subscribed: true }))
   },
-  { schema: SubscribeSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: SubscribeSchema },
 )
 
 // DELETE — remove a push subscription
@@ -73,5 +74,5 @@ export const DELETE = withAuth<z.infer<typeof UnsubscribeSchema>>(
 
     return NextResponse.json(ok({ unsubscribed: true }))
   },
-  { schema: UnsubscribeSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: UnsubscribeSchema },
 )

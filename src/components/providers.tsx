@@ -32,6 +32,8 @@ function isPublicPage(): boolean {
 
 interface WindowWithCsrf extends Window {
   __csrfInterceptorInstalled?: boolean
+  __lionheartAuthMeCache?: { json: unknown; fetchedAt: number }
+  __lionheartAuthMePromise?: Promise<unknown>
 }
 
 function installCsrfInterceptor() {
@@ -115,13 +117,21 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
     }
 
     // Hydrate from cookie → localStorage
-    fetch('/api/auth/me', { credentials: 'include' })
+    const authMePromise = fetch('/api/auth/me', { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Not authenticated')
         return res.json()
       })
+
+    ;(window as WindowWithCsrf).__lionheartAuthMePromise = authMePromise
+
+    authMePromise
       .then((json) => {
         if (!json.ok) throw new Error('Not authenticated')
+        ;(window as WindowWithCsrf).__lionheartAuthMeCache = {
+          json,
+          fetchedAt: Date.now(),
+        }
         const { user, org, isImpersonating, adminName } = json.data
 
         // Bridge: populate localStorage for backward compat with all existing pages
@@ -189,7 +199,10 @@ function AuthBridge({ children }: { children: React.ReactNode }) {
         setReady(true)
         // Individual pages will see empty localStorage and redirect to /login
       })
-  }, [])
+      .finally(() => {
+        delete (window as WindowWithCsrf).__lionheartAuthMePromise
+      })
+  }, [qc])
 
   if (!ready) {
     return (

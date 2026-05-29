@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
+// eslint-disable-next-line no-restricted-imports -- DiffEvent is a custom append-only audience log; every query below filters by organizationId and user/team audience.
 import { rawPrisma } from '@/lib/db'
 import { getUserTeams } from '@/lib/auth/permissions'
 import { logger } from '@/lib/logger'
@@ -9,6 +10,8 @@ import { computeAnchorTime } from '@/lib/diff/anchor'
 import { aggregateDiffEvents } from '@/lib/diff/aggregate'
 
 /**
+ * @authOnly Returns only changes targeted to the signed-in user or one of their teams.
+ *
  * GET /api/dashboard/diff
  *
  * Returns the "since yesterday" diff for the current user.

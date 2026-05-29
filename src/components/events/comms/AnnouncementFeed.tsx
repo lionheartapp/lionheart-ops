@@ -7,6 +7,7 @@ import { useAnnouncements, useDeleteAnnouncement } from '@/lib/hooks/useEventCom
 import { useToast } from '@/components/Toast'
 import { listItem, staggerContainer } from '@/lib/animations'
 import type { EventAnnouncementWithAuthor, AnnouncementAudience } from '@/lib/types/events-phase21'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ function AnnouncementCard({ announcement, onDelete, isDeleting }: AnnouncementCa
       <div className="flex items-start gap-3">
         {/* Author avatar */}
         {announcement.authorAvatar ? (
-          <img
+          <OptimizedImage
             src={announcement.authorAvatar}
             alt={announcement.authorName}
             className="w-8 h-8 rounded-full object-cover flex-shrink-0"

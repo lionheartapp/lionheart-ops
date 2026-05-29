@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mic, MicOff, Sparkles, X, Loader2, Check, ArrowRight, RotateCcw } from 'lucide-react'
 import { fetchApi } from '@/lib/api-client'
 import { Textarea } from '@/components/ui/Textarea'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // Web Speech API types (not in default TS lib)
 interface SpeechRecognitionInstance {
@@ -464,7 +465,7 @@ export default function AIWorkflowCreator({
       setError(err instanceof Error ? err.message : 'Failed to create rules')
       setPhase('preview')
     }
-  }, [result, onRulesCreated])
+  }, [result, formDefinitionId, isMaintenance, module, onRulesCreated])
 
   if (!isOpen) return null
 
@@ -580,7 +581,7 @@ export default function AIWorkflowCreator({
                               }`}
                             >
                               {s.type === 'person' && s.avatar ? (
-                                <img src={s.avatar} alt={s.label} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                                <OptimizedImage src={s.avatar} alt={s.label} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                               ) : (
                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
                                   s.type === 'person' ? 'bg-blue-100 text-blue-700'

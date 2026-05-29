@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
   getChannel,
   updateChannel,
@@ -16,7 +17,7 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
   if (blocked) return blocked
   const channel = await getChannel(params.id, ctx.userId)
   return NextResponse.json(ok(channel))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })
 
 // PATCH /api/messaging/channels/[id] — update name, description, topic
 export const PATCH = withAuth<z.infer<typeof UpdateChannelSchema>, { id: string }>(
@@ -26,7 +27,7 @@ export const PATCH = withAuth<z.infer<typeof UpdateChannelSchema>, { id: string 
     const updated = await updateChannel(params.id, ctx.userId, body)
     return NextResponse.json(ok(updated))
   },
-  { schema: UpdateChannelSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: UpdateChannelSchema },
 )
 
 // DELETE /api/messaging/channels/[id] — archive (soft)
@@ -35,4 +36,4 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ ctx, orgId, par
   if (blocked) return blocked
   await archiveChannel(params.id, ctx.userId)
   return NextResponse.json(ok({ archived: true }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

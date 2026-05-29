@@ -174,8 +174,7 @@ export default function OnboardingPlanPage() {
                 setLoading(true)
                 // Trigger a fresh fetch
                 setTimeout(() => {
-                  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                  ;(async () => {
+                  void (async () => {
                     try {
                       const data = await fetchApi<BillingResponse>('/api/settings/billing')
                       setPlans(

@@ -94,7 +94,7 @@ export const PATCH = withAuth<PatchMessageBody, { id: string }>(
     // Should not reach here due to schema refinement
     return NextResponse.json(ok(null))
   },
-  { schema: PatchMessageSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: PatchMessageSchema },
 )
 
 // DELETE /api/messaging/messages/[id] — soft-delete message
@@ -105,4 +105,4 @@ export const DELETE = withAuth<unknown, { id: string }>(async ({ ctx, orgId, par
   const canDeleteAny = await permissions.can(PERMISSIONS.MESSAGING_MESSAGES_DELETE_ANY)
   const result = await deleteMessage(params.id, ctx.userId, canDeleteAny)
   return NextResponse.json(ok(result))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

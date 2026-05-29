@@ -71,7 +71,7 @@ async function callGemini(prompt: string): Promise<string | null> {
 
   try {
     const result = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
     return result.text ?? null
@@ -247,7 +247,7 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       const result = await client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: conversationContents as unknown as Array<Record<string, unknown>>,
         config: {
           systemInstruction: systemPrompt,
@@ -299,7 +299,7 @@ Schedule block types: SESSION, MEAL, TRAVEL, ACTIVITY, BREAK, CEREMONY, FREE_TIM
 
     // Fallback: if we exhausted rounds, try one final call without tools
     const finalResult = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: conversationContents as unknown as Array<Record<string, unknown>>,
       config: { systemInstruction: systemPrompt },
     })

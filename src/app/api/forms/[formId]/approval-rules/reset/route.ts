@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Approval reset manually scopes all destructive workflow deletes to orgId/formId after verifying system form ownership.
 import { rawPrisma } from '@/lib/db'
 import { seedFormApprovalDefaults } from '@/lib/services/formService'
 import { getFormApprovalRules } from '@/lib/services/approvalRuleService'

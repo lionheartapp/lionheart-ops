@@ -10,6 +10,7 @@ import { ok, fail } from '@/lib/api-response'
 import { signAuthToken, verifyAuthToken } from '@/lib/auth'
 import { verifyMfaForLogin } from '@/lib/services/mfaService'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
+// eslint-disable-next-line no-restricted-imports -- MFA verify runs before normal auth; it verifies the signed MFA token and manually scopes user/org reads.
 import { rawPrisma } from '@/lib/db'
 import { randomUUID, createHash } from 'node:crypto'
 import { z } from 'zod'
@@ -87,8 +88,12 @@ export async function POST(req: NextRequest) {
     })
 
     // Fetch user data for the response (same as login route)
-    const user = await rawPrisma.user.findUnique({
-      where: { id: claims.userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: claims.userId,
+        organizationId: claims.organizationId,
+        deletedAt: null,
+      },
       select: {
         id: true,
         email: true,

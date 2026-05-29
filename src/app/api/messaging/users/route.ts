@@ -8,7 +8,8 @@
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/with-auth'
 import { ok } from '@/lib/api-response'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   const search = searchParams.get('search') || ''
@@ -30,7 +31,7 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
     ]
   }
 
-  const users = await rawPrisma.user.findMany({
+  const users = await prisma.user.findMany({
     where,
     select: {
       id: true,
@@ -45,4 +46,4 @@ export const GET = withAuth(async ({ orgId, ctx, searchParams }) => {
   })
 
   return NextResponse.json(ok(users))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })

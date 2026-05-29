@@ -13,6 +13,7 @@ import QRCode from 'qrcode'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Registration share routes manually verify event org ownership before form and registration queries.
 import { rawPrisma } from '@/lib/db'
 import { updateRegistrationForm } from '@/lib/services/registrationService'
 

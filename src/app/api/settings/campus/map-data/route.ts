@@ -17,6 +17,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Map data uses raw SQL for lightweight coordinate projections and every query filters by organizationId.
 import { rawPrisma } from '@/lib/db'
 import { geocodeAddress } from '@/lib/services/geocodingService'
 

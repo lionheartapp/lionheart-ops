@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Lock, Mail, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 export default function PlatformLoginPage() {
   const router = useRouter()
@@ -53,7 +54,7 @@ export default function PlatformLoginPage() {
 
       <div className="w-full max-w-sm relative">
         <div className="text-center mb-8">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto mb-5" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-10 w-auto mx-auto mb-5" />
           <p className="text-slate-400 mt-1 text-sm">{isSetup ? 'Create your admin account' : 'Platform administration'}</p>
         </div>
 

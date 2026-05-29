@@ -107,19 +107,47 @@ const DEFAULT_ORG: AuthOrg = {
 type AuthMeResponse = { ok: boolean; data?: { user: AuthUser; org: AuthOrg }; error?: unknown }
 let inFlightMe: Promise<AuthMeResponse> | null = null
 
+type AuthCacheWindow = Window & {
+  __lionheartAuthMeCache?: { json: AuthMeResponse; fetchedAt: number }
+  __lionheartAuthMePromise?: Promise<AuthMeResponse>
+}
+
 function fetchAuthMeShared(): Promise<AuthMeResponse> {
+  if (typeof window !== 'undefined') {
+    const cached = (window as AuthCacheWindow).__lionheartAuthMeCache
+    if (cached && Date.now() - cached.fetchedAt < 60_000) {
+      return Promise.resolve(cached.json)
+    }
+    if ((window as AuthCacheWindow).__lionheartAuthMePromise) {
+      return (window as AuthCacheWindow).__lionheartAuthMePromise!
+    }
+  }
+
   if (inFlightMe) return inFlightMe
   inFlightMe = fetch('/api/auth/me', { credentials: 'include' })
     .then(async (res): Promise<AuthMeResponse> => {
       if (!res.ok) return { ok: false, error: { status: res.status } }
       const json = await res.json().catch(() => null)
-      return (json as AuthMeResponse) ?? { ok: false }
+      const authJson = (json as AuthMeResponse) ?? { ok: false }
+      if (typeof window !== 'undefined') {
+        ;(window as AuthCacheWindow).__lionheartAuthMeCache = {
+          json: authJson,
+          fetchedAt: Date.now(),
+        }
+      }
+      return authJson
     })
     .catch((err): AuthMeResponse => ({ ok: false, error: err }))
     .finally(() => {
       // Clear once resolved so future mounts can re-fetch.
       inFlightMe = null
+      if (typeof window !== 'undefined') {
+        delete (window as AuthCacheWindow).__lionheartAuthMePromise
+      }
     })
+  if (typeof window !== 'undefined') {
+    ;(window as AuthCacheWindow).__lionheartAuthMePromise = inFlightMe
+  }
   return inFlightMe
 }
 

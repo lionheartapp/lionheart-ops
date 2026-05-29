@@ -162,7 +162,6 @@ self.addEventListener('notificationclick', (event: any) => {
     (event.notification.data as { url?: string })?.url || '/'
 
   event.waitUntil(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (self as any).clients
       .matchAll({ type: 'window' })
       .then((windowClients: any[]) => {
@@ -171,7 +170,6 @@ self.addEventListener('notificationclick', (event: any) => {
             return client.focus()
           }
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (self as any).clients.openWindow(url)
       })
   )

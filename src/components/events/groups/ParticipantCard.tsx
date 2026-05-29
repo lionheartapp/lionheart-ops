@@ -4,6 +4,7 @@ import { useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { Shield, GripVertical, X } from 'lucide-react'
 import type { GroupParticipant } from '@/lib/hooks/useEventGroups'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -174,7 +175,7 @@ export function Avatar({
 
   if (participant.photoUrl) {
     return (
-      <img
+      <OptimizedImage
         src={participant.photoUrl}
         alt={`${participant.firstName} ${participant.lastName}`}
         className={`${dim} rounded-full object-cover flex-shrink-0`}

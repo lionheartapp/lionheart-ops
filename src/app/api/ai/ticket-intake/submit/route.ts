@@ -11,6 +11,9 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
 import { getUserContext } from '@/lib/request-context'
+import { assertCan, canAny } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- AI intake creates org-scoped IT/maintenance tickets plus unscoped per-org counters; all writes include the resolved organizationId.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
@@ -52,6 +55,13 @@ export async function POST(req: NextRequest) {
       orgId = getOrgIdFromRequest(req)
       const ctx = await getUserContext(req)
       userId = ctx.userId
+      const canUseIntake = await canAny(userId, [
+        PERMISSIONS.IT_TICKET_SUBMIT,
+        PERMISSIONS.MAINTENANCE_SUBMIT,
+      ])
+      if (!canUseIntake) {
+        return NextResponse.json(fail('FORBIDDEN', 'Insufficient permissions'), { status: 403 })
+      }
     } catch {
       if (!data.orgId) {
         return NextResponse.json(fail('AUTH_REQUIRED', 'Authentication or orgId required'), { status: 401 })
@@ -66,6 +76,12 @@ export async function POST(req: NextRequest) {
       // Maintenance tickets require a submitter
       if (data.module === 'MAINTENANCE' && !userId) {
         return NextResponse.json(fail('AUTH_REQUIRED', 'Authentication required for maintenance tickets'), { status: 401 })
+      }
+      if (userId && data.module === 'IT') {
+        await assertCan(userId, PERMISSIONS.IT_TICKET_SUBMIT)
+      }
+      if (userId && data.module === 'MAINTENANCE') {
+        await assertCan(userId, PERMISSIONS.MAINTENANCE_SUBMIT)
       }
 
       const ticket = await runWithOrgContext(orgId, async () => {
@@ -169,6 +185,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(fail('VALIDATION_ERROR', 'Invalid action'), { status: 400 })
   } catch (err) {
+    if (err instanceof Error && err.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', err.message), { status: 403 })
+    }
     log.error({ err: String(err) }, 'Ticket intake submit failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Something went wrong'), { status: 500 })
   }

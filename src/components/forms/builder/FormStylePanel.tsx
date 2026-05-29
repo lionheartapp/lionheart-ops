@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/Input'
 import { FileInput } from '@/components/ui/FileInput'
 import { Textarea } from '@/components/ui/Textarea'
 import { fetchApi } from '@/lib/api-client'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type FormLayout = 'MINIMAL' | 'SPLIT' | 'HERO'
 type ImageSide = 'LEFT' | 'RIGHT'
@@ -193,7 +194,7 @@ export default function FormStylePanel({
         {logoUrl ? (
           <div className="relative rounded-lg overflow-hidden border border-slate-200">
             <div className="flex items-center justify-center p-4 bg-slate-50">
-              <img src={logoUrl} alt="Logo" className="h-10 max-w-[160px] object-contain" />
+              <OptimizedImage src={logoUrl} alt="Logo" className="h-10 max-w-[160px] object-contain" />
             </div>
             <button
               type="button"
@@ -255,7 +256,7 @@ export default function FormStylePanel({
           <label className="text-[10px] font-medium text-slate-500 block">Cover Image</label>
           {publicImageUrl ? (
             <div className="relative rounded-lg overflow-hidden border border-slate-200">
-              <img
+              <OptimizedImage
                 src={publicImageUrl}
                 alt="Cover"
                 className="w-full h-28 object-cover"

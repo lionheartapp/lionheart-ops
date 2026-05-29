@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and syncs E-Rate reference data across organizations.
 import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import { syncBen } from '@/lib/services/it/erate-sync'
 import { logger } from '@/lib/logger'

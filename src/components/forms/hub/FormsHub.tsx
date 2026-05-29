@@ -27,8 +27,10 @@ import { Input } from '@/components/ui/Input'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
+import { usePermissions } from '@/lib/hooks/usePermissions'
 import FormCard from './FormCard'
 import FormTemplateGallery from '@/components/forms/templates/FormTemplateGallery'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -94,6 +96,7 @@ export default function FormsHub() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { isAdmin } = useAuth()
+  const { data: perms, isLoading: permissionsLoading } = usePermissions()
   const [activeTab, setActiveTab] = useState<HubTab>(isAdmin ? 'system' : 'custom')
   const [search, setSearch] = useState('')
   const [showGallery, setShowGallery] = useState(false)
@@ -105,6 +108,7 @@ export default function FormsHub() {
     queryKey: queryKeys.forms.all,
     queryFn: () => fetchApi<FormListItem[]>('/api/forms/hub'),
     staleTime: 60_000,
+    enabled: Boolean(perms?.canManageForms),
   })
 
   const systemForms = forms.filter((f) => f.isDefault || f.systemKey)
@@ -152,6 +156,25 @@ export default function FormsHub() {
         setDeleteConfirm({ id: formId, name: 'this form', isSystem: false, submissions: 0, orders: 0, tickets: 0, linkedEvent: null })
       }
     }
+  }
+
+  if (permissionsLoading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!perms?.canManageForms) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <h1 className="text-xl font-semibold text-slate-900">Access limited</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Form management is available to workspace staff with forms permission.
+        </p>
+      </div>
+    )
   }
 
   // Group system forms by their display group
@@ -515,7 +538,7 @@ export default function FormsHub() {
                             <td className="px-4 py-3 hidden md:table-cell">
                               <div className="flex items-center gap-2">
                                 {form.updatedByUser?.avatar ? (
-                                  <img src={form.updatedByUser.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                                  <OptimizedImage src={form.updatedByUser.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
                                 ) : editorName ? (
                                   <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-medium text-slate-500">
                                     {editorName.charAt(0)}

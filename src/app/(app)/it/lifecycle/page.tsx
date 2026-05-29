@@ -89,7 +89,6 @@ function LifecycleContent() {
           id="tabpanel-deployment"
           aria-labelledby="tab-deployment"
           className={activeTab === 'deployment' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'deployment'}
         >
           {deploymentBatchId ? (
             <ITDeploymentBatchDetail
@@ -115,7 +114,6 @@ function LifecycleContent() {
           id="tabpanel-provisioning"
           aria-labelledby="tab-provisioning"
           className={activeTab === 'provisioning' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'provisioning'}
         >
           <ITProvisioningTab canManage={p.canManageProvisioning} canView={p.canViewProvisioning} />
         </div>
@@ -127,7 +125,6 @@ function LifecycleContent() {
           id="tabpanel-summer"
           aria-labelledby="tab-summer"
           className={activeTab === 'summer' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'summer'}
         >
           <ITSummerTab canManage={p.canManage} />
         </div>

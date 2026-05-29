@@ -13,6 +13,9 @@ const rsvpSchema = z.object({
   responseNote: z.string().max(500).optional(),
 })
 
+/**
+ * @authOnly Lets the signed-in attendee update only their own RSVP status.
+ */
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

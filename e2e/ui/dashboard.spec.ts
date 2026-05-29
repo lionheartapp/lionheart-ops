@@ -22,25 +22,30 @@ test.describe('Dashboard shell', () => {
     expect(meaningfulErrors, `console errors: ${meaningfulErrors.join('\n')}`).toHaveLength(0)
   })
 
-  test('sidebar navigates to Settings', async ({ adminPage }) => {
-    await adminPage.goto('/dashboard')
-    // Try role-based first, fall back to text.
-    const settingsLink = adminPage
-      .getByRole('link', { name: /^settings$/i })
-      .or(adminPage.getByText(/^settings$/i).first())
+  test('sidebar navigates to Settings', async ({ adminPage }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-chrome', 'Desktop sidebar check is not part of mobile shell')
 
-    await settingsLink.first().click()
+    await adminPage.goto('/dashboard')
+
+    await adminPage.getByRole('button', { name: /user menu/i }).click()
+    await adminPage.getByRole('button', { name: /^settings$/i }).click()
     await adminPage.waitForURL(/\/settings/, { timeout: 10_000 })
     await expect(adminPage).toHaveURL(/\/settings/)
   })
 
-  test('all primary nav links return 2xx (no broken routes)', async ({ adminPage }) => {
+  test('all primary nav links return 2xx (no broken routes)', async ({ adminPage }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-chrome', 'Desktop sidebar check is not part of mobile shell')
+
     await adminPage.goto('/dashboard')
 
-    const links = await adminPage.getByRole('navigation').getByRole('link').all()
-    const hrefs = (
-      await Promise.all(links.map((l) => l.getAttribute('href')))
-    ).filter((h): h is string => !!h && h.startsWith('/') && !h.startsWith('/api'))
+    const mainNav = adminPage.getByRole('navigation', { name: /main navigation/i })
+    await expect(mainNav.getByRole('link', { name: /dashboard/i })).toBeVisible({ timeout: 10_000 })
+
+    const hrefs = await mainNav.locator('a[href]').evaluateAll((links) =>
+      links
+        .map((l) => l.getAttribute('href'))
+        .filter((h): h is string => !!h && h.startsWith('/') && !h.startsWith('/api')),
+    )
 
     // Unique, non-hash, first 10 to keep the test bounded.
     const unique = [...new Set(hrefs.map((h) => h.split('#')[0]))].slice(0, 10)

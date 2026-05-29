@@ -4,6 +4,8 @@ import { withAuth } from '@/lib/api/with-auth'
 import { getTasksForAssignee } from '@/lib/services/eventProject-schedule'
 
 /**
+ * @authOnly Returns only event tasks assigned to the signed-in user.
+ *
  * GET /api/me/tasks
  *
  * Returns all tasks across all events in the org where the current user is

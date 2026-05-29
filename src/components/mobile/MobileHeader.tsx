@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, Search } from 'lucide-react'
 import { useMobileHeader } from './MobileHeaderContext'
 import { haptic } from '@/lib/haptics'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MobileHeaderProps {
   onSearchOpen?: () => void
@@ -55,7 +56,7 @@ export default function MobileHeader({
             /* Small avatar in header when on main tab pages */
             <div className="flex items-center justify-center w-8 h-8 ml-1 rounded-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
               {userAvatar ? (
-                <img src={userAvatar} alt={userName || 'User'} className="w-full h-full object-cover" />
+                <OptimizedImage src={userAvatar} alt={userName || 'User'} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white text-xs font-semibold">
                   {(userName || 'U').charAt(0).toUpperCase()}

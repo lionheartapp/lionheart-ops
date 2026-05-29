@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { resolveQrToken } from '@/lib/services/formQrService'
+// eslint-disable-next-line no-restricted-imports -- Public QR ticket intake resolves organization from token and manually scopes every lookup/write by resolved.organizationId.
 import { rawPrisma } from '@/lib/db'
 import { runWithOrgContext } from '@/lib/org-context'
 import { z } from 'zod'
@@ -54,15 +55,21 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (!locationText && (resolved.buildingId || resolved.roomId)) {
       const parts: string[] = []
       if (resolved.buildingId) {
-        const b = await rawPrisma.building.findUnique({
-          where: { id: resolved.buildingId },
+        const b = await rawPrisma.building.findFirst({
+          where: {
+            id: resolved.buildingId,
+            organizationId: resolved.organizationId,
+          },
           select: { name: true },
         })
         if (b) parts.push(b.name)
       }
       if (resolved.roomId) {
-        const r = await rawPrisma.room.findUnique({
-          where: { id: resolved.roomId },
+        const r = await rawPrisma.room.findFirst({
+          where: {
+            id: resolved.roomId,
+            organizationId: resolved.organizationId,
+          },
           select: { roomNumber: true, displayName: true },
         })
         if (r) parts.push(r.displayName ?? r.roomNumber)

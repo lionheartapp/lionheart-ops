@@ -2,11 +2,12 @@
  * GET /api/f/[formId] — Public form fetch (no auth required)
  *
  * Returns the form definition with pages and fields for public rendering.
- * Only returns forms that have isPublic: true, or all forms for now (MVP).
+ * Only returns active public forms.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Public form fetch has no auth; it only returns active forms marked isPublic.
 import { rawPrisma } from '@/lib/db'
 
 export async function GET(
@@ -16,8 +17,12 @@ export async function GET(
   const { formId } = await params
 
   try {
-    const form = await rawPrisma.formDefinition.findUnique({
-      where: { id: formId },
+    const form = await rawPrisma.formDefinition.findFirst({
+      where: {
+        id: formId,
+        isPublic: true,
+        status: 'ACTIVE',
+      },
       select: {
         id: true,
         description: true,

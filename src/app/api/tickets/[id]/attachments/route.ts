@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import * as ticketService from '@/lib/services/ticketService'
 import * as ticketAttachmentService from '@/lib/services/ticketAttachmentService'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const GET = withAuth(async ({ ctx, params }) => {
   const ticket = await ticketService.getTicketById(params.id, ctx.userId)
@@ -11,7 +12,7 @@ export const GET = withAuth(async ({ ctx, params }) => {
   }
   const attachments = await ticketAttachmentService.listAttachments(params.id)
   return NextResponse.json(ok(attachments))
-})
+}, { permissionAny: [PERMISSIONS.TICKETS_READ_OWN, PERMISSIONS.TICKETS_READ_TEAM, PERMISSIONS.TICKETS_READ_ALL] })
 
 export const POST = withAuth(async ({ req, ctx, params, orgId }) => {
   const ticket = await ticketService.getTicketById(params.id, ctx.userId)
@@ -33,4 +34,4 @@ export const POST = withAuth(async ({ req, ctx, params, orgId }) => {
     }
     throw error
   }
-})
+}, { permissionAny: [PERMISSIONS.TICKETS_READ_OWN, PERMISSIONS.TICKETS_READ_TEAM, PERMISSIONS.TICKETS_READ_ALL] })

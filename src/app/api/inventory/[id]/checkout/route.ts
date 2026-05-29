@@ -3,6 +3,7 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { checkoutItem, CheckoutSchema } from '@/lib/services/inventoryService'
+import { inventoryErrorResponse } from '../../error-response'
 
 export const POST = withAuth(async ({ req, orgId, ctx, params }) => {
   const body = await req.json()
@@ -14,6 +15,10 @@ export const POST = withAuth(async ({ req, orgId, ctx, params }) => {
     )
   }
 
-  const item = await checkoutItem(orgId, params.id, parsed.data, ctx.userId)
-  return NextResponse.json(ok(item))
+  try {
+    const item = await checkoutItem(orgId, params.id, parsed.data, ctx.userId)
+    return NextResponse.json(ok(item))
+  } catch (error) {
+    return inventoryErrorResponse(error)
+  }
 }, { permission: PERMISSIONS.INVENTORY_CHECKOUT })

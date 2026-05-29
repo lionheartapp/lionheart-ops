@@ -169,6 +169,7 @@ export default function ITSearchFilterBar({
           <button
             onClick={() => setPopoverOpen((o) => !o)}
             className="inline-flex items-center gap-1.5 h-10 px-3 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-full hover:bg-slate-100 transition-colors cursor-pointer flex-shrink-0"
+            aria-label="Open filters"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             {activeFilterCount > 0 && (

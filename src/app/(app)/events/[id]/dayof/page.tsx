@@ -11,14 +11,18 @@
  */
 
 import { use } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { staggerContainer, listItem } from '@/lib/animations'
 
 import { useEventProject } from '@/lib/hooks/useEventProject'
-import DayOfDashboard from '@/components/events/dayof/DayOfDashboard'
 import PagePadding from '@/components/PagePadding'
+
+const DayOfDashboard = dynamic(() => import('@/components/events/dayof/DayOfDashboard'), {
+  loading: () => <DayOfSkeleton />,
+})
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 

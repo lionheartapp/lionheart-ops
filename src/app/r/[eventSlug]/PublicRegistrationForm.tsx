@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -173,7 +174,7 @@ function ImagePanel({
       style={panelStyle}
     >
       {imageUrl ? (
-        <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <OptimizedImage src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600" />
       )}
@@ -192,7 +193,7 @@ function OrgLogo({ org, ctaColor }: { org: OrgInfo; ctaColor: string }) {
   return (
     <div className="flex items-center gap-2 mb-5">
       {org.logoUrl ? (
-        <img src={org.logoUrl} alt="" className="h-8 w-8 rounded-xl object-cover" />
+        <OptimizedImage src={org.logoUrl} alt="" className="h-8 w-8 rounded-xl object-cover" />
       ) : (
         <div className="h-8 w-8 rounded-xl" style={{ backgroundColor: ctaColor }} />
       )}

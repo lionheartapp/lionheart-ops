@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+// eslint-disable-next-line no-restricted-imports -- Billing invoice lookup reads subscription/payment records by orgId after withAuth/permission checks.
 import { rawPrisma } from '@/lib/db'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'

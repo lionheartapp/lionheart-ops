@@ -85,7 +85,6 @@ function SecurityContent() {
           id="tabpanel-content-filters"
           aria-labelledby="tab-content-filters"
           className={activeTab === 'content-filters' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'content-filters'}
         >
           <ITContentFiltersTab canManage={p.canManageFilters} canConfigure={p.canConfigureFilters} canViewAdminOnly={p.canViewCIPAAudit} />
         </div>
@@ -97,7 +96,6 @@ function SecurityContent() {
           id="tabpanel-security-incidents"
           aria-labelledby="tab-security-incidents"
           className={activeTab === 'security-incidents' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'security-incidents'}
         >
           <ITSecurityIncidentsTab canCreate={p.canCreateSecurityIncident} canManage={p.canManageSecurityIncidents} />
         </div>
@@ -109,7 +107,6 @@ function SecurityContent() {
           id="tabpanel-intelligence"
           aria-labelledby="tab-intelligence"
           className={activeTab === 'intelligence' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'intelligence'}
         >
           <ITIntelligenceTab canManage={p.canViewIntelligence} canConfigure={p.canConfigureDevices} onViewDevice={setDetailDeviceId} />
         </div>

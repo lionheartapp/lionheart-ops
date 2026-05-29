@@ -34,8 +34,8 @@ const checkoutInclude = {
       model: true,
       serialNumber: true,
       status: true,
-      schoolId: true,
-      school: { select: { id: true, name: true } },
+      campusId: true,
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
     },
   },
@@ -63,10 +63,10 @@ export async function getPool() {
   const now = new Date()
 
   // All devices marked as LOANER status
-  const loanerDevices = await (prisma.iTDevice.findMany as Function)({
+  const loanerDevicesRaw = await (prisma.iTDevice.findMany as Function)({
     where: { status: 'LOANER' },
     include: {
-      school: { select: { id: true, name: true } },
+      campus: { select: { id: true, name: true } },
       building: { select: { id: true, name: true } },
       loanerCheckouts: {
         where: { checkedInAt: null },
@@ -92,10 +92,13 @@ export async function getPool() {
   })
 
   // Split into checked out vs overdue
-  const checkedOut = activeCheckouts.filter(
+  const loanerDevices = loanerDevicesRaw.map(withDeviceSchoolAlias)
+  const normalizedCheckouts = activeCheckouts.map(withCheckoutDeviceSchoolAlias)
+
+  const checkedOut = normalizedCheckouts.filter(
     (c: any) => new Date(c.dueDate) >= now
   )
-  const overdue = activeCheckouts.filter(
+  const overdue = normalizedCheckouts.filter(
     (c: any) => new Date(c.dueDate) < now
   )
 
@@ -117,6 +120,21 @@ export async function getPool() {
       overdue: overdue.length,
       total: loanerDevices.length,
     },
+  }
+}
+
+function withDeviceSchoolAlias(device: any) {
+  return {
+    ...device,
+    schoolId: device.campusId ?? null,
+    school: device.campus ?? null,
+  }
+}
+
+function withCheckoutDeviceSchoolAlias(checkout: any) {
+  return {
+    ...checkout,
+    device: checkout.device ? withDeviceSchoolAlias(checkout.device) : checkout.device,
   }
 }
 

@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { runWithOrgContext, getOrgIdFromRequest } from '@/lib/org-context'
+// eslint-disable-next-line no-restricted-imports -- Member import creates invite/setup-token records after authenticated org/permission checks and explicit org scoping.
 import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { assertCan } from '@/lib/auth/permissions'

@@ -12,25 +12,61 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import TabIndicator from '@/components/ui/TabIndicator'
 import ITPageShell from '@/components/it/ITPageShell'
-import ITDashboard from '@/components/it/ITDashboard'
-import ITTicketsList from '@/components/it/ITTicketsList'
 import dynamic from 'next/dynamic'
 
-const ITKanbanBoard = dynamic(() => import('@/components/it/ITKanbanBoard'), { ssr: false })
-import ITMagicLinksTab from '@/components/it/ITMagicLinksTab'
-import ITTicketDetail from '@/components/it/ITTicketDetail'
-import ITTicketCreateDrawer from '@/components/it/ITTicketCreateDrawer'
-import SupportRequestDrawer from '@/components/forms/SupportRequestDrawer'
-import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
-import QrCodeManager from '@/components/forms/QrCodeManager'
-import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
 import { useAiAvailability } from '@/lib/hooks/useAiAvailability'
-import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import { LayoutDashboard, Kanban, List, Link2, Route, QrCode, FileText, Laptop, Code, KeyRound, Wifi, Projector, HelpCircle, ChevronLeft, Pencil, Settings, BarChart3 } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import { useITTicketRealtime } from '@/lib/hooks/useITTicketRealtime'
 import PagePadding from '@/components/PagePadding'
+import { queryKeys } from '@/lib/queries'
+
+function LazyPanel() {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 animate-pulse">
+      <div className="h-4 w-40 rounded bg-slate-200" />
+      <div className="mt-4 h-24 rounded bg-slate-100" />
+    </div>
+  )
+}
+
+const ITKanbanBoard = dynamic(() => import('@/components/it/ITKanbanBoard'), {
+  ssr: false,
+  loading: () => <LazyPanel />,
+})
+const ITTicketsList = dynamic(() => import('@/components/it/ITTicketsList'), {
+  loading: () => <LazyPanel />,
+})
+const ITDashboard = dynamic(() => import('@/components/it/ITDashboard'), {
+  loading: () => <LazyPanel />,
+})
+const ITMagicLinksTab = dynamic(() => import('@/components/it/ITMagicLinksTab'), {
+  loading: () => <LazyPanel />,
+})
+const ITTicketDetail = dynamic(() => import('@/components/it/ITTicketDetail'), {
+  ssr: false,
+  loading: () => null,
+})
+const SupportRequestDrawer = dynamic(() => import('@/components/forms/SupportRequestDrawer'), {
+  ssr: false,
+  loading: () => null,
+})
+const TicketRoutingTab = dynamic(() => import('@/components/settings/TicketRoutingTab'), {
+  loading: () => <LazyPanel />,
+})
+const QrCodeManager = dynamic(() => import('@/components/forms/QrCodeManager'), {
+  ssr: false,
+  loading: () => <LazyPanel />,
+})
+const AiTicketIntakeDrawer = dynamic(() => import('@/components/it/AiTicketIntakeDrawer'), {
+  ssr: false,
+  loading: () => null,
+})
+const CategoryFormEditor = dynamic(() => import('@/components/settings/CategoryFormEditor'), {
+  ssr: false,
+  loading: () => <LazyPanel />,
+})
 
 type HelpDeskTab = 'tickets' | 'insights' | 'settings'
 type SettingsSubTab = 'routing' | 'forms' | 'magic-links' | 'qr-codes'
@@ -300,11 +336,11 @@ function ITContent() {
         id="tabpanel-tickets"
         aria-labelledby="tab-tickets"
         className={activeTab === 'tickets' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-        aria-hidden={activeTab !== 'tickets'}
       >
         {viewMode === 'board' && canSeeManageTabs ? (
           <ITKanbanBoard
             onTicketClick={setDetailTicketId}
+            onCreateTicket={() => setShowCreate(true)}
             scope={scope}
             currentUserId={user.id || undefined}
             activeSchoolId={activeSchoolId}
@@ -328,7 +364,6 @@ function ITContent() {
           id="tabpanel-insights"
           aria-labelledby="tab-insights"
           className={activeTab === 'insights' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'insights'}
         >
           <ITDashboard
             onViewTicket={setDetailTicketId}
@@ -372,33 +407,44 @@ function ITContent() {
       )}
 
       {/* Detail drawer */}
-      <ITTicketDetail
-        ticketId={detailTicketId}
-        isOpen={!!detailTicketId}
-        onClose={() => setDetailTicketId(null)}
-        canManage={p.canManage}
-        members={members as { id: string; firstName: string; lastName: string }[]}
-      />
+      {detailTicketId && (
+        <ITTicketDetail
+          ticketId={detailTicketId}
+          isOpen
+          onClose={() => setDetailTicketId(null)}
+          canManage={p.canManage}
+          members={members as { id: string; firstName: string; lastName: string }[]}
+        />
+      )}
 
       {/* Create drawer — AI chat when available, manual form when not */}
-      {aiAvailable && !forceManualForm ? (
-        <AiTicketIntakeDrawer
-          isOpen={showCreate}
-          onClose={() => setShowCreate(false)}
-          onTicketCreated={() => {
-            queryClient.invalidateQueries({ queryKey: ['it-tickets'] })
-          }}
-          onSwitchToManual={() => {
-            setForceManualForm(true)
-            setShowCreate(true)
-          }}
-        />
-      ) : (
-        <SupportRequestDrawer
-          isOpen={showCreate}
-          onClose={() => { setShowCreate(false); setForceManualForm(false) }}
-          module="IT"
-        />
+      {showCreate && (
+        aiAvailable && !forceManualForm ? (
+          <AiTicketIntakeDrawer
+            isOpen
+            onClose={() => setShowCreate(false)}
+            onTicketCreated={() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
+              queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
+              queryClient.invalidateQueries({ queryKey: queryKeys.itDashboard.all })
+            }}
+            onSwitchToManual={() => {
+              setForceManualForm(true)
+              setShowCreate(true)
+            }}
+          />
+        ) : (
+          <SupportRequestDrawer
+            isOpen
+            onClose={() => { setShowCreate(false); setForceManualForm(false) }}
+            module="IT"
+            onSubmitted={() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.itTickets.all })
+              queryClient.invalidateQueries({ queryKey: queryKeys.itBoard.all })
+              queryClient.invalidateQueries({ queryKey: queryKeys.itDashboard.all })
+            }}
+          />
+        )
       )}
     </div>
   )

@@ -3,19 +3,12 @@
 /**
  * UpcomingEventsPanel
  *
- * Warm editorial rebuild of the dashboard's Upcoming Events widget.
+ * Dashboard rebuild of the Upcoming Events widget.
  * The hero element is a 14-day timeline strip that gives the widget
  * visual identity even when empty — so the "nothing scheduled" state
  * still communicates *what this thing is* at a glance.
  *
- * Design influences (pulled from docs/design-references/):
- *   - Notion: warm neutrals (#fdfcfb / #1a1915 / #6a6864), whisper
- *     borders at 6% black, multi-layer sub-0.05 shadows.
- *   - Superhuman: tight display line-heights, warm cream secondary
- *     buttons, dark confident primary CTA (no saturated brand blue
- *     in the chrome).
- *   - Cal.com: monochrome restraint — the frame stays neutral, the
- *     event color chips carry the only saturation.
+ * The frame stays neutral; event color appears only as small status dots.
  */
 
 import { useMemo, useState } from 'react'
@@ -28,17 +21,14 @@ import CreateEventMenu, { type EventCreateMode } from '@/components/events/Creat
 
 // ─── Design tokens (kept inline so this component is self-contained) ────────
 
-const SURFACE = '#fdfcfb'
-const BORDER = 'rgba(17, 15, 10, 0.06)'
-const TEXT_PRIMARY = '#1a1915'
-const TEXT_SECONDARY = '#6a6864'
-const TEXT_MUTED = '#a8a49d'
-const WARM_CHIP = '#f6f4f0'
-const WARM_CHIP_HOVER = '#ede9e0'
-const HAIRLINE = 'rgba(17, 15, 10, 0.05)'
-
-const CARD_SHADOW =
-  '0 0.8px 2.9px rgba(0,0,0,0.02), 0 2px 7.8px rgba(0,0,0,0.027), 0 4px 18px rgba(0,0,0,0.04)'
+const SURFACE = '#ffffff'
+const BORDER = '#e5e7eb'
+const TEXT_PRIMARY = '#020617'
+const TEXT_SECONDARY = '#475569'
+const TEXT_MUTED = '#94a3b8'
+const WARM_CHIP = '#f8fafc'
+const WARM_CHIP_HOVER = '#f1f5f9'
+const HAIRLINE = '#f1f5f9'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -238,23 +228,21 @@ export default function UpcomingEventsPanel({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-      className="flex flex-col min-h-0 rounded-3xl overflow-hidden"
+      className="flex flex-col min-h-0 rounded-xl overflow-hidden"
       style={{
         backgroundColor: SURFACE,
         border: `1px solid ${BORDER}`,
-        boxShadow: CARD_SHADOW,
       }}
       aria-label="Upcoming events"
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 sm:pb-5">
+      <header className="flex-shrink-0 px-4 pt-5 pb-4 sm:px-6 sm:pt-6">
         <div className="flex items-start justify-between gap-4 mb-1">
           <div className="min-w-0">
             <h2
-              className="text-2xl font-semibold leading-[1.05]"
+              className="text-xl font-semibold leading-tight"
               style={{
                 color: TEXT_PRIMARY,
-                letterSpacing: '-0.025em',
               }}
             >
               The next two weeks
@@ -290,12 +278,12 @@ export default function UpcomingEventsPanel({
       </header>
 
       {/* ── Timeline strip — the visual anchor of the widget ──────────── */}
-      <div className="flex-shrink-0 px-4 sm:px-7 pb-4 sm:pb-6">
+      <div className="flex-shrink-0 px-4 pb-4 sm:px-6 sm:pb-5">
         <Timeline cells={timeline} selectedDate={selectedDate} onDayClick={handleDayClick} />
       </div>
 
       {/* ── Divider hairline ──────────────────────────────────────────── */}
-      <div className="flex-shrink-0 mx-4 sm:mx-7" style={{ borderTop: `1px solid ${HAIRLINE}` }} />
+      <div className="flex-shrink-0 mx-4 sm:mx-6" style={{ borderTop: `1px solid ${HAIRLINE}` }} />
 
       {/* ── Content: list, empty state, loading, error ────────────────── */}
       <div className="relative flex-1 min-h-0">
@@ -304,12 +292,12 @@ export default function UpcomingEventsPanel({
           <div
             className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 z-10"
             style={{
-              background: `linear-gradient(to top, ${SURFACE} 0%, rgba(253,252,251,0) 100%)`,
+              background: `linear-gradient(to top, ${SURFACE} 0%, rgba(255,255,255,0) 100%)`,
             }}
           />
         )}
 
-        <div className="overflow-y-auto dashboard-scroll px-4 sm:px-7 pt-2 pb-4 max-h-[480px]">
+        <div className="overflow-y-auto dashboard-scroll px-4 sm:px-6 pt-2 pb-4 max-h-[480px]">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -346,6 +334,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
       className="overflow-x-auto -mx-2 px-2 scrollbar-none"
       role="list"
       aria-label="14-day timeline"
+      tabIndex={0}
     >
       <div
         className="grid gap-1 sm:gap-1.5"
@@ -367,9 +356,9 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: idx * 0.015, ease: [0.25, 0.1, 0.25, 1] }}
               onClick={() => onDayClick(cell.date)}
-              className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-xl text-center transition-colors duration-200 cursor-pointer hover:bg-[rgba(17,15,10,0.04)]"
+              className="relative flex flex-col items-center justify-between py-2 px-0.5 rounded-lg text-center transition-[background-color,box-shadow,transform] duration-200 cursor-pointer hover:-translate-y-px hover:bg-slate-100 hover:shadow-sm"
               style={{
-                backgroundColor: isSelected ? TEXT_PRIMARY : isTodayButNotSelected ? 'rgba(17,15,10,0.06)' : 'transparent',
+                backgroundColor: isSelected ? TEXT_PRIMARY : isTodayButNotSelected ? '#f1f5f9' : 'transparent',
                 color: isSelected ? '#ffffff' : TEXT_PRIMARY,
                 minHeight: '58px',
               }}
@@ -391,7 +380,7 @@ function Timeline({ cells, selectedDate, onDayClick }: { cells: DayCell[]; selec
                     style={{
                       backgroundColor: isSelected
                         ? 'rgba(255,255,255,0.4)'
-                        : 'rgba(17,15,10,0.12)',
+                        : '#cbd5e1',
                     }}
                   />
                 ) : (
@@ -469,20 +458,18 @@ function ItemList({ items, onEventClick, onProjectClick }: ItemListProps) {
               </div>
             </div>
 
-            {/* Calendar / project color bar */}
-            <div
-              className="flex-shrink-0 w-[3px] rounded-full self-stretch my-0.5"
-              style={{ backgroundColor: color }}
-            />
-
             {/* Main content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
+                <span
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-hidden
+                />
                 <p
                   className="text-[15px] font-semibold truncate"
                   style={{
                     color: TEXT_PRIMARY,
-                    letterSpacing: '-0.005em',
                   }}
                 >
                   {title}
@@ -553,10 +540,10 @@ function ItemList({ items, onEventClick, onProjectClick }: ItemListProps) {
               <button
                 type="button"
                 onClick={handleClick}
-                className="group w-full flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl transition-colors duration-200 text-left cursor-pointer"
+                className="group w-full flex items-start gap-4 py-4 px-2 -mx-2 rounded-lg border border-transparent transition-[background-color,border-color] duration-200 text-left cursor-pointer hover:border-slate-200"
                 style={{ borderBottom: `1px solid ${HAIRLINE}` }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = '#f8f6f2')
+                  (e.currentTarget.style.backgroundColor = '#f1f5f9')
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = 'transparent')
@@ -599,7 +586,6 @@ function EmptyState({
         className="text-[17px] font-semibold leading-[1.3]"
         style={{
           color: TEXT_PRIMARY,
-          letterSpacing: '-0.015em',
         }}
       >
         Your calendar is open

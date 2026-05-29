@@ -15,6 +15,8 @@
  *   data: {"type":"error","message":"..."}           — error occurred
  *
  * Gracefully degrades to { available: false } when GEMINI_API_KEY is not set.
+ *
+ * @authOnly Any signed-in user may chat; tool discovery and tool execution enforce each tool's own permission.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -65,7 +67,7 @@ const ChatRequestSchema = z.object({
 
 const MAX_TOOL_ITERATIONS = 12
 const CONVERSATION_CONTEXT_LIMIT = 20
-const MODEL = 'gemini-2.0-flash'
+const MODEL = 'gemini-2.5-flash'
 
 // ─── Module-level logger ───────────────────────────────────────────────────────
 

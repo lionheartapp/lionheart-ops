@@ -98,7 +98,10 @@ export default function ITTicketsList({ onViewTicket, onCreateTicket, canManage,
 
   const { data, isLoading } = useQuery(queryOptions.itTickets(filters))
 
-  const allTickets = ((data as { tickets?: Ticket[] })?.tickets ?? []) as Ticket[]
+  const allTickets = useMemo(
+    () => ((data as { tickets?: Ticket[] })?.tickets ?? []) as Ticket[],
+    [data]
+  )
 
   // Apply scope filter client-side: "mine" shows my tickets + unassigned
   const tickets = useMemo(() => {

@@ -71,29 +71,34 @@ export default function AboutPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">What Lionheart Does</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { title: 'Events & Calendar', desc: 'Plan, approve, and run every school event with conflict detection and parent-facing calendars.' },
-                { title: 'IT Help Desk', desc: 'Structured ticketing for hardware, software, and network issues with SLA tracking and roster sync.' },
-                { title: 'Maintenance Management', desc: 'Work order routing, asset tracking, preventive maintenance schedules, and compliance calendars.' },
-                { title: 'Forms & Submissions', desc: 'Build permission slips, surveys, and sign-ups with QR codes, conditional logic, and approval workflows.' },
-                { title: 'Approval Workflows', desc: 'Multi-step approval rules per calendar, resource, or request type — configurable, not hard-coded.' },
-                { title: 'Messaging', desc: 'Replace Slack and Teams for staff comms with DMs, channels, threads, and push to mobile.' },
-                { title: 'Registration + Payments', desc: 'Stripe-powered registration for events, camps, and programs with magic-link parent signups.' },
-                { title: 'Athletics Coordination', desc: 'Season planning, schedules, rosters, stats, tournaments, and public-facing roster pages.' },
-                { title: 'IT Fleet Manager', desc: 'Chromebook fleet, damage tracking, loaners, MDM, content filtering, summer mode, and eRate.' },
-                { title: 'Mobile App', desc: 'Role-based bottom tabs, push notifications, pull-to-refresh — built for the people on the move.' },
-                { title: 'Leo AI', desc: 'Institutional memory that answers "who, what, when" about your school in plain English.' },
-                { title: 'Multi-School Support', desc: 'Manage anything from a single school to a full Pride of schools under one banner, with unlimited campuses per school.' },
+                { title: 'Events & Calendar', desc: 'Plan, approve, and run every school event with conflict detection and parent-facing calendars.', href: '/solutions/events', cta: 'Explore events' },
+                { title: 'IT Help Desk', desc: 'Structured ticketing for hardware, software, and network issues with SLA tracking and roster sync.', href: '/solutions/it', cta: 'Explore IT' },
+                { title: 'Maintenance Management', desc: 'Work order routing, asset tracking, preventive maintenance schedules, and compliance calendars.', href: '/solutions/maintenance', cta: 'Explore maintenance' },
+                { title: 'Forms & Submissions', desc: 'Build permission slips, surveys, and sign-ups with QR codes, conditional logic, and approval workflows.', href: '/solutions/forms-registration', cta: 'Explore forms' },
+                { title: 'Approval Workflows', desc: 'Multi-step approval rules per calendar, resource, or request type — configurable, not hard-coded.', href: '/platform', cta: 'See platform' },
+                { title: 'Messaging', desc: 'Replace scattered staff comms with DMs, channels, threads, and push to mobile.', href: '/solutions/messaging', cta: 'Explore messaging' },
+                { title: 'Registration + Payments', desc: 'Stripe-powered registration for events, camps, and programs with magic-link parent signups.', href: '/solutions/forms-registration', cta: 'Explore registration' },
+                { title: 'Athletics Coordination', desc: 'Season planning, schedules, rosters, stats, tournaments, and public-facing roster pages.', href: '/solutions/events', cta: 'See scheduling' },
+                { title: 'IT Fleet Manager', desc: 'Chromebook fleet, damage tracking, loaners, MDM, content filtering, summer mode, and eRate.', href: '/solutions/it', cta: 'See fleet work' },
+                { title: 'Mobile App', desc: 'Role-based bottom tabs, push notifications, pull-to-refresh — built for the people on the move.', href: '/platform', cta: 'See workspace' },
+                { title: 'Leo AI', desc: 'Institutional memory that answers "who, what, when" about your school in plain English.', href: '/leo-ai', cta: 'Explore Leo AI' },
+                { title: 'Multi-School Support', desc: 'Manage anything from a single school to a multi-school operation, with campuses under one workspace.', href: '/platform', cta: 'See platform' },
               ].map((item, idx) => (
-                <div
+                <Link
                   key={idx}
-                  className="bg-white border border-slate-200 rounded-xl p-5 flex items-start gap-3"
+                  href={item.href}
+                  className="group flex cursor-pointer items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                 >
-                  <CheckCircle2 className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-500" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold text-slate-900 text-sm mb-1">{item.title}</p>
                     <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 transition-colors duration-200 group-hover:text-primary-700">
+                      {item.cta}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+                    </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </motion.div>

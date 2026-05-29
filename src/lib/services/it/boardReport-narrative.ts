@@ -45,7 +45,7 @@ Do not use markdown formatting. Write in plain prose paragraphs.`
   try {
     const client = new GoogleGenAI({ apiKey })
     const response = await client.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     })
     return response.text ?? buildFallbackNarrative(metrics, orgName)
@@ -236,7 +236,7 @@ Write a 2-3 paragraph executive narrative that:
 Do not use markdown formatting. Write in plain prose paragraphs.`
 
       const response = await client.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
       })
       narrative = response.text ?? buildROIFallbackNarrative(metrics, orgName)

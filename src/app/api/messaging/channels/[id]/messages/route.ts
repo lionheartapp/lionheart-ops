@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
   getMessages,
   sendMessage,
@@ -38,7 +39,7 @@ export const GET = withAuth<unknown, { id: string }>(async ({ ctx, orgId, params
     hasMore: result.hasMore,
     cursor: result.cursor,
   }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })
 
 // POST /api/messaging/channels/[id]/messages — send a message
 export const POST = withAuth<z.infer<typeof SendMessageSchema>, { id: string }>(
@@ -53,5 +54,5 @@ export const POST = withAuth<z.infer<typeof SendMessageSchema>, { id: string }>(
       throw err
     }
   },
-  { schema: SendMessageSchema }
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: SendMessageSchema }
 )

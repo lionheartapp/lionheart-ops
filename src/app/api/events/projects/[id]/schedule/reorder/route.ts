@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ok } from '@/lib/api-response'
+import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Schedule reorder uses a batch transaction after verifying all block IDs belong to this event and organization.
 import { rawPrisma } from '@/lib/db'
 
 const ReorderSchema = z.object({
@@ -16,8 +17,23 @@ const ReorderSchema = z.object({
  * Accepts an ordered array of block IDs and updates their sortOrder accordingly.
  * Uses a transaction to ensure atomic reordering.
  */
-export const PATCH = withAuth(async ({ body }) => {
-  // Use rawPrisma for the batch transaction
+export const PATCH = withAuth(async ({ orgId, params, body }) => {
+  const eventProjectId = params.id
+  const ownedCount = await rawPrisma.eventScheduleBlock.count({
+    where: {
+      id: { in: body.blockIds },
+      eventProjectId,
+      organizationId: orgId,
+    },
+  })
+
+  if (ownedCount !== body.blockIds.length) {
+    return NextResponse.json(
+      fail('NOT_FOUND', 'One or more schedule blocks were not found for this event'),
+      { status: 404 }
+    )
+  }
+
   const updates = body.blockIds.map((blockId, index) =>
     rawPrisma.eventScheduleBlock.update({
       where: { id: blockId },

@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'
+// eslint-disable-next-line no-restricted-imports -- Onboarding finalization mixes org-scoped writes with explicit organization/trial records guarded by authenticated orgId.
 import { prisma, rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { assertCan } from '@/lib/auth/permissions'

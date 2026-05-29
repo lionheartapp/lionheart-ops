@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Audit log reads are manually scoped by orgId after withAuth/permission checks.
 import { rawPrisma } from '@/lib/db'
 
 const PAGE_SIZE = 50

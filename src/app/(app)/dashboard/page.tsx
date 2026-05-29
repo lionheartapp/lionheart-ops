@@ -2,59 +2,111 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
+import { motion, MotionConfig } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import { logger } from '@/lib/logger'
 
-import DetailDrawer from '@/components/DetailDrawer'
 import ErrorCard from '@/components/ErrorCard'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 // ChatPanel moved to global LeoDrawer (sidebar sparkle icon)
-import { staggerContainer, cardEntrance, listItem, fadeInUp, dropdownVariants, buttonTap, EASE_OUT_CUBIC } from '@/lib/animations'
-import { readResourceItems } from '@/lib/utils/resourceItems'
-import { FloatingInput, FloatingTextarea, FloatingDropdown } from '@/components/ui/FloatingInput'
+import { staggerContainer, cardEntrance, listItem, fadeInUp } from '@/lib/animations'
+import { FloatingDropdown } from '@/components/ui/FloatingInput'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import SinceYesterdayWidget from '@/components/dashboard/SinceYesterdayWidget'
-import { Plus, ChevronDown, Calendar, Building2, Headphones, Loader2, MapPin, Users, Video, Zap, AlertTriangle, RefreshCw, CheckCircle2, XCircle, ChevronRight, CalendarRange, Wrench, StickyNote, CheckSquare } from 'lucide-react'
-import { NotificationDrawer, NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
+import { Plus, Calendar, Loader2, MapPin, Video, Zap, CheckSquare } from 'lucide-react'
+import { NotificationBellIcon, useUnreadCount } from '@/components/NotificationBell'
 import { IllustrationTickets } from '@/components/illustrations'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { getAuthHeaders } from '@/lib/api-client'
-import EventCreatePanel, { type EventFormData } from '@/components/calendar/EventCreatePanel'
-import SubmitRequestWizard from '@/components/maintenance/SubmitRequestWizard'
-import SupportRequestDrawer from '@/components/forms/SupportRequestDrawer'
-import EventDetailPanel from '@/components/calendar/EventDetailPanel'
+import type { EventFormData } from '@/components/calendar/EventCreatePanel'
 import { useCalendars, useCalendarEvents, useCategories, useCreateEvent, useCreateCategory, type CalendarEventData } from '@/lib/hooks/useCalendar'
 import { useCalendarRealtime } from '@/lib/hooks/useCalendarRealtime'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { getGreeting, getStatusIcon, getStatusLabel, getPriorityColor, formatDate } from '@/lib/dashboard-utils'
 import { httpErrorMessage } from '@/lib/errors/http-message'
-import { LeoItemDrawerContent } from '@/components/dashboard/DrawerContents'
-import OnboardingChecklistWidget from '@/components/onboarding/ChecklistWidget'
-import UpcomingEventsPanel, { type UpcomingItem } from '@/components/dashboard/UpcomingEventsPanel'
-import { EVENT_CREATE_OPTIONS, type EventCreateMode } from '@/components/events/CreateEventMenu'
+import type { UpcomingItem } from '@/components/dashboard/UpcomingEventsPanel'
+import type { EventCreateMode } from '@/components/events/CreateEventMenu'
 import { useEventProjects } from '@/lib/hooks/useEventProject'
-import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
-import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
-import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
-import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
 import { useExternalCalendarEvents } from '@/lib/hooks/useExternalCalendar'
-import PlanningSeasonWidget from '@/components/dashboard/PlanningSeasonWidget'
-import WeatherWidget from '@/components/dashboard/WeatherWidget'
-import TasksFocusWidget from '@/components/dashboard/TasksFocusWidget'
-import TodayCommandCenter from '@/components/dashboard/TodayCommandCenter'
-import YearPlanPrompt from '@/components/events/YearPlanPrompt'
-import { usePendingGateApprovals, type EventProject } from '@/lib/hooks/useEventProject'
+import { usePendingGateApprovals } from '@/lib/hooks/useEventProject'
 import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 import { useToast } from '@/components/Toast'
 import { useMyTasks, usePersonalTasks } from '@/lib/hooks/useMyTasks'
-import MyTasksDrawer from '@/components/dashboard/MyTasksDrawer'
 import CreateDropdownMenu from '@/components/dashboard/CreateDropdownMenu'
-import FacilityRequestsBanner from '@/components/dashboard/FacilityRequestsBanner'
 import PagePadding from '@/components/PagePadding'
-import { format } from 'date-fns'
+
+function LazyPanel() {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 animate-pulse">
+      <div className="h-4 w-40 rounded bg-slate-200" />
+      <div className="mt-4 h-24 rounded bg-slate-100" />
+    </div>
+  )
+}
+
+const DetailDrawer = dynamic(() => import('@/components/DetailDrawer'), {
+  ssr: false,
+  loading: () => null,
+})
+const EventCreatePanel = dynamic(() => import('@/components/calendar/EventCreatePanel'), {
+  ssr: false,
+  loading: () => null,
+})
+const SupportRequestDrawer = dynamic(() => import('@/components/forms/SupportRequestDrawer'), {
+  ssr: false,
+  loading: () => null,
+})
+const EventDetailPanel = dynamic(() => import('@/components/calendar/EventDetailPanel'), {
+  ssr: false,
+  loading: () => null,
+})
+const LeoItemDrawerContent = dynamic(
+  () => import('@/components/dashboard/DrawerContents').then((mod) => mod.LeoItemDrawerContent),
+  { loading: () => <LazyPanel /> },
+)
+const OnboardingChecklistWidget = dynamic(() => import('@/components/onboarding/ChecklistWidget'), {
+  loading: () => <LazyPanel />,
+})
+const PlanningSeasonWidget = dynamic(() => import('@/components/dashboard/PlanningSeasonWidget'), {
+  loading: () => <LazyPanel />,
+})
+const CreateEventProjectModal = dynamic(
+  () => import('@/components/events/CreateEventProjectModal').then((mod) => mod.CreateEventProjectModal),
+  { ssr: false, loading: () => null },
+)
+const EventSeriesDrawer = dynamic(
+  () => import('@/components/events/EventSeriesDrawer').then((mod) => mod.EventSeriesDrawer),
+  { ssr: false, loading: () => null },
+)
+const YearPlanPrompt = dynamic(() => import('@/components/events/YearPlanPrompt'), {
+  ssr: false,
+  loading: () => null,
+})
+const MyTasksDrawer = dynamic(() => import('@/components/dashboard/MyTasksDrawer'), {
+  ssr: false,
+  loading: () => null,
+})
+const UpcomingEventsPanel = dynamic(() => import('@/components/dashboard/UpcomingEventsPanel'), {
+  loading: () => <LazyPanel />,
+})
+const WeatherWidget = dynamic(() => import('@/components/dashboard/WeatherWidget'), {
+  loading: () => <LazyPanel />,
+})
+const TasksFocusWidget = dynamic(() => import('@/components/dashboard/TasksFocusWidget'), {
+  loading: () => <LazyPanel />,
+})
+const TodayCommandCenter = dynamic(() => import('@/components/dashboard/TodayCommandCenter'), {
+  loading: () => <LazyPanel />,
+})
+const FacilityRequestsBanner = dynamic(() => import('@/components/dashboard/FacilityRequestsBanner'), {
+  loading: () => null,
+})
+const NotificationDrawer = dynamic(
+  () => import('@/components/NotificationBell').then((mod) => mod.NotificationDrawer),
+  { ssr: false, loading: () => null },
+)
 
 interface TicketData {
   id: string
@@ -106,9 +158,16 @@ export default function DashboardPage() {
     isMultiSchool,
   } = useActiveSchool()
 
+  // Schedule Meeting panel state (uses EventCreatePanel — same as calendar page)
+  const [meetingPanelOpen, setMeetingPanelOpen] = useState(false)
+  const [meetingPanelStart, setMeetingPanelStart] = useState<Date | undefined>()
+  const [meetingPanelEnd, setMeetingPanelEnd] = useState<Date | undefined>()
+  const [meetingPanelError, setMeetingPanelError] = useState<string | null>(null)
+  const canLoadCalendarWork = isAdmin || user.dashboardMode === 'admin'
+
   // Calendar hooks — power the Schedule Meeting form (EventCreatePanel)
-  const { data: calendarList = [] } = useCalendars()
-  const { data: calendarCategories = [] } = useCategories()
+  const { data: calendarList = [] } = useCalendars(canLoadCalendarWork || meetingPanelOpen)
+  const { data: calendarCategories = [] } = useCategories(meetingPanelOpen)
 
   // Upcoming calendar events — used for admin dashboard mode (same source as the calendar page)
   const upcomingStart = useMemo(() => {
@@ -127,7 +186,7 @@ export default function DashboardPage() {
     calendarIds,
     upcomingStart,
     upcomingEnd,
-    isReady && calendarIds.length > 0
+    isReady && canLoadCalendarWork && calendarIds.length > 0
   )
 
   // Pull upcoming event projects so the "Next two weeks" panel surfaces both
@@ -138,14 +197,15 @@ export default function DashboardPage() {
     isLoading: upcomingProjectsLoading,
     isError: upcomingProjectsError,
   } = useEventProjects(
-    isReady ? { limit: 50 } : undefined,
+    { limit: 50 },
+    isReady && canLoadCalendarWork,
   )
 
   // Pull external calendar events (Google/Microsoft) for the same window
   const { data: externalCalEvents = [] } = useExternalCalendarEvents(
     upcomingStart.toISOString(),
     upcomingEnd.toISOString(),
-    isReady,
+    isReady && canLoadCalendarWork,
   )
 
   // Merge meetings + projects + external events into a single `UpcomingItem[]`
@@ -188,12 +248,6 @@ export default function DashboardPage() {
 
   const createCalendarEvent = useCreateEvent()
   const createCalendarCategory = useCreateCategory()
-
-  // Schedule Meeting panel state (uses EventCreatePanel — same as calendar page)
-  const [meetingPanelOpen, setMeetingPanelOpen] = useState(false)
-  const [meetingPanelStart, setMeetingPanelStart] = useState<Date | undefined>()
-  const [meetingPanelEnd, setMeetingPanelEnd] = useState<Date | undefined>()
-  const [meetingPanelError, setMeetingPanelError] = useState<string | null>(null)
 
   const openMeetingPanel = useCallback((start?: Date, end?: Date) => {
     setMeetingPanelStart(start)
@@ -239,12 +293,6 @@ export default function DashboardPage() {
   const unreadCount = useUnreadCount()
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null)
 
-  // Create ticket form state
-  const [createCategory, setCreateCategory] = useState<'MAINTENANCE' | 'IT' | null>(null)
-  const [createForm, setCreateForm] = useState({ title: '', description: '', locationText: '', priority: 'NORMAL' })
-  const [createSaving, setCreateSaving] = useState(false)
-  const [createError, setCreateError] = useState('')
-
   // Edit ticket state
   const [isEditMode, setIsEditMode] = useState(false)
   const [editForm, setEditForm] = useState({ title: '', description: '', priority: 'NORMAL' as string })
@@ -266,8 +314,6 @@ export default function DashboardPage() {
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [projectModalMode, setProjectModalMode] = useState<'single' | 'multiday'>('single')
   const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
-  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [yearPlanPromptOpen, setYearPlanPromptOpen] = useState(false)
   const [pendingCreateMode, setPendingCreateMode] = useState<EventCreateMode>('single')
 
@@ -418,9 +464,11 @@ export default function DashboardPage() {
     try {
       const dashMode = mode ?? user.dashboardMode
       let url = '/api/tickets?limit=10'
-      if (dashMode === 'maintenance') url += '&category=MAINTENANCE'
-      else if (dashMode === 'it') url += '&category=IT'
-      if (activeSchoolId) url += `&schoolId=${encodeURIComponent(activeSchoolId)}`
+      if (dashMode === 'maintenance') url = '/api/maintenance/tickets'
+      else if (dashMode === 'it') url = '/api/it/tickets?limit=10'
+      if (activeSchoolId) {
+        url += `${url.includes('?') ? '&' : '?'}schoolId=${encodeURIComponent(activeSchoolId)}`
+      }
       const res = await fetch(url, { credentials: 'include' })
       if (!res.ok) {
         setTicketsError(httpErrorMessage(res.status, 'load requests').message)
@@ -493,7 +541,6 @@ export default function DashboardPage() {
     }
   }, [isReady, org.id, user.dashboardMode, fetchTickets, fetchEvents])
 
-  const [showMaintenanceWizard, setShowMaintenanceWizard] = useState(false)
   const [supportDrawerModule, setSupportDrawerModule] = useState<'MAINTENANCE' | 'IT' | null>(null)
 
   const openCreateDrawer = useCallback((category: 'MAINTENANCE' | 'IT') => {
@@ -501,43 +548,6 @@ export default function DashboardPage() {
     setSupportDrawerModule(category)
     setIsCreateDropdownOpen(false)
   }, [])
-
-  const handleCreateSubmit = useCallback(async () => {
-    if (!createForm.title.trim() || !createForm.locationText.trim()) {
-      setCreateError('Title and location are required.')
-      return
-    }
-    setCreateSaving(true)
-    setCreateError('')
-    try {
-      const res = await fetch('/api/tickets', {
-        method: 'POST',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          title: createForm.title.trim(),
-          description: createForm.description.trim() || undefined,
-          locationText: createForm.locationText.trim(),
-          category: createCategory,
-          priority: createForm.priority,
-          source: 'MANUAL',
-        }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.ok) {
-          setCreateCategory(null)
-          fetchTickets()
-          return
-        }
-      }
-      setCreateError('Failed to create request. Please try again.')
-    } catch {
-      setCreateError('Failed to create request. Please try again.')
-    } finally {
-      setCreateSaving(false)
-    }
-  }, [createForm, createCategory, fetchTickets])
 
   const handleSaveEdit = async () => {
     if (!selectedTicket) return
@@ -700,14 +710,12 @@ export default function DashboardPage() {
           {/* My Tasks button — matches bell style */}
           <motion.button
             onClick={() => setIsTasksDrawerOpen(true)}
-            className="group/tasks relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            className="group/tasks relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-gray-200 bg-white p-3 text-slate-700 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-100 hover:shadow-md hover:shadow-slate-950/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 cursor-pointer"
             aria-label={`My tasks${openTaskCount > 0 ? ` (${openTaskCount} open)` : ''}`}
-            whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.16 }}
           >
-            <CheckSquare className="w-5 h-5 text-slate-800" />
+            <CheckSquare className="w-5 h-5" />
             {openTaskCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-bold px-1 ring-2 ring-white">
                 {openTaskCount > 99 ? '99+' : openTaskCount}
@@ -715,18 +723,16 @@ export default function DashboardPage() {
             )}
           </motion.button>
 
-          {/* Notification Bell — aurora glow + bell ring on hover */}
+          {/* Notification Bell */}
           <motion.button
             onClick={() => setIsNotificationsOpen(true)}
-            className="group/bell relative p-3 min-h-[44px] min-w-[44px] rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center cursor-pointer"
-            style={{ background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
+            className="group/bell relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-gray-200 bg-white p-3 text-slate-700 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-100 hover:shadow-md hover:shadow-slate-950/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 cursor-pointer"
             aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-            whileHover={{ boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.5)' }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.16 }}
           >
-            <span className="group-hover/bell:animate-[bell-ring_0.6s_ease-in-out]" style={{ transformOrigin: 'top center', display: 'flex' }}>
-              <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5 text-slate-800" />
+            <span className="flex">
+              <NotificationBellIcon unreadCount={unreadCount} className="w-5 h-5" />
             </span>
           </motion.button>
 
@@ -806,7 +812,7 @@ export default function DashboardPage() {
               isAdmin={isAdmin}
             />
           ) : (
-            <div className="flex-1 min-h-0 ui-glass-hover flex flex-col overflow-hidden rounded-2xl">
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
             {/* Sticky header — stays pinned while events scroll */}
             <div className={`relative z-10 flex-shrink-0 pt-6 px-6 transition-shadow duration-200 ${eventsScrolled ? 'shadow-[0_4px_12px_-2px_rgba(226,233,242,0.8)]' : ''}`}>
               <div className="flex items-center justify-between mb-6">
@@ -822,49 +828,49 @@ export default function DashboardPage() {
               <div className="flex gap-3 mb-6">
               {user.dashboardMode === 'av' && (
                 <>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-violet-50/80 to-purple-50/80 border-l-[3px] border-violet-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={events.length} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">A/V Events</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-violet-500" />A/V Events</p>
                   </div>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 border-l-[3px] border-emerald-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={events.filter(e => e.avEquipmentList && e.avEquipmentList.length > 0).length} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Equipment Ready</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Equipment Ready</p>
                   </div>
                 </>
               )}
               {(user.dashboardMode === 'maintenance' || user.dashboardMode === 'it') && (
                 <>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={tickets.filter(t => t.status === 'OPEN').length} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Open Requests</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-blue-500" />Open Requests</p>
                   </div>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-amber-50/80 to-orange-50/80 border-l-[3px] border-amber-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={tickets.filter(t => t.status === 'IN_PROGRESS').length} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">In Progress</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" />In Progress</p>
                   </div>
                 </>
               )}
               {user.dashboardMode !== 'admin' && user.dashboardMode !== 'av' && user.dashboardMode !== 'maintenance' && user.dashboardMode !== 'it' && (
                 <>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-l-[3px] border-blue-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={ticketCount} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Active Requests</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-blue-500" />Active Requests</p>
                   </div>
-                  <div className="flex-1 rounded-xl p-3.5 bg-gradient-to-br from-indigo-50/80 to-violet-50/80 border-l-[3px] border-indigo-500 backdrop-blur-sm">
+                  <div className="flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3.5">
                     <p className="text-2xl font-bold text-slate-900">
                       <AnimatedCounter value={tickets.length} duration={0.8} />
                     </p>
-                    <p className="text-[11px] font-medium text-slate-500 mt-0.5">Total Tasks</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />Total Tasks</p>
                   </div>
                 </>
               )}
@@ -873,7 +879,7 @@ export default function DashboardPage() {
 
             {/* Scrollable events area */}
             <div className="relative flex-1 min-h-0">
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none z-10 rounded-b-2xl" />
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none z-10 rounded-b-xl" />
             <div className="h-full overflow-y-auto dashboard-scroll px-6 pb-20" onScroll={(e) => setEventsScrolled(e.currentTarget.scrollTop > 0)}>
             {user.dashboardMode === 'av' ? (
               /* ── AV Events Panel — formal Events with requiresAV flag ── */
@@ -906,7 +912,7 @@ export default function DashboardPage() {
                       <motion.li
                         key={event.id}
                         variants={listItem}
-                        className="flex items-start gap-4 p-3 rounded-lg hover:bg-primary-50 transition"
+                        className="flex items-start gap-4 rounded-lg border border-transparent p-3 transition-[background-color,border-color] duration-200 hover:border-slate-200 hover:bg-slate-100"
                       >
                         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
                           <Video className="w-5 h-5 text-primary-600" aria-hidden="true" />
@@ -980,7 +986,7 @@ export default function DashboardPage() {
                       <motion.li
                         key={ticket.id}
                         variants={listItem}
-                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary-50 cursor-pointer transition"
+                        className="flex items-center gap-4 rounded-lg border border-transparent p-3 cursor-pointer transition-[background-color,border-color] duration-200 hover:border-slate-200 hover:bg-slate-100"
                         onClick={() => { setSelectedTicket(ticket); setIsDetailOpen(true) }}
                       >
                         <div className="flex-shrink-0">
@@ -999,7 +1005,7 @@ export default function DashboardPage() {
 
                   <button
                     onClick={() => openCreateDrawer('MAINTENANCE')}
-                    className="mt-6 w-full py-2 text-primary-600 font-medium hover:bg-primary-50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition flex items-center justify-center gap-1"
+                    className="mt-6 w-full py-2 text-primary-700 font-medium hover:bg-primary-100 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors duration-200 flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" /> Add task
                   </button>
@@ -1022,303 +1028,212 @@ export default function DashboardPage() {
       </MotionConfig>
 
       {/* Detail Drawer */}
-      <DetailDrawer
-        isOpen={isDetailOpen}
-        onClose={() => { setIsDetailOpen(false); setSelectedTicket(null); setIsEditMode(false) }}
-        title={selectedTicket?.title || 'Task Details'}
-        width="md"
-        onEdit={() => {
-          if (selectedTicket) {
-            setEditForm({
-              title: selectedTicket.title || '',
-              description: selectedTicket.description || '',
-              priority: selectedTicket.priority || 'NORMAL',
-            })
-            setIsEditMode(true)
-          }
-        }}
-        footer={selectedTicket && isEditMode ? (
-          <div className="flex gap-3">
-            <button
-              onClick={handleSaveEdit}
-              disabled={editSaving}
-              className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition active:scale-[0.97]"
-            >
-              {editSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              onClick={() => setIsEditMode(false)}
-              className="flex-1 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition active:scale-[0.97]"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : undefined}
-      >
-        {selectedTicket ? (
-          isEditMode ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                <Input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <Textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                />
-              </div>
-              <div>
-                <FloatingDropdown
-                  label="Priority"
-                  value={editForm.priority}
-                  onChange={(v) => setEditForm(prev => ({ ...prev, priority: v }))}
-                  options={[
-                    { value: 'LOW', label: 'Low' },
-                    { value: 'NORMAL', label: 'Normal' },
-                    { value: 'HIGH', label: 'High' },
-                    { value: 'CRITICAL', label: 'Critical' },
-                  ]}
-                />
-              </div>
+      {isDetailOpen && (
+        <DetailDrawer
+          isOpen={isDetailOpen}
+          onClose={() => { setIsDetailOpen(false); setSelectedTicket(null); setIsEditMode(false) }}
+          title={selectedTicket?.title || 'Task Details'}
+          width="md"
+          onEdit={() => {
+            if (selectedTicket) {
+              setEditForm({
+                title: selectedTicket.title || '',
+                description: selectedTicket.description || '',
+                priority: selectedTicket.priority || 'NORMAL',
+              })
+              setIsEditMode(true)
+            }
+          }}
+          footer={selectedTicket && isEditMode ? (
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveEdit}
+                disabled={editSaving}
+                className="flex-1 py-2.5 text-sm font-semibold text-white bg-slate-900 rounded-full hover:bg-slate-800 disabled:opacity-50 transition active:scale-[0.97]"
+              >
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                onClick={() => setIsEditMode(false)}
+                className="flex-1 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition active:scale-[0.97]"
+              >
+                Cancel
+              </button>
             </div>
-          ) : (
-            <div className="space-y-6">
-              {selectedTicket.description && (
-                <p className="text-slate-600 text-sm">{selectedTicket.description}</p>
-              )}
+          ) : undefined}
+        >
+          {selectedTicket ? (
+            isEditMode ? (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-1">Status</p>
-                  <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
-                    selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
-                    'bg-green-100 text-green-700'
-                  }`}>
-                    {getStatusLabel(selectedTicket.status)}
-                  </div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                  <Input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                  />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-1">Priority</p>
-                  <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
-                    {selectedTicket.priority}
-                  </div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                  <Textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                  />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-700 mb-1">Category</p>
-                  <p className="text-slate-600">{selectedTicket.category}</p>
-                </div>
-                {selectedTicket.locationText && (
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 mb-1">Location</p>
-                    <p className="text-slate-600">{selectedTicket.locationText}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-slate-700 mb-1">Created</p>
-                  <p className="text-slate-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <FloatingDropdown
+                    label="Priority"
+                    value={editForm.priority}
+                    onChange={(v) => setEditForm(prev => ({ ...prev, priority: v }))}
+                    options={[
+                      { value: 'LOW', label: 'Low' },
+                      { value: 'NORMAL', label: 'Normal' },
+                      { value: 'HIGH', label: 'High' },
+                      { value: 'CRITICAL', label: 'Critical' },
+                    ]}
+                  />
                 </div>
               </div>
-            </div>
-          )
-        ) : (
-          <p className="text-slate-400 text-sm">Select a task to view details.</p>
-        )}
-      </DetailDrawer>
+            ) : (
+              <div className="space-y-6">
+                {selectedTicket.description && (
+                  <p className="text-slate-600 text-sm">{selectedTicket.description}</p>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Status</p>
+                    <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedTicket.status === 'OPEN' ? 'bg-red-100 text-red-700' :
+                      selectedTicket.status === 'IN_PROGRESS' ? 'bg-primary-100 text-primary-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {getStatusLabel(selectedTicket.status)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Priority</p>
+                    <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(selectedTicket.priority)}`}>
+                      {selectedTicket.priority}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Category</p>
+                    <p className="text-slate-600">{selectedTicket.category}</p>
+                  </div>
+                  {selectedTicket.locationText && (
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 mb-1">Location</p>
+                      <p className="text-slate-600">{selectedTicket.locationText}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Created</p>
+                    <p className="text-slate-600">{new Date(selectedTicket.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                </div>
+              </div>
+            )
+          ) : (
+            <p className="text-slate-400 text-sm">Select a task to view details.</p>
+          )}
+        </DetailDrawer>
+      )}
 
       {/* Support Request Drawer (form-driven — replaces old hardcoded drawers) */}
-      <SupportRequestDrawer
-        isOpen={supportDrawerModule !== null}
-        onClose={() => setSupportDrawerModule(null)}
-        module={supportDrawerModule ?? 'MAINTENANCE'}
-      />
-
-      {/* Create Ticket Drawer (legacy — kept for backward compat, no longer opened by Create menu) */}
-      <DetailDrawer
-        isOpen={createCategory !== null}
-        onClose={() => setCreateCategory(null)}
-        title={createCategory === 'IT' ? 'New IT Request' : 'New Facilities Request'}
-        width="md"
-        footer={
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setCreateCategory(null)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreateSubmit}
-              disabled={createSaving}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 flex items-center justify-center gap-2"
-            >
-              {createSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Submit Request
-            </button>
-          </div>
-        }
-      >
-        <div className="space-y-5">
-          <FloatingInput
-            id="create-title"
-            label="Title"
-            required
-            value={createForm.title}
-            onChange={(e) => setCreateForm(f => ({ ...f, title: e.target.value }))}
-          />
-          <FloatingTextarea
-            id="create-description"
-            label="Description"
-            value={createForm.description}
-            onChange={(e) => setCreateForm(f => ({ ...f, description: e.target.value }))}
-            rows={3}
-          />
-          <FloatingInput
-            id="create-location"
-            label="Location"
-            required
-            placeholder="e.g. Room 204, Main Building"
-            value={createForm.locationText}
-            onChange={(e) => setCreateForm(f => ({ ...f, locationText: e.target.value }))}
-          />
-          <FloatingDropdown
-            id="create-priority"
-            label="Priority"
-            value={createForm.priority}
-            onChange={(v) => setCreateForm(f => ({ ...f, priority: v }))}
-            options={[
-              { value: 'LOW', label: 'Low' },
-              { value: 'NORMAL', label: 'Normal' },
-              { value: 'HIGH', label: 'High' },
-              { value: 'CRITICAL', label: 'Critical' },
-            ]}
-          />
-
-          {createError && (
-            <p className="text-sm text-red-600">{createError}</p>
-          )}
-        </div>
-      </DetailDrawer>
-      {/* ─── Maintenance Wizard (slide-in drawer) ───────────────────────── */}
-      <AnimatePresence>
-        {showMaintenanceWizard && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-              onClick={() => setShowMaintenanceWizard(false)}
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:max-w-xl bg-white shadow-2xl z-50 flex flex-col sm:rounded-2xl overflow-hidden"
-            >
-              <div className="flex-1 overflow-y-auto p-6">
-                <SubmitRequestWizard
-                  onComplete={() => {
-                    setShowMaintenanceWizard(false)
-                    fetchTickets(user.dashboardMode || 'staff')
-                  }}
-                  onCancel={() => setShowMaintenanceWizard(false)}
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Year plan routing prompt */}
-      <YearPlanPrompt
-        isOpen={yearPlanPromptOpen}
-        onClose={() => setYearPlanPromptOpen(false)}
-        onYearPlan={() => {
-          setYearPlanPromptOpen(false)
-          router.push('/planning?action=create')
-        }}
-        onRegularEvent={() => {
-          setYearPlanPromptOpen(false)
-          proceedWithDashboardCreate(pendingCreateMode)
-        }}
-      />
-
-      {/* ─── Event Project Create flows (same as Events Hub) ───────────────── */}
-      <CreateEventProjectModal
-        isOpen={projectModalOpen}
-        onClose={() => setProjectModalOpen(false)}
-        initialMode={projectModalMode}
-      />
-      <EventSeriesDrawer
-        isOpen={seriesDrawerOpen}
-        onClose={() => setSeriesDrawerOpen(false)}
-      />
-      <TemplateListDrawer
-        isOpen={templateDrawerOpen}
-        onClose={() => setTemplateDrawerOpen(false)}
-        onSelect={(templateId: string) => setSelectedTemplateId(templateId)}
-      />
-      {selectedTemplateId && (
-        <CreateFromTemplateWizard
-          templateId={selectedTemplateId}
-          isOpen={!!selectedTemplateId}
-          onClose={() => setSelectedTemplateId(null)}
+      {supportDrawerModule !== null && (
+        <SupportRequestDrawer
+          isOpen={supportDrawerModule !== null}
+          onClose={() => setSupportDrawerModule(null)}
+          module={supportDrawerModule}
         />
       )}
 
+      {/* Year plan routing prompt */}
+      {yearPlanPromptOpen && (
+        <YearPlanPrompt
+          isOpen={yearPlanPromptOpen}
+          onClose={() => setYearPlanPromptOpen(false)}
+          onYearPlan={() => {
+            setYearPlanPromptOpen(false)
+            router.push('/planning?action=create')
+          }}
+          onRegularEvent={() => {
+            setYearPlanPromptOpen(false)
+            proceedWithDashboardCreate(pendingCreateMode)
+          }}
+        />
+      )}
+
+      {/* ─── Event Project Create flows (same as Events Hub) ───────────────── */}
+      {projectModalOpen && (
+        <CreateEventProjectModal
+          isOpen={projectModalOpen}
+          onClose={() => setProjectModalOpen(false)}
+          initialMode={projectModalMode}
+        />
+      )}
+      {seriesDrawerOpen && (
+        <EventSeriesDrawer
+          isOpen={seriesDrawerOpen}
+          onClose={() => setSeriesDrawerOpen(false)}
+        />
+      )}
       {/* Leo Item Detail Drawer */}
-      <DetailDrawer
-        isOpen={leoDrawerOpen}
-        onClose={() => { setLeoDrawerOpen(false); setLeoDrawerItem(null); setLeoDrawerDetail(null) }}
-        title={leoDrawerType === 'events' ? 'Event Details' : leoDrawerType === 'tickets' ? 'Ticket Details' : leoDrawerType === 'users' ? 'User Details' : leoDrawerType === 'inventory' ? 'Inventory Details' : 'Details'}
-        width="md"
-      >
-        {leoDrawerLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
-          </div>
-        ) : leoDrawerItem ? (
-          <LeoItemDrawerContent type={leoDrawerType} item={leoDrawerItem} detail={leoDrawerDetail} />
-        ) : null}
-      </DetailDrawer>
+      {leoDrawerOpen && (
+        <DetailDrawer
+          isOpen={leoDrawerOpen}
+          onClose={() => { setLeoDrawerOpen(false); setLeoDrawerItem(null); setLeoDrawerDetail(null) }}
+          title={leoDrawerType === 'events' ? 'Event Details' : leoDrawerType === 'tickets' ? 'Ticket Details' : leoDrawerType === 'users' ? 'User Details' : leoDrawerType === 'inventory' ? 'Inventory Details' : 'Details'}
+          width="md"
+        >
+          {leoDrawerLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+            </div>
+          ) : leoDrawerItem ? (
+            <LeoItemDrawerContent type={leoDrawerType} item={leoDrawerItem} detail={leoDrawerDetail} />
+          ) : null}
+        </DetailDrawer>
+      )}
 
       {/* ─── Schedule Meeting Panel ──────────────────────────────────────── */}
       {/* Uses the same EventCreatePanel as the Calendar page for consistency */}
-      <EventCreatePanel
-        isOpen={meetingPanelOpen}
-        onClose={() => { setMeetingPanelOpen(false); setMeetingPanelError(null) }}
-        onSubmit={handleMeetingSubmit}
-        isSubmitting={createCalendarEvent.isPending}
-        calendars={calendarList}
-        categories={calendarCategories}
-        onCreateCategory={(data) => createCalendarCategory.mutateAsync(data)}
-        initialStart={meetingPanelStart}
-        initialEnd={meetingPanelEnd}
-        error={meetingPanelError}
-        mode="meeting"
-      />
+      {meetingPanelOpen && (
+        <EventCreatePanel
+          isOpen={meetingPanelOpen}
+          onClose={() => { setMeetingPanelOpen(false); setMeetingPanelError(null) }}
+          onSubmit={handleMeetingSubmit}
+          isSubmitting={createCalendarEvent.isPending}
+          calendars={calendarList}
+          categories={calendarCategories}
+          onCreateCategory={(data) => createCalendarCategory.mutateAsync(data)}
+          initialStart={meetingPanelStart}
+          initialEnd={meetingPanelEnd}
+          error={meetingPanelError}
+          mode="meeting"
+        />
+      )}
 
       {/* Event Detail Panel — opens when clicking an event in the Upcoming Events list */}
-      <EventDetailPanel
-        event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
-        onEdit={(event) => { setSelectedEvent(null); router.push('/calendar') }}
-        onDelete={(event) => { setSelectedEvent(null); router.push('/calendar') }}
-      />
+      {selectedEvent && (
+        <EventDetailPanel
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={(event) => { setSelectedEvent(null); router.push('/calendar') }}
+          onDelete={(event) => { setSelectedEvent(null); router.push('/calendar') }}
+        />
+      )}
 
       {/* Notification Drawer */}
-      <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+      {isNotificationsOpen && (
+        <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
+      )}
 
       {/* My Tasks Drawer */}
-      <MyTasksDrawer isOpen={isTasksDrawerOpen} onClose={() => { setIsTasksDrawerOpen(false); setFocusedTaskId(null) }} initialTaskId={focusedTaskId} />
+      {isTasksDrawerOpen && (
+        <MyTasksDrawer isOpen={isTasksDrawerOpen} onClose={() => { setIsTasksDrawerOpen(false); setFocusedTaskId(null) }} initialTaskId={focusedTaskId} />
+      )}
     </>
     </PagePadding>
   )

@@ -4,8 +4,7 @@
  * Lionheart Marketing Landing Page
  *
  * Design system: monochrome restraint (Cal.com) + warm near-black
- * (Notion/Superhuman) + a single signature gradient reserved for
- * the Leo AI section. Mockups are inline SVG/divs matching the
+ * (Notion/Superhuman). Mockups are inline SVG/divs matching the
  * reskinned UpcomingEventsPanel tokens so the marketing surface
  * and the product surface read as one cohesive product.
  *
@@ -19,26 +18,23 @@ import {
   ArrowRight,
   Calendar,
   Check,
-  CheckSquare,
   ChevronDown,
-  CreditCard,
+  ClipboardCheck,
   FileText,
   HardDrive,
-  Headphones,
   MessageCircle,
   MessageSquare,
   MonitorSmartphone,
-  ShieldCheck,
   Sparkles,
-  Trophy,
   Wrench,
 } from 'lucide-react'
 import {
   TEXT_PRIMARY, TEXT_SECONDARY, TEXT_MUTED, BORDER, BORDER_SOFT,
   SURFACE_ALT, CARD_SHADOW, AI_GRADIENT, EASE, REVEAL_VIEWPORT, REVEAL_VARIANTS,
 } from '@/components/landing/tokens'
-import { DashboardMockup, MockEventDetailCard, MockMaintenanceCard } from '@/components/landing/Mockups'
-import { LeoSection, Pricing, FAQ, ClosingCTA, Footer } from '@/components/landing/BottomSections'
+import { MockEventDetailCard, MockMaintenanceCard } from '@/components/landing/Mockups'
+import { LeoSection, ClosingCTA, Footer } from '@/components/landing/BottomSections'
+import MarketingNav from '@/components/public/MarketingNav'
 
 /**
  * Counts up from 0 to `to` when the element enters the viewport.
@@ -77,7 +73,7 @@ function CountUp({
     return () => controls.stop()
   }, [inView, to, duration, suffix, prefix, format, reduced])
 
-  return <span ref={ref}>{`${prefix}${format(0)}${suffix}`}</span>
+  return <span ref={ref}>{`${prefix}${format(to)}${suffix}`}</span>
 }
 
 // ─── Entry component ────────────────────────────────────────────────────────
@@ -85,18 +81,14 @@ function CountUp({
 export default function Landing() {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen" style={{ backgroundColor: '#ffffff', color: TEXT_PRIMARY }}>
-        <Nav />
+      <div className="min-h-screen" style={{ backgroundColor: '#f7f8f7', color: TEXT_PRIMARY }}>
+        <MarketingNav />
         <Hero />
-        <SchoolLifeMosaic />
         <TrustBar />
-        <WhatItReplaces />
+        <PlatformShowcase />
         <ModulesGrid />
-        <DeepDiveEvents />
-        <DeepDiveMaintenance />
         <LeoSection />
-        <Pricing />
-        <FAQ />
+        <SolutionsHub />
         <ClosingCTA />
         <Footer />
       </div>
@@ -104,62 +96,192 @@ export default function Landing() {
   )
 }
 
-// ─── Nav ────────────────────────────────────────────────────────────────────
+function PlatformShowcase() {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const pillars = [
+    {
+      label: 'Plan',
+      title: 'Coordinate the school day',
+      body: 'Events, rooms, approvals, forms, and family-facing details stay tied to the same operating plan.',
+      href: '/solutions/events',
+      accent: '#2563eb',
+      icon: Calendar,
+      metrics: ['Room conflict flagged', 'Approval routed', 'Family note drafted'],
+    },
+    {
+      label: 'Resolve',
+      title: 'Move tickets and work orders',
+      body: 'IT, maintenance, assets, and facilities requests get owners, status, history, and next steps.',
+      href: '/solutions/maintenance',
+      accent: '#059669',
+      icon: ClipboardCheck,
+      metrics: ['Owner assigned', 'Priority visible', 'Status shared'],
+    },
+    {
+      label: 'Align',
+      title: 'Keep staff in context',
+      body: 'Messages and Leo AI sit beside the work, so teams can ask, draft, and follow up without losing context.',
+      href: '/leo-ai',
+      accent: '#7c3aed',
+      icon: Sparkles,
+      metrics: ['Thread linked', 'Sources shown', 'Draft ready'],
+    },
+  ]
+  const active = pillars[activeIndex]
+  const ActiveIcon = active.icon
 
-function Nav() {
   return (
-    <nav
-      className="sticky top-0 z-40 backdrop-blur-md"
-      style={{
-        backgroundColor: 'rgba(255,255,255,0.85)',
-        borderBottom: `1px solid ${BORDER_SOFT}`,
-      }}
-    >
-      <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center" aria-label="Lionheart — home">
-          <img src="/logo.svg" alt="Lionheart" className="h-7 w-auto" />
-        </Link>
+    <section className="px-6 py-20 sm:py-24">
+      <div className="mx-auto max-w-[1200px]">
+        <div className="grid gap-10 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: TEXT_MUTED }}>
+              Platform in action
+            </p>
+            <h2 className="mt-4 max-w-[560px] text-4xl font-semibold leading-[1.04] sm:text-5xl" style={{ letterSpacing: 0, color: TEXT_PRIMARY }}>
+              One operating system, three ways to keep the day moving.
+            </h2>
+            <p className="mt-5 max-w-[560px] text-[16px] leading-7" style={{ color: TEXT_SECONDARY }}>
+              Lionheart connects planning, requests, messages, and AI assistance so staff can move from signal to next step without switching tools.
+            </p>
+          </div>
 
-        <div
-          className="hidden md:flex items-center gap-9 text-[14px] font-medium"
-          style={{ color: TEXT_SECONDARY }}
-        >
-          <a href="#modules" className="hover:text-black transition-colors duration-200">
-            Product
-          </a>
-          <a href="#leo" className="hover:text-black transition-colors duration-200">
-            Leo AI
-          </a>
-          <a href="#pricing" className="hover:text-black transition-colors duration-200">
-            Pricing
-          </a>
-          <a href="#faq" className="hover:text-black transition-colors duration-200">
-            FAQ
-          </a>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {pillars.map((pillar, index) => {
+              const Icon = pillar.icon
+              const isActive = index === activeIndex
+              return (
+                <button
+                  key={pillar.label}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  className="cursor-pointer rounded-[1.25rem] border p-4 text-left transition-all duration-200 hover:-translate-y-0.5"
+                  style={{
+                    borderColor: isActive ? pillar.accent : BORDER,
+                    backgroundColor: isActive ? '#ffffff' : 'rgba(255,255,255,0.62)',
+                    boxShadow: isActive ? '0 18px 46px rgba(15,15,15,0.09)' : '0 10px 28px rgba(15,15,15,0.04)',
+                  }}
+                  aria-pressed={isActive}
+                >
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl text-white" style={{ backgroundColor: pillar.accent }}>
+                    <Icon className="h-5 w-5" strokeWidth={2.4} />
+                  </div>
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.12em]" style={{ color: pillar.accent }}>
+                    {pillar.label}
+                  </div>
+                  <div className="mt-1 text-[15px] font-semibold leading-5" style={{ color: TEXT_PRIMARY }}>
+                    {pillar.title}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/signin"
-            className="hidden sm:inline text-[14px] font-medium hover:text-black transition-colors duration-200"
-            style={{ color: TEXT_SECONDARY }}
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 hover:-translate-y-px"
-            style={{
-              backgroundColor: TEXT_PRIMARY,
-              color: '#ffffff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.04)',
-            }}
-          >
-            Start free trial
-          </Link>
+        <div className="mt-10 grid gap-5 overflow-hidden rounded-[2rem] border bg-white p-4 shadow-[0_24px_80px_rgba(15,15,15,0.1)] lg:grid-cols-[0.72fr_1.28fr] lg:p-5" style={{ borderColor: BORDER }}>
+          <div className="rounded-[1.5rem] bg-[#101010] p-6 text-white sm:p-7">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl" style={{ backgroundColor: active.accent }}>
+              <ActiveIcon className="h-5 w-5" strokeWidth={2.5} />
+            </div>
+            <p className="mt-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">
+              {active.label}
+            </p>
+            <h3 className="mt-3 text-3xl font-semibold leading-[1.08]" style={{ letterSpacing: 0 }}>
+              {active.title}
+            </h3>
+            <p className="mt-4 text-[15px] leading-7 text-white/68">
+              {active.body}
+            </p>
+            <Link
+              href={active.href}
+              className="mt-7 inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-slate-950 transition-transform duration-200 hover:-translate-y-px active:scale-[0.98]"
+            >
+              Explore {active.label.toLowerCase()}
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          <div className="rounded-[1.5rem] border bg-[#f7f8f7] p-4 sm:p-5" style={{ borderColor: BORDER_SOFT }}>
+            <div className="rounded-[1.25rem] border bg-white shadow-[0_18px_55px_rgba(15,15,15,0.08)]" style={{ borderColor: BORDER }}>
+              <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: BORDER_SOFT }}>
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                </div>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold" style={{ color: TEXT_MUTED }}>
+                  Live operations workspace
+                </span>
+              </div>
+
+              <div className="grid gap-4 p-4 md:grid-cols-[0.34fr_0.66fr]">
+                <div className="space-y-2">
+                  {pillars.map((pillar, index) => (
+                    <div
+                      key={pillar.label}
+                      className="rounded-2xl border px-3 py-3"
+                      style={{
+                        borderColor: index === activeIndex ? pillar.accent : BORDER_SOFT,
+                        backgroundColor: index === activeIndex ? '#f8fafc' : '#ffffff',
+                      }}
+                    >
+                      <div className="text-[12px] font-semibold" style={{ color: TEXT_PRIMARY }}>
+                        {pillar.label}
+                      </div>
+                      <div className="mt-1 text-[11px] leading-4" style={{ color: TEXT_MUTED }}>
+                        {pillar.title}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-2xl border p-4" style={{ borderColor: BORDER_SOFT, backgroundColor: '#fbfcfb' }}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.12em]" style={{ color: active.accent }}>
+                        {active.label} view
+                      </div>
+                      <div className="mt-1 text-xl font-semibold" style={{ color: TEXT_PRIMARY }}>
+                        {active.title}
+                      </div>
+                    </div>
+                    <div className="rounded-full px-3 py-1.5 text-[12px] font-semibold text-white" style={{ backgroundColor: active.accent }}>
+                      Connected
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    {active.metrics.map((metric) => (
+                      <div key={metric} className="rounded-2xl border bg-white p-3" style={{ borderColor: BORDER_SOFT }}>
+                        <Check className="h-4 w-4" style={{ color: active.accent }} strokeWidth={3} />
+                        <div className="mt-3 text-[12px] font-semibold leading-4" style={{ color: TEXT_PRIMARY }}>
+                          {metric}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {[72, 48, 86].map((width, index) => (
+                      <div key={width} className="rounded-2xl border bg-white p-3" style={{ borderColor: BORDER_SOFT }}>
+                        <div className="flex items-center gap-3">
+                          <span className="h-8 w-8 rounded-xl" style={{ backgroundColor: `${active.accent}18` }} />
+                          <div className="flex-1">
+                            <span className="block h-2.5 rounded-full" style={{ width: `${width}%`, backgroundColor: `${active.accent}2e` }} />
+                            <span className="mt-2 block h-2 rounded-full bg-slate-100" style={{ width: `${Math.max(width - 22, 28)}%` }} />
+                          </div>
+                          <span className="h-7 w-16 rounded-full bg-slate-100" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </nav>
+    </section>
   )
 }
 
@@ -167,113 +289,105 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative px-6 pt-20 pb-14 sm:pt-28 sm:pb-20">
-      <div className="max-w-[1200px] mx-auto">
-        {/* Eyebrow — visible on first paint, subtle y animation only */}
-        <motion.div
-          initial={{ opacity: 1, y: 8 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex justify-center"
-        >
-          <span
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.14em]"
-            style={{
-              border: `1px solid ${BORDER}`,
-              color: TEXT_SECONDARY,
-            }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            The Operating System for K-12 Schools
-          </span>
-        </motion.div>
-
-        {/* Headline — visible on first paint */}
-        <motion.h1
-          initial={{ opacity: 1, y: 16 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5, delay: 0.05, ease: [0.25, 0.1, 0.25, 1] }}
-          className="mt-8 text-center font-semibold max-w-[1100px] mx-auto"
+    <section className="relative px-4 pb-12 pt-6 sm:px-6 sm:pb-16 sm:pt-10">
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.65, delay: 0.05, ease: EASE }}
+        className="relative mx-auto min-h-[690px] max-w-[1380px] overflow-hidden rounded-[2rem] border bg-white shadow-[0_32px_100px_rgba(15,23,42,0.18)] sm:min-h-[760px] lg:min-h-[720px]"
+        style={{ borderColor: BORDER_SOFT }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- Generated marketing hero art is stored as a local public asset. */}
+        <img
+          src="/marketing/generated/homepage-lionheart-academy-hero.png"
+          alt="Lionheart Academy school operations coordinator with Lionheart product cards for IT support and connected work."
+          className="absolute inset-0 h-full w-full object-cover object-[32%_center] sm:object-center"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-white/70 sm:hidden" />
+        <div
+          className="absolute inset-0 hidden sm:block"
           style={{
-            fontSize: 'clamp(42px, 7vw, 84px)',
-            lineHeight: '0.95',
-            letterSpacing: '-0.045em',
-            color: TEXT_PRIMARY,
+            background: 'linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0.97) 24%, rgba(255,255,255,0.82) 42%, rgba(255,255,255,0.18) 65%, rgba(255,255,255,0) 100%)',
           }}
-        >
-          School operations infrastructure
-          <br className="hidden sm:inline" /> for absolutely everyone.
-        </motion.h1>
+        />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white/45 to-transparent lg:hidden" />
 
-        {/* Sub — visible on first paint */}
-        <motion.p
-          initial={{ opacity: 1, y: 12 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5, delay: 0.12 }}
-          className="mt-8 text-center max-w-[680px] mx-auto"
-          style={{
-            fontSize: 'clamp(17px, 1.4vw, 20px)',
-            lineHeight: '1.55',
-            letterSpacing: '-0.003em',
-            color: TEXT_SECONDARY,
-          }}
-        >
-          Events, maintenance, IT, messaging, forms, registration — plus the AI
-          that knows how your school actually runs. One platform, one source of
-          truth, built for every classroom, hallway, and practice field.
-        </motion.p>
+        <div className="relative z-10 flex min-h-[690px] items-center px-7 py-12 sm:min-h-[760px] sm:px-12 lg:min-h-[720px] lg:px-16">
+          <div className="max-w-[520px]">
+            <motion.h1
+              initial={{ opacity: 1, y: 16 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.5, delay: 0.12, ease: [0.25, 0.1, 0.25, 1] }}
+              className="text-[40px] font-semibold leading-[1] sm:text-[54px] sm:leading-[1.02] lg:text-[58px] xl:text-[64px]"
+              style={{
+                letterSpacing: 0,
+                color: TEXT_PRIMARY,
+              }}
+            >
+              Run school operations from one{' '}
+              <span className="text-[#2f7fd5]">shared workspace.</span>
+            </motion.h1>
 
-        {/* CTAs — visible on first paint */}
-        <motion.div
-          initial={{ opacity: 1, y: 12 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-[14px] font-semibold transition-all duration-200 hover:-translate-y-px"
-            style={{
-              backgroundColor: TEXT_PRIMARY,
-              color: '#ffffff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.1)',
-            }}
-          >
-            Start your 30-day free trial
-            <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-          </Link>
-          <Link
-            href="#pricing"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-[14px] font-semibold transition-colors duration-200"
-            style={{ color: TEXT_PRIMARY }}
-          >
-            See pricing
-            <ChevronDown className="w-4 h-4" strokeWidth={2.5} />
-          </Link>
-        </motion.div>
+            <motion.p
+              initial={{ opacity: 1, y: 12 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.5, delay: 0.18 }}
+              className="mt-6 max-w-[500px] text-[16px] leading-[1.62] sm:mt-7 sm:text-[18px] sm:leading-[1.65]"
+              style={{
+                letterSpacing: 0,
+                color: TEXT_SECONDARY,
+              }}
+            >
+              Tickets, work orders, events, forms, messages, approvals, and payments
+              stay connected, so staff stop chasing updates and everyone knows what
+              happens next.
+            </motion.p>
 
-        <motion.p
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.28 }}
-          className="mt-6 text-center text-[13px]"
-          style={{ color: TEXT_MUTED }}
-        >
-          No credit card required · Cancel anytime · Set up in minutes
-        </motion.p>
+            <motion.div
+              initial={{ opacity: 1, y: 12 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.5, delay: 0.24 }}
+              className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center"
+            >
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[14px] font-semibold transition-all duration-200 hover:-translate-y-px active:scale-[0.98]"
+                style={{
+                  backgroundColor: TEXT_PRIMARY,
+                  color: '#ffffff',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.1)',
+                }}
+              >
+                Start 30-day trial
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/12">
+                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[14px] font-semibold transition-colors duration-200 hover:bg-black/[0.04] active:scale-[0.98]"
+                style={{ color: TEXT_PRIMARY }}
+              >
+                See pricing
+                <ChevronDown className="w-4 h-4" strokeWidth={2.5} />
+              </Link>
+            </motion.div>
 
-        <HeroProductMotion />
+            <motion.p
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-5 text-[13px] sm:mt-6"
+              style={{ color: TEXT_MUTED }}
+            >
+              No credit card required · Unlimited staff · Set up in minutes
+            </motion.p>
 
-        {/* Dashboard mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-          className="mt-16 sm:mt-20"
-        >
-          <DashboardMockup />
-        </motion.div>
-      </div>
+          </div>
+        </div>
+      </motion.div>
     </section>
   )
 }
@@ -697,7 +811,7 @@ function HeroProductMotion() {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.65, delay: 0.3, ease: EASE }}
-      className="mt-14 grid items-center gap-8 overflow-hidden rounded-2xl p-4 sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6"
+      className="mt-10 grid items-center gap-8 overflow-hidden rounded-[1.75rem] p-4 sm:mt-16 sm:p-5 lg:grid-cols-[0.9fr_1.1fr] lg:p-6"
       style={{
         backgroundColor: '#101010',
         border: '1px solid rgba(15,15,15,0.08)',
@@ -709,10 +823,8 @@ function HeroProductMotion() {
           Role-aware school-day motion
         </p>
         <h2
-          className="mt-4 max-w-[520px] font-semibold text-white"
+          className="mt-4 max-w-[520px] text-3xl font-semibold leading-[1.06] text-white sm:text-4xl lg:text-5xl"
           style={{
-            fontSize: 'clamp(28px, 4vw, 48px)',
-            lineHeight: '1.02',
             letterSpacing: 0,
           }}
         >
@@ -727,7 +839,7 @@ function HeroProductMotion() {
       </div>
 
       <div
-        className="relative h-[620px] overflow-hidden rounded-2xl p-4 sm:h-[430px] sm:p-5"
+        className="relative h-[560px] overflow-hidden rounded-[1.5rem] p-4 sm:h-[430px] sm:p-5"
         style={{
           backgroundColor: '#f7f6f4',
           border: '1px solid rgba(255,255,255,0.12)',
@@ -746,7 +858,7 @@ function HeroProductMotion() {
         </div>
 
         <div
-          className="relative h-[560px] overflow-visible rounded-t-2xl rounded-b-none p-4 sm:h-[370px]"
+          className="relative h-[500px] overflow-visible rounded-t-[1.25rem] rounded-b-none p-4 sm:h-[370px]"
           style={{ backgroundColor: '#ffffff', border: `1px solid ${BORDER}` }}
         >
           <div className="mb-4 flex min-h-[72px] items-start justify-between gap-4 overflow-hidden">
@@ -781,7 +893,7 @@ function HeroProductMotion() {
             <ScrambleBadge value={activeRole.badge} />
           </div>
 
-          <div className="relative h-[410px] overflow-visible sm:h-[220px]" style={{ perspective: '1600px' }}>
+          <div className="relative h-[350px] overflow-visible sm:h-[220px]" style={{ perspective: '1600px' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeRole.role}
@@ -1006,7 +1118,7 @@ function SchoolLifeMosaic() {
   return (
     <motion.section
       id="school-life-section"
-      className="px-6 pb-24"
+      className="px-6 pb-28"
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -1022,10 +1134,8 @@ function SchoolLifeMosaic() {
               Built around the school day
             </p>
             <h2
-              className="font-semibold max-w-[620px]"
+              className="max-w-[620px] text-4xl font-semibold leading-[1.06] sm:text-5xl"
               style={{
-                fontSize: 'clamp(32px, 4.5vw, 54px)',
-                lineHeight: '1.04',
                 letterSpacing: 0,
                 color: TEXT_PRIMARY,
               }}
@@ -1045,7 +1155,7 @@ function SchoolLifeMosaic() {
         </div>
 
         <div
-          className="grid overflow-hidden rounded-2xl lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]"
+          className="grid overflow-hidden rounded-[1.75rem] lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]"
           style={{ border: `1px solid ${BORDER}`, boxShadow: CARD_SHADOW, backgroundColor: '#ffffff' }}
         >
           <div className="p-4 sm:p-5 lg:p-6">
@@ -1125,7 +1235,7 @@ function SchoolLifeMosaic() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'rgba(255,255,255,0.72)' }}>
                 {selectedPhoto.audience}
               </div>
-              <h3 className="mt-3 max-w-[620px] text-[28px] font-semibold leading-[1.05] sm:text-[36px]">
+              <h3 className="mt-3 max-w-[620px] text-[28px] font-semibold leading-[1.08] sm:text-[36px]" style={{ letterSpacing: 0 }}>
                 {selectedPhoto.detailTitle}
               </h3>
               <p className="mt-4 max-w-[580px] text-[15px] leading-6 sm:text-[16px]" style={{ color: 'rgba(255,255,255,0.8)' }}>
@@ -1163,21 +1273,21 @@ function TrustBar() {
     value?: string
   }
   const stats: Stat[] = [
-    { count: 12, label: 'integrated modules' },
+    { count: 12, label: 'areas of school work' },
     { count: 30, suffix: ' days', label: 'free trial, no card' },
     { value: 'K–12', label: 'public, private, charter' },
     { value: 'Multi-school', label: 'from one school to many' },
   ]
   return (
     <motion.section
-      className="border-y"
-      style={{ borderColor: BORDER_SOFT, backgroundColor: SURFACE_ALT }}
+      className="mx-3 rounded-[1.75rem] border sm:mx-6"
+      style={{ borderColor: BORDER_SOFT, backgroundColor: '#eef3f0' }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
       variants={REVEAL_VARIANTS}
     >
-      <div className="max-w-[1200px] mx-auto px-6 py-10">
+      <div className="mx-auto max-w-[1200px] px-6 py-10 sm:py-12">
         <p
           className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] mb-6"
           style={{ color: TEXT_MUTED }}
@@ -1190,9 +1300,9 @@ function TrustBar() {
               <div
                 className="font-semibold tabular-nums"
                 style={{
-                  fontSize: 'clamp(22px, 2.2vw, 28px)',
+                  fontSize: '28px',
                   color: TEXT_PRIMARY,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: 0,
                 }}
               >
                 {s.count !== undefined ? (
@@ -1227,7 +1337,7 @@ function WhatItReplaces() {
   ]
   return (
     <motion.section
-      className="px-6 py-24"
+      className="px-6 py-28"
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -1242,11 +1352,9 @@ function WhatItReplaces() {
             One platform, instead of
           </p>
           <h2
-            className="font-semibold mx-auto max-w-[760px]"
+            className="mx-auto max-w-[760px] text-4xl font-semibold leading-[1.07] sm:text-5xl"
             style={{
-              fontSize: 'clamp(32px, 4.5vw, 52px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >
@@ -1256,15 +1364,15 @@ function WhatItReplaces() {
             className="mt-5 max-w-[620px] mx-auto text-[17px]"
             style={{ color: TEXT_SECONDARY, lineHeight: 1.6 }}
           >
-            Every school we talk to runs the same Frankenstein stack. We replaced it
-            with one place where every request, event, asset, and roster lives together.
+            Most schools are piecing together calendars, inboxes, forms, tickets, and
+            spreadsheets. Lionheart brings that daily work into one place.
           </p>
         </div>
 
         <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
           {/* Legacy column */}
           <div
-            className="rounded-2xl p-6"
+            className="rounded-[1.5rem] p-6 sm:p-7"
             style={{
               backgroundColor: SURFACE_ALT,
               border: `1px solid ${BORDER_SOFT}`,
@@ -1304,7 +1412,7 @@ function WhatItReplaces() {
 
           {/* New column */}
           <div
-            className="rounded-2xl p-6 relative overflow-hidden"
+            className="relative overflow-hidden rounded-[1.5rem] p-6 sm:p-7"
             style={{
               backgroundColor: '#ffffff',
               border: `1px solid ${BORDER}`,
@@ -1325,7 +1433,7 @@ function WhatItReplaces() {
                 LH
               </div>
               <div>
-                <div className="text-[16px] font-semibold" style={{ color: TEXT_PRIMARY, letterSpacing: '-0.01em' }}>
+                <div className="text-[16px] font-semibold" style={{ color: TEXT_PRIMARY, letterSpacing: 0 }}>
                   Lionheart
                 </div>
                 <div className="text-[12px]" style={{ color: TEXT_SECONDARY }}>
@@ -1355,79 +1463,38 @@ function WhatItReplaces() {
 // ─── Modules grid ───────────────────────────────────────────────────────────
 
 function ModulesGrid() {
-  const modules = [
+  const moduleGroups = [
     {
       icon: Calendar,
-      title: 'Events & Calendar',
-      description: 'Plan, approve, and run every school event with conflict detection and parent-facing calendars.',
-    },
-    {
-      icon: Wrench,
-      title: 'Maintenance',
-      description: 'Work orders, preventive maintenance schedules, asset tracking, and compliance — all in one ledger.',
+      title: 'Plan the school day',
+      description: 'Events, calendars, rooms, resources, approvals, and parent-facing schedules stay tied to the same plan.',
+      modules: ['Events & Calendar', 'Approvals', 'A/V Production'],
     },
     {
       icon: MonitorSmartphone,
-      title: 'IT Help Desk',
-      description: 'Tickets, devices, roster sync, student password self-service, and SLA tracking — built for K-12 IT.',
-    },
-    {
-      icon: Headphones,
-      title: 'A/V Production',
-      description: 'Equipment requests, inventory, and day-of production coordination for events that need more than a mic.',
-    },
-    {
-      icon: FileText,
-      title: 'Forms',
-      description: 'Build permission slips, surveys, and registration forms with QR codes, conditional logic, and approval workflows.',
-    },
-    {
-      icon: CheckSquare,
-      title: 'Approvals',
-      description: 'Multi-step approval workflows per calendar, resource, or request type. Configurable, not hard-coded.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Compliance',
-      description: 'Fire drill logs, inspection calendars, and board reports. Every deadline tracked, nothing dropped.',
+      title: 'Fix what breaks',
+      description: 'IT, maintenance, assets, devices, and compliance deadlines get ownership, status, and history.',
+      modules: ['IT Help Desk', 'Maintenance', 'IT Fleet Manager', 'Compliance'],
     },
     {
       icon: MessageSquare,
-      title: 'Leo AI',
-      description: 'An institutional memory that answers "who, what, when" about your school in plain English.',
-      isAi: true,
+      title: 'Keep people aligned',
+      description: 'Staff messages, team channels, notifications, and Leo AI answers live beside the work they reference.',
+      modules: ['Messaging', 'Leo AI', 'Mobile app'],
     },
     {
-      icon: MessageCircle,
-      title: 'Messaging',
-      description: 'DMs, channels, threads, reactions, and push to mobile. Replace Slack and Teams for staff comms.',
-      isAddOn: true,
-    },
-    {
-      icon: Trophy,
-      title: 'Athletics',
-      description: 'Season planning, rosters, schedules, stats, tournaments, and public roster pages.',
-      isAddOn: true,
-    },
-    {
-      icon: CreditCard,
-      title: 'Registration + Payments',
-      description: 'Stripe-powered registration for events, camps, and programs. Magic-link parent signups, discount codes, refunds.',
-      isAddOn: true,
-    },
-    {
-      icon: HardDrive,
-      title: 'IT Fleet Manager',
-      description: 'Chromebook fleet, damage tracking, loaners, MDM, content filtering, summer mode, and eRate reporting.',
-      isAddOn: true,
+      icon: FileText,
+      title: 'Collect what matters',
+      description: 'Forms, registration, payments, rosters, and reports move through the same school operations system.',
+      modules: ['Forms', 'Registration + Payments', 'Athletics'],
     },
   ]
 
   return (
     <motion.section
       id="modules"
-      className="px-6 py-24"
-      style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
+      className="px-6 py-28"
+      style={{ backgroundColor: '#eef3f0', borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -1439,74 +1506,183 @@ function ModulesGrid() {
             className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-4"
             style={{ color: TEXT_MUTED }}
           >
-            Twelve modules · One workspace
+            Four jobs · One workspace
           </p>
           <h2
-            className="font-semibold mx-auto max-w-[820px]"
+            className="mx-auto max-w-[820px] text-4xl font-semibold leading-[1.07] sm:text-5xl"
             style={{
-              fontSize: 'clamp(32px, 4.5vw, 52px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >
-            Everything your school needs,
-            <br />
-            nothing it doesn&rsquo;t.
+            The daily work, grouped the way schools actually run.
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {modules.map((m) => {
-            const Icon = m.icon
+        <div className="grid gap-4 md:grid-cols-2">
+          {moduleGroups.map((group) => {
+            const Icon = group.icon
             return (
               <div
-                key={m.title}
-                className="rounded-2xl p-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                key={group.title}
+                className="relative overflow-hidden rounded-[1.5rem] p-6 transition-all duration-300 hover:-translate-y-1 sm:p-7"
                 style={{
                   backgroundColor: '#ffffff',
                   border: `1px solid ${BORDER}`,
                   boxShadow: CARD_SHADOW,
                 }}
               >
-                {m.isAddOn && (
-                  <span
-                    className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-[0.12em]"
-                    style={{
-                      backgroundColor: 'rgba(15,15,15,0.05)',
-                      color: TEXT_MUTED,
-                      letterSpacing: '0.08em',
-                    }}
-                  >
-                    Add-on
-                  </span>
-                )}
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
-                  style={
-                    m.isAi
-                      ? { background: AI_GRADIENT }
-                      : { backgroundColor: 'rgba(15,15,15,0.04)' }
-                  }
+                  style={{ backgroundColor: 'rgba(15,15,15,0.04)' }}
                 >
                   <Icon
-                    className="w-5 h-5"
-                    style={{ color: m.isAi ? '#ffffff' : TEXT_PRIMARY }}
+                    className="h-5 w-5"
+                    style={{ color: TEXT_PRIMARY }}
                     strokeWidth={2}
                   />
                 </div>
                 <h3
-                  className="text-[16px] font-semibold mb-2"
-                  style={{ color: TEXT_PRIMARY, letterSpacing: '-0.015em' }}
+                  className="mb-2 text-[21px] font-semibold leading-tight"
+                  style={{ color: TEXT_PRIMARY, letterSpacing: 0 }}
                 >
-                  {m.title}
+                  {group.title}
                 </h3>
-                <p className="text-[13.5px]" style={{ color: TEXT_SECONDARY, lineHeight: 1.55 }}>
-                  {m.description}
+                <p className="text-[14px]" style={{ color: TEXT_SECONDARY, lineHeight: 1.6 }}>
+                  {group.description}
                 </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {group.modules.map((module) => (
+                    <span
+                      key={module}
+                      className="rounded-full px-3 py-1 text-[12px] font-medium"
+                      style={{ backgroundColor: SURFACE_ALT, color: TEXT_SECONDARY, border: `1px solid ${BORDER_SOFT}` }}
+                    >
+                      {module}
+                    </span>
+                  ))}
+                </div>
               </div>
             )
           })}
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+function SolutionsHub() {
+  const solutions = [
+    {
+      icon: Calendar,
+      title: 'Events & calendars',
+      description: 'Approvals, rooms, resources, and day-of details for school events.',
+      href: '/solutions/events',
+    },
+    {
+      icon: MonitorSmartphone,
+      title: 'IT & devices',
+      description: 'Help desk tickets, asset context, device support, and staff follow-up.',
+      href: '/solutions/it',
+    },
+    {
+      icon: Wrench,
+      title: 'Maintenance',
+      description: 'Work orders, asset history, preventive schedules, and room needs.',
+      href: '/solutions/maintenance',
+    },
+    {
+      icon: FileText,
+      title: 'Forms & registration',
+      description: 'Forms, approvals, registrations, payments, and submission follow-up.',
+      href: '/solutions/forms-registration',
+    },
+    {
+      icon: MessageSquare,
+      title: 'Staff messaging',
+      description: 'Threads and channels tied to events, tickets, forms, and daily work.',
+      href: '/solutions/messaging',
+    },
+  ]
+
+  return (
+    <motion.section
+      className="px-6 py-28"
+      initial="hidden"
+      whileInView="visible"
+      viewport={REVEAL_VIEWPORT}
+      variants={REVEAL_VARIANTS}
+    >
+      <div className="mx-auto max-w-[1200px]">
+        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div>
+            <p
+              className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em]"
+              style={{ color: TEXT_MUTED }}
+            >
+              Explore by area
+            </p>
+            <h2
+              className="text-4xl font-semibold leading-[1.07] sm:text-5xl"
+              style={{ color: TEXT_PRIMARY, letterSpacing: 0 }}
+            >
+              The homepage stays simple. The details live where they belong.
+            </h2>
+          </div>
+          <p
+            className="max-w-[620px] text-[17px] leading-[1.65] lg:ml-auto"
+            style={{ color: TEXT_SECONDARY }}
+          >
+            Each solution page goes deeper on a specific part of the school day, so
+            the homepage can stay focused on the big picture.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {solutions.map((solution) => {
+            const Icon = solution.icon
+            return (
+              <Link
+                key={solution.href}
+                href={solution.href}
+                className="group rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-[0_14px_45px_rgba(15,15,15,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_55px_rgba(15,15,15,0.09)]"
+              >
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                  <Icon className="h-5 w-5" strokeWidth={2.2} />
+                </div>
+                <h3 className="text-xl font-semibold leading-tight text-slate-950" style={{ letterSpacing: 0 }}>
+                  {solution.title}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {solution.description}
+                </p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  Learn more
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </span>
+              </Link>
+            )
+          })}
+
+          <Link
+            href="/platform"
+            className="group rounded-[1.5rem] border border-slate-950 bg-slate-950 p-6 text-white shadow-[0_18px_55px_rgba(15,15,15,0.16)] transition-all duration-200 hover:-translate-y-1"
+          >
+            <div className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">
+              Platform overview
+            </div>
+            <h3 className="text-2xl font-semibold leading-tight" style={{ letterSpacing: 0 }}>
+              See how the system fits together.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-white/70">
+              Start with the full operations platform, then move into the areas
+              that matter most.
+            </p>
+            <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white">
+              View platform
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </span>
+          </Link>
         </div>
       </div>
     </motion.section>
@@ -1518,7 +1694,7 @@ function ModulesGrid() {
 function DeepDiveEvents() {
   return (
     <motion.section
-      className="px-6 py-24"
+      className="px-6 py-28"
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -1533,11 +1709,9 @@ function DeepDiveEvents() {
             Events that actually happen
           </p>
           <h2
-            className="font-semibold mb-6"
+            className="mb-6 text-4xl font-semibold leading-[1.08] sm:text-5xl"
             style={{
-              fontSize: 'clamp(32px, 4.2vw, 48px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >
@@ -1581,8 +1755,8 @@ function DeepDiveEvents() {
 function DeepDiveMaintenance() {
   return (
     <motion.section
-      className="px-6 py-24"
-      style={{ backgroundColor: SURFACE_ALT, borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
+      className="px-6 py-28"
+      style={{ backgroundColor: '#eef3f0', borderTop: `1px solid ${BORDER_SOFT}`, borderBottom: `1px solid ${BORDER_SOFT}` }}
       initial="hidden"
       whileInView="visible"
       viewport={REVEAL_VIEWPORT}
@@ -1599,11 +1773,9 @@ function DeepDiveMaintenance() {
             Every work order, every asset
           </p>
           <h2
-            className="font-semibold mb-6"
+            className="mb-6 text-4xl font-semibold leading-[1.08] sm:text-5xl"
             style={{
-              fontSize: 'clamp(32px, 4.2vw, 48px)',
-              lineHeight: '1.05',
-              letterSpacing: '-0.035em',
+              letterSpacing: 0,
               color: TEXT_PRIMARY,
             }}
           >

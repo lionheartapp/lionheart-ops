@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+// eslint-disable-next-line no-restricted-imports -- SSO settings manage org-level SAML connection records after auth/permission checks and explicit org scoping.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { getOrgIdFromRequest, runWithOrgContext } from '@/lib/org-context'

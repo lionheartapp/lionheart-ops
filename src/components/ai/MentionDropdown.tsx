@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { dropdownVariants } from '@/lib/animations'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 export interface MentionUser {
   id: string
@@ -77,7 +78,7 @@ export default function MentionDropdown({
                 >
                   {/* Avatar */}
                   {user.avatar ? (
-                    <img
+                    <OptimizedImage
                       src={user.avatar}
                       alt={name}
                       className="h-7 w-7 rounded-full object-cover flex-shrink-0"

@@ -2,6 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface FormCardProps {
   icon: LucideIcon
@@ -81,7 +82,7 @@ export default function FormCard({
         {updatedAt && (
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             {updatedBy?.avatar ? (
-              <img src={updatedBy.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+              <OptimizedImage src={updatedBy.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
             ) : editorName ? (
               <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-medium text-slate-500">
                 {editorName.charAt(0)}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+// eslint-disable-next-line no-restricted-imports -- Building outline detection verifies building org ownership before AI map/image processing.
 import { rawPrisma } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 import { buildingOutlineService } from '@/lib/services/ai/building-outline.service'

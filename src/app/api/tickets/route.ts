@@ -5,6 +5,7 @@ import * as ticketService from '@/lib/services/ticketService'
 import type { ListTicketsInput } from '@/lib/services/ticketService'
 import { embedTicket } from '@/lib/services/ai/embeddingTriggers'
 import { parsePagination, paginationMeta } from '@/lib/pagination'
+import { PERMISSIONS } from '@/lib/permissions'
 
 export const GET = withAuth(async ({ ctx, searchParams }) => {
   const { page, limit, skip } = parsePagination(searchParams)
@@ -23,7 +24,7 @@ export const GET = withAuth(async ({ ctx, searchParams }) => {
   ])
 
   return NextResponse.json(ok(tickets, paginationMeta(total, { page, limit, skip })))
-})
+}, { permissionAny: [PERMISSIONS.TICKETS_READ_OWN, PERMISSIONS.TICKETS_READ_TEAM, PERMISSIONS.TICKETS_READ_ALL] })
 
 export const POST = withAuth(async ({ req, ctx }) => {
   const body = await req.json()
@@ -38,4 +39,4 @@ export const POST = withAuth(async ({ req, ctx }) => {
   })
 
   return NextResponse.json(ok(ticket), { status: 201 })
-})
+}, { permission: PERMISSIONS.TICKETS_CREATE })

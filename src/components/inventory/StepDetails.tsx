@@ -6,6 +6,7 @@ import { AV_EQUIPMENT_TAGS, DOC_LINK_TYPES } from '@/lib/constants/inventory'
 import { FileInput } from '@/components/ui/FileInput'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -245,7 +246,7 @@ export default function StepDetails({
 
           {imageUrl ? (
             <div className="relative w-[200px] h-[200px] rounded-lg overflow-hidden border border-slate-200 group">
-              <img
+              <OptimizedImage
                 src={imageUrl}
                 alt="Product"
                 className="w-full h-full object-cover"

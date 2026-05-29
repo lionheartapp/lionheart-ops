@@ -479,9 +479,11 @@ function FieldRow({
     return <hr className="border-slate-200 my-2" />
   }
 
+  const inputId = `dynamic-field-${field.id || field.key}`
+
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-slate-700">
+      <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
         {field.label}
         {field.required && <span className="text-red-500 ml-0.5">*</span>}
         {field.protection === 'LOCKED' && (
@@ -496,6 +498,7 @@ function FieldRow({
         value={value}
         onChange={onChange}
         disabled={disabled}
+        inputId={inputId}
       />
 
       {field.helpText && !error && (

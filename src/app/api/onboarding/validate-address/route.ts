@@ -11,6 +11,8 @@ import { getUserContext } from '@/lib/request-context'
 import { ok, fail } from '@/lib/api-response'
 import { validateAddress } from '@/lib/services/addressValidationService'
 import { logger } from '@/lib/logger'
+import { assertCan } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 
 const ValidateAddressSchema = z.object({
   address: z.string().min(5, 'Address is too short').max(400),
@@ -18,7 +20,8 @@ const ValidateAddressSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    await getUserContext(req) // verify auth
+    const ctx = await getUserContext(req)
+    await assertCan(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
 
     const body = await req.json()
     const validation = ValidateAddressSchema.safeParse(body)
@@ -43,6 +46,9 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.message.includes('Missing or invalid authorization')) {
       return NextResponse.json(fail('UNAUTHORIZED', 'Authentication required'), { status: 401 })
+    }
+    if (error instanceof Error && error.message.includes('Insufficient permissions')) {
+      return NextResponse.json(fail('FORBIDDEN', 'Only workspace managers can validate school addresses'), { status: 403 })
     }
     logger.error({ error: String(error) }, 'Address validation failed')
     return NextResponse.json(fail('INTERNAL_ERROR', 'Failed to validate address'), { status: 500 })

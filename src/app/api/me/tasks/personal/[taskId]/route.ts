@@ -5,6 +5,8 @@ import { withAuth } from '@/lib/api/with-auth'
 import { UpdatePersonalTaskSchema } from '@/lib/types/personal-task'
 
 /**
+ * @authOnly Updates and deletes only the signed-in user's own personal task.
+ *
  * PATCH /api/me/tasks/personal/:taskId
  *
  * Update a personal task. Only the owner can update their own tasks.
@@ -30,6 +32,7 @@ export const PATCH = withAuth(async ({ ctx, params, body }) => {
     data,
     include: {
       subtasks: {
+        where: { userId: ctx.userId },
         orderBy: { createdAt: 'asc' },
       },
     },

@@ -32,7 +32,7 @@ export const POST = withAuth(
       )
     }
 
-    // generateResetToken uses rawPrisma internally, but we still run in org context
+    // generateResetToken handles its own scoped database work, but we still run in org context
     // for consistency and to pass the correct orgId
     const result = await generateResetToken(orgId, body.studentId)
 

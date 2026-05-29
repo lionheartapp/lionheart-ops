@@ -30,6 +30,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { organizationRegistrationService } from '@/lib/services'
 import { ok, fail } from '@/lib/api-response'
 import { signAuthToken } from '@/lib/auth'
+// eslint-disable-next-line no-restricted-imports -- Public signup creates a new organization/admin before any org context exists.
 import { rawPrisma } from '@/lib/db'
 import { ZodError } from 'zod'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'

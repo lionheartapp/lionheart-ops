@@ -21,6 +21,7 @@ import AttendeePicker, { type AttendeeSelection } from '@/components/calendar/At
 import RsvpDialog from '@/components/calendar/RsvpDialog'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface EventDetailPanelProps {
   event: CalendarEventData | null
@@ -699,7 +700,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
                         {event.createdBy.avatar ? (
-                          <img src={event.createdBy.avatar} alt="" className="w-full h-full rounded-full" />
+                          <OptimizedImage src={event.createdBy.avatar} alt="" className="w-full h-full rounded-full" />
                         ) : (
                           <span className="text-xs font-medium text-slate-500">
                             {(event.createdBy.firstName?.[0] || event.createdBy.name?.[0] || '?').toUpperCase()}
@@ -841,7 +842,7 @@ export default function EventDetailPanel({ event, onClose, onEdit, onDelete, onD
                         <div className="group flex items-center gap-2.5 py-1 rounded-lg hover:bg-slate-50 px-1 -mx-1">
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
                             {a.user.avatar ? (
-                              <img src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
+                              <OptimizedImage src={a.user.avatar} alt="" className="w-full h-full rounded-full" />
                             ) : (
                               <span className="text-xs font-medium text-slate-500">
                                 {(a.user.firstName?.[0] || a.user.name?.[0] || '?').toUpperCase()}

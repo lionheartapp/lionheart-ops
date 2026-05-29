@@ -47,14 +47,14 @@ export default function FacilityRequestsBanner({ requests }: FacilityRequestsBan
 
   return (
     <motion.div
-      className="mb-6 rounded-2xl p-4 shadow-sm backdrop-blur-sm border bg-gradient-to-br from-amber-50/80 to-amber-100/80 border-amber-200/30 flex-shrink-0"
+      className="mb-6 flex-shrink-0 rounded-xl border border-amber-200 bg-amber-50 p-4"
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-white border border-amber-100 flex items-center justify-center">
             <Wrench className="w-4 h-4 text-amber-600" />
           </div>
           <div>
@@ -66,7 +66,7 @@ export default function FacilityRequestsBanner({ requests }: FacilityRequestsBan
         </div>
         <button
           onClick={() => router.push('/maintenance?tab=dashboard')}
-          className="text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors flex items-center gap-0.5 cursor-pointer"
+          className="flex items-center gap-0.5 rounded-md px-2 py-1 text-xs font-medium text-amber-700 transition-colors duration-200 hover:bg-amber-100 hover:text-amber-950 cursor-pointer"
         >
           View in Maintenance
           <ChevronRight className="w-3 h-3" />
@@ -84,7 +84,7 @@ export default function FacilityRequestsBanner({ requests }: FacilityRequestsBan
           const facilityNeeds = readResourceItems(meta, 'facilityNeeds').map((i) => i.name)
 
           return (
-            <div key={project.id} className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
+            <div key={project.id} className="flex items-center gap-3 rounded-lg border border-amber-100 bg-white p-3 transition-[background-color,border-color] duration-200 hover:border-amber-200 hover:bg-amber-50">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-800 truncate">{project.title}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -117,7 +117,7 @@ export default function FacilityRequestsBanner({ requests }: FacilityRequestsBan
                 </button>
                 <button
                   onClick={() => router.push('/maintenance?tab=dashboard')}
-                  className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 active:scale-[0.97] transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:border-slate-300 hover:bg-slate-100 active:scale-[0.97] transition-[background-color,border-color,transform] duration-200 cursor-pointer"
                 >
                   Details
                 </button>
@@ -128,7 +128,7 @@ export default function FacilityRequestsBanner({ requests }: FacilityRequestsBan
         {requests.length > 2 && (
           <button
             onClick={() => router.push('/maintenance?tab=dashboard')}
-            className="w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-amber-700 hover:text-amber-900 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-medium text-amber-700 transition-colors duration-200 hover:bg-amber-100 hover:text-amber-950 cursor-pointer"
           >
             +{requests.length - 2} more request{requests.length - 2 !== 1 ? 's' : ''}
             <ChevronRight className="w-3 h-3" />

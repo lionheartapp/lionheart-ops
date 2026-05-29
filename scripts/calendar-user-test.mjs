@@ -12,7 +12,7 @@ const TENANT_SUBDOMAIN = 'linfield-christian-school';
 const BASE_URL = `https://${TENANT_SUBDOMAIN}.lionheartapp.com`;
 const EMAIL = 'mkerley@linfield.com';
 const PASSWORD = 'TestPass123!';
-const SCREENSHOTS_DIR = '/Users/mkerley/Desktop/Linfield Test/scripts/calendar-test-screenshots';
+const SCREENSHOTS_DIR = '/Users/mkerley/Desktop/Lionheart/scripts/calendar-test-screenshots';
 
 mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 

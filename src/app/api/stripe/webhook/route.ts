@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+// eslint-disable-next-line no-restricted-imports -- Public Stripe webhook verifies Stripe signature before updating billing records across organizations.
 import { rawPrisma } from '@/lib/db'
 import { fail, ok } from '@/lib/api-response'
 import { logger } from '@/lib/logger'

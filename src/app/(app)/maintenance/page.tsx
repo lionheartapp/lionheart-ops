@@ -8,14 +8,8 @@ import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { fadeInUp, staggerContainer } from '@/lib/animations'
 
 import MaintenanceDashboard from '@/components/maintenance/MaintenanceDashboard'
-import MyRequestsView from '@/components/maintenance/MyRequestsView'
-import PmCalendarView from '@/components/maintenance/PmCalendarView'
-import PmScheduleList from '@/components/maintenance/PmScheduleList'
-import PmScheduleWizard from '@/components/maintenance/PmScheduleWizard'
-import TicketRoutingTab from '@/components/settings/TicketRoutingTab'
 import dynamic from 'next/dynamic'
 
-import CategoryFormEditor from '@/components/settings/CategoryFormEditor'
 import {
   LayoutDashboard, CalendarClock, FileBarChart, Plus, CalendarDays, LayoutList, X, Route, FileText,
   Zap, Droplets, Wind, Hammer, SprayCan, Trees, HelpCircle, ChevronLeft, Pencil, Settings,
@@ -31,6 +25,36 @@ import TabIndicator from '@/components/ui/TabIndicator'
 import PagePadding from '@/components/PagePadding'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
+
+function LazyPanel() {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6 animate-pulse">
+      <div className="h-4 w-40 rounded bg-slate-200" />
+      <div className="mt-4 h-24 rounded bg-slate-100" />
+    </div>
+  )
+}
+
+const MyRequestsView = dynamic(() => import('@/components/maintenance/MyRequestsView'), {
+  loading: () => <LazyPanel />,
+})
+const PmCalendarView = dynamic(() => import('@/components/maintenance/PmCalendarView'), {
+  loading: () => <LazyPanel />,
+})
+const PmScheduleList = dynamic(() => import('@/components/maintenance/PmScheduleList'), {
+  loading: () => <LazyPanel />,
+})
+const PmScheduleWizard = dynamic(() => import('@/components/maintenance/PmScheduleWizard'), {
+  ssr: false,
+  loading: () => <LazyPanel />,
+})
+const TicketRoutingTab = dynamic(() => import('@/components/settings/TicketRoutingTab'), {
+  loading: () => <LazyPanel />,
+})
+const CategoryFormEditor = dynamic(() => import('@/components/settings/CategoryFormEditor'), {
+  ssr: false,
+  loading: () => <LazyPanel />,
+})
 
 const MAIN_TABS: {
   key: MaintenanceTab
@@ -78,9 +102,12 @@ function MaintenanceContent() {
   useEffect(() => {
     if (!isReady || !orgId || typeof navigator === 'undefined' || !navigator.onLine) return
     const userId = user.id ?? ''
-    cacheAssignedTickets('cookie-auth', orgId, userId).catch(() => {
-      // Non-fatal — silently ignore cache failures
-    })
+    const timeout = window.setTimeout(() => {
+      cacheAssignedTickets('cookie-auth', orgId, userId).catch(() => {
+        // Non-fatal — silently ignore cache failures
+      })
+    }, 10_000)
+    return () => window.clearTimeout(timeout)
   }, [isReady, orgId, user.id])
 
   const { data: perms, isLoading: permsLoading } = usePermissions()
@@ -104,7 +131,7 @@ function MaintenanceContent() {
     return 'dashboard'
   }
 
-  const [activeTab, setActiveTab] = useState<MaintenanceTab>('dashboard')
+  const [activeTab, setActiveTab] = useState<MaintenanceTab>(() => getDefaultTab())
   const [configMenuOpen, setConfigMenuOpen] = useState(false)
   const configMenuRef = useRef<HTMLDivElement>(null)
 
@@ -251,23 +278,24 @@ function MaintenanceContent() {
 
                 {/* Tab content */}
                 <>
-                    <div
-                      role="tabpanel"
-                      id="tabpanel-dashboard"
-                      aria-labelledby="tab-dashboard"
-                      className={activeTab === 'dashboard' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                      aria-hidden={activeTab !== 'dashboard'}
-                    >
-                      <MaintenanceDashboard activeCampusId={activeSchoolId} />
-                    </div>
+                    {activeTab === 'dashboard' && (
+                      <div
+                        role="tabpanel"
+                        id="tabpanel-dashboard"
+                        aria-labelledby="tab-dashboard"
+                        className="animate-[fadeIn_200ms_ease-out]"
+                      >
+                        <MaintenanceDashboard activeCampusId={activeSchoolId} />
+                      </div>
+                    )}
 
-                    <div
-                      role="tabpanel"
-                      id="tabpanel-pm-calendar"
-                      aria-labelledby="tab-pm-calendar"
-                      className={activeTab === 'pm-calendar' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-                      aria-hidden={activeTab !== 'pm-calendar'}
-                    >
+                    {activeTab === 'pm-calendar' && (
+                      <div
+                        role="tabpanel"
+                        id="tabpanel-pm-calendar"
+                        aria-labelledby="tab-pm-calendar"
+                        className="animate-[fadeIn_200ms_ease-out]"
+                      >
                       {/* PM Calendar section card */}
                       <section className="ui-glass p-6">
                         {/* Gradient icon-tile header */}
@@ -373,7 +401,8 @@ function MaintenanceContent() {
                           </motion.div>
                         </AnimatePresence>
                       </section>
-                    </div>
+                      </div>
+                    )}
 
                     {/* Routing tab — managers only */}
                     {canManageMaintenance && activeTab === 'routing' && (

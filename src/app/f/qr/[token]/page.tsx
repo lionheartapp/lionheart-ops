@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import type { FormFieldData } from '@/components/forms/FormFieldRenderer'
 import AiTicketIntakeDrawer from '@/components/it/AiTicketIntakeDrawer'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ export default function QrScanPage() {
         {resolution && (
           <div className="text-center mb-5">
             {resolution.organization.logoUrl && (
-              <img
+              <OptimizedImage
                 src={resolution.organization.logoUrl}
                 alt=""
                 className="w-10 h-10 rounded-xl mx-auto mb-2 object-cover"

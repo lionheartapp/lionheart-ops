@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Hash, Lock, BellOff, X } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import type { ShapedChannel } from '@/lib/hooks/useChannels'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface ChannelListItemProps {
   channel: ShapedChannel
@@ -112,7 +113,7 @@ export default function ChannelListItem({ channel, isActive, onSelect, onClose, 
       onClick={() => onSelect(channel.id)}
       role="button"
       tabIndex={0}
-      aria-selected={isActive}
+      aria-current={isActive ? 'page' : undefined}
       aria-label={displayName}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(channel.id) } }}
     >
@@ -121,7 +122,7 @@ export default function ChannelListItem({ channel, isActive, onSelect, onClose, 
         <div className="w-8 h-8 rounded-full flex items-center justify-center">
           {isDM ? (
             typeof dmAvatar === 'string' && dmAvatar.length > 1 ? (
-              <img
+              <OptimizedImage
                 src={dmAvatar}
                 alt=""
                 className="w-8 h-8 rounded-full object-cover"

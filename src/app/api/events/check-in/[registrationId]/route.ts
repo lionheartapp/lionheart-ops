@@ -20,6 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public participant QR endpoint treats the non-guessable registration id as the access token and never returns medical data.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { AnnouncementAudience } from '@prisma/client'

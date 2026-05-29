@@ -23,6 +23,7 @@ import type { PortalViewProps, GroupAssignment } from './portal/portal-types'
 export type { PortalViewProps } from './portal/portal-types'
 import { StatusBadge, PaymentBadge, GroupTypeBadge } from './portal/PortalBadges'
 import { fadeInUp, stagger, formatDate, formatTime, formatShortDate, formatCurrency } from './portal/portal-helpers'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── QR Code Display ──────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ function RegistrationQRCode({ registrationId }: { registrationId: string }) {
 
   return (
     <div className="text-center">
-      <img
+      <OptimizedImage
         src={qrUrl}
         alt="Check-in QR Code"
         width={180}
@@ -201,7 +202,7 @@ export default function PortalView({
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center gap-3">
             {orgLogo ? (
-              <img
+              <OptimizedImage
                 src={orgLogo}
                 alt={orgName}
                 className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
@@ -227,7 +228,7 @@ export default function PortalView({
         <motion.div variants={fadeInUp}>
           {event?.coverImageUrl ? (
             <div className="relative rounded-2xl overflow-hidden h-48">
-              <img
+              <OptimizedImage
                 src={event.coverImageUrl}
                 alt={event.title}
                 className="w-full h-full object-cover"

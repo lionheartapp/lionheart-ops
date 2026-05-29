@@ -12,6 +12,8 @@ import { z } from 'zod'
 import { withAuth } from '@/lib/api/with-auth'
 import { assertMessagingEnabled } from '@/lib/api/messaging-gate'
 import { ok, fail } from '@/lib/api-response'
+import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Channel join requests use compound channel/user records and manually scope all operations to orgId/channelId.
 import { rawPrisma } from '@/lib/db'
 import { postToChannel } from '@/lib/services/systemBotService'
 
@@ -78,7 +80,7 @@ export const POST = withAuth<unknown, { id: string }>(async ({ ctx, orgId, param
   )
 
   return NextResponse.json(ok({ requested: true, requestId: request.id }))
-})
+}, { permission: PERMISSIONS.MESSAGING_ACCESS })
 
 // ── PATCH: Approve or deny a request ────────────────────────────────────────
 
@@ -151,5 +153,5 @@ export const PATCH = withAuth<z.infer<typeof ResolveSchema>, { id: string }>(
       return NextResponse.json(ok({ denied: true }))
     }
   },
-  { schema: ResolveSchema },
+  { permission: PERMISSIONS.MESSAGING_ACCESS, schema: ResolveSchema },
 )

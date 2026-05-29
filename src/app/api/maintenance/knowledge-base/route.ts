@@ -9,15 +9,21 @@ import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getArticles, createArticle } from '@/lib/services/knowledgeBaseService'
 import type { KnowledgeArticleType } from '@prisma/client'
+import { cacheOrgWide } from '@/lib/cache/route-cache'
 
-export const GET = withAuth(async ({ searchParams }) => {
+export const GET = withAuth(async ({ orgId, searchParams }) => {
   const type = searchParams.get('type') as KnowledgeArticleType | null
   const keyword = searchParams.get('keyword') || undefined
   const assetId = searchParams.get('assetId') || undefined
   const tagsParam = searchParams.get('tags')
   const tags = tagsParam ? tagsParam.split(',').filter(Boolean) : undefined
 
-  const articles = await getArticles({ type: type ?? undefined, keyword, assetId, tags })
+  const articles = await cacheOrgWide(
+    orgId,
+    `maintenance-kb:list:${type ?? ''}:${keyword ?? ''}:${assetId ?? ''}:${tags?.join('|') ?? ''}`,
+    () => getArticles({ type: type ?? undefined, keyword, assetId, tags }),
+    { ttlMs: 5000 }
+  )
   return NextResponse.json(ok(articles))
 }, { permission: PERMISSIONS.KB_READ })
 

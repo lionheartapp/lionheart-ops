@@ -171,11 +171,12 @@ function buildQueryString(filters?: Record<string, string | number | undefined>)
  * Fetch a paginated list of event projects with optional filters.
  * Returns data array (not the paginated envelope) for ease of use.
  */
-export function useEventProjects(filters?: EventProjectFilters) {
+export function useEventProjects(filters?: EventProjectFilters, enabled = true) {
   const qs = buildQueryString(filters as Record<string, string | number | undefined>)
   return useQuery<EventProject[]>({
     queryKey: ['event-projects', filters],
     queryFn: () => fetchApi<EventProject[]>(`/api/events/projects${qs}`),
+    enabled,
     staleTime: 2 * 60_000,
   })
 }

@@ -9,6 +9,7 @@ import { ok, fail } from '@/lib/api-response'
 import { signAuthToken, verifyAuthToken } from '@/lib/auth'
 import { verifyAuthentication } from '@/lib/services/passkeyService'
 import { authCookieOptions, csrfCookieOptions } from '@/lib/auth/cookie-options'
+// eslint-disable-next-line no-restricted-imports -- Passkey verify runs before normal auth; it verifies the signed MFA token and manually scopes user/org reads.
 import { rawPrisma } from '@/lib/db'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -70,8 +71,12 @@ export async function POST(req: NextRequest) {
       email: claims.email,
     })
 
-    const user = await rawPrisma.user.findUnique({
-      where: { id: claims.userId },
+    const user = await rawPrisma.user.findFirst({
+      where: {
+        id: claims.userId,
+        organizationId: claims.organizationId,
+        deletedAt: null,
+      },
       select: {
         id: true,
         email: true,

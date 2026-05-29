@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
@@ -34,14 +35,7 @@ import { useActiveSchool } from '@/lib/hooks/useActiveSchool'
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop'
 import AnimatedCounter from '@/components/motion/AnimatedCounter'
 import { useToast } from '@/components/Toast'
-import { CreateEventProjectModal } from '@/components/events/CreateEventProjectModal'
-import { EventSeriesDrawer } from '@/components/events/EventSeriesDrawer'
-import { TemplateListDrawer } from '@/components/events/templates/TemplateListDrawer'
-import { CreateFromTemplateWizard } from '@/components/events/templates/CreateFromTemplateWizard'
-import { EventBoard } from '@/components/events/board/EventBoard'
-import { ArchiveDrawer } from '@/components/events/board/ArchiveDrawer'
 import CreateEventMenu, { type EventCreateMode } from '@/components/events/CreateEventMenu'
-import YearPlanPrompt from '@/components/events/YearPlanPrompt'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTrackModuleVisit } from '@/components/onboarding/ChecklistWidget'
 import { useEventProjectRealtime } from '@/lib/hooks/useEventProjectRealtime'
@@ -57,6 +51,26 @@ import {
   CARD_SHADOW,
   STATUS_ACCENT,
 } from '@/lib/design/warm-tokens'
+
+const CreateEventProjectModal = dynamic(
+  () => import('@/components/events/CreateEventProjectModal').then((mod) => mod.CreateEventProjectModal),
+  { loading: () => null },
+)
+const EventSeriesDrawer = dynamic(
+  () => import('@/components/events/EventSeriesDrawer').then((mod) => mod.EventSeriesDrawer),
+  { loading: () => null },
+)
+const ArchiveDrawer = dynamic(
+  () => import('@/components/events/board/ArchiveDrawer').then((mod) => mod.ArchiveDrawer),
+  { loading: () => null },
+)
+const YearPlanPrompt = dynamic(() => import('@/components/events/YearPlanPrompt'), {
+  loading: () => null,
+})
+const EventBoard = dynamic(
+  () => import('@/components/events/board/EventBoard').then((mod) => mod.EventBoard),
+  { loading: () => <EventBoardSkeleton /> },
+)
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -116,6 +130,26 @@ const itemExit = {
   height: 0,
   marginBottom: 0,
   transition: { duration: 0.25 },
+}
+
+function EventBoardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 animate-pulse">
+      {Array.from({ length: 4 }).map((_, column) => (
+        <div
+          key={column}
+          className="rounded-2xl border border-stone-200 bg-white p-4 min-h-[420px]"
+        >
+          <div className="h-5 w-28 rounded bg-stone-200" />
+          <div className="mt-4 space-y-3">
+            {Array.from({ length: 3 }).map((__, row) => (
+              <div key={row} className="h-24 rounded-xl bg-stone-100" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 // ─── Stat Card (Cal.com editorial: large number + small uppercase label) ────
@@ -1025,8 +1059,6 @@ export default function EventsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createMode, setCreateMode] = useState<EventCreateMode>('single')
   const [seriesDrawerOpen, setSeriesDrawerOpen] = useState(false)
-  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [archiveDrawerOpen, setArchiveDrawerOpen] = useState(false)
   const [yearPlanPromptOpen, setYearPlanPromptOpen] = useState(false)
   const [pendingCreateMode, setPendingCreateMode] = useState<EventCreateMode>('single')
@@ -1147,46 +1179,42 @@ export default function EventsPage() {
       </div>
 
       {/* Year plan routing prompt */}
-      <YearPlanPrompt
-        isOpen={yearPlanPromptOpen}
-        onClose={() => setYearPlanPromptOpen(false)}
-        onYearPlan={(seasonId) => {
-          setYearPlanPromptOpen(false)
-          router.push(`/planning?action=create`)
-        }}
-        onRegularEvent={() => {
-          setYearPlanPromptOpen(false)
-          proceedWithCreate(pendingCreateMode)
-        }}
-      />
-
-      {/* Create modals + drawers (lifted so CTA in header can trigger them) */}
-      <CreateEventProjectModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        initialMode={createMode as 'single' | 'multiday'}
-      />
-      <EventSeriesDrawer
-        isOpen={seriesDrawerOpen}
-        onClose={() => setSeriesDrawerOpen(false)}
-      />
-      <TemplateListDrawer
-        isOpen={templateDrawerOpen}
-        onClose={() => setTemplateDrawerOpen(false)}
-        onSelect={(templateId: string) => setSelectedTemplateId(templateId)}
-      />
-      {selectedTemplateId && (
-        <CreateFromTemplateWizard
-          templateId={selectedTemplateId}
-          isOpen={!!selectedTemplateId}
-          onClose={() => setSelectedTemplateId(null)}
+      {yearPlanPromptOpen && (
+        <YearPlanPrompt
+          isOpen={yearPlanPromptOpen}
+          onClose={() => setYearPlanPromptOpen(false)}
+          onYearPlan={() => {
+            setYearPlanPromptOpen(false)
+            router.push('/planning?action=create')
+          }}
+          onRegularEvent={() => {
+            setYearPlanPromptOpen(false)
+            proceedWithCreate(pendingCreateMode)
+          }}
         />
       )}
-      <ArchiveDrawer
-        isOpen={archiveDrawerOpen}
-        onClose={() => setArchiveDrawerOpen(false)}
-        projects={allProjects}
-      />
+
+      {/* Create modals + drawers (lifted so CTA in header can trigger them) */}
+      {createModalOpen && (
+        <CreateEventProjectModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          initialMode={createMode as 'single' | 'multiday'}
+        />
+      )}
+      {seriesDrawerOpen && (
+        <EventSeriesDrawer
+          isOpen={seriesDrawerOpen}
+          onClose={() => setSeriesDrawerOpen(false)}
+        />
+      )}
+      {archiveDrawerOpen && (
+        <ArchiveDrawer
+          isOpen={archiveDrawerOpen}
+          onClose={() => setArchiveDrawerOpen(false)}
+          projects={allProjects}
+        />
+      )}
     </>
     </PagePadding>
   )

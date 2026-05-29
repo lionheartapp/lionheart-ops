@@ -17,11 +17,11 @@ import { queryOptions } from '@/lib/queries'
  * on the dashboard's first paint.
  *
  * Now: only prefetch the cross-cutting data that's used by virtually every
- * authenticated route (current user permissions, tickets, calendars,
- * school info, modules). Pages that need Athletics, Settings sub-data,
- * etc. fetch on mount via their own hooks — TanStack Query's staleTime
- * + the AuthBridge's primed module cache keeps things instant after the
- * first visit anyway.
+ * authenticated route (current user permissions, tickets, school info,
+ * modules). Pages that need Calendars, Athletics, Settings sub-data, etc.
+ * fetch on mount via their own hooks — TanStack Query's staleTime + the
+ * AuthBridge's primed module cache keeps things instant after the first visit
+ * anyway.
  *
  * prefetchQuery will NOT refetch if data already exists and is within
  * staleTime, so calling this multiple times is safe and essentially free.
@@ -35,18 +35,22 @@ export function usePrefetchOnAuth(token: string | null) {
     if (!token || hasPrefetched.current) return
     hasPrefetched.current = true
 
-    // Cross-cutting data only — used by most authenticated pages.
-    // Fire in parallel; don't await, let them run in the background.
-    const prefetches = [
-      queryClient.prefetchQuery(queryOptions.tickets()),
-      queryClient.prefetchQuery(queryOptions.calendars()),
-      queryClient.prefetchQuery(queryOptions.permissions()),
-      queryClient.prefetchQuery(queryOptions.schoolInfo()),
-      queryClient.prefetchQuery(queryOptions.modules()),
-    ]
+    const prefetch = () => {
+      // Cross-cutting data only — used by many authenticated pages.
+      // Delay this so it does not compete with the page the user is opening.
+      const prefetches = [
+        queryClient.prefetchQuery(queryOptions.tickets()),
+        queryClient.prefetchQuery(queryOptions.permissions()),
+        queryClient.prefetchQuery(queryOptions.schoolInfo()),
+        queryClient.prefetchQuery(queryOptions.modules()),
+      ]
 
-    // Swallow errors — prefetch failures are non-critical
-    Promise.allSettled(prefetches).catch(() => {})
+      // Swallow errors — prefetch failures are non-critical
+      Promise.allSettled(prefetches).catch(() => {})
+    }
+
+    const timeout = window.setTimeout(prefetch, 12_000)
+    return () => window.clearTimeout(timeout)
   }, [token, queryClient])
 }
 

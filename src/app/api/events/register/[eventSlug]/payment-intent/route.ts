@@ -18,6 +18,7 @@ import { z } from 'zod'
 import { ok, fail } from '@/lib/api-response'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { RateLimiter, getRateLimitHeaders } from '@/lib/rate-limit'
+// eslint-disable-next-line no-restricted-imports -- Public registration payment resolves organization from event slug/form and computes amount server-side.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import {

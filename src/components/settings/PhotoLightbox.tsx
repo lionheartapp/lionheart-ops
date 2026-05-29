@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface PhotoLightboxProps {
   images: string[]
@@ -26,37 +27,6 @@ export default function PhotoLightbox({
   const touchEndX = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Reset index when opening with a new initialIndex
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentIndex(initialIndex)
-      setIsAnimating(true)
-      document.body.style.overflowY = 'hidden'
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setShouldShow(true)
-        })
-      })
-    } else if (isAnimating) {
-      setShouldShow(false)
-    }
-    return () => {
-      document.body.style.overflowY = 'unset'
-    }
-  }, [isOpen, initialIndex])
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!isOpen) return
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose()
-      else if (e.key === 'ArrowLeft') goToPrev()
-      else if (e.key === 'ArrowRight') goToNext()
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [isOpen, currentIndex, images.length])
-
   const handleClose = useCallback(() => {
     setShouldShow(false)
     setTimeout(() => {
@@ -74,6 +44,37 @@ export default function PhotoLightbox({
     if (images.length <= 1) return
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [images.length])
+
+  // Reset index when opening with a new initialIndex
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentIndex(initialIndex)
+      setIsAnimating(true)
+      document.body.style.overflowY = 'hidden'
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setShouldShow(true)
+        })
+      })
+    } else if (isAnimating) {
+      setShouldShow(false)
+    }
+    return () => {
+      document.body.style.overflowY = 'unset'
+    }
+  }, [isOpen, initialIndex, isAnimating])
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose()
+      else if (e.key === 'ArrowLeft') goToPrev()
+      else if (e.key === 'ArrowRight') goToNext()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isOpen, handleClose, goToPrev, goToNext])
 
   // Touch handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -144,7 +145,7 @@ export default function PhotoLightbox({
           </button>
         )}
 
-        <img
+        <OptimizedImage
           key={currentIndex}
           src={images[currentIndex]}
           alt={`Photo ${currentIndex + 1} of ${images.length}`}
@@ -184,7 +185,7 @@ export default function PhotoLightbox({
                   style={{ minHeight: 'auto' }}
                   aria-label={`View photo ${idx + 1}`}
                 >
-                  <img
+                  <OptimizedImage
                     src={url}
                     alt={`Photo thumbnail ${idx + 1}`}
                     className="w-full h-full object-cover"

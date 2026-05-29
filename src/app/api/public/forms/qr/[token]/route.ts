@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { resolveQrToken } from '@/lib/services/formQrService'
 import { checkAiAvailability } from '@/lib/services/ai/ai-availability'
+// eslint-disable-next-line no-restricted-imports -- Public QR form lookup resolves organization from token and manually scopes location reads by resolved.organizationId.
 import { rawPrisma } from '@/lib/db'
 
 type RouteParams = { params: Promise<{ token: string }> }
@@ -32,20 +33,29 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // intake form doesn't break during the rollout window.
     const [building, space, room] = await Promise.all([
       resolved.buildingId
-        ? rawPrisma.building.findUnique({
-            where: { id: resolved.buildingId },
+        ? rawPrisma.building.findFirst({
+            where: {
+              id: resolved.buildingId,
+              organizationId: resolved.organizationId,
+            },
             select: { id: true, name: true },
           })
         : null,
       resolved.spaceId
-        ? rawPrisma.space.findUnique({
-            where: { id: resolved.spaceId },
+        ? rawPrisma.space.findFirst({
+            where: {
+              id: resolved.spaceId,
+              organizationId: resolved.organizationId,
+            },
             select: { id: true, name: true },
           })
         : null,
       resolved.roomId
-        ? rawPrisma.room.findUnique({
-            where: { id: resolved.roomId },
+        ? rawPrisma.room.findFirst({
+            where: {
+              id: resolved.roomId,
+              organizationId: resolved.organizationId,
+            },
             select: { id: true, roomNumber: true, displayName: true },
           })
         : null,

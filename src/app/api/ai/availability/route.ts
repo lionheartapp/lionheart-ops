@@ -1,5 +1,7 @@
 /**
  * GET /api/ai/availability — Check if AI features are available for the current org
+ *
+ * @authOnly Any signed-in user may see whether AI is available for their organization.
  */
 
 import { NextRequest, NextResponse } from 'next/server'

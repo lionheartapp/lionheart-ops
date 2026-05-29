@@ -29,6 +29,7 @@ interface FormFieldRendererProps {
   value: unknown
   onChange: (value: unknown) => void
   disabled?: boolean
+  inputId?: string
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -38,6 +39,7 @@ export default function FormFieldRenderer({
   value,
   onChange,
   disabled = false,
+  inputId,
 }: FormFieldRendererProps) {
   const t = field.type
 
@@ -45,6 +47,7 @@ export default function FormFieldRenderer({
     const inputType = t === 'EMAIL' ? 'email' : t === 'PHONE' ? 'tel' : 'text'
     return (
       <Input
+        id={inputId}
         type={inputType}
         placeholder={field.placeholder || ''}
         value={(value as string) ?? ''}
@@ -57,6 +60,7 @@ export default function FormFieldRenderer({
   if (t === 'TEXTAREA') {
     return (
       <Textarea
+        id={inputId}
         rows={3}
         placeholder={field.placeholder || ''}
         value={(value as string) ?? ''}
@@ -69,6 +73,7 @@ export default function FormFieldRenderer({
   if (t === 'NUMBER') {
     return (
       <Input
+        id={inputId}
         type="number"
         placeholder={field.placeholder || ''}
         value={(value as string | number) ?? ''}
@@ -83,6 +88,7 @@ export default function FormFieldRenderer({
   if (t === 'DATE') {
     return (
       <Input
+        id={inputId}
         type="date"
         value={(value as string) ?? ''}
         onChange={(e) => onChange(e.target.value)}

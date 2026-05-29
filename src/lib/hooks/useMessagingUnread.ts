@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useChannels } from './useChannels'
 import { useAuth } from './useAuth'
 
@@ -11,7 +11,13 @@ import { useAuth } from './useAuth'
  * so we filter to the current user's membership to get accurate counts.
  */
 export function useMessagingUnread(): number {
-  const { data: channels } = useChannels()
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setEnabled(true), 10_000)
+    return () => window.clearTimeout(timeout)
+  }, [])
+
+  const { data: channels } = useChannels({ enabled })
   const { user } = useAuth()
   const currentUserId = user?.id ?? null
 

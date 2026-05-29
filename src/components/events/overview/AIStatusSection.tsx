@@ -34,6 +34,9 @@ export function AIStatusSection({ eventProjectId, initialCompletionPercent = 0 }
       const json = (await res.json()) as { ok: boolean; data?: AIStatusSummary & { aiGenerated: boolean }; error?: { message: string } }
       if (json.ok && json.data) {
         setSummary(json.data)
+        if (!json.data.aiGenerated) {
+          setError('AI summary requires GEMINI_API_KEY to be configured')
+        }
       } else if (res.status === 503) {
         setError('AI summary requires GEMINI_API_KEY to be configured')
       } else {

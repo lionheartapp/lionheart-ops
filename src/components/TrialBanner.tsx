@@ -24,7 +24,7 @@
  * banner silently renders nothing rather than blocking the UI.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -210,6 +210,13 @@ function getBannerView(
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TrialBanner() {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setEnabled(true), 10_000)
+    return () => window.clearTimeout(timeout)
+  }, [])
+
   const { data, isError } = useQuery<TrialStatusData | null>({
     queryKey: ['trial-status'],
     queryFn: async () => {
@@ -225,6 +232,7 @@ export default function TrialBanner() {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: false,
+    enabled,
   })
 
   // Compute the view first so the effect can observe whether the banner

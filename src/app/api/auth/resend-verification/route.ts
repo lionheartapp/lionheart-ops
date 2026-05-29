@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+// eslint-disable-next-line no-restricted-imports -- Public verification resend starts before auth; user lookup is scoped by submitted organizationId and always returns generic responses.
 import { rawPrisma } from '@/lib/db'
 import { generateSetupToken, hashSetupToken, getVerificationLink } from '@/lib/auth/password-setup'
 import { sendVerificationEmail } from '@/lib/services/emailService'

@@ -6,6 +6,7 @@ import { FloatingInput, FloatingDropdown, type DropdownOption } from '@/componen
 import { FileInput } from '@/components/ui/FileInput'
 import { Textarea } from '@/components/ui/Textarea'
 import type { RosterEntry } from './roster-types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_SIZE = 5 * 1024 * 1024
@@ -335,7 +336,7 @@ function PlayerPhotoArea({
 
         {photoUrl ? (
           <>
-            <img
+            <OptimizedImage
               src={photoUrl}
               alt={`${firstName} ${lastName}`}
               className="w-full h-full object-cover"

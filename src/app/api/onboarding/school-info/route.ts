@@ -114,6 +114,9 @@ async function getPrimaryCampus(orgId: string) {
   )
 }
 
+/**
+ * @authOnly Any signed-in org user may read basic school onboarding info for their own workspace.
+ */
 export async function GET(req: NextRequest) {
   try {
     await getUserContext(req)

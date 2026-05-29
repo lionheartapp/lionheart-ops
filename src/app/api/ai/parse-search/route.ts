@@ -7,6 +7,10 @@ import type { SearchContext, ParsedSearchFilter } from '@/lib/services/ai/gemini
 import { logger } from '@/lib/logger'
 import * as Sentry from '@sentry/nextjs'
 
+/**
+ * @authOnly Any signed-in user may use AI to parse their own search text; the client provides the already-visible filter context.
+ */
+
 const contextItemSchema = z.object({
   id: z.string(),
   name: z.string(),

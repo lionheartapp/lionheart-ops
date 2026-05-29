@@ -131,11 +131,12 @@ import { fetchApi } from '@/lib/api-client'
 
 // ─── Hooks ─────────────────────────────────────────────────────────────
 
-export function useCalendars() {
+export function useCalendars(enabled = true) {
   return useQuery<CalendarData[]>({
     queryKey: ['calendars'],
     queryFn: () => fetchApi('/api/calendars'),
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 
@@ -145,11 +146,12 @@ export interface CalendarSubscriptionData {
   notifyOnNew: boolean
 }
 
-export function useCalendarSubscriptions() {
+export function useCalendarSubscriptions(enabled = true) {
   return useQuery<CalendarSubscriptionData[]>({
     queryKey: ['calendar-subscriptions'],
     queryFn: () => fetchApi('/api/calendar-subscriptions'),
     staleTime: 60_000,
+    enabled,
   })
 }
 
@@ -335,11 +337,12 @@ export function useDeleteEvent() {
 
 // ─── Category hooks ─────────────────────────────────────────────────────
 
-export function useCategories() {
+export function useCategories(enabled = true) {
   return useQuery<CalendarCategoryData[]>({
     queryKey: ['categories'],
     queryFn: () => fetchApi('/api/calendar-categories'),
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 

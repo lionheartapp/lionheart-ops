@@ -85,7 +85,7 @@ export default function SpaceAvailabilityView({
       map.set(dateKey, existing)
     }
     return map
-  }, [data?.bookings])
+  }, [data])
 
   if (!spaceId) {
     return (

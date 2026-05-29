@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Ticket-routing dashboard reads aggregate helper records with explicit orgId filters after withAuth.
 import { rawPrisma } from '@/lib/db'
 import { getAtRiskTickets } from '@/lib/services/slaService'
 import type { TicketModule } from '@prisma/client'

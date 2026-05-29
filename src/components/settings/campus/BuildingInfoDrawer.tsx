@@ -3,6 +3,7 @@
 import React from 'react'
 import DetailDrawer from '@/components/DetailDrawer'
 import { type Building, type Room, DIVISION_LABELS } from './types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 type BuildingInfoDrawerProps = {
   buildingId: string | null
@@ -63,7 +64,7 @@ export default function BuildingInfoDrawer({
                     className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 border border-slate-200 hover:ring-2 hover:ring-primary-400 transition cursor-pointer"
                     style={{ minHeight: 'auto' }}
                   >
-                    <img src={url} alt={`Building photo ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                    <OptimizedImage src={url} alt={`Building photo ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/auth'
+// eslint-disable-next-line no-restricted-imports -- Auth hydration verifies the JWT first, then scopes user reads to the organizationId inside the signed token.
 import { rawPrisma } from '@/lib/db'
 import { ok, fail } from '@/lib/api-response'
 import { cachePerUser } from '@/lib/cache/route-cache'
@@ -37,8 +38,12 @@ export async function GET(req: NextRequest) {
       claims.userId,
       'auth:me',
       async () => {
-        const user = await rawPrisma.user.findUnique({
-          where: { id: claims.userId },
+        const user = await rawPrisma.user.findFirst({
+          where: {
+            id: claims.userId,
+            organizationId: claims.organizationId,
+            deletedAt: null,
+          },
           select: {
             id: true,
             email: true,
@@ -80,9 +85,15 @@ export async function GET(req: NextRequest) {
     }
 
     const { user, teamName, teamSlugs } = cached
-
-    // Everyone gets the calendar dashboard.
-    const dashboardMode = 'admin' as const
+    const roleSlug = user.userRole?.slug?.toLowerCase() ?? ''
+    const roleName = user.userRole?.name?.toLowerCase() ?? ''
+    const isAdminRole = roleSlug.includes('admin') || roleName.includes('admin') || roleSlug.includes('super')
+    const dashboardMode =
+      isAdminRole ? 'admin'
+        : teamSlugs.includes('it-support') ? 'it'
+          : teamSlugs.includes('maintenance') ? 'maintenance'
+            : teamSlugs.includes('av-production') ? 'av'
+              : 'default'
 
     // Check if currently impersonating (admin-token cookie present)
     const adminToken = req.cookies.get('admin-token')?.value
@@ -93,8 +104,12 @@ export async function GET(req: NextRequest) {
       const adminClaims = await verifyAuthToken(adminToken)
       if (adminClaims) {
         isImpersonating = true
-        const adminUser = await rawPrisma.user.findUnique({
-          where: { id: adminClaims.userId },
+        const adminUser = await rawPrisma.user.findFirst({
+          where: {
+            id: adminClaims.userId,
+            organizationId: adminClaims.organizationId,
+            deletedAt: null,
+          },
           select: { name: true },
         })
         adminName = adminUser?.name ?? 'Admin'

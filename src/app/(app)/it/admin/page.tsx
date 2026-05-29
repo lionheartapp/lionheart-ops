@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
@@ -9,12 +10,21 @@ import { fadeInUp, staggerContainer } from '@/lib/animations'
 import { useITPermissions } from '@/lib/hooks/useITPermissions'
 import ITPageShell from '@/components/it/ITPageShell'
 import PagePadding from '@/components/PagePadding'
-import ITAnalyticsTab from '@/components/it/ITAnalyticsTab'
-import ITReportsTab from '@/components/it/ITReportsTab'
-import ITERateUnifiedTab from '@/components/it/ITERateUnifiedTab'
-import ITSyncTab from '@/components/it/ITSyncTab'
 import { BarChart3, FileText, FileCheck, RefreshCw } from 'lucide-react'
 import { usePageTitle } from '@/hooks/usePageTitle'
+
+const ITAnalyticsTab = dynamic(() => import('@/components/it/ITAnalyticsTab'), {
+  loading: () => <AdminTabSkeleton />,
+})
+const ITReportsTab = dynamic(() => import('@/components/it/ITReportsTab'), {
+  loading: () => <AdminTabSkeleton />,
+})
+const ITERateUnifiedTab = dynamic(() => import('@/components/it/ITERateUnifiedTab'), {
+  loading: () => <AdminTabSkeleton />,
+})
+const ITSyncTab = dynamic(() => import('@/components/it/ITSyncTab'), {
+  loading: () => <AdminTabSkeleton />,
+})
 
 type AdminTab = 'analytics' | 'reports' | 'erate' | 'sync'
 
@@ -30,6 +40,19 @@ const TABS: { key: AdminTab; label: string; icon: typeof BarChart3 }[] = [
   { key: 'erate', label: 'E-Rate', icon: FileCheck },
   { key: 'sync', label: 'Sync', icon: RefreshCw },
 ]
+
+function AdminTabSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[0, 1, 2].map((item) => (
+          <div key={item} className="h-28 rounded-xl bg-slate-100 border border-slate-200" />
+        ))}
+      </div>
+      <div className="h-72 rounded-xl bg-slate-100 border border-slate-200" />
+    </div>
+  )
+}
 
 function AdminContent(): JSX.Element | null {
   usePageTitle('IT Admin')
@@ -104,9 +127,10 @@ function AdminContent(): JSX.Element | null {
           id="tabpanel-analytics"
           aria-labelledby="tab-analytics"
           className={activeTab === 'analytics' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'analytics'}
         >
-          <ITAnalyticsTab canViewBoardReports={p.canViewITBoardReports} />
+          {activeTab === 'analytics' && (
+            <ITAnalyticsTab canViewBoardReports={p.canViewITBoardReports} />
+          )}
         </div>
       )}
 
@@ -116,9 +140,8 @@ function AdminContent(): JSX.Element | null {
           id="tabpanel-reports"
           aria-labelledby="tab-reports"
           className={activeTab === 'reports' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'reports'}
         >
-          <ITReportsTab />
+          {activeTab === 'reports' && <ITReportsTab />}
         </div>
       )}
 
@@ -128,9 +151,8 @@ function AdminContent(): JSX.Element | null {
           id="tabpanel-erate"
           aria-labelledby="tab-erate"
           className={activeTab === 'erate' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'erate'}
         >
-          <ITERateUnifiedTab canManage={p.canManageERate} />
+          {activeTab === 'erate' && <ITERateUnifiedTab canManage={p.canManageERate} />}
         </div>
       )}
 
@@ -140,9 +162,8 @@ function AdminContent(): JSX.Element | null {
           id="tabpanel-sync"
           aria-labelledby="tab-sync"
           className={activeTab === 'sync' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'sync'}
         >
-          <ITSyncTab canManage={p.canManageSync} />
+          {activeTab === 'sync' && <ITSyncTab canManage={p.canManageSync} />}
         </div>
       )}
     </div>

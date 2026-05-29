@@ -3,6 +3,7 @@
 import { Edit2, Trash2, UserMinus, UserCheck, Shield, Download } from 'lucide-react'
 import RowActionMenu from '@/components/RowActionMenu'
 import { getInitials, getDisplayName, getAvatarColor, formatDate, StatusBadge, type ApiUser } from './types'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface MemberListTableProps {
   users: ApiUser[]
@@ -68,7 +69,7 @@ export default function MemberListTable({
             <span className={`relative inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
               {getInitials(u.firstName, u.lastName, u.email, u.name)}
               {u.avatar && (
-                <img
+                <OptimizedImage
                   src={u.avatar}
                   alt={getDisplayName(u) ?? u.email}
                   className="absolute inset-0 h-9 w-9 rounded-full object-cover"
@@ -111,7 +112,7 @@ export default function MemberListTable({
                   <span className={`relative inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-bold flex-shrink-0 ${getAvatarColor(u.id)}`}>
                     {getInitials(u.firstName, u.lastName, u.email, u.name)}
                     {u.avatar && (
-                      <img
+                      <OptimizedImage
                         src={u.avatar}
                         alt={getDisplayName(u) ?? u.email}
                         className="absolute inset-0 h-8 w-8 rounded-full object-cover"

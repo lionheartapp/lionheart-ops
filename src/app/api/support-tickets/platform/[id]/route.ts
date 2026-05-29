@@ -4,15 +4,25 @@ import { getUserContext } from '@/lib/request-context'
 import { getOrgIdFromRequest } from '@/lib/org-context'
 import { getTicketWithMessages, addSupportMessage } from '@/lib/services/platformSupportService'
 import { logger } from '@/lib/logger'
+import { can } from '@/lib/auth/permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 
+/**
+ * @authOnly Users can read or reply to their own support tickets; workspace managers can access all org support tickets.
+ */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const orgId = getOrgIdFromRequest(req)
-    await getUserContext(req) // verify auth
+    const ctx = await getUserContext(req)
     const { id } = await params
 
     const ticket = await getTicketWithMessages(id)
-    if (!ticket || ticket.organizationId !== orgId) {
+    const canManageWorkspace = await can(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
+    if (
+      !ticket ||
+      ticket.organizationId !== orgId ||
+      (!canManageWorkspace && ticket.submittedByUserId !== ctx.userId)
+    ) {
       return NextResponse.json(fail('NOT_FOUND', 'Ticket not found'), { status: 404 })
     }
 
@@ -31,7 +41,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // Verify ticket belongs to this org
     const ticket = await getTicketWithMessages(id)
-    if (!ticket || ticket.organizationId !== orgId) {
+    const canManageWorkspace = await can(ctx.userId, PERMISSIONS.SETTINGS_UPDATE)
+    if (
+      !ticket ||
+      ticket.organizationId !== orgId ||
+      (!canManageWorkspace && ticket.submittedByUserId !== ctx.userId)
+    ) {
       return NextResponse.json(fail('NOT_FOUND', 'Ticket not found'), { status: 404 })
     }
 

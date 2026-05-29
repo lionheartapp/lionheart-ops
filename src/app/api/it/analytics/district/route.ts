@@ -3,6 +3,7 @@ import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { getAllITAnalytics } from '@/lib/services/itAnalyticsService'
+// eslint-disable-next-line no-restricted-imports -- IT analytics uses aggregate queries manually scoped by orgId after withAuth.
 import { rawPrisma } from '@/lib/db'
 
 // Simple in-memory cache

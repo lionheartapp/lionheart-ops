@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
+// eslint-disable-next-line no-restricted-imports -- E-Rate BEN delete removes mirrored USAC data with dynamic delegates after org ownership checks.
 import { rawPrisma, type PrismaDelegate } from '@/lib/db'
 import { PERMISSIONS } from '@/lib/permissions'
 

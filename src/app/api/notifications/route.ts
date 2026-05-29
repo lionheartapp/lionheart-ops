@@ -3,6 +3,7 @@ import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import * as notificationService from '@/lib/services/notificationService'
 
+// @authOnly Returns only notifications for the signed-in user.
 export const GET = withAuth(async ({ ctx, searchParams }) => {
   const limit = Math.min(Number(searchParams.get('limit')) || 20, 50)
   const cursor = searchParams.get('cursor') || undefined

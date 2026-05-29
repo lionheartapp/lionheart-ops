@@ -1,4 +1,6 @@
 /**
+ * @authOnly Lets users dismiss their own checklist items; org checklist dismissal requires workspace management permission.
+ *
  * POST /api/onboarding/checklist/dismiss
  *
  * Dismiss a single checklist item or the whole dashboard widget.

@@ -43,21 +43,15 @@ export default function CreateDropdownMenu({
     <div ref={ref} className="relative">
       <motion.button
         onClick={onToggle}
-        className="group/create relative px-4 sm:px-6 py-3 min-h-[44px] font-medium rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center gap-2 cursor-pointer overflow-hidden"
-        style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgb(167, 202, 241)' }}
+        className="group/create relative min-h-[44px] rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 sm:px-5 flex items-center gap-2 cursor-pointer"
         aria-label="Create new request"
         aria-expanded={isOpen}
-        animate={isOpen
-          ? { background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }
-          : { background: 'rgba(255, 255, 255, 0.5)', color: '#1e293b', borderColor: 'rgb(167, 202, 241)', boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.5)' }
-        }
-        whileHover={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', color: '#ffffff', borderColor: 'transparent', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.35), 0 0 40px rgba(59, 130, 246, 0.15)' }}
         whileTap={{ scale: 0.97 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        transition={{ duration: 0.16 }}
       >
-        <Plus className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-90' : ''} group-hover/create:rotate-90`} aria-hidden="true" />
+        <Plus className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
         Create
-        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <ChevronDown className={`w-4 h-4 text-white/75 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </motion.button>
 
       <AnimatePresence>
@@ -69,15 +63,17 @@ export default function CreateDropdownMenu({
             animate="visible"
             exit="exit"
           >
-            <div className="ui-glass-dropdown">
+            <div className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg shadow-slate-950/5">
               {/* Meetings */}
               <div className="p-3 space-y-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-1">Meetings</p>
+                <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Meetings</p>
                 <button
                   onClick={onScheduleMeeting}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                  className="group/item w-full flex items-start gap-3 rounded-lg border border-transparent p-3 text-left transition-[background-color,border-color,transform] duration-200 hover:-translate-y-px hover:border-slate-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer"
                 >
-                  <Users className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 transition-colors duration-200 group-hover/item:bg-primary-100">
+                    <Users className="w-5 h-5" />
+                  </span>
                   <div>
                     <p className="font-medium text-slate-900">Schedule Meeting</p>
                     <p className="text-xs text-slate-600">Informal — added instantly, no approval</p>
@@ -96,9 +92,11 @@ export default function CreateDropdownMenu({
                     <button
                       key={opt.mode}
                       onClick={() => onCreateEvent(opt.mode)}
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                      className="group/item w-full flex items-start gap-3 rounded-lg border border-transparent p-3 text-left transition-[background-color,border-color,transform] duration-200 hover:-translate-y-px hover:border-slate-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer"
                     >
-                      <Icon className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                      <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 transition-colors duration-200 group-hover/item:bg-primary-100">
+                        <Icon className="w-5 h-5" strokeWidth={1.75} />
+                      </span>
                       <div>
                         <p className="font-medium text-slate-900">{opt.label}</p>
                         <p className="text-xs text-slate-600">{opt.description}</p>
@@ -115,9 +113,11 @@ export default function CreateDropdownMenu({
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide px-3 py-2">Support</p>
                 <button
                   onClick={() => onCreateTicket('MAINTENANCE')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                  className="group/item w-full flex items-start gap-3 rounded-lg border border-transparent p-3 text-left transition-[background-color,border-color,transform] duration-200 hover:-translate-y-px hover:border-slate-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer"
                 >
-                  <Building2 className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 transition-colors duration-200 group-hover/item:bg-primary-100">
+                    <Building2 className="w-5 h-5" />
+                  </span>
                   <div>
                     <p className="font-medium text-slate-900">Facilities Request</p>
                     <p className="text-xs text-slate-600">Submit a facilities request</p>
@@ -125,9 +125,11 @@ export default function CreateDropdownMenu({
                 </button>
                 <button
                   onClick={() => onCreateTicket('IT')}
-                  className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 transition text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                  className="group/item w-full flex items-start gap-3 rounded-lg border border-transparent p-3 text-left transition-[background-color,border-color,transform] duration-200 hover:-translate-y-px hover:border-slate-200 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 cursor-pointer"
                 >
-                  <Headphones className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                  <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 transition-colors duration-200 group-hover/item:bg-primary-100">
+                    <Headphones className="w-5 h-5" />
+                  </span>
                   <div>
                     <p className="font-medium text-slate-900">IT Request</p>
                     <p className="text-xs text-slate-600">Submit an IT support request</p>

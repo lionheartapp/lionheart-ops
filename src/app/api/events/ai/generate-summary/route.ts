@@ -13,21 +13,19 @@ import { NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
-import { rawPrisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { generateStatusSummary } from '@/lib/services/ai/eventAIService'
 
 const BodySchema = z.object({
   eventProjectId: z.string().min(1, 'eventProjectId is required'),
 })
 
-export const POST = withAuth(async ({ body, searchParams, orgId }) => {
+export const POST = withAuth(async ({ body, searchParams }) => {
   const { eventProjectId } = body
   const skipAI = searchParams.get('skipAI') === 'true'
 
-  // EventProject is NOT in the org-scoped model list, so use rawPrisma
-  // and manually scope by organizationId for tenant isolation.
-  const project = await rawPrisma.eventProject.findFirst({
-    where: { id: eventProjectId, organizationId: orgId },
+  const project = await prisma.eventProject.findFirst({
+    where: { id: eventProjectId },
     include: {
       tasks: {
         select: { id: true, status: true },
@@ -36,8 +34,8 @@ export const POST = withAuth(async ({ body, searchParams, orgId }) => {
         select: { id: true },
       },
       documentRequirements: {
-        select: { id: true },
-        include: {
+        select: {
+          id: true,
           completions: {
             select: { id: true },
           },
@@ -102,11 +100,14 @@ export const POST = withAuth(async ({ body, searchParams, orgId }) => {
 
   if (!summary) {
     return NextResponse.json(
-      fail(
-        'AI_UNAVAILABLE',
-        'AI summary generation is not available. Please configure GEMINI_API_KEY to enable this feature.',
-      ),
-      { status: 503 },
+      ok({
+        ...rawMetrics,
+        summary: null,
+        completionPercent: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+        atRisk: [],
+        nextSteps: [],
+        aiGenerated: false,
+      }),
     )
   }
 

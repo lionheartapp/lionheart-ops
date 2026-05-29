@@ -2,7 +2,7 @@
  * GET /api/cron/event-notifications — cron job for event notification dispatch
  *
  * Secured by CRON_SECRET in Authorization header.
- * Runs across all organizations (no org context — uses rawPrisma internally).
+ * Runs across all organizations through the notification orchestration service.
  *
  * Finds all APPROVED EventNotificationRule records where scheduledAt <= now()
  * and sentAt IS NULL, dispatches in-app notifications, marks rules as SENT,

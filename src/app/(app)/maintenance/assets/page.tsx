@@ -15,9 +15,12 @@ import { fadeInUp, staggerContainer } from '@/lib/animations'
 import type { MaintenanceAsset } from '@/components/maintenance/AssetRegisterTable'
 import { useDashboardLayoutProps } from '@/lib/hooks/useDashboardLayoutProps'
 import PagePadding from '@/components/PagePadding'
+import { usePermissions, isOnTeam } from '@/lib/hooks/usePermissions'
 
 function AssetRegisterContent() {
   const { isReady, orgId } = useDashboardLayoutProps()
+  const { data: perms, isLoading: permsLoading } = usePermissions()
+  const canAccessAssets = Boolean(perms?.canManageMaintenance || perms?.canClaimMaintenance || isOnTeam(perms, 'maintenance'))
 
   const [filters, setFilters] = useState<AssetFilterState>(DEFAULT_ASSET_FILTERS)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -29,11 +32,23 @@ function AssetRegisterContent() {
     setTimeout(() => setSuccessMessage(''), 4000)
   }
 
-  if (!isReady || !orgId) {
+  if (!isReady || !orgId || permsLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-primary-500 animate-spin" />
       </div>
+    )
+  }
+  if (!canAccessAssets) {
+    return (
+      <PagePadding>
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h1 className="text-xl font-semibold text-slate-900">Access limited</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Facilities asset management is available to maintenance staff.
+          </p>
+        </div>
+      </PagePadding>
     )
   }
 

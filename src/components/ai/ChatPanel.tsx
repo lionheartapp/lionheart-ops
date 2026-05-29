@@ -325,7 +325,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
         setActiveTools([])
       }
     },
-    [conversation, isLoading, isStreaming]
+    [conversation, conversationId, isLoading, isStreaming]
   )
 
   const handleConfirmAction = useCallback(async (modifiedPayload?: Record<string, unknown>) => {

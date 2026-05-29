@@ -1,4 +1,6 @@
 /**
+ * @authOnly Returns messages only after verifying the conversation is owned by the signed-in user.
+ *
  * GET /api/conversations/[id]/messages — Get messages for a conversation
  *
  * Returns paginated messages for a conversation, ordered oldest first.

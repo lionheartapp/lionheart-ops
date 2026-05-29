@@ -9,6 +9,7 @@ import ChannelListItem from './ChannelListItem'
 import { Plus, Hash, Lock, X, Loader2, PenSquare, ChevronDown, ChevronRight, MessageCircle, Compass } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface ChannelListProps {
   activeChannelId: string | null
@@ -281,7 +282,7 @@ function InlineNewDM({
               >
                 <div className="relative w-8 h-8 flex-shrink-0">
                   {u.avatar ? (
-                    <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <OptimizedImage src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
                       <span className="text-[11px] font-medium text-white">{initials}</span>

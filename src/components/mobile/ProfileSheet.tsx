@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import ActionSheet from '@/components/ui/ActionSheet'
 import { AppEventName, emitAppEvent } from '@/lib/events/app-bus'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface ProfileSheetProps {
   open: boolean
@@ -71,7 +72,7 @@ export default function ProfileSheet({
       {/* Avatar */}
       <div className="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
         {userAvatar ? (
-          <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+          <OptimizedImage src={userAvatar} alt={userName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-white text-base font-semibold">
             {userName.charAt(0).toUpperCase()}

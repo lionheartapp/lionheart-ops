@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import {
   LayoutDashboard, School, CreditCard, LifeBuoy, Settings,
   LogOut, Menu, X, ChevronDown, Tag, FileText, ShieldCheck
@@ -54,7 +55,7 @@ export default function PlatformAdminLayout({ children }: { children: React.Reac
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-mobilenav w-64 bg-[#0F1629] border-r border-white/[0.06] transform transition-transform lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 px-5 flex items-center border-b border-white/[0.06]">
-          <img src="/logo-white.svg" alt="Lionheart" className="h-8 w-auto" />
+          <OptimizedImage src="/logo-white.svg" alt="Lionheart" className="h-8 w-auto" />
         </div>
         <div className="px-4 pt-5 pb-2">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Platform</span>

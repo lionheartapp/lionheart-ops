@@ -67,13 +67,15 @@ async function fetchChannel(channelId: string): Promise<ShapedChannel | null> {
 
 // ── Hooks ──────────────────────────────────────────────────────────────────
 
-export function useChannels() {
+export function useChannels(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options
   return useQuery<ShapedChannel[]>({
     queryKey: ['messaging', 'channels'],
     queryFn: fetchChannels,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     refetchInterval: 30_000,
+    enabled,
   })
 }
 

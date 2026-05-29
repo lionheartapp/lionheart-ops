@@ -9,6 +9,7 @@
 
 import { X, Pin } from 'lucide-react'
 import { usePinnedMessages } from '@/lib/hooks/usePinnedMessages'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface PinnedMessagesPanelProps {
   channelId: string
@@ -92,7 +93,7 @@ export default function PinnedMessagesPanel({ channelId, onClose }: PinnedMessag
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
                 {msg.authorAvatar ? (
-                  <img
+                  <OptimizedImage
                     src={msg.authorAvatar}
                     alt={msg.authorName}
                     className="w-6 h-6 rounded-full object-cover"

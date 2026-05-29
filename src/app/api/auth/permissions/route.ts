@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       ok({
         canManageWorkspace: canAnySync(perms, WORKSPACE_MANAGE_PERMISSIONS),
+        canManageForms: canSync(perms, PERMISSIONS.FORMS_MANAGE),
         canWriteAthletics: canAnySync(perms, ATHLETICS_WRITE_PERMISSIONS),
         canManageUsers: canSync(perms, PERMISSIONS.USERS_READ),
         canManageMaintenance: canSync(perms, PERMISSIONS.MAINTENANCE_READ_ALL),

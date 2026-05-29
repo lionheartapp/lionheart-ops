@@ -15,6 +15,7 @@ const RespondSchema = z.object({
  * Allows the current user to accept, maybe, or decline their invitation.
  * No special permission needed — any authenticated user can respond to their own invitation.
  */
+// @authOnly Any signed-in user may respond only to their own invitation; service verifies ownership.
 export const POST = withAuth(async ({ ctx, params, body }) => {
   const result = await respondToInvitation(
     params.id,

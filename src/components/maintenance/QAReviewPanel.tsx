@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, X, ChevronDown, Loader2, RotateCcw, FileText, Image, DollarSign, Clock } from 'lucide-react'
+import { Check, X, ChevronDown, Loader2, RotateCcw, FileText, Image as ImageIcon, DollarSign, Clock } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { expandCollapse } from '@/lib/animations'
 import { Textarea } from '@/components/ui/Textarea'
@@ -141,7 +141,7 @@ export default function QAReviewPanel({ ticket, onComplete }: QAReviewPanelProps
         {completionPhotos.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 mb-2">
-              <Image className="w-3.5 h-3.5 text-slate-500" />
+              <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
               <p className="text-xs font-semibold text-slate-700">
                 Completion Photos ({completionPhotos.length})
               </p>

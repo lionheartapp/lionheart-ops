@@ -577,7 +577,6 @@ interface EvalContext {
   issueType?: string | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RuleWithSteps = any
 
 /**

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { usePeopleSearch, useAllPeople, type PeopleSearchResult } from '@/lib/hooks/useMeetWith'
 import { Input } from '@/components/ui/Input'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 export interface AttendeeSelection {
   id: string
@@ -30,7 +31,7 @@ function Avatar({ person, size = 'sm' }: { person: { firstName?: string | null; 
   return (
     <div className={`${dim} rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 overflow-hidden`}>
       {person.avatar ? (
-        <img src={person.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+        <OptimizedImage src={person.avatar} alt="" className="w-full h-full rounded-full object-cover" />
       ) : (
         <span className={`${txt} font-medium text-slate-500`}>
           {(person.firstName?.[0] || person.email?.[0] || '?').toUpperCase()}
@@ -116,7 +117,7 @@ function AttendeePickerSearch({ value, onChange, compact }: AttendeePickerProps)
           {isLoading && <div className="px-3 py-2 text-xs text-slate-400">Searching...</div>}
           {!isLoading && filteredResults.length === 0 && <div className="px-3 py-2 text-xs text-slate-400">No results found</div>}
           {filteredResults.map((result) => (
-            <button key={result.id} type="button" role="option" onClick={() => handleSelect(result)} className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 transition-colors">
+            <button key={result.id} type="button" role="option" aria-selected={false} onClick={() => handleSelect(result)} className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-slate-50 transition-colors">
               <Avatar person={result} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm text-slate-900 truncate">{result.firstName && result.lastName ? `${result.firstName} ${result.lastName}` : result.firstName || result.email}</div>
@@ -238,6 +239,7 @@ function AttendeePickerDropdown({ value, onChange, compact }: AttendeePickerProp
                 key={person.id}
                 type="button"
                 role="option"
+                aria-selected={false}
                 onClick={() => handleSelect(person)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
               >

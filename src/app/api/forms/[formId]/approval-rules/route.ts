@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { ok } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
+// eslint-disable-next-line no-restricted-imports -- Approval builder dropdown data is manually scoped to orgId for schools, campuses, teams, and buildings.
 import { rawPrisma } from '@/lib/db'
 import { getFormApprovalRules, createFormApprovalRule } from '@/lib/services/approvalRuleService'
 import { safeName } from '@/lib/sanitize'

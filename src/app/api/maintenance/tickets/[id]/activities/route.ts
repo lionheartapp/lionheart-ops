@@ -8,7 +8,6 @@ import { ok, fail } from '@/lib/api-response'
 import { withAuth } from '@/lib/api/with-auth'
 import { PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/db'
-import { rawPrisma } from '@/lib/db'
 import { z } from 'zod'
 
 const AddActivitySchema = z.object({
@@ -61,7 +60,7 @@ export const POST = withAuth(async ({ req, orgId, ctx, params, permissions }) =>
     return NextResponse.json(fail('NOT_FOUND', 'Ticket not found'), { status: 404 })
   }
 
-  const activity = await rawPrisma.maintenanceTicketActivity.create({
+  const activity = await prisma.maintenanceTicketActivity.create({
     data: {
       organizationId: orgId,
       ticketId: params.id,

@@ -47,6 +47,16 @@ function DevicesContent() {
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(activeTab, [p.loaded])
 
   if (!p.loaded) return null
+  if (visibleTabs.length === 0) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
+        <h1 className="text-xl font-semibold text-slate-900">Access limited</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Device management is available to IT staff with device permissions.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -94,7 +104,6 @@ function DevicesContent() {
           id="tabpanel-devices"
           aria-labelledby="tab-devices"
           className={activeTab === 'devices' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'devices'}
         >
           <ITDevicesTab
             onViewDevice={setDetailDeviceId}
@@ -110,7 +119,6 @@ function DevicesContent() {
           id="tabpanel-students"
           aria-labelledby="tab-students"
           className={activeTab === 'students' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'students'}
         >
           <ITStudentsTab
             onViewStudent={setDetailStudentId}
@@ -126,7 +134,6 @@ function DevicesContent() {
           id="tabpanel-loaners"
           aria-labelledby="tab-loaners"
           className={activeTab === 'loaners' ? 'animate-[fadeIn_200ms_ease-out]' : 'hidden'}
-          aria-hidden={activeTab !== 'loaners'}
         >
           <ITLoanersTab canManage={p.canManageLoaners} canCheckout={p.canCheckoutLoaner} canCheckin={p.canCheckinLoaner} />
         </div>

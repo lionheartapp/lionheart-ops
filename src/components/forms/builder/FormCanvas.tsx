@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { getFieldTypeMeta } from '@/lib/forms/schemas'
 import type { FormPageData, FormFieldData } from './FormBuilder'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 interface FormStyleProps {
   formName: string
@@ -438,10 +439,10 @@ export default function FormCanvas({
         layoutContent = (
           <div className="h-full overflow-y-auto" style={{ backgroundColor: bgColor }}>
             <div className="w-full h-[180px] relative overflow-hidden">
-              <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              <OptimizedImage src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
             </div>
             <div className="px-5 py-6">
-              {formStyle.logoUrl && <img src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
+              {formStyle.logoUrl && <OptimizedImage src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
               <h1 className={`text-xl font-bold ${textPrimary} mb-5`}>{formStyle.formName || 'Form'}</h1>
               {formFields}
             </div>
@@ -452,17 +453,17 @@ export default function FormCanvas({
         layoutContent = (
           <div className="h-full flex" style={{ backgroundColor: formBg }}>
             {isLeft && (
-              <div className="w-1/2 p-5" style={{ backgroundColor: bgColor }}><img src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" /></div>
+              <div className="w-1/2 p-5" style={{ backgroundColor: bgColor }}><OptimizedImage src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" /></div>
             )}
             <div className="flex-1 flex items-start justify-center py-10 px-8 overflow-y-auto" style={{ backgroundColor: formBg }}>
               <div className="w-full max-w-md">
-                {formStyle.logoUrl && <img src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
+                {formStyle.logoUrl && <OptimizedImage src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
                 <h1 className={`text-xl font-bold ${textPrimary} mb-6`}>{formStyle.formName || 'Form'}</h1>
                 {formFields}
               </div>
             </div>
             {!isLeft && (
-              <div className="w-1/2 p-5" style={{ backgroundColor: bgColor }}><img src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" /></div>
+              <div className="w-1/2 p-5" style={{ backgroundColor: bgColor }}><OptimizedImage src={imageUrl} alt="" className="w-full h-full object-cover rounded-2xl" /></div>
             )}
           </div>
         )
@@ -474,11 +475,11 @@ export default function FormCanvas({
       layoutContent = (
         <div className="h-full overflow-y-auto" style={{ backgroundColor: bgColor }}>
           <div className={`w-full ${heroH} relative overflow-hidden`}>
-            <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <OptimizedImage src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
           </div>
           <div className={`relative -mt-8 z-10 ${heroPx}`}>
             <div className={`max-w-lg mx-auto rounded-2xl border shadow-lg ${heroP}`} style={{ backgroundColor: cardBgHex, borderColor: cardBorderHex }}>
-              {formStyle.logoUrl && <img src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
+              {formStyle.logoUrl && <OptimizedImage src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
               <h1 className={`text-xl font-bold ${textPrimary} mb-5`}>{formStyle.formName || 'Form'}</h1>
               {formFields}
             </div>
@@ -491,7 +492,7 @@ export default function FormCanvas({
           <div className="max-w-lg mx-auto">
             {formStyle.coverColor && <div className="h-2 rounded-t-2xl" style={{ backgroundColor: formStyle.coverColor }} />}
             <div className="rounded-2xl border shadow-sm p-6" style={{ backgroundColor: cardBgHex, borderColor: cardBorderHex }}>
-              {formStyle.logoUrl && <img src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
+              {formStyle.logoUrl && <OptimizedImage src={formStyle.logoUrl} alt="" className="h-10 max-w-[160px] object-contain mb-8 mx-auto" />}
               <h1 className={`text-xl font-bold ${textPrimary} mb-5`}>{formStyle.formName || 'Form'}</h1>
               {formFields}
             </div>

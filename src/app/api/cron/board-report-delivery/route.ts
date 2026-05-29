@@ -15,6 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { ok, fail } from '@/lib/api-response'
+// eslint-disable-next-line no-restricted-imports -- Cron job is CRON_SECRET-protected and runs across organizations, with explicit org filters in each query.
 import { rawPrisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import {

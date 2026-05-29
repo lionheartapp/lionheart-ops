@@ -20,7 +20,7 @@ test.describe('Org signup', () => {
     await page.goto('/signup')
 
     // These selectors are tolerant — adjust fields as signup flow evolves.
-    await page.getByLabel(/organi[sz]ation name/i).fill(`E2E Test Org ${slug}`)
+    await page.getByLabel(/school name|organi[sz]ation name/i).fill(`E2E Test Org ${slug}`)
     // Many signup flows auto-derive slug from name; only fill if present.
     const slugField = page.getByLabel(/slug|url|subdomain/i)
     if (await slugField.isVisible().catch(() => false)) {

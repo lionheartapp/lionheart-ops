@@ -3,6 +3,8 @@
  *
  * After the AI drafts an action and the user confirms via the UI,
  * this endpoint actually performs the write operation using action-handlers.
+ *
+ * @authOnly The route is signed-in only; executeAction enforces the specific permission for the confirmed action.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
