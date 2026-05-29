@@ -60,6 +60,7 @@ export default function SeoLandingPage({
 }: SeoLandingPageProps) {
   // Generated campaign images sometimes include decorative CTA-looking art.
   // Keep real page actions in the DOM and use generated images only as side visuals.
+  const campaignVisual = visual?.src && visual.presentation === 'campaign' ? visual : null
   const showCampaignHero = false
 
   return (
@@ -67,7 +68,7 @@ export default function SeoLandingPage({
       <PublicNav />
 
       <main>
-        {showCampaignHero ? (
+        {showCampaignHero && campaignVisual ? (
           <CampaignHero
             eyebrow={eyebrow}
             title={title}
@@ -77,7 +78,7 @@ export default function SeoLandingPage({
             secondaryCta={secondaryCta}
             secondaryHref={secondaryHref}
             stats={stats}
-            visual={visual}
+            visual={campaignVisual}
           />
         ) : (
           <section className="px-6 pb-20 pt-16 sm:pb-24 sm:pt-24">
