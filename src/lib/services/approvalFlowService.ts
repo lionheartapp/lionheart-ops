@@ -14,6 +14,7 @@ const db = prisma as unknown as OrgPrismaClient
 /** Fixed list of resource types that appear as toggles on the event creation form */
 export const RESOURCE_TYPES = [
   { value: 'av', label: 'A/V Equipment', formField: 'requiresAV' },
+  { value: 'it', label: 'IT Support', formField: 'requiresIT' },
   { value: 'facilities', label: 'Facilities Setup', formField: 'requiresFacilities' },
   { value: 'custodial', label: 'Custodial', formField: 'requiresCustodial' },
   { value: 'security', label: 'Security', formField: 'requiresSecurity' },
@@ -147,6 +148,7 @@ export interface GateStateV2 {
 
 export interface EventResourceNeeds {
   requiresAV?: boolean
+  requiresIT?: boolean
   requiresFacilities?: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
@@ -155,6 +157,7 @@ export interface EventResourceNeeds {
 /** Map resource type values to event form field names */
 const RESOURCE_TO_FIELD: Record<string, string> = {
   av: 'requiresAV',
+  it: 'requiresIT',
   facilities: 'requiresFacilities',
   custodial: 'requiresCustodial',
   security: 'requiresSecurity',

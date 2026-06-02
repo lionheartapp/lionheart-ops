@@ -105,6 +105,24 @@ export const FieldProtectionZ = z.enum(['LOCKED', 'DEFAULT', 'CUSTOM'])
 export const FieldSensitivityZ = z.enum(['PUBLIC', 'INTERNAL', 'FERPA_PROTECTED'])
 export const FormContextZ = z.enum(['TICKET_CATEGORY', 'EVENT_REGISTRATION', 'EVENT_CREATION', 'CUSTOM'])
 export const FormActionTypeZ = z.enum(['CREATE_RECORD', 'NOTIFY', 'REQUIRE_APPROVAL', 'WEBHOOK', 'REDIRECT'])
+export const FormWorkflowActionZ = z.enum([
+  'NOTIFY_TEAM',
+  'CREATE_EVENT_TASK',
+  'MARK_RESOURCE_NEEDED',
+  'FLAG_CONFLICT_REVIEW',
+])
+
+export const formFieldWorkflowActionSchema = z.object({
+  action: FormWorkflowActionZ,
+  when: z.enum(['truthy', 'equals']).default('truthy'),
+  equals: z.string().nullable().optional(),
+  teamSlug: z.string().nullable().optional(),
+  resourceType: z.string().nullable().optional(),
+  taskTitle: z.string().max(200).nullable().optional(),
+  note: z.string().max(500).nullable().optional(),
+})
+
+export type FormFieldWorkflowAction = z.infer<typeof formFieldWorkflowActionSchema>
 
 export const formFieldSchema = z.object({
   id: z.string().optional(), // omitted on create
@@ -116,6 +134,7 @@ export const formFieldSchema = z.object({
   helpText: z.string().max(500).nullable().optional(),
   options: z.array(z.string()).default([]),
   autoEscalate: z.boolean().optional().default(false),
+  workflowActions: z.array(formFieldWorkflowActionSchema).nullable().optional(),
   condFieldKey: z.string().nullable().optional(),
   condOperator: z.string().nullable().optional(),
   condEquals: z.string().nullable().optional(),

@@ -35,6 +35,7 @@ export const CreateEventProjectSchema = z.object({
   schoolId: z.string().optional(),
   calendarId: z.string().optional(),
   requiresAV: z.boolean().optional().default(false),
+  requiresIT: z.boolean().optional(),
   requiresFacilities: z.boolean().optional().default(false),
   requiresCustodial: z.boolean().optional(),
   requiresSecurity: z.boolean().optional(),

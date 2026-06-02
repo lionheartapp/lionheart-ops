@@ -122,6 +122,8 @@ export async function createEventProject(
   sourceId?: string,
 ): Promise<Record<string, unknown>> {
   const requiresAV = !!(data as Record<string, unknown>).requiresAV
+  const metadata = (data.metadata ?? {}) as Record<string, unknown>
+  const requiresIT = !!(data as Record<string, unknown>).requiresIT || !!metadata.requiresIT
   const requiresFacilities = !!(data as Record<string, unknown>).requiresFacilities
   const requiresCustodial = !!(data as Record<string, unknown>).requiresCustodial
   const requiresSecurity = !!(data as Record<string, unknown>).requiresSecurity
@@ -130,7 +132,7 @@ export async function createEventProject(
   // V2 (team-based) is used when ApprovalFlowEntry rows exist.
   // Falls back to V1 (channel-based ApprovalChannelConfig) otherwise.
   const orgId = getOrgContextId()
-  const needs = { requiresAV, requiresFacilities, requiresCustodial, requiresSecurity }
+  const needs = { requiresAV, requiresIT, requiresFacilities, requiresCustodial, requiresSecurity }
 
   const flowEntries = await getApprovalFlowEntries()
   const useV2 = flowEntries.length > 0
@@ -146,6 +148,7 @@ export async function createEventProject(
       category: (data as Record<string, unknown>).category as string | null ?? null,
       expectedAttendance: data.expectedAttendance ?? null,
       requiresAV,
+      requiresIT,
       requiresFacilities,
       requiresCustodial,
       requiresSecurity,
@@ -228,6 +231,32 @@ export async function createEventProject(
     },
   }).catch(() => {})
 
+  // Field-level smart actions can create starter tasks without custom code per school.
+  const workflowTaskRequests = Array.isArray(metadata.workflowTaskRequests)
+    ? metadata.workflowTaskRequests as Array<{
+        title?: string | null
+        note?: string | null
+        teamSlug?: string | null
+        fieldLabel?: string | null
+        value?: unknown
+      }>
+    : []
+  if (workflowTaskRequests.length > 0) {
+    db.eventTask.createMany({
+      data: workflowTaskRequests.slice(0, 25).map((request) => ({
+        eventProjectId: project.id as string,
+        title: (request.title || request.fieldLabel || 'Event follow-up').slice(0, 200),
+        description: request.note || null,
+        category: request.teamSlug || 'Workflow',
+        priority: 'NORMAL',
+        status: 'TODO',
+        createdById,
+      })),
+    }).catch((err: unknown) =>
+      log.error({ err, eventProjectId: project.id }, 'Failed to create smart field event tasks')
+    )
+  }
+
   // Notify relevant teams when gates are active (fire-and-forget)
   if (approvalGates) {
     if (useV2) {
@@ -254,15 +283,14 @@ export async function createEventProject(
   }
 
   // Create invitation records for requested attendees (fire-and-forget)
-  const meta = (data.metadata ?? {}) as Record<string, unknown>
-  const requestedAttendees = Array.isArray(meta.requestedAttendees) ? meta.requestedAttendees as string[] : []
+  const requestedAttendees = Array.isArray(metadata.requestedAttendees) ? metadata.requestedAttendees as string[] : []
   if (requestedAttendees.length > 0) {
     import('./eventInvitationService').then(({ createEventInvitations }) =>
       createEventInvitations(
         project.id,
         requestedAttendees,
         createdById,
-        (meta.peopleNote as string) ?? undefined,
+        (metadata.peopleNote as string) ?? undefined,
       )
     ).catch(() => {})
   }
@@ -1155,6 +1183,107 @@ export async function confirmEventProject(
     bridgeCreated: true,
     restoredExisting: !!existingBridge,
   })
+
+  await createEventSupportTasks(id, actorId)
+}
+
+function readStringList(meta: Record<string, unknown>, key: string): string[] {
+  const raw = meta[key]
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return item
+      if (item && typeof item === 'object' && 'name' in item) {
+        return String((item as { name?: unknown }).name ?? '')
+      }
+      return ''
+    })
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+async function createEventSupportTasks(eventProjectId: string, actorId: string): Promise<void> {
+  const project = await rawPrisma.eventProject.findUnique({
+    where: { id: eventProjectId },
+    select: {
+      id: true,
+      organizationId: true,
+      startsAt: true,
+      metadata: true,
+      requiresAV: true,
+      requiresFacilities: true,
+    },
+  })
+  if (!project) return
+
+  const meta = (project.metadata as Record<string, unknown> | null) ?? {}
+  const dueDate = new Date(project.startsAt)
+  dueDate.setDate(dueDate.getDate() - 1)
+
+  const taskGroups = [
+    {
+      enabled: project.requiresAV,
+      category: 'A/V',
+      items: readStringList(meta, 'avNeeds'),
+      titleFor: (item: string) => `Prepare A/V: ${item}`,
+      note: typeof meta.avNotes === 'string' ? meta.avNotes : null,
+    },
+    {
+      enabled: !!meta.requiresIT || readStringList(meta, 'itNeeds').length > 0,
+      category: 'IT',
+      items: readStringList(meta, 'itNeeds'),
+      titleFor: (item: string) => `Prepare IT support: ${item}`,
+      note: typeof meta.itNotes === 'string' ? meta.itNotes : null,
+    },
+    {
+      enabled: project.requiresFacilities,
+      category: 'Facilities',
+      items: readStringList(meta, 'facilityNeeds'),
+      titleFor: (item: string) => `Prepare facilities: ${item}`,
+      note: typeof meta.facilityNotes === 'string' ? meta.facilityNotes : null,
+    },
+  ]
+
+  let createdCount = 0
+
+  for (const group of taskGroups) {
+    if (!group.enabled) continue
+    const items = group.items.length > 0 ? group.items : [`${group.category} support`]
+    for (const item of items) {
+      const title = group.titleFor(item)
+      const existing = await rawPrisma.eventTask.findFirst({
+        where: {
+          organizationId: project.organizationId,
+          eventProjectId,
+          title,
+          category: group.category,
+        },
+        select: { id: true },
+      })
+      if (existing) continue
+
+      await rawPrisma.eventTask.create({
+        data: {
+          organizationId: project.organizationId,
+          eventProjectId,
+          title,
+          description: group.note,
+          category: group.category,
+          priority: group.category === 'IT' ? 'HIGH' : 'NORMAL',
+          dueDate,
+          createdById: actorId,
+        },
+      })
+      createdCount += 1
+    }
+  }
+
+  if (createdCount > 0) {
+    await appendActivityLog(eventProjectId, actorId, 'SUPPORT_TASKS_CREATED', {
+      taskCount: createdCount,
+      categories: taskGroups.filter((group) => group.enabled).map((group) => group.category),
+    })
+  }
 }
 
 // ─── Auto Conflict Detection ─────────────────────────────────────────────────

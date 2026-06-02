@@ -280,6 +280,7 @@ interface EventContext {
   category?: string | null
   expectedAttendance?: number | null
   requiresAV?: boolean
+  requiresIT?: boolean
   requiresFacilities?: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
@@ -331,6 +332,7 @@ export async function resolveApprovalSteps(orgId: string, eventCtx: EventContext
     const matchesAttendance = rule.minAttendance == null || (eventCtx.expectedAttendance ?? 0) >= rule.minAttendance
     const matchesResource = !rule.requiresResource || (
       (rule.requiresResource === 'av' && eventCtx.requiresAV) ||
+      (rule.requiresResource === 'it' && eventCtx.requiresIT) ||
       (rule.requiresResource === 'facilities' && eventCtx.requiresFacilities) ||
       (rule.requiresResource === 'custodial' && eventCtx.requiresCustodial) ||
       (rule.requiresResource === 'security' && eventCtx.requiresSecurity)
@@ -474,6 +476,7 @@ export interface FormSubmissionContext {
   category?: string | null
   expectedAttendance?: number | null
   requiresAV?: boolean
+  requiresIT?: boolean
   requiresFacilities?: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
@@ -552,6 +555,7 @@ export async function resolveFormApprovalSteps(
     category: ctx.category,
     expectedAttendance: ctx.expectedAttendance,
     requiresAV: ctx.requiresAV,
+    requiresIT: ctx.requiresIT,
     requiresFacilities: ctx.requiresFacilities,
     requiresCustodial: ctx.requiresCustodial,
     requiresSecurity: ctx.requiresSecurity,
@@ -567,6 +571,7 @@ interface EvalContext {
   category?: string | null
   expectedAttendance?: number | null
   requiresAV?: boolean
+  requiresIT?: boolean
   requiresFacilities?: boolean
   requiresCustodial?: boolean
   requiresSecurity?: boolean
@@ -609,6 +614,7 @@ function evaluateRulesWithContext(rules: RuleWithSteps[], ctx: EvalContext) {
     const matchesAttendance = rule.minAttendance == null || (ctx.expectedAttendance ?? 0) >= rule.minAttendance
     const matchesResource = !rule.requiresResource || (
       (rule.requiresResource === 'av' && ctx.requiresAV) ||
+      (rule.requiresResource === 'it' && ctx.requiresIT) ||
       (rule.requiresResource === 'facilities' && ctx.requiresFacilities) ||
       (rule.requiresResource === 'custodial' && ctx.requiresCustodial) ||
       (rule.requiresResource === 'security' && ctx.requiresSecurity)

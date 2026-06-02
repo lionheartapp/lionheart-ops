@@ -6133,6 +6133,10 @@ model FormField {
   // Checkbox-only: when this box is checked, escalate parent ticket to URGENT
   autoEscalate Boolean @default(false)
 
+  // Self-serve workflow behavior configured by admins in the form builder.
+  // Example: [{ action: "CREATE_EVENT_TASK", teamSlug: "marketing", when: "truthy" }]
+  workflowActions Json?
+
   // Conditional logic — show this field if [condFieldKey] meets condition
   condFieldKey String?
   condOperator String? // "equals", "not_equals", "contains", "greater_than", "is_empty", "is_filled"

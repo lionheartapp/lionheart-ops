@@ -10,7 +10,7 @@ import { fetchApi } from '@/lib/api-client'
 import { queryKeys } from '@/lib/queries'
 import { Input } from '@/components/ui/Input'
 import type { FormFieldType, FieldProtection, FieldSensitivity } from '@prisma/client'
-import { slugifyFieldKey } from '@/lib/forms/schemas'
+import { slugifyFieldKey, type FormFieldWorkflowAction } from '@/lib/forms/schemas'
 
 const ApprovalRulesBuilder = dynamic(() => import('@/components/settings/ApprovalRulesBuilder'), {
   ssr: false,
@@ -82,6 +82,7 @@ export interface FormFieldData {
   helpText: string | null
   options: string[]
   autoEscalate: boolean
+  workflowActions: FormFieldWorkflowAction[] | null
   condFieldKey: string | null
   condOperator: string | null
   condEquals: string | null
@@ -155,6 +156,11 @@ export default function FormBuilder({ formId }: { formId: string }) {
   const [dirty, setDirty] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const pagesRef = useRef<FormPageData[]>([])
+
+  useEffect(() => {
+    pagesRef.current = pages
+  }, [pages])
 
   // ─── Fetch form ─────────────────────────────────────────────────────────
   const { data: form, isLoading } = useQuery({
@@ -200,6 +206,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
     }
 
     setPages(realPages)
+    pagesRef.current = realPages
     if (!activePageId && realPages.length > 0) {
       setActivePageId(realPages[0].id)
     }
@@ -234,13 +241,13 @@ export default function FormBuilder({ formId }: { formId: string }) {
   })
 
   // Auto-save with debounce
-  const triggerAutoSave = useCallback(() => {
+  const triggerAutoSave = useCallback((pagesToSave?: FormPageData[]) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      saveMutation.mutate({ pages })
+      saveMutation.mutate({ pages: pagesToSave ?? pagesRef.current })
       setSaveStatus('saving')
     }, 2000)
-  }, [pages, saveMutation])
+  }, [saveMutation])
 
   // ─── Style updates ───────────────────────────────────────────────────────
   const updateFormStyle = useCallback((patch: Record<string, unknown>) => {
@@ -290,25 +297,31 @@ export default function FormBuilder({ formId }: { formId: string }) {
 
   const updateField = useCallback((fieldId: string, patch: Partial<FormFieldData>) => {
     setPages((prev) =>
-      prev.map((page) => ({
+      {
+        const next = prev.map((page) => ({
         ...page,
         fields: page.fields.map((f) =>
           f.id === fieldId ? { ...f, ...patch } : f
         ),
-      }))
+        }))
+        pagesRef.current = next
+        triggerAutoSave(next)
+        return next
+      }
     )
     setDirty(true)
-    triggerAutoSave()
   }, [triggerAutoSave])
 
   const reorderFields = useCallback((pageId: string, reordered: FormFieldData[]) => {
-    setPages((prev) =>
-      prev.map((page) =>
+    setPages((prev) => {
+      const next = prev.map((page) =>
         page.id === pageId ? { ...page, fields: reordered } : page
       )
-    )
+      pagesRef.current = next
+      triggerAutoSave(next)
+      return next
+    })
     setDirty(true)
-    triggerAutoSave()
   }, [triggerAutoSave])
 
   const addField = useCallback(async (type: FormFieldType) => {
@@ -386,8 +399,9 @@ export default function FormBuilder({ formId }: { formId: string }) {
 
   const reorderPages = useCallback((reordered: FormPageData[]) => {
     setPages(reordered)
+    pagesRef.current = reordered
     setDirty(true)
-    triggerAutoSave()
+    triggerAutoSave(reordered)
   }, [triggerAutoSave])
 
   const copyToClipboard = useCallback((text: string, label: string) => {
@@ -406,7 +420,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
   const handleSave = () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     setSaveStatus('saving')
-    saveMutation.mutate({ pages })
+    saveMutation.mutate({ pages: pagesRef.current })
   }
 
   // ─── Loading ────────────────────────────────────────────────────────────

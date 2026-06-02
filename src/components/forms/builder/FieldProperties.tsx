@@ -12,6 +12,7 @@ import {
   FIELD_TYPE_META,
   getFieldTypeMeta,
   FIELD_CATEGORY_LABELS,
+  type FormFieldWorkflowAction,
   type FormFieldType,
 } from '@/lib/forms/schemas'
 import { Input } from '@/components/ui/Input'
@@ -99,6 +100,51 @@ function Toggle({
   )
 }
 
+const ACTION_OPTIONS: Array<{ value: FormFieldWorkflowAction['action']; label: string }> = [
+  { value: 'NOTIFY_TEAM', label: 'Notify a team' },
+  { value: 'CREATE_EVENT_TASK', label: 'Create event task' },
+  { value: 'MARK_RESOURCE_NEEDED', label: 'Mark resource needed' },
+  { value: 'FLAG_CONFLICT_REVIEW', label: 'Flag conflict review' },
+]
+
+const TEAM_OPTIONS = [
+  { value: '', label: 'Choose team' },
+  { value: 'administration', label: 'Administration' },
+  { value: 'maintenance', label: 'Facilities' },
+  { value: 'av-production', label: 'A/V Production' },
+  { value: 'it-support', label: 'IT Support' },
+  { value: 'athletics', label: 'Athletics' },
+  { value: 'admissions', label: 'Admissions' },
+  { value: 'marketing', label: 'Marketing' },
+]
+
+const RESOURCE_OPTIONS = [
+  { value: '', label: 'Choose resource' },
+  { value: 'av', label: 'A/V' },
+  { value: 'it', label: 'IT' },
+  { value: 'facilities', label: 'Facilities' },
+  { value: 'custodial', label: 'Custodial' },
+  { value: 'security', label: 'Security' },
+  { value: 'athletics', label: 'Athletics' },
+  { value: 'admissions', label: 'Admissions' },
+  { value: 'marketing', label: 'Marketing' },
+]
+
+function actionLabel(action: FormFieldWorkflowAction['action']) {
+  return ACTION_OPTIONS.find((opt) => opt.value === action)?.label ?? 'Smart action'
+}
+
+function defaultWorkflowAction(): FormFieldWorkflowAction {
+  return {
+    action: 'CREATE_EVENT_TASK',
+    when: 'truthy',
+    teamSlug: null,
+    resourceType: null,
+    taskTitle: null,
+    note: null,
+  }
+}
+
 // ─── Component ──────────────────────────────────────────────────────────
 
 export default function FieldProperties({
@@ -124,6 +170,7 @@ export default function FieldProperties({
   const isDefault = field.protection === 'DEFAULT'
   const isLayout = field.type === 'HEADER' || field.type === 'DIVIDER'
   const hasOptions = field.type === 'DROPDOWN' || field.type === 'MULTI_SELECT' || field.type === 'RADIO'
+  const workflowActions = field.workflowActions ?? []
 
   // Condition candidates — only dropdown/radio/checkbox fields
   const condCandidates = allFields.filter(
@@ -433,6 +480,153 @@ export default function FieldProperties({
               )}
             </div>
           )}
+        </Section>
+      )}
+
+      {!isLayout && (
+        <Section title="Smart Actions">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-start gap-2">
+              <LucideIcons.Zap className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
+              <p className="text-[11px] leading-relaxed text-slate-500">
+                Tell Lionheart what this answer should trigger after the form is submitted.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {workflowActions.length === 0 && (
+              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-[11px] text-slate-400">
+                No smart actions yet.
+              </p>
+            )}
+
+            {workflowActions.map((action, index) => (
+              <div key={index} className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                    {action.action === 'NOTIFY_TEAM' && <LucideIcons.Bell className="h-3.5 w-3.5" />}
+                    {action.action === 'CREATE_EVENT_TASK' && <LucideIcons.ClipboardCheck className="h-3.5 w-3.5" />}
+                    {action.action === 'MARK_RESOURCE_NEEDED' && <LucideIcons.Route className="h-3.5 w-3.5" />}
+                    {action.action === 'FLAG_CONFLICT_REVIEW' && <LucideIcons.Flag className="h-3.5 w-3.5" />}
+                  </div>
+                  <span className="flex-1 text-xs font-semibold text-slate-700">{actionLabel(action.action)}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = workflowActions.filter((_, i) => i !== index)
+                      onUpdate({ workflowActions: next.length ? next : null })
+                    }}
+                    className="rounded-md p-1 text-slate-300 transition-colors duration-200 hover:bg-red-50 hover:text-red-500 cursor-pointer"
+                    aria-label="Remove smart action"
+                  >
+                    <LucideIcons.X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <Select
+                  size="sm"
+                  value={action.action}
+                  onChange={(value) => {
+                    const next = [...workflowActions]
+                    next[index] = { ...next[index], action: value as FormFieldWorkflowAction['action'] }
+                    onUpdate({ workflowActions: next })
+                  }}
+                  options={ACTION_OPTIONS}
+                />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Select
+                    size="sm"
+                    value={action.when ?? 'truthy'}
+                    onChange={(value) => {
+                      const next = [...workflowActions]
+                      next[index] = { ...next[index], when: value as 'truthy' | 'equals' }
+                      onUpdate({ workflowActions: next })
+                    }}
+                    options={[
+                      { value: 'truthy', label: 'When answered' },
+                      { value: 'equals', label: 'When equals' },
+                    ]}
+                  />
+                  {action.when === 'equals' ? (
+                    <Input
+                      size="sm"
+                      value={action.equals ?? ''}
+                      onChange={(e) => {
+                        const next = [...workflowActions]
+                        next[index] = { ...next[index], equals: e.target.value || null }
+                        onUpdate({ workflowActions: next })
+                      }}
+                      placeholder="Value"
+                    />
+                  ) : (
+                    <div className="h-9 rounded-lg border border-slate-100 bg-slate-50" aria-hidden="true" />
+                  )}
+                </div>
+
+                {(action.action === 'NOTIFY_TEAM' || action.action === 'CREATE_EVENT_TASK') && (
+                  <Select
+                    size="sm"
+                    value={action.teamSlug ?? ''}
+                    onChange={(value) => {
+                      const next = [...workflowActions]
+                      next[index] = { ...next[index], teamSlug: value || null }
+                      onUpdate({ workflowActions: next })
+                    }}
+                    options={TEAM_OPTIONS}
+                  />
+                )}
+
+                {action.action === 'MARK_RESOURCE_NEEDED' && (
+                  <Select
+                    size="sm"
+                    value={action.resourceType ?? ''}
+                    onChange={(value) => {
+                      const next = [...workflowActions]
+                      next[index] = { ...next[index], resourceType: value || null }
+                      onUpdate({ workflowActions: next })
+                    }}
+                    options={RESOURCE_OPTIONS}
+                  />
+                )}
+
+                {action.action === 'CREATE_EVENT_TASK' && (
+                  <Input
+                    size="sm"
+                    value={action.taskTitle ?? ''}
+                    onChange={(e) => {
+                      const next = [...workflowActions]
+                      next[index] = { ...next[index], taskTitle: e.target.value || null }
+                      onUpdate({ workflowActions: next })
+                    }}
+                    placeholder="Task title"
+                  />
+                )}
+
+                <Textarea
+                  value={action.note ?? ''}
+                  onChange={(e) => {
+                    const next = [...workflowActions]
+                    next[index] = { ...next[index], note: e.target.value || null }
+                    onUpdate({ workflowActions: next })
+                  }}
+                  rows={2}
+                  className="text-xs"
+                  placeholder="Optional note for this action"
+                />
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onUpdate({ workflowActions: [...workflowActions, defaultWorkflowAction()] })}
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors duration-200 hover:bg-slate-50 cursor-pointer"
+          >
+            <LucideIcons.Plus className="h-3.5 w-3.5" />
+            Add smart action
+          </button>
         </Section>
       )}
 

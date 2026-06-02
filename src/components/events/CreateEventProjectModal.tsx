@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Loader2, CalendarDays, CalendarRange, Users, Monitor, Wrench,
+  Loader2, CalendarDays, CalendarRange, Users, Monitor, Wrench, Wifi,
   Check, ChevronRight, ChevronLeft, Sparkles, ShieldAlert,
   School as SchoolIcon,
 } from 'lucide-react'
@@ -21,6 +21,7 @@ import { Select } from '@/components/ui/Select'
 import FormFieldRenderer, { type FormFieldData } from '@/components/forms/FormFieldRenderer'
 import { useSystemForm, getDynamicFields } from '@/lib/hooks/useSystemForm'
 import type { CreateEventProjectInput } from '@/lib/types/event-project'
+import { resolveSmartActionMatches, type DynamicFieldValues } from '@/lib/forms/workflow-actions'
 
 type EventMode = 'single' | 'multiday'
 type Step = 1 | 2 | 3
@@ -54,7 +55,6 @@ interface FormData {
 }
 
 /** Dynamic field values keyed by field.key — populated from system form template */
-type DynamicFieldValues = Record<string, unknown>
 
 const defaultForm: FormData = {
   title: '',
@@ -68,6 +68,17 @@ const defaultForm: FormData = {
 }
 
 const ALL_SCHOOLS_VALUE = '__ALL_SCHOOLS__'
+
+const IT_SUPPORT_OPTIONS = [
+  'Wi-Fi / Network Check',
+  'Check-in Devices',
+  'Ticket Scanners',
+  'Payment Devices',
+  'Testing Devices',
+  'Livestream Account Access',
+  'Printer / Sign-in Station',
+  'Backup Hotspot',
+]
 
 function formatDateDisplay(dateStr: string): string {
   if (!dateStr) return 'Pick a date'
@@ -446,14 +457,49 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
 
     // Map dynamic field values back to legacy payload fields for backward compatibility
     const avNeeds = dynamicValues.av_needs as string[] | undefined
+    const itNeeds = dynamicValues.it_needs as string[] | undefined
     const facilityNeeds = dynamicValues.facility_needs as string[] | undefined
     const requiresCustodial = !!dynamicValues.requires_custodial
     const requiresSecurity = !!dynamicValues.requires_security
+    const smartActionMatches = resolveSmartActionMatches(step3DynamicFields, dynamicValues)
+    const smartResourceTypes = new Set(
+      smartActionMatches
+        .filter((action) => action.action === 'MARK_RESOURCE_NEEDED' && action.resourceType)
+        .map((action) => action.resourceType as string)
+    )
+    const smartTaskRequests = smartActionMatches
+      .filter((action) => action.action === 'CREATE_EVENT_TASK')
+      .map((action) => ({
+        fieldKey: action.fieldKey,
+        fieldLabel: action.fieldLabel,
+        teamSlug: action.teamSlug ?? null,
+        title: action.taskTitle || `${action.fieldLabel} follow-up`,
+        note: action.note ?? null,
+        value: action.value,
+      }))
+    const smartNotificationRequests = smartActionMatches
+      .filter((action) => action.action === 'NOTIFY_TEAM')
+      .map((action) => ({
+        fieldKey: action.fieldKey,
+        fieldLabel: action.fieldLabel,
+        teamSlug: action.teamSlug ?? null,
+        note: action.note ?? null,
+        value: action.value,
+      }))
+    const smartConflictReview = smartActionMatches
+      .filter((action) => action.action === 'FLAG_CONFLICT_REVIEW')
+      .map((action) => ({
+        fieldKey: action.fieldKey,
+        fieldLabel: action.fieldLabel,
+        note: action.note ?? null,
+        value: action.value,
+      }))
 
     // Collect any non-standard dynamic fields (custom fields admins added)
     const avNotes = ((dynamicValues.av_notes as string) ?? '').trim()
+    const itNotes = ((dynamicValues.it_notes as string) ?? '').trim()
     const facilityNotes = ((dynamicValues.facility_notes as string) ?? '').trim()
-    const knownDynamicKeys = new Set(['av_needs', 'facility_needs', 'requires_custodial', 'requires_security', 'av_notes', 'facility_notes'])
+    const knownDynamicKeys = new Set(['av_needs', 'it_needs', 'facility_needs', 'requires_custodial', 'requires_security', 'av_notes', 'it_notes', 'facility_notes'])
     const customFields: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(dynamicValues)) {
       if (!knownDynamicKeys.has(k) && v != null && v !== '' && v !== false) {
@@ -468,10 +514,11 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       startsAt: new Date(startDateTime),
       endsAt: new Date(endDateTime),
       isMultiDay,
-      requiresAV: !!(avNeeds && avNeeds.length > 0),
-      requiresFacilities: !!(facilityNeeds && facilityNeeds.length > 0),
-      requiresCustodial,
-      requiresSecurity,
+      requiresAV: !!(avNeeds && avNeeds.length > 0) || smartResourceTypes.has('av'),
+      requiresIT: !!(itNeeds && itNeeds.length > 0) || smartResourceTypes.has('it'),
+      requiresFacilities: !!(facilityNeeds && facilityNeeds.length > 0) || smartResourceTypes.has('facilities'),
+      requiresCustodial: requiresCustodial || smartResourceTypes.has('custodial'),
+      requiresSecurity: requiresSecurity || smartResourceTypes.has('security'),
       requiresAthleticDirector: false,
       isOffCampus: location.isOffCampus,
       locationText: location.locationText || undefined,
@@ -488,8 +535,14 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
       formDefinitionId: systemForm?.id,
       metadata: {
         ...(avNeeds && avNeeds.length > 0 ? { avNeeds, ...(avNotes ? { avNotes } : {}) } : {}),
+        ...(itNeeds && itNeeds.length > 0 ? { requiresIT: true, itNeeds, ...(itNotes ? { itNotes } : {}) } : {}),
         ...(facilityNeeds && facilityNeeds.length > 0 ? { facilityNeeds, ...(facilityNotes ? { facilityNotes } : {}) } : {}),
         ...(requestedAttendees.length > 0 ? { requestedAttendees, peopleNote: peopleNote.trim() || undefined } : {}),
+        ...(smartActionMatches.length > 0 ? { smartFieldActions: smartActionMatches } : {}),
+        ...(smartTaskRequests.length > 0 ? { workflowTaskRequests: smartTaskRequests } : {}),
+        ...(smartNotificationRequests.length > 0 ? { workflowNotificationRequests: smartNotificationRequests } : {}),
+        ...(smartResourceTypes.size > 0 ? { workflowResourceRequests: Array.from(smartResourceTypes) } : {}),
+        ...(smartConflictReview.length > 0 ? { conflictReviewRequested: true, conflictReviewFields: smartConflictReview } : {}),
         // Include the system form ID so per-event cloning can reference the template
         ...(systemForm ? { systemFormId: systemForm.id } : {}),
         // Include any custom fields the admin added to the template
@@ -698,16 +751,23 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
         {step === 3 && (() => {
           // Read options from the system form template (falls back to empty arrays)
           const avField = step3DynamicFields.find((f) => f.key === 'av_needs')
+          const itField = step3DynamicFields.find((f) => f.key === 'it_needs') ?? {
+            key: 'it_needs',
+            label: 'IT Support',
+            options: IT_SUPPORT_OPTIONS,
+          }
           const facilityField = step3DynamicFields.find((f) => f.key === 'facility_needs')
           const custodialField = step3DynamicFields.find((f) => f.key === 'requires_custodial')
           const securityField = step3DynamicFields.find((f) => f.key === 'requires_security')
           const customFields = step3DynamicFields.filter(
-            (f) => !['av_needs', 'facility_needs', 'requires_custodial', 'requires_security'].includes(f.key)
+            (f) => !['av_needs', 'it_needs', 'facility_needs', 'requires_custodial', 'requires_security'].includes(f.key)
           )
 
           const avOptions = avField?.options ?? []
+          const itOptions = itField?.options ?? []
           const facilityOptions = facilityField?.options ?? []
           const avNeeds = Array.isArray(dynamicValues.av_needs) ? dynamicValues.av_needs as string[] : []
+          const itNeeds = Array.isArray(dynamicValues.it_needs) ? dynamicValues.it_needs as string[] : []
           const facilityNeeds = Array.isArray(dynamicValues.facility_needs) ? dynamicValues.facility_needs as string[] : []
           const requiresCustodial = !!dynamicValues.requires_custodial
           const requiresSecurity = !!dynamicValues.requires_security
@@ -761,7 +821,7 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
             </div>
 
             {/* ── Requirements ── */}
-            {(avField || facilityField) && (
+            {(avField || itField || facilityField) && (
             <div className="space-y-2.5">
               <p className="text-sm font-medium text-slate-700">Requirements</p>
               <p className="text-xs text-slate-500 -mt-1.5">Tell each team what you need — they&apos;ll review and approve before the event is confirmed.</p>
@@ -817,6 +877,63 @@ export function CreateEventProjectModal({ isOpen, onClose, initialMode = 'single
                       onChange={(e) => setDynamicValues((prev) => ({ ...prev, av_notes: e.target.value }))}
                       rows={2}
                       placeholder="Anything else the A/V team should know?"
+                    />
+                  </div>
+                )}
+              </div>
+              )}
+
+              {/* IT Section */}
+              {itField && (
+              <div className={`rounded-xl border transition-colors ${itNeeds.length > 0 ? 'border-cyan-200 bg-cyan-50/30' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-3 px-3.5 py-3 cursor-pointer">
+                  <div className={`p-1.5 rounded-lg transition-colors ${itNeeds.length > 0 ? 'bg-cyan-100' : 'bg-slate-100'}`}>
+                    <Wifi className={`w-4 h-4 transition-colors ${itNeeds.length > 0 ? 'text-cyan-600' : 'text-slate-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900">{itField.label}</p>
+                    <p className="text-xs text-slate-500">Network, devices, scanners, payment stations</p>
+                  </div>
+                  <div
+                    role="switch"
+                    aria-checked={itNeeds.length > 0}
+                    onClick={() => setDynamicValues((prev) => ({ ...prev, it_needs: itNeeds.length > 0 ? [] : [itOptions[0] ?? ''] }))}
+                    className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${itNeeds.length > 0 ? 'bg-cyan-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${itNeeds.length > 0 ? 'translate-x-4' : ''}`} />
+                  </div>
+                </label>
+
+                {itNeeds.length > 0 && (
+                  <div className="px-3.5 pb-3.5 space-y-3 border-t border-cyan-100 pt-3">
+                    <p className="text-xs font-medium text-slate-700">What do you need?</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {itOptions.map((opt) => {
+                        const selected = itNeeds.includes(opt)
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              const next = selected ? itNeeds.filter((n) => n !== opt) : [...itNeeds, opt]
+                              setDynamicValues((prev) => ({ ...prev, it_needs: next }))
+                            }}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                              selected
+                                ? 'bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300'
+                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <Textarea
+                      value={(dynamicValues.it_notes as string) ?? ''}
+                      onChange={(e) => setDynamicValues((prev) => ({ ...prev, it_notes: e.target.value }))}
+                      rows={2}
+                      placeholder="Anything else the IT team should know?"
                     />
                   </div>
                 )}
