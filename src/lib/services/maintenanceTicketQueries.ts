@@ -19,9 +19,9 @@ import type {
 
 export const TICKET_INCLUDES = {
   submittedBy: {
-    select: { id: true, firstName: true, lastName: true, email: true, userRole: { select: { name: true } } },
+    select: { id: true, firstName: true, lastName: true, email: true, avatar: true, userRole: { select: { name: true } } },
   },
-  assignedTo: { select: { id: true, firstName: true, lastName: true } },
+  assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
   building: { select: { id: true, name: true } },
   space: { select: { id: true, name: true } },
   room: { select: { id: true, roomNumber: true, displayName: true } },
@@ -57,14 +57,14 @@ export async function getTicketDetail(ticketId: string, userId: string) {
       ...TICKET_INCLUDES,
       activities: {
         include: {
-          actor: { select: { id: true, firstName: true, lastName: true } },
-          assignedTo: { select: { id: true, firstName: true, lastName: true } },
+          actor: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+          assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
         },
         orderBy: { createdAt: 'asc' },
       },
       watchers: {
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          user: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
         },
       },
     },

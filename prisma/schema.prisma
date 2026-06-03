@@ -238,6 +238,18 @@ model Organization {
   pushSubscriptions                PushSubscription[]
   // Since-Yesterday diff module
   diffEvents                       DiffEvent[]
+  // A/V RF Command Center
+  wirelessDeviceProfiles           WirelessDeviceProfile[]
+  wirelessDevices                  WirelessDevice[]
+  wirelessFrequencyPlans           WirelessFrequencyPlan[]
+  wirelessFrequencyAssignments     WirelessFrequencyAssignment[]
+  rfScans                          RfScan[]
+  rfScanPoints                     RfScanPoint[]
+  rfExclusionRanges                RfExclusionRange[]
+  rfVenueProfiles                  RfVenueProfile[]
+  rfBridgeNodes                    RfBridgeNode[]
+  rfPlanConflicts                  RfPlanConflict[]
+  rfRecommendations                RfRecommendation[]
   // SAML SSO
   samlConnection                   SamlConnection?
   // Facility Booking module
@@ -251,6 +263,7 @@ model Organization {
   homeGames                        Game[]                            @relation("HomeGames")
   awayGames                        Game[]                            @relation("AwayGames")
   redeemedConferenceInvites        ConferenceInvite[]                @relation("RedeemedConferenceInvites")
+  gameDaySessions                  GameDaySession[]
 
   @@index([onboardingStatus])
 }
@@ -356,6 +369,11 @@ model User {
   inventoryCheckouts               InventoryTransaction[]            @relation("InventoryCheckedOutBy")
   inventoryCheckins                InventoryTransaction[]            @relation("InventoryCheckedInBy")
   ownedInventoryItems              InventoryItem[]                   @relation("InventoryItemOwner")
+  createdWirelessDeviceProfiles    WirelessDeviceProfile[]           @relation("WirelessDeviceProfileCreator")
+  createdWirelessDevices           WirelessDevice[]                  @relation("WirelessDeviceCreator")
+  createdWirelessFrequencyPlans    WirelessFrequencyPlan[]           @relation("WirelessFrequencyPlanCreator")
+  rfScanUploads                    RfScan[]                          @relation("RfScanUploader")
+  rfBridgeNodesPaired              RfBridgeNode[]                    @relation("RfBridgeNodePairedBy")
   // Ticket comment and attachment relations
   ticketComments                   TicketComment[]                   @relation("TicketCommentAuthor")
   ticketAttachments                TicketAttachment[]                @relation("TicketAttachmentUploader")
@@ -688,42 +706,44 @@ model Campus {
 }
 
 model Space {
-  id                 String              @id @default(cuid())
-  organizationId     String
-  buildingId         String?
-  campusId           String?
-  schoolId           String?
-  districtId         String?
-  name               String
-  spaceType          SpaceType           @default(OTHER)
-  status             SpaceStatus         @default(ACTIVE)
-  capacity           Int?                // concurrent bookings allowed (null = 1)
-  openTime           String?             // "07:00" (HH:mm 24hr) — null = no restriction
-  closeTime          String?             // "22:00"
-  latitude           Float?
-  longitude          Float?
-  polygonCoordinates Json?
-  images             Json?
-  isActive           Boolean             @default(true)
-  sortOrder          Int                 @default(0)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?
-  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  building           Building?           @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  campus             Campus?             @relation(fields: [campusId], references: [id], onDelete: Restrict)
-  school             School?             @relation(fields: [schoolId], references: [id], onDelete: Restrict)
-  district           District?           @relation(fields: [districtId], references: [id], onDelete: Restrict)
-  rooms              Room[]
+  id                     String                  @id @default(cuid())
+  organizationId         String
+  buildingId             String?
+  campusId               String?
+  schoolId               String?
+  districtId             String?
+  name                   String
+  spaceType              SpaceType               @default(OTHER)
+  status                 SpaceStatus             @default(ACTIVE)
+  capacity               Int? // concurrent bookings allowed (null = 1)
+  openTime               String? // "07:00" (HH:mm 24hr) — null = no restriction
+  closeTime              String? // "22:00"
+  latitude               Float?
+  longitude              Float?
+  polygonCoordinates     Json?
+  images                 Json?
+  isActive               Boolean                 @default(true)
+  sortOrder              Int                     @default(0)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  deletedAt              DateTime?
+  organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building               Building?               @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  campus                 Campus?                 @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  school                 School?                 @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  district               District?               @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  rooms                  Room[]
   // Back-relations preserved from old Area model
-  calendarEvents     CalendarEvent[]
-  maintenanceTickets MaintenanceTicket[]
-  maintenanceAssets  MaintenanceAsset[]
-  pmSchedules        PmSchedule[]
-  itTickets          ITTicket[]
-  eventProjects      EventProject[]
-  formQrCodes        FormQrCode[]
-  blackoutDates      BlackoutDate[]
+  calendarEvents         CalendarEvent[]
+  maintenanceTickets     MaintenanceTicket[]
+  maintenanceAssets      MaintenanceAsset[]
+  pmSchedules            PmSchedule[]
+  itTickets              ITTicket[]
+  eventProjects          EventProject[]
+  formQrCodes            FormQrCode[]
+  blackoutDates          BlackoutDate[]
+  rfVenueProfiles        RfVenueProfile[]
+  wirelessFrequencyPlans WirelessFrequencyPlan[]
 
   @@unique([organizationId, buildingId, name])
   @@index([organizationId, isActive])
@@ -735,43 +755,45 @@ model Space {
 }
 
 model Building {
-  id                 String              @id @default(cuid())
-  organizationId     String
+  id                     String                  @id @default(cuid())
+  organizationId         String
   // Polymorphic parent — exactly one of (districtId, schoolId, campusId) must be set.
   // Prisma cannot express the CHECK constraint natively; it is added via SQL in a post-push script.
-  districtId         String?
-  schoolId           String?
-  campusId           String?
-  siteId             String?
-  name               String
-  code               String?
-  address            String?
-  latitude           Float?
-  longitude          Float?
-  polygonCoordinates Json?
-  buildingType       BuildingType        @default(GENERAL)
-  images             Json?
-  isActive           Boolean             @default(true)
-  sortOrder          Int                 @default(0)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?
-  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  district           District?           @relation(fields: [districtId], references: [id], onDelete: Restrict)
-  school             School?             @relation(fields: [schoolId], references: [id], onDelete: Restrict)
-  campus             Campus?             @relation(fields: [campusId], references: [id], onDelete: Restrict)
-  site               Site?               @relation(fields: [siteId], references: [id], onDelete: SetNull)
-  rooms              Room[]
-  spaces             Space[]
+  districtId             String?
+  schoolId               String?
+  campusId               String?
+  siteId                 String?
+  name                   String
+  code                   String?
+  address                String?
+  latitude               Float?
+  longitude              Float?
+  polygonCoordinates     Json?
+  buildingType           BuildingType            @default(GENERAL)
+  images                 Json?
+  isActive               Boolean                 @default(true)
+  sortOrder              Int                     @default(0)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  deletedAt              DateTime?
+  organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  district               District?               @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  school                 School?                 @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  campus                 Campus?                 @relation(fields: [campusId], references: [id], onDelete: Restrict)
+  site                   Site?                   @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  rooms                  Room[]
+  spaces                 Space[]
   // Preserved back-relations from old Building
-  calendarEvents     CalendarEvent[]
-  maintenanceTickets MaintenanceTicket[]
-  maintenanceAssets  MaintenanceAsset[]
-  pmSchedules        PmSchedule[]
-  itTickets          ITTicket[]
-  itDevices          ITDevice[]
-  eventProjects      EventProject[]
-  approvalRules      ApprovalRule[]      @relation("ApprovalRuleBuilding")
+  calendarEvents         CalendarEvent[]
+  maintenanceTickets     MaintenanceTicket[]
+  maintenanceAssets      MaintenanceAsset[]
+  pmSchedules            PmSchedule[]
+  itTickets              ITTicket[]
+  itDevices              ITDevice[]
+  eventProjects          EventProject[]
+  approvalRules          ApprovalRule[]          @relation("ApprovalRuleBuilding")
+  rfVenueProfiles        RfVenueProfile[]
+  wirelessFrequencyPlans WirelessFrequencyPlan[]
 
   @@unique([organizationId, code])
   @@index([organizationId, isActive])
@@ -783,30 +805,32 @@ model Building {
 }
 
 model Room {
-  id                 String               @id @default(cuid())
-  organizationId     String
-  buildingId         String
-  spaceId            String? // renamed from areaId
-  roomNumber         String
-  displayName        String?
-  floor              String?
-  images             Json?
-  isActive           Boolean              @default(true)
-  sortOrder          Int                  @default(0)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  deletedAt          DateTime?
-  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  building           Building             @relation(fields: [buildingId], references: [id], onDelete: Restrict)
-  space              Space?               @relation(fields: [spaceId], references: [id], onDelete: SetNull)
-  assignments        UserRoomAssignment[]
+  id                     String                  @id @default(cuid())
+  organizationId         String
+  buildingId             String
+  spaceId                String? // renamed from areaId
+  roomNumber             String
+  displayName            String?
+  floor                  String?
+  images                 Json?
+  isActive               Boolean                 @default(true)
+  sortOrder              Int                     @default(0)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  deletedAt              DateTime?
+  organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building               Building                @relation(fields: [buildingId], references: [id], onDelete: Restrict)
+  space                  Space?                  @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  assignments            UserRoomAssignment[]
   // Preserved back-relations from old Room
-  maintenanceTickets MaintenanceTicket[]
-  maintenanceAssets  MaintenanceAsset[]
-  pmSchedules        PmSchedule[]
-  itTickets          ITTicket[]
-  itDevices          ITDevice[]
-  eventProjects      EventProject[]
+  maintenanceTickets     MaintenanceTicket[]
+  maintenanceAssets      MaintenanceAsset[]
+  pmSchedules            PmSchedule[]
+  itTickets              ITTicket[]
+  itDevices              ITDevice[]
+  eventProjects          EventProject[]
+  rfVenueProfiles        RfVenueProfile[]
+  wirelessFrequencyPlans WirelessFrequencyPlan[]
 
   @@unique([organizationId, buildingId, roomNumber])
   @@index([organizationId, isActive])
@@ -907,6 +931,7 @@ model InventoryItem {
   owner              User?                       @relation("InventoryItemOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   embedding          Unsupported("vector(768)")?
   transactions       InventoryTransaction[]
+  wirelessDevices    WirelessDevice[]
 
   @@unique([organizationId, name])
   @@index([organizationId])
@@ -1508,24 +1533,24 @@ model Calendar {
 }
 
 model CalendarEvent {
-  id             String              @id @default(cuid())
-  calendarId     String
-  organizationId String
-  campusId       String?
-  title          String
-  description    String?
-  startTime      DateTime
-  endTime        DateTime
-  timezone       String              @default("America/Chicago") // IANA timezone
-  isAllDay       Boolean             @default(false)
-  calendarStatus CalendarEventStatus @default(DRAFT)
-  rrule          String? // RFC 5545 recurrence rule
-  parentEventId  String? // For recurring event exceptions
-  originalStart  DateTime? // Original start time for exceptions
-  categoryId     String?
-  locationText   String?
-  buildingId     String?
-  spaceId        String?
+  id              String              @id @default(cuid())
+  calendarId      String
+  organizationId  String
+  campusId        String?
+  title           String
+  description     String?
+  startTime       DateTime
+  endTime         DateTime
+  timezone        String              @default("America/Chicago") // IANA timezone
+  isAllDay        Boolean             @default(false)
+  calendarStatus  CalendarEventStatus @default(DRAFT)
+  rrule           String? // RFC 5545 recurrence rule
+  parentEventId   String? // For recurring event exceptions
+  originalStart   DateTime? // Original start time for exceptions
+  categoryId      String?
+  locationText    String?
+  buildingId      String?
+  spaceId         String?
   sourceModule    String? // 'athletics', 'timetable', etc.
   sourceId        String? // ID in source module
   createdById     String?
@@ -1533,29 +1558,30 @@ model CalendarEvent {
   metadata        Json? // Extensible data bag
   setupMinutes    Int? // Buffer before event (overrides org default)
   teardownMinutes Int? // Buffer after event (overrides org default)
-  exclusiveUse    Boolean @default(false) // Claims full capacity of space
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  deletedAt      DateTime?
+  exclusiveUse    Boolean             @default(false) // Claims full capacity of space
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  deletedAt       DateTime?
 
-  calendar         Calendar                    @relation(fields: [calendarId], references: [id], onDelete: Cascade)
-  organization     Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus           Campus?                     @relation(fields: [campusId], references: [id], onDelete: SetNull)
-  parentEvent      CalendarEvent?              @relation("RecurringExceptions", fields: [parentEventId], references: [id], onDelete: SetNull)
-  exceptions       CalendarEvent[]             @relation("RecurringExceptions")
-  category         CalendarCategory?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  building         Building?                   @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  space            Space?                      @relation(fields: [spaceId], references: [id], onDelete: SetNull)
-  createdBy        User?                       @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  approvedBy       User?                       @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  embedding        Unsupported("vector(768)")?
-  attendees            EventAttendee[]
-  resourceRequests     EventResourceRequest[]
-  syncMappings         EventSyncMapping[]
-  overridesAsSource    BookingOverride[]       @relation("OverrideSource")
-  overridesAsTarget    BookingOverride[]       @relation("OverrideTarget")
-  games                Game[]
-  practices            Practice[]
+  calendar               Calendar                    @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  organization           Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus                 Campus?                     @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  parentEvent            CalendarEvent?              @relation("RecurringExceptions", fields: [parentEventId], references: [id], onDelete: SetNull)
+  exceptions             CalendarEvent[]             @relation("RecurringExceptions")
+  category               CalendarCategory?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  building               Building?                   @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  space                  Space?                      @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  createdBy              User?                       @relation("CalendarEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedBy             User?                       @relation("CalendarEventApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  embedding              Unsupported("vector(768)")?
+  attendees              EventAttendee[]
+  resourceRequests       EventResourceRequest[]
+  wirelessFrequencyPlans WirelessFrequencyPlan[]
+  syncMappings           EventSyncMapping[]
+  overridesAsSource      BookingOverride[]           @relation("OverrideSource")
+  overridesAsTarget      BookingOverride[]           @relation("OverrideTarget")
+  games                  Game[]
+  practices              Practice[]
 
   @@index([calendarId, startTime, endTime])
   @@index([organizationId, startTime])
@@ -2069,6 +2095,386 @@ model EventResourceRequest {
   @@index([respondedById])
 }
 
+// ─── A/V RF Command Center ──────────────────────────────────────────────
+
+enum WirelessDeviceBrand {
+  SHURE
+  SENNHEISER
+  AUDIO_TECHNICA
+  WISYCOM
+  LECTROSONICS
+  RF_EXPLORER
+  OTHER
+}
+
+enum WirelessDeviceKind {
+  HANDHELD
+  LAVALIER
+  HEADSET
+  BODY_PACK
+  IEM
+  RECEIVER
+  ANTENNA
+  SCANNER
+  OTHER
+}
+
+enum WirelessDeviceStatus {
+  AVAILABLE
+  ASSIGNED
+  MAINTENANCE
+  RETIRED
+}
+
+enum WirelessPlanStatus {
+  DRAFT
+  NEEDS_REVIEW
+  COORDINATED
+  LOCKED
+  ARCHIVED
+}
+
+enum RfScanSource {
+  UPLOAD
+  BRIDGE
+  HARDWARE
+  SAMPLE
+}
+
+enum RfBridgeStatus {
+  PENDING
+  ONLINE
+  STALE
+  OFFLINE
+  DISABLED
+}
+
+enum RfSeverity {
+  BLOCKER
+  WARNING
+  ADVISORY
+}
+
+enum RfConflictType {
+  SAME_FREQUENCY
+  MIN_SPACING
+  INTERMOD_3RD
+  INTERMOD_5TH
+  EXCLUSION
+  SCAN_NOISE
+  UNKNOWN_PROFILE
+}
+
+enum RfRecommendationStatus {
+  PENDING
+  ACCEPTED
+  DISMISSED
+}
+
+model WirelessDeviceProfile {
+  id                  String              @id @default(cuid())
+  organizationId      String
+  brand               WirelessDeviceBrand @default(OTHER)
+  model               String
+  bandLabel           String?
+  minFrequencyHz      BigInt
+  maxFrequencyHz      BigInt
+  minSpacingHz        Int                 @default(250000)
+  intermodSpacingHz   Int                 @default(25000)
+  channelStepHz       Int                 @default(25000)
+  maxRecommendedUnits Int?
+  notes               String?
+  isDefault           Boolean             @default(false)
+  createdById         String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  deletedAt           DateTime?
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?            @relation("WirelessDeviceProfileCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  devices      WirelessDevice[]
+
+  @@unique([organizationId, brand, model, bandLabel])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, brand])
+}
+
+model WirelessDevice {
+  id                 String               @id @default(cuid())
+  organizationId     String
+  profileId          String?
+  inventoryItemId    String?
+  name               String
+  brand              WirelessDeviceBrand  @default(OTHER)
+  model              String?
+  kind               WirelessDeviceKind   @default(OTHER)
+  serialNumber       String?
+  bandLabel          String?
+  minFrequencyHz     BigInt?
+  maxFrequencyHz     BigInt?
+  currentFrequencyHz BigInt?
+  status             WirelessDeviceStatus @default(AVAILABLE)
+  batteryType        String?
+  capsuleType        String?
+  notes              String?
+  createdById        String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  deletedAt          DateTime?
+
+  organization  Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  profile       WirelessDeviceProfile?        @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  inventoryItem InventoryItem?                @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+  createdBy     User?                         @relation("WirelessDeviceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  assignments   WirelessFrequencyAssignment[]
+
+  @@unique([organizationId, serialNumber])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status])
+  @@index([profileId])
+  @@index([inventoryItemId])
+}
+
+model WirelessFrequencyPlan {
+  id              String             @id @default(cuid())
+  organizationId  String
+  eventProjectId  String?
+  calendarEventId String?
+  campusId        String?
+  buildingId      String?
+  spaceId         String?
+  roomId          String?
+  title           String
+  status          WirelessPlanStatus @default(DRAFT)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  riskScore       Int                @default(0)
+  riskLevel       String             @default("LOW")
+  notes           String?
+  createdById     String?
+  coordinatedAt   DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deletedAt       DateTime?
+
+  organization    Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventProject    EventProject?                 @relation(fields: [eventProjectId], references: [id], onDelete: SetNull)
+  calendarEvent   CalendarEvent?                @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+  building        Building?                     @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  space           Space?                        @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  room            Room?                         @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  createdBy       User?                         @relation("WirelessFrequencyPlanCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  assignments     WirelessFrequencyAssignment[]
+  scans           RfScan[]
+  conflicts       RfPlanConflict[]
+  recommendations RfRecommendation[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, startsAt])
+  @@index([organizationId, deletedAt])
+  @@index([eventProjectId])
+  @@index([calendarEventId])
+  @@index([buildingId])
+  @@index([spaceId])
+  @@index([roomId])
+}
+
+model WirelessFrequencyAssignment {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  planId               String
+  deviceId             String?
+  label                String
+  use                  String?
+  assignedTo           String?
+  frequencyHz          BigInt?
+  suggestedFrequencyHz BigInt?
+  isLocked             Boolean  @default(false)
+  soundcheckStatus     String   @default("PENDING")
+  batteryStatus        String?
+  sortOrder            Int      @default(0)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan            WirelessFrequencyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  device          WirelessDevice?       @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  conflictsA      RfPlanConflict[]      @relation("RfConflictAssignmentA")
+  conflictsB      RfPlanConflict[]      @relation("RfConflictAssignmentB")
+  recommendations RfRecommendation[]
+
+  @@index([organizationId])
+  @@index([planId])
+  @@index([deviceId])
+}
+
+model RfScan {
+  id             String       @id @default(cuid())
+  organizationId String
+  planId         String?
+  venueProfileId String?
+  bridgeNodeId   String?
+  name           String
+  source         RfScanSource @default(UPLOAD)
+  fileName       String?
+  thresholdDbm   Float        @default(-85)
+  minFrequencyHz BigInt?
+  maxFrequencyHz BigInt?
+  pointCount     Int          @default(0)
+  uploadedById   String?
+  capturedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         WirelessFrequencyPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  venueProfile RfVenueProfile?        @relation(fields: [venueProfileId], references: [id], onDelete: SetNull)
+  bridgeNode   RfBridgeNode?          @relation(fields: [bridgeNodeId], references: [id], onDelete: SetNull)
+  uploadedBy   User?                  @relation("RfScanUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  points       RfScanPoint[]
+  exclusions   RfExclusionRange[]
+
+  @@index([organizationId, deletedAt])
+  @@index([planId])
+  @@index([venueProfileId])
+  @@index([bridgeNodeId])
+}
+
+model RfScanPoint {
+  id             String   @id @default(cuid())
+  organizationId String
+  scanId         String
+  frequencyHz    BigInt
+  signalDbm      Float
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scan         RfScan       @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([scanId, frequencyHz])
+}
+
+model RfExclusionRange {
+  id             String     @id @default(cuid())
+  organizationId String
+  venueProfileId String?
+  scanId         String?
+  label          String
+  reason         String?
+  startHz        BigInt
+  endHz          BigInt
+  severity       RfSeverity @default(WARNING)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  venueProfile RfVenueProfile? @relation(fields: [venueProfileId], references: [id], onDelete: Cascade)
+  scan         RfScan?         @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([venueProfileId])
+  @@index([scanId])
+}
+
+model RfVenueProfile {
+  id             String    @id @default(cuid())
+  organizationId String
+  campusId       String?
+  buildingId     String?
+  spaceId        String?
+  roomId         String?
+  name           String
+  notes          String?
+  noiseSummary   Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     Building?          @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  space        Space?             @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  room         Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  scans        RfScan[]
+  exclusions   RfExclusionRange[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, deletedAt])
+  @@index([buildingId])
+  @@index([spaceId])
+  @@index([roomId])
+}
+
+model RfBridgeNode {
+  id              String         @id @default(cuid())
+  organizationId  String
+  name            String
+  status          RfBridgeStatus @default(PENDING)
+  tokenHash       String?
+  lastSeenAt      DateTime?
+  version         String?
+  supportedBrands String[]       @default([])
+  deviceSummary   Json?
+  pairedById      String?
+  pairedAt        DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pairedBy     User?        @relation("RfBridgeNodePairedBy", fields: [pairedById], references: [id], onDelete: SetNull)
+  scans        RfScan[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@index([organizationId, deletedAt])
+}
+
+model RfPlanConflict {
+  id             String         @id @default(cuid())
+  organizationId String
+  planId         String
+  assignmentAId  String?
+  assignmentBId  String?
+  type           RfConflictType
+  severity       RfSeverity
+  frequencyHz    BigInt?
+  detail         String
+  createdAt      DateTime       @default(now())
+
+  organization Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         WirelessFrequencyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  assignmentA  WirelessFrequencyAssignment? @relation("RfConflictAssignmentA", fields: [assignmentAId], references: [id], onDelete: SetNull)
+  assignmentB  WirelessFrequencyAssignment? @relation("RfConflictAssignmentB", fields: [assignmentBId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([planId])
+  @@index([severity])
+}
+
+model RfRecommendation {
+  id             String                 @id @default(cuid())
+  organizationId String
+  planId         String
+  assignmentId   String?
+  frequencyHz    BigInt
+  confidence     Int                    @default(50)
+  reason         String
+  status         RfRecommendationStatus @default(PENDING)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  organization Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         WirelessFrequencyPlan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  assignment   WirelessFrequencyAssignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([planId])
+  @@index([assignmentId])
+}
+
 // ─── Feature Gating ────────────────────────────────────────────────────
 
 model TenantModule {
@@ -2279,9 +2685,9 @@ model AthleticSeason {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sport        Sport          @relation(fields: [sportId], references: [id], onDelete: Cascade)
-  teams        AthleticTeam[]
+  organization                 Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport                        Sport                         @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  teams                        AthleticTeam[]
   conferenceTeamParticipations ConferenceTeamParticipation[]
 
   @@index([organizationId])
@@ -2304,17 +2710,17 @@ model AthleticTeam {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  organization  Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sport         Sport               @relation(fields: [sportId], references: [id], onDelete: Cascade)
-  season        AthleticSeason      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  campus        Campus?             @relation(fields: [campusId], references: [id], onDelete: SetNull)
-  games         Game[]              @relation("GameOwningTeam")
-  opponentGames Game[]              @relation("GameOpponentTeam")
-  practices     Practice[]
-  homeBrackets  TournamentBracket[] @relation("BracketTeam1")
-  awayBrackets  TournamentBracket[] @relation("BracketTeam2")
-  winBrackets   TournamentBracket[] @relation("BracketWinner")
-  roster        AthleticRoster[]
+  organization             Organization                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sport                    Sport                         @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  season                   AthleticSeason                @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  campus                   Campus?                       @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  games                    Game[]                        @relation("GameOwningTeam")
+  opponentGames            Game[]                        @relation("GameOpponentTeam")
+  practices                Practice[]
+  homeBrackets             TournamentBracket[]           @relation("BracketTeam1")
+  awayBrackets             TournamentBracket[]           @relation("BracketTeam2")
+  winBrackets              TournamentBracket[]           @relation("BracketWinner")
+  roster                   AthleticRoster[]
   conferenceParticipations ConferenceTeamParticipation[]
 
   @@index([organizationId])
@@ -2346,9 +2752,9 @@ model Game {
   updatedAt              DateTime @updatedAt
 
   // Cross-org conference support
-  conferenceId             String?     // null = non-conference game
-  homeOrganizationId       String?     // backfilled from organizationId; null until migration runs
-  awayOrganizationId       String?     // null when away team is unaffiliated / non-Lionheart
+  conferenceId       String? // null = non-conference game
+  homeOrganizationId String? // backfilled from organizationId; null until migration runs
+  awayOrganizationId String? // null when away team is unaffiliated / non-Lionheart
 
   organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   athleticTeam         AthleticTeam       @relation("GameOwningTeam", fields: [athleticTeamId], references: [id], onDelete: Cascade)
@@ -2356,6 +2762,7 @@ model Game {
   calendarEvent        CalendarEvent?     @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
   bracketEntry         TournamentBracket? @relation("BracketGame")
   playerStats          PlayerGameStat[]
+  gameDaySession       GameDaySession?
   conference           Conference?        @relation(fields: [conferenceId], references: [id], onDelete: SetNull)
   homeOrganization     Organization?      @relation("HomeGames", fields: [homeOrganizationId], references: [id], onDelete: Cascade)
   awayOrganization     Organization?      @relation("AwayGames", fields: [awayOrganizationId], references: [id], onDelete: SetNull)
@@ -2371,6 +2778,31 @@ model Game {
   @@index([awayOrganizationId])
 }
 
+model GameDaySession {
+  id                    String    @id @default(cuid())
+  organizationId        String
+  gameId                String    @unique
+  status                String    @default("NOT_STARTED")
+  currentPeriod         Int       @default(1)
+  periodLabel           String?
+  clockSecondsRemaining Int?
+  lineup                Json?
+  gameState             Json?
+  playLog               Json?
+  startedAt             DateTime?
+  finalizedAt           DateTime?
+  lastSavedById         String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  game         Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([gameId])
+  @@index([status])
+}
+
 model Practice {
   id              String   @id @default(cuid())
   organizationId  String
@@ -2384,8 +2816,8 @@ model Practice {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  athleticTeam  AthleticTeam  @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  athleticTeam  AthleticTeam   @relation(fields: [athleticTeamId], references: [id], onDelete: Cascade)
   calendarEvent CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
@@ -4472,84 +4904,85 @@ enum EventActivityType {
 }
 
 model EventProject {
-  id                       String             @id @default(cuid())
-  organizationId           String
-  campusId                 String?
-  schoolId                 String?
-  title                    String
-  description              String?
-  coverImageUrl            String?
-  startsAt                 DateTime
-  endsAt                   DateTime
-  isMultiDay               Boolean            @default(false)
-  expectedAttendance       Int?
-  locationText             String?
-  isOffCampus              Boolean            @default(false)
-  venueName                String? // Off-campus venue name (e.g. "City Convention Center")
-  venueAddress             String? // Off-campus formatted address from Google Places
-  venuePlaceId             String? // Google Places ID for future lookups
-  buildingId               String?
-  spaceId                  String?
-  roomId                   String?
-  status                   EventProjectStatus @default(DRAFT)
-  source                   EventProjectSource @default(DIRECT_REQUEST)
-  sourceId                 String? // planningSubmissionId (when source=PLANNING_SUBMISSION)
-  seriesId                 String? // FK to EventSeries (when source=SERIES)
-  calendarId               String? // Target calendar for bridge record
-  createdById              String
-  approvedById             String?
-  approvedAt               DateTime?
-  completedAt              DateTime?
-  requiresAV               Boolean            @default(false)
-  requiresFacilities       Boolean            @default(false)
-  requiresCustodial        Boolean            @default(false)
-  requiresSecurity         Boolean            @default(false)
-  approvalGates            Json? // { av?: GateState, facilities?: GateState, admin: GateState }
-  rejectionReason          String? // Latest rejection reason (for revision flow)
-  metadata                 Json? // Extensible data bag
-  createdAt                DateTime           @default(now())
-  updatedAt                DateTime           @updatedAt
-  deletedAt                DateTime?
+  id                 String             @id @default(cuid())
+  organizationId     String
+  campusId           String?
+  schoolId           String?
+  title              String
+  description        String?
+  coverImageUrl      String?
+  startsAt           DateTime
+  endsAt             DateTime
+  isMultiDay         Boolean            @default(false)
+  expectedAttendance Int?
+  locationText       String?
+  isOffCampus        Boolean            @default(false)
+  venueName          String? // Off-campus venue name (e.g. "City Convention Center")
+  venueAddress       String? // Off-campus formatted address from Google Places
+  venuePlaceId       String? // Google Places ID for future lookups
+  buildingId         String?
+  spaceId            String?
+  roomId             String?
+  status             EventProjectStatus @default(DRAFT)
+  source             EventProjectSource @default(DIRECT_REQUEST)
+  sourceId           String? // planningSubmissionId (when source=PLANNING_SUBMISSION)
+  seriesId           String? // FK to EventSeries (when source=SERIES)
+  calendarId         String? // Target calendar for bridge record
+  createdById        String
+  approvedById       String?
+  approvedAt         DateTime?
+  completedAt        DateTime?
+  requiresAV         Boolean            @default(false)
+  requiresFacilities Boolean            @default(false)
+  requiresCustodial  Boolean            @default(false)
+  requiresSecurity   Boolean            @default(false)
+  approvalGates      Json? // { av?: GateState, facilities?: GateState, admin: GateState }
+  rejectionReason    String? // Latest rejection reason (for revision flow)
+  metadata           Json? // Extensible data bag
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
 
-  organization         Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campus               Campus?                    @relation(fields: [campusId], references: [id], onDelete: SetNull)
-  school               School?                    @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  building             Building?                  @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  space                Space?                     @relation(fields: [spaceId], references: [id], onDelete: SetNull)
-  room                 Room?                      @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  series               EventSeries?               @relation(fields: [seriesId], references: [id], onDelete: SetNull)
-  createdBy            User                       @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  approvedBy           User?                      @relation("EventProjectApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  scheduleSections     EventScheduleSection[]
-  scheduleBlocks       EventScheduleBlock[]
-  tasks                EventTask[]
-  activityLog          EventActivityLog[]
-  registrationForm     RegistrationForm?
-  registrations        EventRegistration[]
-  formDefinition       FormDefinition?    @relation("FormDefinitionEventProject") // new unified form link
+  organization           Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campus                 Campus?                    @relation(fields: [campusId], references: [id], onDelete: SetNull)
+  school                 School?                    @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  building               Building?                  @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  space                  Space?                     @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  room                   Room?                      @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  series                 EventSeries?               @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  createdBy              User                       @relation("EventProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy             User?                      @relation("EventProjectApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  scheduleSections       EventScheduleSection[]
+  scheduleBlocks         EventScheduleBlock[]
+  tasks                  EventTask[]
+  activityLog            EventActivityLog[]
+  registrationForm       RegistrationForm?
+  registrations          EventRegistration[]
+  formDefinition         FormDefinition?            @relation("FormDefinitionEventProject") // new unified form link
   // Phase 21 relations
-  documentRequirements EventDocumentRequirement[]
-  complianceItems      EventComplianceItem[]
-  groups               EventGroup[]
-  activityOptions      EventActivityOption[]
-  announcements        EventAnnouncement[]
-  incidents            EventIncident[]
-  surveys              EventSurvey[]
+  documentRequirements   EventDocumentRequirement[]
+  complianceItems        EventComplianceItem[]
+  groups                 EventGroup[]
+  activityOptions        EventActivityOption[]
+  announcements          EventAnnouncement[]
+  incidents              EventIncident[]
+  surveys                EventSurvey[]
   // Phase 22 relations
-  notificationRules    EventNotificationRule[]
-  templates            EventTemplate[]
+  notificationRules      EventNotificationRule[]
+  templates              EventTemplate[]
   // Phase 22: Budget relations
-  budgetCategories     BudgetCategory[]
-  budgetLineItems      BudgetLineItem[]
-  budgetRevenue        BudgetRevenue[]
+  budgetCategories       BudgetCategory[]
+  budgetLineItems        BudgetLineItem[]
+  budgetRevenue          BudgetRevenue[]
   // Planning Center integration
-  pcoServiceLinks      PCOServiceLink[]
+  pcoServiceLinks        PCOServiceLink[]
   // Event Team Members
-  teamMembers          EventTeamMember[]
+  teamMembers            EventTeamMember[]
   // Event Chat
-  chatMessages         EventChatMessage[]
+  chatMessages           EventChatMessage[]
   // Event Invitations (RSVP)
-  invitations          EventInvitation[]
+  invitations            EventInvitation[]
+  wirelessFrequencyPlans WirelessFrequencyPlan[]
 
   @@index([organizationId, status])
   @@index([organizationId, startsAt])
@@ -5971,8 +6404,8 @@ enum FormContext {
 }
 
 enum FormVisibility {
-  PRIVATE  // Only the creator can see this form
-  SHARED   // Everyone in the org can see and use this form
+  PRIVATE // Only the creator can see this form
+  SHARED // Everyone in the org can see and use this form
 }
 
 enum FormStatus {
@@ -6021,27 +6454,27 @@ model FormDefinition {
 
   // Form context and identity
   context          FormContext @default(TICKET_CATEGORY)
-  isDefault        Boolean    @default(false)
-  systemKey        String?    // "single_event", "facilities_request", etc.
-  parentTemplateId String?    // FK to the template this was cloned from (for "Reset to template")
+  isDefault        Boolean     @default(false)
+  systemKey        String? // "single_event", "facilities_request", etc.
+  parentTemplateId String? // FK to the template this was cloned from (for "Reset to template")
 
   sections      FormSection[]
   fields        FormField[]
   pages         FormPage[]
   actions       FormAction[]
   submissions   FormSubmission[]
-  approvalRules ApprovalRule[] @relation("FormApprovalRules")
+  approvalRules ApprovalRule[]   @relation("FormApprovalRules")
 
   // Ticketing module (Phase 1)
-  maxCapacity      Int?             // total capacity (null = unlimited)
-  waitlistEnabled  Boolean          @default(false)
-  discountCodes    Json?            // [{ code, percentOff, amountOff, maxUses, usedCount }]
-  eventProjectId   String?          @unique  // optional link to EventProject for event-linked forms
-  eventProject     EventProject?    @relation("FormDefinitionEventProject", fields: [eventProjectId], references: [id], onDelete: SetNull)
-  ticketTypes      TicketType[]
-  orders           FormOrder[]
-  ticketDesign     TicketDesign?
-  seatingMap       EventSeatingMap?
+  maxCapacity     Int? // total capacity (null = unlimited)
+  waitlistEnabled Boolean          @default(false)
+  discountCodes   Json? // [{ code, percentOff, amountOff, maxUses, usedCount }]
+  eventProjectId  String?          @unique // optional link to EventProject for event-linked forms
+  eventProject    EventProject?    @relation("FormDefinitionEventProject", fields: [eventProjectId], references: [id], onDelete: SetNull)
+  ticketTypes     TicketType[]
+  orders          FormOrder[]
+  ticketDesign    TicketDesign?
+  seatingMap      EventSeatingMap?
 
   // Public form styling (only meaningful for event/public forms)
   publicStyle     PublicFormStyle @default(MINIMAL)
@@ -6051,22 +6484,22 @@ model FormDefinition {
   publicImageSide FormImageSide   @default(RIGHT)
 
   // Form visibility (custom forms only — system forms are always visible)
-  visibility     FormVisibility @default(PRIVATE)
-  status         FormStatus     @default(ACTIVE)
+  visibility FormVisibility @default(PRIVATE)
+  status     FormStatus     @default(ACTIVE)
 
   // Form builder settings
   coverColor     String?
-  logoUrl        String?  // Logo/header image shown at top of form
-  description    String?  @db.Text
-  confirmMessage String?  @db.Text
+  logoUrl        String? // Logo/header image shown at top of form
+  description    String? @db.Text
+  confirmMessage String? @db.Text
   redirectUrl    String?
-  autoSave       Boolean  @default(true)
-  allowDrafts    Boolean  @default(true)
-  isPublic       Boolean  @default(false)
-  requireEmail   Boolean  @default(true)
+  autoSave       Boolean @default(true)
+  allowDrafts    Boolean @default(true)
+  isPublic       Boolean @default(false)
+  requireEmail   Boolean @default(true)
   createdBy      String?
   updatedById    String?
-  updatedByUser  User?    @relation("FormUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedByUser  User?   @relation("FormUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -6120,10 +6553,10 @@ model FormField {
   key         String // stable slug used in customFields JSON, e.g. "device_type"
   label       String
   type        FormFieldType
-  required    Boolean          @default(false)
+  required    Boolean       @default(false)
   placeholder String?
   helpText    String?
-  options     String[]         @default([]) // for DROPDOWN / MULTI_SELECT
+  options     String[]      @default([]) // for DROPDOWN / MULTI_SELECT
 
   // Protection level — controls what admins can do with this field
   protection       FieldProtection  @default(CUSTOM)
@@ -6154,7 +6587,7 @@ model FormField {
 
   // File upload config
   fileTypes   String[] @default([]) // e.g. ["pdf", "jpg", "png"]
-  maxFileSize Int?     // bytes
+  maxFileSize Int? // bytes
 
   sortOrder Int
 
@@ -6203,25 +6636,25 @@ model FormAction {
 
 /// A single form submission (custom forms, public forms).
 model FormSubmission {
-  id              String           @id @default(cuid())
-  organizationId  String
-  formId          String
-  form            FormDefinition   @relation(fields: [formId], references: [id])
-  submittedBy     String?
-  submitterName   String?
-  submitterEmail  String?
-  data            Json
-  status          SubmissionStatus @default(SUBMITTED)
-  isDraft         Boolean          @default(false)
-  draftExpiresAt  DateTime?
-  approvedBy      String?
-  approvedAt      DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime?
+  id             String           @id @default(cuid())
+  organizationId String
+  formId         String
+  form           FormDefinition   @relation(fields: [formId], references: [id])
+  submittedBy    String?
+  submitterName  String?
+  submitterEmail String?
+  data           Json
+  status         SubmissionStatus @default(SUBMITTED)
+  isDraft        Boolean          @default(false)
+  draftExpiresAt DateTime?
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  order        FormOrder?   // back-relation: exists when submission is tied to a paid order
+  order        FormOrder? // back-relation: exists when submission is tied to a paid order
 
   @@index([organizationId])
   @@index([formId])
@@ -6230,7 +6663,7 @@ model FormSubmission {
 
 /// Reusable form template — cloned to create new forms.
 model FormTemplate {
-  id             String        @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String?
   name           String
   icon           String?
@@ -6238,9 +6671,9 @@ model FormTemplate {
   category       String?
   fieldSnapshot  Json
   styleSnapshot  Json?
-  isSystem       Boolean       @default(false)
-  sortOrder      Int           @default(0)
-  createdAt      DateTime      @default(now())
+  isSystem       Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -6416,7 +6849,7 @@ model Message {
   parent         Message?                 @relation("ThreadReplies", fields: [parentId], references: [id])
   replies        Message[]                @relation("ThreadReplies")
   replyCount     Int                      @default(0)
-  metadata       Json?                    // Structured data for rich cards (booking refs, etc.)
+  metadata       Json? // Structured data for rich cards (booking refs, etc.)
   editedAt       DateTime?
   pinnedAt       DateTime?
   deletedAt      DateTime?
@@ -6562,25 +6995,25 @@ model DiffEventHandled {
 
 /// A ticket type (pricing tier) on a form. Presence of TicketTypes = paid form.
 model TicketType {
-  id              String         @id @default(cuid())
-  formId          String
-  form            FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
-  name            String         // "Adult", "Child (5-12)", "Senior"
-  description     String?
-  price           Int            // cents (0 = free tier, e.g. "Volunteer Usher")
-  maxPerOrder     Int?           // per-order limit (e.g., max 6)
-  totalInventory  Int?           // total available (null = unlimited)
-  soldCount       Int            @default(0)
-  sortOrder       Int            @default(0)
-  salesStartAt    DateTime?      // tier opens for sale
-  salesEndAt      DateTime?      // tier closes (auto-hidden on public form)
-  isActive        Boolean        @default(true)
-  depositPercent  Int?           // 0-100 — optional per-tier deposit requirement
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id             String         @id @default(cuid())
+  formId         String
+  form           FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
+  name           String // "Adult", "Child (5-12)", "Senior"
+  description    String?
+  price          Int // cents (0 = free tier, e.g. "Volunteer Usher")
+  maxPerOrder    Int? // per-order limit (e.g., max 6)
+  totalInventory Int? // total available (null = unlimited)
+  soldCount      Int            @default(0)
+  sortOrder      Int            @default(0)
+  salesStartAt   DateTime? // tier opens for sale
+  salesEndAt     DateTime? // tier closes (auto-hidden on public form)
+  isActive       Boolean        @default(true)
+  depositPercent Int? // 0-100 — optional per-tier deposit requirement
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  lineItems    OrderLineItem[]
-  tickets      EventTicket[]
+  lineItems OrderLineItem[]
+  tickets   EventTicket[]
 
   @@index([formId])
   @@index([formId, isActive])
@@ -6588,38 +7021,38 @@ model TicketType {
 
 /// An order placed through a ticketed form. Tracks payment and links to tickets.
 model FormOrder {
-  id              String         @id @default(cuid())
-  organizationId  String
-  formId          String
-  form            FormDefinition @relation(fields: [formId], references: [id])
-  submissionId    String?        @unique
-  submission      FormSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  id             String          @id @default(cuid())
+  organizationId String
+  formId         String
+  form           FormDefinition  @relation(fields: [formId], references: [id])
+  submissionId   String?         @unique
+  submission     FormSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
 
   // Buyer info
-  buyerName       String
-  buyerEmail      String
-  buyerPhone      String?
+  buyerName  String
+  buyerEmail String
+  buyerPhone String?
 
   // Payment
-  paymentStatus   OrderPaymentStatus @default(UNPAID)
-  subtotal        Int            // cents — sum of line items before discount
-  discountAmount  Int            @default(0) // cents
-  discountCode    String?
-  total           Int            // cents (subtotal - discountAmount)
-  currency        String         @default("usd")
+  paymentStatus  OrderPaymentStatus @default(UNPAID)
+  subtotal       Int // cents — sum of line items before discount
+  discountAmount Int                @default(0) // cents
+  discountCode   String?
+  total          Int // cents (subtotal - discountAmount)
+  currency       String             @default("usd")
 
   // Stripe
-  stripePaymentIntentId String?  @unique
-  paidAt          DateTime?
+  stripePaymentIntentId String?   @unique
+  paidAt                DateTime?
 
   // Status
-  status          OrderStatus    @default(PENDING)
-  cancelledAt     DateTime?
-  refundedAt      DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  status      OrderStatus @default(PENDING)
+  cancelledAt DateTime?
+  refundedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   lineItems    OrderLineItem[]
   tickets      EventTicket[]
 
@@ -6637,8 +7070,8 @@ enum OrderPaymentStatus {
 }
 
 enum OrderStatus {
-  PENDING     // created, awaiting payment
-  CONFIRMED   // paid (or total was $0)
+  PENDING // created, awaiting payment
+  CONFIRMED // paid (or total was $0)
   CANCELLED
   REFUNDED
 }
@@ -6651,31 +7084,31 @@ model OrderLineItem {
   ticketTypeId String
   ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
   quantity     Int
-  unitPrice    Int        // cents — snapshot at purchase time
-  subtotal     Int        // quantity * unitPrice
+  unitPrice    Int // cents — snapshot at purchase time
+  subtotal     Int // quantity * unitPrice
 
   @@index([orderId])
 }
 
 /// A single issued ticket (one per seat/admission). Has a unique scannable code.
 model EventTicket {
-  id              String       @id @default(cuid())
-  organizationId  String
-  orderId         String
-  order           FormOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  ticketTypeId    String
-  ticketType      TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
-  ticketCode      String       @unique // "TKT-A3X9-7BM2"
-  status          EventTicketStatus @default(VALID)
+  id             String            @id @default(cuid())
+  organizationId String
+  orderId        String
+  order          FormOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTypeId   String
+  ticketType     TicketType        @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  ticketCode     String            @unique // "TKT-A3X9-7BM2"
+  status         EventTicketStatus @default(VALID)
   // Seat assignment (null for general admission)
-  seatId          String?
-  seat            Seat?        @relation(fields: [seatId], references: [id], onDelete: SetNull)
+  seatId         String?
+  seat           Seat?             @relation(fields: [seatId], references: [id], onDelete: SetNull)
   // Check-in tracking
-  checkedInAt     DateTime?
-  checkedInBy     String?      // userId who scanned
-  createdAt       DateTime     @default(now())
+  checkedInAt    DateTime?
+  checkedInBy    String? // userId who scanned
+  createdAt      DateTime          @default(now())
 
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([ticketCode])
@@ -6684,7 +7117,7 @@ model EventTicket {
 
 enum EventTicketStatus {
   VALID
-  USED         // checked in
+  USED // checked in
   CANCELLED
   TRANSFERRED
 }
@@ -6694,10 +7127,10 @@ model TicketDesign {
   id            String         @id @default(cuid())
   formId        String         @unique
   form          FormDefinition @relation(fields: [formId], references: [id], onDelete: Cascade)
-  layout        Json           // Fabric.js canvas.toJSON() — full template definition
+  layout        Json // Fabric.js canvas.toJSON() — full template definition
   canvasWidth   Int            @default(1050)
   canvasHeight  Int            @default(450)
-  backgroundUrl String?        // Supabase Storage URL for background image
+  backgroundUrl String? // Supabase Storage URL for background image
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -6706,16 +7139,16 @@ model TicketDesign {
 
 /// A reusable venue layout. Created once, attached to many events.
 model Venue {
-  id             String         @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
-  name           String         // "Main Auditorium"
+  name           String // "Main Auditorium"
   description    String?
-  totalCapacity  Int            // auto-calculated from sections
-  layoutConfig   Json?          // rendering hints (stage position, overall arrangement)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  totalCapacity  Int // auto-calculated from sections
+  layoutConfig   Json? // rendering hints (stage position, overall arrangement)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   sections     VenueSection[]
   seatingMaps  EventSeatingMap[]
 
@@ -6726,12 +7159,12 @@ model Venue {
 model VenueSection {
   id            String   @id @default(cuid())
   venueId       String
-  name          String   // "Orchestra Center"
-  rowCount      Int      // number of rows in this section
-  seatsPerRow   Int      // seats per row
+  name          String // "Orchestra Center"
+  rowCount      Int // number of rows in this section
+  seatsPerRow   Int // seats per row
   rowStartLabel String   @default("A") // "A" for letters, "1" for numbers
-  color         String   // hex color for map display, e.g. "#3B82F6"
-  priceInCents  Int      // section-level price
+  color         String // hex color for map display, e.g. "#3B82F6"
+  priceInCents  Int // section-level price
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -6744,15 +7177,15 @@ model VenueSection {
 
 /// An individual seat within a venue section. Auto-generated from section definition.
 model Seat {
-  id         String   @id @default(cuid())
-  sectionId  String
-  row        String   // "A", "B", "C" (or "1", "2", "3")
-  number     Int      // seat number within the row
-  label      String   // display label, e.g. "A12"
-  seatType   SeatType @default(STANDARD)
-  isActive   Boolean  @default(true) // false = physically removed/blocked
-  gridX      Int      // x position for SVG rendering
-  gridY      Int      // y position for SVG rendering
+  id        String   @id @default(cuid())
+  sectionId String
+  row       String // "A", "B", "C" (or "1", "2", "3")
+  number    Int // seat number within the row
+  label     String // display label, e.g. "A12"
+  seatType  SeatType @default(STANDARD)
+  isActive  Boolean  @default(true) // false = physically removed/blocked
+  gridX     Int // x position for SVG rendering
+  gridY     Int // y position for SVG rendering
 
   section       VenueSection      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   eventStatuses EventSeatStatus[]
@@ -6764,15 +7197,15 @@ model Seat {
 enum SeatType {
   STANDARD
   ACCESSIBLE
-  COMPANION    // companion seat next to accessible
-  RESTRICTED   // not for sale (blocked, tech booth, etc.)
+  COMPANION // companion seat next to accessible
+  RESTRICTED // not for sale (blocked, tech booth, etc.)
 }
 
 enum SeatAvailability {
   AVAILABLE
-  HELD      // temporarily reserved during checkout (TTL)
+  HELD // temporarily reserved during checkout (TTL)
   SOLD
-  BLOCKED   // admin blocked for this specific event
+  BLOCKED // admin blocked for this specific event
 }
 
 /// Links a venue to a specific form/event for per-event seat tracking.
@@ -6795,10 +7228,10 @@ model EventSeatStatus {
   mapId     String
   seatId    String
   status    SeatAvailability @default(AVAILABLE)
-  heldBy    String?          // session ID or buyer email holding this seat
-  heldUntil DateTime?        // TTL — hold expires after this time
-  orderId   String?          // FormOrder that purchased this seat
-  ticketId  String?          // EventTicket for this seat
+  heldBy    String? // session ID or buyer email holding this seat
+  heldUntil DateTime? // TTL — hold expires after this time
+  orderId   String? // FormOrder that purchased this seat
+  ticketId  String? // EventTicket for this seat
 
   map  EventSeatingMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
   seat Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
@@ -6812,13 +7245,13 @@ model EventSeatStatus {
 
 /// Org-level blocked dates (holidays, in-service days). Bookings rejected on these dates.
 model BlackoutDate {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
-  date           DateTime     // The blocked date (stored as UTC midnight; compare in org timezone)
-  reason         String?      // "Winter Break", "Teacher In-Service", etc.
-  appliesToAll   Boolean      @default(true) // true = all spaces blocked
-  spaceId        String?      // If not appliesToAll, block this specific space only
-  createdAt      DateTime     @default(now())
+  date           DateTime // The blocked date (stored as UTC midnight; compare in org timezone)
+  reason         String? // "Winter Break", "Teacher In-Service", etc.
+  appliesToAll   Boolean  @default(true) // true = all spaces blocked
+  spaceId        String? // If not appliesToAll, block this specific space only
+  createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   space        Space?       @relation(fields: [spaceId], references: [id], onDelete: SetNull)
@@ -6829,13 +7262,13 @@ model BlackoutDate {
 
 /// Audit trail for conflict overrides. Survives event deletion (SetNull FKs).
 model BookingOverride {
-  id                 String    @id @default(cuid())
+  id                 String   @id @default(cuid())
   organizationId     String
-  calendarEventId    String?   // The event booked despite conflict (nullable — audit survives deletion)
-  overriddenEventId  String?   // The event that was already there (nullable — same reason)
-  overriddenByUserId String    // Who performed the override
-  reason             String    // Required — why the override was needed
-  createdAt          DateTime  @default(now())
+  calendarEventId    String? // The event booked despite conflict (nullable — audit survives deletion)
+  overriddenEventId  String? // The event that was already there (nullable — same reason)
+  overriddenByUserId String // Who performed the override
+  reason             String // Required — why the override was needed
+  createdAt          DateTime @default(now())
 
   organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   calendarEvent   CalendarEvent? @relation("OverrideSource", fields: [calendarEventId], references: [id], onDelete: SetNull)
@@ -6851,9 +7284,9 @@ model BookingOverride {
 model CalendarFeed {
   id             String   @id @default(cuid())
   organizationId String
-  userId         String?  // Who owns this feed (null for public team feeds)
-  feedType       String   // 'team' (user-bound) | 'team-public' (shareable, parent-facing) | 'space' | 'user'
-  entityId       String?  // teamId or spaceId (null for user feed)
+  userId         String? // Who owns this feed (null for public team feeds)
+  feedType       String // 'team' (user-bound) | 'team-public' (shareable, parent-facing) | 'space' | 'user'
+  entityId       String? // teamId or spaceId (null for user feed)
   token          String   @unique // Signed token for subscription URL
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
@@ -6907,7 +7340,7 @@ model Conference {
   updatedAt     DateTime             @updatedAt
   deletedAt     DateTime?
 
-  foundingOrg        Organization                @relation("FoundingOrgConferences", fields: [foundingOrgId], references: [id], onDelete: Restrict)
+  foundingOrg        Organization                  @relation("FoundingOrgConferences", fields: [foundingOrgId], references: [id], onDelete: Restrict)
   memberships        ConferenceMembership[]
   teamParticipations ConferenceTeamParticipation[]
   games              Game[]
@@ -6939,13 +7372,13 @@ model ConferenceMembership {
 }
 
 model ConferenceTeamParticipation {
-  id              String   @id @default(cuid())
-  conferenceId    String
-  organizationId  String
-  athleticTeamId  String
-  seasonId        String
-  joinedAt        DateTime @default(now())
-  leftAt          DateTime?
+  id             String    @id @default(cuid())
+  conferenceId   String
+  organizationId String
+  athleticTeamId String
+  seasonId       String
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime?
 
   conference   Conference     @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -6977,22 +7410,22 @@ model ConferenceAdmin {
 /// When the invited school signs up via the invite link, the signup flow
 /// reads the token and auto-creates a ConferenceMembership.
 model ConferenceInvite {
-  id             String   @id @default(cuid())
-  conferenceId   String
-  schoolName     String                  // Name of the school being invited
-  contactEmail   String                  // Email address to send the invite to
-  contactName    String?                 // Name of the contact person
-  token          String   @unique        // Unique token for the invite link
-  status         ConferenceInviteStatus @default(PENDING)
-  invitedBy      String                  // userId who sent the invite
-  createdAt      DateTime @default(now())
-  expiresAt      DateTime               // Invite expires after 30 days
-  acceptedAt     DateTime?
+  id            String                 @id @default(cuid())
+  conferenceId  String
+  schoolName    String // Name of the school being invited
+  contactEmail  String // Email address to send the invite to
+  contactName   String? // Name of the contact person
+  token         String                 @unique // Unique token for the invite link
+  status        ConferenceInviteStatus @default(PENDING)
+  invitedBy     String // userId who sent the invite
+  createdAt     DateTime               @default(now())
+  expiresAt     DateTime // Invite expires after 30 days
+  acceptedAt    DateTime?
   /// Set when the invited school completes signup — links to the new org
-  redeemedOrgId  String?
+  redeemedOrgId String?
 
-  conference   Conference    @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
-  redeemedOrg  Organization? @relation("RedeemedConferenceInvites", fields: [redeemedOrgId], references: [id], onDelete: SetNull)
+  conference  Conference    @relation(fields: [conferenceId], references: [id], onDelete: Cascade)
+  redeemedOrg Organization? @relation("RedeemedConferenceInvites", fields: [redeemedOrgId], references: [id], onDelete: SetNull)
 
   @@index([conferenceId])
   @@index([token])
@@ -7000,8 +7433,8 @@ model ConferenceInvite {
 }
 
 enum ConferenceInviteStatus {
-  PENDING       // Sent, waiting for signup
-  REDEEMED      // School signed up and joined the conference
-  EXPIRED       // Past 30 days without action
-  CANCELLED     // Manually cancelled by conference admin
+  PENDING // Sent, waiting for signup
+  REDEEMED // School signed up and joined the conference
+  EXPIRED // Past 30 days without action
+  CANCELLED // Manually cancelled by conference admin
 }

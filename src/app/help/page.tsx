@@ -15,6 +15,7 @@ export default function HelpIndexPage() {
       'welcome-to-lionheart',
       'submitting-a-ticket',
       'creating-an-event',
+      'av-rf-command-center',
       'setting-up-your-campus',
     ].includes(a.slug)
   )

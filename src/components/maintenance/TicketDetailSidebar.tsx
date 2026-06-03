@@ -25,10 +25,8 @@ import { getAuthHeaders } from '@/lib/api-client'
 import { expandCollapse } from '@/lib/animations'
 import TicketAssigneeSelect from './TicketAssigneeSelect'
 import TicketWatchers from './TicketWatchers'
-import AIDiagnosticPanel from './AIDiagnosticPanel'
 import LaborCostPanel from './LaborCostPanel'
 import PPESafetyPanel from './PPESafetyPanel'
-import type { AiAnalysisCache } from '@/lib/types/maintenance-ai'
 import { FIELD_LIBRARY } from '@/lib/services/categoryFieldLibrary'
 import type { CategoryFieldType } from '@prisma/client'
 import { Input } from '@/components/ui/Input'
@@ -55,12 +53,14 @@ interface SidebarTicket {
     firstName: string
     lastName: string
     email: string
+    avatar?: string | null
     userRole?: { name: string } | null
   }
   assignedTo?: {
     id: string
     firstName: string
     lastName: string
+    avatar?: string | null
   } | null
   building?: { id: string; name: string } | null
   area?: { id: string; name: string } | null
@@ -69,7 +69,7 @@ interface SidebarTicket {
   watchers?: {
     id: string
     userId: string
-    user: { id: string; firstName: string; lastName: string; email: string }
+    user: { id: string; firstName: string; lastName: string; email: string; avatar?: string | null }
   }[]
   assignmentLog?: {
     reason: string
@@ -116,6 +116,45 @@ function formatRelative(iso: string): string {
   if (hrs < 24) return `${hrs}h ago`
   const days = Math.floor(hrs / 24)
   return `${days}d ago`
+}
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase() || '?'
+}
+
+function avatarStyle(avatar?: string | null): React.CSSProperties | undefined {
+  return avatar
+    ? {
+        backgroundImage: `url(${JSON.stringify(avatar)})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : undefined
+}
+
+function PersonAvatar({
+  firstName,
+  lastName,
+  avatar,
+  className,
+}: {
+  firstName: string
+  lastName: string
+  avatar?: string | null
+  className?: string
+}) {
+  return (
+    <div
+      className={[
+        'rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-semibold text-primary-700 flex-shrink-0 overflow-hidden border border-white/70',
+        className ?? 'w-7 h-7',
+      ].join(' ')}
+      style={avatarStyle(avatar)}
+      title={`${firstName} ${lastName}`}
+    >
+      {!avatar && getInitials(firstName, lastName)}
+    </div>
+  )
 }
 
 // ─── Collapsible Section ────────────────────────────────────────────────────
@@ -284,7 +323,6 @@ export default function TicketDetailSidebar({
   const roomLabel = ticket.room
     ? ticket.room.displayName || ticket.room.roomNumber || 'Room'
     : null
-
   return (
     <div className="space-y-4">
       {/* Assignee */}
@@ -400,10 +438,11 @@ export default function TicketDetailSidebar({
           </span>
         </div>
         <div className="flex items-start gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-semibold text-primary-700 flex-shrink-0">
-            {ticket.submittedBy.firstName[0]}
-            {ticket.submittedBy.lastName[0]}
-          </div>
+          <PersonAvatar
+            firstName={ticket.submittedBy.firstName}
+            lastName={ticket.submittedBy.lastName}
+            avatar={ticket.submittedBy.avatar}
+          />
           <div className="min-w-0">
             <p className="text-xs font-medium text-slate-900">
               {ticket.submittedBy.firstName} {ticket.submittedBy.lastName}
@@ -483,16 +522,14 @@ export default function TicketDetailSidebar({
         />
       </div>
 
-      {/* PPE & Safety (Custodial/Biohazard only) */}
-      {ticket.category === 'CUSTODIAL_BIOHAZARD' && (
-        <CollapsibleSection
-          title="PPE & Safety"
-          icon={<AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
-          defaultOpen
-        >
-          <PPESafetyPanel category={ticket.category} />
-        </CollapsibleSection>
-      )}
+      {/* PPE & Safety */}
+      <CollapsibleSection
+        title="PPE & Safety"
+        icon={<AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
+        defaultOpen={ticket.category === 'CUSTODIAL_BIOHAZARD' || ticket.priority === 'URGENT'}
+      >
+        <PPESafetyPanel category={ticket.category} />
+      </CollapsibleSection>
 
       {/* Custom Fields */}
       {ticket.customFields && Object.keys(ticket.customFields).length > 0 && (
@@ -519,19 +556,6 @@ export default function TicketDetailSidebar({
           </div>
         </div>
       )}
-
-      {/* AI Diagnostics */}
-      <CollapsibleSection
-        title="AI Diagnostics"
-        icon={<Layers className="w-3.5 h-3.5 text-slate-400" />}
-      >
-        <AIDiagnosticPanel
-          ticketId={ticket.id}
-          photos={ticket.photos}
-          category={ticket.category}
-          aiAnalysis={ticket.aiAnalysis as AiAnalysisCache | null}
-        />
-      </CollapsibleSection>
 
       {/* Labor & Costs */}
       {isPrivileged && (

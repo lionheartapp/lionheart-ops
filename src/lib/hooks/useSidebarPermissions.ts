@@ -57,6 +57,7 @@ export function useSidebarPermissions() {
   const canSeeITSecurity = canViewContentFilters || canViewSecurityIncidents || canViewIntelligence
   const canSeeITAdmin = canViewITAnalytics || canViewITBoardReports || canViewERate || canManageSync
   const canReadInventory = perms?.canReadInventory ?? optimisticIsAdmin
+  const canReadAV = perms?.canReadAV ?? optimisticIsAdmin
 
   const isOnMaintenanceTeam = perms ? isOnTeam(perms, 'maintenance') : optimisticTeamSlugs.includes('maintenance')
   const isOnITTeam = perms ? isOnTeam(perms, 'it-support') : optimisticTeamSlugs.includes('it-support')
@@ -76,7 +77,7 @@ export function useSidebarPermissions() {
   // Team membership drives sidebar visibility. Super-admins see everything.
   const showFacilities = isOnMaintenanceTeam || isSuperAdmin
   const showIT = isOnITTeam || isSuperAdmin
-  const showAV = isOnAVTeam || isSuperAdmin
+  const showAV = isOnAVTeam || canReadAV || isSuperAdmin
   const hasAnySupportAccess = showFacilities || showIT || showAV
 
   return {
@@ -87,6 +88,7 @@ export function useSidebarPermissions() {
     canClaimMaintenance,
     canSubmitMaintenance,
     canReadInventory,
+    canReadAV,
     isOnMaintenanceTeam,
     facilitiesGateCount,
     showFacilities,

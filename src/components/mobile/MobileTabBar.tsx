@@ -27,6 +27,7 @@ interface MobileTabBarProps {
   // Role/team flags
   isOnMaintenanceTeam: boolean
   isOnITTeam: boolean
+  isOnAVTeam: boolean
   isSuperAdmin: boolean
   canManageMaintenance: boolean
   canClaimMaintenance: boolean
@@ -61,6 +62,7 @@ interface TabItem {
 export default function MobileTabBar({
   isOnMaintenanceTeam,
   isOnITTeam,
+  isOnAVTeam,
   isSuperAdmin,
   canManageMaintenance,
   canClaimMaintenance,
@@ -134,6 +136,14 @@ export default function MobileTabBar({
         href: '/maintenance',
         activeRoutes: ['/maintenance'],
       })
+    } else if (isOnAVTeam) {
+      list.push({
+        id: 'av',
+        icon: Monitor,
+        label: 'A/V',
+        href: '/av',
+        activeRoutes: ['/av'],
+      })
     } else if (athleticsEnabled && canWriteAthletics) {
       list.push({
         id: 'athletics',
@@ -169,6 +179,7 @@ export default function MobileTabBar({
     canManageWorkspace,
     isOnITTeam,
     isOnMaintenanceTeam,
+    isOnAVTeam,
     athleticsEnabled,
     canWriteAthletics,
   ])

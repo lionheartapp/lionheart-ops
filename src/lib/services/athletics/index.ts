@@ -83,3 +83,10 @@ export {
 } from './analytics'
 
 export type { AthleticsCalendarEvent } from './analytics'
+
+// ── Game Day Sessions ─────────────────────────────────────────────────────
+export {
+  getGameDaySession,
+  upsertGameDaySession,
+} from './game-day'
+export type { GameDaySessionInput, GameDayStatus } from './game-day'

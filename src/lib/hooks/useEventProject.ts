@@ -37,9 +37,11 @@ export interface EventProject {
   deletedAt: string | null
   metadata: Record<string, unknown> | null
   requiresAV?: boolean
+  requiresIT?: boolean
   requiresFacilities?: boolean
   approvalGates?: {
     av?: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
+    it?: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
     facilities?: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
     admin: { status: string; respondedById?: string | null; reason?: string | null; respondedAt?: string | null }
   } | null

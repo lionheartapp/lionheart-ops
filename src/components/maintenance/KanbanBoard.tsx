@@ -1,33 +1,12 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  DndContext,
-  DragOverlay,
-  closestCorners,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragStartEvent,
-  type DragOverEvent,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import { useQueryClient } from '@tanstack/react-query'
-import { useToast } from '@/components/Toast'
+import { useState, useMemo } from 'react'
 import KanbanColumn from './KanbanColumn'
-import KanbanCard from './KanbanCard'
-import TechnicianAssignPanel from './TechnicianAssignPanel'
-import HoldReasonInlineForm from './HoldReasonInlineForm'
-import QACompletionModal from './QACompletionModal'
 import WorkOrdersFilters, { type WorkOrdersFilterState } from './WorkOrdersFilters'
-import { isBoardTransitionAllowed } from '@/lib/maintenance-transitions'
 import type { WorkOrderTicket } from './WorkOrdersTable'
 import { User, Users } from 'lucide-react'
 import { useAnimatedTabIndicator } from '@/lib/hooks/useAnimatedTabIndicator'
 import TabIndicator from '@/components/ui/TabIndicator'
-import { fetchApi } from '@/lib/api-client'
 import { IllustrationTickets } from '@/components/illustrations'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -52,15 +31,10 @@ interface KanbanBoardProps {
   currentUserId: string
   canManage: boolean
   canClaim: boolean
-  /** Called after a successful optimistic status change so parent can invalidate */
   queryKeys: unknown[][]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function isValidTransition(fromStatus: string, toStatus: string): boolean {
-  return isBoardTransitionAllowed(fromStatus, toStatus)
-}
 
 function groupByStatus(tickets: WorkOrderTicket[]): Record<string, WorkOrderTicket[]> {
   const groups: Record<string, WorkOrderTicket[]> = {}
@@ -88,10 +62,6 @@ export default function KanbanBoard({
   canClaim,
   queryKeys,
 }: KanbanBoardProps) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-
   // My Board should only show for users actually on the maintenance team —
   // super-admins get canClaim via wildcard but aren't maintenance techs
   const isOnMaintenanceTeam = technicians.some((t) => t.id === currentUserId)
@@ -101,198 +71,23 @@ export default function KanbanBoard({
   // Animated tab indicator
   const { containerRef: tabContainerRef, setTabRef, indicatorStyle } = useAnimatedTabIndicator(boardView, [canManage])
 
-  // DnD state
-  const [activeTicket, setActiveTicket] = useState<WorkOrderTicket | null>(null)
-  const [overColumnId, setOverColumnId] = useState<string | null>(null)
-
-  // Gate modal state
-  const [holdPending, setHoldPending] = useState<{ ticketId: string } | null>(null)
-  const [qaPending, setQaPending] = useState<{ ticketId: string } | null>(null)
-
-  // Optimistic local ticket state
-  const [localTickets, setLocalTickets] = useState<WorkOrderTicket[] | null>(null)
-
-  // Use localTickets if set (optimistic), otherwise use prop tickets
-  const displayTickets = localTickets ?? tickets
-
   // Ticket counts for tab badges
-  const teamTicketCount = displayTickets.length
+  const teamTicketCount = tickets.length
   const myTicketCount = useMemo(
-    () => displayTickets.filter((t) => t.assignedTo?.id === currentUserId).length,
-    [displayTickets, currentUserId]
+    () => tickets.filter((t) => t.assignedTo?.id === currentUserId).length,
+    [tickets, currentUserId]
   )
 
   // Filter tickets by board view tab
   const filteredByView = useMemo(() => {
     if (boardView === 'my-board') {
-      return displayTickets.filter((t) => t.assignedTo?.id === currentUserId)
+      return tickets.filter((t) => t.assignedTo?.id === currentUserId)
     }
     // 'team-board' shows all tickets (already filtered by campus via parent)
-    return displayTickets
-  }, [displayTickets, boardView, currentUserId])
+    return tickets
+  }, [tickets, boardView, currentUserId])
 
   const grouped = useMemo(() => groupByStatus(filteredByView), [filteredByView])
-
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
-  )
-
-  // Compute valid/invalid for currently dragged ticket and hovered column
-  const overColumnValidity = useMemo<boolean | null>(() => {
-    if (!activeTicket || !overColumnId) return null
-    return isValidTransition(activeTicket.status, overColumnId)
-  }, [activeTicket, overColumnId])
-
-  // ─── DnD handlers ────────────────────────────────────────────────────────
-
-  function handleDragStart(event: DragStartEvent) {
-    const id = event.active.id as string
-    const ticket = displayTickets.find((t) => t.id === id)
-    if (ticket) {
-      setActiveTicket(ticket)
-      setLocalTickets(null) // clear any stale optimistic state
-    }
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    const overId = event.over?.id as string | undefined
-    if (!overId) {
-      setOverColumnId(null)
-      return
-    }
-    // overId can be a column status string or a card id
-    if ((BOARD_COLUMNS as readonly string[]).includes(overId)) {
-      setOverColumnId(overId)
-    } else {
-      // Card is over another card — find its column
-      const overTicket = displayTickets.find((t) => t.id === overId)
-      if (overTicket) setOverColumnId(overTicket.status)
-    }
-  }
-
-  const invalidateAll = useCallback(() => {
-    for (const key of queryKeys) {
-      queryClient.invalidateQueries({ queryKey: key })
-    }
-  }, [queryClient, queryKeys])
-
-  async function handleDragEnd(event: DragEndEvent) {
-    const draggedTicket = activeTicket
-    setOverColumnId(null)
-
-    if (!event.over || !draggedTicket) {
-      setActiveTicket(null)
-      return
-    }
-
-    const overId = event.over.id as string
-
-    // ─── Dropped on a technician avatar ────────────────────────────────────
-    if (overId.startsWith('tech-')) {
-      setActiveTicket(null)
-      const techId = overId.replace('tech-', '')
-      try {
-        await fetchApi(`/api/maintenance/tickets/${draggedTicket.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ assignedToId: techId }),
-        })
-        invalidateAll()
-        toast('Ticket assigned', 'success')
-      } catch {
-        toast('Failed to assign ticket', 'error')
-      }
-      return
-    }
-
-    // ─── Resolve target column ──────────────────────────────────────────────
-    let targetStatus: string
-    if ((BOARD_COLUMNS as readonly string[]).includes(overId)) {
-      targetStatus = overId
-    } else {
-      // Dropped on a card — use that card's column
-      const overTicket = displayTickets.find((t) => t.id === overId)
-      if (!overTicket) return
-      targetStatus = overTicket.status
-    }
-
-    // No-op if same column
-    if (targetStatus === draggedTicket.status) {
-      setActiveTicket(null)
-      return
-    }
-
-    // ─── Validate transition ────────────────────────────────────────────────
-    if (!isValidTransition(draggedTicket.status, targetStatus)) {
-      setActiveTicket(null)
-      toast(
-        `Cannot move from ${draggedTicket.status.replace('_', ' ')} to ${targetStatus.replace('_', ' ')}`,
-        'error'
-      )
-      return
-    }
-
-    // ─── Gate: ON_HOLD requires hold reason modal ───────────────────────────
-    if (targetStatus === 'ON_HOLD') {
-      setActiveTicket(null)
-      setHoldPending({ ticketId: draggedTicket.id })
-      return
-    }
-
-    // ─── Gate: QA requires completion modal ────────────────────────────────
-    if (targetStatus === 'QA') {
-      setActiveTicket(null)
-      setQaPending({ ticketId: draggedTicket.id })
-      return
-    }
-
-    // ─── Non-gated: optimistic update ──────────────────────────────────────
-    // Set optimistic state BEFORE clearing activeTicket so the card moves
-    // to its new column instantly — no flash back to the old column.
-    const snapshot = localTickets ?? tickets
-    setLocalTickets(
-      (localTickets ?? tickets).map((t) =>
-        t.id === draggedTicket.id ? { ...t, status: targetStatus } : t
-      )
-    )
-    setActiveTicket(null)
-
-    try {
-      await fetchApi(`/api/maintenance/tickets/${draggedTicket.id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: targetStatus }),
-      })
-      invalidateAll()
-      setLocalTickets(null)
-    } catch {
-      // Rollback
-      setLocalTickets(snapshot)
-      toast('Failed to update status', 'error')
-    }
-  }
-
-  // ─── Gate modal callbacks ─────────────────────────────────────────────────
-
-  function handleHoldComplete() {
-    setHoldPending(null)
-    invalidateAll()
-    toast('Ticket placed on hold', 'success')
-  }
-
-  function handleHoldCancel() {
-    setHoldPending(null)
-  }
-
-  function handleQAComplete() {
-    setQaPending(null)
-    invalidateAll()
-    toast('Ticket submitted for QA', 'success')
-  }
-
-  function handleQAClose() {
-    setQaPending(null)
-  }
 
   // ─── Skeleton ──────────────────────────────────────────────────────────────
 
@@ -389,77 +184,21 @@ export default function KanbanBoard({
         Swipe between columns. Tap a ticket to manage it.
       </p>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        {/* Technician assign panel — only for managers */}
-        {canManage && technicians.length > 0 && (
-          <TechnicianAssignPanel
-            technicians={technicians}
-            isDragging={!!activeTicket}
-          />
-        )}
+      <p className="hidden lg:block text-xs text-slate-400">
+        Click a ticket to assign it or update status from the detail page.
+      </p>
 
-        {/* Kanban columns */}
-        <div className="flex gap-3 overflow-x-auto pb-4 lg:overflow-x-auto snap-x snap-mandatory lg:snap-none">
-          {BOARD_COLUMNS.map((col) => {
-            // Compute valid/invalid for this column
-            let validity: boolean | null = null
-            if (activeTicket) {
-              validity = isValidTransition(activeTicket.status, col)
-            }
-
-            return (
-              <div key={col} className="snap-center lg:snap-none min-w-[85vw] lg:min-w-[280px]">
-                <KanbanColumn
-                  status={col}
-                  tickets={grouped[col] ?? []}
-                  isValidTarget={validity}
-                  pendingTicketId={
-                    (holdPending?.ticketId ?? qaPending?.ticketId) ?? null
-                  }
-                />
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Drag overlay */}
-        <DragOverlay dropAnimation={{
-          duration: 200,
-          easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-        }}>
-          {activeTicket ? (
-            <KanbanCard ticket={activeTicket} isOverlay />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-
-      {/* Hold reason gate modal */}
-      {holdPending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="ui-glass-overlay w-full max-w-md rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-base font-semibold text-slate-900 mb-3">Place Ticket On Hold</h3>
-            <HoldReasonInlineForm
-              ticketId={holdPending.ticketId}
-              onComplete={handleHoldComplete}
-              onCancel={handleHoldCancel}
+      {/* Kanban columns */}
+      <div className="flex gap-3 overflow-x-auto pb-4 lg:overflow-x-auto snap-x snap-mandatory lg:snap-none">
+        {BOARD_COLUMNS.map((col) => (
+          <div key={col} className="snap-center lg:snap-none min-w-[85vw] lg:min-w-[280px]">
+            <KanbanColumn
+              status={col}
+              tickets={grouped[col] ?? []}
             />
           </div>
-        </div>
-      )}
-
-      {/* QA completion gate modal */}
-      <QACompletionModal
-        ticketId={qaPending?.ticketId ?? ''}
-        open={!!qaPending}
-        onClose={handleQAClose}
-        onComplete={handleQAComplete}
-      />
+        ))}
+      </div>
       </>
       )}
     </div>

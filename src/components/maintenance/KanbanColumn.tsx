@@ -1,7 +1,3 @@
-'use client'
-
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import KanbanCard from './KanbanCard'
 import type { WorkOrderTicket } from './WorkOrdersTable'
 
@@ -85,7 +81,6 @@ function StatusDot({ color, dot }: { color: string; dot: DotStyle }) {
 interface KanbanColumnProps {
   status: string
   tickets: WorkOrderTicket[]
-  isValidTarget: boolean | null
   pendingTicketId?: string | null
 }
 
@@ -94,30 +89,19 @@ interface KanbanColumnProps {
 export default function KanbanColumn({
   status,
   tickets,
-  isValidTarget,
   pendingTicketId,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: status })
   const config = COLUMN_CONFIG[status] ?? {
     label: status,
     color: '#a8a49d',
     dot: 'outline' as DotStyle,
   }
 
-  const isDragInProgress = isValidTarget !== null
-  const highlightValid = isDragInProgress && isValidTarget && isOver
-  const highlightInvalid = isDragInProgress && !isValidTarget && isOver
-
   return (
     <div
       className={[
         'flex flex-col min-w-[280px] max-w-[320px] flex-shrink-0 rounded-xl transition-all duration-150',
         'bg-slate-100/80',
-        highlightValid ? 'bg-primary-50/60 ring-1 ring-primary-300' : '',
-        highlightInvalid ? 'bg-red-50/40 ring-1 ring-red-300 opacity-70' : '',
-        isDragInProgress && !isOver && isValidTarget
-          ? 'ring-1 ring-primary-200/40'
-          : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -134,31 +118,18 @@ export default function KanbanColumn({
 
       {/* Card list */}
       <div
-        ref={setNodeRef}
         className="flex-1 px-1.5 pb-2 space-y-[6px] overflow-y-auto"
       >
-        <SortableContext
-          items={tickets.map((t) => t.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {tickets.map((ticket) => (
-            <KanbanCard
-              key={ticket.id}
-              ticket={ticket}
-              isPending={pendingTicketId === ticket.id}
-            />
-          ))}
-        </SortableContext>
-
-        {/* Drop hint during drag */}
-        {isDragInProgress && isValidTarget && tickets.length === 0 && (
-          <div className="flex items-center justify-center py-10 text-sm text-slate-400">
-            Drop to change status
-          </div>
-        )}
+        {tickets.map((ticket) => (
+          <KanbanCard
+            key={ticket.id}
+            ticket={ticket}
+            isPending={pendingTicketId === ticket.id}
+          />
+        ))}
 
         {/* Static empty state */}
-        {!isDragInProgress && tickets.length === 0 && (
+        {tickets.length === 0 && (
           <div className="flex items-center justify-center py-10">
             <p className="text-xs text-slate-300">No tickets</p>
           </div>

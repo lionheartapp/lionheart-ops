@@ -11,6 +11,7 @@ interface WatcherUser {
   firstName: string
   lastName: string
   email: string
+  avatar?: string | null
 }
 
 interface Watcher {
@@ -53,7 +54,7 @@ export default function TicketWatchers({
   const { data: allUsers = [] } = useQuery({
     queryKey: ['org-users-for-watchers'],
     queryFn: () =>
-      fetchApi<{ id: string; firstName: string; lastName: string; email: string }[]>(
+      fetchApi<WatcherUser[]>(
         '/api/settings/users'
       ),
     staleTime: 5 * 60 * 1000,
@@ -107,14 +108,24 @@ export default function TicketWatchers({
         {watchers.map((w) => {
           const initials = `${w.user.firstName[0]}${w.user.lastName[0]}`.toUpperCase()
           const canRemove = canManage || w.userId === currentUserId
+          const avatarStyle = w.user.avatar
+            ? {
+                backgroundImage: `url(${JSON.stringify(w.user.avatar)})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : undefined
           return (
             <div
               key={w.id}
               className="group relative flex items-center"
               title={`${w.user.firstName} ${w.user.lastName} (${w.user.email})`}
             >
-              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-semibold text-slate-600 border border-slate-200">
-                {initials}
+              <div
+                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-semibold text-slate-600 border border-slate-200 overflow-hidden"
+                style={avatarStyle}
+              >
+                {!w.user.avatar && initials}
               </div>
               {canRemove && (
                 <button
@@ -166,23 +177,35 @@ export default function TicketWatchers({
                     )}
                   </p>
                 ) : (
-                  filteredUsers.map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => addMutation.mutate(user.id)}
-                      disabled={addMutation.isPending}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-semibold text-slate-600 flex-shrink-0">
-                        {user.firstName[0]}{user.lastName[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-slate-700 truncate">
-                          {user.firstName} {user.lastName}
-                        </p>
-                      </div>
-                    </button>
-                  ))
+                  filteredUsers.map((user) => {
+                    const userAvatarStyle = user.avatar
+                      ? {
+                          backgroundImage: `url(${JSON.stringify(user.avatar)})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }
+                      : undefined
+                    return (
+                      <button
+                        key={user.id}
+                        onClick={() => addMutation.mutate(user.id)}
+                        disabled={addMutation.isPending}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
+                      >
+                        <div
+                          className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-semibold text-slate-600 flex-shrink-0 overflow-hidden"
+                          style={userAvatarStyle}
+                        >
+                          {!user.avatar && `${user.firstName[0]}${user.lastName[0]}`}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-slate-700 truncate">
+                            {user.firstName} {user.lastName}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })
                 )}
               </div>
             </div>

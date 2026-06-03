@@ -74,6 +74,24 @@ export const AVDocLinkSchema = z.object({
   type: z.enum(['manual', 'spec_sheet', 'warranty', 'other']),
 })
 
+const RfDeviceKindSchema = z.enum([
+  'HANDHELD',
+  'LAVALIER',
+  'HEADSET',
+  'BODY_PACK',
+  'IEM',
+  'RECEIVER',
+  'ANTENNA',
+  'SCANNER',
+  'OTHER',
+])
+
+export const InventoryRfDetailsSchema = z.object({
+  useInRfCoordination: z.boolean().default(false),
+  kind: RfDeviceKindSchema.default('HANDHELD'),
+  currentFrequencyHz: z.number().int().positive().nullable().optional(),
+})
+
 export const CreateAVEquipmentSchema = z.object({
   // Step 1 — Essentials
   name: z.string().min(1).max(200).transform(stripAllHtml),
@@ -89,6 +107,7 @@ export const CreateAVEquipmentSchema = z.object({
   imageUrl: z.string().optional().nullable(),
   documentationLinks: z.array(AVDocLinkSchema).default([]),
   tags: z.array(z.string()).default([]),
+  rfDetails: InventoryRfDetailsSchema.optional(),
 })
 
 export const UpdateAVEquipmentSchema = CreateAVEquipmentSchema.partial()
@@ -97,6 +116,61 @@ export type CreateAVEquipmentInput = z.input<typeof CreateAVEquipmentSchema>
 export type UpdateAVEquipmentInput = z.input<typeof UpdateAVEquipmentSchema>
 export type AVLocationEntry = z.infer<typeof AVLocationEntrySchema>
 export type AVDocLink = z.infer<typeof AVDocLinkSchema>
+
+function normalizeWirelessBrand(manufacturer?: string | null) {
+  const value = (manufacturer || '').toLowerCase()
+  if (value.includes('shure')) return 'SHURE'
+  if (value.includes('sennheiser')) return 'SENNHEISER'
+  if (value.includes('audio') || value.includes('technica')) return 'AUDIO_TECHNICA'
+  if (value.includes('wisycom')) return 'WISYCOM'
+  if (value.includes('lectro')) return 'LECTROSONICS'
+  if (value.includes('rf explorer')) return 'RF_EXPLORER'
+  return 'OTHER'
+}
+
+async function syncWirelessDeviceFromInventory(
+  orgId: string,
+  item: {
+    id: string
+    name: string
+    manufacturer?: string | null
+    model?: string | null
+  },
+  rfDetails?: z.infer<typeof InventoryRfDetailsSchema>,
+) {
+  if (!rfDetails?.useInRfCoordination) return
+
+  const existing = await (prisma.wirelessDevice as any).findFirst({
+    where: { inventoryItemId: item.id },
+    select: { id: true },
+  })
+
+  if (existing) {
+    await (prisma.wirelessDevice as any).update({
+      where: { id: existing.id },
+      data: {
+        name: item.name,
+        brand: normalizeWirelessBrand(item.manufacturer),
+        model: item.model ?? null,
+        kind: rfDetails.kind,
+        currentFrequencyHz: rfDetails.currentFrequencyHz ? BigInt(rfDetails.currentFrequencyHz) : null,
+      },
+    })
+    return
+  }
+
+  await (prisma.wirelessDevice as any).create({
+    data: {
+      organizationId: orgId,
+      name: item.name,
+      brand: normalizeWirelessBrand(item.manufacturer),
+      model: item.model ?? null,
+      kind: rfDetails.kind,
+      inventoryItemId: item.id,
+      currentFrequencyHz: rfDetails.currentFrequencyHz ? BigInt(rfDetails.currentFrequencyHz) : null,
+    },
+  })
+}
 
 // ─── Error Helper ─────────────────────────────────────────────────────────
 
@@ -420,7 +494,7 @@ export async function createAVEquipment(
 
   return runWithOrgContext(orgId, async () => {
     try {
-      return await (prisma.inventoryItem.create as Function)({
+      const item = await (prisma.inventoryItem.create as Function)({
         data: {
           name: data.name,
           description: data.description ?? null,
@@ -438,6 +512,8 @@ export async function createAVEquipment(
           tags: data.tags,
         },
       })
+      await syncWirelessDeviceFromInventory(orgId, item, data.rfDetails)
+      return item
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes('Unique constraint')) {
         throw new Error(`An item named "${data.name}" already exists`)
@@ -470,7 +546,7 @@ export async function updateAVEquipment(
       quantityOnHand = data.locations.reduce((sum, loc) => sum + loc.quantity, 0)
     }
 
-    return prisma.inventoryItem.update({
+    const item = await prisma.inventoryItem.update({
       where: { id: itemId },
       data: {
         ...(data.name !== undefined && { name: data.name }),
@@ -487,6 +563,8 @@ export async function updateAVEquipment(
         ...(data.documentationLinks && { documentationLinks: data.documentationLinks as Prisma.InputJsonValue }),
       },
     })
+    await syncWirelessDeviceFromInventory(orgId, item, data.rfDetails)
+    return item
   })
 }
 

@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Loader2, Check } from 'lucide-react'
 import FormFieldRenderer from '../FormFieldRenderer'
 import type { FormFieldData } from '../FormFieldRenderer'
+import type { FormFieldWorkflowAction } from '@/lib/forms/schemas'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ export interface DynamicPage {
 export interface DynamicField extends FormFieldData {
   protection?: 'LOCKED' | 'DEFAULT' | 'CUSTOM'
   isIncluded?: boolean
+  workflowActions?: FormFieldWorkflowAction[] | null
   condOperator?: string | null
   minValue?: string | null
   maxValue?: string | null

@@ -63,6 +63,15 @@ export const queryKeys = {
     list: (cursor?: string) => ['notifications', { cursor }] as const,
     unreadCount: ['notifications', 'unread-count'] as const,
   },
+  av: {
+    dashboard: ['av-dashboard'] as const,
+    plans: ['av-frequency-plans'] as const,
+    devices: ['av-wireless-devices'] as const,
+    scans: ['av-rf-scans'] as const,
+    venues: ['av-rf-venue-profiles'] as const,
+    bridges: ['av-rf-bridge-nodes'] as const,
+    plan: (id: string) => ['av-frequency-plan', id] as const,
+  },
 
   // Athletics Calendar
   athleticsCalendar: {
@@ -403,6 +412,11 @@ export const queryOptions = {
         canConfigureDevices: boolean
         canReadInventory: boolean
         canWriteInventory: boolean
+        canReadAV: boolean
+        canManageAV: boolean
+        canCoordinateAV: boolean
+        canUploadAVScans: boolean
+        canManageAVBridge: boolean
         legacyRole: string | null
       }>('/api/auth/permissions'),
     staleTime: 10 * 60 * 1000, // 10 minutes — permissions rarely change mid-session
@@ -424,6 +438,48 @@ export const queryOptions = {
     queryKey: queryKeys.teams.all,
     queryFn: () => fetchApi<unknown[]>('/api/settings/teams'),
     staleTime: 5 * 60 * 1000,
+  }),
+
+  avDashboard: () => ({
+    queryKey: queryKeys.av.dashboard,
+    queryFn: () => fetchApi<Record<string, unknown>>('/api/av/dashboard'),
+    staleTime: 30 * 1000,
+  }),
+
+  avPlans: () => ({
+    queryKey: queryKeys.av.plans,
+    queryFn: () => fetchApi<unknown[]>('/api/av/frequency-plans'),
+    staleTime: 30 * 1000,
+  }),
+
+  avPlan: (id: string) => ({
+    queryKey: queryKeys.av.plan(id),
+    queryFn: () => fetchApi<Record<string, unknown>>(`/api/av/frequency-plans/${id}`),
+    staleTime: 15 * 1000,
+  }),
+
+  avDevices: () => ({
+    queryKey: queryKeys.av.devices,
+    queryFn: () => fetchApi<unknown[]>('/api/av/wireless/devices'),
+    staleTime: 60 * 1000,
+  }),
+
+  avScans: () => ({
+    queryKey: queryKeys.av.scans,
+    queryFn: () => fetchApi<unknown[]>('/api/av/scans'),
+    staleTime: 60 * 1000,
+  }),
+
+  avVenueProfiles: () => ({
+    queryKey: queryKeys.av.venues,
+    queryFn: () => fetchApi<unknown[]>('/api/av/venue-profiles'),
+    staleTime: 60 * 1000,
+  }),
+
+  avBridgeNodes: () => ({
+    queryKey: queryKeys.av.bridges,
+    queryFn: () => fetchApi<unknown[]>('/api/av/bridge-nodes'),
+    staleTime: 30 * 1000,
   }),
 
   members: () => ({

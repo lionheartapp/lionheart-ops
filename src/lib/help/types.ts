@@ -41,6 +41,15 @@ export interface HelpCategory {
 export type HelpBlock =
   | { type: 'paragraph'; text: string }
   | { type: 'heading'; level: 2 | 3; text: string; id?: string }
+  | {
+      type: 'image'
+      src: string
+      alt: string
+      caption?: string
+      width?: number
+      height?: number
+      priority?: boolean
+    }
   | { type: 'list'; ordered?: boolean; items: string[] }
   | { type: 'steps'; items: { title: string; body: string }[] }
   | { type: 'callout'; tone: 'info' | 'warn' | 'tip'; title?: string; body: string }

@@ -452,6 +452,306 @@ export const HELP_ARTICLES: HelpArticle[] = [
     ],
     related: ['working-tickets-and-work-orders', 'setting-up-your-campus'],
   },
+  {
+    slug: 'av-rf-command-center',
+    title: 'Using the A/V RF Command Center',
+    description:
+      'How to add wireless gear from Inventory, build event RF plans, upload scans, coordinate open channels, and export a day-of tech packet.',
+    category: 'inventory',
+    audience: ['it-facilities', 'org-admin'],
+    updated: '2026-06-01',
+    readMinutes: 8,
+    keywords: [
+      'av',
+      'a/v',
+      'rf',
+      'wireless',
+      'microphone',
+      'frequency',
+      'scan',
+      'inventory',
+      'wireless workbench',
+      'channel assignments',
+    ],
+    body: [
+      {
+        type: 'paragraph',
+        text: 'The A/V RF Command Center helps your A/V team plan wireless microphones, body packs, IEMs, receivers, scanners, and other RF-capable gear for school events. It is an advisor: Lionheart can recommend and explain a frequency plan, but your A/V lead still approves the plan and tunes hardware manually.',
+      },
+      {
+        type: 'image',
+        src: '/help/av-rf-command-center.png',
+        alt: 'A/V RF Command Center dashboard with events, risk cards, and workspace tabs.',
+        width: 1184,
+        height: 980,
+        priority: true,
+        caption: 'The Command Center gives the A/V team one home for upcoming events, RF plans, wireless inventory, scans, venue profiles, and bridge status.',
+      },
+      {
+        type: 'callout',
+        tone: 'info',
+        title: 'Advisor Mode',
+        body: 'Lionheart does not push frequencies to microphones or receivers. It scores risk, explains conflicts, and suggests clean channels. A human A/V lead accepts the plan and handles hardware.',
+      },
+      { type: 'heading', level: 2, text: 'Before you start', id: 'before' },
+      {
+        type: 'list',
+        items: [
+          'Make sure the user is on the A/V Production team or has A/V permissions.',
+          'Add your wireless gear in Inventory before trying to assign it to an RF plan.',
+          'Use one inventory item per trackable piece of wireless gear when possible.',
+          'Store frequencies in MHz in the UI. Lionheart stores them as Hz behind the scenes.',
+          'Upload scans as frequency and signal-strength pairs when you have them.',
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'tip',
+        title: 'Inventory is the source of truth',
+        body: 'Do not create a separate A/V equipment list by hand. Add the asset in Inventory, then mark it for RF coordination. The same item can then appear in Inventory and in the RF Command Center.',
+      },
+      { type: 'heading', level: 2, text: '1. Add wireless gear from Inventory', id: 'inventory' },
+      {
+        type: 'paragraph',
+        text: 'Open A/V Production → RF Command Center → Wireless Inventory. Click Add inventory item. This opens the same inventory drawer used by the main Inventory module, so asset name, location, serial numbers, documentation, checkout settings, and RF details stay together.',
+      },
+      {
+        type: 'image',
+        src: '/help/av-rf-inventory.png',
+        alt: 'Wireless Inventory tab showing Add inventory item and discoverable inventory.',
+        width: 1184,
+        height: 980,
+        caption: 'Wireless Inventory shows linked RF devices and discoverable A/V inventory that can be linked later.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Click Add inventory item',
+            body: 'Use this even when you are working from the RF page. It keeps the physical asset in the normal inventory system.',
+          },
+          {
+            title: 'Enter the asset basics',
+            body: 'Give it a clear name such as Handheld 1, ULXD body pack 2, or RF Explorer scanner. Add location and checkout settings if your team tracks those.',
+          },
+          {
+            title: 'Open Details',
+            body: 'Add manufacturer, model, serial numbers, product image, documentation links, and tags.',
+          },
+          {
+            title: 'Turn on RF coordination',
+            body: 'Check Use in RF coordination, choose the RF type, and add the current MHz if known.',
+          },
+          {
+            title: 'Save the inventory item',
+            body: 'Lionheart creates or updates the linked wireless device record automatically.',
+          },
+        ],
+      },
+      {
+        type: 'image',
+        src: '/help/av-rf-inventory-drawer.png',
+        alt: 'Inventory drawer with RF coordination controls.',
+        width: 640,
+        height: 948,
+        caption: 'The RF coordination section tells Lionheart that this inventory item should be available for wireless frequency planning.',
+      },
+      { type: 'heading', level: 3, text: 'What counts as RF-capable?' },
+      {
+        type: 'paragraph',
+        text: 'Common examples are handheld wireless mics, lavaliers, headset packs, body packs, IEM packs, wireless receivers, antennas, and RF scanners. Projectors, cables, speakers, and stands should usually stay in Inventory only unless they need RF planning.',
+      },
+      { type: 'heading', level: 3, text: 'Discoverable inventory' },
+      {
+        type: 'paragraph',
+        text: 'If an existing inventory item looks RF-capable but is not linked yet, it appears under Discoverable inventory. Click Link to RF to make it available in frequency plans. This is useful when old inventory already contains items like Wireless Microphone Set.',
+      },
+      { type: 'heading', level: 2, text: '2. Open or create an event RF plan', id: 'event-plan' },
+      {
+        type: 'paragraph',
+        text: 'Most plans should be tied to an event. From the Command Center tab, click an event in Today and next up. If a plan already exists, Lionheart opens it. If no plan exists, Lionheart creates one for that event and links the event context automatically.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Use event plans for assemblies, graduations, performances, board meetings, athletics ceremonies, testing days, and any event using wireless gear.',
+          'Use a standalone plan only for prep work, testing, or a venue-wide scan with no event yet.',
+          'Venue context matters. A plan linked to the right building or room can use venue RF profiles and scan history later.',
+        ],
+      },
+      { type: 'heading', level: 2, text: '3. Build channel assignments', id: 'assignments' },
+      {
+        type: 'paragraph',
+        text: 'A channel assignment is one wireless use in the event: host, podium, handheld 1, lapel for principal, backup mic, IEM mix, or a receiver channel. Add one row per wireless channel you need to coordinate.',
+      },
+      {
+        type: 'image',
+        src: '/help/av-rf-frequency-plan.png',
+        alt: 'Frequency plan screen with channel assignments, scan import, and spectrum panel.',
+        width: 1184,
+        height: 980,
+        caption: 'The Frequency Plans tab is where the A/V lead builds channel assignments, uploads scans, coordinates, reviews risk, and exports the plan.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Choose a use label',
+            body: 'Use labels that match the day-of run sheet: Host, Podium, Handheld 1, Backup, Body pack 1, IEM A, or Receiver 3.',
+          },
+          {
+            title: 'Pick a device',
+            body: 'Choose a linked wireless inventory item. If the device is missing, go back to Wireless Inventory and add or link it.',
+          },
+          {
+            title: 'Enter a known MHz if you have one',
+            body: 'If the mic is already tuned, enter the current frequency. If you want Lionheart to suggest a frequency, leave it blank.',
+          },
+          {
+            title: 'Lock fixed frequencies',
+            body: 'Locked assignments stay where they are when Lionheart calculates open channels. Use this for channels you cannot move.',
+          },
+          {
+            title: 'Click Add',
+            body: 'Repeat until every mic, pack, IEM, and receiver channel is represented.',
+          },
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'tip',
+        title: 'Good labels prevent confusion',
+        body: 'Name the use, not just the hardware. “Podium” is better than “Mic 2” when someone is reading the tech packet during setup.',
+      },
+      { type: 'heading', level: 2, text: '4. Upload a scan', id: 'scan' },
+      {
+        type: 'paragraph',
+        text: 'Scans help Lionheart avoid noisy parts of the spectrum. Upload CSV, TXT, or scanner exports that contain frequency and signal strength pairs. Rows above the scan threshold become RF exclusions for the plan.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Use MHz or Hz for the frequency column. The UI displays MHz to three decimals.',
+          'Use dBm for signal strength when possible.',
+          'Remove header rows before uploading. Lionheart rejects headers and shows row-level errors.',
+          'Take scans as close as possible to the event location and event time.',
+          'Upload a fresh scan after major room changes, large crowds, temporary broadcast gear, or new wireless systems.',
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'warn',
+        title: 'Bad scans should fail loudly',
+        body: 'If the upload says a row is invalid, fix the scan file instead of guessing. A bad scan can hide real RF risk.',
+      },
+      { type: 'heading', level: 2, text: '5. Coordinate the plan', id: 'coordinate' },
+      {
+        type: 'paragraph',
+        text: 'Click Coordinate after adding assignments and scans. Lionheart checks spacing, scan exclusions, unknown profiles, and intermod risk. It then scores the plan and creates recommendations for open channels.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Blocker means the plan needs attention before use.',
+          'Warning means the plan may work, but the A/V lead should review it.',
+          'Advisory means Lionheart found something worth knowing, usually low confidence or missing device data.',
+          'Low risk means no major RF conflicts were found from the available data.',
+        ],
+      },
+      { type: 'heading', level: 3, text: 'What Lionheart checks' },
+      {
+        type: 'list',
+        items: [
+          'Same-frequency conflicts.',
+          'Frequencies that are too close based on the device profile.',
+          '3rd-order intermod products such as 2A - B and 2B - A.',
+          '5th-order intermod products such as 3A - 2B and 3B - 2A.',
+          'Scan-based noisy ranges.',
+          'Venue exclusions and known bad ranges.',
+          'Unknown device profiles that need conservative assumptions.',
+        ],
+      },
+      { type: 'heading', level: 2, text: '6. Review and accept recommendations', id: 'recommendations' },
+      {
+        type: 'paragraph',
+        text: 'Recommendations appear below the assignment table when Lionheart finds cleaner options. Review the reason before accepting. Accepting a recommendation updates the assignment frequency, then Lionheart re-checks the plan.',
+      },
+      {
+        type: 'steps',
+        items: [
+          {
+            title: 'Read the recommendation',
+            body: 'Look at the suggested MHz, confidence, and explanation.',
+          },
+          {
+            title: 'Check the spectrum panel',
+            body: 'Confirm the suggested channel does not land in a noisy scanned range or near a locked channel.',
+          },
+          {
+            title: 'Accept the recommendation',
+            body: 'Lionheart updates the plan. You still tune the real hardware manually.',
+          },
+          {
+            title: 'Coordinate again if needed',
+            body: 'Any accepted change can affect the rest of the plan, so let Lionheart re-score it.',
+          },
+        ],
+      },
+      { type: 'heading', level: 2, text: '7. Export the tech packet', id: 'export' },
+      {
+        type: 'paragraph',
+        text: 'When the plan is ready, export the CSV from the event context panel. Use it as the day-of tech packet or copy it into your team’s run sheet. The first version exports CSV. Printable PDF support can be added later.',
+      },
+      {
+        type: 'list',
+        items: [
+          'Event or plan name.',
+          'Use label.',
+          'Assigned device.',
+          'Frequency in MHz.',
+          'Locked/open state.',
+          'Soundcheck status.',
+          'Notes.',
+        ],
+      },
+      {
+        type: 'callout',
+        tone: 'info',
+        title: 'Hardware tuning remains manual',
+        body: 'After exporting, the A/V lead tunes the physical devices and verifies audio during soundcheck. Lionheart is the planning and documentation layer.',
+      },
+      { type: 'heading', level: 2, text: 'Day-of checklist', id: 'checklist' },
+      {
+        type: 'list',
+        ordered: true,
+        items: [
+          'Open the event RF plan.',
+          'Confirm every wireless use has an assignment.',
+          'Upload or confirm the latest scan.',
+          'Click Coordinate.',
+          'Fix blockers first.',
+          'Review warnings and advisories.',
+          'Accept useful recommendations.',
+          'Tune hardware manually.',
+          'Run soundcheck.',
+          'Export the tech packet.',
+        ],
+      },
+      { type: 'heading', level: 2, text: 'Troubleshooting', id: 'troubleshooting' },
+      {
+        type: 'list',
+        items: [
+          'Device is missing from the plan picker: go to Wireless Inventory and link it to RF.',
+          'Inventory item appears as discoverable: click Link to RF or edit it in the inventory drawer and turn on Use in RF coordination.',
+          'Scan upload fails: remove headers and make sure each row has frequency and signal strength.',
+          'Plan is low confidence: add manufacturer, model, tuning range, or device profile details.',
+          'A locked channel keeps causing conflicts: either unlock it or move the real hardware if the A/V lead approves.',
+          'Event is not listed: make sure the event requires A/V and is scheduled soon enough to appear in Today and next up.',
+        ],
+      },
+    ],
+    related: ['managing-inventory-and-assets', 'creating-an-event', 'working-tickets-and-work-orders'],
+  },
 
   /* ───────── Admin ───────── */
   {

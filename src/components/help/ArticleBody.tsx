@@ -1,4 +1,5 @@
 import { Info, AlertTriangle, Lightbulb } from 'lucide-react'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
 import type { HelpBlock } from '@/lib/help/types'
 
 /**
@@ -73,6 +74,26 @@ export function ArticleBody({ blocks }: ArticleBodyProps) {
               </h3>
             )
           }
+
+          case 'image':
+            return (
+              <figure key={key} className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+                <OptimizedImage
+                  src={block.src}
+                  alt={block.alt}
+                  width={block.width ?? 1184}
+                  height={block.height ?? 980}
+                  priority={block.priority}
+                  sizes="(min-width: 1024px) 768px, calc(100vw - 32px)"
+                  className="w-full rounded-xl border border-slate-200 bg-white object-contain"
+                />
+                {block.caption && (
+                  <figcaption className="px-2 py-2 text-xs leading-5 text-slate-500">
+                    {block.caption}
+                  </figcaption>
+                )}
+              </figure>
+            )
 
           case 'list':
             return block.ordered ? (

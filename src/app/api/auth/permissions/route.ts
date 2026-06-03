@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
 
     const canReadStudents = canSync(perms, PERMISSIONS.STUDENTS_READ)
     const canReadStudentsOwnSchool = canSync(perms, PERMISSIONS.STUDENTS_READ_OWN_SCHOOL)
+    const isOnAVTeam = userTeams.some((team) => team.slug === 'av-production')
 
     return NextResponse.json(
       ok({
@@ -117,6 +118,12 @@ export async function GET(req: NextRequest) {
         // Inventory
         canReadInventory: canSync(perms, PERMISSIONS.INVENTORY_READ),
         canWriteInventory: canSync(perms, PERMISSIONS.INVENTORY_CREATE),
+        // A/V RF Command Center
+        canReadAV: isOnAVTeam || canSync(perms, PERMISSIONS.AV_READ),
+        canManageAV: isOnAVTeam || canSync(perms, PERMISSIONS.AV_MANAGE),
+        canCoordinateAV: isOnAVTeam || canSync(perms, PERMISSIONS.AV_COORDINATE),
+        canUploadAVScans: isOnAVTeam || canSync(perms, PERMISSIONS.AV_SCAN_UPLOAD),
+        canManageAVBridge: isOnAVTeam || canSync(perms, PERMISSIONS.AV_BRIDGE_MANAGE),
         // Events — medical/dietary
         canViewMedical: canSync(perms, PERMISSIONS.EVENTS_MEDICAL_READ),
         isSuperAdmin: legacyRole === 'SUPER_ADMIN',

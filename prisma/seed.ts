@@ -72,6 +72,8 @@ const ROLE_DEFINITIONS: Record<string, {
       'planning:manage', 'planning:submit', 'planning:review', 'planning:view', 'planning:comment',
       // Resource Requests
       'resource-requests:create', 'resource-requests:read:all', 'resource-requests:respond', 'resource-requests:manage',
+      // A/V RF Command Center
+      'av:read', 'av:manage', 'av:coordinate', 'av:scan:upload', 'av:bridge:manage',
       // Athletics
       'athletics:manage', 'athletics:games:create', 'athletics:games:approve', 'athletics:games:score', 'athletics:read',
       // Maintenance

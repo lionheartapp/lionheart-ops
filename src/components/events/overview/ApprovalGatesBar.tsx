@@ -34,6 +34,7 @@ export interface GateStateV2 {
 export interface ApprovalGatesV1 {
   admin?: GateState
   av?: GateState
+  it?: GateState
   facilities?: GateState
   custodial?: GateState
   security?: GateState
@@ -52,11 +53,12 @@ function isV2Gates(gates: Record<string, unknown>): boolean {
 
 // ─── V1 Config ──────────────────────────────────────────────────────────────
 
-const ALL_GATE_KEYS = ['admin', 'av', 'facilities', 'custodial', 'security'] as const
+const ALL_GATE_KEYS = ['admin', 'av', 'it', 'facilities', 'custodial', 'security'] as const
 
 const V1_LABELS: Record<string, string> = {
   admin: 'Admin',
   av: 'A/V Production',
+  it: 'IT Support',
   facilities: 'Facilities',
   custodial: 'Custodial',
   security: 'Security',

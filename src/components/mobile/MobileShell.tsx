@@ -66,6 +66,7 @@ export default function MobileShell({
       <MobileTabBar
         isOnMaintenanceTeam={perms.isOnMaintenanceTeam}
         isOnITTeam={perms.isOnITTeam}
+        isOnAVTeam={perms.isOnAVTeam}
         isSuperAdmin={perms.isSuperAdmin}
         canManageMaintenance={perms.canManageMaintenance}
         canClaimMaintenance={perms.canClaimMaintenance}

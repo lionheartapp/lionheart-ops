@@ -1,3 +1,136 @@
+-- Baseline forms core.
+-- This migration was created after the original forms tables already existed
+-- in the baseline database, so fresh shadow databases need the core pieces
+-- created before the ALTER statements below run.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'PublicFormStyle') THEN
+    CREATE TYPE "PublicFormStyle" AS ENUM ('MINIMAL', 'SPLIT', 'HERO');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'FormImageSide') THEN
+    CREATE TYPE "FormImageSide" AS ENUM ('LEFT', 'RIGHT');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'FormFieldType') THEN
+    CREATE TYPE "FormFieldType" AS ENUM (
+      'TEXT',
+      'TEXTAREA',
+      'NUMBER',
+      'DATE',
+      'EMAIL',
+      'PHONE',
+      'DROPDOWN',
+      'MULTI_SELECT',
+      'CHECKBOX',
+      'FILE',
+      'SIGNATURE',
+      'ASSET_PICKER',
+      'USER_PICKER',
+      'LOCATION_PICKER',
+      'GRADE_SELECTOR'
+    );
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS "FormDefinition" (
+  "id" TEXT NOT NULL,
+  "organizationId" TEXT NOT NULL,
+  "categoryKey" TEXT,
+  "eventId" TEXT,
+  "publicStyle" "PublicFormStyle" NOT NULL DEFAULT 'MINIMAL',
+  "publicCtaColor" TEXT,
+  "publicBgColor" TEXT,
+  "publicImageUrl" TEXT,
+  "publicImageSide" "FormImageSide" NOT NULL DEFAULT 'RIGHT',
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL,
+  CONSTRAINT "FormDefinition_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "FormSection" (
+  "id" TEXT NOT NULL,
+  "formId" TEXT NOT NULL,
+  "title" TEXT NOT NULL,
+  "sortOrder" INTEGER NOT NULL,
+  CONSTRAINT "FormSection_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "FormField" (
+  "id" TEXT NOT NULL,
+  "formId" TEXT NOT NULL,
+  "sectionId" TEXT,
+  "key" TEXT NOT NULL,
+  "label" TEXT NOT NULL,
+  "type" "FormFieldType" NOT NULL,
+  "required" BOOLEAN NOT NULL DEFAULT false,
+  "placeholder" TEXT,
+  "helpText" TEXT,
+  "options" TEXT[] DEFAULT ARRAY[]::TEXT[],
+  "autoEscalate" BOOLEAN NOT NULL DEFAULT false,
+  "condFieldKey" TEXT,
+  "condEquals" TEXT,
+  "sortOrder" INTEGER NOT NULL,
+  CONSTRAINT "FormField_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "FormDefinition_eventId_key" ON "FormDefinition"("eventId");
+CREATE UNIQUE INDEX IF NOT EXISTS "FormDefinition_organizationId_categoryKey_key" ON "FormDefinition"("organizationId", "categoryKey");
+CREATE INDEX IF NOT EXISTS "FormDefinition_organizationId_eventId_idx" ON "FormDefinition"("organizationId", "eventId");
+CREATE INDEX IF NOT EXISTS "FormSection_formId_idx" ON "FormSection"("formId");
+CREATE INDEX IF NOT EXISTS "FormField_formId_idx" ON "FormField"("formId");
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FormDefinition_organizationId_fkey') THEN
+    ALTER TABLE "FormDefinition"
+      ADD CONSTRAINT "FormDefinition_organizationId_fkey"
+      FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FormDefinition_eventId_fkey') THEN
+    ALTER TABLE "FormDefinition"
+      ADD CONSTRAINT "FormDefinition_eventId_fkey"
+      FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FormSection_formId_fkey') THEN
+    ALTER TABLE "FormSection"
+      ADD CONSTRAINT "FormSection_formId_fkey"
+      FOREIGN KEY ("formId") REFERENCES "FormDefinition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FormField_formId_fkey') THEN
+    ALTER TABLE "FormField"
+      ADD CONSTRAINT "FormField_formId_fkey"
+      FOREIGN KEY ("formId") REFERENCES "FormDefinition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FormField_sectionId_fkey') THEN
+    ALTER TABLE "FormField"
+      ADD CONSTRAINT "FormField_sectionId_fkey"
+      FOREIGN KEY ("sectionId") REFERENCES "FormSection"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
+
 -- CreateEnum
 CREATE TYPE "FormContext" AS ENUM ('TICKET_CATEGORY', 'EVENT_REGISTRATION', 'EVENT_CREATION', 'CUSTOM');
 
@@ -167,4 +300,3 @@ ALTER TABLE "FormSubmission" ADD CONSTRAINT "FormSubmission_organizationId_fkey"
 
 -- AddForeignKey
 ALTER TABLE "FormTemplate" ADD CONSTRAINT "FormTemplate_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-

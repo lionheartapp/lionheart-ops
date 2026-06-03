@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -17,6 +17,13 @@ import {
   XCircle,
   Wrench,
   ImageIcon,
+  SplitSquareHorizontal,
+  Type,
+  Bold,
+  List,
+  FileText,
+  Pencil,
+  Save,
 } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { useToast } from '@/components/Toast'
@@ -31,6 +38,8 @@ import QAReviewPanel from './QAReviewPanel'
 import LaborTimerButton from './LaborTimerButton'
 import PmChecklistSection from './PmChecklistSection'
 import TicketDetailSidebar from './TicketDetailSidebar'
+import SplitTicketDrawer from './SplitTicketDrawer'
+import AIDiagnosticPanel from './AIDiagnosticPanel'
 import PanelErrorBoundary from '@/components/PanelErrorBoundary'
 import { Textarea } from '@/components/ui/Textarea'
 
@@ -90,10 +99,22 @@ interface MaintenanceTicket {
   school?: { id: string; name: string } | null
   laborEntries?: { id: string; hoursWorked: number; hourlyRate?: number | null }[]
   costEntries?: { id: string; amount: number; description?: string | null }[]
+  asset?: {
+    repeatAlertSentAt?: string | null
+    costAlertSentAt?: string | null
+    eolAlertSentAt?: string | null
+  } | null
   watchers?: {
     id: string
     userId: string
     user: { id: string; firstName: string; lastName: string; email: string }
+  }[]
+  activities?: {
+    id: string
+    type: string
+    content: string | null
+    createdAt: string
+    actor?: { firstName: string; lastName: string } | null
   }[]
 }
 
@@ -152,6 +173,252 @@ function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
   )
 }
 
+// ─── Key Details ─────────────────────────────────────────────────────────────
+
+function KeyDetailsSection({
+  ticketId,
+  description,
+  photos,
+  canEdit,
+  onPhotoClick,
+  leoSlot,
+}: {
+  ticketId: string
+  description?: string | null
+  photos: string[]
+  canEdit: boolean
+  onPhotoClick: (url: string) => void
+  leoSlot?: ReactNode
+}) {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const editorRef = useRef<HTMLTextAreaElement>(null)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(description ?? '')
+
+  const updateMutation = useMutation({
+    mutationFn: (nextDescription: string | null) =>
+      fetchApi(`/api/maintenance/tickets/${ticketId}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ description: nextDescription }),
+      }),
+    onSuccess: () => {
+      setEditing(false)
+      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+      toast('Description updated', 'success')
+    },
+    onError: () => {
+      toast('Could not update description', 'error')
+    },
+  })
+
+  function startEditing() {
+    if (!canEdit) return
+    setDraft(description ?? '')
+    setEditing(true)
+    setTimeout(() => editorRef.current?.focus(), 0)
+  }
+
+  function cancelEditing() {
+    setDraft(description ?? '')
+    setEditing(false)
+  }
+
+  function saveDescription() {
+    updateMutation.mutate(draft.trim() ? draft.trim() : null)
+  }
+
+  function insertFormat(type: 'heading' | 'bold' | 'bullet') {
+    const textarea = editorRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = draft.slice(start, end)
+    let replacement = selected
+    let cursorStart = start
+    let cursorEnd = end
+
+    if (type === 'heading') {
+      replacement = selected
+        ? selected.split('\n').map((line) => line.startsWith('## ') ? line : `## ${line}`).join('\n')
+        : '## Heading'
+      cursorStart = start + 3
+      cursorEnd = start + replacement.length
+    }
+
+    if (type === 'bold') {
+      replacement = selected ? `**${selected}**` : '**bold text**'
+      cursorStart = selected ? start + 2 : start + 2
+      cursorEnd = selected ? end + 2 : start + replacement.length - 2
+    }
+
+    if (type === 'bullet') {
+      replacement = selected
+        ? selected.split('\n').map((line) => line.startsWith('- ') ? line : `- ${line}`).join('\n')
+        : '- List item'
+      cursorStart = selected ? start : start + 2
+      cursorEnd = start + replacement.length
+    }
+
+    const next = `${draft.slice(0, start)}${replacement}${draft.slice(end)}`
+    setDraft(next)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(cursorStart, cursorEnd)
+    }, 0)
+  }
+
+  return (
+    <section className="ui-glass p-5 rounded-2xl space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-slate-400" />
+          <h2 className="text-base font-semibold text-slate-900">Key Details</h2>
+        </div>
+        {canEdit && !editing && (
+          <button
+            type="button"
+            onClick={startEditing}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </button>
+        )}
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+          Description
+        </p>
+
+        {editing ? (
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-1 border-b border-slate-100 bg-slate-50/80 px-2 py-2">
+              <button
+                type="button"
+                onClick={() => insertFormat('heading')}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-slate-500 hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
+                title="Heading"
+              >
+                <Type className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormat('bold')}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-slate-500 hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
+                title="Bold"
+              >
+                <Bold className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertFormat('bullet')}
+                className="inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-slate-500 hover:bg-white hover:text-slate-900 transition-colors cursor-pointer"
+                title="Bulleted list"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+            <Textarea
+              ref={editorRef}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="Add the background, symptoms, what has already been tried, and any safety notes..."
+              rows={8}
+              className="min-h-[220px] rounded-none border-0 bg-white px-4 py-4 text-sm leading-7 text-slate-800 shadow-none focus-visible:ring-0"
+            />
+            <div className="flex items-center gap-2 border-t border-slate-100 bg-white px-3 py-3">
+              <button
+                type="button"
+                onClick={saveDescription}
+                disabled={updateMutation.isPending}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                {updateMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEditing}
+                disabled={updateMutation.isPending}
+                className="inline-flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={startEditing}
+            disabled={!canEdit}
+            className={`w-full rounded-xl border border-transparent p-3 text-left transition-colors ${
+              canEdit
+                ? 'hover:border-slate-200 hover:bg-slate-50 cursor-text'
+                : 'cursor-default'
+            }`}
+          >
+            {description ? (
+              <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                {description}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">
+                No description yet.
+                {canEdit ? ' Click to add the work order background.' : ''}
+              </p>
+            )}
+          </button>
+        )}
+      </div>
+
+      {photos.length > 0 && (
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-2">
+            <ImageIcon className="w-3 h-3" />
+            {photos.length} photo{photos.length !== 1 ? 's' : ''}
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {photos.map((url, index) => (
+              <button
+                key={url}
+                onClick={() => onPhotoClick(url)}
+                className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity group flex-shrink-0"
+                title="Click to view full size"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={`Photo ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <ExternalLink className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity drop-shadow" />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {leoSlot && (
+        <div className="border-t border-slate-100 pt-4">
+          {leoSlot}
+        </div>
+      )}
+    </section>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
@@ -171,6 +438,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   const [showHoldForm, setShowHoldForm] = useState(false)
   const [showQAModal, setShowQAModal] = useState(false)
   const [showCancelForm, setShowCancelForm] = useState(false)
+  const [showSplitDrawer, setShowSplitDrawer] = useState(false)
   const [cancellationReason, setCancellationReason] = useState('')
   const [isCancelling, setIsCancelling] = useState(false)
   const [cancelError, setCancelError] = useState('')
@@ -295,6 +563,31 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
     ticket.status !== 'ON_HOLD' &&
     ['TODO', 'IN_PROGRESS', 'BACKLOG'].includes(ticket.status) &&
     ticket.status !== 'QA'
+  const canSplit = canManage && ticket.status !== 'DONE' && ticket.status !== 'CANCELLED'
+  const showActionBar =
+    availableActions.length > 0 || showOnHoldAction || canCancel || canSplit
+  const roomLabel = ticket.room
+    ? ticket.room.displayName || ticket.room.roomNumber || 'Room'
+    : null
+  const locationLabel = [
+    ticket.school?.name,
+    ticket.building?.name,
+    ticket.area?.name,
+    roomLabel,
+  ].filter(Boolean).join(' / ')
+  const submittedByName = `${ticket.submittedBy.firstName} ${ticket.submittedBy.lastName}`.trim()
+  const assignedToName = ticket.assignedTo
+    ? `${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`.trim()
+    : null
+  const ticketComments = (ticket.activities ?? [])
+    .filter((activity) => activity.type === 'COMMENT')
+    .map((activity) => ({
+      content: activity.content,
+      createdAt: activity.createdAt,
+      actorName: activity.actor
+        ? `${activity.actor.firstName} ${activity.actor.lastName}`.trim()
+        : null,
+    }))
 
   return (
     <>
@@ -307,6 +600,25 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         open={showQAModal}
         onClose={() => setShowQAModal(false)}
         onComplete={onStatusActionComplete}
+      />
+
+      <SplitTicketDrawer
+        open={showSplitDrawer}
+        ticketId={ticket.id}
+        sourceTitle={ticket.title}
+        sourcePriority={ticket.priority}
+        sourceCategory={ticket.category}
+        hasPhotos={(ticket.photos ?? []).length > 0}
+        hasAsset={!!ticket.asset}
+        onClose={() => setShowSplitDrawer(false)}
+        onSplit={(newTicket) => {
+          setShowSplitDrawer(false)
+          toast(`Created ${newTicket.ticketNumber}`, 'success')
+          queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+          queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
+          queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+          router.push(`/maintenance/tickets/${newTicket.id}`)
+        }}
       />
 
       <motion.div
@@ -379,7 +691,7 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         </motion.div>
 
         {/* ─── Actions bar ─────────────────────────────────────────── */}
-        {!isSubmitter && isPrivileged && ticket.status !== 'DONE' && ticket.status !== 'CANCELLED' && (
+        {showActionBar && (
           <motion.div variants={fadeInUp} className="flex items-center gap-2 flex-wrap">
             {/* Primary actions */}
             {availableActions.map(({ to, label }) => {
@@ -446,6 +758,16 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               >
                 <XCircle className="w-3.5 h-3.5" />
                 Cancel
+              </button>
+            )}
+
+            {canSplit && (
+              <button
+                onClick={() => setShowSplitDrawer(true)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <SplitSquareHorizontal className="w-3.5 h-3.5" />
+                Split
               </button>
             )}
 
@@ -595,53 +917,35 @@ export default function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
 
         {/* ─── Two-column: Activity (left) | Sidebar (right) ─────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ─── Left: Issue brief + Activity ──────────────────────── */}
+          {/* ─── Left: Key details + Activity ──────────────────────── */}
           <motion.div
             variants={staggerContainer(0.05, 0)}
             className="lg:col-span-2 space-y-4"
           >
-            {/* Issue summary card */}
-            <motion.div variants={fadeInUp} className="ui-glass p-5 rounded-2xl space-y-3">
-              {ticket.description && (
-                <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                  {ticket.description}
-                </p>
-              )}
-
-              {/* Photos */}
-              {ticket.photos && ticket.photos.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
-                    <ImageIcon className="w-3 h-3" />
-                    {ticket.photos.length} photo{ticket.photos.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {ticket.photos.map((url, i) => (
-                      <button
-                        key={url}
-                        onClick={() => setLightboxUrl(url)}
-                        className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity group flex-shrink-0"
-                        title="Click to view full size"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={url}
-                          alt={`Photo ${i + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <ExternalLink className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity drop-shadow" />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {!ticket.description &&
-                (!ticket.photos || ticket.photos.length === 0) && (
-                  <p className="text-xs text-slate-400">No additional details provided</p>
-                )}
+            <motion.div variants={fadeInUp}>
+              <KeyDetailsSection
+                ticketId={ticket.id}
+                description={ticket.description}
+                photos={ticket.photos ?? []}
+                canEdit={isPrivileged || isSubmitter}
+                onPhotoClick={setLightboxUrl}
+                leoSlot={
+                  <AIDiagnosticPanel
+                    ticketId={ticket.id}
+                    ticketNumber={ticket.ticketNumber}
+                    title={ticket.title}
+                    description={ticket.description}
+                    status={ticket.status}
+                    priority={ticket.priority}
+                    photos={ticket.photos}
+                    category={ticket.category}
+                    locationLabel={locationLabel || null}
+                    submittedByName={submittedByName || null}
+                    assignedToName={assignedToName}
+                    comments={ticketComments}
+                  />
+                }
+              />
             </motion.div>
 
             {/* PM Checklist */}

@@ -97,6 +97,31 @@ interface PlayLogEntry {
   basesAfter: BaseballBases
 }
 
+interface PersistedGameState {
+  currentPlayerIndex?: number
+  balls?: number
+  strikes?: number
+  outs?: number
+  pitchCount?: number
+  errors?: number
+  inning?: number
+  halfInning?: 'top' | 'bottom'
+  bases?: BaseballBases
+  playLog?: PlayLogEntry[]
+  lineup?: RosterPlayer[]
+  lastPlay?: string
+  hasLaunchedGameDay?: boolean
+}
+
+interface GameDaySessionResponse {
+  status: 'NOT_STARTED' | 'LIVE' | 'PAUSED' | 'FINAL'
+  currentPeriod: number
+  periodLabel: string | null
+  lineup: unknown
+  gameState: unknown
+  playLog: unknown
+}
+
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 }
@@ -384,6 +409,7 @@ export default function MobileGameDayMode({
   const [errorDrawerOpen, setErrorDrawerOpen] = useState(false)
   const [fielderDrawerOpen, setFielderDrawerOpen] = useState(false)
   const [selectedFielderId, setSelectedFielderId] = useState<string | null>(null)
+  const [gameDayLoaded, setGameDayLoaded] = useState(false)
   const halfInningAdvancePendingRef = useRef(false)
   const halfInningTimerRef = useRef<number | null>(null)
   const outsRef = useRef(0)
@@ -392,6 +418,7 @@ export default function MobileGameDayMode({
   const basesRef = useRef<BaseballBases>(emptyBases())
   const playLogRef = useRef<PlayLogEntry[]>([])
   const lineupRef = useRef<RosterPlayer[]>([])
+  const autosaveTimerRef = useRef<number | null>(null)
   const shouldReduceMotion = useReducedMotion()
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
@@ -401,7 +428,7 @@ export default function MobileGameDayMode({
   const currentPlayer = battingOrder[currentPlayerIndex] ?? null
   const isExpanded = presentation === 'fullscreen'
   const launchStorageKey = game ? `athletics-game-day-launched:${game.id}` : null
-  const gameStateStorageKey = game ? `athletics-baseball-state:${game.id}` : null
+  const gameStateStorageKey = game ? `athletics-game-state:${game.id}` : null
   const currentPlayerStats = currentPlayer ? stats[currentPlayer.id] ?? {} : {}
   const fieldAssignments = useMemo(() => {
     const assigned = new Map<string, RosterPlayer>()
@@ -443,60 +470,93 @@ export default function MobileGameDayMode({
     setLiveIsFinal(game.isFinal)
   }, [game])
 
-  useEffect(() => {
-    if (!gameStateStorageKey || profile.kind !== 'baseball' || typeof window === 'undefined') return
-    try {
-      const raw = sessionStorage.getItem(gameStateStorageKey)
-      if (!raw) return
-      const saved = JSON.parse(raw) as {
-        currentPlayerIndex?: number
-        balls?: number
-        strikes?: number
-        outs?: number
-        pitchCount?: number
-        errors?: number
-        inning?: number
-        halfInning?: 'top' | 'bottom'
-        bases?: BaseballBases
-        playLog?: PlayLogEntry[]
-        lineup?: RosterPlayer[]
-      }
-      if (Number.isFinite(saved.currentPlayerIndex)) setCurrentPlayerIndex(saved.currentPlayerIndex ?? 0)
-      if (Number.isFinite(saved.balls)) setBalls(saved.balls ?? 0)
-      if (Number.isFinite(saved.strikes)) setStrikes(saved.strikes ?? 0)
-      if (Number.isFinite(saved.pitchCount)) setPitchCount(saved.pitchCount ?? 0)
-      if (Number.isFinite(saved.errors)) setErrors(saved.errors ?? 0)
-      if (Number.isFinite(saved.outs)) {
-        outsRef.current = saved.outs ?? 0
-        setOuts(saved.outs ?? 0)
-      }
-      if (Number.isFinite(saved.inning)) {
-        inningRef.current = saved.inning ?? 1
-        setInning(saved.inning ?? 1)
-      }
-      if (saved.halfInning === 'top' || saved.halfInning === 'bottom') {
-        halfInningRef.current = saved.halfInning
-        setHalfInning(saved.halfInning)
-      }
-      if (saved.bases) {
-        basesRef.current = saved.bases
-        setBases(saved.bases)
-      }
-      if (Array.isArray(saved.playLog)) {
-        playLogRef.current = saved.playLog
-        setPlayLog(saved.playLog)
-      }
-      if (Array.isArray(saved.lineup)) {
-        syncLineup(saved.lineup)
-      }
-    } catch {
-      sessionStorage.removeItem(gameStateStorageKey)
+  const applyPersistedState = useCallback((saved: PersistedGameState) => {
+    if (Number.isFinite(saved.currentPlayerIndex)) setCurrentPlayerIndex(saved.currentPlayerIndex ?? 0)
+    if (Number.isFinite(saved.balls)) setBalls(saved.balls ?? 0)
+    if (Number.isFinite(saved.strikes)) setStrikes(saved.strikes ?? 0)
+    if (Number.isFinite(saved.pitchCount)) setPitchCount(saved.pitchCount ?? 0)
+    if (Number.isFinite(saved.errors)) setErrors(saved.errors ?? 0)
+    if (typeof saved.lastPlay === 'string') setLastPlay(saved.lastPlay)
+    if (saved.hasLaunchedGameDay) setHasLaunchedGameDay(true)
+    if (Number.isFinite(saved.outs)) {
+      outsRef.current = saved.outs ?? 0
+      setOuts(saved.outs ?? 0)
     }
-  }, [gameStateStorageKey, profile.kind, syncLineup])
+    if (Number.isFinite(saved.inning)) {
+      inningRef.current = saved.inning ?? 1
+      setInning(saved.inning ?? 1)
+    }
+    if (saved.halfInning === 'top' || saved.halfInning === 'bottom') {
+      halfInningRef.current = saved.halfInning
+      setHalfInning(saved.halfInning)
+    }
+    if (saved.bases) {
+      basesRef.current = saved.bases
+      setBases(saved.bases)
+    }
+    if (Array.isArray(saved.playLog)) {
+      playLogRef.current = saved.playLog
+      setPlayLog(saved.playLog)
+    }
+    if (Array.isArray(saved.lineup)) {
+      syncLineup(saved.lineup)
+    }
+  }, [syncLineup])
 
   useEffect(() => {
-    if (!gameStateStorageKey || profile.kind !== 'baseball' || typeof window === 'undefined') return
-    sessionStorage.setItem(gameStateStorageKey, JSON.stringify({
+    if (!game || !token || !gameStateStorageKey) return
+    let cancelled = false
+    setGameDayLoaded(false)
+
+    const loadGameDaySession = async () => {
+      try {
+        const res = await fetchWithCsrfRetry(`/api/athletics/games/${game.id}/game-day`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (handleAuthResponse(res) || cancelled) return
+        const data = await res.json()
+        if (data.ok && data.data) {
+          const session = data.data as GameDaySessionResponse
+          if (session.status === 'LIVE' || session.status === 'FINAL') setHasLaunchedGameDay(true)
+          if (session.status === 'FINAL') setLiveIsFinal(true)
+          if (Number.isFinite(session.currentPeriod)) {
+            inningRef.current = session.currentPeriod
+            setInning(session.currentPeriod)
+          }
+          if (session.gameState && typeof session.gameState === 'object') {
+            applyPersistedState(session.gameState as PersistedGameState)
+          }
+          if (Array.isArray(session.lineup)) syncLineup(session.lineup as RosterPlayer[])
+          if (Array.isArray(session.playLog)) {
+            playLogRef.current = session.playLog as PlayLogEntry[]
+            setPlayLog(playLogRef.current)
+          }
+        } else {
+          const raw = sessionStorage.getItem(gameStateStorageKey)
+          if (raw) applyPersistedState(JSON.parse(raw) as PersistedGameState)
+        }
+      } catch {
+        try {
+          const raw = sessionStorage.getItem(gameStateStorageKey)
+          if (raw) applyPersistedState(JSON.parse(raw) as PersistedGameState)
+        } catch {
+          sessionStorage.removeItem(gameStateStorageKey)
+        }
+      } finally {
+        if (!cancelled) setGameDayLoaded(true)
+      }
+    }
+
+    loadGameDaySession()
+    return () => {
+      cancelled = true
+    }
+  }, [applyPersistedState, game, gameStateStorageKey, syncLineup, token])
+
+  useEffect(() => {
+    if (!game || !token || !gameStateStorageKey || !gameDayLoaded || typeof window === 'undefined') return
+    const persistedState: PersistedGameState = {
       currentPlayerIndex,
       balls,
       strikes,
@@ -508,8 +568,38 @@ export default function MobileGameDayMode({
       bases,
       playLog,
       lineup,
-    }))
-  }, [balls, bases, currentPlayerIndex, errors, gameStateStorageKey, halfInning, inning, lineup, outs, pitchCount, playLog, profile.kind, strikes])
+      lastPlay,
+      hasLaunchedGameDay,
+    }
+    sessionStorage.setItem(gameStateStorageKey, JSON.stringify(persistedState))
+
+    if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current)
+    autosaveTimerRef.current = window.setTimeout(async () => {
+      const status = liveIsFinal ? 'FINAL' : hasLaunchedGameDay ? 'LIVE' : 'NOT_STARTED'
+      try {
+        await fetchWithCsrfRetry(`/api/athletics/games/${game.id}/game-day`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            status,
+            currentPeriod: inning,
+            periodLabel: profile.kind === 'baseball'
+              ? `${halfInning === 'top' ? 'Top' : 'Bottom'} ${ordinal(inning)}`
+              : `${profile.periodLabel} ${inning}`,
+            lineup,
+            playLog,
+            gameState: persistedState,
+          }),
+        })
+      } catch {
+        // Local session storage remains as a fallback if the court/field has a bad connection.
+      }
+    }, 700)
+
+    return () => {
+      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current)
+    }
+  }, [balls, bases, currentPlayerIndex, errors, game, gameDayLoaded, gameStateStorageKey, halfInning, hasLaunchedGameDay, inning, lastPlay, lineup, liveIsFinal, outs, pitchCount, playLog, profile.kind, profile.periodLabel, strikes, token])
 
   useEffect(() => {
     if (!isFullScreen && !isExpanded) return
@@ -624,6 +714,13 @@ export default function MobileGameDayMode({
     setLastPlay('Ready to end this half. Review, then start next half.')
   }, [betweenInnings, nextHalfInning])
 
+  const advancePeriod = useCallback(() => {
+    const next = inningRef.current + 1
+    inningRef.current = next
+    setInning(next)
+    setLastPlay(`${profile.periodLabel} ${next}`)
+  }, [profile.periodLabel])
+
   useEffect(() => {
     return () => {
       if (halfInningTimerRef.current) window.clearTimeout(halfInningTimerRef.current)
@@ -690,12 +787,15 @@ export default function MobileGameDayMode({
   const gameDayModes: Array<{ key: GameDayMode; label: string; icon: LucideIcon }> = [
     { key: 'home', label: 'Home', icon: Home },
     { key: 'scoring', label: 'Scoring', icon: Trophy },
-    { key: 'field', label: 'Field', icon: Shield },
-    { key: 'lineup', label: 'Lineup', icon: Users },
+    ...(profile.kind === 'baseball' ? [{ key: 'field' as const, label: 'Field', icon: Shield }] : []),
+    { key: 'lineup', label: profile.gameStructure === 'events' ? 'Results' : 'Lineup', icon: Users },
     { key: 'stats', label: 'Stats', icon: BarChart3 },
     { key: 'sheet', label: 'Sheet', icon: ClipboardList },
   ]
   const activeGameDayModeIndex = Math.max(0, gameDayModes.findIndex((mode) => mode.key === gameDayMode))
+  const opponentScoreActions = profile.quickActions
+    .filter((action) => typeof action.scoreDelta === 'number' && action.scoreDelta > 0)
+    .slice(0, 6)
 
   const saveScore = async (nextHome: number, nextAway: number, final = liveIsFinal, celebrateWin = false) => {
     if (!token) return
@@ -732,10 +832,26 @@ export default function MobileGameDayMode({
     }
   }
 
-  const changeScore = async (side: 'ours' | 'opponent', delta: number) => {
+  const changeScore = async (
+    side: 'ours' | 'opponent',
+    delta: number,
+    options: { log?: boolean; label?: string } = {},
+  ) => {
     const targetHome = side === 'ours' ? ourIsHome : !ourIsHome
     const nextHome = Math.max(0, homeScore + (targetHome ? delta : 0))
     const nextAway = Math.max(0, awayScore + (!targetHome ? delta : 0))
+    const shouldLog = options.log ?? true
+    if (shouldLog && delta !== 0) {
+      const teamLabel = side === 'ours' ? viewpoint.team?.name ?? 'Our team' : viewpoint.opponentLabel
+      const unit = Math.abs(delta) === 1 ? profile.scoreUnit.toLowerCase() : `${profile.scoreUnit.toLowerCase()}s`
+      const direction = delta > 0 ? '+' : '-'
+      addPlayLogEntry({
+        batterName: teamLabel,
+        result: options.label ?? `${teamLabel} ${direction}${Math.abs(delta)} ${unit}`,
+        runs: delta,
+      })
+      setLastPlay(options.label ?? `${teamLabel} ${direction}${Math.abs(delta)}`)
+    }
     await saveScore(nextHome, nextAway)
   }
 
@@ -820,7 +936,7 @@ export default function MobileGameDayMode({
 
   const recordRuns = async (runs: number) => {
     if (runs <= 0) return
-    await changeScore('ours', runs)
+    await changeScore('ours', runs, { log: false })
   }
 
   const applyHitToBases = (batter: RosterPlayer, basesBefore: BaseballBases, totalBases: 1 | 2 | 3 | 4) => {
@@ -1086,13 +1202,18 @@ export default function MobileGameDayMode({
     }
     const actionMessage = currentPlayer ? `${action.label} recorded for ${playerLabel(currentPlayer)}` : `${action.label} recorded`
     setLastPlay(actionMessage)
+    addPlayLogEntry({
+      batterName: currentPlayer ? playerLabel(currentPlayer) : viewpoint.team?.name ?? 'Our team',
+      result: action.label,
+      runs: action.scoreDelta ?? 0,
+    })
     if (action.celebration === 'homeRun') setCelebration('Home run!')
     if (action.statKey && currentPlayer) await saveStatIncrement(currentPlayer, action.statKey, action.statKey === 'points' ? action.scoreDelta ?? 1 : 1)
     if (action.key === 'hr' && currentPlayer) {
       await saveStatIncrement(currentPlayer, 'runs', 1)
       await saveStatIncrement(currentPlayer, 'rbi', 1)
     }
-    if (action.scoreDelta) await changeScore('ours', action.scoreDelta)
+    if (action.scoreDelta) await changeScore('ours', action.scoreDelta, { log: false })
     if (action.advancesPlayer) nextPlayer(actionMessage)
   }
 
@@ -1485,9 +1606,9 @@ export default function MobileGameDayMode({
         </motion.div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-[86px_minmax(0,1fr)] lg:items-start">
-          <nav
-            className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-6 gap-1 rounded-[28px] border border-white/10 bg-slate-900/90 p-2 shadow-2xl shadow-slate-950/35 backdrop-blur-xl lg:sticky lg:inset-x-auto lg:bottom-auto lg:top-6 lg:flex lg:h-auto lg:max-h-[560px] lg:flex-col lg:items-stretch lg:gap-2 lg:bg-slate-900/70 lg:backdrop-blur"
-            style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+	          <nav
+	            className="fixed inset-x-3 bottom-3 z-30 grid gap-1 rounded-[28px] border border-white/10 bg-slate-900/90 p-2 shadow-2xl shadow-slate-950/35 backdrop-blur-xl lg:sticky lg:inset-x-auto lg:bottom-auto lg:top-6 lg:flex lg:h-auto lg:max-h-[560px] lg:flex-col lg:items-stretch lg:gap-2 lg:bg-slate-900/70 lg:backdrop-blur"
+	            style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom))', gridTemplateColumns: `repeat(${gameDayModes.length}, minmax(0, 1fr))` }}
           >
             <motion.span
               className="pointer-events-none absolute left-2 right-2 top-2 hidden h-[76px] rounded-2xl border border-sky-200/25 bg-sky-300/14 lg:block"
@@ -1585,8 +1706,8 @@ export default function MobileGameDayMode({
               <p className="mt-0.5 truncate font-semibold">{viewpoint.opponentLabel}</p>
             </div>
           </div>
-          {profile.kind === 'baseball' && (
-            <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
+	          {profile.kind === 'baseball' && (
+	            <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
               <div className="grid grid-cols-[auto_1fr] items-center gap-3 rounded-2xl bg-white/[0.05] px-3 py-2">
                 <BaseballDiamond bases={bases} />
                 <div className="grid gap-2">
@@ -1611,8 +1732,27 @@ export default function MobileGameDayMode({
                 <div className="rounded-2xl bg-white/[0.05] px-3 py-2">Pitches {pitchCount}</div>
                 <div className="rounded-2xl bg-white/[0.05] px-3 py-2">Errors {errors}</div>
               </div>
-            </div>
-          )}
+	            </div>
+	          )}
+	          {profile.kind !== 'baseball' && (
+	            <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl bg-white/[0.05] px-3 py-2">
+	              <div className="min-w-0">
+	                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/40">{profile.periodLabel}</p>
+		                <p className="mt-0.5 truncate text-sm font-black text-white">
+		                  {profile.periodLabel} {inning}{profile.maxRegularPeriods ? ` of ${profile.maxRegularPeriods}` : ''}
+		                </p>
+	              </div>
+	              <motion.button
+	                type="button"
+	                onClick={advancePeriod}
+	                disabled={scoringLocked}
+	                {...pressMotion}
+	                className="min-h-10 rounded-2xl bg-white/[0.12] px-4 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-40 cursor-pointer"
+	              >
+		                Next {profile.periodLabel}
+	              </motion.button>
+	            </div>
+	          )}
           <div className="mt-4 grid grid-cols-2 gap-2">
             <motion.button type="button" onClick={() => changeScore('ours', 1)} disabled={saving || scoringLocked} {...pressMotion} className="min-h-12 rounded-2xl bg-sky-400 px-4 text-base font-bold text-slate-950 transition active:scale-[0.98] disabled:opacity-60 cursor-pointer">
               <Plus className="mr-1 inline h-4 w-4" /> Our {profile.scoreUnit}
@@ -1767,17 +1907,17 @@ export default function MobileGameDayMode({
             </div>
           )}
 
-          {isOurAtBat && (
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {profile.quickActions.map((action) => (
-              <motion.button
-                key={action.key}
-                type="button"
-                onClick={() => handleSportAction(action)}
-                disabled={scoringLocked || Boolean(action.statKey && !currentPlayer)}
-                {...pressMotion}
-                className={`min-h-12 rounded-2xl border px-2 text-sm font-bold transition active:scale-[0.98] disabled:opacity-40 cursor-pointer ${actionTone(action)}`}
-              >
+	          {isOurAtBat && (
+	            <div className="mt-3 grid grid-cols-4 gap-2">
+	              {profile.quickActions.map((action) => (
+	              <motion.button
+	                key={action.key}
+	                type="button"
+	                onClick={() => handleSportAction(action)}
+	                disabled={scoringLocked || Boolean(action.statKey && !currentPlayer && !action.scoreDelta)}
+	                {...pressMotion}
+	                className={`min-h-12 rounded-2xl border px-2 text-sm font-bold transition active:scale-[0.98] disabled:opacity-40 cursor-pointer ${actionTone(action)}`}
+	              >
                 <span>{action.label}</span>
                 {action.statKey && currentPlayer && (currentPlayerStats[action.statKey] ?? 0) > 0 && (
                   <motion.span
@@ -1791,11 +1931,34 @@ export default function MobileGameDayMode({
                   </motion.span>
                 )}
               </motion.button>
-              ))}
-            </div>
-          )}
-        </motion.div>
-        )}
+	              ))}
+	            </div>
+	          )}
+
+	          {profile.kind !== 'baseball' && opponentScoreActions.length > 0 && (
+	            <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+	              <div className="flex items-center justify-between gap-3">
+	                <p className="text-xs font-black uppercase tracking-[0.14em] text-white/40">Opponent scoring</p>
+	                <span className="truncate text-xs font-semibold text-white/45">{viewpoint.opponentLabel}</span>
+	              </div>
+	              <div className="mt-3 grid grid-cols-3 gap-2">
+	                {opponentScoreActions.map((action) => (
+	                  <motion.button
+	                    key={`opponent-${action.key}`}
+	                    type="button"
+	                    onClick={() => changeScore('opponent', action.scoreDelta ?? 1, { label: `${viewpoint.opponentLabel} ${action.label}` })}
+	                    disabled={saving || scoringLocked}
+	                    {...pressMotion}
+	                    className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-sm font-bold text-white/80 transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+	                  >
+	                    {action.label}
+	                  </motion.button>
+	                ))}
+	              </div>
+	            </div>
+	          )}
+	        </motion.div>
+	        )}
 
         {gameDayMode === 'field' && profile.kind === 'baseball' && (
           <motion.div
@@ -1844,7 +2007,7 @@ export default function MobileGameDayMode({
           </motion.div>
         )}
 
-        {profile.kind === 'baseball' && isOurAtBat && (gameDayMode === 'home' || gameDayMode === 'lineup') && (
+        {(gameDayMode === 'lineup' || (profile.kind === 'baseball' && isOurAtBat && gameDayMode === 'home')) && (
           <motion.div
             className="rounded-3xl border border-white/10 bg-black/20 p-4"
             initial={shouldReduceMotion ? false : { x: 14, opacity: 0 }}
@@ -1853,8 +2016,8 @@ export default function MobileGameDayMode({
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/40">Lineup</p>
-                <p className="mt-1 text-sm font-semibold text-white/70">{battingOrder.length ? `${battingOrder.length} batting spots` : 'No roster loaded'}</p>
+	                <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/40">{profile.gameStructure === 'events' ? 'Results roster' : 'Lineup'}</p>
+	                <p className="mt-1 text-sm font-semibold text-white/70">{battingOrder.length ? `${battingOrder.length} ${profile.kind === 'baseball' ? 'batting spots' : 'players'}` : 'No roster loaded'}</p>
               </div>
               <motion.button
                 type="button"
@@ -1905,22 +2068,32 @@ export default function MobileGameDayMode({
                 Full stats
               </motion.button>
             </div>
-            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {roster.map((player) => (
-                <div key={player.id} className="rounded-2xl bg-white/[0.04] px-3 py-2">
-                  <p className="truncate text-sm font-black text-white">{playerLabel(player)}</p>
-                  <p className="mt-1 text-xs font-semibold text-white/45">
-                    H {(stats[player.id]?.singles ?? 0) + (stats[player.id]?.doubles ?? 0) + (stats[player.id]?.triples ?? 0) + (stats[player.id]?.home_runs ?? 0)}
-                    {' · '}RBI {stats[player.id]?.rbi ?? 0}
-                    {' · '}E {stats[player.id]?.errors ?? 0}
-                  </p>
-                </div>
-              ))}
+	            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+	              {roster.map((player) => (
+	                <div key={player.id} className="rounded-2xl bg-white/[0.04] px-3 py-2">
+	                  <p className="truncate text-sm font-black text-white">{playerLabel(player)}</p>
+	                  <p className="mt-1 text-xs font-semibold text-white/45">
+	                    {profile.kind === 'baseball'
+	                      ? (
+	                        <>
+	                          H {(stats[player.id]?.singles ?? 0) + (stats[player.id]?.doubles ?? 0) + (stats[player.id]?.triples ?? 0) + (stats[player.id]?.home_runs ?? 0)}
+	                          {' · '}RBI {stats[player.id]?.rbi ?? 0}
+	                          {' · '}E {stats[player.id]?.errors ?? 0}
+	                        </>
+	                      )
+	                      : profile.quickActions
+	                        .filter((action) => action.statKey)
+	                        .slice(0, 4)
+	                        .map((action) => `${action.label} ${stats[player.id]?.[action.statKey as string] ?? 0}`)
+	                        .join(' · ')}
+	                  </p>
+	                </div>
+	              ))}
             </div>
           </motion.div>
         )}
 
-        {profile.kind === 'baseball' && (gameDayMode === 'home' || gameDayMode === 'sheet') && (
+        {(gameDayMode === 'home' || gameDayMode === 'sheet') && (
           <motion.div
             className="rounded-3xl border border-white/10 bg-black/20 p-4"
             initial={shouldReduceMotion ? false : { x: 14, opacity: 0 }}
@@ -1936,13 +2109,15 @@ export default function MobileGameDayMode({
                 <div key={play.id} className="rounded-2xl bg-white/[0.04] px-3 py-2">
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate text-sm font-bold text-white">{play.result} · {play.batterName}</p>
-                    <span className="shrink-0 text-xs font-black uppercase tracking-[0.12em] text-sky-100/55">
-                      {play.halfInning === 'top' ? 'Top' : 'Bot'} {play.inning}
-                    </span>
+	                    <span className="shrink-0 text-xs font-black uppercase tracking-[0.12em] text-sky-100/55">
+	                      {profile.kind === 'baseball' ? `${play.halfInning === 'top' ? 'Top' : 'Bot'} ${play.inning}` : `${profile.periodLabel} ${play.inning}`}
+	                    </span>
                   </div>
                   <p className="mt-1 text-xs font-semibold text-white/45">
-                    {play.runs ? `${play.runs} ${play.runs === 1 ? 'run' : 'runs'} · ` : ''}{play.outs} outs · {countOccupiedBases(play.basesAfter)} on
-                  </p>
+	                    {profile.kind === 'baseball'
+	                      ? `${play.runs ? `${play.runs} ${play.runs === 1 ? 'run' : 'runs'} · ` : ''}${play.outs} outs · ${countOccupiedBases(play.basesAfter)} on`
+	                      : play.runs ? `${play.runs} ${play.runs === 1 ? profile.scoreUnit.toLowerCase() : `${profile.scoreUnit.toLowerCase()}s`}` : 'Stat recorded'}
+	                  </p>
                 </div>
               )) : (
                 <p className="rounded-2xl bg-white/[0.04] px-3 py-3 text-sm text-white/55">Plays will appear here as the game is scored.</p>

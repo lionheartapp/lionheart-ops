@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Layers, Monitor, Wrench, Plus, X, Pencil, Check } from 'lucide-react'
+import { Layers, Monitor, Wrench, Wifi, Plus, X, Pencil, Check } from 'lucide-react'
 import { listItem } from '@/lib/animations'
 import type { EventProject } from '@/lib/hooks/useEventProject'
 import { useUpdateEventProject } from '@/lib/hooks/useEventProject'
@@ -27,7 +27,7 @@ export interface ResourceItem {
 type StoredResource = string | ResourceItem
 
 interface CategoryConfig {
-  key: 'avNeeds' | 'facilityNeeds'
+  key: 'avNeeds' | 'itNeeds' | 'facilityNeeds'
   label: string
   Icon: typeof Monitor
   suggestions: readonly string[]
@@ -48,6 +48,18 @@ const AV_CATEGORY: CategoryConfig = {
   label: 'A/V Production',
   Icon: Monitor,
   suggestions: AV_SUGGESTIONS,
+}
+
+const IT_SUGGESTIONS = [
+  'Wi-Fi / Network Check', 'Check-in Devices', 'Ticket Scanners', 'Payment Devices',
+  'Testing Devices', 'Livestream Account Access', 'Printer / Sign-in Station', 'Backup Hotspot',
+] as const
+
+const IT_CATEGORY: CategoryConfig = {
+  key: 'itNeeds',
+  label: 'IT Support',
+  Icon: Wifi,
+  suggestions: IT_SUGGESTIONS,
 }
 
 const FACILITIES_CATEGORY: CategoryConfig = {
@@ -375,18 +387,26 @@ export function ResourceRequirementsSection({ project }: { project: EventProject
   const { toast } = useToast()
 
   const avItems = readItems(meta, 'avNeeds')
+  const itItems = readItems(meta, 'itNeeds')
   const facilityItems = readItems(meta, 'facilityNeeds')
   const hasAV = project.requiresAV
+  const hasIT = !!meta.requiresIT || itItems.length > 0
   const hasFacilities = project.requiresFacilities
 
-  if (!hasAV && !hasFacilities) return null
+  if (!hasAV && !hasIT && !hasFacilities) return null
 
-  const totalItems = avItems.length + facilityItems.length
-  const activeCategories = (hasAV ? 1 : 0) + (hasFacilities ? 1 : 0)
+  const totalItems = avItems.length + itItems.length + facilityItems.length
+  const activeCategories = (hasAV ? 1 : 0) + (hasIT ? 1 : 0) + (hasFacilities ? 1 : 0)
 
-  async function saveCategory(key: 'avNeeds' | 'facilityNeeds', items: ResourceItem[]) {
+  async function saveCategory(key: 'avNeeds' | 'itNeeds' | 'facilityNeeds', items: ResourceItem[]) {
     try {
-      await updateProject.mutateAsync({ metadata: { ...meta, [key]: items } })
+      await updateProject.mutateAsync({
+        metadata: {
+          ...meta,
+          ...(key === 'itNeeds' ? { requiresIT: items.length > 0 } : {}),
+          [key]: items,
+        },
+      })
     } catch {
       toast('Failed to update', 'error')
     }
@@ -413,6 +433,13 @@ export function ResourceRequirementsSection({ project }: { project: EventProject
             config={AV_CATEGORY}
             items={avItems}
             onChange={(next) => saveCategory('avNeeds', next)}
+          />
+        )}
+        {hasIT && (
+          <CategoryBlock
+            config={IT_CATEGORY}
+            items={itItems}
+            onChange={(next) => saveCategory('itNeeds', next)}
           />
         )}
         {hasFacilities && (

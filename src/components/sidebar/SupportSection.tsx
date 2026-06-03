@@ -28,6 +28,7 @@ interface SupportSectionProps {
   canClaimMaintenance: boolean
   canSubmitMaintenance: boolean
   canReadInventory: boolean
+  canReadAV: boolean
   facilitiesGateCount: { count: number } | undefined
   // IT
   itOpen: boolean
@@ -63,6 +64,7 @@ export default function SupportSection({
   canClaimMaintenance,
   canSubmitMaintenance,
   canReadInventory,
+  canReadAV,
   facilitiesGateCount,
   itOpen,
   setItOpen,
@@ -112,11 +114,12 @@ export default function SupportSection({
 
   const isMaintenancePath = pathname.startsWith('/maintenance') || (pathname === '/inventory' && pageSearchParams.get('dept') === 'maintenance')
   const isITPath = pathname.startsWith('/it') || (pathname === '/inventory' && pageSearchParams.get('dept') === 'it')
+  const isAVPath = pathname.startsWith('/av') && pathname !== '/av/event-approvals'
 
   // Team membership drives sidebar visibility. Super-admins see everything.
   const showFacilities = isOnMaintenanceTeam || isSuperAdmin
   const showIT = isOnITTeam || isSuperAdmin
-  const showAV = isOnAVTeam || isSuperAdmin
+  const showAV = isOnAVTeam || canReadAV || isSuperAdmin
   const approvalCount = (facilitiesGateCount?.count ?? 0) + (avGateCount?.count ?? 0)
   const showApprovals = isSuperAdmin || isOnMaintenanceTeam || isOnAVTeam || canManageWorkspace || approvalCount > 0
 
@@ -278,6 +281,19 @@ export default function SupportSection({
                         aria-current={pathname === '/maintenance/assets' ? 'page' : undefined}
                       >
                         <span className="text-sm">Assets</span>
+                      </PrefetchLink>
+                    )}
+                    {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) && (
+                      <PrefetchLink
+                        href="/maintenance/tools"
+                        data-facility-active={pathname.startsWith('/maintenance/tools') ? 'true' : undefined}
+                        onClick={closePanels}
+                        className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          pathname.startsWith('/maintenance/tools') ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        aria-current={pathname.startsWith('/maintenance/tools') ? 'page' : undefined}
+                      >
+                        <span className="text-sm">Tools</span>
                       </PrefetchLink>
                     )}
                     {(isOnMaintenanceTeam || canManageMaintenance || canClaimMaintenance) && (
@@ -464,6 +480,19 @@ export default function SupportSection({
                         <span className="text-sm">Inventory</span>
                       </PrefetchLink>
                     )}
+                    {(isOnITTeam || canManageIT) && (
+                      <PrefetchLink
+                        href="/it/settings"
+                        data-it-active={pathname === '/it/settings' ? 'true' : undefined}
+                        onClick={() => { closePanels(); setFacilitiesOpen(() => false) }}
+                        className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                          pathname === '/it/settings' ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                        aria-current={pathname === '/it/settings' ? 'page' : undefined}
+                      >
+                        <span className="text-sm">Settings</span>
+                      </PrefetchLink>
+                    )}
                   </div>
                 </div>
               </>
@@ -545,6 +574,17 @@ export default function SupportSection({
                 }}
               />
               <div className="space-y-0.5 py-1">
+                <PrefetchLink
+                  href="/av"
+                  onClick={closePanels}
+                  data-av-active={isAVPath ? 'true' : undefined}
+                  className={`flex items-center pl-4 pr-3 py-2.5 min-h-[40px] rounded-lg transition-colors duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 ${
+                    isAVPath ? 'text-slate-900 font-medium' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  aria-current={isAVPath ? 'page' : undefined}
+                >
+                  <span className="text-sm">RF Command Center</span>
+                </PrefetchLink>
                 {canReadInventory && (
                   <PrefetchLink
                     href="/inventory"

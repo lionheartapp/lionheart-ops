@@ -27,8 +27,8 @@ export const GET = withAuth(async ({ orgId, ctx, params, permissions }) => {
       ...(canSeeInternal ? {} : { isInternal: false }),
     },
     include: {
-      actor: { select: { id: true, firstName: true, lastName: true } },
-      assignedTo: { select: { id: true, firstName: true, lastName: true } },
+      actor: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+      assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -70,7 +70,7 @@ export const POST = withAuth(async ({ req, orgId, ctx, params, permissions }) =>
       isInternal: effectiveIsInternal,
     },
     include: {
-      actor: { select: { id: true, firstName: true, lastName: true } },
+      actor: { select: { id: true, firstName: true, lastName: true, avatar: true } },
     },
   })
 

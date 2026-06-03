@@ -1,8 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { Calendar, Camera, Bot } from 'lucide-react'
 import type { WorkOrderTicket } from './WorkOrdersTable'
 
@@ -58,6 +56,16 @@ function getInitials(firstName: string, lastName: string): string {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase()
 }
 
+function avatarStyle(avatar?: string | null): React.CSSProperties | undefined {
+  return avatar
+    ? {
+        backgroundImage: `url(${JSON.stringify(avatar)})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : undefined
+}
+
 /** Signal-bar priority icon matching Linear's visual weight indicator */
 function PriorityIcon({ priority }: { priority: string }) {
   const color = PRIORITY_COLOR[priority] ?? 'text-slate-300'
@@ -81,30 +89,13 @@ function PriorityIcon({ priority }: { priority: string }) {
 
 interface KanbanCardProps {
   ticket: WorkOrderTicket
-  isOverlay?: boolean
   isPending?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardProps) {
+export default function KanbanCard({ ticket, isPending }: KanbanCardProps) {
   const router = useRouter()
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: ticket.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    ...(isOverlay
-      ? { transform: 'rotate(2deg)', boxShadow: '0 16px 40px rgba(0,0,0,0.16)' }
-      : {}),
-  }
 
   const hasPhotos =
     Array.isArray((ticket as WorkOrderTicket & { photos?: string[] }).photos) &&
@@ -117,18 +108,13 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
+    <button
+      type="button"
       onClick={handleClick}
       className={[
-        'bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-grab active:cursor-grabbing select-none',
-        'hover:border-slate-300 hover:shadow-md transition-all duration-100',
-        isDragging && !isOverlay ? 'opacity-30 scale-[0.98]' : '',
+        'w-full text-left bg-white border border-slate-200 rounded-lg p-3 shadow-sm cursor-pointer select-none',
+        'hover:border-slate-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 transition-all duration-100',
         isPending ? 'ring-2 ring-amber-300 ring-offset-1' : '',
-        isOverlay ? 'cursor-grabbing' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -140,10 +126,11 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
         </span>
         {ticket.assignedTo ? (
           <div
-            className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
+            className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-[10px] font-semibold flex-shrink-0 overflow-hidden border border-white/70"
+            style={avatarStyle(ticket.assignedTo.avatar)}
             title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}
           >
-            {getInitials(ticket.assignedTo.firstName, ticket.assignedTo.lastName)}
+            {!ticket.assignedTo.avatar && getInitials(ticket.assignedTo.firstName, ticket.assignedTo.lastName)}
           </div>
         ) : null}
       </div>
@@ -206,6 +193,6 @@ export default function KanbanCard({ ticket, isOverlay, isPending }: KanbanCardP
           <PriorityIcon priority={ticket.priority} />
         </div>
       </div>
-    </div>
+    </button>
   )
 }

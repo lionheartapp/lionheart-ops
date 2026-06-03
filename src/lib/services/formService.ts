@@ -13,7 +13,7 @@ import { prisma } from '@/lib/db'
 import { rawPrisma } from '@/lib/db'
 import { DEFAULT_CATEGORY_FIELDS, type FormFieldInput, type FormPageInput, type FormActionInput } from '@/lib/forms/schemas'
 import { SYSTEM_FORM_SEEDS } from '@/lib/forms/system-form-seeds'
-import type { FormFieldType, FormContext, FieldProtection, FieldSensitivity } from '@prisma/client'
+import { Prisma, type FormFieldType, type FormContext, type FieldProtection, type FieldSensitivity } from '@prisma/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +37,7 @@ export interface FormDefinitionWithFields {
     helpText: string | null
     options: string[]
     autoEscalate: boolean
+    workflowActions?: unknown
     condFieldKey: string | null
     condEquals: string | null
     sortOrder: number
@@ -86,6 +87,7 @@ export async function getOrSeedCategoryForm(
           helpText: f.helpText ?? null,
           options: f.options ?? [],
           autoEscalate: f.autoEscalate ?? false,
+          workflowActions: f.workflowActions ?? undefined,
           condFieldKey: f.condFieldKey ?? null,
           condEquals: f.condEquals ?? null,
           sortOrder: i,
@@ -123,6 +125,7 @@ export async function updateCategoryFormFields(
           helpText: f.helpText ?? null,
           options: f.options ?? [],
           autoEscalate: f.autoEscalate ?? false,
+          workflowActions: f.workflowActions ?? undefined,
           condFieldKey: f.condFieldKey ?? null,
           condEquals: f.condEquals ?? null,
           sortOrder: f.sortOrder ?? i,
@@ -164,6 +167,7 @@ export async function addField(
       helpText: field.helpText ?? null,
       options: field.options ?? [],
       autoEscalate: field.autoEscalate ?? false,
+      workflowActions: field.workflowActions ?? undefined,
       condFieldKey: field.condFieldKey ?? null,
       condEquals: field.condEquals ?? null,
       sortOrder,
@@ -179,39 +183,46 @@ export async function updateField(
   fieldId: string,
   patch: Partial<FormFieldInput>
 ) {
+  const data: Prisma.FormFieldUncheckedUpdateInput = {
+    ...(patch.key != null && { key: patch.key }),
+    ...(patch.label != null && { label: patch.label }),
+    ...(patch.type != null && { type: patch.type as FormFieldType }),
+    ...(patch.required != null && { required: patch.required }),
+    ...(patch.placeholder !== undefined && { placeholder: patch.placeholder ?? null }),
+    ...(patch.helpText !== undefined && { helpText: patch.helpText ?? null }),
+    ...(patch.options != null && { options: patch.options }),
+    ...(patch.autoEscalate != null && { autoEscalate: patch.autoEscalate }),
+    ...(patch.workflowActions !== undefined && {
+      workflowActions: patch.workflowActions === null
+        ? Prisma.JsonNull
+        : patch.workflowActions as Prisma.InputJsonValue,
+    }),
+    ...(patch.condFieldKey !== undefined && { condFieldKey: patch.condFieldKey ?? null }),
+    ...(patch.condOperator !== undefined && { condOperator: patch.condOperator ?? null }),
+    ...(patch.condEquals !== undefined && { condEquals: patch.condEquals ?? null }),
+    ...(patch.sortOrder != null && { sortOrder: patch.sortOrder }),
+    ...(patch.sectionId !== undefined && { sectionId: patch.sectionId ?? null }),
+    ...(patch.pageId !== undefined && { pageId: patch.pageId ?? null }),
+    // Protection & visibility
+    ...(patch.protection != null && { protection: patch.protection as FieldProtection }),
+    ...(patch.isIncluded != null && { isIncluded: patch.isIncluded }),
+    ...(patch.sensitivityLevel != null && { sensitivityLevel: patch.sensitivityLevel as FieldSensitivity }),
+    // Validation
+    ...(patch.minValue !== undefined && { minValue: patch.minValue ?? null }),
+    ...(patch.maxValue !== undefined && { maxValue: patch.maxValue ?? null }),
+    ...(patch.pattern !== undefined && { pattern: patch.pattern ?? null }),
+    ...(patch.errorMessage !== undefined && { errorMessage: patch.errorMessage ?? null }),
+    // Defaults & pre-fill
+    ...(patch.defaultValue !== undefined && { defaultValue: patch.defaultValue ?? null }),
+    ...(patch.prefillSource !== undefined && { prefillSource: patch.prefillSource ?? null }),
+    // File upload config
+    ...(patch.fileTypes != null && { fileTypes: patch.fileTypes }),
+    ...(patch.maxFileSize !== undefined && { maxFileSize: patch.maxFileSize ?? null }),
+  }
+
   return prisma.formField.update({
     where: { id: fieldId },
-    data: {
-      ...(patch.key != null && { key: patch.key }),
-      ...(patch.label != null && { label: patch.label }),
-      ...(patch.type != null && { type: patch.type as FormFieldType }),
-      ...(patch.required != null && { required: patch.required }),
-      ...(patch.placeholder !== undefined && { placeholder: patch.placeholder ?? null }),
-      ...(patch.helpText !== undefined && { helpText: patch.helpText ?? null }),
-      ...(patch.options != null && { options: patch.options }),
-      ...(patch.autoEscalate != null && { autoEscalate: patch.autoEscalate }),
-      ...(patch.condFieldKey !== undefined && { condFieldKey: patch.condFieldKey ?? null }),
-      ...(patch.condOperator !== undefined && { condOperator: patch.condOperator ?? null }),
-      ...(patch.condEquals !== undefined && { condEquals: patch.condEquals ?? null }),
-      ...(patch.sortOrder != null && { sortOrder: patch.sortOrder }),
-      ...(patch.sectionId !== undefined && { sectionId: patch.sectionId ?? null }),
-      ...(patch.pageId !== undefined && { pageId: patch.pageId ?? null }),
-      // Protection & visibility
-      ...(patch.protection != null && { protection: patch.protection as FieldProtection }),
-      ...(patch.isIncluded != null && { isIncluded: patch.isIncluded }),
-      ...(patch.sensitivityLevel != null && { sensitivityLevel: patch.sensitivityLevel as FieldSensitivity }),
-      // Validation
-      ...(patch.minValue !== undefined && { minValue: patch.minValue ?? null }),
-      ...(patch.maxValue !== undefined && { maxValue: patch.maxValue ?? null }),
-      ...(patch.pattern !== undefined && { pattern: patch.pattern ?? null }),
-      ...(patch.errorMessage !== undefined && { errorMessage: patch.errorMessage ?? null }),
-      // Defaults & pre-fill
-      ...(patch.defaultValue !== undefined && { defaultValue: patch.defaultValue ?? null }),
-      ...(patch.prefillSource !== undefined && { prefillSource: patch.prefillSource ?? null }),
-      // File upload config
-      ...(patch.fileTypes != null && { fileTypes: patch.fileTypes }),
-      ...(patch.maxFileSize !== undefined && { maxFileSize: patch.maxFileSize ?? null }),
-    },
+    data,
   })
 }
 
@@ -564,10 +575,11 @@ export async function seedFormApprovalDefaults(orgId: string): Promise<void> {
       },
     })
 
-    // Event forms also get Facilities + A/V as conditional approvers
+    // Event forms also get Facilities, IT, and A/V as conditional approvers
     const isEventForm = ['single_event', 'recurring_event', 'multiday_event'].includes(form.systemKey!)
     if (isEventForm) {
       const maintenanceTeamId = teamBySlug['maintenance']
+      const itTeamId = teamBySlug['it-support']
       const avTeamId = teamBySlug['av-production']
 
       if (maintenanceTeamId) {
@@ -583,6 +595,19 @@ export async function seedFormApprovalDefaults(orgId: string): Promise<void> {
           },
         })
       }
+      if (itTeamId) {
+        await rawPrisma.approvalFlowEntry.create({
+          data: {
+            organizationId: orgId,
+            ruleId: rule.id,
+            teamId: itTeamId,
+            mode: 'REQUIRED',
+            trigger: 'WHEN_RESOURCE_REQUESTED',
+            resourceType: 'it',
+            sortOrder: 2,
+          },
+        })
+      }
       if (avTeamId) {
         await rawPrisma.approvalFlowEntry.create({
           data: {
@@ -592,7 +617,7 @@ export async function seedFormApprovalDefaults(orgId: string): Promise<void> {
             mode: 'REQUIRED',
             trigger: 'WHEN_RESOURCE_REQUESTED',
             resourceType: 'av',
-            sortOrder: 2,
+            sortOrder: 3,
           },
         })
       }
@@ -675,6 +700,7 @@ export async function cloneFormForEvent(
           helpText: f.helpText,
           options: f.options,
           autoEscalate: f.autoEscalate,
+          workflowActions: f.workflowActions ?? undefined,
           condFieldKey: f.condFieldKey,
           condOperator: f.condOperator,
           condEquals: f.condEquals,
@@ -709,6 +735,7 @@ export async function cloneFormForEvent(
         helpText: f.helpText,
         options: f.options,
         autoEscalate: f.autoEscalate,
+        workflowActions: f.workflowActions ?? undefined,
         condFieldKey: f.condFieldKey,
         condOperator: f.condOperator,
         condEquals: f.condEquals,

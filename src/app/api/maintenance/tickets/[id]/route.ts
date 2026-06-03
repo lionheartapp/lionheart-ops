@@ -86,8 +86,8 @@ export const PATCH = withAuth(async ({ req, orgId, ctx, params }) => {
     where: { id: params.id },
     data: updateData as Prisma.MaintenanceTicketUpdateInput,
     include: {
-      submittedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
-      assignedTo: { select: { id: true, firstName: true, lastName: true } },
+      submittedBy: { select: { id: true, firstName: true, lastName: true, email: true, avatar: true } },
+      assignedTo: { select: { id: true, firstName: true, lastName: true, avatar: true } },
       building: { select: { id: true, name: true } },
       space: { select: { id: true, name: true } },
       room: { select: { id: true, roomNumber: true, displayName: true } },

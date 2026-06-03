@@ -61,6 +61,20 @@ const CreateTicketSchema = z.object({
 
 export type CreateTicketInput = z.infer<typeof CreateTicketSchema>
 
+const SplitTicketSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  category: z.enum([
+    'ELECTRICAL', 'PLUMBING', 'HVAC', 'STRUCTURAL',
+    'CUSTODIAL_BIOHAZARD', 'IT_AV', 'GROUNDS', 'OTHER',
+  ]),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
+  keepPhotos: z.boolean().default(false),
+  keepAsset: z.boolean().default(false),
+})
+
+export type SplitTicketInput = z.infer<typeof SplitTicketSchema>
+
 // ─── Generate Ticket Number ───────────────────────────────────────────────────
 
 export async function generateTicketNumber(orgId: string): Promise<string> {
@@ -231,6 +245,93 @@ export async function createMaintenanceTicket(
   )
 
   return ticket
+}
+
+// ─── Split Existing Ticket ───────────────────────────────────────────────────
+
+export async function splitMaintenanceTicket(
+  sourceTicketId: string,
+  input: unknown,
+  ctx: UserContext
+) {
+  const data = SplitTicketSchema.parse(input)
+
+  const source = await prisma.maintenanceTicket.findUnique({
+    where: { id: sourceTicketId },
+    select: {
+      id: true,
+      ticketNumber: true,
+      title: true,
+      priority: true,
+      photos: true,
+      buildingId: true,
+      spaceId: true,
+      roomId: true,
+      campusId: true,
+      availabilityNote: true,
+      assetId: true,
+      status: true,
+    },
+  })
+
+  if (!source) {
+    throw new Error('SOURCE_TICKET_NOT_FOUND')
+  }
+
+  if (source.status === 'DONE' || source.status === 'CANCELLED') {
+    throw new Error('Cannot split a closed or cancelled ticket')
+  }
+
+  const newTicket = await createMaintenanceTicket(
+    {
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      priority: data.priority ?? source.priority,
+      photos: data.keepPhotos ? source.photos : [],
+      buildingId: source.buildingId ?? undefined,
+      areaId: source.spaceId ?? undefined,
+      roomId: source.roomId ?? undefined,
+      schoolId: source.campusId ?? undefined,
+      availabilityNote: source.availabilityNote ?? undefined,
+      assetId: data.keepAsset ? source.assetId ?? undefined : undefined,
+    },
+    ctx.userId,
+    ctx.organizationId
+  )
+
+  await prisma.maintenanceTicketActivity.createMany({
+    data: [
+      {
+        organizationId: ctx.organizationId,
+        ticketId: source.id,
+        actorId: ctx.userId,
+        type: 'COMMENT',
+        content: `Split out separate work order ${newTicket.ticketNumber}: ${newTicket.title}`,
+        isInternal: true,
+        metadata: {
+          action: 'ticket_split',
+          newTicketId: newTicket.id,
+          newTicketNumber: newTicket.ticketNumber,
+        },
+      },
+      {
+        organizationId: ctx.organizationId,
+        ticketId: newTicket.id,
+        actorId: ctx.userId,
+        type: 'COMMENT',
+        content: `Created by splitting ${source.ticketNumber}: ${source.title}`,
+        isInternal: true,
+        metadata: {
+          action: 'ticket_split_child',
+          sourceTicketId: source.id,
+          sourceTicketNumber: source.ticketNumber,
+        },
+      },
+    ],
+  })
+
+  return newTicket
 }
 
 // ─── Transition Status ────────────────────────────────────────────────────────

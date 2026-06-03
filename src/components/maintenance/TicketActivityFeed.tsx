@@ -32,6 +32,7 @@ interface Actor {
   id: string
   firstName: string
   lastName: string
+  avatar?: string | null
 }
 
 interface Activity {
@@ -109,6 +110,16 @@ function getInitials(actor: Actor | null): string {
   return (f + l).toUpperCase() || '?'
 }
 
+function avatarStyle(avatar?: string | null): React.CSSProperties | undefined {
+  return avatar
+    ? {
+        backgroundImage: `url(${JSON.stringify(avatar)})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : undefined
+}
+
 // ─── Activity Entry ───────────────────────────────────────────────────────────
 
 function ActivityEntry({ activity }: { activity: Activity }) {
@@ -131,8 +142,11 @@ function ActivityEntry({ activity }: { activity: Activity }) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Actor avatar */}
-            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[9px] font-bold flex-shrink-0">
-              {getInitials(activity.actor)}
+            <div
+              className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[9px] font-bold flex-shrink-0 overflow-hidden border border-white/70"
+              style={avatarStyle(activity.actor?.avatar)}
+            >
+              {!activity.actor?.avatar && getInitials(activity.actor)}
             </div>
             <span className="text-sm font-medium text-slate-900">{name}</span>
             {activity.isInternal && (

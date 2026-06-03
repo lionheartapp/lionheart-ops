@@ -80,6 +80,7 @@ interface MainNavContentProps {
   avOpen: boolean
   setAvOpen: (fn: (prev: boolean) => boolean) => void
   isOnAVTeam: boolean
+  canReadAV: boolean
   canManageWorkspace: boolean
   canManageForms: boolean
   avGateCount: { count: number } | undefined
@@ -136,6 +137,7 @@ export default function MainNavContent({
   avOpen,
   setAvOpen,
   isOnAVTeam,
+  canReadAV,
   canManageWorkspace,
   canManageForms,
   avGateCount,
@@ -331,6 +333,7 @@ export default function MainNavContent({
           canClaimMaintenance={canClaimMaintenance}
           canSubmitMaintenance={canSubmitMaintenance}
           canReadInventory={canReadInventory}
+          canReadAV={canReadAV}
           facilitiesGateCount={facilitiesGateCount}
           itOpen={itOpen}
           setItOpen={setItOpen}

@@ -19,6 +19,10 @@ interface ChatPanelProps {
   onAiActiveChange?: (active: boolean) => void
   /** 'floating' = fixed-position popup (default), 'embedded' = fills parent container */
   variant?: 'floating' | 'embedded'
+  /** Optional prompt sent automatically when opened from a contextual workflow. */
+  initialPrompt?: string | null
+  initialImages?: ImageAttachment[] | null
+  initialPromptKey?: number
 }
 
 /**
@@ -31,7 +35,14 @@ interface ChatPanelProps {
  * - floating (default): fixed-position popup with close button
  * - embedded: fills parent container, no close button (used in dashboard right rail)
  */
-export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floating' }: ChatPanelProps) {
+export default function ChatPanel({
+  onClose,
+  onAiActiveChange,
+  variant = 'floating',
+  initialPrompt,
+  initialImages,
+  initialPromptKey,
+}: ChatPanelProps) {
   const [conversation, setConversation] = useState<ConversationTurn[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [showSidebar, setShowSidebar] = useState(false)
@@ -46,6 +57,7 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
   const [isExecutingWorkflow, setIsExecutingWorkflow] = useState(false)
   const [activeTools, setActiveTools] = useState<string[]>([])
   const abortRef = useRef<AbortController | null>(null)
+  const lastInitialPromptKeyRef = useRef<number | undefined>(undefined)
 
   // AI is "active" when listening (voice) or thinking (loading/streaming)
   const isAiActive = isListening || isLoading || isStreaming
@@ -327,6 +339,15 @@ export default function ChatPanel({ onClose, onAiActiveChange, variant = 'floati
     },
     [conversation, conversationId, isLoading, isStreaming]
   )
+
+  useEffect(() => {
+    if (!initialPrompt?.trim()) return
+    if (lastInitialPromptKeyRef.current === initialPromptKey) return
+    if (isLoading || isStreaming) return
+
+    lastInitialPromptKeyRef.current = initialPromptKey
+    handleSendMessage(initialPrompt, initialImages ?? undefined)
+  }, [handleSendMessage, initialImages, initialPrompt, initialPromptKey, isLoading, isStreaming])
 
   const handleConfirmAction = useCallback(async (modifiedPayload?: Record<string, unknown>) => {
     if (!pendingAction) return

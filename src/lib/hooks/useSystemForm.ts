@@ -7,6 +7,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { fetchApi } from '@/lib/api-client'
+import type { FormFieldWorkflowAction } from '@/lib/forms/schemas'
 
 interface SystemFormField {
   id: string
@@ -22,6 +23,7 @@ interface SystemFormField {
   sortOrder: number
   pageId: string | null
   autoEscalate: boolean
+  workflowActions: FormFieldWorkflowAction[] | null
   condFieldKey: string | null
   condOperator: string | null
   condEquals: string | null

@@ -25,6 +25,9 @@ interface AVEquipmentFormData {
   imageUrl: string | null
   documentationLinks: DocLink[]
   tags: string[]
+  useInRfCoordination: boolean
+  rfKind: string
+  currentFrequencyMhz: string
 }
 
 interface InventoryItemData extends AVEquipmentFormData {
@@ -42,6 +45,8 @@ interface AVEquipmentWizardProps {
   onPendingChange?: (pending: boolean) => void
   /** Default category for new items (set by the department page) */
   defaultCategory?: string
+  /** Show RF setup controls when the wizard is launched from the A/V command center */
+  rfMode?: boolean
 }
 
 // ─── Step Config ───────────────────────────────────────────────────────────
@@ -72,7 +77,7 @@ const transition = { duration: 0.25, ease: EASE }
 
 // ─── Initial Form Data ─────────────────────────────────────────────────────
 
-function getInitialData(item?: InventoryItemData | null, defaultCategory?: string): AVEquipmentFormData {
+function getInitialData(item?: InventoryItemData | null, defaultCategory?: string, rfMode = false): AVEquipmentFormData {
   return {
     name: item?.name ?? '',
     description: item?.description ?? '',
@@ -86,7 +91,15 @@ function getInitialData(item?: InventoryItemData | null, defaultCategory?: strin
     imageUrl: item?.imageUrl ?? null,
     documentationLinks: item?.documentationLinks ?? [],
     tags: item?.tags ?? [],
+    useInRfCoordination: rfMode,
+    rfKind: 'HANDHELD',
+    currentFrequencyMhz: '',
   }
+}
+
+function parseMhzToHz(value: string) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) && numeric > 0 ? Math.round(numeric * 1_000_000) : null
 }
 
 // ─── Step 3: Review & Confirm ─────────────────────────────────────────────
@@ -165,6 +178,14 @@ function StepReview({ formData, isEditing }: { formData: AVEquipmentFormData; is
           }
         />
         <ReviewRow
+          label="RF"
+          value={
+            formData.useInRfCoordination
+              ? `${formData.rfKind.replaceAll('_', ' ')}${formData.currentFrequencyMhz ? ` at ${formData.currentFrequencyMhz} MHz` : ''}`
+              : null
+          }
+        />
+        <ReviewRow
           label="Documentation"
           value={
             formData.documentationLinks.length > 0
@@ -185,11 +206,12 @@ export default function AVEquipmentWizard({
   onCancel,
   onPendingChange,
   defaultCategory,
+  rfMode = false,
 }: AVEquipmentWizardProps) {
   const queryClient = useQueryClient()
   const [currentStep, setCurrentStep] = useState(0)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
-  const [formData, setFormData] = useState<AVEquipmentFormData>(() => getInitialData(item, defaultCategory))
+  const [formData, setFormData] = useState<AVEquipmentFormData>(() => getInitialData(item, defaultCategory, rfMode))
   const [nameError, setNameError] = useState('')
   const essentialsRef = useRef<StepEssentialsHandle>(null)
 
@@ -252,6 +274,13 @@ export default function AVEquipmentWizard({
         imageUrl: formData.imageUrl,
         documentationLinks: formData.documentationLinks,
         tags: formData.tags,
+        ...(rfMode && {
+          rfDetails: {
+            useInRfCoordination: formData.useInRfCoordination,
+            kind: formData.rfKind,
+            currentFrequencyHz: parseMhzToHz(formData.currentFrequencyMhz),
+          },
+        }),
       }
 
       if (isEditing) {
@@ -401,12 +430,18 @@ export default function AVEquipmentWizard({
                 imageUrl={formData.imageUrl}
                 documentationLinks={formData.documentationLinks}
                 tags={formData.tags}
+                useInRfCoordination={rfMode ? formData.useInRfCoordination : undefined}
+                rfKind={formData.rfKind}
+                currentFrequencyMhz={formData.currentFrequencyMhz}
                 onManufacturerChange={(v) => update({ manufacturer: v })}
                 onModelChange={(v) => update({ model: v })}
                 onSerialNumbersChange={(v) => update({ serialNumbers: v })}
                 onImageChange={(v) => update({ imageUrl: v })}
                 onDocumentationLinksChange={(v) => update({ documentationLinks: v })}
                 onTagsChange={(v) => update({ tags: v })}
+                onUseInRfCoordinationChange={rfMode ? (v) => update({ useInRfCoordination: v }) : undefined}
+                onRfKindChange={(v) => update({ rfKind: v })}
+                onCurrentFrequencyMhzChange={(v) => update({ currentFrequencyMhz: v })}
               />
             )}
             {currentStep === 2 && (

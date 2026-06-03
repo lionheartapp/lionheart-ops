@@ -63,13 +63,13 @@ export default function SchoolLookup() {
             aria-label="School URL"
             autoComplete="organization"
             autoFocus
-            className="bg-slate-800/80 border-slate-700 focus-within:border-slate-500 focus-within:ring-slate-500/30 [&_input]:text-white [&_input]:placeholder:text-slate-500 [&_svg]:text-slate-500"
+            className="bg-white border-slate-300 focus-within:border-indigo-400 focus-within:ring-indigo-100 [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500"
           />
         </div>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Your school URL looks like{' '}
-          <span className="text-slate-400 font-mono">
+          <span className="text-slate-200 font-mono">
             {slug.trim().toLowerCase().replace(/\s+/g, '-') || 'your-school'}.lionheartapp.com
           </span>
         </p>

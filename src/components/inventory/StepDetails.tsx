@@ -6,6 +6,7 @@ import { AV_EQUIPMENT_TAGS, DOC_LINK_TYPES } from '@/lib/constants/inventory'
 import { FileInput } from '@/components/ui/FileInput'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { OptimizedImage } from '@/components/ui/OptimizedImage'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -24,12 +25,18 @@ interface StepDetailsProps {
   imageUrl: string | null
   documentationLinks: DocLink[]
   tags: string[]
+  useInRfCoordination?: boolean
+  rfKind?: string
+  currentFrequencyMhz?: string
   onManufacturerChange: (v: string) => void
   onModelChange: (v: string) => void
   onSerialNumbersChange: (v: string[]) => void
   onImageChange: (v: string | null) => void
   onDocumentationLinksChange: (v: DocLink[]) => void
   onTagsChange: (v: string[]) => void
+  onUseInRfCoordinationChange?: (v: boolean) => void
+  onRfKindChange?: (v: string) => void
+  onCurrentFrequencyMhzChange?: (v: string) => void
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -41,12 +48,18 @@ export default function StepDetails({
   imageUrl,
   documentationLinks,
   tags,
+  useInRfCoordination = false,
+  rfKind = 'HANDHELD',
+  currentFrequencyMhz = '',
   onManufacturerChange,
   onModelChange,
   onSerialNumbersChange,
   onImageChange,
   onDocumentationLinksChange,
   onTagsChange,
+  onUseInRfCoordinationChange,
+  onRfKindChange,
+  onCurrentFrequencyMhzChange,
 }: StepDetailsProps) {
   // Serial number input state
   const [serialInput, setSerialInput] = useState('')
@@ -152,6 +165,59 @@ export default function StepDetails({
 
   return (
     <div className="space-y-8" onPaste={handlePaste}>
+      {/* ── RF Coordination ── */}
+      {onUseInRfCoordinationChange && (
+        <section className="bg-white border border-indigo-100 rounded-xl p-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">RF coordination</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Use this when the item should appear in the A/V RF Command Center.
+            </p>
+          </div>
+          <Checkbox
+            checked={useInRfCoordination}
+            onChange={(event) => onUseInRfCoordinationChange(event.target.checked)}
+            label="Use in RF coordination"
+            description="Creates or updates the linked wireless device record for frequency plans."
+          />
+          {useInRfCoordination && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  RF type
+                </label>
+                <Select
+                  value={rfKind}
+                  onChange={(value) => onRfKindChange?.(value)}
+                  options={[
+                    'HANDHELD',
+                    'LAVALIER',
+                    'HEADSET',
+                    'BODY_PACK',
+                    'IEM',
+                    'RECEIVER',
+                    'ANTENNA',
+                    'SCANNER',
+                    'OTHER',
+                  ].map((value) => ({ value, label: value.replaceAll('_', ' ') }))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Current MHz
+                </label>
+                <Input
+                  inputMode="decimal"
+                  value={currentFrequencyMhz}
+                  onChange={(event) => onCurrentFrequencyMhzChange?.(event.target.value)}
+                  placeholder="542.125"
+                />
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── Product Details ── */}
       <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-semibold text-slate-900">Product details</h3>

@@ -333,6 +333,7 @@ export default function Sidebar({
       avOpen={avOpen}
       setAvOpen={setAvOpen}
       isOnAVTeam={perms.isOnAVTeam}
+      canReadAV={perms.canReadAV}
       canManageWorkspace={perms.canManageWorkspace}
       canManageForms={perms.canManageForms}
       avGateCount={perms.avGateCount}

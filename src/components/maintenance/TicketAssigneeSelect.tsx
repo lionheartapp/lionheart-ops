@@ -9,6 +9,7 @@ interface User {
   id: string
   firstName: string
   lastName: string
+  avatar?: string | null
 }
 
 interface TicketAssigneeSelectProps {
@@ -41,7 +42,12 @@ export default function TicketAssigneeSelect({
     queryKey: ['maintenance-technicians'],
     queryFn: () =>
       fetchApi<User[]>('/api/settings/users?teamSlug=maintenance').then((members) =>
-        members.map((m) => ({ id: m.id, firstName: m.firstName, lastName: m.lastName }))
+        members.map((m) => ({
+          id: m.id,
+          firstName: m.firstName,
+          lastName: m.lastName,
+          avatar: m.avatar ?? null,
+        }))
       ),
     staleTime: 5 * 60 * 1000,
     enabled: open,
@@ -62,9 +68,19 @@ export default function TicketAssigneeSelect({
     },
   })
 
-  const initials = currentAssignee
-    ? `${currentAssignee.firstName[0]}${currentAssignee.lastName[0]}`.toUpperCase()
-    : null
+  function initials(user: User): string {
+    return `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() || '?'
+  }
+
+  function avatarStyle(avatar?: string | null): React.CSSProperties | undefined {
+    return avatar
+      ? {
+          backgroundImage: `url(${JSON.stringify(avatar)})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }
+      : undefined
+  }
 
   return (
     <div ref={ref} className="relative">
@@ -79,8 +95,12 @@ export default function TicketAssigneeSelect({
       >
         {currentAssignee ? (
           <>
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-700 flex-shrink-0">
-              {initials}
+            <div
+              className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-700 flex-shrink-0 overflow-hidden border border-white/70"
+              style={avatarStyle(currentAssignee.avatar)}
+              title={`${currentAssignee.firstName} ${currentAssignee.lastName}`}
+            >
+              {!currentAssignee.avatar && initials(currentAssignee)}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-900 truncate">
@@ -120,8 +140,11 @@ export default function TicketAssigneeSelect({
                     selected ? 'bg-primary-50' : 'hover:bg-slate-50'
                   }`}
                 >
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-semibold text-blue-700 flex-shrink-0">
-                    {tech.firstName[0]}{tech.lastName[0]}
+                  <div
+                    className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-semibold text-blue-700 flex-shrink-0 overflow-hidden border border-white/70"
+                    style={avatarStyle(tech.avatar)}
+                  >
+                    {!tech.avatar && initials(tech)}
                   </div>
                   <span className="text-sm text-slate-700 flex-1 truncate">
                     {tech.firstName} {tech.lastName}

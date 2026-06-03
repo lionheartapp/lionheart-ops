@@ -58,6 +58,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
         fields: [
           { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting', 'Laptop / Clicker'] },
+          { key: 'it_needs', label: 'IT Support', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Wi-Fi / Network Check', 'Check-in Devices', 'Ticket Scanners', 'Payment Devices', 'Testing Devices', 'Livestream Account Access', 'Printer / Sign-in Station', 'Backup Hotspot'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
           { key: 'requires_security', label: 'Security Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
@@ -92,6 +93,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
         fields: [
           { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting', 'Laptop / Clicker'] },
+          { key: 'it_needs', label: 'IT Support', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Wi-Fi / Network Check', 'Check-in Devices', 'Ticket Scanners', 'Payment Devices', 'Testing Devices', 'Livestream Account Access', 'Printer / Sign-in Station', 'Backup Hotspot'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
           { key: 'requires_security', label: 'Security Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
@@ -125,6 +127,7 @@ export const SYSTEM_FORM_SEEDS: SystemFormSeed[] = [
         fields: [
           { key: 'team', label: 'Team', type: 'USER_PICKER', required: false, protection: 'DEFAULT' },
           { key: 'av_needs', label: 'AV Equipment', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Projector & Screen', 'Wireless Microphone(s)', 'Podium Mic', 'Livestream / Recording', 'Sound System / Speakers', 'Stage Lighting'] },
+          { key: 'it_needs', label: 'IT Support', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Wi-Fi / Network Check', 'Check-in Devices', 'Ticket Scanners', 'Payment Devices', 'Testing Devices', 'Livestream Account Access', 'Printer / Sign-in Station', 'Backup Hotspot'] },
           { key: 'facility_needs', label: 'Facilities Setup', type: 'MULTI_SELECT', required: false, protection: 'DEFAULT', options: ['Extra Seating / Chairs', 'Table Arrangement', 'Stage or Podium Setup', 'Outdoor Setup', 'Cleaning Before Event', 'Cleaning After Event', 'Signage / Wayfinding'] },
           { key: 'requires_custodial', label: 'Custodial Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },
           { key: 'requires_security', label: 'Security Required', type: 'CHECKBOX', required: false, protection: 'DEFAULT' },

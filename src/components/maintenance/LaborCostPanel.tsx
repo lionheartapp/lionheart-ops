@@ -3,11 +3,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ChevronDown,
   Clock,
-  DollarSign,
   Plus,
-  Pencil,
   Trash2,
   Loader2,
   Receipt,
@@ -97,7 +94,6 @@ export default function LaborCostPanel({
   technicians,
 }: LaborCostPanelProps) {
   const queryClient = useQueryClient()
-  const [expanded, setExpanded] = useState(true)
   const [showLaborForm, setShowLaborForm] = useState(false)
   const [showCostForm, setShowCostForm] = useState(false)
   const [deletingLaborId, setDeletingLaborId] = useState<string | null>(null)
@@ -178,37 +174,7 @@ export default function LaborCostPanel({
   }
 
   return (
-    <div className="ui-glass rounded-2xl overflow-hidden">
-      {/* Header */}
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between p-5 cursor-pointer hover:bg-slate-50/50 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-primary-600" />
-          <h3 className="text-sm font-semibold text-slate-700">Costs & Labor</h3>
-          {summary.grandTotal > 0 && (
-            <span className="text-xs text-primary-600 font-medium bg-primary-50 px-2 py-0.5 rounded-full">
-              {formatMoney(summary.grandTotal)}
-            </span>
-          )}
-        </div>
-        <motion.div animate={{ rotate: expanded ? 0 : -90 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="w-4 h-4 text-slate-400" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            key="panel-content"
-            variants={expandCollapse}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            className="overflow-hidden"
-          >
-            <div className="px-5 pb-5 space-y-5">
+    <div className="space-y-5">
               {/* Summary cards */}
               <LaborCostSummaryCards summary={summary} />
 
@@ -421,10 +387,6 @@ export default function LaborCostPanel({
                   </div>
                 )}
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

@@ -14,6 +14,9 @@ export interface AiDiagnosis {
   confidenceReason: string
   suggestedTools: string[]
   suggestedParts: string[]
+  ppe: string[]
+  safetyReminders: string[]
+  stopConditions: string[]
   steps: string[]
   analyzedPhotoCount: number
   analyzedAt: string // ISO timestamp

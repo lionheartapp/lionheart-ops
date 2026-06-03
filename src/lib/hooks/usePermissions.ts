@@ -60,6 +60,11 @@ interface Permissions {
   canManageSecurityIncidents: boolean
   canReadInventory: boolean
   canWriteInventory: boolean
+  canReadAV: boolean
+  canManageAV: boolean
+  canCoordinateAV: boolean
+  canUploadAVScans: boolean
+  canManageAVBridge: boolean
   canViewMedical: boolean
   isSuperAdmin: boolean
   legacyRole: string | null

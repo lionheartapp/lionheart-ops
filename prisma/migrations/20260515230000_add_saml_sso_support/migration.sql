@@ -1,8 +1,8 @@
 -- AlterTable: Add SAML NameID to User
-ALTER TABLE "User" ADD COLUMN "samlNameId" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "samlNameId" TEXT;
 
 -- CreateTable: SamlConnection
-CREATE TABLE "SamlConnection" (
+CREATE TABLE IF NOT EXISTS "SamlConnection" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT false,
@@ -24,7 +24,14 @@ CREATE TABLE "SamlConnection" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SamlConnection_organizationId_key" ON "SamlConnection"("organizationId");
+CREATE UNIQUE INDEX IF NOT EXISTS "SamlConnection_organizationId_key" ON "SamlConnection"("organizationId");
 
 -- AddForeignKey
-ALTER TABLE "SamlConnection" ADD CONSTRAINT "SamlConnection_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'SamlConnection_organizationId_fkey') THEN
+    ALTER TABLE "SamlConnection"
+      ADD CONSTRAINT "SamlConnection_organizationId_fkey"
+      FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+  END IF;
+END $$;

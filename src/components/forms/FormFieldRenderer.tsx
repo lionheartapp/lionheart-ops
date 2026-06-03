@@ -5,7 +5,7 @@ import { FileInput, SelectedFileChip } from '@/components/ui/FileInput'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
-import type { FormFieldType } from '@/lib/forms/schemas'
+import type { FormFieldType, FormFieldWorkflowAction } from '@/lib/forms/schemas'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +19,7 @@ export interface FormFieldData {
   helpText?: string | null
   options?: string[]
   autoEscalate?: boolean
+  workflowActions?: FormFieldWorkflowAction[] | null
   condFieldKey?: string | null
   condEquals?: string | null
   checkboxLabel?: string

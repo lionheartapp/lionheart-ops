@@ -32,8 +32,8 @@ export interface WorkOrderTicket {
   category: string
   scheduledDate?: string | null
   createdAt: string
-  assignedTo?: { id: string; firstName: string; lastName: string } | null
-  submittedBy?: { id: string; firstName: string; lastName: string } | null
+  assignedTo?: { id: string; firstName: string; lastName: string; avatar?: string | null } | null
+  submittedBy?: { id: string; firstName: string; lastName: string; avatar?: string | null } | null
   building?: { id: string; name: string } | null
   room?: { id: string; roomNumber: string; displayName?: string | null } | null
   school?: { id: string; name: string } | null

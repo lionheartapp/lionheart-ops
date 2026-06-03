@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { FlaskConical, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { FileInput, SelectedFileChip } from '@/components/ui/FileInput'
 
 /**
  * Pond Care Dosage Calculator
@@ -14,7 +17,7 @@ import { Input } from '@/components/ui/Input'
  * All computation is client-side — no network calls.
  */
 
-function computeDose(
+export function computeDose(
   targetPpm: number,
   volumeGallons: number,
   concentrationPct: number
@@ -47,16 +50,68 @@ function computeDose(
   }
 }
 
+export function computeVolumeGallons(params: {
+  shape: string
+  manualGallons: number
+  lengthFt: number
+  widthFt: number
+  diameterFt: number
+  acres: number
+  avgDepthFt: number
+}): number | null {
+  const { shape, manualGallons, lengthFt, widthFt, diameterFt, acres, avgDepthFt } = params
+
+  if (shape === 'MANUAL') {
+    return manualGallons > 0 ? manualGallons : null
+  }
+
+  if (avgDepthFt <= 0) return null
+
+  if (shape === 'RECTANGLE') {
+    if (lengthFt <= 0 || widthFt <= 0) return null
+    return lengthFt * widthFt * avgDepthFt * 7.48052
+  }
+
+  if (shape === 'CIRCLE') {
+    if (diameterFt <= 0) return null
+    const radius = diameterFt / 2
+    return Math.PI * radius * radius * avgDepthFt * 7.48052
+  }
+
+  if (shape === 'ACRE') {
+    if (acres <= 0) return null
+    return acres * avgDepthFt * 325851
+  }
+
+  return null
+}
+
 export default function PondCareDosageCalculator() {
-  const [volume, setVolume] = useState('')
+  const [shape, setShape] = useState('MANUAL')
+  const [manualGallons, setManualGallons] = useState('')
+  const [lengthFt, setLengthFt] = useState('')
+  const [widthFt, setWidthFt] = useState('')
+  const [diameterFt, setDiameterFt] = useState('')
+  const [surfaceAcres, setSurfaceAcres] = useState('')
+  const [avgDepthFt, setAvgDepthFt] = useState('')
   const [concentration, setConcentration] = useState('')
   const [targetPpm, setTargetPpm] = useState('')
+  const [labelVerified, setLabelVerified] = useState(false)
+  const [labelFiles, setLabelFiles] = useState<File[]>([])
 
-  const vol = parseFloat(volume)
+  const estimatedVolume = computeVolumeGallons({
+    shape,
+    manualGallons: parseFloat(manualGallons),
+    lengthFt: parseFloat(lengthFt),
+    widthFt: parseFloat(widthFt),
+    diameterFt: parseFloat(diameterFt),
+    acres: parseFloat(surfaceAcres),
+    avgDepthFt: parseFloat(avgDepthFt),
+  })
   const conc = parseFloat(concentration)
   const ppm = parseFloat(targetPpm)
 
-  const result = computeDose(ppm, vol, conc)
+  const result = estimatedVolume ? computeDose(ppm, estimatedVolume, conc) : null
   const isOverdose = result !== null && result.mL > 500
 
   return (
@@ -68,28 +123,116 @@ export default function PondCareDosageCalculator() {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Pond Care Dosage Calculator</h3>
-          <p className="text-xs text-slate-500">Calculate product dose for your pond volume</p>
+          <p className="text-xs text-slate-500">Estimate pond volume and product dose</p>
         </div>
       </div>
 
-      {/* Inputs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Volume estimate */}
+      <div className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">
-            Pond Volume (gallons)
+            Pond shape
           </label>
-          <Input
-            type="number"
-            min="0"
-            step="any"
-            value={volume}
-            onChange={(e) => setVolume(e.target.value)}
-            placeholder="e.g. 10000"
+          <Select
+            value={shape}
+            onChange={setShape}
             size="sm"
-            className="w-full text-sm focus-visible:ring-amber-400"
+            options={[
+              { value: 'MANUAL', label: 'I know the gallons' },
+              { value: 'RECTANGLE', label: 'Rectangular pond' },
+              { value: 'CIRCLE', label: 'Circular pond' },
+              { value: 'ACRE', label: 'Surface acres' },
+            ]}
           />
         </div>
 
+        {shape === 'MANUAL' && (
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              Pond volume (gallons)
+            </label>
+            <Input
+              type="number"
+              min="0"
+              step="any"
+              value={manualGallons}
+              onChange={(e) => setManualGallons(e.target.value)}
+              placeholder="e.g. 10000"
+              size="sm"
+              className="w-full text-sm focus-visible:ring-amber-400"
+            />
+          </div>
+        )}
+
+        {shape === 'RECTANGLE' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Length (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={lengthFt} onChange={(e) => setLengthFt(e.target.value)} size="sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Width (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={widthFt} onChange={(e) => setWidthFt(e.target.value)} size="sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Average depth (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={avgDepthFt} onChange={(e) => setAvgDepthFt(e.target.value)} size="sm" />
+            </div>
+          </div>
+        )}
+
+        {shape === 'CIRCLE' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Diameter (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={diameterFt} onChange={(e) => setDiameterFt(e.target.value)} size="sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Average depth (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={avgDepthFt} onChange={(e) => setAvgDepthFt(e.target.value)} size="sm" />
+            </div>
+          </div>
+        )}
+
+        {shape === 'ACRE' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Surface area (acres)
+              </label>
+              <Input type="number" min="0" step="any" value={surfaceAcres} onChange={(e) => setSurfaceAcres(e.target.value)} size="sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Average depth (ft)
+              </label>
+              <Input type="number" min="0" step="any" value={avgDepthFt} onChange={(e) => setAvgDepthFt(e.target.value)} size="sm" />
+            </div>
+          </div>
+        )}
+
+        {estimatedVolume !== null && (
+          <div className="rounded-xl border border-amber-100 bg-white/70 p-3">
+            <p className="text-xs text-slate-500">Estimated volume</p>
+            <p className="text-lg font-bold text-amber-900">
+              {Math.round(estimatedVolume).toLocaleString()} gallons
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Product inputs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">
             Product Concentration (%)
@@ -124,6 +267,45 @@ export default function PondCareDosageCalculator() {
         </div>
       </div>
 
+      <div className="rounded-xl border border-amber-200 bg-white/70 p-4">
+        <Checkbox
+          checked={labelVerified}
+          onChange={(e) => setLabelVerified(e.target.checked)}
+          label="I verified this target dose against the product label"
+          description="The label, SDS, and local environmental rules control chemical use. This calculator only does arithmetic."
+        />
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-white/70 p-4 space-y-3">
+        <div>
+          <p className="text-xs font-medium text-slate-700">Product label or SDS</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Attach the product info used for this calculation.
+          </p>
+        </div>
+        <FileInput
+          accept="application/pdf,image/*"
+          multiple
+          maxSize={10 * 1024 * 1024}
+          compact
+          hint="PDF or image up to 10MB"
+          onFiles={(files) => setLabelFiles((current) => [...current, ...files])}
+        />
+        {labelFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {labelFiles.map((file, index) => (
+              <SelectedFileChip
+                key={`${file.name}-${file.size}-${index}`}
+                file={file}
+                onRemove={() =>
+                  setLabelFiles((current) => current.filter((_, i) => i !== index))
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Results */}
       {result !== null && (
         <div className="bg-white/70 rounded-xl border border-amber-100 p-4 space-y-3">
@@ -153,13 +335,22 @@ export default function PondCareDosageCalculator() {
               </p>
             </div>
           )}
+
+          {!labelVerified && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-800 font-medium">
+                Verify the label before applying. Do not treat if runoff, wildlife, fish, or licensing rules make the application unsafe.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Empty / prompt state */}
-      {result === null && (volume || concentration || targetPpm) && (
+      {result === null && (manualGallons || lengthFt || widthFt || diameterFt || surfaceAcres || avgDepthFt || concentration || targetPpm) && (
         <p className="text-xs text-slate-400 italic">
-          Enter all three values to see the computed dose.
+          Enter pond volume, concentration, and target dose to see the computed amount.
         </p>
       )}
     </div>

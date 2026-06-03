@@ -1,520 +1,335 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useCallback, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Bot, Camera, Check, Loader2, Sparkles, UploadCloud } from 'lucide-react'
 import { logger } from '@/lib/logger'
-import { AnimatePresence, motion } from 'framer-motion'
-import {
-  Bot,
-  ChevronDown,
-  ChevronUp,
-  Wrench,
-  Package,
-  Send,
-  Loader2,
-  AlertCircle,
-  ImageOff,
-  Clock,
-  Sparkles,
-  BookOpen,
-  ExternalLink,
-} from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { getAuthHeaders, fetchApi } from '@/lib/api-client'
-import { expandCollapse, fadeInUp, staggerContainer } from '@/lib/animations'
-import { KBArticleTypeBadge } from '@/components/maintenance/KnowledgeBaseList'
-import { Textarea } from '@/components/ui/Textarea'
-import type { AiDiagnosis, AiConversationTurn, AiAnalysisCache } from '@/lib/types/maintenance-ai'
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { useToast } from '@/components/Toast'
+import { FileInput } from '@/components/ui/FileInput'
+import type { ImageAttachment } from '@/lib/types/assistant'
+import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from '@/lib/constants/maintenance'
 
 interface AIDiagnosticPanelProps {
   ticketId: string
-  photos: string[]
+  ticketNumber: string
+  title: string
+  description?: string | null
+  status: string
+  priority: string
   category: string
-  aiAnalysis: AiAnalysisCache | null
+  photos: string[]
+  locationLabel?: string | null
+  submittedByName?: string | null
+  assignedToName?: string | null
+  comments?: Array<{
+    content: string | null
+    createdAt: string
+    actorName?: string | null
+  }>
 }
 
-// ─── Confidence Badge ─────────────────────────────────────────────────────────
+type UploadState = {
+  id: string
+  name: string
+  status: 'uploading' | 'done' | 'error'
+}
 
-function ConfidenceBadge({ confidence, reason }: { confidence: AiDiagnosis['confidence']; reason: string }) {
-  const styles: Record<AiDiagnosis['confidence'], string> = {
-    HIGH: 'bg-green-100 text-green-700',
-    MEDIUM: 'bg-yellow-100 text-yellow-700',
-    LOW: 'bg-red-100 text-red-700',
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+const MAX_SIZE = 10 * 1024 * 1024
+const MAX_TICKET_PHOTOS = 5
+const MAX_LEO_IMAGES = 3
+
+function dataUrlToAttachment(dataUrl: string, name: string, fallbackMime: string): ImageAttachment {
+  const match = dataUrl.match(/^data:(.+);base64,(.*)$/)
+  return {
+    data: match?.[2] ?? dataUrl,
+    mimeType: match?.[1] ?? fallbackMime,
+    name,
   }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold w-fit ${styles[confidence]}`}>
-        {confidence} Confidence
-      </span>
-      <p className="text-xs text-slate-500 italic">{reason}</p>
-    </div>
-  )
 }
 
-// ─── Conversation Thread ──────────────────────────────────────────────────────
-
-function ConversationBubble({ turn }: { turn: AiConversationTurn }) {
-  const isUser = turn.role === 'user'
-  const time = new Date(turn.timestamp).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
+function fileToAttachment(file: File): Promise<ImageAttachment> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(dataUrlToAttachment(String(reader.result), file.name, file.type))
+    reader.onerror = () => reject(new Error('Could not read image'))
+    reader.readAsDataURL(file)
   })
-
-  return (
-    <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
-      <div
-        className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${
-          isUser
-            ? 'bg-primary-50 text-primary-900 rounded-br-sm border border-primary-100'
-            : 'bg-slate-50 text-slate-800 rounded-bl-sm border border-slate-100'
-        }`}
-      >
-        <p className="whitespace-pre-wrap">{turn.content}</p>
-      </div>
-      <span className="text-[10px] text-slate-400 px-1 flex items-center gap-1">
-        <Clock className="w-2.5 h-2.5" />
-        {time}
-      </span>
-    </div>
-  )
 }
 
-// ─── Diagnosis Skeleton ───────────────────────────────────────────────────────
-
-function DiagnosisSkeleton() {
-  return (
-    <div className="animate-pulse space-y-4">
-      <div className="text-xs text-slate-400 flex items-center gap-1.5">
-        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-500" />
-        Analyzing photos...
-      </div>
-      {/* Diagnosis block */}
-      <div className="space-y-2">
-        <div className="h-3 bg-slate-200 rounded w-24" />
-        <div className="h-4 bg-slate-200 rounded w-full" />
-        <div className="h-4 bg-slate-200 rounded w-3/4" />
-      </div>
-      {/* Tools block */}
-      <div className="space-y-2">
-        <div className="h-3 bg-slate-200 rounded w-20" />
-        <div className="h-3 bg-slate-100 rounded w-1/2" />
-        <div className="h-3 bg-slate-100 rounded w-2/5" />
-      </div>
-      {/* Steps block */}
-      <div className="space-y-2">
-        <div className="h-3 bg-slate-200 rounded w-20" />
-        <div className="h-3 bg-slate-100 rounded w-full" />
-        <div className="h-3 bg-slate-100 rounded w-4/5" />
-        <div className="h-3 bg-slate-100 rounded w-3/4" />
-      </div>
-    </div>
-  )
+async function urlToAttachment(url: string, index: number): Promise<ImageAttachment | null> {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const blob = await res.blob()
+    return await fileToAttachment(new File([blob], `ticket-photo-${index + 1}`, { type: blob.type || 'image/jpeg' }))
+  } catch (error) {
+    logger.warn({ error: String(error), url }, 'Could not attach ticket photo to Leo prompt')
+    return null
+  }
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+function compactList(items: Array<string | null | undefined>): string {
+  return items.filter(Boolean).join('\n')
+}
+
+function buildCommentSynopsis(comments: AIDiagnosticPanelProps['comments']): string | null {
+  const cleanComments = (comments ?? [])
+    .filter((comment) => comment.content?.trim())
+    .slice(-6)
+
+  if (cleanComments.length === 0) return null
+
+  return cleanComments
+    .map((comment) => {
+      const by = comment.actorName || 'Staff'
+      const date = new Date(comment.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      })
+      return `- ${date}, ${by}: ${comment.content!.trim()}`
+    })
+    .join('\n')
+}
 
 export default function AIDiagnosticPanel({
   ticketId,
-  photos,
+  ticketNumber,
+  title,
+  description,
+  status,
+  priority,
   category,
-  aiAnalysis,
+  photos,
+  locationLabel,
+  submittedByName,
+  assignedToName,
+  comments,
 }: AIDiagnosticPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [diagnosis, setDiagnosis] = useState<AiDiagnosis | null>(aiAnalysis?.diagnosis ?? null)
-  const [conversation, setConversation] = useState<AiConversationTurn[]>(aiAnalysis?.conversation ?? [])
-  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null) // null = not yet checked
-  const [noPhotosReason, setNoPhotosReason] = useState(false)
-  const [question, setQuestion] = useState('')
-  const [isSending, setIsSending] = useState(false)
-  const [isCached, setIsCached] = useState(false)
-  const hasFetchedRef = useRef(false)
-  const conversationEndRef = useRef<HTMLDivElement>(null)
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const [isOpeningLeo, setIsOpeningLeo] = useState(false)
+  const [uploading, setUploading] = useState<UploadState[]>([])
+  const [pendingLeoImages, setPendingLeoImages] = useState<ImageAttachment[]>([])
+  const [uploadError, setUploadError] = useState('')
 
-  // Check if photos changed since last analysis (cache invalidation)
-  const photosChanged = (() => {
-    if (!aiAnalysis?.lastPhotoSnapshot) return photos.length > 0
-    const currentSorted = [...photos].sort().join(',')
-    const snapshotSorted = [...(aiAnalysis.lastPhotoSnapshot)].sort().join(',')
-    return currentSorted !== snapshotSorted
-  })()
+  const remainingPhotos = Math.max(0, MAX_TICKET_PHOTOS - photos.length)
 
-  const hasCachedDiagnosis = !!aiAnalysis?.diagnosis && !photosChanged
+  const buildPrompt = useCallback(() => {
+    const commentSynopsis = buildCommentSynopsis(comments)
+    const context = compactList([
+      `Ticket: ${ticketNumber} (${ticketId})`,
+      `Title: ${title}`,
+      `Status: ${STATUS_LABELS[status] ?? status}`,
+      `Priority: ${PRIORITY_LABELS[priority] ?? priority}`,
+      `Category: ${CATEGORY_LABELS[category] ?? category}`,
+      locationLabel ? `Location: ${locationLabel}` : null,
+      submittedByName ? `Submitted by: ${submittedByName}` : null,
+      assignedToName ? `Assigned to: ${assignedToName}` : 'Assigned to: Unassigned',
+      description ? `Description: ${description}` : null,
+      `Ticket photos available: ${photos.length}`,
+      commentSynopsis ? `Comment synopsis:\n${commentSynopsis}` : null,
+    ])
 
-  // ─── KB articles query (fires only when diagnosis is loaded) ──────────────
+    return [
+      'Leo, act as a practical maintenance partner for this work order.',
+      'Assume the assigned technician is competent in their trade. Do not explain basics or talk down to them.',
+      'Help them reason through likely causes, useful checks, what evidence would confirm or rule out each path, and what to document.',
+      'Use the maintenance tools to pull the latest ticket details before answering.',
+      commentSynopsis
+        ? 'Use the comment synopsis below. If you mention comments, summarize only what matters for the troubleshooting path.'
+        : 'There are no ticket comments to summarize. Do not mention comments or say there are no comments.',
+      'If photos are attached to this message, inspect them directly.',
+      'Keep the answer concise. Prefer hypotheses, test sequence, likely parts, and gotchas over generic tool lists.',
+      'Only include PPE/safety notes that are specifically relevant to the ticket. Keep stop/escalate conditions clear, but do not pad them.',
+      'Do not recommend licensed, energized, refrigerant, chemical-label-sensitive, or hazardous-material work unless the correct qualified person is involved.',
+      '',
+      context,
+    ].join('\n')
+  }, [
+    assignedToName,
+    category,
+    comments,
+    description,
+    locationLabel,
+    photos.length,
+    priority,
+    status,
+    submittedByName,
+    ticketId,
+    ticketNumber,
+    title,
+  ])
 
-  interface KBArticleResult {
-    id: string
-    title: string
-    type: string
-  }
-
-  const { data: kbArticles } = useQuery<KBArticleResult[]>({
-    queryKey: ['kb-articles-for-ticket', ticketId, category],
-    queryFn: () => {
-      const params = new URLSearchParams()
-      params.set('q', category)
-      params.set('category', category)
-      params.set('limit', '3')
-      return fetchApi<KBArticleResult[]>(`/api/maintenance/knowledge-base/search?${params.toString()}`)
-    },
-    enabled: !!diagnosis && isExpanded,
-    staleTime: 60_000,
-  })
-
-  const relevantArticles = kbArticles?.slice(0, 3) ?? []
-
-  // ─── Expand handler ─────────────────────────────────────────────────────
-
-  async function handleExpand() {
-    if (isExpanded) {
-      setIsExpanded(false)
-      return
-    }
-
-    setIsExpanded(true)
-
-    // Don't fetch if we already have a valid cached result
-    if (hasCachedDiagnosis && diagnosis) {
-      setIsCached(true)
-      return
-    }
-
-    // Don't fetch again if we already called the API this session
-    if (hasFetchedRef.current) return
-
-    // Only fetch if there are photos
-    if (!photos || photos.length === 0) {
-      setNoPhotosReason(true)
-      setAiAvailable(true)
-      return
-    }
-
-    hasFetchedRef.current = true
-    setIsLoading(true)
-
+  async function openLeo() {
+    setIsOpeningLeo(true)
     try {
-      const res = await fetch(`/api/maintenance/tickets/${ticketId}/ai-diagnose`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      })
-      const json = await res.json()
+      const existing = await Promise.all(
+        photos.slice(0, Math.max(0, MAX_LEO_IMAGES - pendingLeoImages.length)).map(urlToAttachment)
+      )
+      const images = [...pendingLeoImages, ...existing.filter(Boolean) as ImageAttachment[]].slice(0, MAX_LEO_IMAGES)
 
-      if (!json.ok) {
-        setAiAvailable(false)
-        return
-      }
-
-      const { available, diagnosis: d, cached, reason } = json.data
-
-      if (!available) {
-        setAiAvailable(false)
-        return
-      }
-
-      setAiAvailable(true)
-
-      if (reason === 'no-photos') {
-        setNoPhotosReason(true)
-        return
-      }
-
-      if (d) {
-        setDiagnosis(d)
-        setIsCached(cached ?? false)
-      }
-    } catch (err) {
-      logger.error({ error: String(err) }, 'AIDiagnosticPanel fetch error')
-      setAiAvailable(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // ─── Ask AI handler ──────────────────────────────────────────────────────
-
-  async function handleAskSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const q = question.trim()
-    if (!q || isSending) return
-
-    setIsSending(true)
-    setQuestion('')
-
-    try {
-      const res = await fetch(`/api/maintenance/tickets/${ticketId}/ai-ask`, {
-        method: 'POST',
-        headers: {
-          ...getAuthHeaders(),
-          'Content-Type': 'application/json',
+      window.dispatchEvent(new CustomEvent('open-leo-drawer', {
+        detail: {
+          prompt: buildPrompt(),
+          images,
         },
-        body: JSON.stringify({ question: q }),
-      })
-      const json = await res.json()
-
-      if (json.ok && json.data.conversation) {
-        setConversation(json.data.conversation)
-        // Scroll to bottom
-        setTimeout(() => {
-          conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-        }, 100)
-      }
-    } catch (err) {
-      logger.error({ error: String(err) }, 'AIDiagnosticPanel ask error')
+      }))
     } finally {
-      setIsSending(false)
+      setIsOpeningLeo(false)
     }
   }
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  const uploadFile = useCallback(
+    async (file: File) => {
+      const id = `${Date.now()}-${file.name}`
+      setUploading((prev) => [...prev, { id, name: file.name, status: 'uploading' }])
+      setUploadError('')
+
+      try {
+        const attachment = await fileToAttachment(file)
+        const urlData = await fetchApi<{ signedUrl: string; publicUrl: string }>(
+          '/api/maintenance/tickets/upload-url',
+          {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+          }
+        )
+
+        const putRes = await fetch(urlData.signedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        })
+        if (!putRes.ok) throw new Error('Upload to storage failed')
+
+        await fetchApi(`/api/maintenance/tickets/${ticketId}`, {
+          method: 'PATCH',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ photos: [urlData.publicUrl] }),
+        })
+
+        setPendingLeoImages((prev) => [...prev, attachment].slice(0, MAX_LEO_IMAGES))
+        setUploading((prev) => prev.map((u) => u.id === id ? { ...u, status: 'done' } : u))
+        queryClient.invalidateQueries({ queryKey: ['maintenance-ticket', ticketId] })
+        queryClient.invalidateQueries({ queryKey: ['maintenance-ticket-activities', ticketId] })
+        queryClient.invalidateQueries({ queryKey: ['maintenance-tickets'] })
+        toast('Photo added to ticket', 'success')
+
+        setTimeout(() => {
+          setUploading((prev) => prev.filter((u) => u.id !== id))
+        }, 1200)
+      } catch (error) {
+        logger.error({ error: String(error) }, 'Maintenance Leo photo upload failed')
+        setUploading((prev) => prev.map((u) => u.id === id ? { ...u, status: 'error' } : u))
+        setUploadError(error instanceof Error ? error.message : 'Photo upload failed')
+      }
+    },
+    [queryClient, ticketId, toast]
+  )
+
+  const handleFiles = useCallback(
+    (files: File[]) => {
+      if (remainingPhotos <= 0) {
+        setUploadError(`Maximum ${MAX_TICKET_PHOTOS} ticket photos reached`)
+        return
+      }
+
+      files.slice(0, remainingPhotos).forEach((file) => {
+        if (!file.type.match(/^image\//)) {
+          setUploadError('Only image files are allowed')
+          return
+        }
+        if (file.size > MAX_SIZE) {
+          setUploadError('Each image must be 10MB or smaller')
+          return
+        }
+        void uploadFile(file)
+      })
+    },
+    [remainingPhotos, uploadFile]
+  )
 
   return (
-    <div className="ui-glass rounded-2xl overflow-hidden">
-      {/* ── Panel header (always visible) ── */}
-      <button
-        onClick={handleExpand}
-        className="w-full flex items-center gap-3 p-4 hover:bg-slate-50/50 transition-colors cursor-pointer text-left"
-      >
-        <div className="w-7 h-7 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-          <Bot className="w-4 h-4 text-primary-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-slate-800">AI Diagnostics</span>
-            {hasCachedDiagnosis && !isExpanded && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 font-medium flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" />
-                Cached
-              </span>
-            )}
+    <div className="rounded-xl border border-slate-100 bg-slate-50/70">
+      <div className="p-3 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-900">Ask Leo</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Use ticket context and photos for a second set of eyes.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 truncate">
-            {hasCachedDiagnosis
-              ? 'AI diagnosis available — click to view'
-              : photos.length > 0
-              ? 'Click to analyze photos with AI'
-              : 'Upload photos to enable AI diagnosis'}
-          </p>
-        </div>
-        {isExpanded ? (
-          <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        )}
-      </button>
-
-      {/* ── Expanded content ── */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            key="ai-panel-content"
-            variants={expandCollapse}
-            initial="collapsed"
-            animate="expanded"
-            exit="collapsed"
-            className="overflow-hidden"
+          <button
+            type="button"
+            onClick={openLeo}
+            disabled={isOpeningLeo}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer sm:w-auto"
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-slate-100">
+            {isOpeningLeo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+            {isOpeningLeo ? 'Opening...' : 'Open'}
+          </button>
+        </div>
 
-              {/* AI disclaimer banner */}
-              <div className="flex items-center gap-2 py-2 px-3 bg-amber-50/80 border border-amber-100 rounded-xl mt-3">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-                <p className="text-xs text-amber-700">
-                  <span className="font-semibold">AI Suggestion</span> — always verify on-site before beginning work.
+        {remainingPhotos > 0 ? (
+          <FileInput
+            accept={[...ALLOWED_TYPES, 'image/*'].join(',')}
+            capture="environment"
+            multiple
+            maxSize={MAX_SIZE}
+            onFiles={handleFiles}
+            compact
+            className="border-slate-200 hover:border-primary-300 hover:bg-primary-50/30"
+          >
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-8 h-8 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <Camera className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-800">Add photos for Leo</p>
+                <p className="text-[11px] text-slate-400">
+                  {photos.length} on ticket · up to {remainingPhotos} more
                 </p>
               </div>
-
-              {/* AI not configured */}
-              {aiAvailable === false && (
-                <div className="text-center py-6">
-                  <Bot className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500 font-medium">AI diagnostics not configured</p>
-                  <p className="text-xs text-slate-400 mt-1">Contact your administrator to enable AI features.</p>
-                </div>
-              )}
-
-              {/* No photos */}
-              {aiAvailable !== false && noPhotosReason && (
-                <div className="text-center py-6">
-                  <ImageOff className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500 font-medium">Upload photos to enable AI diagnosis</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    AI analysis requires at least one photo to diagnose the issue.
-                  </p>
-                </div>
-              )}
-
-              {/* Loading skeleton */}
-              {isLoading && <DiagnosisSkeleton />}
-
-              {/* Diagnosis results */}
-              {!isLoading && diagnosis && aiAvailable !== false && (
-                <motion.div
-                  variants={staggerContainer(0.05, 0)}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-4"
-                >
-                  {/* Cache indicator */}
-                  {isCached && (
-                    <div className="flex items-center gap-1.5 text-xs text-primary-600">
-                      <Sparkles className="w-3 h-3" />
-                      <span>Results from previous analysis (no new API call)</span>
-                    </div>
-                  )}
-
-                  {/* Likely diagnosis */}
-                  <motion.div variants={fadeInUp} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Likely Diagnosis</p>
-                    <p className="text-sm font-semibold text-slate-900">{diagnosis.likelyDiagnosis}</p>
-                    <ConfidenceBadge confidence={diagnosis.confidence} reason={diagnosis.confidenceReason} />
-                  </motion.div>
-
-                  {/* Suggested tools */}
-                  {diagnosis.suggestedTools.length > 0 && (
-                    <motion.div variants={fadeInUp}>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Wrench className="w-3.5 h-3.5 text-slate-400" />
-                        <p className="text-xs font-semibold text-slate-600">Suggested Tools</p>
-                      </div>
-                      <ul className="space-y-1">
-                        {diagnosis.suggestedTools.map((tool, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 flex-shrink-0" />
-                            {tool}
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-
-                  {/* Suggested parts */}
-                  {diagnosis.suggestedParts.length > 0 && (
-                    <motion.div variants={fadeInUp}>
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Package className="w-3.5 h-3.5 text-slate-400" />
-                        <p className="text-xs font-semibold text-slate-600">Suggested Parts / Supplies</p>
-                      </div>
-                      <ul className="space-y-1">
-                        {diagnosis.suggestedParts.map((part, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-slate-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-300 mt-1.5 flex-shrink-0" />
-                            {part}
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-
-                  {/* Step-by-step fix */}
-                  {diagnosis.steps.length > 0 && (
-                    <motion.div variants={fadeInUp}>
-                      <p className="text-xs font-semibold text-slate-600 mb-2">Step-by-Step Fix</p>
-                      <ol className="space-y-2">
-                        {diagnosis.steps.map((step, i) => (
-                          <li key={i} className="flex items-start gap-2.5">
-                            <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                              {i + 1}
-                            </span>
-                            <span className="text-xs text-slate-700 leading-relaxed">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-
-              {/* ── Relevant KB articles ── */}
-              {relevantArticles.length > 0 && (
-                <motion.div
-                  variants={expandCollapse}
-                  initial="collapsed"
-                  animate="expanded"
-                  className="overflow-hidden"
-                >
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <BookOpen className="w-3.5 h-3.5 text-primary-600" />
-                      <p className="text-xs font-semibold text-slate-600">Relevant Knowledge Base Articles</p>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {relevantArticles.map((article) => (
-                        <li key={article.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50/80 hover:bg-slate-100/80 transition-colors">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <KBArticleTypeBadge type={article.type} />
-                            <span className="text-xs text-slate-700 truncate">{article.title}</span>
-                          </div>
-                          <a
-                            href={`/maintenance/knowledge-base/${article.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-shrink-0 flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors"
-                          >
-                            View
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ── Ask AI section ── */}
-              {aiAvailable !== false && (
-                <div className="pt-2 border-t border-slate-100 space-y-3">
-                  <p className="text-xs font-semibold text-slate-500">Ask AI a Follow-up Question</p>
-
-                  {/* Conversation thread */}
-                  {conversation.length > 0 && (
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                      {conversation.map((turn, i) => (
-                        <ConversationBubble key={i} turn={turn} />
-                      ))}
-                      <div ref={conversationEndRef} />
-                    </div>
-                  )}
-
-                  {/* Input */}
-                  <form onSubmit={handleAskSubmit} className="flex items-end gap-2">
-                    <Textarea
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask a follow-up question..."
-                      rows={2}
-                      disabled={isSending}
-                      className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 placeholder:text-slate-400 disabled:opacity-50"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          handleAskSubmit(e as unknown as React.FormEvent)
-                        }
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!question.trim() || isSending}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer mb-0.5"
-                      title="Send question"
-                    >
-                      {isSending ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Send className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </form>
-                </div>
-              )}
-
             </div>
-          </motion.div>
+          </FileInput>
+        ) : (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            Photo limit reached for this ticket.
+          </div>
         )}
-      </AnimatePresence>
+
+        <AnimatePresence initial={false}>
+          {(uploading.length > 0 || uploadError) && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              className="space-y-2"
+            >
+              {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+              {uploading.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-100 px-2.5 py-2 text-xs text-slate-600">
+                  {item.status === 'uploading' && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-600" />}
+                  {item.status === 'done' && <Check className="w-3.5 h-3.5 text-green-600" />}
+                  {item.status === 'error' && <UploadCloud className="w-3.5 h-3.5 text-red-500" />}
+                  <span className="truncate flex-1">{item.name}</span>
+                  <span className="capitalize text-slate-400">{item.status}</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
     </div>
   )
 }

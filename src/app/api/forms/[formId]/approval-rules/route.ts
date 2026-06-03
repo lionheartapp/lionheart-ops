@@ -80,7 +80,7 @@ const CreateSchema = z.object({
   // Event conditions
   eventCategory: z.string().optional().nullable(),
   minAttendance: z.number().int().positive().optional().nullable(),
-  requiresResource: z.enum(['av', 'facilities', 'custodial', 'security']).optional().nullable(),
+  requiresResource: z.enum(['av', 'it', 'facilities', 'custodial', 'security']).optional().nullable(),
   isOffCampus: z.boolean().optional().nullable(),
   // Maintenance/IT conditions
   maintenanceCategory: z.string().optional().nullable(),

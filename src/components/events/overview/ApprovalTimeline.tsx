@@ -39,12 +39,13 @@ function isV2(gates: Record<string, unknown>): boolean {
 const V1_LABELS: Record<string, string> = {
   admin: 'Admin',
   av: 'A/V Production',
+  it: 'IT Support',
   facilities: 'Facilities',
   custodial: 'Custodial',
   security: 'Security',
 }
 
-const ALL_V1_KEYS: (keyof ApprovalGatesV1)[] = ['admin', 'av', 'facilities', 'custodial', 'security']
+const ALL_V1_KEYS: (keyof ApprovalGatesV1)[] = ['admin', 'av', 'it', 'facilities', 'custodial', 'security']
 
 function normalize(gates: ApprovalGates): NormalizedGate[] {
   const raw = gates as Record<string, unknown>

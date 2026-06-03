@@ -24,6 +24,7 @@ export interface SidebarPermissionFlags {
   canManageIT: boolean
   canSubmitIT: boolean
   canReadInventory: boolean
+  canReadAV: boolean
   canWriteAthletics: boolean
   canSeeITDevices: boolean
   canSeeITLifecycle: boolean
@@ -84,6 +85,7 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
   const canReadDevices = perms?.canReadDevices ?? optimisticIsAdmin
   const canReadStudents = perms?.canReadStudents ?? optimisticIsAdmin
   const canReadInventory = perms?.canReadInventory ?? optimisticIsAdmin
+  const canReadAV = perms?.canReadAV ?? optimisticIsAdmin
 
   const canAccessLoaners =
     (perms?.canManageLoaners ?? false) ||
@@ -134,6 +136,7 @@ export function useSidebarPermissionFlags(): SidebarPermissionFlags {
     canManageIT,
     canSubmitIT,
     canReadInventory,
+    canReadAV,
     // Athletics: show only for users with an athletics-specific role (not plain admins)
     canWriteAthletics: perms
       ? perms.canWriteAthletics && perms.legacyRole !== 'ADMIN'

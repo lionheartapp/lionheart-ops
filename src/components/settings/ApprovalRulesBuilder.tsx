@@ -755,6 +755,7 @@ export default function ApprovalRulesBuilder({ module = 'EVENT', formDefinitionI
                                   onChange={(value) => updateRule(selectedRule.id, { requiresResource: value || null })}
                                   options={[
                                     { value: 'av', label: 'A/V Equipment' },
+                                    { value: 'it', label: 'IT Support' },
                                     { value: 'facilities', label: 'Facilities Setup' },
                                     { value: 'custodial', label: 'Custodial' },
                                     { value: 'security', label: 'Security' },

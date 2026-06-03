@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, Camera, Check, Loader2, Upload, CheckSquare } from 'lucide-react'
+import { X, Camera, Check, Loader2, Upload, CheckSquare, ClipboardCheck } from 'lucide-react'
 import { fetchApi, getAuthHeaders } from '@/lib/api-client'
 import { FileInput } from '@/components/ui/FileInput'
 import { Textarea } from '@/components/ui/Textarea'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Checkbox } from '@/components/ui/Checkbox'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,20 +46,33 @@ export default function QACompletionModal({
 }: QACompletionModalProps) {
   const [photos, setPhotos] = useState<UploadedPhoto[]>([])
   const [uploading, setUploading] = useState<PhotoState[]>([])
+  const [workPerformed, setWorkPerformed] = useState('')
+  const [causeFound, setCauseFound] = useState('')
+  const [partsUsed, setPartsUsed] = useState('')
+  const [repairType, setRepairType] = useState<'PERMANENT' | 'TEMPORARY' | 'INSPECTION_ONLY'>('PERMANENT')
+  const [followUpNeeded, setFollowUpNeeded] = useState(false)
+  const [followUpNote, setFollowUpNote] = useState('')
   const [completionNote, setCompletionNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [submitError, setSubmitError] = useState('')
 
   const hasPhoto = photos.length > 0
-  const hasNote = completionNote.trim().length >= 10
-  const canSubmit = hasPhoto && hasNote && !isSubmitting && uploading.filter((u) => u.status === 'uploading').length === 0
+  const hasWorkPerformed = workPerformed.trim().length >= 10
+  const hasFollowUpNote = !followUpNeeded || followUpNote.trim().length >= 5
+  const canSubmit = hasPhoto && hasWorkPerformed && hasFollowUpNote && !isSubmitting && uploading.filter((u) => u.status === 'uploading').length === 0
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (!open) {
       setPhotos([])
       setUploading([])
+      setWorkPerformed('')
+      setCauseFound('')
+      setPartsUsed('')
+      setRepairType('PERMANENT')
+      setFollowUpNeeded(false)
+      setFollowUpNote('')
       setCompletionNote('')
       setUploadError('')
       setSubmitError('')
@@ -143,6 +159,16 @@ export default function QACompletionModal({
     if (!canSubmit) return
     setIsSubmitting(true)
     setSubmitError('')
+    const closeoutSummary = [
+      `Work performed: ${workPerformed.trim()}`,
+      causeFound.trim() ? `Cause found: ${causeFound.trim()}` : null,
+      partsUsed.trim() ? `Parts/materials used: ${partsUsed.trim()}` : null,
+      `Repair type: ${repairType === 'PERMANENT' ? 'Permanent fix' : repairType === 'TEMPORARY' ? 'Temporary fix' : 'Inspection/documentation only'}`,
+      `Follow-up needed: ${followUpNeeded ? 'Yes' : 'No'}`,
+      followUpNeeded && followUpNote.trim() ? `Follow-up notes: ${followUpNote.trim()}` : null,
+      completionNote.trim() ? `Additional notes: ${completionNote.trim()}` : null,
+    ].filter(Boolean).join('\n')
+
     try {
       await fetchApi(`/api/maintenance/tickets/${ticketId}/status`, {
         method: 'PATCH',
@@ -150,7 +176,7 @@ export default function QACompletionModal({
         body: JSON.stringify({
           status: 'QA',
           completionPhotos: photos.map((p) => p.url),
-          completionNote: completionNote.trim(),
+          completionNote: closeoutSummary,
         }),
       })
       onComplete()
@@ -202,7 +228,7 @@ export default function QACompletionModal({
               {/* Body */}
               <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
                 <p className="text-sm text-slate-600">
-                  To submit this ticket for QA review, you must provide at least one completion photo and a detailed completion note describing the work done.
+                  Add a completion photo and a short closeout summary. This helps future repair history and repeat-work decisions.
                 </p>
 
                 {/* Photo upload */}
@@ -271,31 +297,113 @@ export default function QACompletionModal({
                   )}
                 </div>
 
-                {/* Completion note */}
+                {/* Structured closeout */}
+                <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex items-center gap-2">
+                    <ClipboardCheck className="w-4 h-4 text-slate-500" />
+                    <p className="text-sm font-semibold text-slate-800">Closeout Summary</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Work performed <span className="text-red-500">*</span>
+                    </label>
+                    <Textarea
+                      value={workPerformed}
+                      onChange={(e) => setWorkPerformed(e.target.value)}
+                      placeholder="Describe what was repaired, replaced, cleaned, adjusted, or inspected."
+                      rows={3}
+                      className="resize-none"
+                    />
+                    <div className="flex items-center justify-between mt-1">
+                      {!hasWorkPerformed && workPerformed.trim().length > 0 ? (
+                        <p className="text-xs text-amber-600">
+                          {10 - workPerformed.trim().length} more character{10 - workPerformed.trim().length !== 1 ? 's' : ''} needed
+                        </p>
+                      ) : !hasWorkPerformed ? (
+                        <p className="text-xs text-slate-400">At least 10 characters required</p>
+                      ) : (
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Looks good
+                        </p>
+                      )}
+                      <span className="text-xs text-slate-400">{workPerformed.trim().length} chars</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Cause found
+                    </label>
+                    <Input
+                      value={causeFound}
+                      onChange={(e) => setCauseFound(e.target.value)}
+                      placeholder="e.g. worn cartridge, loose wire, clogged drain"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Parts or materials used
+                    </label>
+                    <Input
+                      value={partsUsed}
+                      onChange={(e) => setPartsUsed(e.target.value)}
+                      placeholder="e.g. 1/2 inch supply line, filter, disinfectant"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Repair type
+                    </label>
+                    <Select
+                      value={repairType}
+                      onChange={(value) => setRepairType(value as typeof repairType)}
+                      options={[
+                        { value: 'PERMANENT', label: 'Permanent fix' },
+                        { value: 'TEMPORARY', label: 'Temporary fix' },
+                        { value: 'INSPECTION_ONLY', label: 'Inspection only' },
+                      ]}
+                    />
+                  </div>
+
+                  <Checkbox
+                    checked={followUpNeeded}
+                    onChange={(e) => setFollowUpNeeded(e.target.checked)}
+                    label="Follow-up needed"
+                    description="Use this when the repair is temporary, parts are pending, or the asset may need replacement."
+                  />
+
+                  {followUpNeeded && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Follow-up note <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        value={followUpNote}
+                        onChange={(e) => setFollowUpNote(e.target.value)}
+                        placeholder="e.g. order cartridge, monitor for leak, recommend replacement"
+                        hasError={!hasFollowUpNote}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional note */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Completion Note <span className="text-red-500">*</span>
-                    <span className="text-xs text-slate-400 font-normal ml-1">(min. 10 characters)</span>
+                    Additional note
                   </label>
                   <Textarea
                     value={completionNote}
                     onChange={(e) => setCompletionNote(e.target.value)}
-                    placeholder="Describe the work completed, materials used, and any follow-up notes..."
-                    rows={4}
+                    placeholder="Optional extra context for QA or future reference..."
+                    rows={3}
                     className="resize-none"
                   />
                   <div className="flex items-center justify-between mt-1">
-                    {!hasNote && completionNote.trim().length > 0 ? (
-                      <p className="text-xs text-amber-600">
-                        {10 - completionNote.trim().length} more character{10 - completionNote.trim().length !== 1 ? 's' : ''} needed
-                      </p>
-                    ) : !hasNote ? (
-                      <p className="text-xs text-slate-400">Describe what was done in at least 10 characters</p>
-                    ) : (
-                      <p className="text-xs text-green-600 flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Note looks good
-                      </p>
-                    )}
+                    <p className="text-xs text-slate-400">Optional</p>
                     <span className="text-xs text-slate-400">{completionNote.trim().length} chars</span>
                   </div>
                 </div>
